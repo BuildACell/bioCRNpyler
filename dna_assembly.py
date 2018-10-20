@@ -35,9 +35,9 @@ class Promoter(component.Component):
     def update_reactions(self):
         mech_tx = self.mechanisms["transcription"]
         reactions = []
-        ktx = self.get_parameter("ktx")
-        kb = self.get_parameter("kb")
-        ku = self.get_parameter("ku")
+        ktx = self.get_parameter("ktx", part_id = self.name, mechanism = mech_tx)
+        kb = self.get_parameter("kb", part_id = self.name, mechanism = mech_tx)
+        ku = self.get_parameter("ku", part_id = self.name, mechanism = mech_tx)
 
         reactions += mech_tx.update_reactions(self.assembly.dna, ktx = ktx, ku = ku, kb = kb,
                                               complex = None, transcript = self.transcript)
@@ -45,7 +45,7 @@ class Promoter(component.Component):
 
 
 class RegulatedPromoter(Promoter):
-    def __init__(self, name, regulators, leak = False, assembly=None, transcript=None, length=0,
+    def __init__(self, name, regulators, leak = True, assembly=None, transcript=None, length=0,
                  mechanisms={}, parameters={}, **keywords):
 
         if not isinstance(regulators, list):
@@ -62,13 +62,13 @@ class RegulatedPromoter(Promoter):
 
         self.leak = leak
 
-        self.default_mechanisms = {"cooperative_binding":mechanism.One_Step_Cooperative_Binding()}
+        self.default_mechanisms = {"binding":mechanism.One_Step_Cooperative_Binding()}
 
         Promoter.__init__(self, name = name, assembly = assembly, transcript = transcript, length = length, mechanisms = mechanisms, parameters = parameters, **keywords)
 
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]
-        mech_b = self.mechanisms['cooperative_binding']
+        mech_b = self.mechanisms['binding']
 
         species = []
         self.complexes = []
@@ -77,8 +77,8 @@ class RegulatedPromoter(Promoter):
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
-            coop = self.get_parameter("cooperativity", regulator.name, mechanism = mech_b)
-            species_b = mech_b.update_species(binder = regulator, bindee = self.assembly.dna, cooperativity = coop)
+            coop = self.get_parameter(param_name="cooperativity", part_id=regulator.name, mechanism = mech_b)
+            species_b = mech_b.update_species(regulator, self.assembly.dna, cooperativity = coop)
             species += species_b
             complex = species_b[0]
             self.complexes += [complex]
@@ -89,12 +89,12 @@ class RegulatedPromoter(Promoter):
     def update_reactions(self):
         reactions = []
         mech_tx = self.mechanisms["transcription"]
-        mech_b = self.mechanisms['cooperative_binding']
+        mech_b = self.mechanisms['binding']
 
         if self.leak != False:
-            ktx = self.get_parameter("ktx_leak", mechanism = mech_tx)
-            ku = self.get_parameter("ku_leak", mechanism = mech_tx, part_id=self.name)
-            kb = self.get_parameter("kb_leak", mechanism = mech_tx, part_id=self.name)
+            ktx = self.get_parameter("ktx", mechanism = mech_tx, part_id=self.name+"_leak")
+            ku = self.get_parameter("ku", mechanism = mech_tx, part_id=self.name+"_leak")
+            kb = self.get_parameter("kb", mechanism = mech_tx, part_id=self.name+"_leak")
             reactions += mech_tx.update_reactions(dna = self.assembly.dna, ktx = ktx, ku = ku, kb = kb)
 
         for i in range(len(self.regulators)):
@@ -110,7 +110,7 @@ class RegulatedPromoter(Promoter):
 
             coop = self.get_parameter("cooperativity", part_id = regulator.name, mechanism = mech_tx)
 
-            reactions += mech_b.update_reactions(binder = regulator, bindee = self.assembly.dna, ku = ku_c, kb = kb_c, cooperativity = coop)
+            reactions += mech_b.update_reactions(regulator, self.assembly.dna, ku = ku_c, kb = kb_c, cooperativity = coop)
             reactions += mech_tx.update_reactions(dna = complex, kb = kb_tx, ku = ku_tx, ktx = ktx, transcript = self.transcript)
 
         return reactions
@@ -159,9 +159,9 @@ class RBS(component.Component):
         mech_tl = self.mechanisms['translation']
         reactions = []
 
-        ktl = self.get_parameter("ktl")
-        kb = self.get_parameter("kb")
-        ku = self.get_parameter("ku")
+        ktl = self.get_parameter("ktl", part_id = self.name, mechanism = mech_tl)
+        kb = self.get_parameter("kb", part_id = self.name, mechanism = mech_tl)
+        ku = self.get_parameter("ku", part_id = self.name, mechanism = mech_tl)
         reactions += mech_tl.update_reactions(transcript = self.transcript, protein = self.protein,
                                               ku = ku, kb = kb, ktl = ktl)
         return reactions
@@ -204,6 +204,8 @@ class DNAassembly(component.DNA):
             self.transcript = crn.specie(transcript, type = "rna")
         elif transcript == None:
             self.transcript = crn.specie(self.name, type = "rna")
+        elif isinstance(transcript, component.Component) and transcript.get_specie() != None:
+            self.transcript = transcript.get_specie()
         else:
             raise ValueError("Invalid value of transcript passed to "+str(self)+": transcript must be None, a chemical_reaction_network.specie, or a string.")
 
@@ -238,7 +240,8 @@ class DNAassembly(component.DNA):
         elif promoter != None:
             raise ValueError("Improper promoter type recieved by DNAassembly. Expected string or promoter object. Recieved "+repr(promoter))
 
-
+        if promoter!= None:
+            self.promoter.update_parameters(mixture_parameters=self.parameters,overwrite_custom_parameters=False)
 
     def update_rbs(self, rbs, transcript = None, protein = None):
         if protein != None:
@@ -256,6 +259,9 @@ class DNAassembly(component.DNA):
             self.rbs.protein = self.protein
         elif rbs != None:
             raise ValueError("Improper rbs type recieved by DNAassembly. Expected string or RBS object. Recieved "+repr(rbs))
+
+        if rbs != None:
+            self.rbs.update_parameters(mixture_parameters=self.parameters,overwrite_custom_parameters=False)
 
 
 

@@ -60,7 +60,7 @@ class Mechanism:
 #In the Copy RXN version, the Substrate is not Consumed
 #Sub+Enz <--> Sub:Enz --> Enz+Prod
 class MichalisMentenRXN(Mechanism):
-    def __init__(self, name, enzyme, type):
+    def __init__(self, name, enzyme, type, **keywords):
         if isinstance(enzyme, crn.specie):
             self.Enzyme = enzyme
         else:
@@ -68,14 +68,17 @@ class MichalisMentenRXN(Mechanism):
 
         Mechanism.__init__(self, name, type)
 
-    def update_species(self, Sub):
-        complex = crn.specie(Sub.type+"_"+Sub.name + ":" +self.Enzyme.type+"_"+self.Enzyme.name, type="complex")
+    def update_species(self, Sub, **keywords):
+        complex_name = Sub.type + "_" + Sub.name + ":" + self.Enzyme.type + "_" + self.Enzyme.name
+        complex = crn.specie(complex_name, type="complex")
+
         return [complex]
 
 
-    def update_reactions(self, Sub, Prod, complex = None, kb = 100, ku = 10, kcat = 1):
+    def update_reactions(self, Sub, Prod, complex = None, kb = 100, ku = 10, kcat = 1, **keywords):
         if complex == None:
-            complex = crn.specie(Sub.type+"_"+Sub.name + ":" + self.Enzyme.type+"_"+self.Enzyme.name, type="complex")
+            complex_name = Sub.type + "_" + Sub.name + ":" + self.Enzyme.type + "_" + self.Enzyme.name
+            complex = crn.specie(complex_name, type = "complex")
         # Sub + Enz <--> Sub:Enz
         binding_rxn = crn.reaction(inputs=[Sub, self.Enzyme], outputs=[complex], k=kb, k_rev=ku)
         if Prod != None:
@@ -90,7 +93,7 @@ class MichalisMentenRXN(Mechanism):
 #In the Copy RXN version, the Substrate is not Consumed
 #Sub+Enz <--> Sub:Enz --> Sub+Enz+Prod
 class MichalisMentenCopyRXN(Mechanism):
-    def __init__(self, name, enzyme, type):
+    def __init__(self, name, enzyme, type, **keywords):
         if isinstance(enzyme, crn.specie):
             self.Enzyme = enzyme
         else:
@@ -98,15 +101,17 @@ class MichalisMentenCopyRXN(Mechanism):
 
         Mechanism.__init__(self, name, type)
 
-    def update_species(self, Sub):
+    def update_species(self, Sub, **keywords):
         complex = crn.specie(Sub.type+"_"+Sub.name + ":" + self.Enzyme.type+"_"+self.Enzyme.name
 , type="complex")
         return [complex]
 
 
-    def update_reactions(self, Sub, Prod, complex = None, kb = 100, ku = 10, kcat = 1):
+    def update_reactions(self, Sub, Prod, complex = None, kb = 100, ku = 10, kcat = 1, **keywords):
         if complex == None:
-            complex = crn.specie(Sub.type+"_"+Sub.name + ":" + self.Enzyme.type+"_"+self.Enzyme.name, type="complex")
+            complex_name = Sub.type + "_" + Sub.name + ":" + self.Enzyme.type + "_" + self.Enzyme.name
+            complex_name.replace("complex_", "")
+            complex = crn.specie(complex_name, type="complex")
         # Sub + Enz <--> Sub:Enz
         binding_rxn = crn.reaction(inputs=[Sub, self.Enzyme], outputs=[complex], k=kb, k_rev=ku)
 
@@ -119,17 +124,19 @@ class MichalisMentenCopyRXN(Mechanism):
 #Michalis Menten Transcription
 #G + RNAP <--> G:RNAP --> G+RNAP+mRNA
 class Transcription_MM(MichalisMentenCopyRXN):
-    def __init__(self, name = "transcription_mm", rnap = "RNAP"):
+    def __init__(self, name = "transcription_mm", rnap = "RNAP", **keywords):
         if isinstance(rnap, crn.specie):
             self.rnap = rnap
         elif isinstance(rnap, str):
             self.rnap = crn.specie(name = rnap, type = "protein")
+        elif isinstance(rnap, component.Component) and rnap.get_specie() != None:
+            self.rnap = rnap.get_specie()
         else:
-            raise ValueError("'rnap' parameter must be a string or chemical_reaction_network.specie")
+            raise ValueError("'rnap' parameter must be a string, a component with defined get_specie(), or a chemical_reaction_network.specie")
 
         MichalisMentenCopyRXN.__init__(self = self, name = name, enzyme=self.rnap, type = "transcription")
 
-    def update_species(self, dna, return_transcript = False, return_rnap = False):
+    def update_species(self, dna, return_transcript = False, return_rnap = False, **keywords):
         species = []
         if return_rnap:
             species += [self.rnap]
@@ -139,7 +146,7 @@ class Transcription_MM(MichalisMentenCopyRXN):
             species += [crn.specie(dna.name, type = "rna")]
         return species
 
-    def update_reactions(self, dna, kb, ku, ktx, complex = None, transcript = None):
+    def update_reactions(self, dna, kb, ku, ktx, complex = None, transcript = None, **keywords):
         rxns = []
 
         if transcript == None:
@@ -152,16 +159,18 @@ class Transcription_MM(MichalisMentenCopyRXN):
 #mRNA + Rib <--> mRNA:Rib --> mRNA + Rib + Protein
 class Translation_MM(MichalisMentenCopyRXN):
 
-    def __init__(self, name="translation_mm", ribosome="Ribo"):
+    def __init__(self, name="translation_mm", ribosome="Ribo", **keywords):
         if isinstance(ribosome, crn.specie):
             self.ribosome = ribosome
         elif isinstance(ribosome, str):
             self.ribosome = crn.specie(name=ribosome, type="ribosome")
+        elif isinstance(ribosome, component.Component) and ribosome.get_specie() != None:
+            self.ribosome = ribosome.get_specie()
         else:
-            raise ValueError("'ribosome' parameter must be a string or chemical_reaction_network.specie")
+            raise ValueError("'ribosome' parameter must be a string, a component with defined get_specie, or a chemical_reaction_network.specie")
         MichalisMentenCopyRXN.__init__(self=self, name=name, enzyme=self.ribosome, type = "translation")
 
-    def update_species(self, transcript, return_protein=False, return_ribosome = False):
+    def update_species(self, transcript, return_protein=False, return_ribosome = False, **keywords):
         species = []
         if return_ribosome:
             species = [self.ribosome]
@@ -170,7 +179,7 @@ class Translation_MM(MichalisMentenCopyRXN):
             species += [crn.specie(transcript.name, type="protein")]
         return species
 
-    def update_reactions(self, transcript, kb, ku, ktl, complex=None, protein=None):
+    def update_reactions(self, transcript, kb, ku, ktl, complex=None, protein=None, **keywords):
         rxns = []
 
         if protein == None:
@@ -183,7 +192,7 @@ class Translation_MM(MichalisMentenCopyRXN):
 #Michalis Menten mRNA Degredation by Endonucleases
 #mRNA + Endo <--> mRNA:Endo --> Endo
 class Degredation_mRNA_MM(MichalisMentenRXN):
-    def __init__(self, name="rna_degredation_mm", nuclease="RNAase"):
+    def __init__(self, name="rna_degredation_mm", nuclease="RNAase", **keywords):
         if isinstance(nuclease, crn.specie):
             self.nuclease = nuclease
         elif isinstance(nuclease, str):
@@ -192,41 +201,63 @@ class Degredation_mRNA_MM(MichalisMentenRXN):
             raise ValueError("'nuclease' parameter requires a chemical_reaction_network.specie or a string")
         MichalisMentenRXN.__init__(self=self, name=name, enzyme=self.nuclease, type = "rna_degredation")
 
-    def update_species(self, rna, return_nuclease = False):
+    def update_species(self, rna, return_nuclease = False, **keywords):
         species = []
         if return_nuclease:
             species += [self.nuclease]
         species += MichalisMentenRXN.update_species(self, rna)
         return species
 
-    def update_reactions(self, rna, kb, ku, kdeg, complex=None):
+    def update_reactions(self, rna, kb, ku, kdeg, complex=None, **keywords):
         rxns = []
         rxns += MichalisMentenRXN.update_reactions(self, rna, Prod=None, complex=complex,
                                                       kb=kb, ku=ku,
                                                       kcat=kdeg)
         return rxns
 
+class Reversible_Bimolecular_Binding(Mechanism):
+    def __init__(self, name = "reversible_bimolecular_binding", type = "bimolecular_binding"):
+        Mechanism.__init__(self, name = name, type = type)
 
+    def update_species(self, s1, s2, **keywords):
+        complex = crn.specie(repr(s1)+":"+repr(s2), type = "complex")
+        return [complex]
+
+    def update_reactions(self, s1, s2, kb, ku, **keywords):
+        complex = crn.specie(repr(s1) + ":" + repr(s2), type="complex")
+        rxns = [crn.reaction([s1, s2], [complex], k = kb, k_rev = ku)]
+        return rxns
+
+
+
+#A reaction where n binders (A) bind to 1 bindee (B) in one step
+# n A + B <--> nA:B
 class One_Step_Cooperative_Binding(Mechanism):
     def __init__(self, name="one_step_cooperative_binding", type="cooperative_binding"):
         Mechanism.__init__(self, name, type)
 
-    def update_species(self, binder, bindee, cooperativity = 1, **kwords):
+    def update_species(self, s1, s2, cooperativity = 1, **kwords):
+        binder, bindee = s1, s2
         complex = crn.specie(binder.type +"_" + str(cooperativity) + "x_" + binder.name + ":" + bindee.type + "_" + bindee.name, type="complex")
         return [complex]
 
-    def update_reactions(self, binder, bindee, kb, ku, cooperativity = 1, **kwords):
+    def update_reactions(self, s1, s2, kb, ku, cooperativity = 1, **kwords):
+        binder, bindee = s1, s2
         complex = crn.specie(binder.type +"_" + str(cooperativity) + "x_" + binder.name + ":" + bindee.type + "_" + bindee.name, type="complex")
 
         rxns = []
         rxns += [crn.reaction(inputs = [binder, bindee], outputs = [complex], input_coefs=[cooperativity, 1], output_coefs=[1], k = kb, k_rev=ku)]
         return rxns
 
+#A reaction where n binders (s1) bind to 1 bindee (s2) in two steps
+# n A <--> nx_A
+# nx_A <--> nx_A:B
 class Two_Step_Cooperative_Binding(Mechanism):
     def __init__(self, name = "two_step_cooperative_binding", type="cooperative_binding"):
         Mechanism.__init__(self, name, type)
 
-    def update_species(self, binder, bindee, cooperativity = 2):
+    def update_species(self, s1, s2, cooperativity = 2, **keywords):
+        binder, bindee = s1, s2
         n_mer = crn.specie(str(cooperativity)+"x_"+bindee.name, type = "complex")
         complex = crn.specie(binder.type + "_" + n_mer.name + ":" + bindee.type + "_" + bindee.name,
                                  type="complex")
@@ -236,8 +267,8 @@ class Two_Step_Cooperative_Binding(Mechanism):
     #Returns reactions:
     # cooperativity binder <--> n_mer, kf = kb1, kr = ku1
     # n_mer + bindee <--> complex, kf = kb2, kr = ku2
-    def update_reactions(self, binder, bindee, kb, ku, cooperativity = 2):
-
+    def update_reactions(self, s1, s2, kb, ku, cooperativity = 2, **keywords):
+        binder, bindee = s1, s2
         if len(kb) != len(ku) != 2:
             raise ValueError("kb and ku must contain 2 values each for two-step binding")
         kb1, kb2 = kb

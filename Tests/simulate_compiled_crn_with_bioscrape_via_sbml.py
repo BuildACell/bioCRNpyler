@@ -26,11 +26,6 @@ initial_condition_dict = {repr(A1.dna):2, "complex_Ribo":10, "protein_RNAP":5, "
 timepoints = np.arange(0, 50, .01)
 print("Simulating")
 sim_result, model= CRN.simulate_with_bioscrape_deterministic(timepoints, f, initial_condition_dict)
-s_l_bs = model.get_species_list()
-
-print([(s, model.get_species_index(s)) for s in s_l_bs])
-
-print([(CRN.species[i], i) for i in range(len(CRN.species))])
 
 result = sim_result.py_get_result()
 rep_ind = model.get_species_index("protein_Reporter")

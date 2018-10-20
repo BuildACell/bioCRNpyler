@@ -30,7 +30,7 @@ import chemical_reaction_network as crn
     parameters          Global parameters for the mixture (dict)
 """
 class Mixture():
-    def __init__(self, name="", mechanisms={}, components = [], parameters = {}, default_mechanisms = {}, **kwargs):
+    def __init__(self, name="", mechanisms={}, components = [], parameters = {}, default_mechanisms = {}, global_mechanisms = {}, **kwargs):
         "Create a new mixture"
 
         # Initialize instance variables
@@ -53,9 +53,19 @@ class Mixture():
         else:
             raise ValueError("Mechanisms must be passed as a list of instantiated objects or a dictionary {type:mechanism}")
 
+        #Global mechanisms are applied just once ALL species generated from components inside a mixture
+        #Global mechanisms should be used rarely, and with care. An example usecase is degredation via dilution.
+        self.global_mechanisms = global_mechanisms
+
         self.components = []  # components contained in mixture
+        self.added_species = [] # if chemcial_reaction_network.specie objects are passed in as components they are stored here
         for component in components:
-            self.add_components(component)
+            if isinstance(component, comp.Component):
+                self.add_components(component)
+            elif isinstance(component, crn.specie):
+                self.added_species += component
+            else:
+                raise ValueError("Objects passed into mixture as Components must be of the class Component or chemical_reaction_network.specie")
 
     def add_components(self, components):
         if isinstance(components, comp.Component):
@@ -70,24 +80,29 @@ class Mixture():
                 warn("Non-component added to mixture "+self.name, RuntimeWarning)
 
     def update_species(self):
-        species = []
+        self.crn_species = self.added_species
         for component in self.components:
-            species += component.update_species()
+            new_species = component.update_species()
+            self.crn_species += component.update_species()
 
-        species_counts = [(species.count(s), s) for s in species]
+        #Update Global Mechanisms
+        for mech in self.global_mechanisms:
+            self.crn_species += self.global_mechanisms[mech].update_species_global(self.crn_species, self.parameters)
 
-        for (c, s) in species_counts:
-            if c > 1:
-                warn(str(c)+" counts of the species "+repr(s)+" found during compilation. Duplicates being removed.", RuntimeWarning)
-                for i in range(1, c):
-                    species.remove(s)
-        return species
+        return self.crn_species
 
     def update_reactions(self):
-        reactions = []
+        if self.crn_species == None:
+            raise AttributeError("Mixture.crn_species not defined. mixture.update_species() must be called before mixture.update_reactions()")
+
+        self.crn_reactions = []
         for component in self.components:
-            reactions += component.update_reactions()
-        return reactions
+            self.crn_reactions += component.update_reactions()
+
+        #update with global mechanisms
+        for mech in self.global_mechanisms:
+            self.crn_reactions += self.global_mechanisms[mech].update_reactions_global(self.crn_species, self.parameters)
+        return self.crn_reactions
 
     def compile_crn(self):
         species = self.update_species()
@@ -103,8 +118,11 @@ class Mixture():
         txt += "Components = ["
         for comp in self.components:
             txt+="\n\t"+str(comp)
-        txt+="]\nMechanisms = {"
+        txt+=" ]\nMechanisms = {"
         for mech in self.mechanisms:
             txt+="\n\t"+mech+":"+self.mechanisms[mech].name
-        txt+="}"
+        txt+=" }\nGlobal Mechanisms = {"
+        for mech in self.global_mechanisms:
+            txt+="\n\t"+mech+":"+self.mechanisms[mech].name
+        txt+=" }"
         return txt

@@ -44,6 +44,10 @@ class Component(object):
             mixture_parameters = {}
         self.update_parameters(mixture_parameters = mixture_parameters, parameters = parameters)
 
+    def get_specie(self):
+        warn("get_specie() not defined for component "+self.name+" None returned.")
+        return None
+
     def update_parameters(self, mixture_parameters = {}, parameters = {}, overwrite_custom_parameters = True):
         for p in parameters:
             if overwrite_custom_parameters or p not in self.custom_parameters:
@@ -82,39 +86,49 @@ class Component(object):
 
     #Get Parameter Hierarchy:
     def get_parameter(self, param_name, part_id = None, mechanism = None):
+        return_val = None
+        warning_txt = None
+
+        #Ideally parameters can be found (mechanism.name/type, part_id, param_name) --> val
         if  part_id != None and mechanism != None:
             if mechanism != None and (mechanism.name, part_id, param_name) in self.parameters:
-                return self.parameters[(mechanism.name, part_id, param_name)]
+                return_val = self.parameters[(mechanism.name, part_id, param_name)]
             elif mechanism != None and (mechanism.type, part_id, param_name) in self.parameters:
-                return self.parameters[(mechanism.type, part_id, param_name)]
-            else:
-                warn("No Parameter found with param_name="+param_name+", part_id="+part_id+", and mechanism="+repr(mechanism)+". Defaulting to ([component], part_id, param_name) identifiers.")
+                return_val= self.parameters[(mechanism.type, part_id, param_name)]
 
-        if part_id!= None:
-            if (self.name, part_id, param_name) in self.parameters:
-                return self.parameters[(self.name, part_id, param_name)]
-            elif (type(self).__name__, part_id, param_name) in self.parameters:
-                return self.parameters[(type(self).__name__, part_id, param_name)]
-            elif (part_id, param_name) in self.parameters:
-                return self.parameters[(part_id, param_name)]
-            else:
-                warn("No Parameter found with param_name="+param_name+" and part_id="+part_id+". Defaulting to (mechanism, [component], param_name)")
+        #Next try (part_id, param_name) --> val
+        if part_id!= None and return_val == None:
+            if (part_id, param_name) in self.parameters:
+                return_val =  self.parameters[(part_id, param_name)]
 
-        if mechanism != None:
-            if (mechanism.name, self.name, param_name) in self.parameters:
-                return self.parameters[((mechanism.name, self.name, param_name))]
-            elif (mechanism.name, param_name) in self.parameters:
-                return (self.parameters[(mechanism.name, param_name)])
-            elif (mechanism.type, self.name, param_name) in self.parameters:
-                return self.parameters[((mechanism.name, self.name, param_name))]
+                if mechanism != None:
+                    warning_txt = "No Parameter found with param_name="+param_name+" and part_id="+part_id+" and mechanism="+repr(mechanism)+". Parameter found under the key (part_id, param_name)=("+part_id+", "+param_name+")"
+        #Next try (Mechanism.name/type, param_name) --> val
+        if mechanism != None and return_val == None:
+            if (mechanism.name, param_name) in self.parameters:
+                return_val = self.parameters[((mechanism.name, param_name))]
+                if part_id != None:
+                    warning_txt = "No Parameter found with param_name=" + param_name + " and part_id=" + part_id + " and mechanism="+repr(mechanism)+". Parameter found under the key (mechanism.name, Component.name, param_name)=(" \
+                              + mechanism.name+ ", " + self.name + ", " + param_name + ")"
             elif (mechanism.type, param_name) in self.parameters:
-                return (self.parameters[(mechanism.type, param_name)])
-            else:
-                warn("No Parameter found with param_name="+param_name+" for mechanism "+repr(mechanism)+". Defaulting to (component, param_name) identifiers.")
-            try:
-                return super().get_parameter(param_name, mechanism = mechanism)
-            except AttributeError:
-                pass
+                return_val = self.parameters[(mechanism.type, param_name)]
+                if part_id != None:
+                    warning_txt = "No Parameter found with param_name=" + param_name + " and part_id=" + part_id + " and mechanism="+repr(mechanism)+". Parameter found under the key (mechanism.name, param_name)=(" \
+                              + mechanism.name + ", " + param_name + ")"
+        #Finally try (param_name) --> return val
+        if param_name in self.parameters and return_val == None:
+            return_val = self.parameters[param_name]
+            if mechanism!= None or part_id != None:
+                warning_txt = "No Parameter found with param_name=" + param_name + " and part_id=" + str(part_id) + " and mechanism="+repr(mechanism)+". Parameter found under the key param_name="+param_name
+        if return_val == None:
+            raise ValueError("No Parameters can be found that match the (mechanism, param_id, param_name)=( "+repr(mechanism)+', '+part_id+", "+param_name+")")
+        else:
+            if warning_txt != None:
+                warn(warning_txt)
+            return return_val
+
+
+
 
         if (type(self).__name__, self.name, param_name) in self.parameters:
             return self.parameters[(type(self).__name__, self.name, param_name)]
@@ -185,8 +199,11 @@ class DNA(Component):
         self.length = length
         Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
 
+    def get_specie(self):
+        return crn.specie(self.name, type = "dna", attributes = self.attributes)
+
     def update_species(self):
-        species = [crn.specie(self.name, type = "dna", attributes = self.attributes)]
+        species = [self.get_specie()]
         return species
 
     def update_reactions(self):
@@ -203,8 +220,11 @@ class RNA(Component):
         self.length = length
         Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
 
+    def get_specie(self):
+        return crn.specie(self.name, type = "rna", attributes = self.attributes)
+
     def update_species(self):
-        species = [crn.specie(self.name, type = "rna", attributes = self.attributes)]
+        species = [self.get_specie()]
         return species
 
     def update_reactions(self):
@@ -224,8 +244,11 @@ class Protein(Component):
             attributes.append(degredation_tag)
         Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
 
+    def get_specie(self):
+        return crn.specie(self.name, type="protein", attributes=self.attributes)
+
     def update_species(self):
-        species = [crn.specie(self.name, type="protein", attributes=self.attributes)]
+        species = [self.get_specie()]
         return species
 
     def update_reactions(self):
@@ -242,8 +265,11 @@ class Complex(Component):
     ):
         Component.__init__(self = self, name = name, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
 
+    def get_specie(self):
+        return crn.specie(self.name, type="complex", attributes=self.attributes)
+
     def update_species(self):
-        species = [crn.specie(self.name, type="complex", attributes=self.attributes)]
+        species = [self.get_specie()]
         return species
 
     def update_reactions(self):
