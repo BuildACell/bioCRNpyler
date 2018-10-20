@@ -1,8 +1,7 @@
 import txtl
 import component
 import dna_assembly
-import mechanism
-import CRN_Simulator
+
 #Parameters
 kb, ku, ktx, ktl, kdeg = 200, 10, 2.0, .25, 1.5
 parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg":kdeg,
@@ -30,9 +29,8 @@ myCRN = myMixture.compile_crn()
 
 print("\n"+repr(myCRN))
 
-print("\nTotal Species", len(myCRN.species))
-print("\nTotal Reactions", len(myCRN.reactions))
-
+#TODO Convert simulation code to bioscrape
+"""
 import pylab as plt
 plt.figure(figsize = (12, 8))
 
@@ -89,4 +87,4 @@ plt.xlim(0, 200)
 plt.ylabel("reporter protein")
 plt.xlabel("time")
 plt.legend()
-plt.show()
+plt.show()"""
