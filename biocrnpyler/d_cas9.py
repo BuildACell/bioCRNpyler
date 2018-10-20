@@ -1,8 +1,10 @@
-import component
+# import Component
 import mechanism
 import chemical_reaction_network as crn
+from .component import Component, RNA
+from .mechanism import Reversible_Bimolecular_Binding
 
-class guideRNA(component.RNA):
+class guideRNA(RNA):
     def __init__(self, guide_name, dCas9 = "dCas9", **keywords):
         self.gRNA = crn.specie(guide_name, type = "rna")
 
