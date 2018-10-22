@@ -1,27 +1,41 @@
 from warnings import warn
+import sbmlutil
+
+#A formal species object for a CRN
+#Species must have a name. They may also have a type (such as DNA, RNA, Protein), and a list of attributes
+
+#A test comment for git
 
 class specie(object):
     def __init__(self, name, type = "", attributes = []):
         self.name = name
         self.type = type
-        self.attributes = attributes
 
+        if attributes == None:
+            attributes = []
+        elif None in attributes:
+            while None in attributes:
+                attributes.remove(None)
+
+        self.attributes = attributes
     def __repr__(self):
-        if self.type != "complex":
-            txt = self.type+"_"+self.name
-        else:
-            txt = self.name
-        if len(self.attributes)>0 and self.attributes != None:
+        txt = self.type + "_" + self.name
+        #if self.type != "complex":
+        #    txt = self.type+"_"+self.name
+        #else:
+        #    txt = self.name
+        if len(self.attributes)>0 and self.attributes != []:
             for i in self.attributes:
                 if i != None:
                     txt+="_"+str(i)
+        txt.replace("'", "")
         return txt
 
-
+    #Overrides the default implementation
+    #Two species are equivalent if they have the same name, type, and attributes
     def __eq__(self, other):
-        """Overrides the default implementation
-           Two species are equivalent if they have the same name, type, and attributes"""
-        if isinstance(other, specie) and repr(self) == repr(other):
+
+        if isinstance(other, specie) and self.type == other.type and self.name == other.name and set(self.attributes) == set(other.attributes):
             return True
         else:
             return False
@@ -29,15 +43,38 @@ class specie(object):
     def __hash__(self):
         return str.__hash__(repr(self))
 
+
+#An abstract representation of a chemical reaction in a CRN
+#A reaction has the form:
+#   \sum_i n_i I_i --> \sum_i m_i O_i @ rate = k
+#   where n_i is the count of the ith input, I_i, and m_i is the count of the ith output, O_i.
+#If the reaction is reversible, the reverse reaction is also included:
+#   \sum_i m_i O_i  --> \sum_i n_i I_i @ rate = k_rev
 class reaction(object):
-    def __init__(self, inputs, outputs, k, input_coefs = None, output_coefs = None, k_rev = 0):
+    def __init__(self, inputs, outputs, k, input_coefs = None, output_coefs = None, k_rev = 0, mass_action = True, rate_formula = None):
+
+        self.mass_action = mass_action
+
+        if not mass_action and rate_formula == None:
+            raise ValueError("A chemical reaction which is not mass action must have a rate formula.")
+        elif not mass_action:
+            raise NotImplemented("rate formula have not been implemented yet.")
+
+        self.rate_formula = rate_formula
 
         #Check that inputs and outputs only contain species
         for s in inputs+outputs:
             if not isinstance(s, specie):
                 raise ValueError("A non-species object was used as a specie")
-        self.inputs = list(set(inputs))
-        self.outputs = list(set(outputs))
+
+        self.inputs = []
+        self.outputs = []
+        for s in inputs:
+            if s not in self.inputs:
+                self.inputs.append(s)
+        for s in outputs:
+            if s not in self.outputs:
+                self.outputs.append(s)
 
         #Check that rates are valid
         if k <= 0:
@@ -103,26 +140,49 @@ class reaction(object):
     def __eq__(self, other):
         """Overrides the default implementation
            Two reactions are equivalent if they have the same inputs, outputs, and rates"""
-        equal = True
+        complexes_equal = (self.complex_set_equality(self.inputs, self.input_coefs, other.inputs, other.input_coefs)
+            and self.complex_set_equality(self.outputs, self.output_coefs, other.outputs, other.output_coefs))
+        rates_equal = (other.k == self.k and other.k_r == self.k_r)
+
 
         #must both be reactions with the same rates and numbers of inputs and outputs
-        if (not isinstance(other, reaction) or other.k != self.k or other.k_r != self.k_r or
-            len(other.inputs) != len(self.inputs) or len(other.outputs) != len(self.outputs)):
-            equal = False
+        if not isinstance(other, reaction):
+            return False
+
+        if complexes_equal and rates_equal:
+            return True
+        elif complexes_equal:
+            warn("Two reactions with the same inputs and outputs but different rates are formally different, but may be undesired:"+repr(self)+"and "+repr(other))
+            return True
+
+        # If the reactions are reversible inverses of eachother, one's forward reaction could be the other's reverse
+        elif self.reversible and other.reversible:
+            reverse_complex_equal = (self.complex_set_equality(self.inputs, self.input_coefs, other.outputs, other.output_coefs)
+            and self.complex_set_equality(self.outputs, self.output_coefs, other.inputs, other.input_coefs))
+            reverse_rates_equal = (other.k == self.k_r and other.k_r == self.k)
+            if reverse_complex_equal and reverse_rates_equal:
+                return True
+            elif reverse_complex_equal:
+                warn(
+                    "Two reversible reactions with the same inputs and outputs (reversed) but different rates are formally equal, but may be undesired:" + repr(
+                        self) + "and " + repr(other))
+                return True
+            else:
+                return False
         else:
-            #check if the input species and coefficients are the same (order may be different)
-            for i in range(len(self.inputs)):
-                input = self.inputs[i]
-                input_c = self.input_coefs[i]
-                if (input not in other.inputs or input_c != other.input_coefs[other.inputs.index(input)]):
-                    equal = False
-            # check if the output species and coefficients are the same (order may be different)
-            for i in range(len(self.outputs)):
-                output = self.outputs[i]
-                output_c = self.output_coefs[i]
-                if (output not in other.outputs or output_c != other.output_coefs[other.outputs.index(output)]):
-                    equal = False
-        return equal
+            return False
+
+    #Checks to see if two formal complexes (reaction input or output sets) are equal
+    def complex_set_equality(self, c1, c1_coefs, c2, c2_coefs):
+        if len(c1) != len(c2):
+            return False
+        else:
+            for i in range(len(c1)):
+                s1 = c1[i]
+                coef1 = c1_coefs[i]
+                if s1 not in c2 or coef1 != c2_coefs[c2.index(s1)]:
+                    return False
+        return True
 
     def pyrepr(self):
         if self.reversible:
@@ -132,39 +192,60 @@ class reaction(object):
             ]
         else:
             return [([repr(i) for i in self.inputs], self.input_coefs, [repr(i) for i in self.outputs], self.output_coefs, self.k)]
+
+#A chemical reaction network is a container of species and reactions
+#chemical reaction networks can be compiled into SBML or represented conveniently as python tuple objects.
+#reaction types:
+#   mass action: standard mass action semantics where the propensity of a reaction is given by
+#           deterministic propensity = k \Prod_{inputs i} [S_i]^a_i
+#           stochastic propensity = k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
+#           where a_i is the stochiometric coefficient of species i
 class chemical_reaction_network(object):
     def __init__(self, species, reactions):
+        self.species, self.reactions = self.check_crn_validity(reactions, species)
 
-        #Check to make sure species are valid and only have a count of 1
+        self.species2index = {}
+        for i in range(len(self.species)):
+            self.species2index[str(self.species[i])] = i
+
+
+
+    def check_crn_validity(self, reactions, species):
+        # Check to make sure species are valid and only have a count of 1
+        checked_species = []
         for s in species:
             if not isinstance(s, specie):
                 raise ValueError("A non-species object was used as a specie: recieved "+repr(s))
             if species.count(s) > 1:
                 warn("Species "+str(s)+" duplicated in CRN definition. Duplicates have been removed.")
-            while species.count(s)>1:
-                species.remove(s)
-        self.species = species
+            if s not in checked_species:
+                checked_species.append(s)
+        species = checked_species
 
-        #Check to make sure reactions are valid meaning:
+        # Check to make sure reactions are valid meaning:
         #   only have a count of 1
-        #   all species in the inputs/outputs are also in teh species list
+        #   all species in the inputs/outputs are also in the species list
+        checked_reactions = []
         for r in reactions:
             if not isinstance(r, reaction):
                 raise ValueError("A non-reaction object was used as a reaction")
+
             if reactions.count(r) > 1:
-                warn("Reaction "+str(r)+" duplicated in CRN definitions. Duplicates have been removed.")
-            while reactions.count(r) > 1:
-                reactions.remove(r)
+                warn("Reaction " + str(r) + " duplicated in CRN definitions. Duplicates have been removed.")
+
+            if reaction not in checked_reactions:
+                checked_reactions.append(reaction)
 
             for s in r.inputs:
-                if s not in self.species:
-                    warn("Reaction "+repr(r)+" contains a species "+repr(s)+" which is not in the CRN")
+                if s not in species:
+                    warn("Reaction " + repr(r) + " contains a species " + repr(s) + " which is not in the CRN")
 
             for s in r.outputs:
-                if s not in self.species:
-                    warn("Reaction "+repr(r)+" contains a species "+repr(s)+" which is not in the CRN")
+                if s not in species:
+                    warn("Reaction " + repr(r) + " contains a species " + repr(s) + " which is not in the CRN")
 
-        self.reactions = reactions
+        return species, reactions
+
 
     def __repr__(self):
         txt = "Species = "
@@ -178,34 +259,19 @@ class chemical_reaction_network(object):
         txt+="]"
         return txt
 
-    def add_species(self, new_species, debug = False):
-        specie_added_dict = {}
-        for s in new_species:
-            if not isinstance(s, specie):
-                raise ValueError("A non-species object was used as a specie")
-            elif s in self.species:
-                warn("CRN.add_species Warning: the specie " + str(s) + " is already contained in the CRN.")
-                specie_added_dict[str(specie)] = False
-            elif new_species.count(s)>1:
-                warn("CRN.add_species Warning: the specie "+str(s)+" is listed multiple times.")
-                if str(s) not in specie_added_dict:
-                    self.species.append(s)
-                    specie_added_dict[str(s)] = True
-            else:
-                self.species.append(s)
-                specie_added_dict[str(s)] = True
-
-        if debug:
-            return self.species, specie_added_dict
-        else:
-            return self.species
-
     def pyrepr(self):
         reactions = []
         for r in self.reactions:
             reactions += r.pyrepr()
         species = [str(s) for s in self.species]
         return species, reactions
+
+    def species_index(self, species):
+        if len(self.species2index) != len(self.species):
+            self.species2index = {}
+            for i in range(len(self.species)):
+                self.species2index[str(self.species[i])] = i
+        return self.species2index[str(species)]
 
     def initial_condition_vector(self, init_cond_dict):
         x0 = [0.0 for s in self.species]
@@ -215,23 +281,50 @@ class chemical_reaction_network(object):
                 x0[i] = init_cond_dict[s]
         return x0
 
-#BASIC CRN TESTS BELOW
-"""
-s1 = specie("g1", type="DNA")
-s1double = specie("g1", type = "DNA")
-s2 = specie("t1", type="mRNA")
-s3 = specie("p1", type="protein", attributes = ["deg"])
-s4 = specie("p1", type ="dimer")
-r1 = reaction([s1], [s1, s2], k=1.0)
-r2 = reaction([s2], [s2, s3], k=2.0)
-r3 = reaction([s3, s3], [s4], k=100., k_rev=10.)
-r4 = reaction([s3], [s4], k=100., k_rev = 10., input_coefs=[2], output_coefs=[1])
-r5 = reaction([s3], [], k = .1)
 
-print("s1 == s1double", s1 == s1double)
-print("s1 == s2", s1 == s2)
-print("r1 == r2", r1 == r2)
-print("r3 == r4", r3 == r4)
-CRN = chemical_reaction_network([s1, s1double, s2, s3, s4], [r1, r2, r3, r4, r5])
-print(repr(CRN))
-"""
+    def generate_sbml_model(self, stochastic_model = False, **keywords):
+        document, model, compartment = sbmlutil.create_sbml_model(**keywords)
+
+        for s in self.species:
+            sbmlutil.add_species(model, compartment, s)
+
+        rxn_count = 0
+        for r in self.reactions:
+            rxn_id = "r"+str(rxn_count)
+            sbmlutil.add_reaction(model, r.inputs, r.input_coefs, r.outputs, r.output_coefs, r.k, rxn_id,
+                stochastic = stochastic_model, mass_action=r.mass_action)
+            rxn_count += 1
+            if r.reversible:
+                sbmlutil.add_reaction(model, r.outputs, r.output_coefs, r.inputs, r.input_coefs, r.k_r, rxn_id,
+                                      stochastic=stochastic_model, mass_action=r.mass_action)
+
+        return document, model, compartment
+
+    def write_sbml_file(self, file_name = None, **keywords):
+        document, model, compartment = self.generate_sbml_model(**keywords)
+        sbml_string = sbmlutil.libsbml.writeSBMLToString(document)
+        f = open(file_name, 'w')
+        f.write(sbml_string)
+        f.close()
+        return f
+
+    def simulate_with_bioscrape_deterministic(self, timepoints, file, initial_condition_dict):
+        import bioscrape
+        import numpy as np
+
+        if isinstance(file, str):
+            file_name = file
+        else:
+            file_name = file.name
+
+        m = bioscrape.types.read_model_from_sbml(file_name)
+        m.set_species(initial_condition_dict)
+
+        s = bioscrape.simulator.ModelCSimInterface(m)
+        s.py_prep_deterministic_simulation()
+        s.py_set_initial_time(0)
+
+        sim = bioscrape.simulator.DeterministicSimulator()
+        result = sim.py_simulate(s, timepoints)
+
+        return result, m

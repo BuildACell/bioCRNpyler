@@ -26,6 +26,6 @@ CRN = chemical_reaction_network(species, rxns)
 print(repr(CRN))
 
 print("\nWriting SBML")
-file_name = "sbml_test_file.sbml"
+file_name = "sbml_test_file.xml"
 f = CRN.write_sbml_file(file_name)
 

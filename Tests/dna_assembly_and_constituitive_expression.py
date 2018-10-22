@@ -6,7 +6,11 @@ parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg": kdeg}
 myMixture = txtl.BasicExtract(name = "txtl", parameters = parameters)
 
 A1 = dna_assembly.DNAassembly(name = "G1", promoter = "pBest",
-                              rbs = "BCD2", cds = "GFP")
+                              rbs = "BCD2", transcript = "T1", protein = "GFP")
+
+#Note: Protein and Transcript strings (or chemical_reaction_network.specie objects) are optional parameters
+#DNAassemblies default to using their name for their transcript and protein products.
+
 myMixture.add_components(A1)
 myCRN = myMixture.compile_crn()
 

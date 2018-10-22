@@ -2,7 +2,7 @@ import txtl
 import component
 import dna_assembly
 import mechanism
-import CRN_Simulator
+
 #Parameters
 kb, ku, ktx, ktl, kdeg = 100, 10, 2.0, 1.0, 5.
 parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg":kdeg}
@@ -18,13 +18,13 @@ RNA_load_assembly = dna_assembly.DNAassembly(name = "Txload", promoter = "P", rb
 T7 = component.Protein("T7") #Create a new protein T7
 #Create a custom promoter with a custom mechanism that uses T7 instead of RNAP
 T7P = dna_assembly.Promoter("T7P", mechanisms={
-    "transcription":mechanism.Transcription_MM(name = "T7_transcription_mm", rnap="T7")})
+    "transcription":mechanism.Transcription_MM(name = "T7_transcription_mm", rnap=T7)})
 #A load assembly with the custom T7 promoter
 T7_load_assembly = dna_assembly.DNAassembly(name = "T7Load", promoter = T7P, rbs = "BCD")
 
 #Each new assembly requires its own promoter instance - so here I create another one
 T7P = dna_assembly.Promoter("T7P", mechanisms={
-    "transcription":mechanism.Transcription_MM(name = "T7_transcription_mm", rnap="T7")})
+    "transcription":mechanism.Transcription_MM(name = "T7_transcription_mm", rnap=T7)})
 #A load assembly with the custom T7 promoter and no RBS
 T7RNA_load_assembly = dna_assembly.DNAassembly(name = "T7TxLoad", promoter = T7P, rbs = None)
 
@@ -49,6 +49,9 @@ print("species in my crn", len(myCRN.species))
 print("reactions in my crn", len(myCRN.reactions))
 print("\n"+repr(myCRN)+"\n")
 
+#TODO ADD Code to generate below plots with BioSCRAPE
+"""
+THE BELOW CODE USES A SSA SIMULATOR DEVELOPED BY WILLIAM POOLE
 species, rxns = myCRN.pyrepr()
 print(species, len(species))
 for rxn in rxns:
@@ -122,3 +125,4 @@ plt.ylabel("Reference Protein")
 plt.legend()
 
 plt.show()
+"""

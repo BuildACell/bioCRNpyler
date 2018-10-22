@@ -12,13 +12,9 @@ class BasicExtract(mixture.Mixture):
         self.ribosome = comp.Complex(name=ribosome_name)
         self.RNAase = comp.Protein(name=rnaase_name)
 
-        print("self.RNAase.update_species()[0]", self.RNAase.update_species()[0])
-        print("RNASE type name attributes", self.RNAase.name, self.RNAase.attributes)
-        print(repr(self.RNAase))
-
-        mech_tx = mechanism.Transcription_MM(rnap = self.rnap.update_species()[0])
-        mech_tl = mechanism.Translation_MM(ribosome=self.ribosome.update_species()[0])
-        mech_rna_deg = mechanism.Degredation_mRNA_MM(nuclease = self.RNAase.update_species()[0])
+        mech_tx = mechanism.Transcription_MM(rnap = self.rnap.get_specie())
+        mech_tl = mechanism.Translation_MM(ribosome=self.ribosome.get_specie())
+        mech_rna_deg = mechanism.Degredation_mRNA_MM(nuclease = self.RNAase.get_specie())
 
         default_mechanisms = {
             mech_tx.type:mech_tx,
