@@ -15,7 +15,7 @@ myMixture.add_components(A1)
 CRN = myMixture.compile_crn()
 print("\n"+repr(CRN))
 
-file_name = "bioscrape_test.sbml"
+file_name = "bioscrape_test.xml"
 f = CRN.write_sbml_file(file_name)
 
 #Initial Condition Dict: repr(specie) --> concentration. Default is 0
