@@ -1,7 +1,4 @@
-import d_cas9
-import dna_assembly
-import txtl
-import mechanism
+from biocrnpyler import *
 
 #Create Param Dict
 kb, ku, ktx, ktl, kdeg, cooperativity = 100, 10, 3, 2, 1, 1
@@ -13,13 +10,13 @@ parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg": kdeg, "cooperativi
               }
 
 #Create an assembly to express dCas9
-const_dCas_assmebly = dna_assembly.DNAassembly("dCas9", promoter = "P", rbs = "BCD")
+const_dCas_assmebly = DNAassembly("dCas9", promoter = "P", rbs = "BCD")
 #Get the dCas Species. Note: This could also be defined above and passed into the assmebly as protein=...
 dCas = const_dCas_assmebly.protein
 #Create a Guide RNA Guide1
-gRNA = d_cas9.guideRNA("guide1", dCas=dCas)
+gRNA = guideRNA("guide1", dCas=dCas)
 #Create an assembly to express the guide RNA
-const_gRNA_assembly = dna_assembly.DNAassembly("gRNA", transcript = gRNA, promoter = "P", rbs = None)
+const_gRNA_assembly = DNAassembly("gRNA", transcript = gRNA, promoter = "P", rbs = None)
 
 #Get the guideRNA:dCas9 complex
 repressor = gRNA.get_dCasComplex()
@@ -29,22 +26,22 @@ parameters[("transcription", repressor.name, "ku")] = 10000
 parameters[("transcription", repressor.name, "ktx")] = .1
 
 #Create a Promoter regulated by the repressor
-P_reg = dna_assembly.RegulatedPromoter("P_regulated", regulators=[repressor], leak = True)
-P_reg.default_mechanisms['binding'] = mechanism.Reversible_Bimolecular_Binding("dCas9_dna_binding")
+P_reg = RegulatedPromoter("P_regulated", regulators=[repressor], leak = True)
+P_reg.default_mechanisms['binding'] = Reversible_Bimolecular_Binding("dCas9_dna_binding")
 #Create an assembly with the regulated promoter
-reg_assembly = dna_assembly.DNAassembly(name = "reporter", promoter = P_reg, rbs = "BCD")
+reg_assembly = DNAassembly(name = "reporter", promoter = P_reg, rbs = "BCD")
 
 #Create a list of components to add to the mixture (these could also be added one-by-one with Mixture.add_component(...)
 components = [const_dCas_assmebly, const_gRNA_assembly, gRNA, reg_assembly]
 
 #Create a BasicExtract Mixture
-reaction_mix = txtl.BasicExtract("txtl", components = components, parameters=parameters)
+reaction_mix = BasicExtract("txtl", components = components, parameters=parameters)
 
 #Compile a CRN
 CRN = reaction_mix.compile_crn()
 print(repr(CRN))
 
-file_name = "dcas9_repression_test.sbml"
+file_name = "dcas9_repression_test.xml"
 f = CRN.write_sbml_file(file_name)
 
 #Initial Condition Dict: repr(specie) --> concentration. Default is 0

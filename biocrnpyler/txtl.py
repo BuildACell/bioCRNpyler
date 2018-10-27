@@ -1,20 +1,19 @@
 from warnings import warn
-import component as comp
-import chemical_reaction_network as crn
-import mechanism
-import mixture
+from .component import Protein, Complex
+from .mechanism import Transcription_MM, Translation_MM, Degredation_mRNA_MM
+from .mixture import Mixture
 
-class BasicExtract(mixture.Mixture):
+class BasicExtract(Mixture):
     def __init__(self, name="", mechanisms={}, components=[], parameters={},
                  rnap_name = "RNAP", ribosome_name = "Ribo", rnaase_name = "RNAase", **kwargs):
 
-        self.rnap = comp.Protein(name=rnap_name)
-        self.ribosome = comp.Complex(name=ribosome_name)
-        self.RNAase = comp.Protein(name=rnaase_name)
+        self.rnap = Protein(name=rnap_name)
+        self.ribosome = Complex(name=ribosome_name)
+        self.RNAase = Protein(name=rnaase_name)
 
-        mech_tx = mechanism.Transcription_MM(rnap = self.rnap.get_specie())
-        mech_tl = mechanism.Translation_MM(ribosome=self.ribosome.get_specie())
-        mech_rna_deg = mechanism.Degredation_mRNA_MM(nuclease = self.RNAase.get_specie())
+        mech_tx = Transcription_MM(rnap = self.rnap.get_specie())
+        mech_tl = Translation_MM(ribosome=self.ribosome.get_specie())
+        mech_rna_deg = Degredation_mRNA_MM(nuclease = self.RNAase.get_specie())
 
         default_mechanisms = {
             mech_tx.type:mech_tx,
@@ -24,4 +23,4 @@ class BasicExtract(mixture.Mixture):
 
         default_components = [self.rnap, self.ribosome, self.RNAase]
 
-        mixture.Mixture.__init__(self, name = name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, components=components+default_components, parameters=parameters, **kwargs)
+        Mixture.__init__(self, name = name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, components=components+default_components, parameters=parameters, **kwargs)
