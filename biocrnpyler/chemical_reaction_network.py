@@ -1,5 +1,5 @@
 from warnings import warn
-import sbmlutil
+from .sbmlutil import *
 
 #A formal species object for a CRN
 #Species must have a name. They may also have a type (such as DNA, RNA, Protein), and a list of attributes
@@ -283,26 +283,26 @@ class chemical_reaction_network(object):
 
 
     def generate_sbml_model(self, stochastic_model = False, **keywords):
-        document, model = sbmlutil.create_sbml_model(**keywords)
+        document, model = create_sbml_model(**keywords)
 
         for s in self.species:
-            sbmlutil.add_species(model, model.getCompartment(0), s)
+            add_species(model, model.getCompartment(0), s)
 
         rxn_count = 0
         for r in self.reactions:
             rxn_id = "r"+str(rxn_count)
-            sbmlutil.add_reaction(model, r.inputs, r.input_coefs, r.outputs, r.output_coefs, r.k, rxn_id,
+            add_reaction(model, r.inputs, r.input_coefs, r.outputs, r.output_coefs, r.k, rxn_id,
                 stochastic = stochastic_model, mass_action=r.mass_action)
             rxn_count += 1
             if r.reversible:
-                sbmlutil.add_reaction(model, r.outputs, r.output_coefs, r.inputs, r.input_coefs, r.k_r, rxn_id,
+                add_reaction(model, r.outputs, r.output_coefs, r.inputs, r.input_coefs, r.k_r, rxn_id,
                                       stochastic=stochastic_model, mass_action=r.mass_action)
 
         return document, model
 
     def write_sbml_file(self, file_name = None, **keywords):
         document, _ = self.generate_sbml_model(**keywords)
-        sbml_string = sbmlutil.libsbml.writeSBMLToString(document)
+        sbml_string = libsbml.writeSBMLToString(document)
         f = open(file_name, 'w')
         f.write(sbml_string)
         f.close()

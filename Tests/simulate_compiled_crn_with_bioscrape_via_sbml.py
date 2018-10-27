@@ -1,14 +1,14 @@
+from biocrnpyler import *
+
 import bioscrape
 import numpy as np
 import pylab as plt
-import txtl
-import dna_assembly
 
 kb, ku, ktx, ktl, kdeg = 100, 10, 3, 2, 1
 parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg": kdeg}
-myMixture = txtl.BasicExtract(name = "txtl", parameters = parameters)
+myMixture = BasicExtract(name = "txtl", parameters = parameters)
 
-A1 = dna_assembly.DNAassembly(name = "G1", promoter = "P",
+A1 = DNAassembly(name = "G1", promoter = "P",
                               rbs = "BCD", transcript = "T1", protein = "Reporter")
 
 myMixture.add_components(A1)

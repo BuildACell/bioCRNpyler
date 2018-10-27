@@ -1,6 +1,4 @@
-import txtl
-import component
-import dna_assembly
+from biocrnpyler import *
 
 #Parameters
 kb, ku, ktx, ktl, kdeg = 200, 10, 2.0, .25, 1.5
@@ -12,15 +10,15 @@ parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg":kdeg,
               ('transcription', 'activator', 'kb'): 1000, ('transcription', "activator", 'ku'): 1.0,
               "ktx_leak":ktx, "kb_leak":kb/50, "ku_leak":ku*50}
 
-P_reg = dna_assembly.RegulatedPromoter("P_regulated", regulators=["activator", "repressor"], leak = True)
+P_reg = RegulatedPromoter("P_regulated", regulators=["activator", "repressor"], leak = True)
 
-reg_rep_assembly = dna_assembly.DNAassembly(name = "reporter", promoter = P_reg, rbs = "BCD")
+reg_rep_assembly = DNAassembly(name = "reporter", promoter = P_reg, rbs = "BCD")
 
-activator = component.Protein("activator")
-repressor = component.Protein("repressor")
+activator = Protein("activator")
+repressor = Protein("repressor")
 
 components = [reg_rep_assembly, activator, repressor]
-myMixture = txtl.BasicExtract(name = "txtl", parameters = parameters, components = components)
+myMixture = BasicExtract(name = "txtl", parameters = parameters, components = components)
 
 myCRN = myMixture.compile_crn()
 

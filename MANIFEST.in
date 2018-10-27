@@ -1,0 +1,4 @@
+include Tests/*.py
+include README.md
+include LICENSE
+exclude biocrnpyler.egg-info/*
