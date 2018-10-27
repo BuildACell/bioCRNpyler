@@ -1,10 +1,9 @@
 from warnings import warn as pywarn
 def warn(txt):
     pywarn(txt)
-#from .sbmlutil import add_species, add_reaction
-#from .parameter import eval_parameter
-#from .parameter import get_parameters
-import chemical_reaction_network as crn
+
+# import chemical_reaction_network as crn
+from .chemical_reaction_network import specie
 
 # Component class for core components
 class Component(object):
@@ -200,7 +199,7 @@ class DNA(Component):
         Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
 
     def get_specie(self):
-        return crn.specie(self.name, type = "dna", attributes = self.attributes)
+        return specie(self.name, type = "dna", attributes = self.attributes)
 
     def update_species(self):
         species = [self.get_specie()]
@@ -221,7 +220,7 @@ class RNA(Component):
         Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
 
     def get_specie(self):
-        return crn.specie(self.name, type = "rna", attributes = self.attributes)
+        return specie(self.name, type = "rna", attributes = self.attributes)
 
     def update_species(self):
         species = [self.get_specie()]
@@ -245,7 +244,7 @@ class Protein(Component):
         Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
 
     def get_specie(self):
-        return crn.specie(self.name, type="protein", attributes=self.attributes)
+        return specie(self.name, type="protein", attributes=self.attributes)
 
     def update_species(self):
         species = [self.get_specie()]
@@ -266,7 +265,7 @@ class Complex(Component):
         Component.__init__(self = self, name = name, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
 
     def get_specie(self):
-        return crn.specie(self.name, type="complex", attributes=self.attributes)
+        return specie(self.name, type="complex", attributes=self.attributes)
 
     def update_species(self):
         species = [self.get_specie()]

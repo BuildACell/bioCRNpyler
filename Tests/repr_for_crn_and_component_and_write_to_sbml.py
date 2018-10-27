@@ -1,4 +1,4 @@
-from chemical_reaction_network import *
+from biocrnpyler import *
 
 #Create a simple CRN
 s1 = specie("G", type="DNA") #A species "G" of type "DNA"

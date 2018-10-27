@@ -1,36 +1,33 @@
-import txtl
-import component
-import dna_assembly
-import mechanism
+from biocrnpyler import *
 
 #Parameters
 kb, ku, ktx, ktl, kdeg = 100, 10, 2.0, 1.0, 5.
 parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg":kdeg}
 
 #A constituitively expressed reporter
-reference_assembly = dna_assembly.DNAassembly(name = "ref", promoter = "P", rbs = "BCD")
+reference_assembly = DNAassembly(name = "ref", promoter = "P", rbs = "BCD")
 #A constiuitively expressed load (RNA and Protein)
-full_load_assembly = dna_assembly.DNAassembly(name = "Load", promoter = "P", rbs = "BCD")
+full_load_assembly = DNAassembly(name = "Load", promoter = "P", rbs = "BCD")
 #A constiutively transcribed (but not translated) load
-RNA_load_assembly = dna_assembly.DNAassembly(name = "Txload", promoter = "P", rbs = None)
+RNA_load_assembly = DNAassembly(name = "Txload", promoter = "P", rbs = None)
 
 #Load genes on orthogonal polymerases
-T7 = component.Protein("T7") #Create a new protein T7
+T7 = Protein("T7") #Create a new protein T7
 #Create a custom promoter with a custom mechanism that uses T7 instead of RNAP
-T7P = dna_assembly.Promoter("T7P", mechanisms={
-    "transcription":mechanism.Transcription_MM(name = "T7_transcription_mm", rnap=T7)})
+T7P = Promoter("T7P", mechanisms={
+    "transcription":Transcription_MM(name = "T7_transcription_mm", rnap=T7)})
 #A load assembly with the custom T7 promoter
-T7_load_assembly = dna_assembly.DNAassembly(name = "T7Load", promoter = T7P, rbs = "BCD")
+T7_load_assembly = DNAassembly(name = "T7Load", promoter = T7P, rbs = "BCD")
 
 #Each new assembly requires its own promoter instance - so here I create another one
-T7P = dna_assembly.Promoter("T7P", mechanisms={
-    "transcription":mechanism.Transcription_MM(name = "T7_transcription_mm", rnap=T7)})
+T7P = Promoter("T7P", mechanisms={
+    "transcription":Transcription_MM(name = "T7_transcription_mm", rnap=T7)})
 #A load assembly with the custom T7 promoter and no RBS
-T7RNA_load_assembly = dna_assembly.DNAassembly(name = "T7TxLoad", promoter = T7P, rbs = None)
+T7RNA_load_assembly = DNAassembly(name = "T7TxLoad", promoter = T7P, rbs = None)
 
 #Add all the assemblies to a mixture
 components = [reference_assembly, full_load_assembly, T7_load_assembly, T7, RNA_load_assembly, T7RNA_load_assembly]
-myMixture = txtl.BasicExtract(name = "txtl", parameters = parameters, components = components)
+myMixture = BasicExtract(name = "txtl", parameters = parameters, components = components)
 
 
 print("\nMixture with Assembly\n", repr(myMixture))

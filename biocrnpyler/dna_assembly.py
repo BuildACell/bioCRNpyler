@@ -1,13 +1,12 @@
-import component
-import chemical_reaction_network as crn
 from warnings import warn as pywarn
 def warn(txt):
     pywarn(txt)
-import mechanism
 
+from .component import Component, DNA
+from .chemical_reaction_network import specie
+from .mechanism import One_Step_Cooperative_Binding
 
-
-class Promoter(component.Component):
+class Promoter(Component):
     def __init__(self, name, assembly = None,
                  transcript = None, length = 0,
                  mechanisms = {}, parameters = {}, **keywords):
@@ -16,15 +15,15 @@ class Promoter(component.Component):
         if transcript == None and assembly == None:
             self.transcript = None
         elif transcript == None:
-            self.transcript = crn.specie(assembly.name, type = "rna")
+            self.transcript = specie(assembly.name, type = "rna")
         elif isinstance(transcript, str):
-            self.transcript = crn.specie(transcript, type = "rna")
-        elif isinstance(transcript, crn.specie):
+            self.transcript = specie(transcript, type = "rna")
+        elif isinstance(transcript, specie):
             self.transcript = transcript
         else:
             raise ValueError("Improper value of transcriped passed into promoter. Transcript should be a string or chemical_reaction_network.specie")
 
-        component.Component.__init__(self, name = name, mechanisms = mechanisms, parameters = parameters, **keywords)
+        Component.__init__(self, name = name, mechanisms = mechanisms, parameters = parameters, **keywords)
 
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]
@@ -53,16 +52,16 @@ class RegulatedPromoter(Promoter):
 
         self.regulators = []
         for regulator in regulators:
-            if isinstance(regulator, crn.specie):
+            if isinstance(regulator, specie):
                 self.regulators += [regulator]
             elif isinstance(regulator, str):
-                self.regulators += [crn.specie(name = regulator, type = "protein")]
+                self.regulators += [specie(name = regulator, type = "protein")]
             else:
                 raise ValueError("Invalid parameter 'regulators' passed to RegulatedPromoter: valid types are string, chemical_reaction_network.specie and lists of these strings or species")
 
         self.leak = leak
 
-        self.default_mechanisms = {"binding":mechanism.One_Step_Cooperative_Binding()}
+        self.default_mechanisms = {"binding":One_Step_Cooperative_Binding()}
 
         Promoter.__init__(self, name = name, assembly = assembly, transcript = transcript, length = length, mechanisms = mechanisms, parameters = parameters, **keywords)
 
@@ -116,38 +115,38 @@ class RegulatedPromoter(Promoter):
         return reactions
 
 
-class RBS(component.Component):
+class RBS(Component):
     def __init__(self, name, assembly,
                  transcript=None, protein = None, length=0,
                  mechanisms={}, parameters={}, **keywords):
         self.assembly = assembly
         self.length = length
 
-        component.Component.__init__(self, name=name, mechanisms=mechanisms, parameters=parameters, **keywords)
+        Component.__init__(self, name=name, mechanisms=mechanisms, parameters=parameters, **keywords)
 
         if transcript == None and assembly == None:
             self.transcript = None
         elif transcript == None:
-            self.transcript = crn.specie(assembly.name, type="rna")
+            self.transcript = specie(assembly.name, type="rna")
         elif isinstance(transcript, str):
-            self.transcript = crn.specie(transcript, type="rna")
-        elif isinstance(transcript, crn.specie):
+            self.transcript = specie(transcript, type="rna")
+        elif isinstance(transcript, specie):
             self.transcript = transcript
         else:
             raise ValueError(
                 "Improper value of transcript passed into promoter: transcript should be a string or chemical_reaction_network.specie")
 
         if protein == None:
-            self.protein = crn.specie(assembly.name, type="protein")
+            self.protein = specie(assembly.name, type="protein")
         elif isinstance(protein, str):
-            self.protein = crn.specie(protein, type="protein")
-        elif isinstance(protein, crn.specie):
+            self.protein = specie(protein, type="protein")
+        elif isinstance(protein, specie):
             self.protein = protein
         else:
             raise ValueError(
                 "Improper value of protein passed into RBS: protein should be a string or chemical_reaction_network.specie")
 
-        component.Component.__init__(self, name = name, mechanisms = mechanisms, parameters = parameters, **keywords)
+        Component.__init__(self, name = name, mechanisms = mechanisms, parameters = parameters, **keywords)
 
     def update_species(self):
         mech_tl = self.mechanisms['translation']
@@ -166,7 +165,7 @@ class RBS(component.Component):
                                               ku = ku, kb = kb, ktl = ktl)
         return reactions
 
-class DNAassembly(component.DNA):
+class DNAassembly(DNA):
     def __init__(self, name, dna = None,
                  promoter = None, transcript = None,
                  rbs=None, protein = None,
@@ -177,7 +176,7 @@ class DNAassembly(component.DNA):
 
         length = 0
         warn("length not yet implemented for DNA assemblies")
-        component.DNA.__init__(self, name, length=length, mechanisms=mechanisms, parameters=parameters, **keywords)
+        DNA.__init__(self, name, length=length, mechanisms=mechanisms, parameters=parameters, **keywords)
 
         self.update_dna(dna)
         self.update_transcript(transcript)
@@ -188,23 +187,23 @@ class DNAassembly(component.DNA):
 
 
     def update_dna(self, dna):
-        if isinstance(dna, crn.specie):
+        if isinstance(dna, specie):
             self.dna = dna
         elif isinstance(dna, str):
-            self.dna = crn.specie(dna, type = "dna")
+            self.dna = specie(dna, type = "dna")
         elif dna == None:
-            self.dna = crn.specie(self.name, type = "dna")
+            self.dna = specie(self.name, type = "dna")
         else:
             raise ValueError("Invalid value of 'dna' passed to "+str(self)+": dna must be None, a chemical_reaction_network.specie, or a string.")
 
     def update_transcript(self, transcript):
-        if isinstance(transcript, crn.specie):
+        if isinstance(transcript, specie):
             self.transcript = transcript
         elif isinstance(transcript, str):
-            self.transcript = crn.specie(transcript, type = "rna")
+            self.transcript = specie(transcript, type = "rna")
         elif transcript == None:
-            self.transcript = crn.specie(self.name, type = "rna")
-        elif isinstance(transcript, component.Component) and transcript.get_specie() != None:
+            self.transcript = specie(self.name, type = "rna")
+        elif isinstance(transcript, Component) and transcript.get_specie() != None:
             self.transcript = transcript.get_specie()
         else:
             raise ValueError("Invalid value of transcript passed to "+str(self)+": transcript must be None, a chemical_reaction_network.specie, or a string.")
@@ -215,12 +214,12 @@ class DNAassembly(component.DNA):
             self.rbs.transcript = self.transcript
 
     def update_protein(self, protein):
-        if isinstance(protein, crn.specie):
+        if isinstance(protein, specie):
             self.protein = protein
         elif isinstance(protein, str):
-            self.protein = crn.specie(protein, type="protein")
+            self.protein = specie(protein, type="protein")
         elif protein == None:
-            self.protein = crn.specie(self.name, type="protein")
+            self.protein = specie(self.name, type="protein")
         else:
             raise ValueError("Invalid value of 'protein' passed to DNA Assembly " + self.name + ". 'protein' must be None, a chemical_reaction_network.specie, or a string.")
 
@@ -302,7 +301,7 @@ class DNAassembly(component.DNA):
         return reactions
 
     def update_parameters(self, mixture_parameters = {}, parameters={}):
-        component.DNA.update_parameters(self = self, mixture_parameters = mixture_parameters, parameters=parameters)
+        DNA.update_parameters(self = self, mixture_parameters = mixture_parameters, parameters=parameters)
 
         if self.promoter != None:
             self.promoter.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters, overwrite_custom_parameters=False)
@@ -310,7 +309,7 @@ class DNAassembly(component.DNA):
             self.rbs.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters, overwrite_custom_parameters=False)
 
     def update_mechanisms(self, mixture_mechanisms={}, mechanisms={}):
-        component.DNA.update_mechanisms(self = self, mixture_mechanisms = mixture_mechanisms, mechanisms=mechanisms)
+        DNA.update_mechanisms(self = self, mixture_mechanisms = mixture_mechanisms, mechanisms=mechanisms)
 
         if self.promoter != None and "transcription" in self.mechanisms:
             mech_tx = self.mechanisms["transcription"]

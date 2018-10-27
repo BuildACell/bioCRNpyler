@@ -1,5 +1,5 @@
 from warnings import warn
-import sbmlutil
+from .sbmlutil import *
 
 #A formal species object for a CRN
 #Species must have a name. They may also have a type (such as DNA, RNA, Protein), and a list of attributes
@@ -58,7 +58,7 @@ class reaction(object):
         if not mass_action and rate_formula == None:
             raise ValueError("A chemical reaction which is not mass action must have a rate formula.")
         elif not mass_action:
-            raise NotImplemented("rate formula have not been implemented yet.")
+            raise NotImplementedError("rate formula have not been implemented yet.")
 
         self.rate_formula = rate_formula
 
@@ -283,26 +283,26 @@ class chemical_reaction_network(object):
 
 
     def generate_sbml_model(self, stochastic_model = False, **keywords):
-        document, model, compartment = sbmlutil.create_sbml_model(**keywords)
+        document, model = create_sbml_model(**keywords)
 
         for s in self.species:
-            sbmlutil.add_species(model, compartment, s)
+            add_species(model, model.getCompartment(0), s)
 
         rxn_count = 0
         for r in self.reactions:
             rxn_id = "r"+str(rxn_count)
-            sbmlutil.add_reaction(model, r.inputs, r.input_coefs, r.outputs, r.output_coefs, r.k, rxn_id,
+            add_reaction(model, r.inputs, r.input_coefs, r.outputs, r.output_coefs, r.k, rxn_id,
                 stochastic = stochastic_model, mass_action=r.mass_action)
             rxn_count += 1
             if r.reversible:
-                sbmlutil.add_reaction(model, r.outputs, r.output_coefs, r.inputs, r.input_coefs, r.k_r, rxn_id,
+                add_reaction(model, r.outputs, r.output_coefs, r.inputs, r.input_coefs, r.k_r, rxn_id,
                                       stochastic=stochastic_model, mass_action=r.mass_action)
 
-        return document, model, compartment
+        return document, model
 
     def write_sbml_file(self, file_name = None, **keywords):
-        document, model, compartment = self.generate_sbml_model(**keywords)
-        sbml_string = sbmlutil.libsbml.writeSBMLToString(document)
+        document, _ = self.generate_sbml_model(**keywords)
+        sbml_string = libsbml.writeSBMLToString(document)
         f = open(file_name, 'w')
         f.write(sbml_string)
         f.close()
@@ -310,7 +310,6 @@ class chemical_reaction_network(object):
 
     def simulate_with_bioscrape_deterministic(self, timepoints, file, initial_condition_dict):
         import bioscrape
-        import numpy as np
 
         if isinstance(file, str):
             file_name = file

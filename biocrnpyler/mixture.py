@@ -10,8 +10,8 @@
 from warnings import warn
 
 
-import component as comp
-import chemical_reaction_network as crn
+from .component import Component
+from .chemical_reaction_network import chemical_reaction_network, specie
 
 """Container for components (extract, genes, etc)
 
@@ -60,19 +60,19 @@ class Mixture():
         self.components = []  # components contained in mixture
         self.added_species = [] # if chemcial_reaction_network.specie objects are passed in as components they are stored here
         for component in components:
-            if isinstance(component, comp.Component):
+            if isinstance(component, Component):
                 self.add_components(component)
-            elif isinstance(component, crn.specie):
+            elif isinstance(component, specie):
                 self.added_species += component
             else:
                 raise ValueError("Objects passed into mixture as Components must be of the class Component or chemical_reaction_network.specie")
 
     def add_components(self, components):
-        if isinstance(components, comp.Component):
+        if isinstance(components, Component):
             components = [components]
 
         for component in components:
-            if isinstance(component, comp.Component):
+            if isinstance(component, Component):
                 self.components.append(component)
                 component.update_mechanisms(mixture_mechanisms = self.mechanisms)
                 component.update_parameters(mixture_parameters=self.parameters)
@@ -107,7 +107,7 @@ class Mixture():
     def compile_crn(self):
         species = self.update_species()
         reactions = self.update_reactions()
-        CRN = crn.chemical_reaction_network(species, reactions)
+        CRN = chemical_reaction_network(species, reactions)
         return CRN
 
     def __str__(self):

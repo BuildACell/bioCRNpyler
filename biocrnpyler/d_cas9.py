@@ -1,26 +1,26 @@
-import component
-import mechanism
-import chemical_reaction_network as crn
+from .component import Component, RNA
+from .mechanism import Reversible_Bimolecular_Binding
+from .chemical_reaction_network import specie
 
-class guideRNA(component.RNA):
+class guideRNA(RNA):
     def __init__(self, guide_name, dCas9 = "dCas9", **keywords):
 
 
-        if isinstance(dCas9, crn.specie):
+        if isinstance(dCas9, specie):
             self.dCas = dCas9
         elif isinstance(dCas9, str):
-            self.dCas = crn.specie(dCas9, type = "protein")
-        elif isinstance(dCas9, component.Component) and dCas9.get_specie()!= None:
+            self.dCas = specie(dCas9, type = "protein")
+        elif isinstance(dCas9, Component) and dCas9.get_specie()!= None:
             self.dCas = dCas9.get_specie()
         else:
             raise ValueError("dCas9 parameter must be a chemical_reaction_network.specie, Component with get_specie(), or a string")
 
 
         self.default_mechanisms = {
-            "dCas9_binding" : mechanism.Reversible_Bimolecular_Binding(name = "dCas9_binding", type = "bimolecular binding")
+            "dCas9_binding" : Reversible_Bimolecular_Binding(name = "dCas9_binding", type = "bimolecular binding")
         }
 
-        component.RNA.__init__(self, name = guide_name, **keywords)
+        RNA.__init__(self, name = guide_name, **keywords)
         self.gRNA = self.get_specie()
 
     def get_dCasComplex(self):
