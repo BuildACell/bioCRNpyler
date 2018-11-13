@@ -16,5 +16,23 @@ myCRN = myMixture.compile_crn()
 print("\n"+repr(A1))
 print("\n"+repr(myMixture))
 print("\n"+repr(myCRN))
-#print("\nmyMixture.parameters", myMixture.parameters)
-#print("\ndna_assembly.parameters", A1.parameters)
+
+import pylab as plt
+import numpy as np
+
+x0_dict = {"protein_RNAP":10., "protein_RNAase":10.0, "complex_Ribo":100.,
+               'dna_G1':5.}
+
+timepoints = np.arange(0, 10, .01)
+print("calling sim with simulate_with_bioscrape")
+sim_results, model = myCRN.simulate_with_bioscrape(timepoints, initial_condition_dict = x0_dict)
+results = sim_results.py_get_result()
+
+T1_ind = model.get_species_index("rna_T1")
+GFP_ind = model.get_species_index("protein_GFP")
+plt.figure()
+plt.plot(timepoints, results[:, T1_ind], label = "T1")
+plt.plot(timepoints, results[:, GFP_ind], label = "GFP")
+plt.legend()
+plt.show()
+

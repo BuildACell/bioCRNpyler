@@ -27,32 +27,40 @@ myCRN = myMixture.compile_crn()
 
 print("\n"+repr(myCRN))
 
-#TODO Convert simulation code to bioscrape
-"""
 import pylab as plt
+import numpy as np
 plt.figure(figsize = (12, 8))
 
 species, rxns = myCRN.pyrepr()
 print(species, len(species))
 simCRN = CRN_Simulator.CRN(species, rxns)
-steps = 500000
+time = np.arange(0, 100, .1)
 
 print("Simulating with repressor")
-x0_dict = {"protein_RNAP":10., "protein_RNAase":20.0, "Ribo":100.,
+x0_dict = {"protein_RNAP":10., "protein_RNAase":20.0, "complex_ribosome":100.,
                'dna_reporter':5., 'protein_activator':0, 'protein_repressor':100}
-x0 = myCRN.initial_condition_vector(x0_dict)
-CD, t, rxn_list = simCRN.simulate_cython(x0, steps, return_count_dict=True)
+sim_results, model = myCRN.simulate_with_bioscrape(timepoints, initial_condition_dict = x0_dict)
+results = sim_results.py_get_result()
+prot_rep_ind = model.get_species_index("protein_ref")
+rna_rep_ind = model.get_species_index("rna_reporter")
+
+raise NotImplementedError
+
 plt.subplot(211)
 rna = CD["rna_reporter"]+CD["rna_reporter:complex_Ribo"]+CD["rna_reporter:protein_RNAase"]
 plt.plot(t, rna, label = "repressor present")
 plt.subplot(212)
 plt.plot(t, CD["protein_reporter"], label = "repressor present")
 
+
+
 print("Simulating with activator")
 x0_dict = {"protein_RNAP":10., "protein_RNAase":5.0, "Ribo":100.,
                'dna_reporter':5., 'protein_activator':100, 'protein_repressor':0}
-x0 = myCRN.initial_condition_vector(x0_dict)
-CD, t, rxn_list = simCRN.simulate_cython(x0, steps, return_count_dict=True)
+
+sim_results, model = myCRN.simulate_with_bioscrape(time, initial_condition_dict = x0_dict)
+results = sim_results.py_get_result()
+pref_ind = model.get_species_index("protein_ref")
 
 plt.subplot(211)
 rna = CD["rna_reporter"]+CD["rna_reporter:complex_Ribo"]+CD["rna_reporter:protein_RNAase"]
