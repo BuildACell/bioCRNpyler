@@ -9,7 +9,7 @@ setup(
     version='0.1',
     author='William Poole',
     author_email='wpoole@caltech.edu',
-    url='https://github.com/WilliamIX/BioCRNPyler/',
+    url='https://github.com/WilliamIX/biocrnplyler/',
     description='A chemical reaction network compiler for generating large biological circuit models',
     long_description=long_description,
     packages=['biocrnpyler'],
@@ -26,6 +26,9 @@ setup(
         'Operating System :: Unix'
         'Operating System :: MacOS'
     ],
+    install_requires=[
+          'libsbml',
+      ],
     test_suite='nose.collector',
     tests_require=['nose'],
 )
