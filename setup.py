@@ -27,7 +27,7 @@ setup(
         'Operating System :: MacOS'
     ],
     install_requires=[
-          'libsbml',
+          'python-libsbml',
       ],
     test_suite='nose.collector',
     tests_require=['nose'],
