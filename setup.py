@@ -5,15 +5,15 @@ with open('README.md') as fp:
     long_description = fp.read()
 
 setup(
-    name = 'biocrnpyler',
-    version = '0.1',
-    author = 'William Poole',
-    author_email = 'wpoole@caltech.edu',
-    url = 'https://github.com/WilliamIX/BioCRNPyler/',
-    description = 'A chemical reaction network compiler for generating large biological circuit models',
-    long_description = long_description,
-    packages = ['biocrnpyler'],
-    classifiers = [
+    name='biocrnpyler',
+    version='0.1',
+    author='William Poole',
+    author_email='wpoole@caltech.edu',
+    url='https://github.com/WilliamIX/BioCRNPyler/',
+    description='A chemical reaction network compiler for generating large biological circuit models',
+    long_description=long_description,
+    packages=['biocrnpyler'],
+    classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Developers',
@@ -26,5 +26,6 @@ setup(
         'Operating System :: Unix'
         'Operating System :: MacOS'
     ],
-    test_suite = 'nose.collector',
+    test_suite='nose.collector',
+    tests_require=['nose'],
 )

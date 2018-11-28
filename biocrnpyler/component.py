@@ -207,8 +207,8 @@ class DNA(Component):
             attributes=[],
             **keywords
     ):
-        self.length = length
-        Component.__init__(self=self, name=name, length=length, mechanisms=mechanisms, parameters=parameters,
+        self._length = length
+        Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters,
                            attributes=attributes, **keywords)
 
     def get_specie(self):
@@ -221,6 +221,17 @@ class DNA(Component):
     def update_reactions(self):
         return []
 
+    @property
+    def length(self):
+        return  self._length
+
+    @length.setter
+    def length(self, dna_length):
+        if dna_length >= 0:
+            self._length = dna_length
+        else:
+            raise ValueError("Length cannot be negative!")
+
 
 class RNA(Component):
     def __init__(
@@ -231,7 +242,7 @@ class RNA(Component):
             **keywords
     ):
         self.length = length
-        Component.__init__(self=self, name=name, length=length, mechanisms=mechanisms, parameters=parameters,
+        Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters,
                            attributes=attributes, **keywords)
 
     def get_specie(self):
@@ -257,7 +268,7 @@ class Protein(Component):
         self.degredation_tag = degredation_tag
         if degredation_tag not in attributes:
             attributes.append(degredation_tag)
-        Component.__init__(self=self, name=name, length=length, mechanisms=mechanisms, parameters=parameters,
+        Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters,
                            attributes=attributes, **keywords)
 
     def get_specie(self):
