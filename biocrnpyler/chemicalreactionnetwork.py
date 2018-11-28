@@ -4,11 +4,13 @@
 from warnings import warn
 from .sbmlutil import *
 
-""" A formal species object for a CRN
- Species must have a name. They may also have a type (such as DNA, RNA, Protein), and a list of attributes """
-
 
 class Specie(object):
+    """ A formal species object for a CRN
+     Species must have a name. They may also have a type (such as DNA, RNA, Protein), and a list of attributes
+
+    """
+
     def __init__(self, name, type="", attributes=[]):
         self.name = name
         self.type = type
@@ -48,15 +50,14 @@ class Specie(object):
         return str.__hash__(repr(self))
 
 
-""" An abstract representation of a chemical reaction in a CRN
-A reaction has the form:
-   \sum_i n_i I_i --> \sum_i m_i O_i @ rate = k
-   where n_i is the count of the ith input, I_i, and m_i is the count of the ith output, O_i.
-If the reaction is reversible, the reverse reaction is also included:
-   \sum_i m_i O_i  --> \sum_i n_i I_i @ rate = k_rev """
-
-
 class Reaction(object):
+    """ An abstract representation of a chemical reaction in a CRN
+    A reaction has the form:
+       \sum_i n_i I_i --> \sum_i m_i O_i @ rate = k
+       where n_i is the count of the ith input, I_i, and m_i is the count of the ith output, O_i.
+    If the reaction is reversible, the reverse reaction is also included:
+       \sum_i m_i O_i  --> \sum_i n_i I_i @ rate = k_rev
+    """
     def __init__(self, inputs, outputs, k, input_coefs=None, output_coefs=None, k_rev=0, mass_action=True,
                  rate_formula=None):
 
@@ -203,16 +204,16 @@ class Reaction(object):
                      self.output_coefs, self.k)]
 
 
-""" A chemical reaction network is a container of species and reactions
-chemical reaction networks can be compiled into SBML or represented conveniently as python tuple objects. 
-reaction types:
-   mass action: standard mass action semantics where the propensity of a reaction is given by
-           deterministic propensity = k \Prod_{inputs i} [S_i]^a_i
-           stochastic propensity = k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
-           where a_i is the stochiometric coefficient of species i """
-
-
 class ChemicalReactionNetwork(object):
+    """ A chemical reaction network is a container of species and reactions
+    chemical reaction networks can be compiled into SBML or represented conveniently as python tuple objects.
+    reaction types:
+       mass action: standard mass action semantics where the propensity of a reaction is given by
+               deterministic propensity = k \Prod_{inputs i} [S_i]^a_i
+               stochastic propensity = k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
+               where a_i is the stochiometric coefficient of species i
+    """
+
     def __init__(self, species, reactions):
         self.species, self.reactions = self.check_crn_validity(reactions, species)
 
