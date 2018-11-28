@@ -222,7 +222,7 @@ class Degredation_mRNA_MM(MichalisMentenRXN):
 
 class Reversible_Bimolecular_Binding(Mechanism):
     def __init__(self, name = "reversible_bimolecular_binding", type = "bimolecular_binding"):
-        Mechanism.__init__(self, name = name, type = type)
+        Mechanism.__init__(self, name = name, mechanism_type=type)
 
     def update_species(self, s1, s2, **keywords):
         complex = Specie(repr(s1) + ":" + repr(s2), type ="complex")

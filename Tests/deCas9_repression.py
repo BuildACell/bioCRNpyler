@@ -12,7 +12,7 @@ parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg": kdeg, "cooperativi
 # Create an assembly to express dCas9
 const_dCas_assembly = DNAassembly("dCas9", promoter ="P", rbs ="BCD")
 # Get the dCas Species. Note: This could also be defined above and passed into the assembly as protein=...
-dCas = const_dCas_assembly.protein
+dCas = const_dCas_assembly._protein
 # Create a Guide RNA Guide1
 gRNA = guideRNA("guide1", dCas=dCas)
 # Create an assembly to express the guide RNA
