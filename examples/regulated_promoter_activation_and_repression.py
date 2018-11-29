@@ -1,33 +1,30 @@
 from biocrnpyler import *
 
-#Parameters
+# Parameters
 kb, ku, ktx, ktl, kdeg = 200, 10, 2.0, .25, 1.5
-parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg":kdeg,
-              "cooperativity":2,
-              ('cooperative_binding', 'repressor', 'kb'):1000, ('cooperative_binding',"repressor", 'ku'):5.0,
-              ('transcription', 'repressor', 'kb'):1, ('transcription',"repressor", 'ku'):1000.0,
-              ('cooperative_binding', 'activator', 'kb'):1000, ('cooperative_binding', "activator", 'ku'):5.0,
+parameters = {"kb": kb, "ku": ku, "ktx": ktx, "ktl": ktl, "kdeg": kdeg,
+              "cooperativity": 2,
+              ('cooperative_binding', 'repressor', 'kb'): 1000, ('cooperative_binding', "repressor", 'ku'): 5.0,
+              ('transcription', 'repressor', 'kb'): 1, ('transcription', "repressor", 'ku'): 1000.0,
+              ('cooperative_binding', 'activator', 'kb'): 1000, ('cooperative_binding', "activator", 'ku'): 5.0,
               ('transcription', 'activator', 'kb'): 1000, ('transcription', "activator", 'ku'): 1.0,
-              "ktx_leak":ktx, "kb_leak":kb/50, "ku_leak":ku*50}
+              "ktx_leak": ktx, "kb_leak": kb / 50, "ku_leak": ku * 50}
 
-P_reg = RegulatedPromoter("P_regulated", regulators=["activator", "repressor"], leak = True)
+P_reg = RegulatedPromoter("P_regulated", regulators=["activator", "repressor"], leak=True)
 
-reg_rep_assembly = DNAassembly(name = "reporter", promoter = P_reg, rbs = "BCD")
+reg_rep_assembly = DNAassembly(name="reporter", promoter=P_reg, rbs="BCD")
 
 activator = Protein("activator")
 repressor = Protein("repressor")
 
 components = [reg_rep_assembly, activator, repressor]
-myMixture = BasicExtract(name = "txtl", parameters = parameters, components = components)
+myMixture = BasicExtract(name="txtl", parameters=parameters, components=components)
 
 myCRN = myMixture.compile_crn()
 
+print("\n" + repr(myCRN))
 
-
-
-print("\n"+repr(myCRN))
-
-#TODO Convert simulation code to bioscrape
+# TODO Convert simulation code to bioscrape
 """
 import pylab as plt
 plt.figure(figsize = (12, 8))
