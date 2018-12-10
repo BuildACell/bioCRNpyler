@@ -177,7 +177,7 @@ class DNAassembly(DNA):
     def __init__(self, name, dna=None,
                  promoter=None, transcript=None,
                  rbs=None, protein=None,
-                 mechanisms={}, parameters={}, **keywords):
+                 mechanisms={}, parameters={}, initial_conc=None, **keywords):
 
         self.name = name
         # Fillers until updates are executed
@@ -188,7 +188,8 @@ class DNAassembly(DNA):
 
         length = 0
         warn("length not yet implemented for DNA assemblies")
-        DNA.__init__(self, name, length=length, mechanisms=mechanisms, parameters=parameters, **keywords)
+        DNA.__init__(self, name, length=length, mechanisms=mechanisms, parameters=parameters, initial_conc=initial_conc,
+                     **keywords)
 
         # initiate the underlying CRN representation
         self._update_dna(dna)
@@ -201,9 +202,9 @@ class DNAassembly(DNA):
         if isinstance(dna, Specie):
             self.dna = dna
         elif isinstance(dna, str):
-            self.dna = Specie(dna, type="dna")
+            self.dna = Specie(dna, type="dna", initial_concentration=self.initial_concentration)
         elif dna is None:
-            self.dna = Specie(self.name, type="dna")
+            self.dna = Specie(self.name, type="dna", initial_concentration=self.initial_concentration)
         else:
             raise ValueError("Invalid value of 'dna' passed to " + str(
                 self) + ": dna must be None, a chemical_reaction_network.specie, or a string.")

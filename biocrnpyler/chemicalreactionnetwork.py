@@ -11,9 +11,10 @@ class Specie(object):
 
     """
 
-    def __init__(self, name, type="", attributes=[]):
+    def __init__(self, name, type="", attributes=[], initial_concentration=None):
         self.name = name
         self.type = type
+        self.initial_concentration = initial_concentration
 
         if attributes is None:
             attributes = []
@@ -295,7 +296,7 @@ class ChemicalReactionNetwork(object):
         document, model = create_sbml_model(**keywords)
 
         for s in self.species:
-            add_species(model, model.getCompartment(0), s)
+            add_species(model=model, compartment=model.getCompartment(0), specie=s, initial_concentration=s.initial_concentration)
 
         rxn_count = 0
         for r in self.reactions:

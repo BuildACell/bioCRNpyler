@@ -20,10 +20,12 @@ class Component(object):
                  parameters={},  # parameter configuration
                  mixture=None,
                  attributes=[],
+                 initial_conc=None,
                  **keywords  # parameter keywords
                  ):
 
         self.name = name
+        self.initial_concentration = initial_conc
 
         # Attributes can be used to store key words like protein deg-tags for components that mimic CRN species
         self.attributes = attributes
@@ -48,6 +50,19 @@ class Component(object):
         else:
             mixture_parameters = {}
         self.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters)
+
+    @property
+    def initial_concentration(self):
+        return self._initial_conc
+
+    @initial_concentration.setter
+    def initial_concentration(self, initial_conc):
+        if initial_conc is None:
+            self._initial_conc = initial_conc
+        elif initial_conc < 0:
+            raise ValueError('Initial concentration must be non-negative, this was given: %d' % initial_conc)
+        else:
+            self._initial_conc = initial_conc
 
     def get_specie(self):
         warn("get_specie() not defined for component " + self.name + " None returned.")
@@ -205,11 +220,12 @@ class DNA(Component):
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
             attributes=[],
+            initial_conc=None,
             **keywords
     ):
         self._length = length
         Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters,
-                           attributes=attributes, **keywords)
+                           attributes=attributes, initial_conc=initial_conc, **keywords)
 
     def get_specie(self):
         return Specie(self.name, type="dna", attributes=self.attributes)
@@ -239,11 +255,12 @@ class RNA(Component):
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
             attributes=[],
+            initial_conc=None,
             **keywords
     ):
         self.length = length
         Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters,
-                           attributes=attributes, **keywords)
+                           attributes=attributes, initial_conc=initial_conc, **keywords)
 
     def get_specie(self):
         return Specie(self.name, type="rna", attributes=self.attributes)
@@ -262,14 +279,16 @@ class Protein(Component):
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
             attributes=[],
-            degredation_tag=None, **keywords
+            degredation_tag=None,
+            initial_conc=None,
+            **keywords
     ):
         self.length = length
         self.degredation_tag = degredation_tag
         if degredation_tag not in attributes:
             attributes.append(degredation_tag)
         Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters,
-                           attributes=attributes, **keywords)
+                           attributes=attributes, initial_conc=initial_conc, **keywords)
 
     def get_specie(self):
         return Specie(self.name, type="protein", attributes=self.attributes)
@@ -288,10 +307,11 @@ class Complex(Component):
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters,
             attributes=[],
+            initial_conc=None,
             **keywords
     ):
         Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters, attributes=attributes,
-                           **keywords)
+                           initial_conc=initial_conc, **keywords)
 
     def get_specie(self):
         return Specie(self.name, type="complex", attributes=self.attributes)
