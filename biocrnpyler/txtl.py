@@ -28,3 +28,30 @@ class BasicExtract(Mixture):
         default_components = [self.rnap, self.ribosome, self.RNAase]
 
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, components=components+default_components, parameters=parameters, **kwargs)
+
+       
+class txtl(Mixture):
+    '''
+    TODO : Implement this
+    '''
+    def __init__(self, Mixture):
+        self.Mixture = Mixture
+        self.name = Mixture.name
+
+    def extract(self, name, parameters = {}):
+        return
+
+    def buffer(self, name = "", components = [], parameters = {}, **kwargs):
+        self.name = name
+        return 
+   
+    def new_tube(self, name = ""):
+        return
+
+    def add_dna(self, dna):
+        return
+
+    def combine_tubes(self):
+        crn = self.compile_crn()
+        return crn
+

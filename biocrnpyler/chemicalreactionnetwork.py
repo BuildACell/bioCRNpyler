@@ -3,17 +3,17 @@
 
 from warnings import warn
 from .sbmlutil import *
-
-
+import warnings
+import numpy as np
 class Specie(object):
     """ A formal species object for a CRN
-     Species must have a name. They may also have a type (such as DNA, RNA, Protein), and a list of attributes
+     Species must have a name. They may also have a simtype (such as DNA, RNA, Protein), and a list of attributes
 
     """
 
-    def __init__(self, name, type="", attributes=[], initial_concentration=None):
+    def __init__(self, name, simtype="", attributes=[], initial_concentration=None):
         self.name = name
-        self.type = type
+        self.simtype = simtype
         self.initial_concentration = initial_concentration
 
         if attributes is None:
@@ -25,9 +25,9 @@ class Specie(object):
         self.attributes = attributes
 
     def __repr__(self):
-        txt = self.type + "_" + self.name
-        # if self.type != "complex":
-        #    txt = self.type+"_"+self.name
+        txt = self.simtype + "_" + self.name
+        # if self.simtype != "complex":
+        #    txt = self.simtype+"_"+self.name
         # else:
         #    txt = self.name
         if len(self.attributes) > 0 and self.attributes != []:
@@ -38,10 +38,10 @@ class Specie(object):
         return txt
 
     # Overrides the default implementation
-    # Two species are equivalent if they have the same name, type, and attributes
+    # Two species are equivalent if they have the same name, simtype, and attributes
     def __eq__(self, other):
 
-        if isinstance(other, Specie) and self.type == other.type and self.name == other.name and set(
+        if isinstance(other, Specie) and self.simtype == other.simtype and self.name == other.name and set(
                 self.attributes) == set(other.attributes):
             return True
         else:
@@ -208,7 +208,7 @@ class Reaction(object):
 class ChemicalReactionNetwork(object):
     """ A chemical reaction network is a container of species and reactions
     chemical reaction networks can be compiled into SBML or represented conveniently as python tuple objects.
-    reaction types:
+    reaction simtypes:
        mass action: standard mass action semantics where the propensity of a reaction is given by
                deterministic propensity = k \Prod_{inputs i} [S_i]^a_i
                stochastic propensity = k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
@@ -338,3 +338,74 @@ class ChemicalReactionNetwork(object):
         result = sim.py_simulate(s, timepoints)
 
         return result, m
+    
+    def runsim_bioscrape(self, timepoints, file, simtype = "deterministic", species_to_plot = [], plot_show = True):
+        ''' 
+        To simulate using bioscrape.
+        Returns the data for all species and bioscrape model object which can be used to find out species indexes.
+        NOTE : Needs bioscrape package installed to simulate. 
+        TODO : Returns result and model
+        '''
+ 
+        import matplotlib.pyplot as plt
+        try:
+            import bioscrape
+        except:
+            print('bioscrape package must be installed to run simulations using bioscrape')
+
+        if isinstance(file, str):
+            filename = file
+        else:
+            filename = file.name
+
+        m = bioscrape.types.read_model_from_sbml(filename)
+        s = bioscrape.simulator.ModelCSimInterface(m)
+        if simtype == 'deterministic':
+            s.py_prep_deterministic_simulation()
+            s.py_set_initial_time(timepoints[0])
+            sim = bioscrape.simulator.DeterministicSimulator()
+            result = sim.py_simulate(s, timepoints)
+            result = result.py_get_result()
+            if plot_show:
+                for species in species_to_plot:
+                    ind = m.get_species_index(species)
+                    plt.plot(timepoints,result[:,ind])
+                plt.title(str(species_to_plot) + ' vs time')
+                plt.show()
+            return result, m
+        elif simtype == 'stochastic':
+            warnings.warn('For stochastic simulation of SBML models using bioscrape, it is highly recommended to NOT use reversible reactions as the SSA algorithm might not work for such cases.')
+            sim = bioscrape.simulator.SSASimulator()
+            s.py_set_initial_time(timepoints[0])
+            result = sim.py_simulate(s,timepoints)
+            result = result.py_get_result()
+            if plot_show:
+                for species in species_to_plot:
+                    ind = m.get_species_index(species)
+                    plt.plot(timepoints,result[:,ind])
+                plt.title(str(species_to_plot) + ' vs time')
+                plt.show()
+            return result, m
+        else:
+            raise ValueError('Optional argument "simtype" must be either deterministic or stochastic')
+           
+    def runsim_roadrunner(self, timepoints, filename, species_to_plot = []):
+        ''' 
+        To simulate using roadrunner.
+        Returns the data for all species and bioscrape model object which can be used to find out species indexes.
+        NOTE : Needs roadrunner package installed to simulate. 
+        TODO : species_to_plot not implemented. 
+        TODO : plot_show not implemented
+        TODO : bioscrape.convert_to_sbml not implemented (possibly available in later versions of bioscrape)
+        '''
+        try:
+            import roadrunner
+        except:
+            print('roadrunner is not installed.')
+
+        rr = roadrunner.RoadRunner(filename)
+        if species_to_plot:
+            rr.timeCourseSelections = ['time', species_to_plot]
+        result = rr.simulate(timepoints[0],timepoints[-1],len(timepoints))
+        res_ar = np.array(result)
+        return res_ar[:,0],res_ar[:,1]
