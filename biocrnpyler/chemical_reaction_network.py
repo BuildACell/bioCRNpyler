@@ -470,7 +470,6 @@ class ChemicalReactionNetwork(object):
         result = bioscrape.simulator.py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe)
 
 
-<<<<<<< HEAD:biocrnpyler/chemicalreactionnetwork.py
         return result, m
     
     def runsim_bioscrape(self, timepoints, file, simtype = "deterministic", species_to_plot = [], plot_show = True):
@@ -543,6 +542,3 @@ class ChemicalReactionNetwork(object):
         result = rr.simulate(timepoints[0],timepoints[-1],len(timepoints))
         res_ar = np.array(result)
         return res_ar[:,0],res_ar[:,1]
-=======
-        return result
->>>>>>> 0a5d004226e285320361845a365d76ddf41860c1:biocrnpyler/chemical_reaction_network.py
