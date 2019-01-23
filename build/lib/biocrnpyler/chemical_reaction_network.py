@@ -456,7 +456,7 @@ class ChemicalReactionNetwork(object):
         return result
 
 
-    def simulate_with_bioscrape_deterministic_via_sbml(self, timepoints, file, initial_condition_dict):
+    def simulate_with_bioscrape_deterministic_via_sbml(self, timepoints, file, initial_condition_dict, return_dataframe = True, stochastic = False):
         import bioscrape
 
         if isinstance(file, str):
@@ -467,12 +467,7 @@ class ChemicalReactionNetwork(object):
         m = bioscrape.types.read_model_from_sbml(file_name)
 
         m.set_species(initial_condition_dict)
+        result = bioscrape.simulator.py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe)
 
-        s = bioscrape.simulator.ModelCSimInterface(m)
-        s.py_prep_deterministic_simulation()
-        s.py_set_initial_time(0)
-
-        sim = bioscrape.simulator.DeterministicSimulator()
-        result = sim.py_simulate(s, timepoints)
 
         return result

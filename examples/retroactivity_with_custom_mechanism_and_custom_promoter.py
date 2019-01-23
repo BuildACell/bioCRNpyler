@@ -1,7 +1,7 @@
 from biocrnpyler import *
 
 #Parameters
-kb, ku, ktx, ktl, kdeg = 100, 10, 2.0, 1.0, 5.
+kb, ku, ktx, ktl, kdeg = 100, 10, 2.0, 3.0, .5
 parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg":kdeg}
 
 #A constituitively expressed reporter
@@ -9,7 +9,7 @@ reference_assembly = DNAassembly(name = "ref", promoter = "P", rbs = "BCD")
 #A constiuitively expressed load (RNA and Protein)
 full_load_assembly = DNAassembly(name = "Load", promoter = "P", rbs = "BCD")
 #A constiutively transcribed (but not translated) load
-RNA_load_assembly = DNAassembly(name = "Txload", promoter = "P", rbs = None)
+RNA_load_assembly = DNAassembly(name = "TxLoad", promoter = "P", rbs = None)
 
 #Load genes on orthogonal polymerases
 T7 = Protein("T7") #Create a new protein T7
@@ -54,9 +54,10 @@ timepoints = np.arange(0, 3, .01)
 plt.figure(figsize = (16, 8))
 plt.subplot(221)
 plt.title("Load on a RNAP Promoter")
-for dna_Load in [0, 1.0, 2.0, 5., 10., 25., 50, 100]:
+loads = [0, 1.0, 5., 10., 50, 100, 500, 1000]
+for dna_Load in loads:
     print("Simulating for dna_Load=", dna_Load)
-    x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":100.,
+    x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":50.,
                'dna_ref':5., 'dna_Load':dna_Load}
 
     results = myCRN.simulate_with_bioscrape(timepoints, x0_dict)
@@ -71,7 +72,7 @@ plt.subplot(222)
 plt.title("Load on a T7 Promotoer")
 for dna_Load in [0, 1.0, 5., 10., 25., 50, 100]:
     print("Simulating for dna_T7Load=", dna_Load)
-    x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":100.,
+    x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":50.,
                'dna_ref':5., 'dna_T7Load':dna_Load}
     results = myCRN.simulate_with_bioscrape(timepoints, x0_dict)
     plt.plot(timepoints, results["protein_ref"], label="Load = " + str(dna_Load))
@@ -84,7 +85,7 @@ plt.subplot(223)
 plt.title("Load on a RNAP Promotoer, No RBS")
 for dna_Load in [0, 1.0, 2.0, 5., 10., 25., 50, 100]:
     print("Simulating for dna_TxLoad=", dna_Load)
-    x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":100.,
+    x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":50.,
                'dna_ref':5., 'dna_TxLoad':dna_Load}
     results = myCRN.simulate_with_bioscrape(timepoints, x0_dict)
     plt.plot(timepoints, results["protein_ref"], label="Load = " + str(dna_Load))
@@ -97,7 +98,7 @@ plt.subplot(224)
 plt.title("Load on a T7 Promotoer, No RBS")
 for dna_Load in [0, 1.0, 2.0, 5., 10., 25., 50, 100]:
     print("Simulating for dna_T7TxLoad=", dna_Load)
-    x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":100.,
+    x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":50.,
                'dna_ref':5., 'dna_T7TxLoad':dna_Load}
     results = myCRN.simulate_with_bioscrape(timepoints, x0_dict)
     plt.plot(timepoints, results["protein_ref"], label="Load = " + str(dna_Load))

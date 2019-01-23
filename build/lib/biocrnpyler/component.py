@@ -265,7 +265,7 @@ class RNA(Component):
             **keywords
     ):
         self.length = length
-        self.specie = Specie(self.name, type="rna", attributes=list(attributes))
+        self.specie = Specie(name, type="rna", attributes=list(attributes))
         Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters,
                            attributes=attributes, initial_conc=initial_conc, **keywords)
 
