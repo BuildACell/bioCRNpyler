@@ -7,13 +7,13 @@ import warnings
 import numpy as np
 class Specie(object):
     """ A formal species object for a CRN
-     Species must have a name. They may also have a simtype (such as DNA, RNA, Protein), and a list of attributes
+     Species must have a name. They may also have a type (such as DNA, RNA, Protein), and a list of attributes
 
     """
 
-    def __init__(self, name, simtype="", attributes=[], initial_concentration=None):
+    def __init__(self, name, type="", attributes=[], initial_concentration=None):
         self.name = name
-        self.simtype = simtype
+        self.type = type
         self.initial_concentration = initial_concentration
 
         if attributes is None:
@@ -25,9 +25,9 @@ class Specie(object):
         self.attributes = attributes
 
     def __repr__(self):
-        txt = self.simtype + "_" + self.name
-        # if self.simtype != "complex":
-        #    txt = self.simtype+"_"+self.name
+        txt = self.type + "_" + self.name
+        # if self.type != "complex":
+        #    txt = self.type+"_"+self.name
         # else:
         #    txt = self.name
         if len(self.attributes) > 0 and self.attributes != []:
@@ -38,10 +38,10 @@ class Specie(object):
         return txt
 
     # Overrides the default implementation
-    # Two species are equivalent if they have the same name, simtype, and attributes
+    # Two species are equivalent if they have the same name, type, and attributes
     def __eq__(self, other):
 
-        if isinstance(other, Specie) and self.simtype == other.simtype and self.name == other.name and set(
+        if isinstance(other, Specie) and self.type == other.type and self.name == other.name and set(
                 self.attributes) == set(other.attributes):
             return True
         else:
@@ -208,7 +208,7 @@ class Reaction(object):
 class ChemicalReactionNetwork(object):
     """ A chemical reaction network is a container of species and reactions
     chemical reaction networks can be compiled into SBML or represented conveniently as python tuple objects.
-    reaction simtypes:
+    reaction types:
        mass action: standard mass action semantics where the propensity of a reaction is given by
                deterministic propensity = k \Prod_{inputs i} [S_i]^a_i
                stochastic propensity = k \Prod_{inputs i} (S_i)!/(S_i - a_i)!

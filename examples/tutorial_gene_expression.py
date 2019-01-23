@@ -6,8 +6,10 @@ import numpy as np
 mix = txtl(Mixture('txtl_gfp'))
 
 # Specify what extract and buffer to use
-tube1 = mix.extract('BL21_DE3')
-tube2 = mix.buffer('stdbuffer')
+tube1 = mix.extract('test_extract')
+
+# Buffer with energy models will be available in future releases
+# tube2 = mix.buffer('stdbuffer')
 
 # Create genes to add to the mix as follows
 gene1 = DNAassembly(name = "G1", promoter = 'pBest', rbs = 'BCD2', protein = "GFP", initial_conc = 10)
