@@ -27,7 +27,7 @@
 
 
 from warnings import warn
-from .chemical_reaction_network import specie, reaction
+from .chemical_reaction_network import specie, reaction, complex_specie
 from .component import Component
 
 # Mechanism class for core mechanisms
@@ -70,16 +70,14 @@ class MichalisMentenRXN(Mechanism):
         Mechanism.__init__(self, name, type)
 
     def update_species(self, Sub, **keywords):
-        complex_name = Sub.type + "_" + Sub.name + ":" + self.Enzyme.type + "_" + self.Enzyme.name
-        complex = specie(complex_name, type="complex")
+        complex = complex_specie([Sub, self.Enzyme])
 
         return [complex]
 
 
     def update_reactions(self, Sub, Prod, complex = None, kb = 100, ku = 10, kcat = 1, **keywords):
         if complex == None:
-            complex_name = Sub.type + "_" + Sub.name + ":" + self.Enzyme.type + "_" + self.Enzyme.name
-            complex = specie(complex_name, type = "complex")
+            complex = complex_specie([Sub, self.Enzyme])
         # Sub + Enz <--> Sub:Enz
         binding_rxn = reaction(inputs=[Sub, self.Enzyme], outputs=[complex], k=kb, k_rev=ku)
         if Prod != None:
@@ -103,16 +101,13 @@ class MichalisMentenCopyRXN(Mechanism):
         Mechanism.__init__(self, name, type)
 
     def update_species(self, Sub, **keywords):
-        complex = specie(Sub.type+"_"+Sub.name + ":" + self.Enzyme.type+"_"+self.Enzyme.name
-, type="complex")
+        complex = complex_specie([Sub, self.Enzyme])
         return [complex]
 
 
     def update_reactions(self, Sub, Prod, complex = None, kb = 100, ku = 10, kcat = 1, **keywords):
         if complex == None:
-            complex_name = Sub.type + "_" + Sub.name + ":" + self.Enzyme.type + "_" + self.Enzyme.name
-            complex_name.replace("complex_", "")
-            complex = specie(complex_name, type="complex")
+            complex = complex_specie([Sub, self.Enzyme])
         # Sub + Enz <--> Sub:Enz
         binding_rxn = reaction(inputs=[Sub, self.Enzyme], outputs=[complex], k=kb, k_rev=ku)
 
@@ -133,7 +128,7 @@ class Transcription_MM(MichalisMentenCopyRXN):
         elif isinstance(rnap, Component) and rnap.get_specie() != None:
             self.rnap = rnap.get_specie()
         else:
-            raise ValueError("'rnap' parameter must be a string, a with defined get_specie(), or a chemical_reaction_network.specie")
+            raise ValueError("'rnap' parameter must be a string, a Component with defined get_specie(), or a chemical_reaction_network.specie")
 
         MichalisMentenCopyRXN.__init__(self = self, name = name, enzyme=self.rnap, type = "transcription")
 
@@ -221,11 +216,11 @@ class Reversible_Bimolecular_Binding(Mechanism):
         Mechanism.__init__(self, name = name, type = type)
 
     def update_species(self, s1, s2, **keywords):
-        complex = specie(repr(s1)+":"+repr(s2), type = "complex")
+        complex = complex_specie([s1, s2])
         return [complex]
 
     def update_reactions(self, s1, s2, kb, ku, **keywords):
-        complex = specie(repr(s1) + ":" + repr(s2), type="complex")
+        complex = complex_specie([s1, s2])
         rxns = [reaction([s1, s2], [complex], k = kb, k_rev = ku)]
         return rxns
 
@@ -239,13 +234,14 @@ class One_Step_Cooperative_Binding(Mechanism):
 
     def update_species(self, s1, s2, cooperativity = 1, **kwords):
         binder, bindee = s1, s2
-        complex = specie(binder.type +"_" + str(cooperativity) + "x_" + binder.name + ":" + bindee.type + "_" + bindee.name, type="complex")
+        complex_name = binder.type +"_" + str(cooperativity) + "x_" + binder.name + ":" + bindee.type + "_" + bindee.name
+        complex = complex_specie([binder, bindee], name = complex_name)
         return [complex]
 
     def update_reactions(self, s1, s2, kb, ku, cooperativity = 1, **kwords):
         binder, bindee = s1, s2
-        complex = specie(binder.type +"_" + str(cooperativity) + "x_" + binder.name + ":" + bindee.type + "_" + bindee.name, type="complex")
-
+        complex_name = binder.type +"_" + str(cooperativity) + "x_" + binder.name + ":" + bindee.type + "_" + bindee.name
+        complex = complex_specie([binder, bindee], name = complex_name)
         rxns = []
         rxns += [reaction(inputs = [binder, bindee], outputs = [complex], input_coefs=[cooperativity, 1], output_coefs=[1], k = kb, k_rev=ku)]
         return rxns
@@ -259,9 +255,9 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
     def update_species(self, s1, s2, cooperativity = 2, **keywords):
         binder, bindee = s1, s2
-        n_mer = specie(str(cooperativity)+"x_"+bindee.name, type = "complex")
-        complex = specie(binder.type + "_" + n_mer.name + ":" + bindee.type + "_" + bindee.name,
-                                 type="complex")
+        n_mer_name = str(cooperativity)+"x_"+binder.type+"_"+binder.name
+        n_mer = complex_specie([binder], name = n_mer_name)
+        complex = complex_specie([n_mer, bindee])
 
         return [complex, n_mer]
 
@@ -275,9 +271,9 @@ class Two_Step_Cooperative_Binding(Mechanism):
         kb1, kb2 = kb
         ku1, ku2 = ku
 
-        n_mer = specie(str(cooperativity) + "x_" + bindee.name, type="complex")
-        complex = specie(binder.type + "_" + n_mer.name + ":" + bindee.type + "_" + bindee.name,
-                             type="complex")
+        n_mer_name = str(cooperativity)+"x_"+binder.type+"_"+binder.name
+        n_mer = complex_specie([binder], name = n_mer_name)
+        complex = complex_specie([n_mer, bindee])
 
         rxns = [reaction(inputs = [binder], outputs = [n_mer], input_coefs=[cooperativity], output_coefs=[1], k = kb1, k_rev=ku1),
                 reaction(inputs = [n_mer, bindee], outputs = [complex], k = kb2, k_rev=ku2)]

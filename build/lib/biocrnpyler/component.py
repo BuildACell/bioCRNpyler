@@ -12,14 +12,10 @@ class Component(object):
                  mechanisms={},  # custom mechanisms
                  parameters={}, # parameter configuration
                  mixture = None,
-                 attributes = [],
                  **keywords  # parameter keywords
                  ):
 
         self.name = name
-
-        #Attributes can be used to store key words like protein deg-tags for components that mimic CRN species
-        self.attributes = attributes
 
         #Check to see if a subclass constructor has overwritten default mechanisms
         if not hasattr(self, 'default_mechanisms'):
@@ -46,6 +42,12 @@ class Component(object):
     def get_specie(self):
         warn("get_specie() not defined for component "+self.name+" None returned.")
         return None
+
+    def __hash__(self):
+        return str.__hash__(repr(self.get_specie()))
+
+    def add_attribute(self, attribute):
+        self.get_specie().add_attribute(attribute)
 
     def update_parameters(self, mixture_parameters = {}, parameters = {}, overwrite_custom_parameters = True):
         for p in parameters:
@@ -126,9 +128,6 @@ class Component(object):
                 warn(warning_txt)
             return return_val
 
-
-
-
         if (type(self).__name__, self.name, param_name) in self.parameters:
             return self.parameters[(type(self).__name__, self.name, param_name)]
         elif (self.name, param_name) in self.parameters:
@@ -192,14 +191,15 @@ class DNA(Component):
             self, name, length=0,  # positional arguments
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
-            attributes = [],
+            attributes= [], #for components that are CRN species
             **keywords
     ):
         self.length = length
+        self.specie = specie(name, type = "dna", attributes = attributes)
         Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
 
     def get_specie(self):
-        return specie(self.name, type = "dna", attributes = self.attributes)
+        return self.specie
 
     def update_species(self):
         species = [self.get_specie()]
@@ -213,14 +213,15 @@ class RNA(Component):
             self, name, length=0,  # positional arguments
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
-            attributes = [],
+            attributes= [], #for components that are CRN species
             **keywords
     ):
         self.length = length
-        Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
+        self.specie = specie(name, type = "rna", attributes = attributes)
+        Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, **keywords)
 
     def get_specie(self):
-        return specie(self.name, type = "rna", attributes = self.attributes)
+        return self.specie
 
     def update_species(self):
         species = [self.get_specie()]
@@ -234,17 +235,19 @@ class Protein(Component):
             self, name, length=0,  # positional arguments
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
-            attributes = [],
+            attributes= [], #for components that are CRN species
             degredation_tag = None, **keywords
     ):
         self.length = length
         self.degredation_tag = degredation_tag
         if degredation_tag not in attributes:
             attributes.append(degredation_tag)
-        Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
+
+        self.specie = specie(name, type="protein", attributes=attributes)
+        Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, **keywords)
 
     def get_specie(self):
-        return specie(self.name, type="protein", attributes=self.attributes)
+        return self.specie
 
     def update_species(self):
         species = [self.get_specie()]
@@ -253,19 +256,36 @@ class Protein(Component):
     def update_reactions(self):
         return []
 
-
+#A complex forms when two or more species bind together
+#Complexes inherit the attributes of their species
 class Complex(Component):
     def __init__(
-            self, name,  # positional arguments
+            self, species,  # positional arguments
+            name = None, #Override the default naming convention for a complex
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters,
-            attributes = [],
+            attributes= [], #for components that are CRN species
             **keywords
     ):
-        Component.__init__(self = self, name = name, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
+        if len(species) < 2:
+            raise ValueError("A complex always takes two or more species in its constructor")
+
+        self.internal_species = species
+
+        if name == None:
+            name = ""
+            for s in species:
+                name += s.type+"_"+s.name+"_"
+            name = name[:-1]
+
+        for s in species:
+            attributes+=s.attributes
+
+        self.specie = specie(name, type="complex", attributes=attributes)
+        Component.__init__(self = self, name = name, mechanisms=mechanisms, parameters = parameters, **keywords)
 
     def get_specie(self):
-        return specie(self.name, type="complex", attributes=self.attributes)
+        return self.specie
 
     def update_species(self):
         species = [self.get_specie()]

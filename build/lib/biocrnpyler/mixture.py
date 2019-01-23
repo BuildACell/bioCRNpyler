@@ -30,7 +30,7 @@ from .chemical_reaction_network import chemical_reaction_network, specie
     parameters          Global parameters for the mixture (dict)
 """
 class Mixture():
-    def __init__(self, name="", mechanisms={}, components = [], parameters = {}, default_mechanisms = {}, global_mechanisms = {}, **kwargs):
+    def __init__(self, name="", mechanisms={}, components = [], parameters = {}, default_mechanisms = {}, global_mechanisms = {}, default_components = [], **kwargs):
         "Create a new mixture"
 
         # Initialize instance variables
@@ -59,11 +59,11 @@ class Mixture():
 
         self.components = []  # components contained in mixture
         self.added_species = [] # if chemcial_reaction_network.specie objects are passed in as components they are stored here
-        for component in components:
+        for component in components+default_components:
             if isinstance(component, Component):
                 self.add_components(component)
             elif isinstance(component, specie):
-                self.added_species += component
+                self.added_species += [component]
             else:
                 raise ValueError("Objects passed into mixture as Components must be of the class Component or chemical_reaction_network.specie")
 

@@ -41,50 +41,42 @@ reaction_mix = BasicExtract("txtl", components = components, parameters=paramete
 CRN = reaction_mix.compile_crn()
 print(repr(CRN))
 
-file_name = "dcas9_repression_test.xml"
-f = CRN.write_sbml_file(file_name)
 
+print("Simulating with BioSCRAPE")
 #Initial Condition Dict: repr(specie) --> concentration. Default is 0
 #Note in SBML all the species names have ":" replaced with "_".
-x0_no_dcas = {repr(const_dCas_assmebly.dna):0, repr(reg_assembly.dna):1, repr(const_gRNA_assembly.dna):10, "complex_Ribo":20, "protein_RNAP":10, "protein_RNAase":10}
-x0_with_dcas = {repr(const_dCas_assmebly.dna):2., repr(reg_assembly.dna):1, repr(const_gRNA_assembly.dna):10, "complex_Ribo":20, "protein_RNAP":10, "protein_RNAase":10}
+x0_no_dcas = {repr(const_dCas_assmebly.dna):0, repr(reg_assembly.dna):1, repr(const_gRNA_assembly.dna):10, "protein_Ribo":20, "protein_RNAP":10, "protein_RNAase":10}
+x0_with_dcas = {repr(const_dCas_assmebly.dna):2., repr(reg_assembly.dna):1, repr(const_gRNA_assembly.dna):10, "protein_Ribo":20, "protein_RNAP":10, "protein_RNAase":10}
 
 #Bioscrape Simulation
 import numpy as np
 import pylab as plt
 timepoints = np.arange(0, 100, .01)
-print("Simulating")
-sim_no_cas, model= CRN.simulate_with_bioscrape_deterministic(timepoints, f, x0_no_dcas)
-sim_with_cas, model= CRN.simulate_with_bioscrape_deterministic(timepoints, f, x0_with_dcas)
 
-rep_ind = model.get_species_index("protein_reporter")
-dcas_ind = model.get_species_index(repr(dCas))
-grna_ind = model.get_species_index(repr(gRNA))
-grep_ind = model.get_species_index(repr(reg_assembly.dna))
-grep_rep_ind = model.get_species_index("complex_complex_1x_rna_guide1_protein_dCas9_dna_reporter")
-
+sim_no_cas = CRN.simulate_with_bioscrape(timepoints, x0_no_dcas, stochastic = False)
+sim_with_cas = CRN.simulate_with_bioscrape(timepoints, x0_with_dcas, stochastic = False)
 
 
 plt.figure(figsize = (10, 10))
 plt.subplot(311)
 plt.title("Protein Products")
-plt.plot(timepoints, sim_no_cas.py_get_result()[: , rep_ind], color = "red", label = "Reporter: No dCas9")
-plt.plot(timepoints, sim_with_cas.py_get_result()[: , rep_ind],":", color = "red", label = "Reporter: With dCas9")
-plt.plot(timepoints, sim_no_cas.py_get_result()[: , dcas_ind], color = "blue", label = "dCas9: No dCas9")
-plt.plot(timepoints, sim_with_cas.py_get_result()[: , dcas_ind],":", color = "blue", label = "dCas9: With dCas9")
+plt.plot(timepoints, sim_no_cas["protein_reporter"], color = "red", label = "Reporter: No dCas9")
+plt.plot(timepoints, sim_with_cas["protein_reporter"],":", color = "red", label = "Reporter: With dCas9")
+plt.plot(timepoints, sim_no_cas[repr(dCas)], color = "blue", label = "dCas9: No dCas9")
+plt.plot(timepoints, sim_with_cas[repr(dCas)],":", color = "blue", label = "dCas9: With dCas9")
 plt.legend()
 
 plt.subplot(312)
 plt.title("RNAs")
-plt.plot(timepoints, sim_no_cas.py_get_result()[: , grna_ind], color = "cyan", label = "gRNA: No dCas9")
-plt.plot(timepoints, sim_with_cas.py_get_result()[: , grna_ind],":", color = "cyan", label = "gRNA: With dCas9")
+plt.plot(timepoints, sim_no_cas[repr(gRNA.get_specie())], color = "cyan", label = "gRNA: No dCas9")
+plt.plot(timepoints, sim_with_cas[repr(gRNA.get_specie())],":", color = "cyan", label = "gRNA: With dCas9")
 plt.legend()
 
 plt.subplot(313)
-plt.plot(timepoints, sim_no_cas.py_get_result()[: , grep_ind], color = "red", label = "dna_reporter: No dCas9")
-plt.plot(timepoints, sim_with_cas.py_get_result()[: , grep_ind],":", color = "red", label = "dna_reporter: With dCas9")
-plt.plot(timepoints, sim_no_cas.py_get_result()[: , grep_rep_ind], color = "blue", label = "repressed dna_reporter: No dCas9")
-plt.plot(timepoints, sim_with_cas.py_get_result()[: , grep_rep_ind],":", color = "blue", label = "repressed dna_reporter: With dCas9")
+plt.plot(timepoints, sim_no_cas[repr(reg_assembly.dna)], color = "red", label = "dna_reporter: No dCas9")
+plt.plot(timepoints, sim_with_cas[repr(reg_assembly.dna)],":", color = "red", label = "dna_reporter: With dCas9")
+plt.plot(timepoints, sim_no_cas["complex_rna_guide1_protein_dCas9_dna_reporter"], color = "blue", label = "repressed dna_reporter: No dCas9")
+plt.plot(timepoints, sim_with_cas["complex_rna_guide1_protein_dCas9_dna_reporter"],":", color = "blue", label = "repressed dna_reporter: With dCas9")
 
 plt.plot()
 plt.legend()

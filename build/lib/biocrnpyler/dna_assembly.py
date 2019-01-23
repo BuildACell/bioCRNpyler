@@ -166,7 +166,7 @@ class RBS(Component):
         return reactions
 
 class DNAassembly(DNA):
-    def __init__(self, name, dna = None,
+    def __init__(self, name, dna = None, attributes = [],
                  promoter = None, transcript = None,
                  rbs=None, protein = None,
                  mechanisms = {}, parameters = {}, **keywords):
@@ -178,7 +178,7 @@ class DNAassembly(DNA):
         warn("length not yet implemented for DNA assemblies")
         DNA.__init__(self, name, length=length, mechanisms=mechanisms, parameters=parameters, **keywords)
 
-        self.update_dna(dna)
+        self.update_dna(dna, attributes)
         self.update_transcript(transcript)
         self.update_protein(protein)
         self.update_promoter(promoter, transcript = self.transcript)
@@ -186,16 +186,18 @@ class DNAassembly(DNA):
 
 
 
-    def update_dna(self, dna):
+    def update_dna(self, dna, attributes = []):
         if isinstance(dna, specie):
             self.dna = dna
+            self.dna.attributes += attributes
         elif isinstance(dna, str):
-            self.dna = specie(dna, type = "dna")
+            self.dna = specie(dna, type = "dna", attributes = attributes)
         elif dna == None:
-            self.dna = specie(self.name, type = "dna")
+            self.dna = specie(self.name, type = "dna", attributes = attributes)
         else:
             raise ValueError("Invalid value of 'dna' passed to "+str(self)+": dna must be None, a chemical_reaction_network.specie, or a string.")
-
+        self.specie = dna
+        
     def update_transcript(self, transcript):
         if isinstance(transcript, specie):
             self.transcript = transcript

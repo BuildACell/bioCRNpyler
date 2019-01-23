@@ -1,15 +1,16 @@
 from .component import Component, RNA
 from .mechanism import Reversible_Bimolecular_Binding
-from .chemical_reaction_network import specie
+from .chemicalreactionnetwork import Specie
+
 
 class guideRNA(RNA):
     def __init__(self, guide_name, dCas9 = "dCas9", **keywords):
 
 
-        if isinstance(dCas9, specie):
+        if isinstance(dCas9, Specie):
             self.dCas = dCas9
         elif isinstance(dCas9, str):
-            self.dCas = specie(dCas9, type = "protein")
+            self.dCas = Specie(dCas9, type ="protein")
         elif isinstance(dCas9, Component) and dCas9.get_specie()!= None:
             self.dCas = dCas9.get_specie()
         else:
