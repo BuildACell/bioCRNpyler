@@ -2,7 +2,7 @@ Metadata-Version: 1.1
 Name: biocrnpyler
 Version: 0.1
 Summary: A chemical reaction network compiler for generating large biological circuit models
-Home-page: https://github.com/WilliamIX/BioCRNPyler/
+Home-page: https://github.com/WilliamIX/biocrnplyler/
 Author: William Poole
 Author-email: wpoole@caltech.edu
 License: UNKNOWN

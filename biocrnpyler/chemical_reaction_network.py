@@ -14,12 +14,9 @@ class Specie(object):
     def __init__(self, name, type="", attributes=[], initial_concentration=None):
         self.name = name
         self.type = type
-<<<<<<< HEAD:biocrnpyler/chemical_reaction_network.py
+        self.initial_concentration = initial_concentration
         if type == "complex":
             warn("species which are formed of two species or more should be called using the chemical_reaction_network.complex constructor for attribute inheritence purposes.")
-=======
-        self.initial_concentration = initial_concentration
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46:biocrnpyler/chemicalreactionnetwork.py
 
         if attributes is None:
             attributes = []
@@ -31,25 +28,6 @@ class Specie(object):
 
     def __repr__(self):
         txt = self.type + "_" + self.name
-<<<<<<< HEAD:biocrnpyler/chemical_reaction_network.py
-
-        if len(self.attributes)>0 and self.attributes != []:
-            for i in self.attributes:
-                txt+="_"+str(i)
-        txt.replace("'", "")
-        return txt
-
-    def add_attribute(self, attribute):
-        if attribute not in self.attributes:
-            self.attributes.append(attribute)
-        
-    #Overrides the default implementation
-    #Two species are equivalent if they have the same name, type, and attributes
-=======
-        # if self.type != "complex":
-        #    txt = self.type+"_"+self.name
-        # else:
-        #    txt = self.name
         if len(self.attributes) > 0 and self.attributes != []:
             for i in self.attributes:
                 if i is not None:
@@ -57,9 +35,14 @@ class Specie(object):
         txt.replace("'", "")
         return txt
 
+    def add_attribute(self, attribute):
+        if isinstance(attribute, str):
+            self.attributes.append(attribute)
+        else:
+            raise ValueError("attribute must be a string")
+
     # Overrides the default implementation
     # Two species are equivalent if they have the same name, type, and attributes
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46:biocrnpyler/chemicalreactionnetwork.py
     def __eq__(self, other):
 
         if isinstance(other, Specie) and self.type == other.type and self.name == other.name and set(
@@ -72,8 +55,8 @@ class Specie(object):
         return str.__hash__(repr(self))
 
 #A special kind of specie which is formed as a complex of two or more species. Used for attribute inheritence
-class complex_specie(specie):
-    def __init__(self, species, name = None, type = "complex", attributes = []):
+class complex_specie(Specie):
+    def __init__(self, species, name = None, type = "complex", attributes = [], initial_concentration = 0):
         if len(species) < 1:
             raise ValueError("chemical_reaction_network.complex requires 2 or more species in its constructor.")
 
@@ -87,6 +70,7 @@ class complex_specie(specie):
             name = name[:-1]
         self.name = name
         self.type = type
+        self.initial_concentration = initial_concentration
 
         if attributes == None:
             attributes = []
@@ -100,20 +84,6 @@ class complex_specie(specie):
 
         self.attributes = attributes
 
-<<<<<<< HEAD:biocrnpyler/chemical_reaction_network.py
-#An abstract representation of a chemical reaction in a CRN
-#A reaction has the form:
-#   \sum_i n_i I_i --> \sum_i m_i O_i @ rate = k
-#   where n_i is the count of the ith input, I_i, and m_i is the count of the ith output, O_i.
-#If the reaction is reversible, the reverse reaction is also included:
-#   \sum_i m_i O_i  --> \sum_i n_i I_i @ rate = k_rev
-#Reactions can have different types. These types are especially useful when integrating with bioSCRAPE
-#Supported Types:
-#   "massaction": mass action reactions are the default type
-#
-class reaction(object):
-    def __init__(self, inputs, outputs, k = 1, input_coefs = None, output_coefs = None, k_rev = 0, type = "massaction", propensity_params = None):
-=======
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
     A reaction has the form:
@@ -122,16 +92,8 @@ class Reaction(object):
     If the reaction is reversible, the reverse reaction is also included:
        \sum_i m_i O_i  --> \sum_i n_i I_i @ rate = k_rev
     """
-    def __init__(self, inputs, outputs, k, input_coefs=None, output_coefs=None, k_rev=0, mass_action=True,
-                 rate_formula=None):
-
-        self.mass_action = mass_action
-
-        if not mass_action and rate_formula is None:
-            raise ValueError("A chemical reaction which is not mass action must have a rate formula.")
-        elif not mass_action:
-            raise NotImplementedError("rate formula have not been implemented yet.")
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46:biocrnpyler/chemicalreactionnetwork.py
+    def __init__(self, inputs, outputs, k, input_coefs=None, output_coefs=None, k_rev=0, type="massaction",
+                 rate_formula=None, propensity_params = None):
 
         self.type = type
         if type=="massaction" and propensity_params != None:
@@ -221,7 +183,7 @@ class Reaction(object):
                 txt += " + "
         tab = (" " * 8)
         txt += tab
-<<<<<<< HEAD:biocrnpyler/chemical_reaction_network.py
+
         if self.type == "massaction":
             if self.reversible:
                 txt+="massaction: k_f="+str(self.k)+"\tk_r="+str(self.k_r)
@@ -252,10 +214,6 @@ class Reaction(object):
         elif self.type == "general":
             eq = self.propensity_params["rate"]
             txt += "general: k(x)="+str(self.k)+"*"+eq
-=======
-        if self.reversible:
-            txt += "k_f=" + str(self.k) + "\tk_r=" + str(self.k_r)
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46:biocrnpyler/chemicalreactionnetwork.py
         else:
             raise ValueError('Unknown Propensity Type: '+self.type)
         return txt
@@ -333,26 +291,22 @@ class ChemicalReactionNetwork(object):
                where a_i is the stochiometric coefficient of species i
     """
 
-    def __init__(self, species, reactions):
-        self.species, self.reactions = self.check_crn_validity(reactions, species)
+    def __init__(self, species, reactions, warnings = False):
+        self.species, self.reactions = self.check_crn_validity(reactions, species, warnings = warnings)
 
         self.species2index = {}
         for i in range(len(self.species)):
             self.species2index[str(self.species[i])] = i
 
-    def check_crn_validity(self, reactions, species):
+    def check_crn_validity(self, reactions, species, warnings = False):
         # Check to make sure species are valid and only have a count of 1
         checked_species = []
         for s in species:
             if not isinstance(s, Specie):
                 raise ValueError("A non-species object was used as a specie: recieved " + repr(s))
             if species.count(s) > 1:
-<<<<<<< HEAD:biocrnpyler/chemical_reaction_network.py
                 pass
                 #warn("Species "+str(s)+" duplicated in CRN definition. Duplicates have been removed.")
-=======
-                warn("Species " + str(s) + " duplicated in CRN definition. Duplicates have been removed.")
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46:biocrnpyler/chemicalreactionnetwork.py
             if s not in checked_species:
                 checked_species.append(s)
         species = checked_species
@@ -372,11 +326,11 @@ class ChemicalReactionNetwork(object):
                 checked_reactions.append(Reaction)
 
             for s in r.inputs:
-                if s not in species:
+                if s not in species and warnings:
                     warn("Reaction " + repr(r) + " contains a species " + repr(s) + " which is not in the CRN")
 
             for s in r.outputs:
-                if s not in species:
+                if s not in species and warnings:
                     warn("Reaction " + repr(r) + " contains a species " + repr(s) + " which is not in the CRN")
 
         return species, reactions
@@ -415,7 +369,6 @@ class ChemicalReactionNetwork(object):
                 x0[i] = init_cond_dict[s]
         return x0
 
-<<<<<<< HEAD:biocrnpyler/chemical_reaction_network.py
     #returns all species (complexes and otherwise) containing a given specie (or string)
     def get_all_species_containing(self, specie, return_as_strings = False):
         return_list = []
@@ -428,31 +381,22 @@ class ChemicalReactionNetwork(object):
         return return_list
 
     def generate_sbml_model(self, stochastic_model = False, **keywords):
-=======
-    def generate_sbml_model(self, stochastic_model=False, **keywords):
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46:biocrnpyler/chemicalreactionnetwork.py
         document, model = create_sbml_model(**keywords)
 
         for s in self.species:
+
             add_species(model=model, compartment=model.getCompartment(0), specie=s, initial_concentration=s.initial_concentration)
 
         rxn_count = 0
         for r in self.reactions:
             rxn_id = "r" + str(rxn_count)
             add_reaction(model, r.inputs, r.input_coefs, r.outputs, r.output_coefs, r.k, rxn_id,
-<<<<<<< HEAD:biocrnpyler/chemical_reaction_network.py
                 stochastic = stochastic_model, type=r.type)
             rxn_count += 1
             if r.reversible:
                 add_reaction(model, r.outputs, r.output_coefs, r.inputs, r.input_coefs, r.k_r, rxn_id,
                                       stochastic=stochastic_model, type=r.type)
-=======
-                         stochastic=stochastic_model, mass_action=r.mass_action)
             rxn_count += 1
-            if r.reversible:
-                add_reaction(model, r.outputs, r.output_coefs, r.inputs, r.input_coefs, r.k_r, rxn_id,
-                             stochastic=stochastic_model, mass_action=r.mass_action)
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46:biocrnpyler/chemicalreactionnetwork.py
 
         return document, model
 
@@ -464,7 +408,6 @@ class ChemicalReactionNetwork(object):
         f.close()
         return f
 
-<<<<<<< HEAD:biocrnpyler/chemical_reaction_network.py
     def create_bioscrape_model(self):
         from bioscrape.types import Model
 
@@ -508,19 +451,12 @@ class ChemicalReactionNetwork(object):
         from bioscrape.simulator import py_simulate_model
         m = self.create_bioscrape_model()
         m.set_species(initial_condition_dict)
-        #m._initialize()
-
-
         result = py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe)
 
         return result
 
 
-    def simulate_with_bioscrape_deterministic_via_sbml(self, timepoints, file, initial_condition_dict):
-=======
-    #TODO move this code to a different file
-    def simulate_with_bioscrape_deterministic(self, timepoints, file, initial_condition_dict):
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46:biocrnpyler/chemicalreactionnetwork.py
+    def simulate_with_bioscrape_deterministic_via_sbml(self, timepoints, file, initial_condition_dict, return_dataframe = True, stochastic = False):
         import bioscrape
 
         if isinstance(file, str):
@@ -531,12 +467,7 @@ class ChemicalReactionNetwork(object):
         m = bioscrape.types.read_model_from_sbml(file_name)
 
         m.set_species(initial_condition_dict)
+        result = bioscrape.simulator.py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe)
 
-        s = bioscrape.simulator.ModelCSimInterface(m)
-        s.py_prep_deterministic_simulation()
-        s.py_set_initial_time(0)
 
-        sim = bioscrape.simulator.DeterministicSimulator()
-        result = sim.py_simulate(s, timepoints)
-
-        return result, m
+        return result

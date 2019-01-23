@@ -115,14 +115,8 @@ def find_parameter(mixture, id):
 
 # Helper function to add a reaction to a model
 # reaction must be a chemical_reaction_network.reaction object
-<<<<<<< HEAD
 def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k, reaction_id, kname = None,
                 stochastic = False, type = "massaction"):
-
-=======
-def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k, reaction_id, kname=None,
-                 stochastic=False, mass_action=True):
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46
     # Create the reaction
     reaction = model.createReaction()
     reaction.setReversible(False)

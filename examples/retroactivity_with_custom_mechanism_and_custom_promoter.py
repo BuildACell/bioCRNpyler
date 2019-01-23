@@ -48,7 +48,7 @@ print("\n"+repr(myCRN)+"\n")
 
 import numpy as np
 import pylab as plt
-timepoints = np.arange(0, 5, .01)
+timepoints = np.arange(0, 3, .01)
 
 
 plt.figure(figsize = (16, 8))

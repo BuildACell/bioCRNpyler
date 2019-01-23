@@ -1,13 +1,9 @@
+LICENSE
 MANIFEST.in
 README.md
 setup.py
 Tests/deCas9_repression.py
-Tests/dilution_with_global_mechanisms.py
 Tests/dna_assembly_and_constituitive_expression.py
-Tests/regulated_promoter_activation_and_repression.py
-Tests/repr_for_crn_and_component_and_write_to_sbml.py
-Tests/retroactivity_with_custom_mechanism_and_custom_promoter.py
-Tests/simulate_compiled_crn_with_bioscrape.py
 biocrnpyler/__init__.py
 biocrnpyler/chemical_reaction_network.py
 biocrnpyler/component.py

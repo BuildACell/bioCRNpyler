@@ -81,8 +81,10 @@ import sys
 import re
 from warnings import warn
 
+
 class Parameter:
-    "Parameter value (reaction rates)"
+    """Parameter value (reaction rates)"""
+
     def __init__(self, name, type, value, comment="", debug=False):
         self.name = name.strip()
         self.type = type.strip()
@@ -91,25 +93,26 @@ class Parameter:
         # Set the value of the parameter
         if debug: print("%s [%s] = %s" % (self.name, self.type, value))
         if type.strip() == 'Numeric':
-            self.value = float(value)           # store as float
+            self.value = float(value)  # store as float
         elif type.strip() == 'Expression':
-            self.value = value;                 # store as string
+            self.value = value  # store as string
         else:
             raise TypeError("can't parse value of parameter %s" % name)
-        
+
     def get_value(self):
         return float(self.value)
 
+
 def load_config(filename, extension=".csv", debug=False):
     # Find the configuration file
-    #! TODO: update this to search along a path (in pathutil)
-    module_path = os.path.dirname(sys.modules[__name__].__file__)    
+    # ! TODO: update this to search along a path (in pathutil)
+    module_path = os.path.dirname(sys.modules[__name__].__file__)
 
     # Look for the config file in a list of paths
     csvfile = None
     for path in (module_path + "/components/", module_path + "/config/"):
         try:
-            #! TODO: add extension if not present
+            # ! TODO: add extension if not present
             filepath = path + filename
             csvfile = open(filepath)
             break
@@ -125,12 +128,12 @@ def load_config(filename, extension=".csv", debug=False):
     for row in csvreader:
         # Get rid of extraneous spaces
         for i in range(len(row)): row[i] = row[i].strip()
-        
+
         # Skip blank lines (and malformed lines)
         if len(row) < 3 or row[0] == "": continue
-        
+
         # Create a new parameter object to keep track of this row
-        #! TODO: this should be done in a better (and more pythonic) way
+        # ! TODO: this should be done in a better (and more pythonic) way
         if len(row) >= 4:
             #                 name    type    value   comment
             param = Parameter(row[0], row[1], row[2], row[3])
@@ -146,8 +149,9 @@ def load_config(filename, extension=".csv", debug=False):
         # Set up as dictionary for easy access
         params[param.name] = param
 
-    csvfile.close()             # Close the file now that we are done
-    return params               # Return the parameters we read
+    csvfile.close()  # Close the file now that we are done
+    return params  # Return the parameters we read
+
 
 # Process parameter input
 def get_parameters(config_file, custom, default={}, **keywords):
@@ -175,6 +179,7 @@ def get_parameters(config_file, custom, default={}, **keywords):
     # All done!
     return parameters
 
+
 # Update any missing parameter values in a parameter dictionary
 def update_missing(existing_dict, default_dict):
     """Fill in missing parameter values with defaults
@@ -192,6 +197,7 @@ def update_missing(existing_dict, default_dict):
         if key not in existing_dict.keys():
             existing_dict[key] = _to_parameter(key, value)
 
+
 # Update any existing parameter values in a parameter dictionary
 def update_existing(existing_dict, custom_dict):
     """Update existing parameter values with new values
@@ -207,19 +213,21 @@ def update_existing(existing_dict, custom_dict):
         if key in existing_dict.keys():
             existing_dict[key] = _to_parameter(key, value)
 
+
 def eval_parameter(component, name, assignments={}):
     parameters = component.parameters
     if name not in parameters.keys() or parameters[name] == None:
         # Couldn't find the parmaeter
         return None
     param = parameters[name]
-    
+
     # See if we already have a floating point number
-    #! TODO: decide if we need this; can just use the evaluation below?
+    # ! TODO: decide if we need this; can just use the evaluation below?
     if isinstance(param.value, (float, int)): return float(param.value)
 
     # Evaluate the expression 
     return float(eval(param.value, assignments))
+
 
 # Convert a value input to a parameter object
 def _to_parameter(key, value):

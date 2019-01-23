@@ -9,7 +9,7 @@ def warn(txt):
 
 
 # import chemical_reaction_network as crn
-from .chemicalreactionnetwork import Specie
+from .chemical_reaction_network import Specie
 
 
 # Component class for core components
@@ -17,29 +17,24 @@ class Component(object):
 
     def __init__(self, name,
                  mechanisms={},  # custom mechanisms
-<<<<<<< HEAD
-                 parameters={}, # parameter configuration
-                 mixture = None,
-=======
                  parameters={},  # parameter configuration
                  mixture=None,
                  attributes=[],
-                 initial_conc=None,
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46
+                 initial_conc=0,
+                 parameter_warnings = True,
                  **keywords  # parameter keywords
                  ):
 
         self.name = name
-        self.initial_concentration = initial_conc
 
-<<<<<<< HEAD
+        self.parameter_warnings = parameter_warnings#Toggles whether warnings will be sent when parameters aren't found by the default name
+        self._initial_conc = initial_conc
+
         #Check to see if a subclass constructor has overwritten default mechanisms
-=======
         # Attributes can be used to store key words like protein deg-tags for components that mimic CRN species
-        self.attributes = attributes
+        self.set_attributes(attributes)
 
         # Check to see if a subclass constructor has overwritten default mechanisms
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46
         if not hasattr(self, 'default_mechanisms'):
             self.default_mechanisms = {}
 
@@ -60,11 +55,11 @@ class Component(object):
             mixture_parameters = {}
         self.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters)
 
-    @property
+    #@property
     def initial_concentration(self):
         return self._initial_conc
 
-    @initial_concentration.setter
+    #@initial_concentration.setter
     def initial_concentration(self, initial_conc):
         if initial_conc is None:
             self._initial_conc = initial_conc
@@ -77,17 +72,25 @@ class Component(object):
         warn("get_specie() not defined for component " + self.name + " None returned.")
         return None
 
-<<<<<<< HEAD
     def __hash__(self):
         return str.__hash__(repr(self.get_specie()))
 
+    def set_attributes(self, attributes):
+        self.attributes = []
+        for attribute in attributes:
+            if isinstance(attribute, str):
+                self.attributes.append(attribute)
+            elif attribute is not None:
+                raise RuntimeError("Invalid Attribute: "+repr(attribute)+" attributes must be strings")
+
     def add_attribute(self, attribute):
-        self.get_specie().add_attribute(attribute)
+        if isinstance(attribute, str):
+            self.attributes.append(attribute)
+            self.specie.add_attribute(attribute)
+        else:
+            raise ValueError("Attribute must be a str")
 
     def update_parameters(self, mixture_parameters = {}, parameters = {}, overwrite_custom_parameters = True):
-=======
-    def update_parameters(self, mixture_parameters={}, parameters={}, overwrite_custom_parameters=True):
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46
         for p in parameters:
             if overwrite_custom_parameters or p not in self.custom_parameters:
                 self.parameters[p] = parameters[p]
@@ -166,30 +169,9 @@ class Component(object):
             raise ValueError("No Parameters can be found that match the (mechanism, param_id, param_name)=( " + repr(
                 mechanism) + ', ' + part_id + ", " + param_name + ")")
         else:
-            if warning_txt is not None:
+            if warning_txt is not None and self.parameter_warnings:
                 warn(warning_txt)
             return return_val
-
-<<<<<<< HEAD
-=======
-        # TODO this part of the code is never reached, please check!
-
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46
-        if (type(self).__name__, self.name, param_name) in self.parameters:
-            return self.parameters[(type(self).__name__, self.name, param_name)]
-        elif (self.name, param_name) in self.parameters:
-            return self.parameters[(self.name, param_name)]
-        elif (type(self).__name__, param_name) in self.parameters:
-            return self.parameters[(type(self).__name__, param_name)]
-        elif ('default', param_name) in self.parameters:
-            return self.parameters[('default', param_name)]
-        elif param_name in self.parameters:
-            return self.parameters[param_name]
-        else:
-            try:
-                return super().get_parameter(param_name)
-            except AttributeError:
-                raise AttributeError("No Valid Parameter '" + param_name + "' in " + repr(self))
 
     def update_species(self):
         species = []
@@ -241,28 +223,18 @@ class DNA(Component):
             self, name, length=0,  # positional arguments
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
-<<<<<<< HEAD
-            attributes= [], #for components that are CRN species
+            attributes=[],
+            initial_conc=None,
+            parameter_warnings = True,
             **keywords
     ):
-        self.length = length
-        self.specie = specie(name, type = "dna", attributes = attributes)
-        Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, attributes = attributes, **keywords)
+        self.specie = Specie(self.name, type="dna", attributes=list(attributes))
+        self._length = length
+        Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters,
+                           attributes=attributes, initial_conc=initial_conc, parameter_warnings = parameter_warnings, **keywords)
 
     def get_specie(self):
         return self.specie
-=======
-            attributes=[],
-            initial_conc=None,
-            **keywords
-    ):
-        self._length = length
-        Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters,
-                           attributes=attributes, initial_conc=initial_conc, **keywords)
-
-    def get_specie(self):
-        return Specie(self.name, type="dna", attributes=self.attributes)
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46
 
     def update_species(self):
         species = [self.get_specie()]
@@ -288,28 +260,17 @@ class RNA(Component):
             self, name, length=0,  # positional arguments
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
-<<<<<<< HEAD
-            attributes= [], #for components that are CRN species
-            **keywords
-    ):
-        self.length = length
-        self.specie = specie(name, type = "rna", attributes = attributes)
-        Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, **keywords)
-
-    def get_specie(self):
-        return self.specie
-=======
             attributes=[],
             initial_conc=None,
             **keywords
     ):
         self.length = length
+        self.specie = Specie(name, type="rna", attributes=list(attributes))
         Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters,
                            attributes=attributes, initial_conc=initial_conc, **keywords)
 
     def get_specie(self):
-        return Specie(self.name, type="rna", attributes=self.attributes)
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46
+        return self.specie
 
     def update_species(self):
         species = [self.get_specie()]
@@ -324,34 +285,22 @@ class Protein(Component):
             self, name, length=0,  # positional arguments
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
-<<<<<<< HEAD
-            attributes= [], #for components that are CRN species
-            degredation_tag = None, **keywords
-=======
             attributes=[],
             degredation_tag=None,
             initial_conc=None,
             **keywords
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46
     ):
         self.length = length
         self.degredation_tag = degredation_tag
         if degredation_tag not in attributes:
             attributes.append(degredation_tag)
-<<<<<<< HEAD
+        self.specie = Specie(name, type="protein", attributes=list(attributes))
 
-        self.specie = specie(name, type="protein", attributes=attributes)
-        Component.__init__(self = self, name = name, length = length, mechanisms=mechanisms, parameters = parameters, **keywords)
-
-    def get_specie(self):
-        return self.specie
-=======
         Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters,
                            attributes=attributes, initial_conc=initial_conc, **keywords)
 
     def get_specie(self):
-        return Specie(self.name, type="protein", attributes=self.attributes)
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46
+        return self.specie
 
     def update_species(self):
         species = [self.get_specie()]
@@ -368,40 +317,16 @@ class Complex(Component):
             name = None, #Override the default naming convention for a complex
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters,
-<<<<<<< HEAD
-            attributes= [], #for components that are CRN species
-            **keywords
-    ):
-        if len(species) < 2:
-            raise ValueError("A complex always takes two or more species in its constructor")
-
-        self.internal_species = species
-
-        if name == None:
-            name = ""
-            for s in species:
-                name += s.type+"_"+s.name+"_"
-            name = name[:-1]
-
-        for s in species:
-            attributes+=s.attributes
-
-        self.specie = specie(name, type="complex", attributes=attributes)
-        Component.__init__(self = self, name = name, mechanisms=mechanisms, parameters = parameters, **keywords)
-
-    def get_specie(self):
-        return self.specie
-=======
             attributes=[],
             initial_conc=None,
             **keywords
     ):
+        self.specie = Specie(self.name, type="complex", attributes=list(attributes))
         Component.__init__(self=self, name=name, mechanisms=mechanisms, parameters=parameters, attributes=attributes,
                            initial_conc=initial_conc, **keywords)
 
     def get_specie(self):
-        return Specie(self.name, type="complex", attributes=self.attributes)
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46
+        return self.specie
 
     def update_species(self):
         species = [self.get_specie()]
