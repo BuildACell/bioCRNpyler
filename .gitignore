@@ -15,3 +15,9 @@ __pycache__/sbmlutil.cpython-36.pyc
 __pycache__/txtl.cpython-36.pyc
 Tests/bioscrape_test.sbml
 Tests/dcas9_repression_test.sbml
+Tests/bioscrape_test.xml
+Tests/dcas9_repression_test.xml
+Tests/sbml_test_file.xml
+*.pyc
+Presentations and Documentation/Murray Lab Update 10-8-18.pptx
+Presentations and Documentation/Murray Lab Update 10-8-18.pptx

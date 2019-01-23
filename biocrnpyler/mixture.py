@@ -11,7 +11,7 @@ from warnings import warn
 
 
 from .component import Component
-from .chemicalreactionnetwork import ChemicalReactionNetwork, Specie
+from .chemical_reaction_network import ChemicalReactionNetwork, Specie
 
 """Container for components (extract, genes, etc)
 
@@ -30,14 +30,14 @@ from .chemicalreactionnetwork import ChemicalReactionNetwork, Specie
     parameters          Global parameters for the mixture (dict)
 """
 
-
-class Mixture(object):
-    def __init__(self, name="", mechanisms={}, components=[], parameters={}, default_mechanisms={}, global_mechanisms={}, **kwargs):
-        """Create a new mixture"""
+class Mixture():
+    def __init__(self, name="", mechanisms={}, components = [], parameters = {}, default_mechanisms = {}, global_mechanisms = {}, default_components = [], parameter_warnings = None, **kwargs):
+        "Create a new mixture"
 
         # Initialize instance variables
         self.name = name  # Save the name of the mixture
         self.parameters = parameters
+        self.parameter_warnings = parameter_warnings #Toggles whether parameter warnings are raised. if None (default) this parameter can be toggled component by component
 
         # Override the default mechanisms with anything we were passed
         self.default_mechanisms = default_mechanisms  # default parameters are used by mixture subclasses
@@ -61,11 +61,13 @@ class Mixture(object):
 
         self.components = []  # components contained in mixture
         self.added_species = [] # if chemcial_reaction_network.specie objects are passed in as components they are stored here
-        for component in components:
+        for component in components+default_components:
             if isinstance(component, Component):
                 self.add_components(component)
+
             elif isinstance(component, Specie):
-                self.added_species += component
+                self.added_species += [component]
+
             else:
                 raise ValueError("Objects passed into mixture as Components must be of the class Component or chemical_reaction_network.specie")
 
@@ -103,6 +105,9 @@ class Mixture(object):
 
         self.crn_reactions = []
         for component in self.components:
+            if self.parameter_warnings is not None:
+                component.parameter_warnings = self.parameter_warnings
+                
             self.crn_reactions += component.update_reactions()
 
         # update with global mechanisms

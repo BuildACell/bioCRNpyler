@@ -2,7 +2,7 @@
 # See LICENSE file in the project root directory for details.
 
 from .component import Component, DNA
-from .chemicalreactionnetwork import Specie
+from .chemical_reaction_network import Specie
 from .mechanism import One_Step_Cooperative_Binding
 from warnings import warn as pywarn
 
@@ -97,11 +97,12 @@ class RegulatedPromoter(Promoter):
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
 
-        if self.leak is not False:
-            ktx = self.get_parameter("ktx", mechanism=mech_tx, part_id=self.name + "_leak")
-            ku = self.get_parameter("ku", mechanism=mech_tx, part_id=self.name + "_leak")
-            kb = self.get_parameter("kb", mechanism=mech_tx, part_id=self.name + "_leak")
-            reactions += mech_tx.update_reactions(dna=self.assembly.dna, ktx=ktx, ku=ku, kb=kb)
+        if self.leak != False:
+            ktx = self.get_parameter("ktx_leak", mechanism = mech_tx, part_id=self.name)
+            ku = self.get_parameter("ku_leak", mechanism = mech_tx, part_id=self.name)
+            kb = self.get_parameter("kb_leak", mechanism = mech_tx, part_id=self.name)
+            reactions += mech_tx.update_reactions(dna = self.assembly.dna, ktx = ktx, ku = ku, kb = kb)
+
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
@@ -176,40 +177,35 @@ class RBS(Component):
 class DNAassembly(DNA):
     def __init__(self, name, dna=None,
                  promoter=None, transcript=None,
-                 rbs=None, protein=None,
-                 mechanisms={}, parameters={}, initial_conc=None, **keywords):
-
-        self.name = name
-        # Fillers until updates are executed
-        self.rbs, self.promoter = None, None
-        self.dna = None
+                 rbs=None, protein=None, length = None,
+                 attributes = [],
+                 mechanisms={}, parameters={}, initial_conc=None, parameter_warnings = True, **keywords):
+        self.promoter = None
+        self.rbs = None
         self.transcript = None
-        self._protein = None
+        self.initial_concentration = initial_conc
+        self.name = name
+        DNA.__init__(self, name, length=length, mechanisms=mechanisms, parameters=parameters, initial_conc = initial_conc, parameter_warnings = parameter_warnings, attributes = list(attributes), **keywords)
 
-        length = 0
-        warn("length not yet implemented for DNA assemblies")
-        DNA.__init__(self, name, length=length, mechanisms=mechanisms, parameters=parameters, initial_conc=initial_conc,
-                     **keywords)
+        self.update_dna(dna, attributes = list(attributes))
+        self.update_promoter(promoter, transcript = transcript)
+        self.update_transcript(transcript)
+        self.update_protein(protein)
+        self.update_rbs(rbs, transcript=self.transcript, protein=self.protein)
 
-        # initiate the underlying CRN representation
-        self._update_dna(dna)
-        self._update_transcript(transcript)
-        self._update_protein(protein)
-        self._update_promoter(promoter, transcript=self.transcript)
-        self._update_rbs(rbs, transcript=self.transcript, protein=self._protein)
 
-    def _update_dna(self, dna):
+    def update_dna(self, dna, attributes = None):
         if isinstance(dna, Specie):
             self.dna = dna
-        elif isinstance(dna, str):
-            self.dna = Specie(dna, type="dna", initial_concentration=self.initial_concentration)
         elif dna is None:
-            self.dna = Specie(self.name, type="dna", initial_concentration=self.initial_concentration)
+            self.dna = Specie(self.name, type="dna", initial_concentration=self.initial_concentration, attributes = attributes)
+        elif isinstance(dna, str):
+            self.dna = Specie(dna, type="dna", initial_concentration=self.initial_concentration, attributes = attributes)
         else:
             raise ValueError("Invalid value of 'dna' passed to " + str(
                 self) + ": dna must be None, a chemical_reaction_network.specie, or a string.")
 
-    def _update_transcript(self, transcript):
+    def update_transcript(self, transcript):
         if isinstance(transcript, Specie):
             self.transcript = transcript
         elif isinstance(transcript, str):
@@ -227,7 +223,7 @@ class DNAassembly(DNA):
         if self.rbs is not None:
             self.rbs.transcript = self.transcript
 
-    def _update_protein(self, protein):
+    def update_protein(self, protein):
         if isinstance(protein, Specie):
             self._protein = protein
         elif isinstance(protein, str):
@@ -241,9 +237,9 @@ class DNAassembly(DNA):
         if self.rbs is not None:
             self.rbs.transcript = self._protein
 
-    def _update_promoter(self, promoter, transcript=None):
+    def update_promoter(self, promoter, transcript=None):
         if transcript is not None:
-            self._update_transcript(transcript)
+            self.update_transcript(transcript)
 
         if isinstance(promoter, str):
             self.promoter = Promoter(assembly=self, name=promoter, transcript=self.transcript,
@@ -256,16 +252,15 @@ class DNAassembly(DNA):
             raise ValueError(
                 "Improper promoter type recieved by DNAassembly. Expected string or promoter object. Recieved " + repr(
                     promoter))
-
         if promoter is not None:
             self.promoter.update_parameters(mixture_parameters=self.parameters, overwrite_custom_parameters=False)
 
-    def _update_rbs(self, rbs, transcript=None, protein=None):
+    def update_rbs(self, rbs, transcript=None, protein=None):
         if protein is not None:
-            self._update_protein(protein)
+            self.update_protein(protein)
 
         if transcript is not None:
-            self._update_transcript(transcript)
+            self.update_transcript(transcript)
 
         if isinstance(rbs, str):
             self.rbs = RBS(assembly=self, name=rbs, protein=self._protein, transcript=self.transcript,
@@ -306,9 +301,11 @@ class DNAassembly(DNA):
     def update_reactions(self):
         reactions = []
         if self.promoter is not None:
+            self.promoter.parameter_warnings = self.parameter_warnings
             reactions += self.promoter.update_reactions()
 
         if self.rbs is not None:
+            self.rbs.parameter_warnings = self.parameter_warnings
             reactions += self.rbs.update_reactions()
 
         if "rna_degredation" in self.mechanisms and self.promoter is not None:

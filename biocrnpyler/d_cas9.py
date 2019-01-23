@@ -1,6 +1,6 @@
 from .component import Component, RNA
 from .mechanism import Reversible_Bimolecular_Binding
-from .chemicalreactionnetwork import Specie
+from .chemical_reaction_network import Specie
 
 
 class guideRNA(RNA):

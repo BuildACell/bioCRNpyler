@@ -115,8 +115,8 @@ def find_parameter(mixture, id):
 
 # Helper function to add a reaction to a model
 # reaction must be a chemical_reaction_network.reaction object
-def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k, reaction_id, kname=None,
-                 stochastic=False, mass_action=True):
+def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k, reaction_id, kname = None,
+                stochastic = False, type = "massaction"):
     # Create the reaction
     reaction = model.createReaction()
     reaction.setReversible(False)
@@ -129,7 +129,7 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k, reaction_
         kname = "k"
         ratestring = kname
 
-    if mass_action:
+    if type=="massaction":
         # Create a kinetic law for the reaction
         ratelaw = reaction.createKineticLaw()
         param = ratelaw.createParameter()
@@ -151,15 +151,18 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k, reaction_
         reactant.setConstant(True)
         reactant.setStoichiometry(stoichiometry)
 
-        if mass_action and stochastic:
+        if type=="massaction" and stochastic:
             for i in range(stoichiometry):
                 if i > 0:
                     ratestring += " * " + "( " + specie_id + " - " + str(i) + " )"
                 else:
                     ratestring += " * " + specie_id
 
-        elif mass_action and not stochastic:
-            ratestring += " * " + specie_id
+        elif type=="massaction" and not stochastic:
+            if stoichiometry > 1:
+                ratestring += " * " + specie_id+"^"+str(stoichiometry)
+            else:
+                ratestring += " * " + specie_id
 
     # Create the products
     for i in range(len(outputs)):
