@@ -21,3 +21,53 @@ Tests/sbml_test_file.xml
 *.pyc
 Presentations and Documentation/Murray Lab Update 10-8-18.pptx
 Presentations and Documentation/Murray Lab Update 10-8-18.pptx
+examples/bioscrape_test.xml
+*.xml
+*.txt
+bioscrnpyler ayush version/BioCRNPyler-master/Tests/dna_assembly_and_constituitive_expression.py
+bioscrnpyler ayush version/BioCRNPyler-master/Tests/deCas9_repression.py
+bioscrnpyler ayush version/BioCRNPyler-master/setup.py
+bioscrnpyler ayush version/BioCRNPyler-master/README.md
+bioscrnpyler ayush version/BioCRNPyler-master/MANIFEST.in
+bioscrnpyler ayush version/BioCRNPyler-master/LICENSE
+bioscrnpyler ayush version/BioCRNPyler-master/examples/tutorial_gene_expression.py
+bioscrnpyler ayush version/BioCRNPyler-master/examples/test_extract.csv
+bioscrnpyler ayush version/BioCRNPyler-master/examples/simulate_compiled_crn_with_bioscrape_via_sbml.py
+bioscrnpyler ayush version/BioCRNPyler-master/examples/simulate_compiled_crn_with_bioscrape.py
+bioscrnpyler ayush version/BioCRNPyler-master/examples/retroactivity_with_custom_mechanism_and_custom_promoter.py
+bioscrnpyler ayush version/BioCRNPyler-master/examples/repr_for_crn_and_component_and_write_to_sbml.py
+bioscrnpyler ayush version/BioCRNPyler-master/examples/regulated_promoter_activation_and_repression.py
+bioscrnpyler ayush version/BioCRNPyler-master/examples/dna_assembly_and_constituitive_expression.py
+bioscrnpyler ayush version/.idea/bioscrnpyler ayush version.iml
+bioscrnpyler ayush version/BioCRNPyler-master/.ipynb_checkpoints/BioCRNpyler Developer Overview Notebook-checkpoint.ipynb
+bioscrnpyler ayush version/BioCRNPyler-master/.travis.yml
+bioscrnpyler ayush version/BioCRNPyler-master/BioCRNpyler Developer Overview Notebook.ipynb
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler.egg-info/PKG-INFO
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/__init__.py
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/chemical_reaction_network.py
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/chemical_reaction_network.py.orig
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/component.py
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/d_cas9.py
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/dna_assembly.py
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/global_mechanism.py
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/mechanism.py
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/mixture.py
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/parameter.py
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/pathutil.py
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/sbmlutil.py
+bioscrnpyler ayush version/BioCRNPyler-master/biocrnpyler/txtl.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/__init__.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/chemical_reaction_network.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/component.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/d_cas9.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/dna_assembly.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/global_mechanism.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/mechanism.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/mixture.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/parameter.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/pathutil.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/sbmlutil.py
+bioscrnpyler ayush version/BioCRNPyler-master/build/lib/biocrnpyler/txtl.py
+bioscrnpyler ayush version/BioCRNPyler-master/dist/biocrnpyler-0.1-py3.6.egg
+bioscrnpyler ayush version/BioCRNPyler-master/examples/deCas9_repression.py
+bioscrnpyler ayush version/BioCRNPyler-master/examples/dilution_with_global_mechanisms.py
