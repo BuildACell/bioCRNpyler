@@ -500,11 +500,15 @@ class ChemicalReactionNetwork(object):
             result = sim.py_simulate(s, timepoints)
             result = result.py_get_result()
             if plot_show:
-                for species in species_to_plot:
-                    ind = m.get_species_index(species)
-                    plt.plot(timepoints,result[:,ind])
-                plt.title(str(species_to_plot) + ' vs time')
-                plt.show()
+                if species_to_plot:
+                    for species in species_to_plot:
+                        ind = m.get_species_index(species)
+                        plt.plot(timepoints,result[:,ind])
+                    plt.title(str(species_to_plot) + ' vs time')
+                    plt.show()
+                else:
+                    plt.plot(timepoints, result)
+                    plt.show()
             return result, m
         elif simtype == 'stochastic':
             warnings.warn('For stochastic simulation of SBML models using bioscrape, it is highly recommended to NOT use reversible reactions as the SSA algorithm might not work for such cases.')
@@ -513,11 +517,15 @@ class ChemicalReactionNetwork(object):
             result = sim.py_simulate(s,timepoints)
             result = result.py_get_result()
             if plot_show:
-                for species in species_to_plot:
-                    ind = m.get_species_index(species)
-                    plt.plot(timepoints,result[:,ind])
-                plt.title(str(species_to_plot) + ' vs time')
-                plt.show()
+                if species_to_plot:
+                    for species in species_to_plot:
+                        ind = m.get_species_index(species)
+                        plt.plot(timepoints,result[:,ind])
+                    plt.title(str(species_to_plot) + ' vs time')
+                    plt.show()
+                else:
+                    plt.plot(timepoints, result)
+                    plt.show()
             return result, m
         else:
             raise ValueError('Optional argument "simtype" must be either deterministic or stochastic')

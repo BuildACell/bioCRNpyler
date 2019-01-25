@@ -6,7 +6,7 @@ from .component import Protein, Complex
 from .mechanism import Transcription_MM, Translation_MM, Degredation_mRNA_MM
 from .mixture import Mixture
 from .chemical_reaction_network import Specie
-
+       
 
 class BasicExtract(Mixture):
     def __init__(self, name="", mechanisms={}, components=[], parameters={},
@@ -47,44 +47,4 @@ class BasicExtract(Mixture):
         default_components = [self.rnap, self.ribosome, self.RNAase]
 
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, components=components+default_components, parameters=parameters, **kwargs)
-
-       
-class txtl(object):
-    '''
-    Implements high level modeling akin to experimental TX-TL experiments
-    '''
-    def __init__(self, Mixture):
-        self.Mixture = Mixture
-        self.name = Mixture.name
-
-    def extract(self, name, parameters = {}):
-        # Look for extract config file of the given name
-        filename = name + str('.csv')
-        import csv
-        with open(filename, 'r') as f:
-            reader = csv.reader(f)
-            # Read off the parameters
-            params = {}
-            for row in reader:
-                temp = row[1].replace('.','',1).replace('e','',1).replace('-','',1)
-                if temp.isdigit():
-                    params[str(row[0])] = float(row[1])
-        extract_mix = BasicExtract(self.name, params)
-        self.Mixture = extract_mix
-        return self.Mixture
-
-    def buffer(self, name = "", components = [], parameters = {}, **kwargs):
-        '''
-        TODO : To be implemented using energy models
-        '''
-        self.name = name
-        return 
-   
-    def add_dna(self, dna):
-        self.Mixture.add_components(dna)
-        return self.Mixture
-
-    def combine_tubes(self):
-        crn = self.Mixture.compile_crn()
-        return crn
 
