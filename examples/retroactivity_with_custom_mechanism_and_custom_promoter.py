@@ -49,7 +49,7 @@ print("\n"+repr(myCRN)+"\n")
 import numpy as np
 import pylab as plt
 timepoints = np.arange(0, 3, .01)
-
+stochastic = False
 
 plt.figure(figsize = (16, 8))
 plt.subplot(221)
@@ -60,7 +60,7 @@ for dna_Load in loads:
     x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":50.,
                'dna_ref':5., 'dna_Load':dna_Load}
 
-    results = myCRN.simulate_with_bioscrape(timepoints, x0_dict)
+    results = myCRN.simulate_with_bioscrape(timepoints, x0_dict, stochastic = stochastic)
     plt.plot(timepoints, results["protein_ref"], label = "Load = "+str(dna_Load))
 
 plt.xlim(0, 5)
@@ -74,7 +74,7 @@ for dna_Load in [0, 1.0, 5., 10., 25., 50, 100]:
     print("Simulating for dna_T7Load=", dna_Load)
     x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":50.,
                'dna_ref':5., 'dna_T7Load':dna_Load}
-    results = myCRN.simulate_with_bioscrape(timepoints, x0_dict)
+    results = myCRN.simulate_with_bioscrape(timepoints, x0_dict, stochastic = stochastic)
     plt.plot(timepoints, results["protein_ref"], label="Load = " + str(dna_Load))
 plt.xlim(0, 5)
 plt.xlabel("time")
@@ -87,7 +87,7 @@ for dna_Load in [0, 1.0, 2.0, 5., 10., 25., 50, 100]:
     print("Simulating for dna_TxLoad=", dna_Load)
     x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":50.,
                'dna_ref':5., 'dna_TxLoad':dna_Load}
-    results = myCRN.simulate_with_bioscrape(timepoints, x0_dict)
+    results = myCRN.simulate_with_bioscrape(timepoints, x0_dict, stochastic = stochastic)
     plt.plot(timepoints, results["protein_ref"], label="Load = " + str(dna_Load))
 plt.xlim(0, 5)
 plt.xlabel("time")
@@ -100,7 +100,7 @@ for dna_Load in [0, 1.0, 2.0, 5., 10., 25., 50, 100]:
     print("Simulating for dna_T7TxLoad=", dna_Load)
     x0_dict = {"protein_T7": 10., "protein_RNAP":10., "protein_RNAase":5.0, "protein_Ribo":50.,
                'dna_ref':5., 'dna_T7TxLoad':dna_Load}
-    results = myCRN.simulate_with_bioscrape(timepoints, x0_dict)
+    results = myCRN.simulate_with_bioscrape(timepoints, x0_dict, stochastic = stochastic)
     plt.plot(timepoints, results["protein_ref"], label="Load = " + str(dna_Load))
 plt.xlim(0, 5)
 plt.xlabel("time")

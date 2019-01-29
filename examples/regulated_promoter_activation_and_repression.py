@@ -1,5 +1,4 @@
 from biocrnpyler import *
-<<<<<<< HEAD:Tests/regulated_promoter_activation_and_repression.py
 import numpy as np
 import pylab as plt
 #Parameters
@@ -16,18 +15,6 @@ parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg":kdeg,
               ('transcription_mm', 'P_regulated', "kb_leak"): kb/10,('transcription_mm', 'P_regulated', "ku_leak"): ku*10,
               ('transcription_mm', 'P_regulated', "ktx_leak"):ktx}
 
-=======
-
-# Parameters
-kb, ku, ktx, ktl, kdeg = 200, 10, 2.0, .25, 1.5
-parameters = {"kb": kb, "ku": ku, "ktx": ktx, "ktl": ktl, "kdeg": kdeg,
-              "cooperativity": 2,
-              ('cooperative_binding', 'repressor', 'kb'): 1000, ('cooperative_binding', "repressor", 'ku'): 5.0,
-              ('transcription', 'repressor', 'kb'): 1, ('transcription', "repressor", 'ku'): 1000.0,
-              ('cooperative_binding', 'activator', 'kb'): 1000, ('cooperative_binding', "activator", 'ku'): 5.0,
-              ('transcription', 'activator', 'kb'): 1000, ('transcription', "activator", 'ku'): 1.0,
-              "ktx_leak": ktx, "kb_leak": kb / 50, "ku_leak": ku * 50}
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46:examples/regulated_promoter_activation_and_repression.py
 
 P_reg = RegulatedPromoter("P_regulated", regulators=["activator", "repressor"], leak=True)
 
@@ -40,11 +27,10 @@ components = [reg_rep_assembly, activator, repressor]
 myMixture = BasicExtract(name="txtl", parameters=parameters, components=components)
 
 myCRN = myMixture.compile_crn()
-<<<<<<< HEAD:Tests/regulated_promoter_activation_and_repression.py
 print("\n"+repr(myCRN))
 
 timepoints = np.arange(0, 20, .01)
-=======
+
 
 print("\n" + repr(myCRN))
 
@@ -114,4 +100,3 @@ plt.legend()
 plt.show()
 =======
 plt.show()"""
->>>>>>> 77dd0983a072372ff43f89d0e3ec4f9f9d252e46:examples/regulated_promoter_activation_and_repression.py
