@@ -124,9 +124,20 @@ class Reaction(object):
             raise ValueError("A non-species object was used as a specie")
 
         # internal representation of a reaction
-        self.inputs = list(set(inputs))
-        self.outputs = list(set(outputs))
+
+        #self.inputs and self.outputs should be ordered sets.
+        self.inputs = []
+        for s in inputs:
+            if s not in self.inputs:
+                self.inputs.append(s)
+        self.outputs = []
+        for s in outputs:
+            if s not in self.outputs:
+                self.outputs.append(s)
+
+        #self.input_coefs[i] is the number of self.inputs[i] into the reaction
         self.input_coefs = None
+        #self.output coefs is analogous to above
         self.output_coefs = None
 
         # Check that rates are valid

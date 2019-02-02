@@ -82,6 +82,95 @@ import re
 from warnings import warn
 
 
+#Takes a list L and string s and returns a list of flexible variations of all the strings in S
+def get_flexible_string_list_index(L, S):
+    s_list = []
+    for s in S:
+        s_list += [s, s.replace(" ", "_"), s.capitalize(), s.casefold(), s.casefold().replace(" ", "_")]
+    ind = None
+    for t in s_list:
+        try:
+            indt = L.index(t)
+            if ind != None:
+                raise ValueError("List contains multiple elements that are too similar: '"+str(L[ind])+"', '"+str(L[indt]+"'") )
+            else:
+                ind = indt
+        except ValueError:
+            pass
+    return ind
+
+#Duplicates in the new files overwrite current things in parameter dictionary
+def create_parameter_dictionary(parameters, parameter_file):
+    if not isinstance(parameters, dict) and parameters!= None:
+        raise ValueError("parameter keyword must be a dictionary {param_key:val}")
+    if not isinstance(parameter_file, str) and not isinstance(parameter_file, list) and parameter_file != None:
+        raise ValueError("parameter_file keyword must be a valid filepath string or list of such strings.")
+
+    if isinstance(parameter_file, list):
+        file_list = parameter_file
+    elif parameter_file != None:
+        file_list = [parameter_file]
+    elif parameter_file == None:
+        file_list = []
+
+    param_dict = {}
+    if parameters != None:
+        for k in parameters:
+            param_dict[k] = parameters[k]
+
+    for fname in file_list:
+
+        f = open(fname)
+        if fname[-4:] in [".txt",".tsv"]:
+            L0 = f.readline().replace("\n", "").split("\t")
+        else:
+            L0 = f.readline().replace("\n", "").split(",")
+
+        try:
+            pID_ind = get_flexible_string_list_index(L0, ["part_id", "part"])
+            if pID_ind == None:
+                raise ValueError("file "+fname+" contains no part ID column. Please add a column the name 'part_id' or 'part'.")
+        except ValueError:
+            raise ValueError("'part_id', 'part', or a similar string appears multiple times in the top line of "+fname+". keyword list = "+str(L0))
+        try:
+            mech_ind = get_flexible_string_list_index(L0, ["mechanism", "mechanism_id"])
+            if mech_ind == None:
+                raise ValueError("file "+fname+" contains no mechanism column. Please add a column the name 'mechanism' or 'mechanism_id'.")
+
+        except ValueError:
+            raise ValueError("'mechanism', 'mechanism_id' or a similar string appears multiple times in the top line of "+fname+". keyword list = "+str(L0))
+        try:
+            param_ind = get_flexible_string_list_index(L0, ["param_name", "parameter_name", "parameter", "param"])
+            if param_ind == None:
+                raise ValueError("file "+fname+" contains no parameter name column. Please add a column the name 'param', 'parameter', 'param_name', or 'parameter_name'.")
+        except ValueError:
+            raise ValueError(
+                "'param', 'parameter', 'parameter_name', 'param_name', or a similar string appears multiple times in the top line of " + fname + ". keyword list = " + str(
+                    L0))
+        try:
+            val_ind = get_flexible_string_list_index(L0, ["val", "value", "param_val", "parameter_value"])
+            if val_ind == None:
+                raise ValueError("file "+fname+" contains no parameter value column. Please add a column the name 'val', 'value', 'param_val', or 'parameter_value'.")
+        except ValueError:
+            raise ValueError(
+                "'val', 'value', 'param_val', 'parameter_value', or a similar string appears multiple times in the top line of " + fname + ". keyword list = " + str(
+                    L0))
+
+        for line in f:
+            if fname[-4:] in [".txt", ".tsv"]:
+                L = line.replace("\n", "").split("\t")
+            else:
+                L = line.replace("\n", "").split(",")
+
+            id = L[pID_ind]
+            mech = L[mech_ind]
+            param = L[param_ind]
+            val = float(L[val_ind])
+            param_dict[(mech, id, param)] = val
+
+    return param_dict
+
+
 class Parameter:
     """Parameter value (reaction rates)"""
 

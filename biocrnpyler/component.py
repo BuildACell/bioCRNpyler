@@ -10,6 +10,7 @@ def warn(txt):
 
 # import chemical_reaction_network as crn
 from .chemical_reaction_network import Specie
+from .parameter import create_parameter_dictionary
 
 
 # Component class for core components
@@ -18,6 +19,7 @@ class Component(object):
     def __init__(self, name,
                  mechanisms={},  # custom mechanisms
                  parameters={},  # parameter configuration
+                 parameter_file = None, #custom parameter file
                  mixture=None,
                  attributes=[],
                  initial_conc=0,
@@ -53,6 +55,8 @@ class Component(object):
             mixture_parameters = mixture.parameters
         else:
             mixture_parameters = {}
+
+        parameters = create_parameter_dictionary(parameters, parameter_file)
         self.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters)
 
     #@property
