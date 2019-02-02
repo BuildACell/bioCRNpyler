@@ -14,6 +14,7 @@ parameters = {"kb":kb, "ku":ku, "ktx":ktx, "ktl":ktl, "kdeg":kdeg,
               ('transcription_mm', 'P_regulated', "kb_leak"): kb/10,('transcription_mm', 'P_regulated', "ku_leak"): ku*10,
               ('transcription_mm', 'P_regulated', "ktx_leak"):ktx}
 
+
 P_reg = RegulatedPromoter("P_regulated", regulators=["activator", "repressor"], leak=True)
 
 reg_rep_assembly = DNAassembly(name="reporter", promoter=P_reg, rbs="BCD")
@@ -28,6 +29,7 @@ myCRN = myMixture.compile_crn()
 print("\n"+repr(myCRN))
 
 time = np.arange(0, 20, .01)
+
 
 import pylab as plt
 
@@ -45,4 +47,5 @@ plt.plot(time, R_const["protein_reporter"], label = "Constituitive Expression")
 plt.plot(time, R_repressed["protein_reporter"], label = "Repressed Expression")
 plt.plot(time, R_active["protein_reporter"], label = "Activated Expression")
 plt.legend()
+
 plt.show()

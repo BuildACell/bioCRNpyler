@@ -458,11 +458,13 @@ class ChemicalReactionNetwork(object):
         model = Model(species = species_list, reactions = reaction_list)
         return model
 
-    def simulate_with_bioscrape(self, timepoints, initial_condition_dict = {}, stochastic = False, return_dataframe = True):
+    def simulate_with_bioscrape(self, timepoints, initial_condition_dict = {}, stochastic = False, return_dataframe = True, safe = True):
         from bioscrape.simulator import py_simulate_model
         m = self.create_bioscrape_model()
         m.set_species(initial_condition_dict)
-        result = py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe)
+        if not stochastic and safe:
+            safe = False
+        result = py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe, safe = safe)
 
         return result
 

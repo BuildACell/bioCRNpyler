@@ -170,8 +170,10 @@ class Component(object):
                     part_id) + " and mechanism=" + repr(
                     mechanism) + ". Parameter found under the key param_name=" + param_name
         if return_val is None:
-            raise ValueError("No Parameters can be found that match the (mechanism, param_id, param_name)=( " + repr(
+            print("self.parameters", self.parameters)
+            raise ValueError("No Parameters can be found that match the (mechanism, param_id, param_name)=(" + repr(
                 mechanism) + ', ' + part_id + ", " + param_name + ")")
+
         else:
             if warning_txt is not None and self.parameter_warnings:
                 warn(warning_txt)
