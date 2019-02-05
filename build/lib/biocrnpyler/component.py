@@ -10,6 +10,7 @@ def warn(txt):
 
 # import chemical_reaction_network as crn
 from .chemical_reaction_network import Specie
+from .parameter import create_parameter_dictionary
 
 
 # Component class for core components
@@ -18,6 +19,7 @@ class Component(object):
     def __init__(self, name,
                  mechanisms={},  # custom mechanisms
                  parameters={},  # parameter configuration
+                 parameter_file = None, #custom parameter file
                  mixture=None,
                  attributes=[],
                  initial_conc=0,
@@ -53,6 +55,8 @@ class Component(object):
             mixture_parameters = mixture.parameters
         else:
             mixture_parameters = {}
+
+        parameters = create_parameter_dictionary(parameters, parameter_file)
         self.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters)
 
     #@property
@@ -142,33 +146,32 @@ class Component(object):
                 return_val = self.parameters[(part_id, param_name)]
 
                 if mechanism is not None:
-                    warning_txt = "No Parameter found with param_name=" + param_name + " and part_id=" + part_id + " and mechanism=" + repr(
-                        mechanism) + ". Parameter found under the key (part_id, param_name)=(" + part_id + ", " + param_name + ")"
+                    warning_txt = "No Parameter found with param_name=" + str(param_name) + " and part_id=" + str(part_id) + " and mechanism=" + repr(
+                        mechanism) + ". Parameter found under the key (part_id, param_name)=(" + str(part_id) + ", " +str(param_name) + ")"
         # Next try (Mechanism.name/type, param_name) --> val
         if mechanism is not None and return_val is None:
             if (mechanism.name, param_name) in self.parameters:
                 return_val = self.parameters[((mechanism.name, param_name))]
                 if part_id is not None:
-                    warning_txt = "No Parameter found with param_name=" + param_name + " and part_id=" + part_id + " and mechanism=" + repr(
+                    warning_txt = "No Parameter found with param_name=" + str(param_name) + " and part_id=" + str(part_id) + " and mechanism=" + repr(
                         mechanism) + ". Parameter found under the key (mechanism.name, Component.name, param_name)=(" \
                                   + mechanism.name + ", " + self.name + ", " + param_name + ")"
             elif (mechanism.type, param_name) in self.parameters:
                 return_val = self.parameters[(mechanism.type, param_name)]
                 if part_id is not None:
-                    warning_txt = "No Parameter found with param_name=" + param_name + " and part_id=" + part_id + " and mechanism=" + repr(
+                    warning_txt = "No Parameter found with param_name=" + str(param_name) + " and part_id=" + str(part_id) + " and mechanism=" + repr(
                         mechanism) + ". Parameter found under the key (mechanism.name, param_name)=(" \
                                   + mechanism.name + ", " + param_name + ")"
         # Finally try (param_name) --> return val
         if param_name in self.parameters and return_val is None:
             return_val = self.parameters[param_name]
             if mechanism is not None or part_id is not None:
-                warning_txt = "No Parameter found with param_name=" + param_name + " and part_id=" + str(
+                warning_txt = "No Parameter found with param_name=" + str(param_name) + " and part_id=" + str(
                     part_id) + " and mechanism=" + repr(
                     mechanism) + ". Parameter found under the key param_name=" + param_name
         if return_val is None:
-            print("self.parameters", self.parameters)
             raise ValueError("No Parameters can be found that match the (mechanism, param_id, param_name)=(" + repr(
-                mechanism) + ', ' + part_id + ", " + param_name + ")")
+                mechanism) + ', ' + str(part_id) + ", " + str(param_name) + ")")
 
         else:
             if warning_txt is not None and self.parameter_warnings:

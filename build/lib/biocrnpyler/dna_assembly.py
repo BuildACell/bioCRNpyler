@@ -107,15 +107,15 @@ class RegulatedPromoter(Promoter):
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
             complex_ = self.complexes[i]
-            ktx = self.get_parameter("ktx", mechanism=mech_tx, part_id=regulator.name)
+            ktx = self.get_parameter("ktx", mechanism=mech_tx, part_id=self.name+"_"+regulator.name)
 
-            ku_tx = self.get_parameter("ku", mechanism=mech_tx, part_id=regulator.name)
-            kb_tx = self.get_parameter("kb", mechanism=mech_tx, part_id=regulator.name)
+            ku_tx = self.get_parameter("ku", mechanism=mech_tx, part_id=self.name+"_"+regulator.name)
+            kb_tx = self.get_parameter("kb", mechanism=mech_tx, part_id=self.name+"_"+regulator.name)
 
-            ku_c = self.get_parameter("ku", mechanism=mech_b, part_id=regulator.name)
-            kb_c = self.get_parameter("kb", mechanism=mech_b, part_id=regulator.name)
+            ku_c = self.get_parameter("ku", mechanism=mech_b, part_id=self.name+"_"+regulator.name)
+            kb_c = self.get_parameter("kb", mechanism=mech_b, part_id=self.name+"_"+regulator.name)
 
-            coop = self.get_parameter("cooperativity", part_id=regulator.name, mechanism=mech_tx)
+            coop = self.get_parameter("cooperativity", part_id=regulator.name, mechanism=mech_b)
 
             reactions += mech_b.update_reactions(regulator, self.assembly.dna, ku=ku_c, kb=kb_c, cooperativity=coop)
             reactions += mech_tx.update_reactions(dna=complex_, kb=kb_tx, ku=ku_tx, ktx=ktx, transcript=self.transcript)

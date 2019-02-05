@@ -1,0 +1,16 @@
+mechanism_id	part_id	param_name	param_val	comments
+transcription_mm	ptet_tetR	kb	10.	extra columns are okay!
+transcription_mm	ptet_tetR	ku	.1	These are the parameters for transcription
+transcription_mm	ptet_tetR	ktx	1.		
+transcription_mm		ktx_leak	1.0	default values might leave out part_id setting a default transcriptional leak rate
+	tetR	cooperativity	2	or mechanism_id	meaning that tetR always will default to a cooperativity of 2 for all mechanisms.
+		ku_leak	10.	or both! In this case any parameter anmes ku_leak will default to this value.
+		kb_leak	10.
+one_step_cooperative_binding	ptet_tetR	ku	.1	These are parameters for tetR dimerization and binding with the promoter	
+one_step_cooperative_binding	ptet_tetR	kb	.1
+translation_mm	BCD	ktl	2.0	These are paraemters for translation
+translation_mm	BCD	ku	.25		
+translation_mm	BCD	kb	10
+rna_degredation_mm		kb	10	These are parameters for RNA degredation. They will be the same for all RNAs using defaulting.
+rna_degredation_mm		ku	.5
+rna_degredation_mm		kdeg	1.5		

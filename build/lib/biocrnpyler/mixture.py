@@ -8,10 +8,9 @@
 # Copyright (c) 2018, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 from warnings import warn
-
-
 from .component import Component
 from .chemical_reaction_network import ChemicalReactionNetwork, Specie
+from .parameter import create_parameter_dictionary
 
 """Container for components (extract, genes, etc)
 
@@ -31,13 +30,14 @@ from .chemical_reaction_network import ChemicalReactionNetwork, Specie
 """
 
 class Mixture():
-    def __init__(self, name="", mechanisms={}, components = [], parameters = {}, default_mechanisms = {}, global_mechanisms = {}, default_components = [], parameter_warnings = None, **kwargs):
+    def __init__(self, name="", mechanisms={}, components = [], parameters = {}, parameter_file = None, default_mechanisms = {}, global_mechanisms = {}, default_components = [], parameter_warnings = None, **kwargs):
         "Create a new mixture"
 
         # Initialize instance variables
         self.name = name  # Save the name of the mixture
-        self.parameters = parameters
-        self.parameter_warnings = parameter_warnings #Toggles whether parameter warnings are raised. if None (default) this parameter can be toggled component by component
+
+        self.parameters = create_parameter_dictionary(parameters, parameter_file)
+        self.parameter_warnings = parameter_warnings #Toggles whether parameter warnings are raised. if None (default) this can be toggled component by component
 
         # Override the default mechanisms with anything we were passed
         self.default_mechanisms = default_mechanisms  # default parameters are used by mixture subclasses
@@ -74,6 +74,7 @@ class Mixture():
         # internal lists for the species and reactions
         self.crn_species = None
         self.crn_reactions = None
+
 
     def add_components(self, components):
         if isinstance(components, Component):

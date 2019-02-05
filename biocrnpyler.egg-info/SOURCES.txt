@@ -4,6 +4,7 @@ README.md
 setup.py
 Tests/deCas9_repression.py
 Tests/dna_assembly_and_constituitive_expression.py
+Tests/parameter_loading_test.py
 biocrnpyler/__init__.py
 biocrnpyler/chemical_reaction_network.py
 biocrnpyler/component.py

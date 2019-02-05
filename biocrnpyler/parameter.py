@@ -165,8 +165,22 @@ def create_parameter_dictionary(parameters, parameter_file):
             id = L[pID_ind]
             mech = L[mech_ind]
             param = L[param_ind]
-            val = float(L[val_ind])
-            param_dict[(mech, id, param)] = val
+
+            val = L[val_ind]
+
+            try:
+                if param == "":
+                    pass
+                elif mech == "" and id == "":
+                    param_dict[param] = float(val)
+                elif mech == "":
+                    param_dict[(id, param)] = float(val)
+                elif id == "":
+                    param_dict[(mech, param)] = float(val)
+                else:
+                    param_dict[(mech, id, param)] = float(val)
+            except ValueError:
+                raise ValueError("Unable to parse parameter file line = "+line)
 
     return param_dict
 
@@ -316,7 +330,6 @@ def eval_parameter(component, name, assignments={}):
 
     # Evaluate the expression 
     return float(eval(param.value, assignments))
-
 
 # Convert a value input to a parameter object
 def _to_parameter(key, value):
