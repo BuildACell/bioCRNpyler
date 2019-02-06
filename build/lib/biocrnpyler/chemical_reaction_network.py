@@ -11,7 +11,7 @@ class Specie(object):
 
     """
 
-    def __init__(self, name, type="", attributes=[], initial_concentration=None):
+    def __init__(self, name, type="", attributes=[], initial_concentration=0):
         self.name = name
         self.type = type
         self.initial_concentration = initial_concentration
@@ -423,8 +423,13 @@ class ChemicalReactionNetwork(object):
         from bioscrape.types import Model
 
         species_list = []
+        initial_condition_dict = {}
         for s in self.species:
             species_list.append(repr(s))
+            if s.initial_concentration is None:
+                initial_condition_dict[repr(s)] = 0
+            else:
+                initial_condition_dict[repr(s)] = s.initial_concentration
 
         reaction_list = []
         reaction_counter = 0
@@ -433,10 +438,10 @@ class ChemicalReactionNetwork(object):
 
             reactants = []
             for i in range(len(rxn.inputs)):
-                reactants += [repr(rxn.inputs[i])]*rxn.input_coefs[i]
+                reactants += [repr(rxn.inputs[i])]*int(rxn.input_coefs[i])
             products = []
             for i in range(len(rxn.outputs)):
-                products += [repr(rxn.outputs[i])]*rxn.output_coefs[i]
+                products += [repr(rxn.outputs[i])]*int(rxn.output_coefs[i])
 
             prop_type = rxn.type
             if rxn.propensity_params == None:
@@ -455,7 +460,7 @@ class ChemicalReactionNetwork(object):
             elif rxn.reversible:
                 raise ValueError("Only massaction irreversible reactions are supported for automatic bioscrape simulation. Consider creating two seperate reactions.")
 
-        model = Model(species = species_list, reactions = reaction_list)
+        model = Model(species = species_list, reactions = reaction_list, initial_condition_dict = initial_condition_dict)
         return model
 
     def simulate_with_bioscrape(self, timepoints, initial_condition_dict = {}, stochastic = False, return_dataframe = True, safe = True):

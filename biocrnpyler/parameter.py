@@ -129,20 +129,20 @@ def create_parameter_dictionary(parameters, parameter_file):
         try:
             pID_ind = get_flexible_string_list_index(L0, ["part_id", "part"])
             if pID_ind == None:
-                raise ValueError("file "+fname+" contains no part ID column. Please add a column the name 'part_id' or 'part'.")
+                warn("file "+fname+" contains no part ID column. Please add a column the name 'part_id' or 'part'.")
         except ValueError:
             raise ValueError("'part_id', 'part', or a similar string appears multiple times in the top line of "+fname+". keyword list = "+str(L0))
         try:
             mech_ind = get_flexible_string_list_index(L0, ["mechanism", "mechanism_id"])
             if mech_ind == None:
-                raise ValueError("file "+fname+" contains no mechanism column. Please add a column the name 'mechanism' or 'mechanism_id'.")
+                warn("file "+fname+" contains no mechanism column. Please add a column the name 'mechanism' or 'mechanism_id'.")
 
         except ValueError:
             raise ValueError("'mechanism', 'mechanism_id' or a similar string appears multiple times in the top line of "+fname+". keyword list = "+str(L0))
         try:
             param_ind = get_flexible_string_list_index(L0, ["param_name", "parameter_name", "parameter", "param"])
             if param_ind == None:
-                raise ValueError("file "+fname+" contains no parameter name column. Please add a column the name 'param', 'parameter', 'param_name', or 'parameter_name'.")
+                ValueError("file "+fname+" contains no parameter name column. Please add a column the name 'param', 'parameter', 'param_name', or 'parameter_name'.")
         except ValueError:
             raise ValueError(
                 "'param', 'parameter', 'parameter_name', 'param_name', or a similar string appears multiple times in the top line of " + fname + ". keyword list = " + str(
@@ -162,10 +162,17 @@ def create_parameter_dictionary(parameters, parameter_file):
             else:
                 L = line.replace("\n", "").split(",")
 
-            id = L[pID_ind]
-            mech = L[mech_ind]
-            param = L[param_ind]
+            if pID_ind != None:
+                id = L[pID_ind]
+            else:
+                id = ""
 
+            if mech_ind != None:
+                mech = L[mech_ind]
+            else:
+                mech = ""
+
+            param = L[param_ind]
             val = L[val_ind]
 
             try:
@@ -181,7 +188,7 @@ def create_parameter_dictionary(parameters, parameter_file):
                     param_dict[(mech, id, param)] = float(val)
             except ValueError:
                 raise ValueError("Unable to parse parameter file line = "+line)
-
+        f.close()
     return param_dict
 
 

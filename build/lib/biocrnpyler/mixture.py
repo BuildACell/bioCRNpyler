@@ -8,6 +8,8 @@
 # Copyright (c) 2018, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 from warnings import warn
+from warnings import resetwarnings
+
 from .component import Component
 from .chemical_reaction_network import ChemicalReactionNetwork, Specie
 from .parameter import create_parameter_dictionary
@@ -85,6 +87,8 @@ class Mixture():
                 self.components.append(component)
                 component.update_mechanisms(mixture_mechanisms=self.mechanisms)
                 component.update_parameters(mixture_parameters=self.parameters)
+                if self.parameter_warnings!=None:
+                    component.set_parameter_warnings(self.parameter_warnings)
             else:
                 warn("Non-component added to mixture "+self.name, RuntimeWarning)
 
@@ -107,7 +111,7 @@ class Mixture():
         self.crn_reactions = []
         for component in self.components:
             if self.parameter_warnings is not None:
-                component.parameter_warnings = self.parameter_warnings
+                component.set_parameter_warnings(self.parameter_warnings)
                 
             self.crn_reactions += component.update_reactions()
 
@@ -117,6 +121,7 @@ class Mixture():
         return self.crn_reactions
 
     def compile_crn(self):
+        resetwarnings()#Reset warnings - better to toggle them off manually.
         species = self.update_species()
         reactions = self.update_reactions()
         CRN = ChemicalReactionNetwork(species, reactions)

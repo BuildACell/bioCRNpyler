@@ -1,0 +1,7 @@
+param_name	param_val	comments	mechanism_id	part_id
+ku	1.0	Any parameter called ku will default to this		
+kb	1.0	Default kb		
+ktx	2.0	Default ktx		
+ktl	3.0	Default ktl		
+cooperativity	2.0	Default cooperativity		
+kdeg	.5	Default degredation		

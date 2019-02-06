@@ -106,5 +106,4 @@ plt.xlim(0, 5)
 plt.xlabel("time")
 plt.ylabel("Reference Protein")
 plt.legend()
-
 plt.show()

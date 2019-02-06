@@ -29,7 +29,7 @@ class Component(object):
 
         self.name = name
 
-        self.parameter_warnings = parameter_warnings#Toggles whether warnings will be sent when parameters aren't found by the default name
+        self.set_parameter_warnings(parameter_warnings)#Toggles whether warnings will be sent when parameters aren't found by the default name
         self._initial_conc = initial_conc
 
         #Check to see if a subclass constructor has overwritten default mechanisms
@@ -128,6 +128,10 @@ class Component(object):
             raise ValueError(
                 "Mechanisms must be passed as a list of instantiated objects or a dictionary {type:mechanism}")
 
+    #Set get_parameter property
+    def set_parameter_warnings(self, parameter_warnings):
+        self.parameter_warnings = parameter_warnings
+
     # Get Parameter Hierarchy:
     def get_parameter(self, param_name, part_id=None, mechanism=None):
         return_val = None
@@ -154,8 +158,8 @@ class Component(object):
                 return_val = self.parameters[((mechanism.name, param_name))]
                 if part_id is not None:
                     warning_txt = "No Parameter found with param_name=" + str(param_name) + " and part_id=" + str(part_id) + " and mechanism=" + repr(
-                        mechanism) + ". Parameter found under the key (mechanism.name, Component.name, param_name)=(" \
-                                  + mechanism.name + ", " + self.name + ", " + param_name + ")"
+                        mechanism) + ". Parameter found under the key (mechanism.name, param_name)=(" \
+                                  + mechanism.name+", " + param_name + ")"
             elif (mechanism.type, param_name) in self.parameters:
                 return_val = self.parameters[(mechanism.type, param_name)]
                 if part_id is not None:
