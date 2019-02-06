@@ -12,21 +12,21 @@
       <compartment id="default" spatialDimensions="3" size="1e-06" constant="true"/>
     </listOfCompartments>
     <listOfSpecies>
-      <species id="protein_RNAP" name="protein_RNAP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="protein_Ribo" name="protein_Ribo" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="protein_RNAase" name="protein_RNAase" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="protein_GFP" name="protein_GFP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="complex_dna_G1_protein_RNAP" name="complex_dna_G1_protein_RNAP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="rna_T1" name="rna_T1" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="dna_G1" name="dna_G1" compartment="default" initialConcentration="10" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="complex_rna_T1_protein_Ribo" name="complex_rna_T1_protein_Ribo" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="complex_rna_T1_protein_RNAase" name="complex_rna_T1_protein_RNAase" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_RNAP" name="protein_RNAP" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_Ribo" name="complex_Ribo" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_RNAase" name="protein_RNAase" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_rna_T1_complex_Ribo" name="complex_rna_T1:complex_Ribo" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_Reporter" name="protein_Reporter" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_dna_G1_protein_RNAP" name="complex_dna_G1:protein_RNAP" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_rna_T1_protein_RNAase" name="complex_rna_T1:protein_RNAase" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="rna_T1" name="rna_T1" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dna_G1" name="dna_G1" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
     </listOfSpecies>
     <listOfReactions>
       <reaction id="r0" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="protein_RNAP" stoichiometry="1" constant="true"/>
           <speciesReference species="dna_G1" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_RNAP" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
           <speciesReference species="complex_dna_G1_protein_RNAP" constant="true"/>
@@ -36,8 +36,8 @@
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> protein_RNAP </ci>
               <ci> dna_G1 </ci>
+              <ci> protein_RNAP </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -50,8 +50,8 @@
           <speciesReference species="complex_dna_G1_protein_RNAP" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="protein_RNAP" constant="true"/>
           <speciesReference species="dna_G1" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -66,14 +66,14 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r2" reversible="false" fast="false">
+      <reaction id="r1" reversible="false" fast="false">
         <listOfReactants>
           <speciesReference species="complex_dna_G1_protein_RNAP" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="protein_RNAP" constant="true"/>
           <speciesReference species="dna_G1" constant="true"/>
           <speciesReference species="rna_T1" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -88,21 +88,21 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r4" reversible="false" fast="false">
+      <reaction id="r2" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="protein_Ribo" stoichiometry="1" constant="true"/>
           <speciesReference species="rna_T1" stoichiometry="1" constant="true"/>
+          <speciesReference species="complex_Ribo" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="complex_rna_T1_protein_Ribo" constant="true"/>
+          <speciesReference species="complex_rna_T1_complex_Ribo" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> protein_Ribo </ci>
               <ci> rna_T1 </ci>
+              <ci> complex_Ribo </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -110,20 +110,20 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r4_1" reversible="false" fast="false">
+      <reaction id="r2_1" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="complex_rna_T1_protein_Ribo" stoichiometry="1" constant="true"/>
+          <speciesReference species="complex_rna_T1_complex_Ribo" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="protein_Ribo" constant="true"/>
           <speciesReference species="rna_T1" constant="true"/>
+          <speciesReference species="complex_Ribo" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> complex_rna_T1_protein_Ribo </ci>
+              <ci> complex_rna_T1_complex_Ribo </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -131,21 +131,21 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r6" reversible="false" fast="false">
+      <reaction id="r3" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="complex_rna_T1_protein_Ribo" stoichiometry="1" constant="true"/>
+          <speciesReference species="complex_rna_T1_complex_Ribo" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="protein_GFP" constant="true"/>
-          <speciesReference species="protein_Ribo" constant="true"/>
           <speciesReference species="rna_T1" constant="true"/>
+          <speciesReference species="protein_Reporter" constant="true"/>
+          <speciesReference species="complex_Ribo" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> complex_rna_T1_protein_Ribo </ci>
+              <ci> complex_rna_T1_complex_Ribo </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -153,10 +153,10 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r8" reversible="false" fast="false">
+      <reaction id="r4" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="protein_RNAase" stoichiometry="1" constant="true"/>
           <speciesReference species="rna_T1" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_RNAase" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
           <speciesReference species="complex_rna_T1_protein_RNAase" constant="true"/>
@@ -166,8 +166,8 @@
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> protein_RNAase </ci>
               <ci> rna_T1 </ci>
+              <ci> protein_RNAase </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -175,13 +175,13 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r8_1" reversible="false" fast="false">
+      <reaction id="r4_1" reversible="false" fast="false">
         <listOfReactants>
           <speciesReference species="complex_rna_T1_protein_RNAase" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="protein_RNAase" constant="true"/>
           <speciesReference species="rna_T1" constant="true"/>
+          <speciesReference species="protein_RNAase" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -196,7 +196,7 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r10" reversible="false" fast="false">
+      <reaction id="r5" reversible="false" fast="false">
         <listOfReactants>
           <speciesReference species="complex_rna_T1_protein_RNAase" stoichiometry="1" constant="true"/>
         </listOfReactants>

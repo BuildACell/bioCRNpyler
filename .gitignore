@@ -1,0 +1,29 @@
+.ipynb_checkpoints
+biocrnpyler.egg-info/
+build/
+dist/
+examples/.ipynb_checkpoints/
+.idea/BioCRNPyler.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml
+__pycache__/chemical_reaction_network.cpython-36.pyc
+__pycache__/component.cpython-36.pyc
+__pycache__/d_cas9.cpython-36.pyc
+__pycache__/dna_assembly.cpython-36.pyc
+__pycache__/global_mechanism.cpython-36.pyc
+__pycache__/mechanism.cpython-36.pyc
+__pycache__/mixture.cpython-36.pyc
+__pycache__/sbmlutil.cpython-36.pyc
+__pycache__/txtl.cpython-36.pyc
+Tests/bioscrape_test.sbml
+Tests/dcas9_repression_test.sbml
+Tests/bioscrape_test.xml
+Tests/dcas9_repression_test.xml
+Tests/sbml_test_file.xml
+*.pyc
+Presentations and Documentation/Murray Lab Update 10-8-18.pptx
+Presentations and Documentation/Murray Lab Update 10-8-18.pptx
+.idea/workspace.xml
+.idea/workspace.xml

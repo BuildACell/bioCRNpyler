@@ -6,7 +6,7 @@ from .component import Protein, Complex
 from .mechanism import Transcription_MM, Translation_MM, Degredation_mRNA_MM
 from .mixture import Mixture
 from .chemical_reaction_network import Specie
-
+       
 
 class BasicExtract(Mixture):
     def __init__(self, name="", mechanisms={}, components=[], parameters={},
@@ -47,3 +47,4 @@ class BasicExtract(Mixture):
         default_components = [self.rnap, self.ribosome, self.RNAase]
 
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, components=components+default_components, parameters=parameters, **kwargs)
+
