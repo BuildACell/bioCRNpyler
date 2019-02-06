@@ -1,4 +1,7 @@
-
+.ipynb_checkpoints
+biocrnpyler.egg-info/
+build/
+dist/
 .idea/BioCRNPyler.iml
 .idea/misc.xml
 .idea/modules.xml

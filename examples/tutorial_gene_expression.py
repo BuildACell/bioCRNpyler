@@ -7,25 +7,27 @@ import numpy as np
 
 txtl = CRNLab("txtl_gfp")
 
-# Specify what extract and buffer to use
-txtl.extract("test_extract")
+txtl.mixture("mixture1", extract = "test_extract", extract_volume = 1e-6)
 
+# OR, Optionally, do the following, 
+# Specify what extract and buffer to use
+# txtl.extract("test_extract")
 # Buffer with energy models will be available in future releases
-txtl.buffer("stdbuffer")
+# txtl.buffer("stdbuffer")
 
 # Create genes to add to the mix as follows
-gene1 = DNAassembly(name = "G1", promoter = "pBest", rbs = "BCD2", protein = "GFP", initial_conc = 10)
+gene1 = DNAassembly(name = "G1", promoter = "pBest", rbs = "BCD2", protein = "GFP", final_conc = 10)
 txtl.add_dna(gene1)
 
 # Or simply add a new dna in one line as follows.
-txtl.add_dna(name = "G2", promoter = "pBest", rbs = "BCD2", protein = "tetR", initial_conc = 10)
+txtl.add_dna(name = "G2", promoter = "pBest", rbs = "BCD2", protein = "tetR", initial_conc = 10, volume = 1e-7)
 
 # Combine all of the tubes together to get the model
 well1 = txtl.combine_tubes()
 print(well1)
 # Create an SBML file containing the model
 filename = "geneexpr.xml"
-well1.write_sbml_file(filename)
+txtl.write_sbml_file(filename)
 
 # Run a simulation (using bioscrape) and plot the result
 # (Optional) Specify the type of simulation (deterministic or stochastic)
@@ -35,3 +37,5 @@ simdata = well1.runsim_bioscrape(timepoints, filename, simtype = "stochastic", p
 # OR, you could use RoadRunner for simulation of the SBML model, simply call
 # simdata = well1.runsim_roadrunner(timepoints, filename)
 # OR, just use any other simulator of your choice with the SBML model stored in the file above.
+
+ 

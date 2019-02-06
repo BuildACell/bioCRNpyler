@@ -9,30 +9,30 @@
       </unitDefinition>
     </listOfUnitDefinitions>
     <listOfCompartments>
-      <compartment id="default" spatialDimensions="3" size="1e-06" constant="true"/>
+      <compartment id="default" spatialDimensions="3" size="1.1e-06" constant="true"/>
     </listOfCompartments>
     <listOfSpecies>
       <species id="protein_RNAP" name="protein_RNAP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="protein_Ribo" name="protein_Ribo" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="protein_RNAase" name="protein_RNAase" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="complex_rna_G1_protein_RNAase" name="complex_rna_G1_protein_RNAase" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="rna_G1" name="rna_G1" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="protein_GFP" name="protein_GFP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="complex_dna_G1_protein_RNAP" name="complex_dna_G1_protein_RNAP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="dna_G1" name="dna_G1" compartment="default" initialConcentration="10" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_GFP" name="protein_GFP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="complex_rna_G1_protein_Ribo" name="complex_rna_G1_protein_Ribo" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="dna_G2" name="dna_G2" compartment="default" initialConcentration="10" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dna_G1" name="dna_G1" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="rna_G1" name="rna_G1" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="complex_rna_G2_protein_Ribo" name="complex_rna_G2_protein_Ribo" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="protein_tetR" name="protein_tetR" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="rna_G2" name="rna_G2" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="complex_rna_G2_protein_RNAase" name="complex_rna_G2_protein_RNAase" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_tetR" name="protein_tetR" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dna_G2" name="dna_G2" compartment="default" initialConcentration="1e-06" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="complex_dna_G2_protein_RNAP" name="complex_dna_G2_protein_RNAP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_rna_G2_protein_RNAase" name="complex_rna_G2_protein_RNAase" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
     </listOfSpecies>
     <listOfReactions>
       <reaction id="r0" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="dna_G1" stoichiometry="1" constant="true"/>
           <speciesReference species="protein_RNAP" stoichiometry="1" constant="true"/>
+          <speciesReference species="dna_G1" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
           <speciesReference species="complex_dna_G1_protein_RNAP" constant="true"/>
@@ -42,8 +42,8 @@
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> dna_G1 </ci>
               <ci> protein_RNAP </ci>
+              <ci> dna_G1 </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -56,8 +56,8 @@
           <speciesReference species="complex_dna_G1_protein_RNAP" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="dna_G1" constant="true"/>
           <speciesReference species="protein_RNAP" constant="true"/>
+          <speciesReference species="dna_G1" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -77,8 +77,8 @@
           <speciesReference species="complex_dna_G1_protein_RNAP" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="dna_G1" constant="true"/>
           <speciesReference species="protein_RNAP" constant="true"/>
+          <speciesReference species="dna_G1" constant="true"/>
           <speciesReference species="rna_G1" constant="true"/>
         </listOfProducts>
         <kineticLaw>
@@ -96,8 +96,8 @@
       </reaction>
       <reaction id="r4" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="rna_G1" stoichiometry="1" constant="true"/>
           <speciesReference species="protein_Ribo" stoichiometry="1" constant="true"/>
+          <speciesReference species="rna_G1" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
           <speciesReference species="complex_rna_G1_protein_Ribo" constant="true"/>
@@ -107,8 +107,8 @@
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> rna_G1 </ci>
               <ci> protein_Ribo </ci>
+              <ci> rna_G1 </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -121,8 +121,8 @@
           <speciesReference species="complex_rna_G1_protein_Ribo" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="rna_G1" constant="true"/>
           <speciesReference species="protein_Ribo" constant="true"/>
+          <speciesReference species="rna_G1" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -142,9 +142,9 @@
           <speciesReference species="complex_rna_G1_protein_Ribo" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="protein_GFP" constant="true"/>
-          <speciesReference species="rna_G1" constant="true"/>
           <speciesReference species="protein_Ribo" constant="true"/>
+          <speciesReference species="rna_G1" constant="true"/>
+          <speciesReference species="protein_GFP" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -224,8 +224,8 @@
       </reaction>
       <reaction id="r12" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="protein_RNAP" stoichiometry="1" constant="true"/>
           <speciesReference species="dna_G2" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_RNAP" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
           <speciesReference species="complex_dna_G2_protein_RNAP" constant="true"/>
@@ -235,8 +235,8 @@
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> protein_RNAP </ci>
               <ci> dna_G2 </ci>
+              <ci> protein_RNAP </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -249,8 +249,8 @@
           <speciesReference species="complex_dna_G2_protein_RNAP" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="protein_RNAP" constant="true"/>
           <speciesReference species="dna_G2" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -270,9 +270,9 @@
           <speciesReference species="complex_dna_G2_protein_RNAP" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="rna_G2" constant="true"/>
-          <speciesReference species="protein_RNAP" constant="true"/>
           <speciesReference species="dna_G2" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
+          <speciesReference species="rna_G2" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -336,8 +336,8 @@
         </listOfReactants>
         <listOfProducts>
           <speciesReference species="rna_G2" constant="true"/>
-          <speciesReference species="protein_tetR" constant="true"/>
           <speciesReference species="protein_Ribo" constant="true"/>
+          <speciesReference species="protein_tetR" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -354,8 +354,8 @@
       </reaction>
       <reaction id="r20" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="rna_G2" stoichiometry="1" constant="true"/>
           <speciesReference species="protein_RNAase" stoichiometry="1" constant="true"/>
+          <speciesReference species="rna_G2" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
           <speciesReference species="complex_rna_G2_protein_RNAase" constant="true"/>
@@ -365,8 +365,8 @@
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> rna_G2 </ci>
               <ci> protein_RNAase </ci>
+              <ci> rna_G2 </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -379,8 +379,8 @@
           <speciesReference species="complex_rna_G2_protein_RNAase" stoichiometry="1" constant="true"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="rna_G2" constant="true"/>
           <speciesReference species="protein_RNAase" constant="true"/>
+          <speciesReference species="rna_G2" constant="true"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
