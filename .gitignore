@@ -2,6 +2,7 @@
 biocrnpyler.egg-info/
 build/
 dist/
+examples/.ipynb_checkpoints/
 .idea/BioCRNPyler.iml
 .idea/misc.xml
 .idea/modules.xml
