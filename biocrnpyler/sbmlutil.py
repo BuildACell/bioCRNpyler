@@ -14,7 +14,7 @@ reaction_id = 0
 
 # Create an SBML model
 def create_sbml_model(compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
-                      length_units='metre', area_units='square_metre', volume_units='litre'):
+                      length_units='metre', area_units='square_metre', volume_units='litre', volume = 1e-6):
     document = libsbml.SBMLDocument(3, 1)
     model = document.createModel()
 
@@ -40,7 +40,7 @@ def create_sbml_model(compartment_id="default", time_units='second', extent_unit
     compartment.setId(compartment_id)
     compartment.setConstant(True)  # keep compartment size constant
     compartment.setSpatialDimensions(3)  # 3 dimensional compartment
-    compartment.setVolume(1e-6)  # 1 microliter
+    compartment.setVolume(volume)  # 1 microliter
 
     # Returning document is enough. document.getModel() gives the model, and model.getCompartment(0) gives the compartment.
     return document, model
