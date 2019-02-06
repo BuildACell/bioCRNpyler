@@ -2,42 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b1d96ef7-03e1-48b8-a646-204c65efda94" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tests/bioscrape_test.sbml" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/bioscrape_test.sbml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tests/bioscrape_test.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/bioscrape_test.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tests/dcas9_repression_test.sbml" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/dcas9_repression_test.sbml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tests/dcas9_repression_test.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/dcas9_repression_test.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tests/deCas9_repression.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tests/dna_assembly_and_constituitive_expression.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tests/parameter_loading_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/parameter_loading_test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tests/sbml_test_file.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/biocrnpyler.egg-info/SOURCES.txt" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler.egg-info/SOURCES.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/biocrnpyler/chemical_reaction_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/chemical_reaction_network.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/biocrnpyler/component.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/component.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/biocrnpyler/d_cas9.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/d_cas9.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/biocrnpyler/dna_assembly.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/dna_assembly.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/biocrnpyler/mixture.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/mixture.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/biocrnpyler/parameter.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/parameter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/biocrnpyler/chemical_reaction_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/biocrnpyler/chemical_reaction_network.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/biocrnpyler/component.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/biocrnpyler/component.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/biocrnpyler/d_cas9.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/biocrnpyler/d_cas9.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/biocrnpyler/dna_assembly.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/biocrnpyler/dna_assembly.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/biocrnpyler/mixture.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/biocrnpyler/mixture.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/biocrnpyler/parameter.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/biocrnpyler/parameter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/biocrnpyler-0.1-py3.6.egg" beforeDir="false" afterPath="$PROJECT_DIR$/dist/biocrnpyler-0.1-py3.6.egg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/.ipynb_checkpoints/Parameters-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/.ipynb_checkpoints/Parameters-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/BioCRNpyler Developer Overview Notebook.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/BioCRNpyler Developer Overview Notebook.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/Parameters Notebook Param File 1.tsv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/Parameters.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/Parameters.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/constitutive_expression_test.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/constitutive_expression_test.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/deCas9_repression.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/deCas9_repression.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/dna_assembly_and_constituitive_expression.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/dna_assembly_and_constituitive_expression.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/regulated_promoter_activation_and_repression.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/regulated_promoter_activation_and_repression.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/repr_for_crn_and_component_and_write_to_sbml.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/repr_for_crn_and_component_and_write_to_sbml.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/retroactivity_with_custom_mechanism_and_custom_promoter.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/retroactivity_with_custom_mechanism_and_custom_promoter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/sbml_test_file.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/sbml_test_file.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/simulate_compiled_crn_with_bioscrape.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/simulate_compiled_crn_with_bioscrape.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/simulate_compiled_crn_with_bioscrape_via_sbml.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/simulate_compiled_crn_with_bioscrape_via_sbml.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Old Tests/bioscrape_test.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/bioscrape_test.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/bioscrape_test.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/dilution_with_global_mechanisms.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/dilution_with_global_mechanisms.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -144,7 +111,7 @@
         <entry file="file://$PROJECT_DIR$/biocrnpyler/dna_assembly.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="284">
-              <caret line="104" lean-forward="true" selection-start-line="104" selection-end-line="104" />
+              <caret line="104" selection-start-line="104" selection-end-line="104" />
               <folding>
                 <element signature="e#120#157#0" expanded="true" />
               </folding>
@@ -273,7 +240,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="-12" />
     <option name="y" value="-12" />
     <option name="width" value="1944" />
@@ -399,7 +366,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/examples/dilution_with_global_mechanisms.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\wp_ix\OneDrive\Caltech\Code\BioCRNPyler\Old Tests\dilution_with_global_mechanisms.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -539,12 +506,12 @@
       <workItem from="1548963707935" duration="1122000" />
       <workItem from="1549074197324" duration="6122000" />
       <workItem from="1549311588308" duration="21133000" />
-      <workItem from="1549400574475" duration="4595000" />
+      <workItem from="1549400574475" duration="5229000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="75120000" />
+    <option name="totallyTimeSpent" value="75754000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -556,8 +523,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1295" height="653" extended-state="7" />
-    <editor active="true" />
+    <frame x="-7" y="-7" width="1295" height="653" extended-state="6" />
     <layout>
       <window_info id="Structure" order="0" side_tool="true" weight="0.17165992" />
       <window_info id="Favorites" order="1" side_tool="true" weight="0.32955465" />
@@ -740,7 +706,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/examples/dilution_with_global_mechanisms.py">
+    <entry file="file://$PROJECT_DIR$/Old Tests/dilution_with_global_mechanisms.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="406">
           <caret line="74" selection-start-line="74" selection-end-line="74" />
@@ -825,7 +791,7 @@
     <entry file="file://$PROJECT_DIR$/biocrnpyler/dna_assembly.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="284">
-          <caret line="104" lean-forward="true" selection-start-line="104" selection-end-line="104" />
+          <caret line="104" selection-start-line="104" selection-end-line="104" />
           <folding>
             <element signature="e#120#157#0" expanded="true" />
           </folding>

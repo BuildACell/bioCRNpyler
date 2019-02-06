@@ -12,15 +12,11 @@
       <compartment id="default" spatialDimensions="3" size="1e-06" constant="true"/>
     </listOfCompartments>
     <listOfSpecies>
-      <species id="protein_RNAP" name="protein_RNAP" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="protein_Ribo" name="protein_Ribo" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="protein_RNAase" name="protein_RNAase" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="complex_dna_G1_protein_RNAP" name="complex_dna_G1:protein_RNAP" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="complex_rna_T1_protein_Ribo" name="complex_rna_T1:protein_Ribo" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="protein_Reporter" name="protein_Reporter" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="rna_T1" name="rna_T1" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="complex_rna_T1_protein_RNAase" name="complex_rna_T1:protein_RNAase" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="dna_G1" name="dna_G1" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_RNAP" name="protein_RNAP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_Ribo" name="protein_Ribo" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_RNAase" name="protein_RNAase" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_Reporter" name="protein_Reporter" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="rna_T1" name="rna_T1" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
     </listOfSpecies>
     <listOfReactions>
       <reaction id="r0" reversible="false" fast="false">
@@ -66,7 +62,7 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r1" reversible="false" fast="false">
+      <reaction id="r2" reversible="false" fast="false">
         <listOfReactants>
           <speciesReference species="complex_dna_G1_protein_RNAP" stoichiometry="1" constant="true"/>
         </listOfReactants>
@@ -88,7 +84,7 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r2" reversible="false" fast="false">
+      <reaction id="r4" reversible="false" fast="false">
         <listOfReactants>
           <speciesReference species="rna_T1" stoichiometry="1" constant="true"/>
           <speciesReference species="protein_Ribo" stoichiometry="1" constant="true"/>
@@ -110,7 +106,7 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r2_1" reversible="false" fast="false">
+      <reaction id="r4_1" reversible="false" fast="false">
         <listOfReactants>
           <speciesReference species="complex_rna_T1_protein_Ribo" stoichiometry="1" constant="true"/>
         </listOfReactants>
@@ -131,7 +127,7 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r3" reversible="false" fast="false">
+      <reaction id="r6" reversible="false" fast="false">
         <listOfReactants>
           <speciesReference species="complex_rna_T1_protein_Ribo" stoichiometry="1" constant="true"/>
         </listOfReactants>
@@ -153,7 +149,7 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r4" reversible="false" fast="false">
+      <reaction id="r8" reversible="false" fast="false">
         <listOfReactants>
           <speciesReference species="rna_T1" stoichiometry="1" constant="true"/>
           <speciesReference species="protein_RNAase" stoichiometry="1" constant="true"/>
@@ -175,7 +171,7 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r4_1" reversible="false" fast="false">
+      <reaction id="r8_1" reversible="false" fast="false">
         <listOfReactants>
           <speciesReference species="complex_rna_T1_protein_RNAase" stoichiometry="1" constant="true"/>
         </listOfReactants>
@@ -196,7 +192,7 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r5" reversible="false" fast="false">
+      <reaction id="r10" reversible="false" fast="false">
         <listOfReactants>
           <speciesReference species="complex_rna_T1_protein_RNAase" stoichiometry="1" constant="true"/>
         </listOfReactants>
