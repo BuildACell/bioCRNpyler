@@ -84,7 +84,7 @@ class RegulatedPromoter(Promoter):
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
-            coop = self.get_parameter(param_name="cooperativity", part_id=regulator.name, mechanism=mech_b)
+            coop = self.get_parameter(param_name="cooperativity", part_id=self.name+"_"+regulator.name, mechanism=mech_b)
             species_b = mech_b.update_species(regulator, self.assembly.dna, cooperativity=coop)
             species += species_b
             complex_ = species_b[0]
@@ -98,24 +98,23 @@ class RegulatedPromoter(Promoter):
         mech_b = self.mechanisms['binding']
 
         if self.leak != False:
-            ktx = self.get_parameter("ktx_leak", mechanism = mech_tx, part_id=self.name)
-            ku = self.get_parameter("ku_leak", mechanism = mech_tx, part_id=self.name)
-            kb = self.get_parameter("kb_leak", mechanism = mech_tx, part_id=self.name)
+            ktx = self.get_parameter("ktx", mechanism = mech_tx, part_id=self.name)
+            ku = self.get_parameter("ku", mechanism = mech_tx, part_id=self.name)
+            kb = self.get_parameter("kb", mechanism = mech_tx, part_id=self.name)
             reactions += mech_tx.update_reactions(dna = self.assembly.dna, ktx = ktx, ku = ku, kb = kb)
-
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
             complex_ = self.complexes[i]
-            ktx = self.get_parameter("ktx", mechanism=mech_tx, part_id=regulator.name)
+            ktx = self.get_parameter("ktx", mechanism=mech_tx, part_id=self.name+"_"+regulator.name)
 
-            ku_tx = self.get_parameter("ku", mechanism=mech_tx, part_id=regulator.name)
-            kb_tx = self.get_parameter("kb", mechanism=mech_tx, part_id=regulator.name)
+            ku_tx = self.get_parameter("ku", mechanism=mech_tx, part_id=self.name+"_"+regulator.name)
+            kb_tx = self.get_parameter("kb", mechanism=mech_tx, part_id=self.name+"_"+regulator.name)
 
-            ku_c = self.get_parameter("ku", mechanism=mech_b, part_id=regulator.name)
-            kb_c = self.get_parameter("kb", mechanism=mech_b, part_id=regulator.name)
+            ku_c = self.get_parameter("ku", mechanism=mech_b, part_id=self.name+"_"+regulator.name)
+            kb_c = self.get_parameter("kb", mechanism=mech_b, part_id=self.name+"_"+regulator.name)
 
-            coop = self.get_parameter("cooperativity", part_id=regulator.name, mechanism=mech_tx)
+            coop = self.get_parameter("cooperativity", part_id=self.name+"_"+regulator.name, mechanism=mech_b)
 
             reactions += mech_b.update_reactions(regulator, self.assembly.dna, ku=ku_c, kb=kb_c, cooperativity=coop)
             reactions += mech_tx.update_reactions(dna=complex_, kb=kb_tx, ku=ku_tx, ktx=ktx, transcript=self.transcript)
@@ -186,12 +185,22 @@ class DNAassembly(DNA):
         self.initial_concentration = initial_conc
         self.name = name
         DNA.__init__(self, name, length=length, mechanisms=mechanisms, parameters=parameters, initial_conc = initial_conc, parameter_warnings = parameter_warnings, attributes = list(attributes), **keywords)
-
         self.update_dna(dna, attributes = list(attributes))
-        self.update_promoter(promoter, transcript = transcript)
         self.update_transcript(transcript)
         self.update_protein(protein)
+        self.update_promoter(promoter, transcript = self.transcript)
         self.update_rbs(rbs, transcript=self.transcript, protein=self.protein)
+
+        self.set_parameter_warnings(parameter_warnings)
+
+    def set_parameter_warnings(self, parameter_warnings):
+        self.parameter_warnings = parameter_warnings
+
+        if self.parameter_warnings != None:
+            if self.promoter != None:
+                self.promoter.set_parameter_warnings(parameter_warnings)
+            if self.rbs != None:
+                self.rbs.set_parameter_warnings(parameter_warnings)
 
 
     def update_dna(self, dna, attributes = None):

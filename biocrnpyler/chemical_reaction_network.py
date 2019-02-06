@@ -11,7 +11,7 @@ class Specie(object):
 
     """
 
-    def __init__(self, name, type="", attributes=[], initial_concentration=None):
+    def __init__(self, name, type="", attributes=[], initial_concentration=0):
         self.name = name
         self.type = type
         self.initial_concentration = initial_concentration
@@ -124,9 +124,20 @@ class Reaction(object):
             raise ValueError("A non-species object was used as a specie")
 
         # internal representation of a reaction
-        self.inputs = list(set(inputs))
-        self.outputs = list(set(outputs))
+
+        #self.inputs and self.outputs should be ordered sets.
+        self.inputs = []
+        for s in inputs:
+            if s not in self.inputs:
+                self.inputs.append(s)
+        self.outputs = []
+        for s in outputs:
+            if s not in self.outputs:
+                self.outputs.append(s)
+
+        #self.input_coefs[i] is the number of self.inputs[i] into the reaction
         self.input_coefs = None
+        #self.output coefs is analogous to above
         self.output_coefs = None
 
         # Check that rates are valid
@@ -412,8 +423,13 @@ class ChemicalReactionNetwork(object):
         from bioscrape.types import Model
 
         species_list = []
+        initial_condition_dict = {}
         for s in self.species:
             species_list.append(repr(s))
+            if s.initial_concentration is None:
+                initial_condition_dict[repr(s)] = 0
+            else:
+                initial_condition_dict[repr(s)] = s.initial_concentration
 
         reaction_list = []
         reaction_counter = 0
@@ -422,10 +438,10 @@ class ChemicalReactionNetwork(object):
 
             reactants = []
             for i in range(len(rxn.inputs)):
-                reactants += [repr(rxn.inputs[i])]*rxn.input_coefs[i]
+                reactants += [repr(rxn.inputs[i])]*int(rxn.input_coefs[i])
             products = []
             for i in range(len(rxn.outputs)):
-                products += [repr(rxn.outputs[i])]*rxn.output_coefs[i]
+                products += [repr(rxn.outputs[i])]*int(rxn.output_coefs[i])
 
             prop_type = rxn.type
             if rxn.propensity_params == None:
@@ -444,14 +460,16 @@ class ChemicalReactionNetwork(object):
             elif rxn.reversible:
                 raise ValueError("Only massaction irreversible reactions are supported for automatic bioscrape simulation. Consider creating two seperate reactions.")
 
-        model = Model(species = species_list, reactions = reaction_list)
+        model = Model(species = species_list, reactions = reaction_list, initial_condition_dict = initial_condition_dict)
         return model
 
-    def simulate_with_bioscrape(self, timepoints, initial_condition_dict = {}, stochastic = False, return_dataframe = True):
+    def simulate_with_bioscrape(self, timepoints, initial_condition_dict = {}, stochastic = False, return_dataframe = True, safe = True):
         from bioscrape.simulator import py_simulate_model
         m = self.create_bioscrape_model()
         m.set_species(initial_condition_dict)
-        result = py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe)
+        if not stochastic and safe:
+            safe = False
+        result = py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe, safe = safe)
 
         return result
 

@@ -10,6 +10,7 @@ def warn(txt):
 
 # import chemical_reaction_network as crn
 from .chemical_reaction_network import Specie
+from .parameter import create_parameter_dictionary
 
 
 # Component class for core components
@@ -18,6 +19,7 @@ class Component(object):
     def __init__(self, name,
                  mechanisms={},  # custom mechanisms
                  parameters={},  # parameter configuration
+                 parameter_file = None, #custom parameter file
                  mixture=None,
                  attributes=[],
                  initial_conc=0,
@@ -27,7 +29,7 @@ class Component(object):
 
         self.name = name
 
-        self.parameter_warnings = parameter_warnings#Toggles whether warnings will be sent when parameters aren't found by the default name
+        self.set_parameter_warnings(parameter_warnings)#Toggles whether warnings will be sent when parameters aren't found by the default name
         self._initial_conc = initial_conc
 
         #Check to see if a subclass constructor has overwritten default mechanisms
@@ -53,6 +55,8 @@ class Component(object):
             mixture_parameters = mixture.parameters
         else:
             mixture_parameters = {}
+
+        parameters = create_parameter_dictionary(parameters, parameter_file)
         self.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters)
 
     #@property
@@ -124,6 +128,10 @@ class Component(object):
             raise ValueError(
                 "Mechanisms must be passed as a list of instantiated objects or a dictionary {type:mechanism}")
 
+    #Set get_parameter property
+    def set_parameter_warnings(self, parameter_warnings):
+        self.parameter_warnings = parameter_warnings
+
     # Get Parameter Hierarchy:
     def get_parameter(self, param_name, part_id=None, mechanism=None):
         return_val = None
@@ -142,32 +150,33 @@ class Component(object):
                 return_val = self.parameters[(part_id, param_name)]
 
                 if mechanism is not None:
-                    warning_txt = "No Parameter found with param_name=" + param_name + " and part_id=" + part_id + " and mechanism=" + repr(
-                        mechanism) + ". Parameter found under the key (part_id, param_name)=(" + part_id + ", " + param_name + ")"
+                    warning_txt = "No Parameter found with param_name=" + str(param_name) + " and part_id=" + str(part_id) + " and mechanism=" + repr(
+                        mechanism) + ". Parameter found under the key (part_id, param_name)=(" + str(part_id) + ", " +str(param_name) + ")"
         # Next try (Mechanism.name/type, param_name) --> val
         if mechanism is not None and return_val is None:
             if (mechanism.name, param_name) in self.parameters:
                 return_val = self.parameters[((mechanism.name, param_name))]
                 if part_id is not None:
-                    warning_txt = "No Parameter found with param_name=" + param_name + " and part_id=" + part_id + " and mechanism=" + repr(
-                        mechanism) + ". Parameter found under the key (mechanism.name, Component.name, param_name)=(" \
-                                  + mechanism.name + ", " + self.name + ", " + param_name + ")"
+                    warning_txt = "No Parameter found with param_name=" + str(param_name) + " and part_id=" + str(part_id) + " and mechanism=" + repr(
+                        mechanism) + ". Parameter found under the key (mechanism.name, param_name)=(" \
+                                  + mechanism.name+", " + param_name + ")"
             elif (mechanism.type, param_name) in self.parameters:
                 return_val = self.parameters[(mechanism.type, param_name)]
                 if part_id is not None:
-                    warning_txt = "No Parameter found with param_name=" + param_name + " and part_id=" + part_id + " and mechanism=" + repr(
+                    warning_txt = "No Parameter found with param_name=" + str(param_name) + " and part_id=" + str(part_id) + " and mechanism=" + repr(
                         mechanism) + ". Parameter found under the key (mechanism.name, param_name)=(" \
                                   + mechanism.name + ", " + param_name + ")"
         # Finally try (param_name) --> return val
         if param_name in self.parameters and return_val is None:
             return_val = self.parameters[param_name]
             if mechanism is not None or part_id is not None:
-                warning_txt = "No Parameter found with param_name=" + param_name + " and part_id=" + str(
+                warning_txt = "No Parameter found with param_name=" + str(param_name) + " and part_id=" + str(
                     part_id) + " and mechanism=" + repr(
                     mechanism) + ". Parameter found under the key param_name=" + param_name
         if return_val is None:
-            raise ValueError("No Parameters can be found that match the (mechanism, param_id, param_name)=( " + repr(
-                mechanism) + ', ' + part_id + ", " + param_name + ")")
+            raise ValueError("No Parameters can be found that match the (mechanism, param_id, param_name)=(" + repr(
+                mechanism) + ', ' + str(part_id) + ", " + str(param_name) + ")")
+
         else:
             if warning_txt is not None and self.parameter_warnings:
                 warn(warning_txt)

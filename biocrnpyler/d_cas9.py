@@ -6,7 +6,6 @@ from .chemical_reaction_network import Specie
 class guideRNA(RNA):
     def __init__(self, guide_name, dCas9 = "dCas9", **keywords):
 
-
         if isinstance(dCas9, Specie):
             self.dCas = dCas9
         elif isinstance(dCas9, str):
