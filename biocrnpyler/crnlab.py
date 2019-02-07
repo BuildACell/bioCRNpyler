@@ -4,7 +4,7 @@ from .dna_assembly import DNAassembly
 import csv
 import libsbml
 
-class CRNLab(Mixture):
+class CRNLab(object):
     '''
     Implements high level modeling akin to experimental TX-TL experiments
     '''
