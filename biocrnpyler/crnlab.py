@@ -8,7 +8,7 @@ class CRNLab(Mixture):
     '''
     Implements high level modeling akin to experimental TX-TL experiments
     '''
-    def __init__(self, name):
+    def __init__(self, name = ''):
         self.Mixture = Mixture
         self.name = name
         self.volume = 0
