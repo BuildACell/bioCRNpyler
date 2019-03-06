@@ -1,3 +1,4 @@
+
 .ipynb_checkpoints
 biocrnpyler.egg-info/
 build/
@@ -29,3 +30,5 @@ Presentations and Documentation/Murray Lab Update 10-8-18.pptx
 .idea/workspace.xml
 .idea/workspace.xml
 .idea/encodings.xml
+biocrnpyler/__pycache__/crnlab.cpython-36.pyc
+
