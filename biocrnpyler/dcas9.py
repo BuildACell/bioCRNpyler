@@ -21,7 +21,7 @@ class guideRNA(RNA):
         self.default_mechanisms = {
             "dCas9_binding" :
                 Reversible_Bimolecular_Binding(name = "dCas9_binding",
-                                        material_type = "bimolecular binding")
+                                        mechanism_type = "bimolecular binding")
         }
 
         RNA.__init__(self, name = guide_name, **keywords)
