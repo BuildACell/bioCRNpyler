@@ -11,7 +11,7 @@ from warnings import warn
 from warnings import resetwarnings
 
 from .component import Component
-from .chemical_reaction_network import ChemicalReactionNetwork, Specie
+from .chemical_reaction_network import ChemicalReactionNetwork, Species
 from .parameter import create_parameter_dictionary
 
 """Container for components (extract, genes, etc)
@@ -32,20 +32,28 @@ from .parameter import create_parameter_dictionary
 """
 
 class Mixture():
-    def __init__(self, name="", mechanisms={}, components = [], parameters = {}, parameter_file = None, default_mechanisms = {}, global_mechanisms = {}, default_components = [], parameter_warnings = None, **kwargs):
+    def __init__(self, name="", mechanisms={}, components = [], parameters = {},
+                 parameter_file = None, default_mechanisms = {},
+                 global_mechanisms = {}, default_components = [],
+                 parameter_warnings = None, **kwargs):
         "Create a new mixture"
 
         # Initialize instance variables
         self.name = name  # Save the name of the mixture
 
-        self.parameters = create_parameter_dictionary(parameters, parameter_file)
-        self.parameter_warnings = parameter_warnings #Toggles whether parameter warnings are raised. if None (default) this can be toggled component by component
+        self.parameters = create_parameter_dictionary(parameters,
+                                                      parameter_file)
+        # Toggles whether parameter warnings are raised. if None (default) this
+        # can be toggled component by component.
+        self.parameter_warnings = parameter_warnings
 
         # Override the default mechanisms with anything we were passed
-        self.default_mechanisms = default_mechanisms  # default parameters are used by mixture subclasses
+         # default parameters are used by mixture subclasses.
+        self.default_mechanisms = default_mechanisms
         self.custom_mechanisms = mechanisms
 
-        # Mechanisms stores the mechanisms used for compilation where defaults are overwritten by custom mechanisms
+        # Mechanisms stores the mechanisms used for compilation where defaults
+        # are overwritten by custom mechanisms.
         self.mechanisms = dict(self.default_mechanisms)
 
         if isinstance(self.custom_mechanisms, dict):
@@ -55,23 +63,31 @@ class Mixture():
             for mech in self.custom_mechanisms:
                 self.mechanisms[mech.type] = mech
         else:
-            raise ValueError("Mechanisms must be passed as a list of instantiated objects or a dictionary {type:mechanism}")
+            raise ValueError("Mechanisms must be passed as a list of "
+                             "instantiated objects or a dictionary "
+                             "{type:mechanism}")
 
-        # Global mechanisms are applied just once ALL species generated from components inside a mixture
-        # Global mechanisms should be used rarely, and with care. An example usecase is degredation via dilution.
+        # Global mechanisms are applied just once ALL species generated from
+        # components inside a mixture
+        # Global mechanisms should be used rarely, and with care. An example
+        # usecase is degredation via dilution.
         self.global_mechanisms = global_mechanisms
 
         self.components = []  # components contained in mixture
-        self.added_species = [] # if chemcial_reaction_network.specie objects are passed in as components they are stored here
+        # if chemcial_reaction_network.species objects are passed in as
+        # components they are stored here
+        self.added_species = []
         for component in components+default_components:
             if isinstance(component, Component):
                 self.add_components(component)
 
-            elif isinstance(component, Specie):
+            elif isinstance(component, Species):
                 self.added_species += [component]
 
             else:
-                raise ValueError("Objects passed into mixture as Components must be of the class Component or chemical_reaction_network.specie")
+                raise ValueError("Objects passed into mixture as Components "
+                                 "must be of the class Component or "
+                                 "chemical_reaction_network.species")
 
         # internal lists for the species and reactions
         self.crn_species = None
@@ -90,7 +106,8 @@ class Mixture():
                 if self.parameter_warnings!=None:
                     component.set_parameter_warnings(self.parameter_warnings)
             else:
-                warn("Non-component added to mixture "+self.name, RuntimeWarning)
+                warn("Non-component added to mixture "+self.name,
+                     RuntimeWarning)
 
     def update_species(self):
         #TODO check if we can merge the two variables
@@ -100,24 +117,31 @@ class Mixture():
 
         # Update Global Mechanisms
         for mech in self.global_mechanisms:
-            self.crn_species += self.global_mechanisms[mech].update_species_global(self.crn_species, self.parameters)
+            self.crn_species += \
+                self.global_mechanisms[mech].update_species_global(
+                                                            self.crn_species,
+                                                            self.parameters)
 
         return self.crn_species
 
     def update_reactions(self):
         if self.crn_species is None:
-            raise AttributeError("Mixture.crn_species not defined. mixture.update_species() must be called before mixture.update_reactions()")
+            raise AttributeError("Mixture.crn_species not defined. "
+                                 "mixture.update_species() must be called "
+                                 "before mixture.update_reactions()")
 
         self.crn_reactions = []
         for component in self.components:
             if self.parameter_warnings is not None:
                 component.set_parameter_warnings(self.parameter_warnings)
-                
+
             self.crn_reactions += component.update_reactions()
 
         # update with global mechanisms
         for mech in self.global_mechanisms:
-            self.crn_reactions += self.global_mechanisms[mech].update_reactions_global(self.crn_species, self.parameters)
+            self.crn_reactions += \
+                self.global_mechanisms[mech].update_reactions_global(
+                                            self.crn_species, self.parameters)
         return self.crn_reactions
 
     def compile_crn(self):

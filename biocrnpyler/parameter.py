@@ -64,9 +64,9 @@ The following general guidelines hold for usage of parameters in the
 6. Parameter objects can be of type 'Numeric', 'Expression', or
    'Global' [not implemented].  Numeric parameters are passed directly
    to libsbml.  Expression parameters are evaluated using the current
-   dictionary, augmented by the following variables: 
+   dictionary, augmented by the following variables:
 
-     * RNA_LENGTH - number of basepairs in the RNA sequence 
+     * RNA_LENGTH - number of basepairs in the RNA sequence
      * AA_LENGTH = number of amino acides in the protein sequence
 
 7. Parameters for all possible mechanisms that are defined for a
@@ -82,17 +82,20 @@ import re
 from warnings import warn
 
 
-#Takes a list L and string s and returns a list of flexible variations of all the strings in S
+# Takes a list L and string s and returns a list of flexible variations of all
+# the strings in S
 def get_flexible_string_list_index(L, S):
     s_list = []
     for s in S:
-        s_list += [s, s.replace(" ", "_"), s.capitalize(), s.casefold(), s.casefold().replace(" ", "_")]
+        s_list += [s, s.replace(" ", "_"), s.capitalize(), s.casefold(),
+                   s.casefold().replace(" ", "_")]
     ind = None
     for t in s_list:
         try:
             indt = L.index(t)
             if ind != None:
-                raise ValueError("List contains multiple elements that are too similar: '"+str(L[ind])+"', '"+str(L[indt]+"'") )
+                raise ValueError("List contains multiple elements that are too "
+                                 f"similar: '{str(L[ind])}', '{str(L[indt]}'"))
             else:
                 ind = indt
         except ValueError:
@@ -102,9 +105,13 @@ def get_flexible_string_list_index(L, S):
 #Duplicates in the new files overwrite current things in parameter dictionary
 def create_parameter_dictionary(parameters, parameter_file):
     if not isinstance(parameters, dict) and parameters!= None:
-        raise ValueError("parameter keyword must be a dictionary {param_key:val}")
-    if not isinstance(parameter_file, str) and not isinstance(parameter_file, list) and parameter_file != None:
-        raise ValueError("parameter_file keyword must be a valid filepath string or list of such strings.")
+        raise ValueError("parameter keyword must be a dictionary "
+                         "{param_key:val}")
+    if not isinstance(parameter_file, str) \
+       and not isinstance(parameter_file, list) \
+       and parameter_file != None:
+        raise ValueError("parameter_file keyword must be a valid filepath "
+                         "string or list of such strings.")
 
     if isinstance(parameter_file, list):
         file_list = parameter_file
@@ -129,32 +136,46 @@ def create_parameter_dictionary(parameters, parameter_file):
         try:
             pID_ind = get_flexible_string_list_index(L0, ["part_id", "part"])
             if pID_ind == None:
-                warn("file "+fname+" contains no part ID column. Please add a column the name 'part_id' or 'part'.")
+                warn(f"file {fname} contains no part ID column. Please add a "
+                     "column the name 'part_id' or 'part'.")
         except ValueError:
-            raise ValueError("'part_id', 'part', or a similar string appears multiple times in the top line of "+fname+". keyword list = "+str(L0))
+            raise ValueError("'part_id', 'part', or a similar string appears "
+                            f"multiple times in the top line of {fname}. "
+                            "keyword list = {L0}.")
         try:
-            mech_ind = get_flexible_string_list_index(L0, ["mechanism", "mechanism_id"])
+            mech_ind = get_flexible_string_list_index(L0, ["mechanism",
+                                                           "mechanism_id"])
             if mech_ind == None:
-                warn("file "+fname+" contains no mechanism column. Please add a column the name 'mechanism' or 'mechanism_id'.")
+                warn(f"file {fname} contains no mechanism column. Please add a"
+                     "column the name 'mechanism' or 'mechanism_id'.")
 
         except ValueError:
-            raise ValueError("'mechanism', 'mechanism_id' or a similar string appears multiple times in the top line of "+fname+". keyword list = "+str(L0))
+            raise ValueError("'mechanism', 'mechanism_id' or a similar string "
+                             "appears multiple times in the top line of "
+                             f"{fname}. keyword list = {L0}")
         try:
-            param_ind = get_flexible_string_list_index(L0, ["param_name", "parameter_name", "parameter", "param"])
+            param_ind = get_flexible_string_list_index(L0,
+                        ["param_name", "parameter_name", "parameter", "param"])
             if param_ind == None:
-                ValueError("file "+fname+" contains no parameter name column. Please add a column the name 'param', 'parameter', 'param_name', or 'parameter_name'.")
+                ValueError(f"file {fname} contains no parameter name column. "
+                           "Please add a column the name 'param', 'parameter', "
+                           "'param_name', or 'parameter_name'.")
         except ValueError:
-            raise ValueError(
-                "'param', 'parameter', 'parameter_name', 'param_name', or a similar string appears multiple times in the top line of " + fname + ". keyword list = " + str(
-                    L0))
+            raise ValueError("'param', 'parameter', 'parameter_name', "
+                             "'param_name', or a similar string appears "
+                            f"multiple times in the top line of {fname}. "
+                            "keyword list = {L0}")
         try:
-            val_ind = get_flexible_string_list_index(L0, ["val", "value", "param_val", "parameter_value"])
+            val_ind = get_flexible_string_list_index(L0,
+                            ["val", "value", "param_val", "parameter_value"])
             if val_ind == None:
-                raise ValueError("file "+fname+" contains no parameter value column. Please add a column the name 'val', 'value', 'param_val', or 'parameter_value'.")
+                raise ValueError(f"file {fname} contains no parameter value "
+                                 "column. Please add a column the name 'val', "
+                                 "'value', 'param_val', or 'parameter_value'.")
         except ValueError:
-            raise ValueError(
-                "'val', 'value', 'param_val', 'parameter_value', or a similar string appears multiple times in the top line of " + fname + ". keyword list = " + str(
-                    L0))
+            raise ValueError("'val', 'value', 'param_val', 'parameter_value', "
+                             "or a similar string appears multiple times in "
+                            f"the top line of {fname}. keyword list = {L0}")
 
         for line in f:
             if fname[-4:] in [".txt", ".tsv"]:
@@ -195,19 +216,19 @@ def create_parameter_dictionary(parameters, parameter_file):
 class Parameter:
     """Parameter value (reaction rates)"""
 
-    def __init__(self, name, type, value, comment="", debug=False):
+    def __init__(self, name, param_type, value, comment="", debug=False):
         self.name = name.strip()
-        self.type = type.strip()
+        self.param_type = param_type.strip()
         self.comment = comment.strip()
 
         # Set the value of the parameter
-        if debug: print("%s [%s] = %s" % (self.name, self.type, value))
-        if type.strip() == 'Numeric':
+        if debug: print("%s [%s] = %s" % (self.name, self.param_type, value))
+        if param_type.strip() == 'Numeric':
             self.value = float(value)  # store as float
-        elif type.strip() == 'Expression':
+        elif param_type.strip() == 'Expression':
             self.value = value  # store as string
         else:
-            raise TypeError("can't parse value of parameter %s" % name)
+            raise ValueError("can't parse value of parameter %s" % name)
 
     def get_value(self):
         return float(self.value)
@@ -245,7 +266,7 @@ def load_config(filename, extension=".csv", debug=False):
         # Create a new parameter object to keep track of this row
         # ! TODO: this should be done in a better (and more pythonic) way
         if len(row) >= 4:
-            #                 name    type    value   comment
+            #                 name  param_type value  comment
             param = Parameter(row[0], row[1], row[2], row[3])
         else:
             param = Parameter(row[0], row[1], row[2], "")
@@ -335,7 +356,7 @@ def eval_parameter(component, name, assignments={}):
     # ! TODO: decide if we need this; can just use the evaluation below?
     if isinstance(param.value, (float, int)): return float(param.value)
 
-    # Evaluate the expression 
+    # Evaluate the expression
     return float(eval(param.value, assignments))
 
 # Convert a value input to a parameter object
@@ -347,4 +368,4 @@ def _to_parameter(key, value):
     elif isinstance(value, str):
         return Parameter(key, 'Global', value)
     else:
-        TypeError('Unknown parameter type')
+        ValueError('Unknown parameter type')

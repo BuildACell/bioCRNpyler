@@ -4,19 +4,23 @@
 from warnings import warn
 from .sbmlutil import *
 import warnings
+import copy
 import numpy as np
-class Specie(object):
+class Species(object):
     """ A formal species object for a CRN
-     Species must have a name. They may also have a type (such as DNA, RNA, Protein), and a list of attributes
-
+     A Species must have a name. They may also have a materialtype (such as DNA,
+     RNA, Protein), and a list of attributes.
     """
 
-    def __init__(self, name, type="", attributes=[], initial_concentration=0):
+    def __init__(self, name, material_type="", attributes=[],
+                 initial_concentration=0):
         self.name = name
-        self.type = type
+        self.material_type = material_type
         self.initial_concentration = initial_concentration
-        if type == "complex":
-            warn("species which are formed of two species or more should be called using the chemical_reaction_network.complex constructor for attribute inheritence purposes.")
+        if material_type == "complex":
+            warn("species which are formed of two species or more should be "
+                 "called using the chemical_reaction_network.complex "
+                 "constructor for attribute inheritence purposes.")
 
         if attributes is None:
             attributes = []
@@ -27,7 +31,7 @@ class Specie(object):
         self.attributes = attributes
 
     def __repr__(self):
-        txt = self.type + "_" + self.name
+        txt = self.material_type + "_" + self.name
         if len(self.attributes) > 0 and self.attributes != []:
             for i in self.attributes:
                 if i is not None:
@@ -42,11 +46,14 @@ class Specie(object):
             raise ValueError("attribute must be a string")
 
     # Overrides the default implementation
-    # Two species are equivalent if they have the same name, type, and attributes
+    # Two species are equivalent if they have the same name, type, and
+    # attributes
     def __eq__(self, other):
 
-        if isinstance(other, Specie) and self.type == other.type and self.name == other.name and set(
-                self.attributes) == set(other.attributes):
+        if isinstance(other, Species) \
+                            and self.type == other.type \
+                            and self.name == other.name \
+                            and set(self.attributes) == set(other.attributes):
             return True
         else:
             return False
@@ -54,22 +61,27 @@ class Specie(object):
     def __hash__(self):
         return str.__hash__(repr(self))
 
-#A special kind of specie which is formed as a complex of two or more species. Used for attribute inheritence
-class complex_specie(Specie):
-    def __init__(self, species, name = None, type = "complex", attributes = [], initial_concentration = 0):
+# A special kind of species which is formed as a complex of two or more species.
+# Used for attribute inheritence
+class ComplexSpecies(Species):
+    def __init__(self, species, name = None, material_type = "complex",
+                 attributes = None, initial_concentration = 0):
         if len(species) < 1:
-            raise ValueError("chemical_reaction_network.complex requires 2 or more species in its constructor.")
+            raise ValueError("chemical_reaction_network.complex requires 2 "
+                             "or more species in its constructor.")
 
         if name == None:
             name = ""
+            species = copy.copy(species)
+            species.sort()
             for s in species:
-                if s.type != "complex":
-                    name+=s.type+"_"+s.name+"_"
+                if s.material_type != "complex":
+                    name+=f"{s.material_type}_{s.name}_"
                 else:
-                    name+=s.name+"_"
+                    name+=f"{s.name}_"
             name = name[:-1]
         self.name = name
-        self.type = type
+        self.material_type = material_type
         self.initial_concentration = initial_concentration
 
         if attributes == None:
@@ -78,9 +90,8 @@ class complex_specie(Specie):
             attributes += s.attributes
         attributes = list(set(attributes))
 
-        if None in attributes:
-            while None in attributes:
-                attributes.remove(None)
+        while None in attributes:
+            attributes.remove(None)
 
         self.attributes = attributes
 
@@ -88,44 +99,85 @@ class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
     A reaction has the form:
        \sum_i n_i I_i --> \sum_i m_i O_i @ rate = k
-       where n_i is the count of the ith input, I_i, and m_i is the count of the ith output, O_i.
+       where n_i is the count of the ith input, I_i, and m_i is the count of the
+       ith output, O_i.
     If the reaction is reversible, the reverse reaction is also included:
        \sum_i m_i O_i  --> \sum_i n_i I_i @ rate = k_rev
     """
-    def __init__(self, inputs, outputs, k, input_coefs=None, output_coefs=None, k_rev=0, type="massaction",
-                 rate_formula=None, propensity_params = None):
+    def __init__(self, inputs, outputs, k, input_coefs = None,
+                 output_coefs = None, k_rev = 0, propensity_type = "massaction",
+                 rate_formula = None, propensity_params = None):
 
-        self.type = type
-        if type=="massaction" and propensity_params != None:
-            warn("ValueWarning: propensity_params dictionary passed into a massaction propensity. Massaction propensities do not require a param dictionary.")
-        elif type!="massaction" and k_rev != 0:
-            raise ValueError("Invalid reversible reaction for propensity type="+type+". Only massaction propensities support the reversible rate k_r. Consider creating two seperate reactions instead.")
-        elif type=="hillpositive":
-            if ("s1" not in propensity_params or "K" not in propensity_params or "n" not in propensity_params):
-                raise ValueError("hillpositive propensities, p(s1; k, K, n) = k*s1^n/(s1^n + K), require the following propensity_params: 's1':species (chemical_reaction_network.specie), 'n':cooperativity(float), and 'K':dissociationc onstant (float)")
-        elif type=="hillnegative":
-            if ("s1" not in propensity_params or "K" not in propensity_params or "n" not in propensity_params):
-                raise ValueError("hillnegative propensities, p(s1; k, K, n) = k*1/(s1^n + K), require the following propensity_params: 's1':species (chemical_reaction_network.specie), 'n':cooperativity(float), and 'K':dissociationc onstant (float)")
-        elif type =="proportionalhillpositive":
-            if ("s1" not in propensity_params or "d" not in propensity_params or "K" not in propensity_params or "n" not in propensity_params):
-                raise ValueError("proportionalhillpositive propensities, p(s1, d; k, K, n) = k*d*s1^n/(s1^n + K), require the following propensity_params: 's1':species (chemical_reaction_network.specie), 'd':species (chemical_reaction_network.specie), 'n':cooperativity(float), and 'K':dissociationc onstant (float)")
-        elif type == "proportionalhillnegative":
-            if ("s1" not in propensity_params or "d" not in propensity_params or "K" not in propensity_params or "n" not in propensity_params):
-                raise ValueError("proportionalhillnegative propensities, p(s1, d; k, K, n) = k*d/(s1^n + K), require the following propensity_params: 's1':species (chemical_reaction_network.specie), 'd':species (chemical_reaction_network.specie), 'n':cooperativity(float), and 'K':dissociationc onstant (float)")
-        elif type == "general":
+        self.reaction_type = propensity_type
+        if propensity_type == "massaction" and propensity_params != None:
+            warn("ValueWarning: propensity_params dictionary passed into a "
+                 "massaction propensity. Massaction propensities do not "
+                 "require a param dictionary.")
+        elif propensity_type != "massaction" and k_rev != 0:
+            raise ValueError("Invalid reversible reaction for propensity "
+                             f"type = {propensity_type}. Only massaction "
+                             "propensities support the reversible rate k_r. "
+                             "Consider creating two seperate reactions "
+                             "instead.")
+        elif propensity_type == "hillpositive":
+            if not ("s1" in propensity_params and "K" in propensity_params \
+                    and "n" in propensity_params):
+                raise ValueError("hillpositive propensities, p(s1; k, K, n) "
+                        "= k*s1^n/(s1^n + K), require the following "
+                        "propensity_params: "
+                        "'s1':species (chemical_reaction_network.species), "
+                        "'n':cooperativity(float), "
+                        "and 'K':dissociationc constant (float).")
+        elif propensity_type == "hillnegative":
+            if not ("s1" in propensity_params and "K" in propensity_params \
+                    and "n" in propensity_params):
+                raise ValueError("hillnegative propensities, "
+                        "p(s1; k, K, n) = k*1/(s1^n + K), require "
+                        "the following propensity_params: "
+                        "'s1':species (chemical_reaction_network.species), "
+                        "'n':cooperativity(float), "
+                        "and 'K':dissociationc constant (float)")
+        elif propensity_type == "proportionalhillpositive":
+            if not ("s1" in propensity_params and "d" in propensity_params \
+                    and "K" and in propensity_params \
+                    and "n" in propensity_params):
+                raise ValueError("proportionalhillpositive propensities, "
+                    "p(s1, d; k, K, n) = k*d*s1^n/(s1^n + K), require the "
+                    "following propensity_params: "
+                    "'s1':species (chemical_reaction_network.species), "
+                    "'d':species (chemical_reaction_network.species), "
+                    "'n':cooperativity(float), "
+                    "and 'K':dissociationc onstant (float)")
+        elif propensity_type == "proportionalhillnegative":
+            if not ("s1" in propensity_params and "d" in propensity_params \
+                    and "K" and in propensity_params \
+                    and "n" in propensity_params):
+                raise ValueError("proportionalhillnegative propensities, "
+                    "p(s1, d; k, K, n) = k*d/(s1^n + K), require the "
+                    "following propensity_params: "
+                    "'s1':species (chemical_reaction_network.species), "
+                    "'d':species (chemical_reaction_network.species), "
+                    "'n':cooperativity(float), "
+                    "and 'K':dissociationc onstant (float)")
+        elif propensity_type == "general":
             if "rate" not in propensity_params:
-                raise ValueError("general propensities, p(s) = k * f(s), require the propensity_params: 'rate':f(s) where f(s) is an SBML compatable function of arbitrary species, s (use repr(chemical_reaction_network.specie) to get the proper text representation of a species name).")
-        elif type != "massaction":
-            raise ValueError("Unknown propensity type: "+str(type))
+                raise ValueError("general propensities, p(s) = k * f(s), "
+                    "require the propensity_params: "
+                    "'rate':f(s) where f(s) is an SBML compatable function "
+                    "of arbitrary species, "
+                    "s (use repr(chemical_reaction_network.species) to get "
+                    "the proper text representation of a species name).")
+        elif propensity_type != "massaction":
+            raise ValueError(f"Unknown propensity type: {propensity_type}.")
         self.propensity_params = propensity_params
 
         # Check that inputs and outputs only contain species
-        if any(not isinstance(s, Specie) for s in inputs + outputs):
-            raise ValueError("A non-species object was used as a specie")
+        if any(not isinstance(s, Species) for s in inputs + outputs):
+            raise ValueError("A non-species object was used as a species.")
 
         # internal representation of a reaction
 
-        #self.inputs and self.outputs should be ordered sets.
+        #self.inputs and self.outputs should be ordered lists.
         self.inputs = []
         for s in inputs:
             if s not in self.inputs:
@@ -142,7 +194,7 @@ class Reaction(object):
 
         # Check that rates are valid
         if k <= 0:
-            raise ValueError("Reaction rate <= 0: k=" + str(k))
+            raise ValueError(f"Reaction rate <= 0: k={k}")
         else:
             self.k = k
         if k_rev > 0:
@@ -157,20 +209,27 @@ class Reaction(object):
             self.input_coefs = [inputs.count(s) for s in self.inputs]
         elif input_coefs is not None and len(input_coefs) == len(self.inputs):
             self.input_coefs = input_coefs
-        elif len(input_coefs) == len(inputs) and len(self.inputs) != len(inputs):
-            raise ValueError("Input species and input_coefs contain contradictory counts.")
+        elif len(input_coefs) == len(inputs) \
+             and len(self.inputs) != len(inputs):
+            raise ValueError("Input species and input_coefs contain "
+                             "contradictory counts.")
         else:
-            raise ValueError("Len(input_coefs) does not match len(self.inputs)")
+            raise ValueError(f"len(input_coefs) ({len(input_coefs)}) doesn't "
+                             f"match len(self.inputs) ({len(self.inputs)}).")
 
         # Set Output Coefs
         if output_coefs is None:
             self.output_coefs = [outputs.count(s) for s in self.outputs]
-        elif output_coefs is not None and len(output_coefs) == len(self.outputs):
+        elif output_coefs is not None \
+             and len(output_coefs) == len(self.outputs):
             self.output_coefs = output_coefs
-        elif len(output_coefs) == len(outputs) and len(self.outputs) != len(outputs):
-            raise ValueError("Output species and output_coefs contain contradictory counts.")
+        elif len(output_coefs) == len(outputs) \
+             and len(self.outputs) != len(outputs):
+            raise ValueError("Output species and output_coefs contain "
+                             "contradictory counts.")
         else:
-            raise ValueError("Len(output_coefs) does not match len(self.outputs)")
+            raise ValueError(f"len(output_coefs) ({len(output_coefs)}) doesn't "
+                             f"match len(self.outputs) ({len(self.outputs)}).")
 
     def __repr__(self, **kwargs):
         txt = ""
@@ -195,79 +254,96 @@ class Reaction(object):
         tab = (" " * 8)
         txt += tab
 
-        if self.type == "massaction":
+        if self.propensity_type == "massaction":
             if self.reversible:
-                txt+="massaction: k_f="+str(self.k)+"\tk_r="+str(self.k_r)
+                txt += f"massaction: k_f={k_f},\tk_r={k_r}"
             else:
-                txt += "massaction: k_f=" + str(self.k)
-        elif self.type == "hillpositive":
+                txt += f"massaction: k_f=self.k"
+        elif self.propensity_type == "hillpositive":
             s1 = repr(self.propensity_params["s1"])
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
-            txt+="hillpositive: k("+s1+")="+str(self.k)+"*"+s1+"^"+n+"/("+kd+"+"+s1+"^"+n+")"
-        elif self.type == "hillnegative":
+            txt += f"hillpositive: k({s1})={self.k}*{s1}^{n}/({kd}+{s1}^{n})"
+        elif self.propensity_type == "hillnegative":
             s1 = repr(self.propensity_params["s1"])
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
-            txt += "hillnegative: k("+s1+")=" + str(self.k) + "*1/(" + kd + "+" + s1 + "^" + n + ")"
-        elif self.type == "proportionalhillpositive":
-            s1 = repr(self.propensity_params["s1"])
-            s2 = repr(self.propensity_params["d"])
-            kd = str(self.propensity_params["K"])
-            n = str(self.propensity_params["n"])
-            txt += "proportionalhillpositive: k("+s1+", "+s2+")=" + str(self.k) + "*"+s2+"*" + s1 + "^" + n + "/(" + kd + "+" + s1 + "^" + n + ")"
-        elif self.type == "proportionalhillpositive":
+            txt += f"hillnegative: k({s1})={self.k}*1/({kd}+{s1}^{n})"
+        elif self.propensity_type == "proportionalhillpositive":
             s1 = repr(self.propensity_params["s1"])
             s2 = repr(self.propensity_params["d"])
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
-            txt += "proportionalhillnegative: k("+s1+", "+s2+")=" + str(self.k) + "*"+s2+"/(" + kd + "+" + s1 + "^" + n + ")"
-        elif self.type == "general":
+            txt += f"proportionalhillpositive: k({s1}, "
+                   f"{s2})={self.k}*{s2}*{s1}^{n}/({kd}+{s1}^{n})"
+        elif self.propensity_type == "proportionalhillpositive":
+            s1 = repr(self.propensity_params["s1"])
+            s2 = repr(self.propensity_params["d"])
+            kd = str(self.propensity_params["K"])
+            n = str(self.propensity_params["n"])
+            txt += f"proportionalhillnegative: k({s1}, "
+                   f"{s2})={self.k}*{s2}/({kd}+{s1}^{n})"
+        elif self.propensity_type == "general":
             eq = self.propensity_params["rate"]
-            txt += "general: k(x)="+str(self.k)+"*"+eq
+            txt += f"general: k(x)={self.k}*{eq}"
         else:
-            raise ValueError('Unknown Propensity Type: '+self.type)
+            raise ValueError("Unknown Propensity Type: "
+                             f"{self.propensity_type}.")
         return txt
 
     def __eq__(self, other):
-        """Overrides the default implementation
-           Two reactions are equivalent if they have the same inputs, outputs, and rates"""
-        complexes_equal = (self.complex_set_equality(self.inputs, self.input_coefs, other.inputs, other.input_coefs)
-                           and self.complex_set_equality(self.outputs, self.output_coefs, other.outputs,
-                                                         other.output_coefs))
+        """Overrides the default implementation.
+           Two reactions are equivalent if they have the same inputs, outputs,
+           and rates."""
+        complexes_equal = self.complex_set_equality(self.inputs,
+                                                    self.input_coefs,
+                                                    other.inputs,
+                                                    other.input_coefs) \
+                           and self.complex_set_equality(self.outputs,
+                                                         self.output_coefs,
+                                                         other.outputs,
+                                                         other.output_coefs)
         rates_equal = (other.k == self.k and other.k_r == self.k_r)
 
-        # must both be reactions with the same rates and numbers of inputs and outputs
+        # must both be reactions with the same rates and numbers of inputs and
+        # outputs.
         if not isinstance(other, Reaction):
             return False
 
         if complexes_equal and rates_equal:
             return True
         elif complexes_equal:
-            warn(
-                "Two reactions with the same inputs and outputs but different rates are formally different, but may be undesired:" + repr(
-                    self) + "and " + repr(other))
+            warn("Two reactions with the same inputs and outputs but different "
+                 "rates are formally different, but may be undesired:"
+                 f"{repr(self)} and {repr(other)}".)
             return True
 
-        # If the reactions are reversible inverses of eachother, one's forward reaction could be the other's reverse
+        # If the reactions are reversible inverses of eachother, one's forward
+        # reaction could be the other's reverse
         elif self.reversible and other.reversible:
-            reverse_complex_equal = (
-                        self.complex_set_equality(self.inputs, self.input_coefs, other.outputs, other.output_coefs)
-                        and self.complex_set_equality(self.outputs, self.output_coefs, other.inputs, other.input_coefs))
+            reverse_complex_equal = self.complex_set_equality(self.inputs,
+                                                            self.input_coefs,
+                                                            other.outputs,
+                                                            other.output_coefs)\
+                        and self.complex_set_equality(self.outputs,
+                                                      self.output_coefs,
+                                                      other.inputs,
+                                                      other.input_coefs))
             reverse_rates_equal = (other.k == self.k_r and other.k_r == self.k)
             if reverse_complex_equal and reverse_rates_equal:
                 return True
             elif reverse_complex_equal:
-                warn(
-                    "Two reversible reactions with the same inputs and outputs (reversed) but different rates are formally equal, but may be undesired:" + repr(
-                        self) + "and " + repr(other))
+                warn("Two reversible reactions with the same inputs and outputs"
+                    " (reversed) but different rates are formally equal, but "
+                    f"may be undesired:{repr(self)} and {repr(other)}")
                 return True
             else:
                 return False
         else:
             return False
 
-    # Checks to see if two formal complexes (reaction input or output sets) are equal
+    # Checks to see if two formal complexes (reaction input or output sets) are
+    # equal.
     def complex_set_equality(self, c1, c1_coefs, c2, c2_coefs):
         if len(c1) != len(c2):
             return False
@@ -282,28 +358,34 @@ class Reaction(object):
     def pyrepr(self):
         if self.reversible:
             return [
-                ([repr(i) for i in self.inputs], self.input_coefs, [repr(i) for i in self.outputs], self.output_coefs,
+                ([repr(i) for i in self.inputs], self.input_coefs,
+                 [repr(i) for i in self.outputs], self.output_coefs,
                  self.k),
-                ([repr(i) for i in self.outputs], self.output_coefs, [repr(i) for i in self.inputs], self.input_coefs,
-                 self.k_r)
-            ]
+                ([repr(i) for i in self.outputs], self.output_coefs,
+                 [repr(i) for i in self.inputs], self.input_coefs,
+                 self.k_r)]
         else:
-            return [([repr(i) for i in self.inputs], self.input_coefs, [repr(i) for i in self.outputs],
+            return [([repr(i) for i in self.inputs], self.input_coefs,
+                     [repr(i) for i in self.outputs],
                      self.output_coefs, self.k)]
 
 
 class ChemicalReactionNetwork(object):
     """ A chemical reaction network is a container of species and reactions
-    chemical reaction networks can be compiled into SBML or represented conveniently as python tuple objects.
+    chemical reaction networks can be compiled into SBML or represented
+    conveniently as python tuple objects.
     reaction types:
-       mass action: standard mass action semantics where the propensity of a reaction is given by
-               deterministic propensity = k \Prod_{inputs i} [S_i]^a_i
-               stochastic propensity = k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
+       mass action: standard mass action semantics where the propensity of a
+                reaction is given by deterministic propensity =
+                        k \Prod_{inputs i} [S_i]^a_i
+               stochastic propensity =
+                        k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
                where a_i is the stochiometric coefficient of species i
     """
 
     def __init__(self, species, reactions, warnings = False):
-        self.species, self.reactions = self.check_crn_validity(reactions, species, warnings = warnings)
+        self.species, self.reactions = self.check_crn_validity(reactions,
+                                                species, warnings = warnings)
 
         self.species2index = {}
         for i in range(len(self.species)):
@@ -313,11 +395,13 @@ class ChemicalReactionNetwork(object):
         # Check to make sure species are valid and only have a count of 1
         checked_species = []
         for s in species:
-            if not isinstance(s, Specie):
-                raise ValueError("A non-species object was used as a specie: recieved " + repr(s))
+            if not isinstance(s, Species):
+                raise ValueError("A non-species object was used as a species: "
+                                 f"recieved {repr(s)}.")
             if species.count(s) > 1:
                 pass
-                #warn("Species "+str(s)+" duplicated in CRN definition. Duplicates have been removed.")
+                #warn("Species "+str(s)+" duplicated in CRN definition.
+                # Duplicates have been removed.")
             if s not in checked_species:
                 checked_species.append(s)
         species = checked_species
@@ -331,18 +415,21 @@ class ChemicalReactionNetwork(object):
                 raise ValueError("A non-reaction object was used as a reaction")
 
             if reactions.count(r) > 1:
-                warn("Reaction " + str(r) + " duplicated in CRN definitions. Duplicates have been removed.")
+                warn(f"Reaction {r} duplicated in CRN definitions. Duplicates "
+                     "have been removed.")
 
             if Reaction not in checked_reactions:
                 checked_reactions.append(Reaction)
 
             for s in r.inputs:
                 if s not in species and warnings:
-                    warn("Reaction " + repr(r) + " contains a species " + repr(s) + " which is not in the CRN")
+                    warn(f"Reaction {repr(r)} contains a species {repr(s)} "
+                         "which is not in the CRN.")
 
             for s in r.outputs:
                 if s not in species and warnings:
-                    warn("Reaction " + repr(r) + " contains a species " + repr(s) + " which is not in the CRN")
+                    warn(f"Reaction {repr(r)} contains a species {repr(s)} "
+                         "which is not in the CRN.")
 
         return species, reactions
 
@@ -351,7 +438,7 @@ class ChemicalReactionNetwork(object):
         for s in self.species:
             txt += repr(s) + ", "
         txt = txt[:-2] + '\n'
-        txt += "Reactions = [" + "\n"
+        txt += "Reactions = [\n"
 
         for r in self.reactions:
             txt += "\t" + repr(r) + "\n"
@@ -380,11 +467,12 @@ class ChemicalReactionNetwork(object):
                 x0[i] = init_cond_dict[s]
         return x0
 
-    #returns all species (complexes and otherwise) containing a given specie (or string)
-    def get_all_species_containing(self, specie, return_as_strings = False):
+    # Returns all species (complexes and otherwise) containing a given species
+    # (or string).
+    def get_all_species_containing(self, species, return_as_strings = False):
         return_list = []
         for s in self.species:
-            if repr(specie) in repr(s):
+            if repr(species) in repr(s):
                 if return_as_strings:
                     return_list.append(repr(s))
                 else:
@@ -396,22 +484,27 @@ class ChemicalReactionNetwork(object):
 
         for s in self.species:
 
-            add_species(model=model, compartment=model.getCompartment(0), specie=s, initial_concentration=s.initial_concentration)
+            add_species(model=model, compartment=model.getCompartment(0),
+                    species=s, initial_concentration=s.initial_concentration)
 
         rxn_count = 0
         for r in self.reactions:
             rxn_id = "r" + str(rxn_count)
-            add_reaction(model, r.inputs, r.input_coefs, r.outputs, r.output_coefs, r.k, rxn_id,
-                stochastic = stochastic_model, type=r.type)
+            add_reaction(model, r.inputs, r.input_coefs, r.outputs,
+                         r.output_coefs, r.k, rxn_id,
+                         stochastic = stochastic_model,
+                         propensity_type=r.propensity_type)
             rxn_count += 1
             if r.reversible:
-                add_reaction(model, r.outputs, r.output_coefs, r.inputs, r.input_coefs, r.k_r, rxn_id,
-                                      stochastic=stochastic_model, type=r.type)
+                add_reaction(model, r.outputs, r.output_coefs, r.inputs,
+                             r.input_coefs, r.k_r, rxn_id,
+                             stochastic=stochastic_model,
+                             propensity_type=r.propensity_type)
             rxn_count += 1
 
         return document, model
 
-    def write_sbml_file(self, file_name=None, **keywords):
+    def write_sbml_file(self, file_name = None, **keywords):
         document, _ = self.generate_sbml_model(**keywords)
         sbml_string = libsbml.writeSBMLToString(document)
         f = open(file_name, 'w')
@@ -443,38 +536,50 @@ class ChemicalReactionNetwork(object):
             for i in range(len(rxn.outputs)):
                 products += [repr(rxn.outputs[i])]*int(rxn.output_coefs[i])
 
-            prop_type = rxn.type
+            prop_type = rxn.propensity_type
             if rxn.propensity_params == None:
                 prop_params = {}
             else:
                 prop_params = dict(rxn.propensity_params)
 
-            prop_params['type'] = rxn.type
+            prop_params['propensity_type'] = rxn.propensity_type
             prop_params['k'] = rxn.k
 
-            reaction_list.append((reactants, products, prop_type, dict(prop_params)))
+            reaction_list.append((reactants, products, prop_type,
+                                  dict(prop_params)))
 
-            if rxn.reversible and rxn.type == "massaction":
+            if rxn.reversible and rxn.propensity_type == "massaction":
                 prop_params['k'] = rxn.k_r
-                reaction_list.append((products, reactants, prop_type, dict(prop_params)))
+                reaction_list.append((products, reactants, prop_type,
+                                      dict(prop_params)))
             elif rxn.reversible:
-                raise ValueError("Only massaction irreversible reactions are supported for automatic bioscrape simulation. Consider creating two seperate reactions.")
+                raise ValueError("Only massaction irreversible reactions are "
+                                 "supported for automatic bioscrape simulation."
+                                 " Consider creating two seperate reactions.")
 
-        model = Model(species = species_list, reactions = reaction_list, initial_condition_dict = initial_condition_dict)
+        model = Model(species = species_list, reactions = reaction_list,
+                      initial_condition_dict = initial_condition_dict)
         return model
 
-    def simulate_with_bioscrape(self, timepoints, initial_condition_dict = {}, stochastic = False, return_dataframe = True, safe = True):
+    def simulate_with_bioscrape(self, timepoints, initial_condition_dict = {},
+                                stochastic = False, return_dataframe = True,
+                                safe = True):
         from bioscrape.simulator import py_simulate_model
         m = self.create_bioscrape_model()
         m.set_species(initial_condition_dict)
         if not stochastic and safe:
             safe = False
-        result = py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe, safe = safe)
+        result = py_simulate_model(timepoints, Model = m,
+                                   stochastic = stochastic,
+                                   return_dataframe = return_dataframe,
+                                   safe = safe)
 
         return result
 
 
-    def simulate_with_bioscrape_deterministic_via_sbml(self, timepoints, file, initial_condition_dict, return_dataframe = True, stochastic = False):
+    def simulate_with_bioscrape_deterministic_via_sbml(self, timepoints, file,
+                initial_condition_dict, return_dataframe = True,
+                stochastic = False):
         import bioscrape
 
         if isinstance(file, str):
@@ -485,24 +590,29 @@ class ChemicalReactionNetwork(object):
         m = bioscrape.types.read_model_from_sbml(file_name)
 
         m.set_species(initial_condition_dict)
-        result = bioscrape.simulator.py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe)
+        result = bioscrape.simulator.py_simulate_model(timepoints, Model = m,
+                                            stochastic = stochastic,
+                                            return_dataframe = return_dataframe)
 
 
         return result, m
-    
-    def runsim_bioscrape(self, timepoints, file, simtype = "deterministic", species_to_plot = [], plot_show = True):
-        ''' 
+
+    def runsim_bioscrape(self, timepoints, file, simtype = "deterministic",
+                         species_to_plot = [], plot_show = True):
+        '''
         To simulate using bioscrape.
-        Returns the data for all species and bioscrape model object which can be used to find out species indexes.
-        NOTE : Needs bioscrape package installed to simulate. 
+        Returns the data for all species and bioscrape model object which can be
+        used to find out species indexes.
+        NOTE : Needs bioscrape package installed to simulate.
         TODO : Returns result and model
         '''
- 
+
         import matplotlib.pyplot as plt
         try:
             import bioscrape
         except:
-            print('bioscrape package must be installed to run simulations using bioscrape')
+            print("Bioscrape package must be installed to run simulations "
+                  "using bioscrape.")
 
         if isinstance(file, str):
             filename = file
@@ -529,7 +639,10 @@ class ChemicalReactionNetwork(object):
                     plt.show()
             return result, m
         elif simtype == 'stochastic':
-            warnings.warn('For stochastic simulation of SBML models using bioscrape, it is highly recommended to NOT use reversible reactions as the SSA algorithm might not work for such cases.')
+            warnings.warn("For stochastic simulation of SBML models using "
+                          "bioscrape, it is highly recommended to NOT use "
+                          "reversible reactions as the SSA algorithm might not "
+                          "work for such cases.")
             sim = bioscrape.simulator.SSASimulator()
             s.py_set_initial_time(timepoints[0])
             result = sim.py_simulate(s,timepoints)
@@ -546,16 +659,19 @@ class ChemicalReactionNetwork(object):
                     plt.show()
             return result, m
         else:
-            raise ValueError('Optional argument "simtype" must be either deterministic or stochastic')
-           
+            raise ValueError("Optional argument "simtype" must be either "
+                             "deterministic or stochastic")
+
     def runsim_roadrunner(self, timepoints, filename, species_to_plot = []):
-        ''' 
+        '''
         To simulate using roadrunner.
-        Returns the data for all species and bioscrape model object which can be used to find out species indexes.
-        NOTE : Needs roadrunner package installed to simulate. 
-        TODO : species_to_plot not implemented. 
+        Returns the data for all species and bioscrape model object which can be
+        used to find out species indexes.
+        NOTE : Needs roadrunner package installed to simulate.
+        TODO : species_to_plot not implemented.
         TODO : plot_show not implemented
-        TODO : bioscrape.convert_to_sbml not implemented (possibly available in later versions of bioscrape)
+        TODO : bioscrape.convert_to_sbml not implemented (possibly available
+                in later versions of bioscrape)
         '''
         try:
             import roadrunner

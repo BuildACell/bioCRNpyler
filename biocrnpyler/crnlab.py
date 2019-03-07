@@ -13,14 +13,14 @@ class CRNLab(Mixture):
         self.name = name
         self.volume = 0
         self.crn = None
-    
-    def mixture(self, name, **kwargs):        
+
+    def mixture(self, name, **kwargs):
         '''
         Create a Mixture of a given name into the CRNLab object
-        Specify the extract and buffer optionally 
+        Specify the extract and buffer optionally
         Specify extra parameters to be loaded as dictionaries optionally
         '''
-        extract = kwargs.get('extract') 
+        extract = kwargs.get('extract')
         buffer = kwargs.get('buffer')
         extract_parameters = kwargs.get('extract_parameters')
         extract_volume = kwargs.get('extract_volume')
@@ -33,7 +33,7 @@ class CRNLab(Mixture):
 
         if kwargs.get('final_volume') and kwargs.get('mix_volume'):
             raise ValueError('Either set initial volume or the final volume')
-        
+
 
         filename = name + str('.csv')
         with open(filename, 'r') as f:
@@ -41,19 +41,22 @@ class CRNLab(Mixture):
             # Read off the parameters
             params = {}
             for row in reader:
-                temp = row[1].replace('.','',1).replace('e','',1).replace('-','',1)
+                temp = row[1].replace('.','',1).replace('e','',1).replace('-',
+                                                                          '',1)
                 if temp.isdigit():
                     params[str(row[0])] = float(row[1])
- 
+
         if extract:
-            self.extract(extract, parameters = extract_parameters, volume = extract_volume)
+            self.extract(extract, parameters = extract_parameters,
+                         volume = extract_volume)
         if buffer:
-            self.buffer(extract, parameters = buffer_parameters, volume = buffer_volume)
+            self.buffer(extract, parameters = buffer_parameters,
+                        volume = buffer_volume)
         return self.Mixture
 
     def extract(self, name, parameters = {}, volume = 0):
         '''
-        Create BasicExtract with the given name 
+        Create BasicExtract with the given name
         (Searches for the name.csv in the current folder to load parameters)
         Optionally load other parameters as dictionary.
         '''
@@ -67,7 +70,8 @@ class CRNLab(Mixture):
             # Read off the parameters
             params = {}
             for row in reader:
-                temp = row[1].replace('.','',1).replace('e','',1).replace('-','',1)
+                temp = row[1].replace('.','',1).replace('e','',1).replace('-',
+                                                                          '',1)
                 if temp.isdigit():
                     params[str(row[0])] = float(row[1])
         if parameters:
@@ -86,27 +90,32 @@ class CRNLab(Mixture):
         self.name = name
         if volume:
             self.volume += volume
-        return 
-   
-    def add_dna(self, dna = None, name = "", promoter = "", rbs = "", protein = "", initial_conc ="", final_conc = "", volume = 0):
+        return
+
+    def add_dna(self, dna = None, name = "", promoter = "", rbs = "",
+                protein = "", initial_conc ="", final_conc = "", volume = 0):
         if volume:
             self.volume += volume
         if dna:
             self.Mixture.add_components(dna)
         elif name and promoter and rbs and protein and initial_conc:
             if final_conc:
-                dna = DNAassembly(name, promoter = promoter, rbs = rbs, protein = protein, initial_conc = final_conc)
+                dna = DNAassembly(name, promoter = promoter, rbs = rbs,
+                                  protein = protein, initial_conc = final_conc)
             elif initial_conc:
-                dna = DNAassembly(name, promoter = promoter, rbs = rbs, protein = protein, initial_conc = initial_conc*volume)
+                dna = DNAassembly(name, promoter = promoter, rbs = rbs,
+                                  protein = protein,
+                                  initial_conc = initial_conc*volume)
             self.add_dna(dna)
         else:
-            raise ValueError('add_dna either needs a DNAassembly object OR a name, promoter, rbs, and protein etc.')
+            raise ValueError('add_dna either needs a DNAassembly object '
+                             'OR a name, promoter, rbs, and protein etc.')
         return self.Mixture
-    
+
     def add_component(self, component):
         self.Mixture.add_components(component)
         return self.Mixture
-    
+
     def set_volumes(self):
         final_volume = self.volume
         # Not implemented yet
@@ -115,9 +124,10 @@ class CRNLab(Mixture):
             for species in self.Mixture.crn_species:
                 # Set the final concentration for all species
                 # TODO
-                species.initial_concentration = species.initial_concentration/final_volume
+                species.initial_concentration = \
+                                    species.initial_concentration/final_volume
             self.crn = self.Mixture.compile_crn()
-            return self.volume    
+            return self.volume
         else:
             return
 
