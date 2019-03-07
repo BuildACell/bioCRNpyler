@@ -39,6 +39,8 @@ class Species(object):
         txt.replace("'", "")
         return txt
 
+
+
     def add_attribute(self, attribute):
         if isinstance(attribute, str):
             self.attributes.append(attribute)
@@ -51,7 +53,7 @@ class Species(object):
     def __eq__(self, other):
 
         if isinstance(other, Species) \
-                            and self.type == other.type \
+                            and self.material_type == other.material_type \
                             and self.name == other.name \
                             and set(self.attributes) == set(other.attributes):
             return True
@@ -73,7 +75,7 @@ class ComplexSpecies(Species):
         if name == None:
             name = ""
             species = copy.copy(species)
-            species.sort()
+            list.sort(species, key = lambda s:s.name)
             for s in species:
                 if s.material_type != "complex":
                     name+=f"{s.material_type}_{s.name}_"
@@ -108,7 +110,6 @@ class Reaction(object):
                  output_coefs = None, k_rev = 0, propensity_type = "massaction",
                  rate_formula = None, propensity_params = None):
 
-        self.reaction_type = propensity_type
         if propensity_type == "massaction" and propensity_params != None:
             warn("ValueWarning: propensity_params dictionary passed into a "
                  "massaction propensity. Massaction propensities do not "
@@ -139,7 +140,7 @@ class Reaction(object):
                         "and 'K':dissociationc constant (float)")
         elif propensity_type == "proportionalhillpositive":
             if not ("s1" in propensity_params and "d" in propensity_params \
-                    and "K" and in propensity_params \
+                    and "K" in propensity_params \
                     and "n" in propensity_params):
                 raise ValueError("proportionalhillpositive propensities, "
                     "p(s1, d; k, K, n) = k*d*s1^n/(s1^n + K), require the "
@@ -150,7 +151,7 @@ class Reaction(object):
                     "and 'K':dissociationc onstant (float)")
         elif propensity_type == "proportionalhillnegative":
             if not ("s1" in propensity_params and "d" in propensity_params \
-                    and "K" and in propensity_params \
+                    and "K" in propensity_params \
                     and "n" in propensity_params):
                 raise ValueError("proportionalhillnegative propensities, "
                     "p(s1, d; k, K, n) = k*d/(s1^n + K), require the "
@@ -169,6 +170,7 @@ class Reaction(object):
                     "the proper text representation of a species name).")
         elif propensity_type != "massaction":
             raise ValueError(f"Unknown propensity type: {propensity_type}.")
+        self.propensity_type = propensity_type
         self.propensity_params = propensity_params
 
         # Check that inputs and outputs only contain species
@@ -256,7 +258,7 @@ class Reaction(object):
 
         if self.propensity_type == "massaction":
             if self.reversible:
-                txt += f"massaction: k_f={k_f},\tk_r={k_r}"
+                txt += f"massaction: k_f={self.k},\tk_r={self.k_r}"
             else:
                 txt += f"massaction: k_f=self.k"
         elif self.propensity_type == "hillpositive":
@@ -274,15 +276,15 @@ class Reaction(object):
             s2 = repr(self.propensity_params["d"])
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
-            txt += f"proportionalhillpositive: k({s1}, "
-                   f"{s2})={self.k}*{s2}*{s1}^{n}/({kd}+{s1}^{n})"
+            txt += (f"proportionalhillpositive: k({s1}, "
+                   f"{s2})={self.k}*{s2}*{s1}^{n}/({kd}+{s1}^{n})")
         elif self.propensity_type == "proportionalhillpositive":
             s1 = repr(self.propensity_params["s1"])
             s2 = repr(self.propensity_params["d"])
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
-            txt += f"proportionalhillnegative: k({s1}, "
-                   f"{s2})={self.k}*{s2}/({kd}+{s1}^{n})"
+            txt += (f"proportionalhillnegative: k({s1}, "
+                   f"{s2})={self.k}*{s2}/({kd}+{s1}^{n})")
         elif self.propensity_type == "general":
             eq = self.propensity_params["rate"]
             txt += f"general: k(x)={self.k}*{eq}"
@@ -315,7 +317,7 @@ class Reaction(object):
         elif complexes_equal:
             warn("Two reactions with the same inputs and outputs but different "
                  "rates are formally different, but may be undesired:"
-                 f"{repr(self)} and {repr(other)}".)
+                 f"{repr(self)} and {repr(other)}.")
             return True
 
         # If the reactions are reversible inverses of eachother, one's forward
@@ -328,7 +330,7 @@ class Reaction(object):
                         and self.complex_set_equality(self.outputs,
                                                       self.output_coefs,
                                                       other.inputs,
-                                                      other.input_coefs))
+                                                      other.input_coefs)
             reverse_rates_equal = (other.k == self.k_r and other.k_r == self.k)
             if reverse_complex_equal and reverse_rates_equal:
                 return True
@@ -659,7 +661,7 @@ class ChemicalReactionNetwork(object):
                     plt.show()
             return result, m
         else:
-            raise ValueError("Optional argument "simtype" must be either "
+            raise ValueError("Optional argument 'simtype' must be either "
                              "deterministic or stochastic")
 
     def runsim_roadrunner(self, timepoints, filename, species_to_plot = []):

@@ -172,38 +172,38 @@ class Component(object):
                 return_val = self.parameters[(part_id, param_name)]
 
                 if mechanism is not None:
-                    warning_txt = "No Parameter found with "
+                    warning_txt = ("No Parameter found with "
                         f"param_name={param_name} and part_id={part_id} and "
                         f"mechanism={repr(mechanism)}. Parameter found under "
                         f"the key (part_id, param_name)=({part_id}, "
-                        f"{param_name})."
+                        f"{param_name}).")
         # Next try (Mechanism.name/mechanism_type, param_name) --> val
         if mechanism is not None and return_val is None:
             if (mechanism.name, param_name) in self.parameters:
                 return_val = self.parameters[((mechanism.name, param_name))]
                 if part_id is not None:
-                    warning_txt = "No Parameter found with "
+                    warning_txt = ("No Parameter found with "
                         f"param_name={param_name} and part_id={part_id} and "
                         f"mechanism={repr(mechanism)}. Parameter found under "
                         f"the key (mechanism.name, "
-                        f"param_name)=({mechanism.name}, {param_name})"
+                        f"param_name)=({mechanism.name}, {param_name})")
             elif (mechanism.mechanism_type, param_name) in self.parameters:
                 return_val = self.parameters[(mechanism.mechanism_type,
                                               param_name)]
                 if part_id is not None:
-                    warning_txt = "No Parameter found with "
+                    warning_txt = ("No Parameter found with "
                         f"param_name={param_name} and part_id={part_id} and "
                         f"mechanism={repr(mechanism)}. Parameter found under "
                         f"the key (mechanism.name, "
-                        f"param_name)=({mechanism.name}, {param_name})"
+                        f"param_name)=({mechanism.name}, {param_name})")
         # Finally try (param_name) --> return val
         if param_name in self.parameters and return_val is None:
             return_val = self.parameters[param_name]
             if mechanism is not None or part_id is not None:
-                warning_txt = f"No Parameter found with param_name={param_name} "
-                              f"and part_id={part_id} and "
-                              f"mechanism={repr(mechanism)}. Parameter found "
-                              f"under the key param_name={param_name}"
+                warning_txt = (f"No Parameter found with "
+                               f"param_name={param_name} and part_id={part_id} "
+                               f"and mechanism={repr(mechanism)}. Parameter "
+                               f"found under the key param_name={param_name}")
         if return_val is None:
             raise ValueError("No Parameters can be found that match the "
                              "(mechanism, param_id, "

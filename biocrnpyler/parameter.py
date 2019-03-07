@@ -95,7 +95,7 @@ def get_flexible_string_list_index(L, S):
             indt = L.index(t)
             if ind != None:
                 raise ValueError("List contains multiple elements that are too "
-                                 f"similar: '{str(L[ind])}', '{str(L[indt]}'"))
+                                 f"similar: '{str(L[ind])}', '{str(L[indt])}'")
             else:
                 ind = indt
         except ValueError:

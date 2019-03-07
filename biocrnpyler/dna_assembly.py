@@ -335,7 +335,7 @@ class DNAassembly(DNA):
         elif rbs is not None:
             raise ValueError("Improper rbs type recieved by DNAassembly. "
                              "Expected string or RBS object. Recieved "
-                            f"{repr(rbs}.")
+                            f"{repr(rbs)}.")
 
         if rbs is not None:
             self.rbs.update_parameters(mixture_parameters = self.parameters,
