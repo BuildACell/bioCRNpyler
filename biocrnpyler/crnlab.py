@@ -46,17 +46,21 @@ class CRNLab(object):
                     params[str(row[0])] = float(row[1])
  
         if extract:
-            self.extract(extract, parameters = extract_parameters, volume = extract_volume)
+            self.extract(extract, parameters = extract_parameters, volume = extract_volume, **kwargs)
         if buffer:
-            self.buffer(extract, parameters = buffer_parameters, volume = buffer_volume)
+            self.buffer(extract, parameters = buffer_parameters, volume = buffer_volume, **kwargs)
         return self.Mixture
 
-    def extract(self, name, parameters = {}, volume = 0):
+    def extract(self, name, parameters = {}, volume = 0, **kwargs):
         '''
         Create BasicExtract with the given name 
         (Searches for the name.csv in the current folder to load parameters)
         Optionally load other parameters as dictionary.
         '''
+        initial_concentration_dict = kwargs.get('initial_concentration_dict')
+        if not initial_concentration_dict:
+            # Set default values here
+            initial_concentration_dict = {"protein_Ribo":10, "protein_RNAP":5, "protein_RNAase":2.5}
         if volume:
             self.volume += volume
         # Look for extract config file of the given name
@@ -73,9 +77,9 @@ class CRNLab(object):
         if parameters:
             # If manually given
             params = parameters
-            extract_mix = BasicExtract(self.name, parameters = params)
+            extract_mix = BasicExtract(self.name, parameters = params, init = initial_concentration_dict)
         else:
-            extract_mix = BasicExtract(self.name, parameters = params)
+            extract_mix = BasicExtract(self.name, parameters = params, init = initial_concentration_dict)
         self.Mixture = extract_mix
         return self.Mixture
 
@@ -122,7 +126,7 @@ class CRNLab(object):
             return
 
 
-    def combine_tubes(self):
+    def get_model(self):
         self.crn = self.Mixture.compile_crn()
         return self.crn
 
@@ -133,10 +137,15 @@ class CRNLab(object):
             document, _ = self.crn.generate_sbml_model(**kwargs)
         else:
             document, _ = self.crn.generate_sbml_model(**kwargs)
-        sbml_string = libsbml.writeSBMLToString(document)
-        f = open(filename, 'w')
-        f.write(sbml_string)
-        f.close()
-        return f
+        status = libsbml.writeSBML(document, filename)
+        if status == libsbml.LIBSBML_OPERATION_SUCCESS:
+            print('SBML file written successfully to {0}'.format(filename))
+        # f = open(filename, 'w')
+        # f.write(sbml_string)
+        # f.close()
+        return document 
 
 
+# TODO : 
+# RNAP, Ribo, RNAse should all have initial concentrations but they don't currently. (Fixed for now)
+# Bioscrape local parameters are not working maybe. (Need to fix and look into bioscrape simulations more)

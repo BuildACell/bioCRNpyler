@@ -12,6 +12,9 @@ class BasicExtract(Mixture):
     def __init__(self, name="", mechanisms={}, components=[], parameters={},
                  rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
 
+        init = kwargs.get('init')
+        if not init:
+            warn('Initial concentrations for extract species will all be set to zero.')
         if isinstance(rnap, Specie):
             self.rnap = rnap
         elif isinstance(rnap, str):
@@ -33,6 +36,9 @@ class BasicExtract(Mixture):
         else:
             raise ValueError("rnaase parameter must be a str or chemical_reaction_network.specie")
 
+        self.rnap.get_specie().initial_concentration = init["protein_RNAP"]
+        self.RNAase.get_specie().initial_concentration = init["protein_RNAase"]
+        self.ribosome.get_specie().initial_concentration = init["protein_Ribo"]
         mech_tx = Transcription_MM(rnap = self.rnap.get_specie())
         mech_tl = Translation_MM(ribosome = self.ribosome.get_specie())
         mech_rna_deg = Degredation_mRNA_MM(nuclease = self.RNAase.get_specie())
@@ -45,6 +51,5 @@ class BasicExtract(Mixture):
         }
 
         default_components = [self.rnap, self.ribosome, self.RNAase]
-
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, components=components+default_components, parameters=parameters, **kwargs)
 

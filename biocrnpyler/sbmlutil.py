@@ -148,7 +148,7 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k, reaction_
                                      specie).getId()  # What to do when there are multiple species with same name?
         reactant = reaction.createReactant()
         reactant.setSpecies(specie_id)  # ! TODO: add error checking
-        reactant.setConstant(True)
+        reactant.setConstant(False)
         reactant.setStoichiometry(stoichiometry)
 
         if type=="massaction" and stochastic:
@@ -172,7 +172,7 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k, reaction_
         specie_id = getSpeciesByName(model, specie).getId()
         product.setSpecies(specie_id)
         reactant.setStoichiometry(stoichiometry)
-        product.setConstant(True)
+        product.setConstant(False)
 
     math_ast = libsbml.parseL3Formula(ratestring)
 
