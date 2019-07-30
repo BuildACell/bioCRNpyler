@@ -3,6 +3,7 @@ from .mixture import Mixture
 from .dna_assembly import DNAassembly
 import csv
 import libsbml
+import warnings
 
 class CRNLab(object):
     '''
@@ -21,11 +22,11 @@ class CRNLab(object):
         Specify extra parameters to be loaded as dictionaries optionally
         '''
         extract = kwargs.get('extract') 
-        buffer = kwargs.get('buffer')
+        # buffer = kwargs.get('buffer')
         extract_parameters = kwargs.get('extract_parameters')
         extract_volume = kwargs.get('extract_volume')
-        buffer_parameters = kwargs.get('buffer_parameters')
-        buffer_volume = kwargs.get('buffer_volume')
+        # buffer_parameters = kwargs.get('buffer_parameters')
+        # buffer_volume = kwargs.get('buffer_volume')
         if kwargs.get('mixture_volume'):
             self.volume += kwargs.get('mixture_volume')
         if kwargs.get('final_volume'):
@@ -35,23 +36,27 @@ class CRNLab(object):
             raise ValueError('Either set initial volume or the final volume')
         
 
-        filename = name + str('.csv')
-        with open(filename, 'r') as f:
-            reader = csv.reader(f)
-            # Read off the parameters
-            params = {}
-            for row in reader:
-                temp = row[1].replace('.','',1).replace('e','',1).replace('-','',1)
-                if temp.isdigit():
-                    params[str(row[0])] = float(row[1])
- 
-        if extract:
-            self.extract(extract, parameters = extract_parameters, volume = extract_volume, **kwargs)
-        if buffer:
-            self.buffer(extract, parameters = buffer_parameters, volume = buffer_volume, **kwargs)
+        try:
+            filename = name + str('.csv')
+            with open(filename, 'r') as f:
+                reader = csv.reader(f)
+                # Read off the parameters
+                params = {}
+                for row in reader:
+                    temp = row[1].replace('.','',1).replace('e','',1).replace('-','',1)
+                    if temp.isdigit():
+                        params[str(row[0])] = float(row[1])
+        except:
+            if kwargs.get('parameter_warnings'):
+                warnings.warn('{0}.csv does not exist. Mixture will use default parameter files available.'.format(name))
+            
+        # if extract:
+        self.extract(extract, parameters = extract_parameters, volume = extract_volume, **kwargs)
+        # if buffer:
+        #     self.buffer(extract, parameters = buffer_parameters, volume = buffer_volume, **kwargs)
         return self.Mixture
 
-    def extract(self, name, parameters = {}, volume = 0, **kwargs):
+    def extract(self, name, volume = 0, **kwargs):
         '''
         Create BasicExtract with the given name 
         (Searches for the name.csv in the current folder to load parameters)
@@ -64,33 +69,36 @@ class CRNLab(object):
         if volume:
             self.volume += volume
         # Look for extract config file of the given name
-        filename = name + str('.csv')
-        import csv
-        with open(filename, 'r') as f:
-            reader = csv.reader(f)
-            # Read off the parameters
-            params = {}
-            for row in reader:
-                temp = row[1].replace('.','',1).replace('e','',1).replace('-','',1)
-                if temp.isdigit():
-                    params[str(row[0])] = float(row[1])
-        if parameters:
+        if kwargs.get('parameters'):
+            parameters = kwargs.get('parameters')
             # If manually given
+            filename = name + str('.csv')
+            import csv
+            with open(filename, 'r') as f:
+                reader = csv.reader(f)
+                # Read off the parameters
+                params = {}
+                for row in reader:
+                    temp = row[1].replace('.','',1).replace('e','',1).replace('-','',1)
+                    if temp.isdigit():
+                        params[str(row[0])] = float(row[1])
             params = parameters
-            extract_mix = BasicExtract(self.name, parameters = params, init = initial_concentration_dict)
+            extract_mix = BasicExtract(self.name, parameters = params, 
+                                        init = initial_concentration_dict, **kwargs)
         else:
-            extract_mix = BasicExtract(self.name, parameters = params, init = initial_concentration_dict)
+            extract_mix = BasicExtract(self.name, init = initial_concentration_dict, **kwargs)
         self.Mixture = extract_mix
         return self.Mixture
 
-    def buffer(self, name = "", components = [], parameters = {}, volume = 0):
-        '''
-        TODO : To be implemented using energy models
-        '''
-        self.name = name
-        if volume:
-            self.volume += volume
-        return 
+    # (Can just simply be another Mixture created similar to BasicExtract with different components)
+    # def buffer(self, name = "", components = [], parameters = {}, volume = 0):
+    #     '''
+    #     TODO : To be implemented using energy models
+    #     '''
+    #     self.name = name
+    #     if volume:
+    #         self.volume += volume
+    #     return 
    
     def add_dna(self, dna = None, name = "", promoter = "", rbs = "", protein = "", initial_conc ="", final_conc = "", volume = 0):
         if volume:
@@ -137,15 +145,24 @@ class CRNLab(object):
             document, _ = self.crn.generate_sbml_model(**kwargs)
         else:
             document, _ = self.crn.generate_sbml_model(**kwargs)
+        if document.getNumErrors():
+            warnings.warn('SBML document has errors. It is recommended that you fix them before generating this model.')
         status = libsbml.writeSBML(document, filename)
         if status == libsbml.LIBSBML_OPERATION_SUCCESS:
             print('SBML file written successfully to {0}'.format(filename))
-        # f = open(filename, 'w')
-        # f.write(sbml_string)
-        # f.close()
         return document 
+
+    def validate_sbml_generated(self, **kwargs):
+        document, _ = self.crn.generate_sbml_model(**kwargs)
+        if document.getNumErrors():
+            warnings.warn('SBML document has errors. It is recommended that you fix them before generating this model.')
+            print('Here are the errors')
+            print(document.getErrorLog())
+        else:
+            print('The SBML model generated is a valid document according to the SBML Level 3 Version 1 specifications. Use sbml.org/validator for further troubleshooting.')
 
 
 # TODO : 
 # RNAP, Ribo, RNAse should all have initial concentrations but they don't currently. (Fixed for now)
 # Bioscrape local parameters are not working maybe. (Need to fix and look into bioscrape simulations more)
+# Need to look into parameter reading and sync with the latest work.

@@ -33,9 +33,9 @@ txtl.write_sbml_file(filename)
 # Run a simulation (using bioscrape) and plot the result
 # (Optional) Specify the type of simulation (deterministic or stochastic)
 timepoints = np.linspace(0,14*60*60,100)
-simdata = well1.runsim_bioscrape(timepoints, filename, simtype = "deterministic", 
-                                plot_show = True)
-                                # species_to_plot= ["protein_tetR"], plot_show = True)
+simdata = well1.runsim_bioscrape(timepoints, filename, simtype = "stochastic", 
+                                # plot_show = True)
+                                species_to_plot= ["protein_tetR"], plot_show = True)
 
 # OR, you could use RoadRunner for simulation of the SBML model, simply call
 # simdata = well1.runsim_roadrunner(timepoints, filename)

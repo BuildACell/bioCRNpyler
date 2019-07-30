@@ -409,6 +409,8 @@ class ChemicalReactionNetwork(object):
                                       stochastic=stochastic_model, type=r.type)
             rxn_count += 1
 
+        if document.getNumErrors():
+            warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
         return document, model
 
     def write_sbml_file(self, file_name=None, **keywords):

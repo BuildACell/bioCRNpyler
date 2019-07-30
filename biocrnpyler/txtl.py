@@ -9,10 +9,15 @@ from .chemical_reaction_network import Specie
        
 
 class BasicExtract(Mixture):
-    def __init__(self, name="", mechanisms={}, components=[], parameters={},
+    def __init__(self, name="", mechanisms={}, components=[],
                  rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
-
         init = kwargs.get('init')
+        parameter_warnings = kwargs.get('parameter_warnings')
+        if parameter_warnings:
+            warn('Parameter warnings have been set True. Verbose warnings regarding parameter files will be displayed.')
+        else:
+            parameter_warnings = False
+            kwargs['parameter_warnings'] = parameter_warnings
         if not init:
             warn('Initial concentrations for extract species will all be set to zero.')
         if isinstance(rnap, Specie):
@@ -51,5 +56,6 @@ class BasicExtract(Mixture):
         }
 
         default_components = [self.rnap, self.ribosome, self.RNAase]
-        Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, components=components+default_components, parameters=parameters, **kwargs)
+        Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
+                        components=components+default_components, **kwargs)
 
