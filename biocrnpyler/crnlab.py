@@ -1,4 +1,4 @@
-from .txtl import BasicExtract
+from .extracts import BasicExtract
 from .mixture import Mixture
 from .dna_assembly import DNAassembly
 import csv
@@ -22,11 +22,8 @@ class CRNLab(object):
         Specify extra parameters to be loaded as dictionaries optionally
         '''
         extract = kwargs.get('extract') 
-        # buffer = kwargs.get('buffer')
         extract_parameters = kwargs.get('extract_parameters')
         extract_volume = kwargs.get('extract_volume')
-        # buffer_parameters = kwargs.get('buffer_parameters')
-        # buffer_volume = kwargs.get('buffer_volume')
         if kwargs.get('mixture_volume'):
             self.volume += kwargs.get('mixture_volume')
         if kwargs.get('final_volume'):
@@ -90,15 +87,6 @@ class CRNLab(object):
         self.Mixture = extract_mix
         return self.Mixture
 
-    # (Can just simply be another Mixture created similar to BasicExtract with different components)
-    # def buffer(self, name = "", components = [], parameters = {}, volume = 0):
-    #     '''
-    #     TODO : To be implemented using energy models
-    #     '''
-    #     self.name = name
-    #     if volume:
-    #         self.volume += volume
-    #     return 
    
     def add_dna(self, dna = None, name = "", promoter = "", rbs = "", protein = "", initial_conc ="", final_conc = "", volume = 0):
         if volume:
@@ -163,6 +151,5 @@ class CRNLab(object):
 
 
 # TODO : 
-# RNAP, Ribo, RNAse should all have initial concentrations but they don't currently. (Fixed for now)
-# Bioscrape local parameters are not working maybe. (Need to fix and look into bioscrape simulations more)
-# Need to look into parameter reading and sync with the latest work.
+# Need to test extensively with Parameter class and if its working.
+# Need to create more CRNLab examples to create models for other stuff. 
