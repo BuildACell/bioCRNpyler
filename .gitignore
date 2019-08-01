@@ -1,17 +1,35 @@
-
-.idea/BioCRNPyler.iml
-.idea/misc.xml
-.idea/modules.xml
-.idea/vcs.xml
-.idea/workspace.xml
-__pycache__/chemical_reaction_network.cpython-36.pyc
-__pycache__/component.cpython-36.pyc
-__pycache__/d_cas9.cpython-36.pyc
-__pycache__/dna_assembly.cpython-36.pyc
-__pycache__/global_mechanism.cpython-36.pyc
-__pycache__/mechanism.cpython-36.pyc
-__pycache__/mixture.cpython-36.pyc
-__pycache__/sbmlutil.cpython-36.pyc
-__pycache__/txtl.cpython-36.pyc
+*.pyc
+venv/*
+.eggs/*
+__pycache__/*
 Tests/bioscrape_test.sbml
 Tests/dcas9_repression_test.sbml
+
+
+# Sphinx documentation
+docs/_build/
+
+# Covers JetBrains PyCharm
+# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+# User-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+
+# Generated files
+.idea/**/contentModel.xml
+
+# Sensitive or high-churn files
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+
+# Gradle
+.idea/**/gradle.xml
+.idea/**/libraries
