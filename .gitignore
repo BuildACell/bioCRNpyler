@@ -1,9 +1,24 @@
-*.pyc
+
 venv/*
 .eggs/*
+biocrnpyler.egg-info/
+
 __pycache__/*
+*.pyc
+
+.ipynb_checkpoints
+examples/.ipynb_checkpoints/
+
+
+build/
+dist/
+
+
 Tests/bioscrape_test.sbml
 Tests/dcas9_repression_test.sbml
+Tests/bioscrape_test.xml
+Tests/dcas9_repression_test.xml
+Tests/sbml_test_file.xml
 
 
 # Sphinx documentation
@@ -17,6 +32,13 @@ docs/_build/
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+
+# our ignores
+.idea/BioCRNPyler.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml
 
 # Generated files
 .idea/**/contentModel.xml

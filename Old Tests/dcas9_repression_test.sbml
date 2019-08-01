@@ -1,0 +1,706 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model substanceUnits="mole" timeUnits="second" volumeUnits="litre" areaUnits="square_metre" lengthUnits="metre" extentUnits="mole">
+    <listOfUnitDefinitions>
+      <unitDefinition id="square_metre">
+        <listOfUnits>
+          <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment id="default" spatialDimensions="3" size="1e-06" constant="true"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="complex_rna_dCas9_protein_RNAase" name="complex_rna_dCas9:protein_RNAase" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_dna_dCas9_protein_RNAP" name="complex_dna_dCas9:protein_RNAP" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_dCas9" name="protein_dCas9" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_rna_dCas9_protein_Ribo" name="complex_rna_dCas9:protein_Ribo" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="rna_dCas9" name="rna_dCas9" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dna_dCas9" name="dna_dCas9" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="rna_guide1" name="rna_guide1" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_dna_gRNA_protein_RNAP" name="complex_dna_gRNA:protein_RNAP" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_rna_guide1_protein_RNAase" name="complex_rna_guide1:protein_RNAase" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dna_gRNA" name="dna_gRNA" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_rna_guide1_protein_dCas9" name="complex_rna_guide1:protein_dCas9" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_rna_reporter_protein_Ribo" name="complex_rna_reporter:protein_Ribo" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="rna_reporter" name="rna_reporter" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_dna_reporter_protein_RNAP" name="complex_dna_reporter:protein_RNAP" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_rna_reporter_protein_RNAase" name="complex_rna_reporter:protein_RNAase" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_complex_rna_guide1_protein_dCas9_dna_reporter" name="complex_complex_rna_guide1:protein_dCas9:dna_reporter" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_complex_complex_rna_guide1_protein_dCas9_dna_reporter_protein_RNAP" name="complex_complex_complex_rna_guide1:protein_dCas9:dna_reporter:protein_RNAP" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dna_reporter" name="dna_reporter" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_reporter" name="protein_reporter" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_RNAP" name="protein_RNAP" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_Ribo" name="protein_Ribo" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_RNAase" name="protein_RNAase" compartment="default" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfReactions>
+      <reaction id="r0" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="dna_dCas9" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_dna_dCas9_protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> dna_dCas9 </ci>
+              <ci> protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="100"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r0" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_dna_dCas9_protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dna_dCas9" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_dna_dCas9_protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="10"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r1" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_dna_dCas9_protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dna_dCas9" constant="true"/>
+          <speciesReference species="rna_dCas9" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_dna_dCas9_protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="3"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="rna_dCas9" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_Ribo" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_rna_dCas9_protein_Ribo" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> rna_dCas9 </ci>
+              <ci> protein_Ribo </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="100"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_dCas9_protein_Ribo" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="rna_dCas9" constant="true"/>
+          <speciesReference species="protein_Ribo" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_dCas9_protein_Ribo </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="10"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r3" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_dCas9_protein_Ribo" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="rna_dCas9" constant="true"/>
+          <speciesReference species="protein_dCas9" constant="true"/>
+          <speciesReference species="protein_Ribo" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_dCas9_protein_Ribo </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="2"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r4" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="rna_dCas9" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_RNAase" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_rna_dCas9_protein_RNAase" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> rna_dCas9 </ci>
+              <ci> protein_RNAase </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="100"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r4" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_dCas9_protein_RNAase" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="rna_dCas9" constant="true"/>
+          <speciesReference species="protein_RNAase" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_dCas9_protein_RNAase </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="10"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r5" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_dCas9_protein_RNAase" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="protein_RNAase" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_dCas9_protein_RNAase </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="1"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r6" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="dna_gRNA" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_dna_gRNA_protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> dna_gRNA </ci>
+              <ci> protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="100"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r6" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_dna_gRNA_protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dna_gRNA" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_dna_gRNA_protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="10"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r7" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_dna_gRNA_protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dna_gRNA" constant="true"/>
+          <speciesReference species="rna_guide1" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_dna_gRNA_protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="3"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r8" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="rna_guide1" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_RNAase" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_rna_guide1_protein_RNAase" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> rna_guide1 </ci>
+              <ci> protein_RNAase </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="100"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r8" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_guide1_protein_RNAase" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="rna_guide1" constant="true"/>
+          <speciesReference species="protein_RNAase" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_guide1_protein_RNAase </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="10"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r9" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_guide1_protein_RNAase" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="protein_RNAase" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_guide1_protein_RNAase </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="1"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r10" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="rna_guide1" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_dCas9" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_rna_guide1_protein_dCas9" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> rna_guide1 </ci>
+              <ci> protein_dCas9 </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="100"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r10" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_guide1_protein_dCas9" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="rna_guide1" constant="true"/>
+          <speciesReference species="protein_dCas9" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_guide1_protein_dCas9 </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="0.01"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r11" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="dna_reporter" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_dna_reporter_protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> dna_reporter </ci>
+              <ci> protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="100"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r11" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_dna_reporter_protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dna_reporter" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_dna_reporter_protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="10"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r12" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_dna_reporter_protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dna_reporter" constant="true"/>
+          <speciesReference species="rna_reporter" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_dna_reporter_protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="3"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r13" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_guide1_protein_dCas9" stoichiometry="1" constant="true"/>
+          <speciesReference species="dna_reporter" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_complex_rna_guide1_protein_dCas9_dna_reporter" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_guide1_protein_dCas9 </ci>
+              <ci> dna_reporter </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="100"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r13" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_complex_rna_guide1_protein_dCas9_dna_reporter" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_rna_guide1_protein_dCas9" constant="true"/>
+          <speciesReference species="dna_reporter" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_complex_rna_guide1_protein_dCas9_dna_reporter </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="10"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r14" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_complex_rna_guide1_protein_dCas9_dna_reporter" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_complex_complex_rna_guide1_protein_dCas9_dna_reporter_protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_complex_rna_guide1_protein_dCas9_dna_reporter </ci>
+              <ci> protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="100"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r14" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_complex_complex_rna_guide1_protein_dCas9_dna_reporter_protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_complex_rna_guide1_protein_dCas9_dna_reporter" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_complex_complex_rna_guide1_protein_dCas9_dna_reporter_protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="10000"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r15" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_complex_complex_rna_guide1_protein_dCas9_dna_reporter_protein_RNAP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_complex_rna_guide1_protein_dCas9_dna_reporter" constant="true"/>
+          <speciesReference species="rna_reporter" constant="true"/>
+          <speciesReference species="protein_RNAP" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_complex_complex_rna_guide1_protein_dCas9_dna_reporter_protein_RNAP </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="0.1"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r16" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="rna_reporter" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_Ribo" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_rna_reporter_protein_Ribo" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> rna_reporter </ci>
+              <ci> protein_Ribo </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="100"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r16" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_reporter_protein_Ribo" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="rna_reporter" constant="true"/>
+          <speciesReference species="protein_Ribo" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_reporter_protein_Ribo </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="10"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r17" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_reporter_protein_Ribo" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="rna_reporter" constant="true"/>
+          <speciesReference species="protein_reporter" constant="true"/>
+          <speciesReference species="protein_Ribo" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_reporter_protein_Ribo </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="2"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r18" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="rna_reporter" stoichiometry="1" constant="true"/>
+          <speciesReference species="protein_RNAase" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="complex_rna_reporter_protein_RNAase" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> rna_reporter </ci>
+              <ci> protein_RNAase </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="100"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r18" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_reporter_protein_RNAase" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="rna_reporter" constant="true"/>
+          <speciesReference species="protein_RNAase" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_reporter_protein_RNAase </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="10"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r19" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="complex_rna_reporter_protein_RNAase" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="protein_RNAase" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> complex_rna_reporter_protein_RNAase </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="1"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>

@@ -14,7 +14,7 @@ reaction_id = 0
 
 # Create an SBML model
 def create_sbml_model(compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
-                      length_units='metre', area_units='square_metre', volume_units='litre'):
+                      length_units='metre', area_units='square_metre', volume_units='litre', volume = 1e-6):
     document = libsbml.SBMLDocument(3, 1)
     model = document.createModel()
 
@@ -40,39 +40,39 @@ def create_sbml_model(compartment_id="default", time_units='second', extent_unit
     compartment.setId(compartment_id)
     compartment.setConstant(True)  # keep compartment size constant
     compartment.setSpatialDimensions(3)  # 3 dimensional compartment
-    compartment.setVolume(1e-6)  # 1 microliter
+    compartment.setVolume(volume)  # 1 microliter
 
     # Returning document is enough. document.getModel() gives the model, and model.getCompartment(0) gives the compartment.
     return document, model
 
 
-# Creates an SBML id from a chemical_reaction_network.specie object
-def specie_sbml_id(specie, document=None):
+# Creates an SBML id from a chemical_reaction_network.species object
+def species_sbml_id(species, document=None):
     # Construct the species ID
-    # specie_id = repr(specie).replace(" ", "_").replace(":", "_").replace("--", "_").replace("-", "_").replace("'", "")
+    # species_id = repr(species).replace(" ", "_").replace(":", "_").replace("--", "_").replace("-", "_").replace("'", "")
     all_ids = []
     if document:
         all_ids = getAllIds(document.getListOfAllElements())
     trans = SetIdFromNames(all_ids)
-    specie_id = trans.getValidIdForName(repr(specie))
-    return specie_id
+    species_id = trans.getValidIdForName(repr(species))
+    return species_id
 
 
 # Helper function to add a species to the model
 # species must be chemical_reaction_network.species objects
-def add_species(model, compartment, specie, debug=False, initial_concentration=None):
+def add_species(model, compartment, species, debug=False, initial_concentration=None):
     model = model  # Get the model where we will store results
 
     # Construct the species name
-    specie_name = repr(specie)
+    species_name = repr(species)
 
     # Construct the species ID
-    specie_id = specie_sbml_id(specie, model.getSBMLDocument())
+    species_id = species_sbml_id(species, model.getSBMLDocument())
 
-    if debug: print("Adding species", specie_name, specie_id)
+    if debug: print("Adding species", species_name, species_id)
     sbml_species = model.createSpecies()
-    sbml_species.setName(specie_name)
-    sbml_species.setId(specie_id)
+    sbml_species.setName(species_name)
+    sbml_species.setId(species_id)
     sbml_species.setCompartment(compartment.getId())
     sbml_species.setConstant(False)
     sbml_species.setBoundaryCondition(False)
@@ -115,8 +115,9 @@ def find_parameter(mixture, id):
 
 # Helper function to add a reaction to a model
 # reaction must be a chemical_reaction_network.reaction object
-def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k, reaction_id, kname=None,
-                 stochastic=False, mass_action=True):
+def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k,
+                 reaction_id, kname = None,
+                 stochastic = False, propensity_type = "massaction"):
     # Create the reaction
     reaction = model.createReaction()
     reaction.setReversible(False)
@@ -129,7 +130,7 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k, reaction_
         kname = "k"
         ratestring = kname
 
-    if mass_action:
+    if propensity_type=="massaction":
         # Create a kinetic law for the reaction
         ratelaw = reaction.createKineticLaw()
         param = ratelaw.createParameter()
@@ -137,37 +138,43 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k, reaction_
         param.setConstant(True)
         param.setValue(k)
     else:
-        raise NotImplementedError("SBML Writing of non-massaction ratelaws not implemented yet")
+        raise NotImplementedError("SBML Writing of non-massaction ratelaws "
+                                  "not implemented yet")
 
     # Create the reactants
     for i in range(len(inputs)):
-        specie = str(inputs[i]).replace("'", "")
+        species = str(inputs[i]).replace("'", "")
         stoichiometry = input_coefs[i]
-        # specie_id = specie_sbml_id(specie, model.getSBMLDocument())
-        specie_id = getSpeciesByName(model,
-                                     specie).getId()  # What to do when there are multiple species with same name?
+        # species_id = species_sbml_id(species, model.getSBMLDocument())
+
+        # What to do when there are multiple species with same name?
+        species_id = getSpeciesByName(model,
+                                     species).getId()
         reactant = reaction.createReactant()
-        reactant.setSpecies(specie_id)  # ! TODO: add error checking
+        reactant.setSpecies(species_id)  # ! TODO: add error checking
         reactant.setConstant(True)
         reactant.setStoichiometry(stoichiometry)
 
-        if mass_action and stochastic:
+        if propensity_type=="massaction" and stochastic:
             for i in range(stoichiometry):
                 if i > 0:
-                    ratestring += " * " + "( " + specie_id + " - " + str(i) + " )"
+                    ratestring += f" * ( {species_id} - {i} )"
                 else:
-                    ratestring += " * " + specie_id
+                    ratestring += f" * {species_id}"
 
-        elif mass_action and not stochastic:
-            ratestring += " * " + specie_id
+        elif propensity_type=="massaction" and not stochastic:
+            if stoichiometry > 1:
+                ratestring += f" * {species_id}^{stoichiometry}"
+            else:
+                ratestring += f" * {species_id}"
 
     # Create the products
     for i in range(len(outputs)):
-        specie = str(outputs[i]).replace("'", "")
+        species = str(outputs[i]).replace("'", "")
         stoichiometry = output_coefs[i]
         product = reaction.createProduct()
-        specie_id = getSpeciesByName(model, specie).getId()
-        product.setSpecies(specie_id)
+        species_id = getSpeciesByName(model, species).getId()
+        product.setSpecies(species_id)
         reactant.setStoichiometry(stoichiometry)
         product.setConstant(True)
 
@@ -244,11 +251,13 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
     # once for each SBase element in the model.
     def transform(self, element):
         # return in case we don't have a valid element
-        if (element == None or element.getTypeCode() == libsbml.SBML_LOCAL_PARAMETER):
+        if (element == None \
+           or element.getTypeCode() == libsbml.SBML_LOCAL_PARAMETER):
             return libsbml.LIBSBML_OPERATION_SUCCESS
 
             # or if there is nothing to do
-        if (element.isSetName() == False or element.getId() == element.getName()):
+        if (element.isSetName() == False \
+           or element.getId() == element.getName()):
             return libsbml.LIBSBML_OPERATION_SUCCESS
 
             # find the new id
@@ -301,7 +310,7 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
 
 
 #  # Returns a list of all ids from the given list of elements
-#  # 
+#  #
 def getAllIds(allElements):
     result = []
     if (allElements == None or allElements.getSize() == 0):
@@ -309,23 +318,27 @@ def getAllIds(allElements):
 
     for i in range(0, allElements.getSize()):
         current = allElements.get(i)
-        if (current.isSetId() and current.getTypeCode() != libsbml.SBML_LOCAL_PARAMETER):
+        if (current.isSetId() \
+           and current.getTypeCode() != libsbml.SBML_LOCAL_PARAMETER):
             result.append(current.getId())
     return result
 
 
 def getSpeciesByName(model, name, compartment=''):
-    ''' 
+    '''
     Returns a list of species in the Model with the given name
-    compartment : (Optional) argument to specify the compartment name in which to look for the species.
+    compartment : (Optional) argument to specify the compartment name in which
+    to look for the species.
     '''
     if type(name) is not str:
-        raise ValueError('The arguments are not of expected type.')
+        raise ValueError('"name" must be a string.')
     species_found = []
     for species in model.getListOfSpecies():
         if species.getName() == name:
             if compartment != '':
-                if model.getElementBySId(species.getCompartment()).getName() == compartment:
+                comp_elem = species.getCompartment()
+                comp_name = model.getElementBySId(comp_name).getName()
+                if comp_name == compartment:
                     species_found.append(species)
                 else:
                     continue
