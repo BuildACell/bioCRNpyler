@@ -28,6 +28,8 @@ setup(
     ],
     install_requires=[
           'python-libsbml',
+          'numpy',
+          'nose',
       ],
     test_suite='nose.collector',
     tests_require=['nose'],

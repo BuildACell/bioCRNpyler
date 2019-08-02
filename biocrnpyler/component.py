@@ -63,23 +63,22 @@ class Component(object):
             mixture_parameters = {}
 
         parameters = create_parameter_dictionary(parameters, parameter_file)
-        self.update_parameters(mixture_parameters=mixture_parameters,
-                               parameters=parameters)
+        self.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters)
 
-    #@property
+    @property
     def initial_concentration(self):
         return self._initial_conc
 
-    #@initial_concentration.setter
+    @initial_concentration.setter
     def initial_concentration(self, initial_conc):
         if initial_conc is None:
             self._initial_conc = initial_conc
         elif initial_conc < 0:
-            raise ValueError("Initial concentration must be non-negative, "
-                            f"this was given: {initial_conc}")
+            raise ValueError("Initial concentration must be non-negative, "f"this was given: {initial_conc}")
         else:
             self._initial_conc = initial_conc
 
+    # TODO implement abstractmethod
     def get_species(self):
         warn("get_species() not defined for component {self.name}, "
              "None returned.")
@@ -215,11 +214,13 @@ class Component(object):
                 warn(warning_txt)
             return return_val
 
+    # TODO implement abstractmethod
     def update_species(self):
         species = []
         warn("Unsubclassed update_species called for " + repr(self))
         return species
 
+    # TODO implement abstractmethod
     def update_reactions(self):
         reactions = []
         warn("Unsubclassed update_reactions called for " + repr(self))
