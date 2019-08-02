@@ -271,7 +271,7 @@ class DNA(Component):
             parameter_warnings = True,
             **keywords
     ):
-        self.species = Species(self.name, material_type="dna",
+        self.species = Species(name, material_type="dna",
                                attributes=list(attributes))
         self._length = length
         Component.__init__(self=self, name=name, mechanisms=mechanisms,

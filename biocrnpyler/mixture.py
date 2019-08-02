@@ -31,7 +31,8 @@ from .parameter import create_parameter_dictionary
     parameters          Global parameters for the mixture (dict)
 """
 
-class Mixture():
+
+class Mixture(object):
     def __init__(self, name="", mechanisms={}, components = [], parameters = {},
                  parameter_file = None, default_mechanisms = {},
                  global_mechanisms = {}, default_components = [],
@@ -93,7 +94,6 @@ class Mixture():
         self.crn_species = None
         self.crn_reactions = None
 
-
     def add_components(self, components):
         if isinstance(components, Component):
             components = [components]
@@ -103,14 +103,14 @@ class Mixture():
                 self.components.append(component)
                 component.update_mechanisms(mixture_mechanisms=self.mechanisms)
                 component.update_parameters(mixture_parameters=self.parameters)
-                if self.parameter_warnings!=None:
+                if self.parameter_warnings is not None:
                     component.set_parameter_warnings(self.parameter_warnings)
             else:
                 warn("Non-component added to mixture "+self.name,
                      RuntimeWarning)
 
     def update_species(self):
-        #TODO check if we can merge the two variables
+        # TODO check if we can merge the two variables
         self.crn_species = self.added_species
         for component in self.components:
             self.crn_species += component.update_species()

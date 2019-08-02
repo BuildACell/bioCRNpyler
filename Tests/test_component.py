@@ -86,8 +86,6 @@ class TestComponent(TestCase):
 
         test_mech = {tx.mechanism_type: tx, tl.mechanism_type: tl}
 
-
-
         default_test_mech = {deg.mechanism_type : deg}
 
         self.assertTrue(isinstance(component.mechanisms, dict) and len(component.mechanisms) == 0)
@@ -146,7 +144,6 @@ class TestComponent(TestCase):
         self.assertEqual(component.get_parameter(mechanism=tx, param_name='ktx'), ktx)
 
         self.assertEqual(component.get_parameter(mechanism=tx, part_id=p_id, param_name='ku'), ku)
-
 
     def test_update_species(self):
         from biocrnpyler import Component
