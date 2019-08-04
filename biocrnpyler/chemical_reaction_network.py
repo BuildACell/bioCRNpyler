@@ -6,6 +6,8 @@ from .sbmlutil import *
 import warnings
 import copy
 import numpy as np
+
+
 class Species(object):
     """ A formal species object for a CRN
      A Species must have a name. They may also have a materialtype (such as DNA,
@@ -20,7 +22,7 @@ class Species(object):
         if material_type == "complex":
             warn("species which are formed of two species or more should be "
                  "called using the chemical_reaction_network.complex "
-                 "constructor for attribute inheritence purposes.")
+                 "constructor for attribute inheritance purposes.")
 
         if attributes is None:
             attributes = []
@@ -38,8 +40,6 @@ class Species(object):
                     txt += "_" + str(i)
         txt.replace("'", "")
         return txt
-
-
 
     def add_attribute(self, attribute):
         if isinstance(attribute, str):
@@ -63,9 +63,11 @@ class Species(object):
     def __hash__(self):
         return str.__hash__(repr(self))
 
-# A special kind of species which is formed as a complex of two or more species.
-# Used for attribute inheritence
+
 class ComplexSpecies(Species):
+    """ A special kind of species which is formed as a complex of two or more species.
+        Used for attribute inheritance
+    """
     def __init__(self, species, name = None, material_type = "complex",
                  attributes = None, initial_concentration = 0):
         if len(species) < 1:
@@ -96,6 +98,7 @@ class ComplexSpecies(Species):
             attributes.remove(None)
 
         self.attributes = attributes
+
 
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
@@ -206,6 +209,7 @@ class Reaction(object):
             self.k_r = 0
             self.reversible = False
 
+        # TODO input coefficients should be stored with the species a dictionary (same for the output )
         # Set input coefficients
         if input_coefs is None:
             self.input_coefs = [inputs.count(s) for s in self.inputs]
@@ -297,11 +301,11 @@ class Reaction(object):
         """Overrides the default implementation.
            Two reactions are equivalent if they have the same inputs, outputs,
            and rates."""
-        complexes_equal = self.complex_set_equality(self.inputs,
+        complexes_equal = Reaction.complex_set_equality(self.inputs,
                                                     self.input_coefs,
                                                     other.inputs,
                                                     other.input_coefs) \
-                           and self.complex_set_equality(self.outputs,
+                           and Reaction.complex_set_equality(self.outputs,
                                                          self.output_coefs,
                                                          other.outputs,
                                                          other.output_coefs)
@@ -323,11 +327,11 @@ class Reaction(object):
         # If the reactions are reversible inverses of eachother, one's forward
         # reaction could be the other's reverse
         elif self.reversible and other.reversible:
-            reverse_complex_equal = self.complex_set_equality(self.inputs,
+            reverse_complex_equal = Reaction.complex_set_equality(self.inputs,
                                                             self.input_coefs,
                                                             other.outputs,
                                                             other.output_coefs)\
-                        and self.complex_set_equality(self.outputs,
+                        and Reaction.complex_set_equality(self.outputs,
                                                       self.output_coefs,
                                                       other.inputs,
                                                       other.input_coefs)
@@ -344,9 +348,9 @@ class Reaction(object):
         else:
             return False
 
-    # Checks to see if two formal complexes (reaction input or output sets) are
-    # equal.
-    def complex_set_equality(self, c1, c1_coefs, c2, c2_coefs):
+    @staticmethod
+    def complex_set_equality(c1, c1_coefs, c2, c2_coefs):
+        """Checks to see if two formal complexes (reaction input or output sets) are equal."""
         if len(c1) != len(c2):
             return False
         else:
