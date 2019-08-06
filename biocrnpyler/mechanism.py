@@ -31,22 +31,22 @@ from .chemical_reaction_network import Species, Reaction, ComplexSpecies
 from .component import Component
 
 
-# Mechanism class for core mechanisms
 class Mechanism(object):
-    """Core mechanisms within a mixture (transcription, translation, etc)
+    """Mechanism class for core mechanisms
+
+    Core mechanisms within a mixture (transcription, translation, etc)
 
     The Mechanism class is used to implement different core
     mechanisms in TX-TL.  All specific core mechanisms should be
     derived from this class.
 
     """
-
     def __init__(self, name, mechanism_type=""):
         self.name = name
         self.mechanism_type = mechanism_type
-        if mechanism_type == "":
+        if mechanism_type == "" or mechanism_type is None:
             warn(f"Mechanism {name} instantiated without a type. This could "
-                 "prevent the mechanism from being inheritted properly.")
+                 "prevent the mechanism from being inherited properly.")
 
     def update_species(self):
         warn(f"Default Update Species Called for Mechanism = {self.name}.")
@@ -64,7 +64,6 @@ class MichalisMentenRXN(Mechanism):
     """Helper class to automatically generate Michalis-Menten Type Reactions
        In the Copy RXN version, the Substrate is not Consumed
        Sub+Enz <--> Sub:Enz --> Enz+Prod
-
     """
 
     def __init__(self, name, enzyme, mechanism_type, **keywords):
@@ -99,9 +98,10 @@ class MichalisMentenRXN(Mechanism):
         return [binding_rxn, cat_rxn]
 
 
-# In the Copy RXN version, the Substrate is not Consumed
-# Sub+Enz <--> Sub:Enz --> Sub+Enz+Prod
 class MichalisMentenCopyRXN(Mechanism):
+    """In the Copy RXN version, the Substrate is not Consumed
+       Sub+Enz <--> Sub:Enz --> Sub+Enz+Prod
+    """
     def __init__(self, name, enzyme, mechanism_type, **keywords):
         if isinstance(enzyme, Species):
             self.Enzyme = enzyme
@@ -175,9 +175,10 @@ class Transcription_MM(MichalisMentenCopyRXN):
         return rxns
 
 
-# Michalis Menten Translation
-# mRNA + Rib <--> mRNA:Rib --> mRNA + Rib + Protein
 class Translation_MM(MichalisMentenCopyRXN):
+    """ Michalis Menten Translation
+        mRNA + Rib <--> mRNA:Rib --> mRNA + Rib + Protein
+    """
 
     def __init__(self, name="translation_mm", ribosome="Ribo", **keywords):
         if isinstance(ribosome, Species):
@@ -217,9 +218,10 @@ class Translation_MM(MichalisMentenCopyRXN):
         return rxns
 
 
-# Michalis Menten mRNA Degredation by Endonucleases
-# mRNA + Endo <--> mRNA:Endo --> Endo
 class Degredation_mRNA_MM(MichalisMentenRXN):
+    """Michalis Menten mRNA Degredation by Endonucleases
+       mRNA + Endo <--> mRNA:Endo --> Endo
+    """
     def __init__(self, name="rna_degredation_mm", nuclease="RNAase",
                  **keywords):
         if isinstance(nuclease, Species):
@@ -263,9 +265,10 @@ class Reversible_Bimolecular_Binding(Mechanism):
         return rxns
 
 
-# A reaction where n binders (A) bind to 1 bindee (B) in one step
-# n A + B <--> nA:B
 class One_Step_Cooperative_Binding(Mechanism):
+    """A reaction where n binders (A) bind to 1 bindee (B) in one step
+       n A + B <--> nA:B
+    """
     def __init__(self, name="one_step_cooperative_binding",
                  mechanism_type="cooperative_binding"):
         Mechanism.__init__(self, name, mechanism_type)
@@ -290,10 +293,11 @@ class One_Step_Cooperative_Binding(Mechanism):
         return rxns
 
 
-# A reaction where n binders (s1) bind to 1 bindee (s2) in two steps
-# n A <--> nx_A
-# nx_A <--> nx_A:B
 class Two_Step_Cooperative_Binding(Mechanism):
+    """A reaction where n binders (s1) bind to 1 bindee (s2) in two steps
+       n A <--> nx_A
+       nx_A <--> nx_A:B
+    """
     def __init__(self, name="two_step_cooperative_binding",
                  mechanism_type="cooperative_binding"):
         Mechanism.__init__(self, name, mechanism_type)

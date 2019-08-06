@@ -386,58 +386,58 @@ class ChemicalReactionNetwork(object):
                         k \Prod_{inputs i} [S_i]^a_i
                stochastic propensity =
                         k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
-               where a_i is the stochiometric coefficient of species i
+               where a_i is the spectrometric coefficient of species i
     """
-
     def __init__(self, species, reactions, warnings = False):
-        self.species, self.reactions = self.check_crn_validity(reactions,
-                                                species, warnings = warnings)
+        self.species, self.reactions = ChemicalReactionNetwork.check_crn_validity(reactions, species, warnings=warnings)
 
+        # TODO check whether we need this data structure
         self.species2index = {}
         for i in range(len(self.species)):
             self.species2index[str(self.species[i])] = i
 
-    def check_crn_validity(self, reactions, species, warnings = False):
+    @staticmethod
+    def check_crn_validity(reactions, species, warnings = False):
         # Check to make sure species are valid and only have a count of 1
         checked_species = []
+        if not all(isinstance(s, Species) for s in species):
+            raise ValueError("A non-species object was used as a species!")
+
         for s in species:
-            if not isinstance(s, Species):
-                raise ValueError("A non-species object was used as a species: "
-                                 f"recieved {repr(s)}.")
             if species.count(s) > 1:
                 pass
                 #warn("Species "+str(s)+" duplicated in CRN definition.
                 # Duplicates have been removed.")
             if s not in checked_species:
                 checked_species.append(s)
-        species = checked_species
 
         # Check to make sure reactions are valid meaning:
         #   only have a count of 1
         #   all species in the inputs/outputs are also in the species list
         checked_reactions = []
-        for r in reactions:
-            if not isinstance(r, Reaction):
-                raise ValueError("A non-reaction object was used as a reaction")
 
+        if not all(isinstance(r, Reaction) for r in reactions):
+            raise ValueError("A non-reaction object was used as a reaction!")
+
+        for r in reactions:
             if reactions.count(r) > 1:
                 warn(f"Reaction {r} duplicated in CRN definitions. Duplicates "
                      "have been removed.")
 
-            if Reaction not in checked_reactions:
-                checked_reactions.append(Reaction)
+            if r not in checked_reactions:
+                checked_reactions.append(r)
 
             for s in r.inputs:
-                if s not in species and warnings:
+                if s not in checked_species and warnings:
                     warn(f"Reaction {repr(r)} contains a species {repr(s)} "
                          "which is not in the CRN.")
 
             for s in r.outputs:
-                if s not in species and warnings:
+                if s not in checked_species and warnings:
                     warn(f"Reaction {repr(r)} contains a species {repr(s)} "
                          "which is not in the CRN.")
 
-        return species, reactions
+        return checked_species, checked_reactions
 
     def __repr__(self):
         txt = "Species = "
@@ -458,6 +458,7 @@ class ChemicalReactionNetwork(object):
         species = [str(s) for s in self.species]
         return species, reactions
 
+    # TODO check whether we need this method
     def species_index(self, species):
         if len(self.species2index) != len(self.species):
             self.species2index = {}
@@ -466,17 +467,20 @@ class ChemicalReactionNetwork(object):
         return self.species2index[str(species)]
 
     def initial_condition_vector(self, init_cond_dict):
-        x0 = [0.0 for s in self.species]
-        for i in range(len(self.species)):
-            s = str(self.species[i])
+        x0 = [0.0] * len(self.species)
+        for idx, s in enumerate(self.species):
             if s in init_cond_dict:
-                x0[i] = init_cond_dict[s]
+                x0[idx] = init_cond_dict[s]
         return x0
 
-    # Returns all species (complexes and otherwise) containing a given species
-    # (or string).
     def get_all_species_containing(self, species, return_as_strings = False):
+        """Returns all species (complexes and otherwise) containing a given species
+           (or string).
+        """
         return_list = []
+        if not isinstance(species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
         for s in self.species:
             if repr(species) in repr(s):
                 if return_as_strings:
@@ -513,10 +517,9 @@ class ChemicalReactionNetwork(object):
     def write_sbml_file(self, file_name = None, **keywords):
         document, _ = self.generate_sbml_model(**keywords)
         sbml_string = libsbml.writeSBMLToString(document)
-        f = open(file_name, 'w')
-        f.write(sbml_string)
-        f.close()
-        return f
+        with open(file_name, 'w') as f:
+            f.write(sbml_string)
+        return True
 
     def create_bioscrape_model(self):
         from bioscrape.types import Model

@@ -3,7 +3,7 @@ from unittest import TestCase
 
 class TestSpecies(TestCase):
 
-    def test_initialization(self):
+    def test_species_initialization(self):
         from biocrnpyler import Species
 
         with self.assertWarns(Warning):
