@@ -82,9 +82,13 @@ import re
 from warnings import warn
 
 
-# Takes a list L and string s and returns a list of flexible variations of all
-# the strings in S
 def get_flexible_string_list_index(L, S):
+    """
+    Takes a list L and string s and returns a list of flexible variations of all the strings in S
+    :param L:
+    :param S:
+    :return:
+    """
     s_list = []
     for s in S:
         s_list += [s, s.replace(" ", "_"), s.capitalize(), s.casefold(),
@@ -102,8 +106,14 @@ def get_flexible_string_list_index(L, S):
             pass
     return ind
 
-#Duplicates in the new files overwrite current things in parameter dictionary
+
 def create_parameter_dictionary(parameters, parameter_file):
+    """
+    Duplicates in the new files overwrite current things in parameter dictionary
+    :param parameters:
+    :param parameter_file:
+    :return:
+    """
     if not isinstance(parameters, dict) and parameters!= None:
         raise ValueError("parameter keyword must be a dictionary "
                          "{param_key:val}")
@@ -235,7 +245,7 @@ class Parameter:
 
 
 def load_config(filename, extension=".csv", debug=False):
-    # Find the configuration file
+    """Finds the configuration file"""
     # ! TODO: update this to search along a path (in pathutil)
     module_path = os.path.dirname(sys.modules[__name__].__file__)
 
@@ -284,8 +294,15 @@ def load_config(filename, extension=".csv", debug=False):
     return params  # Return the parameters we read
 
 
-# Process parameter input
 def get_parameters(config_file, custom, default={}, **keywords):
+    """
+    Process parameter input
+    :param config_file:
+    :param custom:
+    :param default:
+    :param keywords:
+    :return:
+    """
     # Start with the default parameters values (if given)
     parameters = default.copy() if default != None else {}
 
@@ -311,9 +328,10 @@ def get_parameters(config_file, custom, default={}, **keywords):
     return parameters
 
 
-# Update any missing parameter values in a parameter dictionary
 def update_missing(existing_dict, default_dict):
-    """Fill in missing parameter values with defaults
+    """
+    Update any missing parameter values in a parameter dictionary
+    Fill in missing parameter values with defaults
 
     This takes a parameter dictionary, looks to see if a specified set
     of keys are missing, and, if so, fills in the keys with default
@@ -329,9 +347,10 @@ def update_missing(existing_dict, default_dict):
             existing_dict[key] = _to_parameter(key, value)
 
 
-# Update any existing parameter values in a parameter dictionary
 def update_existing(existing_dict, custom_dict):
-    """Update existing parameter values with new values
+    """
+    Update any existing parameter values in a parameter dictionary
+    Update existing parameter values with new values
 
     This takes a parameter dictionary, looks to see if a specified set
     of keys exist, and, if so, fills in the keys with new values.
@@ -359,8 +378,13 @@ def eval_parameter(component, name, assignments={}):
     # Evaluate the expression
     return float(eval(param.value, assignments))
 
-# Convert a value input to a parameter object
 def _to_parameter(key, value):
+    """
+    Convert a value input to a parameter object
+    :param key:
+    :param value:
+    :return:
+    """
     if isinstance(value, Parameter):
         return value
     elif isinstance(value, (float, int)):

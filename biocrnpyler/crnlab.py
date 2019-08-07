@@ -1,13 +1,17 @@
+#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  See LICENSE file in the project root directory for details.
+
 from .txtl import BasicExtract
 from .mixture import Mixture
 from .dna_assembly import DNAassembly
 import csv
 import libsbml
 
+
 class CRNLab(Mixture):
-    '''
+    """
     Implements high level modeling akin to experimental TX-TL experiments
-    '''
+    """
     def __init__(self, name):
         self.Mixture = Mixture
         self.name = name
@@ -15,11 +19,11 @@ class CRNLab(Mixture):
         self.crn = None
 
     def mixture(self, name, **kwargs):
-        '''
+        """
         Create a Mixture of a given name into the CRNLab object
         Specify the extract and buffer optionally
         Specify extra parameters to be loaded as dictionaries optionally
-        '''
+        """
         extract = kwargs.get('extract')
         buffer = kwargs.get('buffer')
         extract_parameters = kwargs.get('extract_parameters')
@@ -33,7 +37,6 @@ class CRNLab(Mixture):
 
         if kwargs.get('final_volume') and kwargs.get('mix_volume'):
             raise ValueError('Either set initial volume or the final volume')
-
 
         filename = name + str('.csv')
         with open(filename, 'r') as f:
@@ -50,16 +53,16 @@ class CRNLab(Mixture):
             self.extract(extract, parameters = extract_parameters,
                          volume = extract_volume)
         if buffer:
-            self.buffer(extract, parameters = buffer_parameters,
-                        volume = buffer_volume)
+            self.txtl_buffer(extract, parameters = buffer_parameters,
+                             volume = buffer_volume)
         return self.Mixture
 
     def extract(self, name, parameters = {}, volume = 0):
-        '''
+        """
         Create BasicExtract with the given name
         (Searches for the name.csv in the current folder to load parameters)
         Optionally load other parameters as dictionary.
-        '''
+        """
         if volume:
             self.volume += volume
         # Look for extract config file of the given name
@@ -83,10 +86,10 @@ class CRNLab(Mixture):
         self.Mixture = extract_mix
         return self.Mixture
 
-    def buffer(self, name = "", components = [], parameters = {}, volume = 0):
-        '''
+    def txtl_buffer(self, name ="", components = [], parameters = {}, volume = 0):
+        """
         TODO : To be implemented using energy models
-        '''
+        """
         self.name = name
         if volume:
             self.volume += volume
@@ -130,7 +133,6 @@ class CRNLab(Mixture):
             return self.volume
         else:
             return
-
 
     def combine_tubes(self):
         self.crn = self.Mixture.compile_crn()

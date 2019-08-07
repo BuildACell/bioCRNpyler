@@ -49,10 +49,18 @@ class Mechanism(object):
                  "prevent the mechanism from being inherited properly.")
 
     def update_species(self):
+        """
+        the child class should implement this method
+        :return: empty list
+        """
         warn(f"Default Update Species Called for Mechanism = {self.name}.")
         return []
 
     def update_reactions(self):
+        """
+        the child class should implement this method
+        :return: empty list
+        """
         warn(f"Default Update Species Called for Mechanism = {self.name}.")
         return []
 
@@ -309,10 +317,19 @@ class Two_Step_Cooperative_Binding(Mechanism):
         complex = ComplexSpecies([n_mer, bindee])
         return [complex, n_mer]
 
-    # Returns reactions:
-    # cooperativity binder <--> n_mer, kf = kb1, kr = ku1
-    # n_mer + bindee <--> complex, kf = kb2, kr = ku2
     def update_reactions(self, s1, s2, kb, ku, cooperativity=2, **keywords):
+        """
+        Returns reactions:
+        cooperativity binder <--> n_mer, kf = kb1, kr = ku1
+        n_mer + bindee <--> complex, kf = kb2, kr = ku2
+        :param s1:
+        :param s2:
+        :param kb:
+        :param ku:
+        :param cooperativity:
+        :param keywords:
+        :return:
+        """
         binder, bindee = s1, s2
         if len(kb) != len(ku) != 2:
             raise ValueError("kb and ku must contain 2 values each for "

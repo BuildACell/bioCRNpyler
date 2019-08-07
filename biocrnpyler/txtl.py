@@ -1,8 +1,8 @@
-# Copyright (c) 2018, Build-A-Cell. All rights reserved.
-# See LICENSE file in the project root directory for details.
+#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  See LICENSE file in the project root directory for details.
 
 from warnings import warn
-from .component import Protein, Complex
+from .component import Protein
 from .mechanism import Transcription_MM, Translation_MM, Degredation_mRNA_MM
 from .mixture import Mixture
 from .chemical_reaction_network import Species
@@ -39,7 +39,6 @@ class BasicExtract(Mixture):
         mech_tx = Transcription_MM(rnap = self.rnap.get_species())
         mech_tl = Translation_MM(ribosome = self.ribosome.get_species())
         mech_rna_deg = Degredation_mRNA_MM(nuclease = self.RNAase.get_species())
-
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,

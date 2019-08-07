@@ -1,5 +1,5 @@
-# Copyright (c) 2018, Build-A-Cell. All rights reserved.
-# See LICENSE file in the project root directory for details.
+#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  See LICENSE file in the project root directory for details.
 
 from .component import Component, DNA
 from .chemical_reaction_network import Species

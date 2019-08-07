@@ -1,5 +1,5 @@
-# Copyright (c) 2018, Build-A-Cell. All rights reserved.
-# See LICENSE file in the project root directory for details.
+#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  See LICENSE file in the project root directory for details.
 
 from warnings import warn
 from .sbmlutil import *
@@ -47,10 +47,13 @@ class Species(object):
         else:
             raise ValueError("attribute must be a string")
 
-    # Overrides the default implementation
-    # Two species are equivalent if they have the same name, type, and
-    # attributes
     def __eq__(self, other):
+        """
+        Overrides the default implementation
+        Two species are equivalent if they have the same name, type, and attributes
+        :param other: Species instance
+        :return: boolean
+        """
 
         if isinstance(other, Species) \
                             and self.material_type == other.material_type \
