@@ -7,7 +7,7 @@ from warnings import resetwarnings
 
 from .component import Component
 from .chemical_reaction_network import ChemicalReactionNetwork, Species, Reaction
-from .parameter import create_parameter_dictionary
+from .parameter import Parameter
 from typing import List
 
 
@@ -34,7 +34,7 @@ class Mixture(object):
         # Initialize instance variables
         self.name = name  # Save the name of the mixture
 
-        self.parameters = create_parameter_dictionary(parameters,
+        self.parameters = Parameter.create_parameter_dictionary(parameters,
                                                       parameter_file)
         # Toggles whether parameter warnings are raised. if None (default) this
         # can be toggled component by component.

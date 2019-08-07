@@ -3,7 +3,7 @@
 
 from warnings import warn as pywarn
 from .chemical_reaction_network import Species
-from .parameter import create_parameter_dictionary
+from .parameter import Parameter
 
 def warn(txt):
     pywarn(txt)
@@ -59,7 +59,7 @@ class Component(object):
         else:
             mixture_parameters = {}
 
-        parameters = create_parameter_dictionary(parameters, parameter_file)
+        parameters = Parameter.create_parameter_dictionary(parameters, parameter_file)
         self.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters)
 
     @property
