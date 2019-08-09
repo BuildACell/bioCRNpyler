@@ -153,3 +153,4 @@ class CRNLab(object):
 # TODO : 
 # Need to test extensively with Parameter class and if its working.
 # Need to create more CRNLab examples to create models for other stuff. 
+# Try to copy stuff over from MATLAB txtl to implement examples there and recreate the results.  
