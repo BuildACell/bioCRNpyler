@@ -1,0 +1,18 @@
+language: python
+python:
+  - "3.3"
+  - "3.4"
+  - "3.6"
+install:
+  - pip install -e . --use-mirrors
+before_script:
+  - pip install -r test_requirements.txt --use-mirrors
+  - git clone https://github.com/zoltuz/biocrnpyler.git
+  - cd python-coveralls-example
+  - git checkout -qf 17b8119796516195527dcb4f454a2ebd41d60244
+  - py.test example/tests.py --cov=example
+  - cd -
+script:
+  - py.test coveralls/tests.py --doctest-modules --pep8 coveralls -v --cov coveralls --cov-report term-missing
+after_success:
+  - coveralls
