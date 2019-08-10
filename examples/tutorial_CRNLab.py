@@ -14,7 +14,7 @@ txtl.mixture("mixture1", extract = "test_extract", extract_volume = 1e-6)
 # Specify what extract and buffer to use
 # txtl.extract("test_extract", init = initial_condition_dict)
 # Buffer with energy models will be available in future releases
-# txtl.buffer("stdbuffer")
+# txtl.txtl_buffer("stdbuffer")
 
 # Create genes to add to the mix as follows
 # gene1 = DNAassembly(name = "G1", promoter = "pBest", rbs = "BCD2", protein = "GFP", final_conc = 10)

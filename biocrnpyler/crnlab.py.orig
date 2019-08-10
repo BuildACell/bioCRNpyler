@@ -16,8 +16,16 @@ import warnings
 class CRNLab(object):
     '''
     Implements high level modeling akin to experimental TX-TL experiments
+    '''
+    def __init__(self, name = ''):
+=======
+
+class CRNLab(Mixture):
+    """
+    Implements high level modeling akin to experimental TX-TL experiments
     """
     def __init__(self, name):
+>>>>>>> ef22af172a089b24caf7c15fe63afb1133e0a3e2
         self.Mixture = Mixture
         self.name = name
         self.volume = 0
@@ -28,9 +36,14 @@ class CRNLab(object):
         Create a Mixture of a given name into the CRNLab object
         Specify the extract and buffer optionally
         Specify extra parameters to be loaded as dictionaries optionally
+<<<<<<< HEAD
+        '''
+        extract = kwargs.get('extract') 
+=======
         """
         extract = kwargs.get('extract')
         buffer = kwargs.get('buffer')
+>>>>>>> ef22af172a089b24caf7c15fe63afb1133e0a3e2
         extract_parameters = kwargs.get('extract_parameters')
         extract_volume = kwargs.get('extract_volume')
         if kwargs.get('mixture_volume'):
@@ -62,6 +75,41 @@ class CRNLab(object):
         #     self.buffer(extract, parameters = buffer_parameters, volume = buffer_volume, **kwargs)
         return self.Mixture
 
+    def extract(self, name, volume = 0, **kwargs):
+        '''
+        Create BasicExtract with the given name 
+        (Searches for the name.csv in the current folder to load parameters)
+        Optionally load other parameters as dictionary.
+        '''
+        initial_concentration_dict = kwargs.get('initial_concentration_dict')
+        if not initial_concentration_dict:
+            # Set default values here
+            initial_concentration_dict = {"protein_Ribo":10, "protein_RNAP":5, "protein_RNAase":2.5}
+        if volume:
+            self.volume += volume
+        # Look for extract config file of the given name
+        if kwargs.get('parameters'):
+            parameters = kwargs.get('parameters')
+=======
+        filename = name + str('.csv')
+        with open(filename, 'r') as f:
+            reader = csv.reader(f)
+            # Read off the parameters
+            params = {}
+            for row in reader:
+                temp = row[1].replace('.','',1).replace('e','',1).replace('-',
+                                                                          '',1)
+                if temp.isdigit():
+                    params[str(row[0])] = float(row[1])
+
+        if extract:
+            self.extract(extract, parameters = extract_parameters,
+                         volume = extract_volume)
+        if buffer:
+            self.txtl_buffer(extract, parameters = buffer_parameters,
+                             volume = buffer_volume)
+        return self.Mixture
+
     def extract(self, name, parameters = {}, volume = 0):
         """
         Create BasicExtract with the given name
@@ -83,6 +131,7 @@ class CRNLab(object):
                 if temp.isdigit():
                     params[str(row[0])] = float(row[1])
         if parameters:
+>>>>>>> ef22af172a089b24caf7c15fe63afb1133e0a3e2
             # If manually given
             filename = name + str('.csv')
             import csv
