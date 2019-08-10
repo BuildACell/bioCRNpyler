@@ -1,0 +1,572 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Coverage report</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.ba-throttle-debounce.min.js"></script>
+    <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="jquery.hotkeys.js"></script>
+    <script type="text/javascript" src="coverage_html.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(coverage.index_ready);
+    </script>
+</head>
+<body class="indexfile">
+
+<div id="header">
+    <div class="content">
+        <h1>Coverage report:
+            <span class="pc_cov">39%</span>
+        </h1>
+
+        <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
+
+        <form id="filter_container">
+            <input id="filter" type="text" value="" placeholder="filter..." />
+        </form>
+    </div>
+</div>
+
+<div class="help_panel">
+    <img id="panel_icon" src="keybd_open.png" alt="Hide keyboard shortcuts" />
+    <p class="legend">Hot-keys on this page</p>
+    <div>
+    <p class="keyhelp">
+        <span class="key">n</span>
+        <span class="key">s</span>
+        <span class="key">m</span>
+        <span class="key">x</span>
+        
+        <span class="key">c</span> &nbsp; change column sorting
+    </p>
+    </div>
+</div>
+
+<div id="index">
+    <table class="index">
+        <thead>
+            
+            <tr class="tablehead" title="Click to sort">
+                <th class="name left headerSortDown shortkey_n">Module</th>
+                <th class="shortkey_s">statements</th>
+                <th class="shortkey_m">missing</th>
+                <th class="shortkey_x">excluded</th>
+                
+                <th class="right shortkey_c">coverage</th>
+            </tr>
+        </thead>
+        
+        <tfoot>
+            <tr class="total">
+                <td class="name left">Total</td>
+                <td>6156</td>
+                <td>3739</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="2417 6156">39%</td>
+            </tr>
+        </tfoot>
+        <tbody>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose___init___py.html">.eggs\nose-1.3.7-py3.6.egg\nose\__init__.py</a></td>
+                <td>7</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="7 7">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_case_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\case.py</a></td>
+                <td>205</td>
+                <td>100</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="105 205">51%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_config_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\config.py</a></td>
+                <td>350</td>
+                <td>141</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="209 350">60%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_core_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\core.py</a></td>
+                <td>169</td>
+                <td>127</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="42 169">25%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_exc_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\exc.py</a></td>
+                <td>2</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="2 2">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_failure_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\failure.py</a></td>
+                <td>25</td>
+                <td>3</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="22 25">88%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_importer_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\importer.py</a></td>
+                <td>101</td>
+                <td>22</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="79 101">78%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_inspector_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\inspector.py</a></td>
+                <td>123</td>
+                <td>107</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="16 123">13%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_loader_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\loader.py</a></td>
+                <td>348</td>
+                <td>156</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="192 348">55%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins___init___py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\__init__.py</a></td>
+                <td>6</td>
+                <td>2</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="4 6">67%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_allmodules_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\allmodules.py</a></td>
+                <td>11</td>
+                <td>3</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="8 11">73%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_attrib_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\attrib.py</a></td>
+                <td>104</td>
+                <td>73</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="31 104">30%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_base_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\base.py</a></td>
+                <td>195</td>
+                <td>62</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="133 195">68%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_builtin_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\builtin.py</a></td>
+                <td>12</td>
+                <td>4</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="8 12">67%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_capture_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\capture.py</a></td>
+                <td>56</td>
+                <td>7</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="49 56">88%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_collect_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\collect.py</a></td>
+                <td>43</td>
+                <td>25</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="18 43">42%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_cover_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\cover.py</a></td>
+                <td>153</td>
+                <td>131</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="22 153">14%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_debug_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\debug.py</a></td>
+                <td>31</td>
+                <td>13</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="18 31">58%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_deprecated_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\deprecated.py</a></td>
+                <td>16</td>
+                <td>2</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="14 16">88%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_doctests_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\doctests.py</a></td>
+                <td>220</td>
+                <td>165</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="55 220">25%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_errorclass_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\errorclass.py</a></td>
+                <td>64</td>
+                <td>6</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="58 64">91%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_failuredetail_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\failuredetail.py</a></td>
+                <td>20</td>
+                <td>8</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="12 20">60%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_isolate_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\isolate.py</a></td>
+                <td>34</td>
+                <td>22</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="12 34">35%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_logcapture_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\logcapture.py</a></td>
+                <td>126</td>
+                <td>38</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="88 126">70%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_manager_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\manager.py</a></td>
+                <td>265</td>
+                <td>100</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="165 265">62%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_multiprocess_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\multiprocess.py</a></td>
+                <td>490</td>
+                <td>423</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="67 490">14%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_plugintest_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\plugintest.py</a></td>
+                <td>155</td>
+                <td>111</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="44 155">28%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_prof_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\prof.py</a></td>
+                <td>93</td>
+                <td>70</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="23 93">25%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_skip_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\skip.py</a></td>
+                <td>22</td>
+                <td>8</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="14 22">64%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_testid_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\testid.py</a></td>
+                <td>135</td>
+                <td>112</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="23 135">17%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_plugins_xunit_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\plugins\xunit.py</a></td>
+                <td>164</td>
+                <td>111</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="53 164">32%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_proxy_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\proxy.py</a></td>
+                <td>108</td>
+                <td>34</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="74 108">69%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_pyversion_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\pyversion.py</a></td>
+                <td>132</td>
+                <td>70</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="62 132">47%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_result_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\result.py</a></td>
+                <td>131</td>
+                <td>89</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="42 131">32%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_selector_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\selector.py</a></td>
+                <td>134</td>
+                <td>26</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="108 134">81%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_suite_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\suite.py</a></td>
+                <td>396</td>
+                <td>128</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="268 396">68%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_tools___init___py.html">.eggs\nose-1.3.7-py3.6.egg\nose\tools\__init__.py</a></td>
+                <td>5</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="5 5">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_tools_nontrivial_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\tools\nontrivial.py</a></td>
+                <td>80</td>
+                <td>69</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="11 80">14%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_tools_trivial_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\tools\trivial.py</a></td>
+                <td>24</td>
+                <td>5</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="19 24">79%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="_eggs_nose-1_3_7-py3_6_egg_nose_util_py.html">.eggs\nose-1.3.7-py3.6.egg\nose\util.py</a></td>
+                <td>350</td>
+                <td>204</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="146 350">42%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="Tests___init___py.html">Tests\__init__.py</a></td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="0 0">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="Tests_test_chemicalReactionNetwork_py.html">Tests\test_chemicalReactionNetwork.py</a></td>
+                <td>101</td>
+                <td>85</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="16 101">16%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="Tests_test_component_py.html">Tests\test_component.py</a></td>
+                <td>101</td>
+                <td>83</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="18 101">18%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="Tests_test_mechanism_py.html">Tests\test_mechanism.py</a></td>
+                <td>18</td>
+                <td>10</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="8 18">44%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="Tests_test_mixture_py.html">Tests\test_mixture.py</a></td>
+                <td>57</td>
+                <td>47</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="10 57">18%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="Tests_test_parameter_py.html">Tests\test_parameter.py</a></td>
+                <td>39</td>
+                <td>28</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="11 39">28%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="Tests_test_reaction_py.html">Tests\test_reaction.py</a></td>
+                <td>39</td>
+                <td>33</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="6 39">15%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="Tests_test_species_py.html">Tests\test_species.py</a></td>
+                <td>27</td>
+                <td>19</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="8 27">30%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="biocrnpyler___init___py.html">biocrnpyler\__init__.py</a></td>
+                <td>10</td>
+                <td>9</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="1 10">10%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="biocrnpyler_chemical_reaction_network_py.html">biocrnpyler\chemical_reaction_network.py</a></td>
+                <td>396</td>
+                <td>394</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="2 396">1%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="biocrnpyler_component_py.html">biocrnpyler\component.py</a></td>
+                <td>177</td>
+                <td>175</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="2 177">1%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="biocrnpyler_mixture_py.html">biocrnpyler\mixture.py</a></td>
+                <td>82</td>
+                <td>79</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="3 82">4%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="setup_py.html">setup.py</a></td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="4 4">100%</td>
+            </tr>
+            
+        </tbody>
+    </table>
+
+    <p id="no_rows">
+        No items found using the specified filter.
+    </p>
+</div>
+
+<div id="footer">
+    <div class="content">
+        <p>
+            <a class="nav" href="https://coverage.readthedocs.io">coverage.py v4.5.4</a>,
+            created at 2019-08-09 17:45
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

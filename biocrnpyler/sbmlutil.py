@@ -147,16 +147,10 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k,
         # species_id = species_sbml_id(species, model.getSBMLDocument())
 
         # What to do when there are multiple species with same name?
-        species_id = getSpeciesByName(model,
-                                     species).getId()
+        species_id = getSpeciesByName(model, species.getId())
         reactant = reaction.createReactant()
-<<<<<<< HEAD
-        reactant.setSpecies(specie_id)  # ! TODO: add error checking
-        reactant.setConstant(False)
-=======
         reactant.setSpecies(species_id)  # ! TODO: add error checking
-        reactant.setConstant(True)
->>>>>>> ef22af172a089b24caf7c15fe63afb1133e0a3e2
+        reactant.setConstant(False)
         reactant.setStoichiometry(stoichiometry)
 
         if propensity_type=="massaction" and stochastic:
