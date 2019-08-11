@@ -5,7 +5,6 @@
 # See LICENSE file in the project root directory for details.
 
 import libsbml
-import re
 from warnings import warn
 
 # Reaction ID number (global)

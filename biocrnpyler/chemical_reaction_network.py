@@ -1,11 +1,13 @@
-# Copyright (c) 2018, Build-A-Cell. All rights reserved.
-# See LICENSE file in the project root directory for details.
+#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  See LICENSE file in the project root directory for details.
 
 from warnings import warn
 from .sbmlutil import *
 import warnings
 import copy
 import numpy as np
+
+
 class Species(object):
     """ A formal species object for a CRN
      A Species must have a name. They may also have a materialtype (such as DNA,
@@ -20,7 +22,7 @@ class Species(object):
         if material_type == "complex":
             warn("species which are formed of two species or more should be "
                  "called using the chemical_reaction_network.complex "
-                 "constructor for attribute inheritence purposes.")
+                 "constructor for attribute inheritance purposes.")
 
         if attributes is None:
             attributes = []
@@ -39,18 +41,19 @@ class Species(object):
         txt.replace("'", "")
         return txt
 
-
-
     def add_attribute(self, attribute):
         if isinstance(attribute, str):
             self.attributes.append(attribute)
         else:
             raise ValueError("attribute must be a string")
 
-    # Overrides the default implementation
-    # Two species are equivalent if they have the same name, type, and
-    # attributes
     def __eq__(self, other):
+        """
+        Overrides the default implementation
+        Two species are equivalent if they have the same name, type, and attributes
+        :param other: Species instance
+        :return: boolean
+        """
 
         if isinstance(other, Species) \
                             and self.material_type == other.material_type \
@@ -63,9 +66,11 @@ class Species(object):
     def __hash__(self):
         return str.__hash__(repr(self))
 
-# A special kind of species which is formed as a complex of two or more species.
-# Used for attribute inheritence
+
 class ComplexSpecies(Species):
+    """ A special kind of species which is formed as a complex of two or more species.
+        Used for attribute inheritance
+    """
     def __init__(self, species, name = None, material_type = "complex",
                  attributes = None, initial_concentration = 0):
         if len(species) < 1:
@@ -96,6 +101,7 @@ class ComplexSpecies(Species):
             attributes.remove(None)
 
         self.attributes = attributes
+
 
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
@@ -206,6 +212,7 @@ class Reaction(object):
             self.k_r = 0
             self.reversible = False
 
+        # TODO input coefficients should be stored with the species a dictionary (same for the output )
         # Set input coefficients
         if input_coefs is None:
             self.input_coefs = [inputs.count(s) for s in self.inputs]
@@ -297,11 +304,11 @@ class Reaction(object):
         """Overrides the default implementation.
            Two reactions are equivalent if they have the same inputs, outputs,
            and rates."""
-        complexes_equal = self.complex_set_equality(self.inputs,
+        complexes_equal = Reaction.complex_set_equality(self.inputs,
                                                     self.input_coefs,
                                                     other.inputs,
                                                     other.input_coefs) \
-                           and self.complex_set_equality(self.outputs,
+                           and Reaction.complex_set_equality(self.outputs,
                                                          self.output_coefs,
                                                          other.outputs,
                                                          other.output_coefs)
@@ -323,11 +330,11 @@ class Reaction(object):
         # If the reactions are reversible inverses of eachother, one's forward
         # reaction could be the other's reverse
         elif self.reversible and other.reversible:
-            reverse_complex_equal = self.complex_set_equality(self.inputs,
+            reverse_complex_equal = Reaction.complex_set_equality(self.inputs,
                                                             self.input_coefs,
                                                             other.outputs,
                                                             other.output_coefs)\
-                        and self.complex_set_equality(self.outputs,
+                        and Reaction.complex_set_equality(self.outputs,
                                                       self.output_coefs,
                                                       other.inputs,
                                                       other.input_coefs)
@@ -344,9 +351,9 @@ class Reaction(object):
         else:
             return False
 
-    # Checks to see if two formal complexes (reaction input or output sets) are
-    # equal.
-    def complex_set_equality(self, c1, c1_coefs, c2, c2_coefs):
+    @staticmethod
+    def complex_set_equality(c1, c1_coefs, c2, c2_coefs):
+        """Checks to see if two formal complexes (reaction input or output sets) are equal."""
         if len(c1) != len(c2):
             return False
         else:
@@ -382,58 +389,58 @@ class ChemicalReactionNetwork(object):
                         k \Prod_{inputs i} [S_i]^a_i
                stochastic propensity =
                         k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
-               where a_i is the stochiometric coefficient of species i
+               where a_i is the spectrometric coefficient of species i
     """
-
     def __init__(self, species, reactions, warnings = False):
-        self.species, self.reactions = self.check_crn_validity(reactions,
-                                                species, warnings = warnings)
+        self.species, self.reactions = ChemicalReactionNetwork.check_crn_validity(reactions, species, warnings=warnings)
 
+        # TODO check whether we need this data structure
         self.species2index = {}
         for i in range(len(self.species)):
             self.species2index[str(self.species[i])] = i
 
-    def check_crn_validity(self, reactions, species, warnings = False):
+    @staticmethod
+    def check_crn_validity(reactions, species, warnings = False):
         # Check to make sure species are valid and only have a count of 1
         checked_species = []
+        if not all(isinstance(s, Species) for s in species):
+            raise ValueError("A non-species object was used as a species!")
+
         for s in species:
-            if not isinstance(s, Species):
-                raise ValueError("A non-species object was used as a species: "
-                                 f"recieved {repr(s)}.")
             if species.count(s) > 1:
                 pass
                 #warn("Species "+str(s)+" duplicated in CRN definition.
                 # Duplicates have been removed.")
             if s not in checked_species:
                 checked_species.append(s)
-        species = checked_species
 
         # Check to make sure reactions are valid meaning:
         #   only have a count of 1
         #   all species in the inputs/outputs are also in the species list
         checked_reactions = []
-        for r in reactions:
-            if not isinstance(r, Reaction):
-                raise ValueError("A non-reaction object was used as a reaction")
 
+        if not all(isinstance(r, Reaction) for r in reactions):
+            raise ValueError("A non-reaction object was used as a reaction!")
+
+        for r in reactions:
             if reactions.count(r) > 1:
                 warn(f"Reaction {r} duplicated in CRN definitions. Duplicates "
                      "have been removed.")
 
-            if Reaction not in checked_reactions:
-                checked_reactions.append(Reaction)
+            if r not in checked_reactions:
+                checked_reactions.append(r)
 
             for s in r.inputs:
-                if s not in species and warnings:
+                if s not in checked_species and warnings:
                     warn(f"Reaction {repr(r)} contains a species {repr(s)} "
                          "which is not in the CRN.")
 
             for s in r.outputs:
-                if s not in species and warnings:
+                if s not in checked_species and warnings:
                     warn(f"Reaction {repr(r)} contains a species {repr(s)} "
                          "which is not in the CRN.")
 
-        return species, reactions
+        return checked_species, checked_reactions
 
     def __repr__(self):
         txt = "Species = "
@@ -454,6 +461,7 @@ class ChemicalReactionNetwork(object):
         species = [str(s) for s in self.species]
         return species, reactions
 
+    # TODO check whether we need this method
     def species_index(self, species):
         if len(self.species2index) != len(self.species):
             self.species2index = {}
@@ -462,17 +470,20 @@ class ChemicalReactionNetwork(object):
         return self.species2index[str(species)]
 
     def initial_condition_vector(self, init_cond_dict):
-        x0 = [0.0 for s in self.species]
-        for i in range(len(self.species)):
-            s = str(self.species[i])
+        x0 = [0.0] * len(self.species)
+        for idx, s in enumerate(self.species):
             if s in init_cond_dict:
-                x0[i] = init_cond_dict[s]
+                x0[idx] = init_cond_dict[s]
         return x0
 
-    # Returns all species (complexes and otherwise) containing a given species
-    # (or string).
     def get_all_species_containing(self, species, return_as_strings = False):
+        """Returns all species (complexes and otherwise) containing a given species
+           (or string).
+        """
         return_list = []
+        if not isinstance(species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
         for s in self.species:
             if repr(species) in repr(s):
                 if return_as_strings:
@@ -509,10 +520,9 @@ class ChemicalReactionNetwork(object):
     def write_sbml_file(self, file_name = None, **keywords):
         document, _ = self.generate_sbml_model(**keywords)
         sbml_string = libsbml.writeSBMLToString(document)
-        f = open(file_name, 'w')
-        f.write(sbml_string)
-        f.close()
-        return f
+        with open(file_name, 'w') as f:
+            f.write(sbml_string)
+        return True
 
     def create_bioscrape_model(self):
         from bioscrape.types import Model

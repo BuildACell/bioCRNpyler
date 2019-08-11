@@ -26,7 +26,7 @@ The following general guidelines hold for usage of parameters in the
 
 2. Component parameter values are local to the reactions set up by the
    component, allowing reuse of the same name (eg, promoter binding
-   strenth) across multiple parameters.  Extract parameter values are
+   strength) across multiple parameters.  Extract parameter values are
    stored in the containing mixture and create global parameters in
    the SBML model for the system.  These global parameters can be
    accessed by using the extract parameter name within an txtl
@@ -76,153 +76,23 @@ The following general guidelines hold for usage of parameters in the
 """
 
 import csv
-import os
-import sys
-import re
 from warnings import warn
+from typing import List, Dict, Union
 
 
-# Takes a list L and string s and returns a list of flexible variations of all
-# the strings in S
-def get_flexible_string_list_index(L, S):
-    s_list = []
-    for s in S:
-        s_list += [s, s.replace(" ", "_"), s.capitalize(), s.casefold(),
-                   s.casefold().replace(" ", "_")]
-    ind = None
-    for t in s_list:
-        try:
-            indt = L.index(t)
-            if ind != None:
-                raise ValueError("List contains multiple elements that are too "
-                                 f"similar: '{str(L[ind])}', '{str(L[indt])}'")
-            else:
-                ind = indt
-        except ValueError:
-            pass
-    return ind
-
-#Duplicates in the new files overwrite current things in parameter dictionary
-def create_parameter_dictionary(parameters, parameter_file):
-    if not isinstance(parameters, dict) and parameters!= None:
-        raise ValueError("parameter keyword must be a dictionary "
-                         "{param_key:val}")
-    if not isinstance(parameter_file, str) \
-       and not isinstance(parameter_file, list) \
-       and parameter_file != None:
-        raise ValueError("parameter_file keyword must be a valid filepath "
-                         "string or list of such strings.")
-
-    if isinstance(parameter_file, list):
-        file_list = parameter_file
-    elif parameter_file != None:
-        file_list = [parameter_file]
-    elif parameter_file == None:
-        file_list = []
-
-    param_dict = {}
-    if parameters != None:
-        for k in parameters:
-            param_dict[k] = parameters[k]
-
-    for fname in file_list:
-
-        f = open(fname)
-        if fname[-4:] in [".txt",".tsv"]:
-            L0 = f.readline().replace("\n", "").split("\t")
-        else:
-            L0 = f.readline().replace("\n", "").split(",")
-
-        try:
-            pID_ind = get_flexible_string_list_index(L0, ["part_id", "part"])
-            if pID_ind == None:
-                warn(f"file {fname} contains no part ID column. Please add a "
-                     "column the name 'part_id' or 'part'.")
-        except ValueError:
-            raise ValueError("'part_id', 'part', or a similar string appears "
-                            f"multiple times in the top line of {fname}. "
-                            "keyword list = {L0}.")
-        try:
-            mech_ind = get_flexible_string_list_index(L0, ["mechanism",
-                                                           "mechanism_id"])
-            if mech_ind == None:
-                warn(f"file {fname} contains no mechanism column. Please add a"
-                     "column the name 'mechanism' or 'mechanism_id'.")
-
-        except ValueError:
-            raise ValueError("'mechanism', 'mechanism_id' or a similar string "
-                             "appears multiple times in the top line of "
-                             f"{fname}. keyword list = {L0}")
-        try:
-            param_ind = get_flexible_string_list_index(L0,
-                        ["param_name", "parameter_name", "parameter", "param"])
-            if param_ind == None:
-                ValueError(f"file {fname} contains no parameter name column. "
-                           "Please add a column the name 'param', 'parameter', "
-                           "'param_name', or 'parameter_name'.")
-        except ValueError:
-            raise ValueError("'param', 'parameter', 'parameter_name', "
-                             "'param_name', or a similar string appears "
-                            f"multiple times in the top line of {fname}. "
-                            "keyword list = {L0}")
-        try:
-            val_ind = get_flexible_string_list_index(L0,
-                            ["val", "value", "param_val", "parameter_value"])
-            if val_ind == None:
-                raise ValueError(f"file {fname} contains no parameter value "
-                                 "column. Please add a column the name 'val', "
-                                 "'value', 'param_val', or 'parameter_value'.")
-        except ValueError:
-            raise ValueError("'val', 'value', 'param_val', 'parameter_value', "
-                             "or a similar string appears multiple times in "
-                            f"the top line of {fname}. keyword list = {L0}")
-
-        for line in f:
-            if fname[-4:] in [".txt", ".tsv"]:
-                L = line.replace("\n", "").split("\t")
-            else:
-                L = line.replace("\n", "").split(",")
-
-            if pID_ind != None:
-                id = L[pID_ind]
-            else:
-                id = ""
-
-            if mech_ind != None:
-                mech = L[mech_ind]
-            else:
-                mech = ""
-
-            param = L[param_ind]
-            val = L[val_ind]
-
-            try:
-                if param == "":
-                    pass
-                elif mech == "" and id == "":
-                    param_dict[param] = float(val)
-                elif mech == "":
-                    param_dict[(id, param)] = float(val)
-                elif id == "":
-                    param_dict[(mech, param)] = float(val)
-                else:
-                    param_dict[(mech, id, param)] = float(val)
-            except ValueError:
-                raise ValueError("Unable to parse parameter file line = "+line)
-        f.close()
-    return param_dict
-
-
-class Parameter:
+class Parameter(object):
     """Parameter value (reaction rates)"""
 
     def __init__(self, name, param_type, value, comment="", debug=False):
+        assert type(param_type) is str
+
         self.name = name.strip()
         self.param_type = param_type.strip()
         self.comment = comment.strip()
 
         # Set the value of the parameter
-        if debug: print("%s [%s] = %s" % (self.name, self.param_type, value))
+        if debug:
+            print("%s [%s] = %s" % (self.name, self.param_type, value))
         if param_type.strip() == 'Numeric':
             self.value = float(value)  # store as float
         elif param_type.strip() == 'Expression':
@@ -230,142 +100,101 @@ class Parameter:
         else:
             raise ValueError("can't parse value of parameter %s" % name)
 
-    def get_value(self):
-        return float(self.value)
+    @staticmethod
+    def _get_field_names(field_names: List[str], accepted_field_names: Dict[str, List[str]]) -> Dict[str, str]:
+        """ Searches through valid field names and finds the currently used one. It builds a dictionary of currently
+            used field names
+        :param field_names: list of field names (columns) found in the csv file
+        :param accepted_field_names: dictionary of possible field names and their valid aliases
+        :return: dictionary of currently used field names (aliases)
+        """
+        assert isinstance(field_names, list) and len(field_names) > 0
+        assert isinstance(accepted_field_names, dict) and len(accepted_field_names) > 0
 
+        return_field_names = dict.fromkeys(accepted_field_names.keys())
+        for accepted_name in accepted_field_names:
+            # try to find an possible accepted names in the field_names using a generator
+            try:
+                loc_gen = (idx for idx, name in enumerate(accepted_field_names[accepted_name]) if name in field_names)
+                loc_idx = next(loc_gen)
+            except StopIteration:
+                # we have reached the end of the possible names
+                return_field_names[accepted_name] = None
+                warn(f"parameter file contains no {accepted_name} column! Please add a "
+                     f"column named {accepted_field_names[accepted_name]}.")
+            else:
+                return_field_names[accepted_name] = accepted_field_names[accepted_name][loc_idx]
 
-def load_config(filename, extension=".csv", debug=False):
-    # Find the configuration file
-    # ! TODO: update this to search along a path (in pathutil)
-    module_path = os.path.dirname(sys.modules[__name__].__file__)
+        return return_field_names
 
-    # Look for the config file in a list of paths
-    csvfile = None
-    for path in (module_path + "/components/", module_path + "/config/"):
-        try:
-            # ! TODO: add extension if not present
-            filepath = path + filename
-            csvfile = open(filepath)
-            break
-        except:
-            continue
+    @staticmethod
+    def load_parameter_file(filename: str) -> Dict:
+        """load the parameter configuration file into a dictionary
+        :param filename: valid parameter file name
+        :return: a dictionary of the parameters
+        """
+        assert isinstance(filename, str) and len(filename) > 0
+        param_dict = {}
+        # TODO implement search through possible parameter config file locations
+        # Open up the CSV file for reaching
+        with open(filename) as f:
+            csvreader = csv.DictReader(f, delimiter='\t')
 
-    # If we didn't find the file, return None
-    if csvfile == None: return None
+            accepted_field_names = {'mechanism': ['mechanism', 'mechanism_id'],
+                                    'param_name': ["parameter_name", "parameter", "param", "param_name"],
+                                    'part_id': ['part_id', 'part'],
+                                    'param_val': ["val", "value", "param_val", "parameter_value"]
+                                    }
 
-    # Open up the CSV file for reaching
-    csvreader = csv.reader(csvfile)
-    params = {}
-    for row in csvreader:
-        # Get rid of extraneous spaces
-        for i in range(len(row)): row[i] = row[i].strip()
+            field_names = Parameter._get_field_names(csvreader.fieldnames, accepted_field_names)
 
-        # Skip blank lines (and malformed lines)
-        if len(row) < 3 or row[0] == "": continue
+            for row in csvreader:
+                # TODO what about integers? float might cause numerical drift in simulations, e.g. cooperativity=2.001
+                param_value = float(row[field_names['param_val']])
+                if field_names['param_name'] is None:
+                    pass
+                elif field_names['mechanism'] is None and field_names['part_id'] is None:
+                    param_name = row[field_names['param_name']]
+                    param_dict[param_name] = param_value
+                elif field_names['mechanism'] is None:
+                    part_id = row[field_names['part_id']]
+                    param_name = row[field_names['param_name']]
+                    param_dict[(part_id, param_name)] = param_value
+                elif field_names['part_id'] is None:
+                    mech_name = row[field_names['mechanism']]
+                    param_name = row[field_names['param_name']]
+                    param_dict[(mech_name, param_name)] = param_value
+                else:
+                    part_id = row[field_names['part_id']]
+                    mech_name = row[field_names['mechanism']]
+                    param_name = row[field_names['param_name']]
+                    param_dict[(mech_name, part_id, param_name)] = param_value
 
-        # Create a new parameter object to keep track of this row
-        # ! TODO: this should be done in a better (and more pythonic) way
-        if len(row) >= 4:
-            #                 name  param_type value  comment
-            param = Parameter(row[0], row[1], row[2], row[3])
+        return param_dict
+
+    @staticmethod
+    def create_parameter_dictionary(parameters: Union[None, Dict],
+                                    parameter_file: Union[None, str, List[str]]) -> Union[None, Dict]:
+        """
+        Loads parameter config file(s) and merges the parameters with the existing parameters dictionary
+        :param parameters: existing parameters dictionary
+        :param parameter_file: valid parameter file(s)
+        :return: updated parameters dictionary
+        """
+        # empty call no parameters are loaded
+        if parameters is None or parameter_file is None:
+            return parameters
+
+        assert isinstance(parameters, dict)
+        assert isinstance(parameter_file, str) or isinstance(parameter_file, list)
+
+        if isinstance(parameter_file, list):
+            file_list = parameter_file
         else:
-            param = Parameter(row[0], row[1], row[2], "")
+            file_list = [parameter_file]
 
-        # Name simplification for backward compatibility with MATLAB code
-        param.name = re.sub("_Forward$", "_F", param.name)
-        param.name = re.sub("_Reverse$", "_R", param.name)
-        param.name = re.sub("_ic$", "_IC", param.name)
-        param.name = re.sub("_Concentration$", "_IC", param.name)
+        for file_name in file_list:
+            new_parameters = Parameter.load_parameter_file(file_name)
+            parameters.update(new_parameters)
 
-        # Set up as dictionary for easy access
-        params[param.name] = param
-
-    csvfile.close()  # Close the file now that we are done
-    return params  # Return the parameters we read
-
-
-# Process parameter input
-def get_parameters(config_file, custom, default={}, **keywords):
-    # Start with the default parameters values (if given)
-    parameters = default.copy() if default != None else {}
-
-    # Now load parameters from the configuration file (if available)
-    if config_file != None:
-        config_parameters = load_config(config_file)
-        if config_parameters != None:
-            parameters.update(config_parameters)
-        else:
-            warn("get_parameters: couldn't find file %s" % config_file)
-
-    # Override any parameters given as a parameter dictionary
-    if custom != None:
-        for key, value in custom.items():
-            parameters[key] = _to_parameter(key, value)
-
-    # Finally, check to see if any of the keywords are parameter names
-    for key, value in keywords.items():
-        if key in parameters.keys():
-            parameters[key] = _to_parameter(key, value)
-
-    # All done!
-    return parameters
-
-
-# Update any missing parameter values in a parameter dictionary
-def update_missing(existing_dict, default_dict):
-    """Fill in missing parameter values with defaults
-
-    This takes a parameter dictionary, looks to see if a specified set
-    of keys are missing, and, if so, fills in the keys with default
-    values.  This function is useful when you have an existing
-    parameter list and need to make sure that a certain set of default
-    keys are present.  If they keys are already present in the
-    parameter dictionary, they will not be replaced (unlike a regular
-    dictionary update).
-
-    """
-    for key, value in default_dict.items():
-        if key not in existing_dict.keys():
-            existing_dict[key] = _to_parameter(key, value)
-
-
-# Update any existing parameter values in a parameter dictionary
-def update_existing(existing_dict, custom_dict):
-    """Update existing parameter values with new values
-
-    This takes a parameter dictionary, looks to see if a specified set
-    of keys exist, and, if so, fills in the keys with new values.
-    This function is useful when you have an existing parameter list
-    that you want to override with parameter defintions from a longer
-    list.
-
-    """
-    for key, value in custom_dict.items():
-        if key in existing_dict.keys():
-            existing_dict[key] = _to_parameter(key, value)
-
-
-def eval_parameter(component, name, assignments={}):
-    parameters = component.parameters
-    if name not in parameters.keys() or parameters[name] == None:
-        # Couldn't find the parmaeter
-        return None
-    param = parameters[name]
-
-    # See if we already have a floating point number
-    # ! TODO: decide if we need this; can just use the evaluation below?
-    if isinstance(param.value, (float, int)): return float(param.value)
-
-    # Evaluate the expression
-    return float(eval(param.value, assignments))
-
-# Convert a value input to a parameter object
-def _to_parameter(key, value):
-    if isinstance(value, Parameter):
-        return value
-    elif isinstance(value, (float, int)):
-        return Parameter(key, 'Numeric', value)
-    elif isinstance(value, str):
-        return Parameter(key, 'Global', value)
-    else:
-        ValueError('Unknown parameter type')
+        return parameters

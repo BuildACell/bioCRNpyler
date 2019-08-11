@@ -1,8 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b1d96ef7-03e1-48b8-a646-204c65efda94" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="b1d96ef7-03e1-48b8-a646-204c65efda94" name="Default Changelist" comment="Merge remote-tracking branch 'upstream/master'">
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Old Tests/bioscrape_test.sbml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Old Tests/bioscrape_test.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Old Tests/constitutive_expression_test.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Old Tests/dcas9_repression_test.sbml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Old Tests/dcas9_repression_test.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Old Tests/dilution_with_global_mechanisms.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Old Tests/parameter_loading_test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Old Tests/regulated_promoter_activation_and_repression.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Old Tests/sbml_test_file.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Old Tests/simulate_compiled_crn_with_bioscrape.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Presentations and Documentation/.ipynb_checkpoints/SuperGroup Meeting Examples-checkpoint.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Presentations and Documentation/DNA Supergroup Presentation 1-28-19.pptx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Presentations and Documentation/SuperGroup Meeting Examples.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Tests/bioscrape_test.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Tests/dcas9_repression_test.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/biocrnpyler/chemical_reaction_network.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/biocrnpyler/chemical_reaction_network.py.orig" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/biocrnpyler/crnlab.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/biocrnpyler/dcas9.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/.ipynb_checkpoints/Advanced Examples-checkpoint.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/Advanced Examples.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/BioCRNpyler Developer Overview Notebook.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/Default Param File Example.tsv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/Parameters.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/Perfect Param File Example.tsv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/geneexpr.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/mixture1.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/test_extract.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/tutorial_CRNLab.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/chemicalreactionnetwork.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/component.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/component.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/d_cas9.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/dna_assembly.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/dna_assembly.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/global_mechanism.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/global_mechanism.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/mechanism.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/mechanism.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/mixture.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/mixture.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/parameter.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/parameter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/pathutil.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/pathutil.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/sbmlutil.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/sbmlutil.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/biocrnpyler/txtl.py" beforeDir="false" afterPath="$PROJECT_DIR$/biocrnpyler/txtl.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/deCas9_repression.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/deCas9_repression.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/dilution_with_global_mechanisms.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/dna_assembly_and_constituitive_expression.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/dna_assembly_and_constituitive_expression.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/regulated_promoter_activation_and_repression.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/repr_for_crn_and_component_and_write_to_sbml.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/repr_for_crn_and_component_and_write_to_sbml.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/retroactivity_with_custom_mechanism_and_custom_promoter.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/retroactivity_with_custom_mechanism_and_custom_promoter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/simulate_compiled_crn_with_bioscrape_via_sbml.py" beforeDir="false" afterPath="$PROJECT_DIR$/Old Tests/simulate_compiled_crn_with_bioscrape_via_sbml.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/dna_assembly_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/dna_test.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -11,31 +63,8 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/BioCRNPyler$chemical_reaction_network.coverage" NAME="chemical_reaction_network Coverage Results" MODIFIED="1541793338753" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/biocrnpyler" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$component.coverage" NAME="component Coverage Results" MODIFIED="1539298041705" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$repr_for_crn_and_component_and_write_to_sbml.coverage" NAME="repr_for_crn_and_component_and_write_to_sbml Coverage Results" MODIFIED="1548222676352" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$WriteToSBMLTest.coverage" NAME="WriteToSBMLTest Coverage Results" MODIFIED="1539237419242" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Tests" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$Plasmid_Differentiation_Circuit.coverage" NAME="Plasmid_Differentiation_Circuit Coverage Results" MODIFIED="1540068345423" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../../Projects/Murray R01/For Anandh" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$simulate_compiled_crn_with_bioscrape.coverage" NAME="simulate_compiled_crn_with_bioscrape Coverage Results" MODIFIED="1549076024881" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$regulated_promoter_activation_and_repression.coverage" NAME="regulated_promoter_activation_and_repression Coverage Results" MODIFIED="1549314003767" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
-    <SUITE FILE_PATH="coverage/txtlsim_python_2$RetroactivityTest.coverage" NAME="RetroactivityTest Coverage Results" MODIFIED="1538954949155" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Tests" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$BioscrapeTest.coverage" NAME="BioscrapeTest Coverage Results" MODIFIED="1539295079031" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Tests" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$deCas9_repression__1_.coverage" NAME="deCas9_repression (1) Coverage Results" MODIFIED="1548304837090" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
-    <SUITE FILE_PATH="coverage/txtlsim_python_2$mixture.coverage" NAME="mixture Coverage Results" MODIFIED="1538678642587" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/txtlsim_python_2$chemical_reaction_network.coverage" NAME="chemical_reaction_network Coverage Results" MODIFIED="1538595460102" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$retroactivity_with_custom_mechanism_and_custom_promoter.coverage" NAME="retroactivity_with_custom_mechanism_and_custom_promoter Coverage Results" MODIFIED="1549848188200" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
-    <SUITE FILE_PATH="coverage/txtlsim_python_2$BasicTest__1_.coverage" NAME="BasicTest (1) Coverage Results" MODIFIED="1538885017287" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Tests" />
-    <SUITE FILE_PATH="coverage/txtlsim_python_2$RegulationTest.coverage" NAME="RegulationTest Coverage Results" MODIFIED="1538959952961" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Tests" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$dna_assembly.coverage" NAME="dna_assembly Coverage Results" MODIFIED="1549332424932" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/biocrnpyler" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$RetroactivityTest.coverage" NAME="RetroactivityTest Coverage Results" MODIFIED="1539297507164" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Tests" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$deCas9_repression.coverage" NAME="deCas9_repression Coverage Results" MODIFIED="1548306519662" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Tests" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$simulate_compiled_crn_with_bioscrape_via_sbml.coverage" NAME="simulate_compiled_crn_with_bioscrape_via_sbml Coverage Results" MODIFIED="1540602496641" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Tests" />
-    <SUITE FILE_PATH="coverage/txtlsim_python_2$mechanism.coverage" NAME="mechanism Coverage Results" MODIFIED="1538595464513" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$dilution_with_global_mechanisms.coverage" NAME="dilution_with_global_mechanisms Coverage Results" MODIFIED="1549076007706" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$dna_assembly_and_constituitive_expression__1_.coverage" NAME="dna_assembly_and_constituitive_expression (1) Coverage Results" MODIFIED="1548224716643" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$dna_assembly_and_constituitive_expression.coverage" NAME="dna_assembly_and_constituitive_expression Coverage Results" MODIFIED="1548137902787" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Tests" />
-    <SUITE FILE_PATH="coverage/txtlsim_python_2$BasicTest.coverage" NAME="BasicTest Coverage Results" MODIFIED="1538953597779" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/BioCRNPyler$parameter_loading_test.coverage" NAME="parameter_loading_test Coverage Results" MODIFIED="1548967800154" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Tests" />
+    <SUITE FILE_PATH="coverage/biocrnplyler$Nosetests_for_dna_assembly_test_DNAassemblyTest_test_empty_assembly.coverage" NAME="Nosetests for dna_assembly_test.DNAassemblyTest.test_empty_assembly Coverage Results" MODIFIED="1548960453332" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/biocrnplyler$dna_assembly_and_constituitive_expression.coverage" NAME="dna_assembly_and_constituitive_expression Coverage Results" MODIFIED="1544045308603" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
   </component>
   <component name="DatabaseView">
     <option name="SHOW_INTERMEDIATE" value="true" />
@@ -51,117 +80,8 @@
     <expand />
     <select />
   </component>
-  <component name="FavoritesManager">
-    <favorites_list name="BioCRNPyler" />
-  </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/biocrnpyler/parameter.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3162">
-              <caret line="190" column="16" selection-start-line="190" selection-start-column="16" selection-end-line="190" selection-end-column="16" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/biocrnpyler/mechanism.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="19" column="39" selection-start-line="19" selection-start-column="39" selection-end-line="19" selection-end-column="39" />
-              <folding>
-                <element signature="e#1092#1117#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/biocrnpyler/component.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2346">
-              <caret line="138" selection-start-line="138" selection-end-line="138" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/biocrnpyler/chemical_reaction_network.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="7820">
-              <caret line="463" column="20" selection-start-line="463" selection-start-column="20" selection-end-line="463" selection-end-column="20" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/biocrnpyler/crnlab.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="459">
-              <caret line="31" column="52" selection-start-line="31" selection-start-column="52" selection-end-line="31" selection-end-column="52" />
-              <folding>
-                <element signature="e#0#30#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/Old Tests/retroactivity_with_custom_mechanism_and_custom_promoter.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="436">
-              <caret line="109" selection-start-line="109" selection-end-line="109" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/biocrnpyler/d_cas9.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="85">
-              <caret line="7" selection-start-line="7" selection-end-line="7" />
-              <folding>
-                <element signature="e#0#37#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/biocrnpyler/dna_assembly.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1717">
-              <caret line="104" selection-start-line="104" selection-end-line="104" />
-              <folding>
-                <element signature="e#120#157#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Old Tests/deCas9_repression.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1207">
-              <caret line="71" column="1" selection-start-line="71" selection-start-column="1" selection-end-line="71" selection-end-column="1" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/biocrnpyler/txtl.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="544">
-              <caret line="36" selection-start-line="36" selection-end-line="36" />
-              <folding>
-                <element signature="e#120#145#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -230,8 +150,8 @@
         <option value="$PROJECT_DIR$/Tests/simulate_compiled_crn_with_bioscrape_via_sbml.py" />
         <option value="$PROJECT_DIR$/mechanism.py" />
         <option value="$PROJECT_DIR$/dna_assembly.py" />
-        <option value="$PROJECT_DIR$/../../Projects/Murray R01/For Anandh/Plasmid_Differentiation_Circuit.py" />
-        <option value="$PROJECT_DIR$/../../Projects/Murray R01/For Anandh/basic_plasmid_circuit_plasmid_replication.xml" />
+        <option value="$USER_HOME$/Projects/Murray R01/For Anandh/Plasmid_Differentiation_Circuit.py" />
+        <option value="$USER_HOME$/Projects/Murray R01/For Anandh/basic_plasmid_circuit_plasmid_replication.xml" />
         <option value="$PROJECT_DIR$/__init__.py" />
         <option value="$PROJECT_DIR$/Tests/repr_for_crn_and_component_and_write_to_sbml.py" />
         <option value="$PROJECT_DIR$/setup.py" />
@@ -258,38 +178,46 @@
         <option value="$PROJECT_DIR$/biocrnpyler/d_cas9.py" />
         <option value="$PROJECT_DIR$/biocrnpyler/txtl.py" />
         <option value="$PROJECT_DIR$/biocrnpyler/dna_assembly.py" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-12" />
-    <option name="y" value="-12" />
-    <option name="width" value="1944" />
-    <option name="height" value="1104" />
+  <component name="ProjectFrameBounds" fullScreen="true">
+    <option name="x" value="1440" />
+    <option name="width" value="1920" />
+    <option name="height" value="1080" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectReloadState">
+    <option name="STATE" value="1" />
+  </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
-              <item name="BioCRNPyler" type="b2602c69:ProjectViewProjectNode" />
-              <item name="BioCRNPyler" type="462c0819:PsiDirectoryNode" />
+              <item name="biocrnplyler" type="b2602c69:ProjectViewProjectNode" />
+              <item name="biocrnplyler" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
-              <item name="BioCRNPyler" type="b2602c69:ProjectViewProjectNode" />
-              <item name="BioCRNPyler" type="462c0819:PsiDirectoryNode" />
-              <item name="Old Tests" type="462c0819:PsiDirectoryNode" />
+              <item name="biocrnplyler" type="b2602c69:ProjectViewProjectNode" />
+              <item name="biocrnplyler" type="462c0819:PsiDirectoryNode" />
+              <item name="biocrnpyler" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="biocrnplyler" type="b2602c69:ProjectViewProjectNode" />
+              <item name="biocrnplyler" type="462c0819:PsiDirectoryNode" />
+              <item name="tests" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -432,10 +360,10 @@
     </configuration>
     <list>
       <item itemvalue="Python.dilution_with_global_mechanisms" />
+      <item itemvalue="Python.dna_assembly" />
+      <item itemvalue="Python.regulated_promoter_activation_and_repression" />
       <item itemvalue="Python.retroactivity_with_custom_mechanism_and_custom_promoter" />
       <item itemvalue="Python.simulate_compiled_crn_with_bioscrape" />
-      <item itemvalue="Python.regulated_promoter_activation_and_repression" />
-      <item itemvalue="Python.dna_assembly" />
     </list>
     <recent_temporary>
       <list>
@@ -477,11 +405,12 @@
       <workItem from="1549490282195" duration="2423000" />
       <workItem from="1549848135453" duration="139000" />
       <workItem from="1550795312724" duration="39000" />
+      <workItem from="1564658946718" duration="770000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="80749000" />
+    <option name="totallyTimeSpent" value="81542000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -493,10 +422,11 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1295" height="653" extended-state="6" />
+    <frame x="1440" y="0" width="1920" height="1080" extended-state="6" />
     <layout>
-      <window_info id="Structure" order="0" side_tool="true" weight="0.17165992" />
-      <window_info id="Favorites" order="1" side_tool="true" weight="0.32955465" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24600638" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.17165992" />
+      <window_info id="Favorites" order="2" side_tool="true" weight="0.32955465" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" visible="true" weight="0.19961612" />
       <window_info anchor="bottom" id="Debug" order="2" weight="0.39923224" />
@@ -508,56 +438,35 @@
       <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
       <window_info anchor="bottom" id="Terminal" order="10" weight="0.32821497" />
-      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info active="true" anchor="right" id="SciView" order="3" visible="true" weight="0.6016194" />
-      <window_info anchor="right" id="Database" order="4" weight="0.32955465" />
-      <window_info anchor="right" id="Run" order="5" weight="0.26477733" />
-      <window_info anchor="right" content_ui="combo" id="Project" order="6" weight="0.24615385" />
+      <window_info anchor="right" x="0" y="0" width="430" height="880" id="Documentation" order="0" sideWeight="0.5009901" side_tool="true" weight="0.60117143" />
+      <window_info anchor="right" id="Commander" order="1" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="2" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="3" weight="0.25" />
+      <window_info anchor="right" id="SciView" order="4" sideWeight="0.4990099" weight="0.60117143" />
+      <window_info anchor="right" id="Database" order="5" weight="0.32955465" />
+      <window_info anchor="right" id="Run" order="6" weight="0.26477733" />
       <window_info anchor="right" id="Python Console" order="7" weight="0.2437247" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Merge remote-tracking branch 'upstream/master'" />
+    <option name="LAST_COMMIT_MESSAGE" value="Merge remote-tracking branch 'upstream/master'" />
+  </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../bioscrape/setup.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Old Tests/bioscrape_test.sbml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/global_mechanism.py" />
     <entry file="file://$PROJECT_DIR$/d_cas9.py" />
     <entry file="file://$PROJECT_DIR$/component.py" />
     <entry file="file://$PROJECT_DIR$/txtl.py" />
-    <entry file="file://$PROJECT_DIR$/../../Projects/Murray R01/For Anandh/basic_plasmid_circuit_plasmid_replication.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="21" selection-start-line="21" selection-end-line="21" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/Projects/Murray R01/For Anandh/basic_plasmid_circuit_plasmid_replication.xml" />
     <entry file="file://$PROJECT_DIR$/sbml_test_file.sbml" />
     <entry file="file://$PROJECT_DIR$/sbmlutil.py" />
-    <entry file="file://$PROJECT_DIR$/../../Projects/Murray R01/For Anandh/Plasmid_Differentiation_Circuit.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1846">
-          <caret line="175" column="31" selection-start-line="175" selection-start-column="31" selection-end-line="175" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/Projects/Murray R01/For Anandh/Plasmid_Differentiation_Circuit.py" />
     <entry file="file://$PROJECT_DIR$/mixture.py" />
     <entry file="file://$PROJECT_DIR$/mechanism.py" />
     <entry file="file://$PROJECT_DIR$/dna_assembly.py" />
-    <entry file="file://$PROJECT_DIR$/../../Projects/Murray R01/Plasmid_Differentiation_Circuit.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="72" selection-start-line="72" selection-end-line="72" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/Projects/Murray R01/Plasmid_Differentiation_Circuit.py" />
     <entry file="file://$PROJECT_DIR$/__init__.py" />
     <entry file="file://$PROJECT_DIR$/Tests/sbml_test_file.sbml" />
     <entry file="file://$PROJECT_DIR$/Tests/simulate_compiled_crn_with_bioscrape_via_sbml.py" />
@@ -567,9 +476,7 @@
     <entry file="file://$PROJECT_DIR$/chemical_reaction_network.py" />
     <entry file="file://$PROJECT_DIR$/Tests/BioscrapeTest.py" />
     <entry file="file://$PROJECT_DIR$/Tests/repr_for_crn_and_component_and_write_to_sbml.py" />
-    <entry file="file://$PROJECT_DIR$/../../Classes/BE CS 191a/HW 1/HW1 pt 2.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$USER_HOME$/Classes/BE CS 191a/HW 1/HW1 pt 2.py" />
     <entry file="file://$PROJECT_DIR$/Tests/retroactivity_with_custom_mechanism_and_custom_promoter.py" />
     <entry file="file://$PROJECT_DIR$/Tests/dilution_with_global_mechanisms.py" />
     <entry file="file://$PROJECT_DIR$/Tests/regulated_promoter_activation_and_repression.py" />
@@ -583,13 +490,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Miniconda3/Lib/site-packages/libsbml/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="164">
-          <caret line="25458" selection-start-line="25458" selection-end-line="25458" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/Miniconda3/Lib/site-packages/libsbml/__init__.py" />
     <entry file="file://$PROJECT_DIR$/biocrnpyler/sbmlutil.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="148">
@@ -607,29 +508,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Old Tests/dcas9_repression_test.sbml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Old Tests/dcas9_repression_test.sbml" />
     <entry file="file://$PROJECT_DIR$/build/lib/biocrnpyler/component.py" />
-    <entry file="file://$PROJECT_DIR$/Old Tests/simulate_compiled_crn_with_bioscrape_via_sbml.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#0#25#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Old Tests/simulate_compiled_crn_with_bioscrape.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="26" column="34" selection-start-line="26" selection-start-column="34" selection-end-line="26" selection-end-column="34" />
-          <folding>
-            <element signature="e#0#25#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Old Tests/simulate_compiled_crn_with_bioscrape_via_sbml.py" />
+    <entry file="file://$PROJECT_DIR$/Old Tests/simulate_compiled_crn_with_bioscrape.py" />
     <entry file="file://$PROJECT_DIR$/build/lib/biocrnpyler/d_cas9.py" />
     <entry file="file://$PROJECT_DIR$/biocrnpyler/pathutil.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -638,44 +520,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Old Tests/repr_for_crn_and_component_and_write_to_sbml.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="133">
-          <caret line="18" column="39" selection-start-line="18" selection-start-column="39" selection-end-line="18" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Old Tests/parameter_loading_test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
-          <caret line="2" selection-start-line="2" selection-end-line="2" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Old Tests/regulated_promoter_activation_and_repression.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="408">
-          <caret line="24" column="53" selection-end-line="51" />
-          <folding>
-            <element signature="e#0#25#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Old Tests/dilution_with_global_mechanisms.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="406">
-          <caret line="74" selection-start-line="74" selection-end-line="74" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Old Tests/dna_assembly_and_constituitive_expression.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="17" column="54" selection-start-line="17" selection-start-column="54" selection-end-line="17" selection-end-column="54" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Old Tests/repr_for_crn_and_component_and_write_to_sbml.py" />
+    <entry file="file://$PROJECT_DIR$/Old Tests/parameter_loading_test.py" />
+    <entry file="file://$PROJECT_DIR$/Old Tests/regulated_promoter_activation_and_repression.py" />
+    <entry file="file://$PROJECT_DIR$/Old Tests/dilution_with_global_mechanisms.py" />
+    <entry file="file://$PROJECT_DIR$/Old Tests/dna_assembly_and_constituitive_expression.py" />
     <entry file="file://$PROJECT_DIR$/biocrnpyler/mixture.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1972">
@@ -710,50 +559,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/biocrnpyler/chemical_reaction_network.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7820">
-          <caret line="463" column="20" selection-start-line="463" selection-start-column="20" selection-end-line="463" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/biocrnpyler/crnlab.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
-          <caret line="31" column="52" selection-start-line="31" selection-start-column="52" selection-end-line="31" selection-end-column="52" />
-          <folding>
-            <element signature="e#0#30#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/biocrnpyler/d_cas9.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="7" selection-start-line="7" selection-end-line="7" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/biocrnpyler/dna_assembly.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1717">
-          <caret line="104" selection-start-line="104" selection-end-line="104" />
-          <folding>
-            <element signature="e#120#157#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Old Tests/deCas9_repression.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1207">
-          <caret line="71" column="1" selection-start-line="71" selection-start-column="1" selection-end-line="71" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/biocrnpyler/chemical_reaction_network.py" />
+    <entry file="file://$PROJECT_DIR$/biocrnpyler/crnlab.py" />
+    <entry file="file://$PROJECT_DIR$/biocrnpyler/d_cas9.py" />
+    <entry file="file://$PROJECT_DIR$/Old Tests/deCas9_repression.py" />
     <entry file="file://$PROJECT_DIR$/biocrnpyler/txtl.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="544">
@@ -764,10 +573,23 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Old Tests/retroactivity_with_custom_mechanism_and_custom_promoter.py">
+    <entry file="file://$PROJECT_DIR$/Old Tests/retroactivity_with_custom_mechanism_and_custom_promoter.py" />
+    <entry file="file://$PROJECT_DIR$/tests/dna_assembly_test.py" />
+    <entry file="file://$PROJECT_DIR$/tests/dna_test.py" />
+    <entry file="file://$PROJECT_DIR$/biocrnpyler/dna_assembly.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="436">
-          <caret line="109" selection-start-line="109" selection-end-line="109" />
+        <state relative-caret-position="1830">
+          <caret line="122" selection-start-line="122" selection-end-line="122" />
+          <folding>
+            <element signature="e#120#157#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="495">
+          <caret line="33" lean-forward="true" selection-start-line="33" selection-end-line="33" />
         </state>
       </provider>
     </entry>

@@ -1,16 +1,12 @@
-# Copyright (c) 2018, Build-A-Cell. All rights reserved.
-# See LICENSE file in the project root directory for details.
+#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  See LICENSE file in the project root directory for details.
 
 from warnings import warn as pywarn
-
+from .chemical_reaction_network import Species
+from .parameter import Parameter
 
 def warn(txt):
     pywarn(txt)
-
-
-# import chemical_reaction_network as crn
-from .chemical_reaction_network import Species
-from .parameter import create_parameter_dictionary
 
 
 # Component class for core components
@@ -38,6 +34,7 @@ class Component(object):
         # mechanisms.
         # Attributes can be used to store key words like protein deg-tags for
         # components that mimic CRN species.
+        self.attributes = []
         self.set_attributes(attributes)
 
         # Check to see if a subclass constructor has overwritten default
@@ -62,25 +59,28 @@ class Component(object):
         else:
             mixture_parameters = {}
 
-        parameters = create_parameter_dictionary(parameters, parameter_file)
-        self.update_parameters(mixture_parameters=mixture_parameters,
-                               parameters=parameters)
+        parameters = Parameter.create_parameter_dictionary(parameters, parameter_file)
+        self.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters)
 
-    #@property
-    def initial_concentration(self):
+    @property
+    def initial_concentration(self) -> int:
         return self._initial_conc
 
-    #@initial_concentration.setter
-    def initial_concentration(self, initial_conc):
+    @initial_concentration.setter
+    def initial_concentration(self, initial_conc: int):
         if initial_conc is None:
             self._initial_conc = initial_conc
         elif initial_conc < 0:
-            raise ValueError("Initial concentration must be non-negative, "
-                            f"this was given: {initial_conc}")
+            raise ValueError("Initial concentration must be non-negative, "f"this was given: {initial_conc}")
         else:
             self._initial_conc = initial_conc
 
+    # TODO implement abstractmethod
     def get_species(self):
+        """
+        the child class should implement this method
+        :return: empty list
+        """
         warn("get_species() not defined for component {self.name}, "
              "None returned.")
         return None
@@ -89,7 +89,6 @@ class Component(object):
         return str.__hash__(repr(self.get_species()))
 
     def set_attributes(self, attributes):
-        self.attributes = []
         for attribute in attributes:
             if isinstance(attribute, str):
                 self.attributes.append(attribute)
@@ -215,12 +214,22 @@ class Component(object):
                 warn(warning_txt)
             return return_val
 
+    # TODO implement abstractmethod
     def update_species(self):
+        """
+        the child class should implement this method
+        :return: empty list
+        """
         species = []
         warn("Unsubclassed update_species called for " + repr(self))
         return species
 
+    # TODO implement abstractmethod
     def update_reactions(self):
+        """
+        the child class should implement this method
+        :return: empty list
+        """
         reactions = []
         warn("Unsubclassed update_reactions called for " + repr(self))
         return reactions
@@ -270,7 +279,7 @@ class DNA(Component):
             parameter_warnings = True,
             **keywords
     ):
-        self.species = Species(self.name, material_type="dna",
+        self.species = Species(name, material_type="dna",
                                attributes=list(attributes))
         self._length = length
         Component.__init__(self=self, name=name, mechanisms=mechanisms,
@@ -358,9 +367,12 @@ class Protein(Component):
     def update_reactions(self):
         return []
 
-#A complex forms when two or more species bind together
-#Complexes inherit the attributes of their species
-class Complex(Component):
+
+class ChemicalComplex(Component):
+    """
+    A complex forms when two or more species bind together
+    Complexes inherit the attributes of their species
+    """
     def __init__(
             self, species,  # positional arguments
             name = None, #Override the default naming convention for a complex
