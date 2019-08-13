@@ -147,9 +147,8 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k,
         # species_id = species_sbml_id(species, model.getSBMLDocument())
 
         # What to do when there are multiple species with same name?
-        species_id = getSpeciesByName(model, species)
+        species_id = getSpeciesByName(model,species).getId()
         reactant = reaction.createReactant()
-        print(species_id)
         reactant.setSpecies(species_id)  # ! TODO: add error checking
         reactant.setConstant(False)
         reactant.setStoichiometry(stoichiometry)

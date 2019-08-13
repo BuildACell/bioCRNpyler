@@ -1,7 +1,4 @@
-#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
-#  See LICENSE file in the project root directory for details.
-
-from .txtl import BasicExtract
+from .extracts import BasicExtract
 from .mixture import Mixture
 from .dna_assembly import DNAassembly
 import csv
@@ -9,22 +6,22 @@ import libsbml
 import warnings
 
 class CRNLab(object):
-    """
+    '''
     Implements high level modeling akin to experimental TX-TL experiments
-    """
-    def __init__(self, name):
+    '''
+    def __init__(self, name = ''):
         self.Mixture = Mixture
         self.name = name
         self.volume = 0
         self.crn = None
 
     def mixture(self, name, **kwargs):
-        """
+        '''
         Create a Mixture of a given name into the CRNLab object
         Specify the extract and buffer optionally
         Specify extra parameters to be loaded as dictionaries optionally
-        """
-        extract = kwargs.get('extract')
+        '''
+        extract = kwargs.get('extract') 
         extract_parameters = kwargs.get('extract_parameters')
         extract_volume = kwargs.get('extract_volume')
         if kwargs.get('mixture_volume'):
@@ -64,17 +61,8 @@ class CRNLab(object):
         if volume:
             self.volume += volume
         # Look for extract config file of the given name
-        filename = name + str('.csv')
-        import csv
-        with open(filename, 'r') as f:
-            reader = csv.reader(f)
-            # Read off the parameters
-            params = {}
-            for row in reader:
-                temp = row[1].replace('.','',1).replace('e','',1).replace('-','',1)
-                if temp.isdigit():
-                    params[str(row[0])] = float(row[1])
-        if parameters:
+        if kwargs.get('parameters'):
+            parameters = kwargs.get('parameters')
             # If manually given
             filename = name + str('.csv')
             import csv
