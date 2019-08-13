@@ -1,4 +1,3 @@
-
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
@@ -6,10 +5,24 @@ from unittest import TestCase
 
 
 class TestMixture(TestCase):
+
+    def test_add_species(self):
+        from biocrnpyler import Mixture
+        from biocrnpyler import Species
+
+        species = Species('test_species')
+        mixture = Mixture()
+        mixture.add_species(species)
+
+        self.assertEqual([species], mixture.added_species)
+
+        with self.assertRaises(AssertionError):
+            mixture.add_species(['ok', 'ok'])
+
     def test_add_components(self):
         from biocrnpyler import Mixture
         from biocrnpyler import Component
-        # from biocrnpyler import Species
+        from biocrnpyler import Species
 
         mixture = Mixture()
         self.assertTrue(len(mixture.components) == 0)
@@ -18,10 +31,9 @@ class TestMixture(TestCase):
 
         self.assertTrue(component in mixture.components)
 
-        # species = Species('test_species')
-        # mixture.add_components(species)
-        #
-        # self.assertTrue(species in mixture.components)
+        species = Species('test_species')
+        with self.assertRaises(AssertionError):
+            mixture.add_components(species)
 
     def test_update_species(self):
         from biocrnpyler import Mixture
@@ -30,7 +42,7 @@ class TestMixture(TestCase):
         # from biocrnpyler import Dilution
 
         species = Species(name='H2O')
-        mixture = Mixture(components=[species])
+        mixture = Mixture(species=[species])
 
         self.assertTrue(species in mixture.update_species())
 
@@ -94,11 +106,9 @@ class TestMixture(TestCase):
 
         CRN = ChemicalReactionNetwork(species_list, [rxn])
 
-        mixture = Mixture(components=species_list)
+        mixture = Mixture(species=species_list)
         mixture.update_reactions = mock_update_reactions
 
         crn_from_mixture = mixture.compile_crn()
         self.assertEqual(CRN.species, crn_from_mixture.species)
         self.assertEqual(CRN.reactions, crn_from_mixture.reactions)
-
-

@@ -5,6 +5,7 @@ from warnings import warn as pywarn
 from .chemical_reaction_network import Species
 from .parameter import Parameter
 
+
 def warn(txt):
     pywarn(txt)
 
@@ -35,7 +36,6 @@ class Component(object):
         # Attributes can be used to store key words like protein deg-tags for
         # components that mimic CRN species.
         self.attributes = []
-        self.species = None
         self.set_attributes(attributes)
 
         # Check to see if a subclass constructor has overwritten default
@@ -103,13 +103,14 @@ class Component(object):
 
         self.attributes.append(attribute)
 
-        if self.species is not None:
+        if hasattr(self, 'species') and self.species is not None:
             self.species.add_attribute(attribute)
         else:
             raise Warning("Species was empty, did you call the right object?")
 
     def update_parameters(self, mixture_parameters = {}, parameters = {},
                           overwrite_custom_parameters = True):
+
         for p in parameters:
             if overwrite_custom_parameters or p not in self.custom_parameters:
                 self.parameters[p] = parameters[p]
