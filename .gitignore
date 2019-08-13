@@ -1,6 +1,7 @@
 
 venv/*
 .eggs/*
+.coverage
 biocrnpyler.egg-info/
 
 __pycache__/*

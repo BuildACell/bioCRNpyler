@@ -16,11 +16,11 @@ class CRNLab(object):
         self.crn = None
 
     def mixture(self, name, **kwargs):
-        '''
+        """
         Create a Mixture of a given name into the CRNLab object
         Specify the extract and buffer optionally
         Specify extra parameters to be loaded as dictionaries optionally
-        '''
+        """
         extract = kwargs.get('extract') 
         extract_parameters = kwargs.get('extract_parameters')
         extract_volume = kwargs.get('extract_volume')
