@@ -9,9 +9,12 @@
 
 from importlib import import_module
 
-# Load a model from a file
+
 def load_model(prefix, name, length):
-    # Look to see if we have a model for this component
+    """
+    Load a model from a file
+    Look to see if we have a model for this component
+    """
     #! Expand this to look in other locations
     model = None
     try:
@@ -19,7 +22,8 @@ def load_model(prefix, name, length):
                                (prefix.lower(), name.lower()))
         model = eval("module.%s_%s('name=%s', length=%d)" %
                      (prefix.lower(), name.lower(), name, length))
-        print("Warning: Eval Statements for Class Construction are being Depricated.")
+        print("Warning: Eval Statements for Class Construction are being "
+              "Depricated.")
 
     except ModuleNotFoundError as error:
         print(error)

@@ -8,7 +8,7 @@ parameters = {"kb": kb, "ku": ku, "ktx": ktx, "ktl": ktl, "kdeg": kdeg, "coopera
               # default params
               ("dCas9_binding", "kb"): kb_dcas_grna, ("dCas9_binding", "ku"): ku_dcas_rgna,
               # binding constants for gRNA and dCas9
-              ("dCas9_dna_binding", kb): kb_dcas_dna, ("dCas9_dna_binding", ku): ku_dcas_dna,
+              ("dCas9_dna_binding", "kb"): kb_dcas_dna, ("dCas9_dna_binding", "ku"): ku_dcas_dna,
               # binding constants for DNA and dcas-guide complex
               }
 
