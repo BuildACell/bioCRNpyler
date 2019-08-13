@@ -134,7 +134,6 @@ class TestChemicalReactionNetwork(TestCase):
         from biocrnpyler import Species
         from biocrnpyler import Reaction
 
-
         s1 = Species(name='test_species1')
         s2 = Species(name='test_species2')
 

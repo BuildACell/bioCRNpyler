@@ -24,13 +24,11 @@ class Species(object):
                  "called using the chemical_reaction_network.complex "
                  "constructor for attribute inheritance purposes.")
 
-        if attributes is None:
-            attributes = []
-        elif None in attributes:
-            while None in attributes:
-                attributes.remove(None)
+        self.attributes = []
 
-        self.attributes = attributes
+        if attributes is not None:
+            for attribute in attributes:
+                self.add_attribute(attribute)
 
     def __repr__(self):
         txt = self.material_type + "_" + self.name
@@ -42,10 +40,9 @@ class Species(object):
         return txt
 
     def add_attribute(self, attribute):
-        if isinstance(attribute, str):
-            self.attributes.append(attribute)
-        else:
-            raise ValueError("attribute must be a string")
+        assert isinstance(attribute, str) or attribute is None,  "Attribute: %s must be a string or None" % attribute
+
+        self.attributes.append(attribute)
 
     def __eq__(self, other):
         """
