@@ -12,7 +12,7 @@ examples/.ipynb_checkpoints/
 
 build/
 dist/
-
+htmlcov/
 
 Tests/bioscrape_test.sbml
 Tests/dcas9_repression_test.sbml
