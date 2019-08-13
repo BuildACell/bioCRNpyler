@@ -148,27 +148,63 @@ class Parameter(object):
 
             field_names = Parameter._get_field_names(csvreader.fieldnames, accepted_field_names)
 
+            if field_names['param_name'] is None:
+                warn('No param name column was found, could not load parameter')
+                return param_dict
+            if field_names['mechanism'] is None:
+                no_mechism_column = True
+            else:
+                no_mechism_column = False
+
+            if field_names['part_id'] is None:
+                no_part_id_column = True
+            else:
+                no_part_id_column = False
+
             for row in csvreader:
                 # TODO what about integers? float might cause numerical drift in simulations, e.g. cooperativity=2.001
                 param_value = float(row[field_names['param_val']])
-                if field_names['param_name'] is None:
+                # TODO test all these cases!
+                if row[field_names['param_name']] is None or len(row[field_names['param_name']]) == 0:
                     pass
-                elif field_names['mechanism'] is None and field_names['part_id'] is None:
+                elif no_mechism_column and no_part_id_column:
                     param_name = row[field_names['param_name']]
                     param_dict[param_name] = param_value
-                elif field_names['mechanism'] is None:
-                    part_id = row[field_names['part_id']]
-                    param_name = row[field_names['param_name']]
-                    param_dict[(part_id, param_name)] = param_value
-                elif field_names['part_id'] is None:
-                    mech_name = row[field_names['mechanism']]
-                    param_name = row[field_names['param_name']]
-                    param_dict[(mech_name, param_name)] = param_value
+                elif no_mechism_column and no_part_id_column is False:
+                    if row[field_names['part_id']] is not None and len(row[field_names['part_id']]) > 0:
+                        part_id = row[field_names['part_id']]
+                        param_name = row[field_names['param_name']]
+                        param_dict[(part_id, param_name)] = param_value
+                    else:
+                        param_name = row[field_names['param_name']]
+                        param_dict[param_name] = param_value
+                elif no_part_id_column and no_mechism_column is False:
+                    if row[field_names['mechanism']] is not None and len(row[field_names['mechanism']]) > 0:
+                        mech_name = row[field_names['mechanism']]
+                        param_name = row[field_names['param_name']]
+                        param_dict[(mech_name, param_name)] = param_value
+                    else:
+                        param_name = row[field_names['param_name']]
+                        param_dict[param_name] = param_value
                 else:
-                    part_id = row[field_names['part_id']]
-                    mech_name = row[field_names['mechanism']]
-                    param_name = row[field_names['param_name']]
-                    param_dict[(mech_name, part_id, param_name)] = param_value
+                    if row[field_names['part_id']] is not None and len(row[field_names['part_id']]) > 0:
+                        if row[field_names['mechanism']] is not None and len(row[field_names['mechanism']]) > 0:
+                            part_id = row[field_names['part_id']]
+                            mech_name = row[field_names['mechanism']]
+                            param_name = row[field_names['param_name']]
+                            param_dict[(mech_name, part_id, param_name)] = param_value
+                        else:
+                            part_id = row[field_names['part_id']]
+                            param_name = row[field_names['param_name']]
+                            param_dict[(part_id, param_name)] = param_value
+                    else:
+                        if row[field_names['mechanism']] is not None and len(row[field_names['mechanism']]) > 0:
+                            mech_name = row[field_names['mechanism']]
+                            param_name = row[field_names['param_name']]
+                            param_dict[(mech_name, param_name)] = param_value
+                        else:
+                            param_name = row[field_names['param_name']]
+                            param_dict[param_name] = param_value
 
         return param_dict
 
