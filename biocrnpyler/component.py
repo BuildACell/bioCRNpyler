@@ -35,6 +35,7 @@ class Component(object):
         # Attributes can be used to store key words like protein deg-tags for
         # components that mimic CRN species.
         self.attributes = []
+        self.species = None
         self.set_attributes(attributes)
 
         # Check to see if a subclass constructor has overwritten default
@@ -96,12 +97,16 @@ class Component(object):
                 raise RuntimeError("Invalid Attribute: {repr_attribute} "
                                    "attributes must be strings")
 
+    # TODO merge set_attribute and add_attribute
     def add_attribute(self, attribute):
-        if isinstance(attribute, str):
-            self.attributes.append(attribute)
+        assert isinstance(attribute, str), "Attribute: %s must be a str" % attribute
+
+        self.attributes.append(attribute)
+
+        if self.species is not None:
             self.species.add_attribute(attribute)
         else:
-            raise ValueError("Attribute must be a str")
+            raise Warning("Species was empty, did you call the right object?")
 
     def update_parameters(self, mixture_parameters = {}, parameters = {},
                           overwrite_custom_parameters = True):
