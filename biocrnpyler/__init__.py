@@ -10,7 +10,7 @@ from .global_mechanism import *
 from .dcas9 import *
 
 # Core components
-from .txtl import *
+from .extracts import *
 from .dna_assembly import *
 from .crnlab import *
 
