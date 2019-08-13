@@ -15,16 +15,16 @@ class TestSpecies(TestCase):
         species = Species(name='test_species')
         self.assertTrue(isinstance(species.attributes, list))
 
-        species = Species(name='test_species', attributes=[None, None, None])
-
-        self.assertTrue(None not in species.attributes)
+        attr_list = ['atr1', 'atr2']
+        species = Species(name='test_species', attributes=attr_list)
+        self.assertEqual(attr_list, species.attributes)
 
     def test_add_attribute(self):
         from biocrnpyler import Species
 
         species = Species(name='test_species')
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AssertionError):
             species.add_attribute({'k': 'v'})
 
         species.add_attribute('attribute')
