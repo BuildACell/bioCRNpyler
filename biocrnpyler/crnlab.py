@@ -52,16 +52,12 @@ class CRNLab(object):
         #     self.buffer(extract, parameters = buffer_parameters, volume = buffer_volume, **kwargs)
         return self.Mixture
 
-    def extract(self, name, volume = 0, **kwargs):
-        '''
-        Create BasicExtract with the given name 
+    def extract(self, name, parameters = {}, volume = 0, **kwargs):
+        """
+        Create BasicExtract with the given name
         (Searches for the name.csv in the current folder to load parameters)
         Optionally load other parameters as dictionary.
-        '''
-        initial_concentration_dict = kwargs.get('initial_concentration_dict')
-        if not initial_concentration_dict:
-            # Set default values here
-            initial_concentration_dict = {"protein_Ribo":10, "protein_RNAP":5, "protein_RNAase":2.5}
+        """
         if volume:
             self.volume += volume
         # Look for extract config file of the given name
@@ -79,10 +75,9 @@ class CRNLab(object):
                     if temp.isdigit():
                         params[str(row[0])] = float(row[1])
             params = parameters
-            extract_mix = BasicExtract(self.name, parameters = params, 
-                                        init = initial_concentration_dict, **kwargs)
+            extract_mix = BasicExtract(self.name, parameters = params, **kwargs)
         else:
-            extract_mix = BasicExtract(self.name, init = initial_concentration_dict, **kwargs)
+            extract_mix = BasicExtract(self.name, **kwargs)
         self.Mixture = extract_mix
         return self.Mixture
 
