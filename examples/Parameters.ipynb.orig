@@ -1,0 +1,387 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Parameter File Overview:\n",
+    "Parameter files can be TSVs or CSVs. The first line of the file should contain column headings. The following headings are required (in any order): mechanism_id, part_id, param_name, param_val (spaces can be substituted for underscores and headings are not case sensitive). mechanism_id is the name of the Mechanism or the kind of mechanism that will use this parameter, for example \"transcription\" or  \"transcription_mm\" for Mechalis-Menten transcription would go in this column. part_id refers to the name of the Component that will use this mechanism, for example \"ptet\" for a tet repressed promoter. param_name refers to the name of the model parameter, for example \"ktx\", \"kb\", or \"ku\". The value of these columns is case sensitive and underscores are different from spaces.\n",
+    "\n",
+    "#### Parameter Value Defaulting:\n",
+    "Not all parameters need to have the required headings. The only two required columns are \"param_val\" and \"param_name\". BioCRNpyler uses a form of parameter name defaulting discussed below to find default parameters if no exact match is in the config file. This makes it easy to set default parameters for things like \"ku\" and \"ktx\" to quickly build models.\n",
+    "\n",
+    "#### Parameters inside BioCRNpyler:\n",
+    "Inside of bioCRNpyler, parameters are stored as a dictionary key value pair: (mechanism_name, part_id, param_name) --> param_val. If that particular parameter key cannot be found, the software will default to the following keys: (mechanism_type, part_id, param_name) >> (part_id, param_name) >> (mechanism_name, param_name) >> (mechanism_type, param_name) >>(param_name) and give a warning. As a note, mechanism_name refers to the .name variable of a Mechanism. mechanism_type refers to the .type variable of a Mechanism. Either of these can be used as a mechanism_id. This allows for models to be constructed easily using default parameter values and for parameters to be shared between different Mechanisms and/or Components.\n",
+    "\n",
+    "#### Multiple Parameter Files:\n",
+    "Components and Mixtures can both have one more multiple parameter files by passing in a list of filenames instead of a single filename to the parameter_file keyword. Components use parameters loaded from their file(s) before defaulting to the file(s) supplied to a Mixture. The last file in any list will take precedent and overwrite parameter files which were written earlier.\n",
+    "\n",
+    "#### Suppressing warnings\n",
+    "To suppress parameter warnings, use the keyword parameter_warnings = False inside a Mixture or Component constructor.\n",
+    "\n",
+    "Below is an example csv with all the parameters for a tetR promoter undergoing Michalis Menten transcription and translation."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 1. The Parameter File\n",
+    "In the following cell we look at an example parameter file that will run with no parameter defaulting."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "****Parameter File****\n",
+      "mechanism_id\tpart_id\tparam_name\tparam_val\tcomments\n",
+      "transcription_mm\tptet_tetR\tkb\t10.\textra columns are okay!\n",
+      "transcription_mm\tptet_tetR\tku\t.1\tThese are the parameters for transcription\n",
+      "transcription_mm\tptet_tetR\tktx\t1.\t\t\n",
+      "transcription_mm\tptet\tktx\t.1\tThese are the parameters for transcription leak\n",
+      "transcription_mm\tptet\tku\t.1\t\t\n",
+      "transcription_mm\tptet\tkb\t.1\t\t\n",
+      "one_step_cooperative_binding\tptet_tetR\tku\t.1\tThese are parameters for tetR dimerization and binding with the promoter\t\n",
+      "one_step_cooperative_binding\tptet_tetR\tkb\t.1\n",
+      "one_step_cooperative_binding\tptet_tetR\tcooperativity\t2\n",
+      "translation_mm\tBCD\tktl\t2.0\tThese are parameters for translation\n",
+      "translation_mm\tBCD\tku\t.25\t\t\n",
+      "translation_mm\tBCD\tkb\t10\n",
+      "rna_degredation_mm\t\tkb\t10\tThese are parameters for RNA degredation. \n",
+      "rna_degredation_mm\t\tku\t.5\tThey will be the same for all RNAs because of parameter defaulting.\n",
+      "rna_degredation_mm\t\tkdeg\t1.5\t\t\n",
+      "\n",
+      "****Loaded Parameters****\n",
+      "param_dict[('transcription_mm', 'ptet_tetR', 'kb')] =  10.0\n",
+      "param_dict[('transcription_mm', 'ptet_tetR', 'ku')] =  0.1\n",
+      "param_dict[('transcription_mm', 'ptet_tetR', 'ktx')] =  1.0\n",
+      "param_dict[('transcription_mm', 'ptet', 'ktx')] =  0.1\n",
+      "param_dict[('transcription_mm', 'ptet', 'ku')] =  0.1\n",
+      "param_dict[('transcription_mm', 'ptet', 'kb')] =  0.1\n",
+      "param_dict[('one_step_cooperative_binding', 'ptet_tetR', 'ku')] =  0.1\n",
+      "param_dict[('one_step_cooperative_binding', 'ptet_tetR', 'kb')] =  0.1\n",
+      "param_dict[('one_step_cooperative_binding', 'ptet_tetR', 'cooperativity')] =  2.0\n",
+      "param_dict[('translation_mm', 'BCD', 'ktl')] =  2.0\n",
+      "param_dict[('translation_mm', 'BCD', 'ku')] =  0.25\n",
+      "param_dict[('translation_mm', 'BCD', 'kb')] =  10.0\n",
+      "param_dict[('rna_degredation_mm', 'kb')] =  10.0\n",
+      "param_dict[('rna_degredation_mm', 'ku')] =  0.5\n",
+      "param_dict[('rna_degredation_mm', 'kdeg')] =  1.5\n",
+      "\n",
+      "****Resulting CRN****\n",
+      "Species = rna_reporter, complex_protein_RNAP_dna_reporter, dna_reporter, protein_reporter, complex_protein_2.0xtetR_dna_reporter, complex_protein_RNAase_rna_reporter, complex_protein_RNAP_protein_2.0xtetR_dna_reporter, complex_protein_Ribo_rna_reporter, protein_tetR, protein_RNAP, protein_Ribo, protein_RNAase\n",
+      "Reactions = [\n",
+      "\tdna_reporter + protein_RNAP <--> complex_protein_RNAP_dna_reporter        massaction: k_f=0.1,\tk_r=0.1\n",
+      "\tcomplex_protein_RNAP_dna_reporter --> dna_reporter + rna_reporter + protein_RNAP        massaction: k_f=self.k\n",
+      "\t2.0*protein_tetR + dna_reporter <--> complex_protein_2.0xtetR_dna_reporter        massaction: k_f=0.1,\tk_r=0.1\n",
+      "\tcomplex_protein_2.0xtetR_dna_reporter + protein_RNAP <--> complex_protein_RNAP_protein_2.0xtetR_dna_reporter        massaction: k_f=10.0,\tk_r=0.1\n",
+      "\tcomplex_protein_RNAP_protein_2.0xtetR_dna_reporter --> complex_protein_2.0xtetR_dna_reporter + rna_reporter + protein_RNAP        massaction: k_f=self.k\n",
+      "\trna_reporter + protein_Ribo <--> complex_protein_Ribo_rna_reporter        massaction: k_f=10.0,\tk_r=0.25\n",
+      "\tcomplex_protein_Ribo_rna_reporter --> rna_reporter + protein_reporter + protein_Ribo        massaction: k_f=self.k\n",
+      "\trna_reporter + protein_RNAase <--> complex_protein_RNAase_rna_reporter        massaction: k_f=10.0,\tk_r=0.5\n",
+      "\tcomplex_protein_RNAase_rna_reporter --> protein_RNAase        massaction: k_f=self.k\n",
+      "]\n"
+     ]
+    }
+   ],
+   "source": [
+    "from biocrnpyler import *\n",
+    "perfect_param_file_name = \"Perfect Param File Example.tsv\"\n",
+    "\n",
+    "#Open and print the parameter file\n",
+    "param_file = open(perfect_param_file_name)\n",
+    "print(\"****Parameter File****\")\n",
+    "print(param_file.read())\n",
+    "param_file.close()\n",
+    "\n",
+    "\n",
+    "#Create a Regulated Promoter\n",
+    "Ptet = RegulatedPromoter(\"ptet\", regulators=[\"tetR\"], leak=True)\n",
+    "reg_rep_assembly = DNAassembly(name=\"reporter\", promoter=Ptet, rbs=\"BCD\")\n",
+    "tet = Protein(\"tetR\")\n",
+    "components = [reg_rep_assembly, tet]\n",
+    "myMixture = BasicExtract(name=\"txtl\", parameter_file = perfect_param_file_name, components=components, parameter_warnings=True)\n",
+    "\n",
+    "\n",
+    "#Print the parameter dictionary created from the file\n",
+    "print(\"\\n****Loaded Parameters****\")\n",
+    "for k in myMixture.parameters:\n",
+    "    print(\"param_dict[\"+repr(k)+\"] = \", myMixture.parameters[k])\n",
+    "    \n",
+    "print(\"\\n****Resulting CRN****\")\n",
+    "print(myMixture.compile_crn())\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We will now look at an example of a parameter file that uses defaulting. If you were to fill in this file with full parameter signatures (mechanism_id, part_id, param_name, value), the errors at the bottom of the readout would slowly diminish. However, even without full values the file loads and runs. Although this example uses only the key \"param_name\" for default values, there exists a heirarchy of keys to allow for shared parameters between different Components and Mechanisms.\n",
+    "\n",
+    "The parameter key heirarchy (top takes priority):\n",
+    "1) (mechanism_name, part_id, param_name)\n",
+    "2) (mechanism_type, part_id, param_name)\n",
+    "3) (part_id, param_name)\n",
+    "4) (mechanism_name, param_name)\n",
+    "5) (mechanism_type, param_name)\n",
+    "6) (param_name)\n",
+    "\n",
+    "here the column \"mechanism_type\" can either be a Mechanism's type string Mechanism.type (eg \"transcription\") or its name string Mechanism.name (eg \"transcription_mm\"). "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "****Parameter File****\n",
+      "param_name\tparam_val\tcomments\tmechanism_id\tpart_id\n",
+      "ku\t1.0\tAny parameter called ku will default to this\t\t\n",
+      "kb\t1.0\tDefault kb\t\t\n",
+      "ktx\t2.0\tDefault ktx\t\t\n",
+      "ktl\t3.0\tDefault ktl\t\t\n",
+      "cooperativity\t2.0\tDefault cooperativity\t\t\n",
+      "kdeg\t.5\tDefault degredation\t\t\n",
+      "\n",
+      "****Loaded Parameters****\n",
+      "param_dict['ku'] =  1.0\n",
+      "param_dict['kb'] =  1.0\n",
+      "param_dict['ktx'] =  2.0\n",
+      "param_dict['ktl'] =  3.0\n",
+      "param_dict['cooperativity'] =  2.0\n",
+      "param_dict['kdeg'] =  0.5\n",
+      "\n",
+      "****Resulting CRN****\n",
+      "Species = rna_reporter, complex_protein_RNAP_dna_reporter, dna_reporter, protein_reporter, complex_protein_2.0xtetR_dna_reporter, complex_protein_RNAase_rna_reporter, complex_protein_RNAP_protein_2.0xtetR_dna_reporter, complex_protein_Ribo_rna_reporter, protein_tetR, protein_RNAP, protein_Ribo, protein_RNAase\n",
+      "Reactions = [\n",
+      "\tdna_reporter + protein_RNAP <--> complex_protein_RNAP_dna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_RNAP_dna_reporter --> dna_reporter + rna_reporter + protein_RNAP        massaction: k_f=self.k\n",
+      "\t2.0*protein_tetR + dna_reporter <--> complex_protein_2.0xtetR_dna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_2.0xtetR_dna_reporter + protein_RNAP <--> complex_protein_RNAP_protein_2.0xtetR_dna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_RNAP_protein_2.0xtetR_dna_reporter --> complex_protein_2.0xtetR_dna_reporter + rna_reporter + protein_RNAP        massaction: k_f=self.k\n",
+      "\trna_reporter + protein_Ribo <--> complex_protein_Ribo_rna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_Ribo_rna_reporter --> rna_reporter + protein_reporter + protein_Ribo        massaction: k_f=self.k\n",
+      "\trna_reporter + protein_RNAase <--> complex_protein_RNAase_rna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_RNAase_rna_reporter --> protein_RNAase        massaction: k_f=self.k\n",
+      "]\n"
+     ]
+    }
+   ],
+   "source": [
+    "from biocrnpyler import *\n",
+    "default_param_file_name = \"Default Param File Example.tsv\"\n",
+    "\n",
+    "#Open and print the parameter file\n",
+    "param_file = open(default_param_file_name)\n",
+    "print(\"****Parameter File****\")\n",
+    "print(param_file.read())\n",
+    "param_file.close()\n",
+    "\n",
+    "\n",
+    "#Create a Regulated Promoter\n",
+    "Ptet = RegulatedPromoter(\"ptet\", regulators=[\"tetR\"], leak=True)\n",
+    "reg_rep_assembly = DNAassembly(name=\"reporter\", promoter=Ptet, rbs=\"BCD\")\n",
+    "tet = Protein(\"tetR\")\n",
+    "components = [reg_rep_assembly, tet]\n",
+    "\n",
+    "myMixture = BasicExtract(name=\"txtl\", parameter_file = default_param_file_name, components=components, parameter_warnings=False)\n",
+    "\n",
+    "#To Run With Parameter Warnings, change the keyword parameter_warnings = True\n",
+    "#myMixture = BasicExtract(name=\"txtl\", parameter_file = default_param_file_name, components=components, parameter_warnings=True)\n",
+    "\n",
+    "\n",
+    "#Print the parameter dictionary created from the file\n",
+    "print(\"\\n****Loaded Parameters****\")\n",
+    "for k in myMixture.parameters:\n",
+    "    print(\"param_dict[\"+repr(k)+\"] = \", myMixture.parameters[k])\n",
+    "    \n",
+    "print(\"\\n****Resulting CRN****\")\n",
+    "print(myMixture.compile_crn())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Setting Parameters at the component level\n",
+    "Components can have their own parameter files instead of relying on the parameter files passed into a mixture. Components can also have the mixtures default parameters overwritten with a parameter dictionary. Below, we will create a DNAassembly which has custom parameters loaded in as a dictionary (this works the same as loading them with a file). We will put this in a Mixture with the default parameters from the above example. There are now many fewer parameter warnings as well. This example also helps illustrate how the parameter loading heirarchy works if you examine the final CRNs."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Species = rna_reporter, complex_protein_RNAP_dna_reporter, dna_reporter, protein_reporter, complex_protein_2.0xtetR_dna_reporter, complex_protein_RNAase_rna_reporter, complex_protein_RNAP_protein_2.0xtetR_dna_reporter, complex_protein_Ribo_rna_reporter, protein_tetR, protein_RNAP, protein_Ribo, protein_RNAase\n",
+      "Reactions = [\n",
+      "\tdna_reporter + protein_RNAP <--> complex_protein_RNAP_dna_reporter        massaction: k_f=0.3333,\tk_r=33.33\n",
+      "\tcomplex_protein_RNAP_dna_reporter --> dna_reporter + rna_reporter + protein_RNAP        massaction: k_f=self.k\n",
+      "\t2.0*protein_tetR + dna_reporter <--> complex_protein_2.0xtetR_dna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_2.0xtetR_dna_reporter + protein_RNAP <--> complex_protein_RNAP_protein_2.0xtetR_dna_reporter        massaction: k_f=0.3333,\tk_r=33.33\n",
+      "\tcomplex_protein_RNAP_protein_2.0xtetR_dna_reporter --> complex_protein_2.0xtetR_dna_reporter + rna_reporter + protein_RNAP        massaction: k_f=self.k\n",
+      "\trna_reporter + protein_Ribo <--> complex_protein_Ribo_rna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_Ribo_rna_reporter --> rna_reporter + protein_reporter + protein_Ribo        massaction: k_f=self.k\n",
+      "\trna_reporter + protein_RNAase <--> complex_protein_RNAase_rna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_RNAase_rna_reporter --> protein_RNAase        massaction: k_f=self.k\n",
+      "]\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Create custom parameter dictionary for the ptet promoter. In this case, we will add specific leak parameters and\n",
+    "ra_param_dict = {\n",
+    "    (\"transcription_mm\", \"ku\"):33.33, #These parameters will take priority over single key parameters\n",
+    "    (\"transcription_mm\", \"kb\"):.3333, \n",
+    "    (\"transcription_mm\", \"ktx\"):3.333, \n",
+    "    (\"transcription_mm\", \"ptet_leak\", \"ku\"):111.1, #these parameters will take priority over the ones above\n",
+    "    (\"transcription_mm\", \"ptet_leak\", \"kb\"):.1111, \n",
+    "}\n",
+    "\n",
+    "#Use the parameter_file keyword to update the parameters with a file.\n",
+    "#Use the parameters keyword to update the parameters with a dictionary\n",
+    "#If Use both: the dictionary takes precedent to the file if there are conflicts.\n",
+    "Ptet = RegulatedPromoter(\"ptet\", regulators=[\"tetR\"], leak=True, parameters = ra_param_dict)\n",
+    "reg_rep_assembly = DNAassembly(name=\"reporter\", promoter=Ptet, rbs=\"BCD\")\n",
+    "tet = Protein(\"tetR\")\n",
+    "components = [reg_rep_assembly, tet]\n",
+    "myMixture = BasicExtract(name=\"txtl\", parameter_file = default_param_file_name, components=components, parameter_warnings = False)\n",
+    "\n",
+    "myCRN = myMixture.compile_crn()\n",
+    "print(myCRN)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Suppressing warnings:\n",
+    "We can see when default parameters are loaded by toggling the 'parameter_warnings' keyword for a Mixture or a Component. By default this is set to None for Mixtures, which means warnings can be toggled at the Component level. If set to True/False for a Mixture, this will supersede the Component level toggling. The default setting for Component is parameter_warnings = True. Below if you change the parameter warnings for various Components or the Mixture, the warning messages printed will change/disappear.\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Species = rna_reporter, dna_reporter, protein_reporter, complex_protein_2.0xtetR_dna_reporter, complex_protein_RNAase_rna_reporter, complex_protein_RNAP_protein_2.0xtetR_dna_reporter, complex_protein_Ribo_rna_reporter, protein_tetR, protein_RNAP, protein_Ribo, protein_RNAase\n",
+      "Reactions = [\n",
+      "\t2.0*protein_tetR + dna_reporter <--> complex_protein_2.0xtetR_dna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_2.0xtetR_dna_reporter + protein_RNAP <--> complex_protein_RNAP_protein_2.0xtetR_dna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_RNAP_protein_2.0xtetR_dna_reporter --> complex_protein_2.0xtetR_dna_reporter + rna_reporter + protein_RNAP        massaction: k_f=self.k\n",
+      "\trna_reporter + protein_Ribo <--> complex_protein_Ribo_rna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_Ribo_rna_reporter --> rna_reporter + protein_reporter + protein_Ribo        massaction: k_f=self.k\n",
+      "\trna_reporter + protein_RNAase <--> complex_protein_RNAase_rna_reporter        massaction: k_f=1.0,\tk_r=1.0\n",
+      "\tcomplex_protein_RNAase_rna_reporter --> protein_RNAase        massaction: k_f=self.k\n",
+      "]\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=cooperativity and part_id=ptet_tetR and mechanism=one_step_cooperative_binding. Parameter found under the key param_name=cooperativity\n",
+      "  pywarn(txt)\n",
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=ktx and part_id=ptet_tetR and mechanism=transcription_mm. Parameter found under the key param_name=ktx\n",
+      "  pywarn(txt)\n",
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=ku and part_id=ptet_tetR and mechanism=transcription_mm. Parameter found under the key param_name=ku\n",
+      "  pywarn(txt)\n",
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=kb and part_id=ptet_tetR and mechanism=transcription_mm. Parameter found under the key param_name=kb\n",
+      "  pywarn(txt)\n",
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=ku and part_id=ptet_tetR and mechanism=one_step_cooperative_binding. Parameter found under the key param_name=ku\n",
+      "  pywarn(txt)\n",
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=kb and part_id=ptet_tetR and mechanism=one_step_cooperative_binding. Parameter found under the key param_name=kb\n",
+      "  pywarn(txt)\n",
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=ktl and part_id=BCD and mechanism=translation_mm. Parameter found under the key param_name=ktl\n",
+      "  pywarn(txt)\n",
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=kb and part_id=BCD and mechanism=translation_mm. Parameter found under the key param_name=kb\n",
+      "  pywarn(txt)\n",
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=ku and part_id=BCD and mechanism=translation_mm. Parameter found under the key param_name=ku\n",
+      "  pywarn(txt)\n",
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=ku and part_id=None and mechanism=rna_degredation_mm. Parameter found under the key param_name=ku\n",
+      "  pywarn(txt)\n",
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=kb and part_id=None and mechanism=rna_degredation_mm. Parameter found under the key param_name=kb\n",
+      "  pywarn(txt)\n",
+      "/Users/sclamons/Downloads/biocrnpyler_local/biocrnpyler/component.py:8: UserWarning: No Parameter found with param_name=kdeg and part_id=None and mechanism=rna_degredation_mm. Parameter found under the key param_name=kdeg\n",
+      "  pywarn(txt)\n"
+     ]
+    }
+   ],
+   "source": [
+    "Ptet = RegulatedPromoter(\"ptet\", regulators=[\"tetR\"], leak=False)\n",
+    "reg_rep_assembly = DNAassembly(name=\"reporter\", promoter=Ptet, rbs=\"BCD\", parameter_warnings = True)\n",
+    "tet = Protein(\"tetR\")\n",
+    "components = [reg_rep_assembly, tet]\n",
+    "myMixture = BasicExtract(name=\"txtl\", parameter_warnings = None, parameter_file = default_param_file_name, components=components)\n",
+    "\n",
+    "myCRN = myMixture.compile_crn()\n",
+    "\n",
+    "print(myCRN)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+<<<<<<< HEAD
+   "version": "3.6.5"
+=======
+   "version": "3.6.0"
+>>>>>>> 22494056c8370a12dc6b8dc5baed6f9d75edc59e
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
