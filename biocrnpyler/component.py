@@ -5,6 +5,7 @@ from warnings import warn as pywarn
 from .chemical_reaction_network import Species
 from .parameter import Parameter
 
+
 def warn(txt):
     pywarn(txt)
 
@@ -96,15 +97,20 @@ class Component(object):
                 raise RuntimeError("Invalid Attribute: {repr_attribute} "
                                    "attributes must be strings")
 
+    # TODO merge set_attribute and add_attribute
     def add_attribute(self, attribute):
-        if isinstance(attribute, str):
-            self.attributes.append(attribute)
+        assert isinstance(attribute, str), "Attribute: %s must be a str" % attribute
+
+        self.attributes.append(attribute)
+
+        if hasattr(self, 'species') and self.species is not None:
             self.species.add_attribute(attribute)
         else:
-            raise ValueError("Attribute must be a str")
+            raise Warning("Species was empty, did you call the right object?")
 
     def update_parameters(self, mixture_parameters = {}, parameters = {},
                           overwrite_custom_parameters = True):
+
         for p in parameters:
             if overwrite_custom_parameters or p not in self.custom_parameters:
                 self.parameters[p] = parameters[p]

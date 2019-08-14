@@ -49,6 +49,21 @@ class TestComponent(TestCase):
             attr_list = [5, 2]
             component.set_attributes(attr_list)
 
+    def test_add_attribute(self):
+
+        from biocrnpyler import Component
+        comp_name = 'test_component'
+
+        component = Component(name=comp_name, mechanisms={}, parameters={}, parameter_file=None,
+                              mixture=None, attributes=[], initial_conc=0, parameter_warnings=True)
+
+        with self.assertRaises(AssertionError):
+            component.add_attribute(2)
+
+        attr = 'atr1'
+        with self.assertRaises(Warning):
+            component.add_attribute(attr)
+
     def test_update_parameters(self):
         from biocrnpyler import Component
         comp_name = 'test_component'

@@ -8,13 +8,14 @@ from warnings import resetwarnings
 from .component import Component
 from .chemical_reaction_network import ChemicalReactionNetwork, Species, Reaction
 from .parameter import Parameter
-from typing import List
+from typing import List, Union
 
 
 class Mixture(object):
     def __init__(self, name="", mechanisms={}, components = [], parameters = {},
                  parameter_file = None, default_mechanisms = {},
                  global_mechanisms = {}, default_components = [],
+                 species = [],
                  parameter_warnings = None, **kwargs):
         """
         A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
@@ -70,36 +71,38 @@ class Mixture(object):
         # if chemical_reaction_network.species objects are passed in as
         # components they are stored here
         self.added_species = []
-        for component in components+default_components:
-            if isinstance(component, Component):
-                self.add_components(component)
-
-            elif isinstance(component, Species):
-                self.added_species += [component]
-
-            else:
-                raise ValueError("Objects passed into mixture as Components "
-                                 "must be of the class Component or "
-                                 "chemical_reaction_network.species")
+        # process the species
+        self.add_species(species)
+        # TODO find out why do we need default_components!
+        # process the components
+        self.add_components(components+default_components)
 
         # internal lists for the species and reactions
         self.crn_species = None
         self.crn_reactions = None
 
+    def add_species(self, species: Union[List[Species], Species]):
+        if not isinstance(species, list):
+            species_list = [species]
+        else:
+            species_list = species
+
+        assert all(isinstance(x, Species) for x in species_list), 'only Species type is accepted!'
+
+        self.added_species += species_list
+
     def add_components(self, components):
-        if isinstance(components, Component):
+        if not isinstance(components, list):
             components = [components]
 
         for component in components:
-            if isinstance(component, Component):
-                self.components.append(component)
-                component.update_mechanisms(mixture_mechanisms=self.mechanisms)
-                component.update_parameters(mixture_parameters=self.parameters)
-                if self.parameter_warnings is not None:
-                    component.set_parameter_warnings(self.parameter_warnings)
-            else:
-                warn("Non-component added to mixture "+self.name,
-                     RuntimeWarning)
+            assert isinstance(component, Component), \
+                "the object: %s passed into mixture as component must be of the class Component" % str(component)
+            self.components.append(component)
+            component.update_mechanisms(mixture_mechanisms=self.mechanisms)
+            component.update_parameters(mixture_parameters=self.parameters)
+            if self.parameter_warnings is not None:
+                component.set_parameter_warnings(self.parameter_warnings)
 
     def update_species(self) -> List[Species]:
         """ it generates the list of species based on all the mechanisms and global mechanisms
