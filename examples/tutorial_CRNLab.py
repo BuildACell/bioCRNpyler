@@ -7,7 +7,7 @@ import numpy as np
 
 txtl = CRNLab("txtl_gfp")
 
-txtl.mixture("mixture1", extract = "test_extract", extract_volume = 1e-6)
+txtl.mixture("mixture1", extract = "BasicExtract", mixture_parameters = "BasicExtract.tsv", mixture_volume = 1e-6)
 
 # OR, Optionally, do the following, 
 # initial_concentration_dict = {"protein_Ribo":10, "protein_RNAP":5, "protein_RNAase":2.5} # If not, default values will be used
