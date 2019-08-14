@@ -1,12 +1,12 @@
 from biocrnpyler import *
 
 #Create a simple CRN
-s1 = Specie("G", type="DNA") #A species "G" of type "DNA"
-s1double = Specie("G", type ="DNA") #G double species of the same name should be automatically removed
+s1 = Species(name="G",  material_type="DNA") #A species "G" of type "DNA"
+s1double = Species("G",  material_type ="DNA") #G double species of the same name should be automatically removed
 
-s2 = Specie("R", type="protein") #A species "R" of type "DNA"
-s3 = Specie("R", type ="dimer") #Two species with the same name but different types are formally different
-s4 = Specie("R", type="protein", attributes = ["deg"]) #Two species with the same name and type but different attributes are formally different
+s2 = Species(name="R",  material_type="protein") #A species "R" of type "DNA"
+s3 = Species(name="R",  material_type ="dimer") #Two species with the same name but different types are formally different
+s4 = Species(name="R",  material_type="protein", attributes = ["deg"]) #Two species with the same name and type but different attributes are formally different
 
 #Create Reactions
 #DNA_G --> DNA_G + protein_R @ k=1
