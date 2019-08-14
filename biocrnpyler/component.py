@@ -45,7 +45,6 @@ class Component(object):
 
         self.custom_mechanisms = {}
         self.mechanisms = {}
-        self.species = None
         if mixture is not None:
             mixture_mechanisms = mixture.mechanisms
         else:
@@ -205,13 +204,13 @@ class Component(object):
         if param_name in self.parameters and return_val is None:
             return_val = self.parameters[param_name]
             if mechanism is not None or part_id is not None:
-                warning_txt = (f"No Parameter found with "
+                warning_txt = (f"No parameter found with "
                                f"param_name={param_name} and part_id={part_id} "
                                f"and mechanism={repr(mechanism)}. Parameter "
                                f"found under the key param_name={param_name}")
         if return_val is None:
-            raise ValueError("No Parameters can be found that match the "
-                             "(mechanism, param_id, "
+            raise ValueError("No parameters can be found that match the "
+                             "(mechanism, part_id, "
                             f"param_name)=({repr(mechanism)}, {part_id}, "
                             f"{param_name})")
 

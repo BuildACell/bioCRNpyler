@@ -153,8 +153,8 @@ class Transcription_MM(MichalisMentenCopyRXN):
             self.rnap = rnap.get_species()
         else:
             raise ValueError(
-                "'rnap' parameter must be a string, a with defined "
-                "get_species(), or a chemical_reaction_network.species")
+                "'rnap' parameter must be a string or a Component with defined "
+                "get_species(), or a chemical_reaction_network.Species object")
 
         MichalisMentenCopyRXN.__init__(self=self, name=name, enzyme=self.rnap,
                                        mechanism_type="transcription")

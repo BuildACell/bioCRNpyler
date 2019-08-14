@@ -37,8 +37,8 @@ class CRNLab(object):
         mixture_parameters = kwargs.get('mixture_parameters')
         if not mixture_parameters:
             if self.warning_print or kwargs['parameter_warnings']:
-                warnings.warn('Using {0} file for parameters of {1}'.format(extract + '.tsv', self.name))
-            kwargs['parameter_file'] = extract + '.tsv'
+                warnings.warn('Using default parameters for the mixture {0}'.format(self.name))
+            # kwargs['parameter_file'] = extract + '.tsv'
         elif 'mixture_parameters' in kwargs:
             kwargs['parameter_file'] = mixture_parameters
         if kwargs.get('mixture_volume'):
@@ -53,15 +53,19 @@ class CRNLab(object):
                 warnings.warn('Default volume of 1 uL will be set for {0}'.format(self.name))
             self.volume += 1e-6
         
-        clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-        for class_tuple in clsmembers:
-            if class_tuple[0] == extract:
-                extract_mix = class_tuple[1](self.name, **kwargs)
+        extracts_classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+        for class_t in extracts_classes:
+            if class_t[0] == extract:
+                # Call the appropriate class with the arguments
+                # and get the Mixture object back to update `self.Mixture`
+                extract_mix = class_t[1](self.name, **kwargs)
         self.Mixture = extract_mix
         return self.Mixture
 
    
-    def add_dna(self, dna = None, name = "", promoter = "", rbs = "", protein = "", initial_conc ="", final_conc = "", volume = 0):
+    def add_dna(self, dna = None, name = "", promoter = "", 
+                rbs = "", protein = "", initial_conc ="", 
+                final_conc = "", volume = 0, **kwargs):
         if volume:
             self.volume += volume
         if dna:

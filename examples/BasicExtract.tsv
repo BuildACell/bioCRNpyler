@@ -1,10 +1,10 @@
 mechanism_id	part_id	param_name	param_val	comments
 transcription_mm	pBest	kb	100	promoter for extract parameter
 transcription_mm	pBest	ku	10	
-transcription_mm	pBest   ktx	3		
-translation_mm	BCD2    ktl	2.0	These are parameters for translation
+		ktx	3
+translation_mm	BCD2	ktl	2.0	These are parameters for translation
 translation_mm	BCD2	ku	.25		
 translation_mm	BCD2	kb	10
 rna_degredation_mm		kb	10	These are parameters for RNA degredation. 
 rna_degredation_mm		ku	.5	
-rna_degredation_mm		kdeg	1		
+rna_degredation_mm		kdeg	1	

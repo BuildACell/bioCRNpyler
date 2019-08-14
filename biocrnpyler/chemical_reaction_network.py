@@ -264,7 +264,7 @@ class Reaction(object):
             if self.reversible:
                 txt += f"massaction: k_f={self.k},\tk_r={self.k_r}"
             else:
-                txt += f"massaction: k_f=self.k"
+                txt += f"massaction: k_f={self.k}"
         elif self.propensity_type == "hillpositive":
             s1 = repr(self.propensity_params["s1"])
             kd = str(self.propensity_params["K"])
@@ -401,6 +401,7 @@ class ChemicalReactionNetwork(object):
         # Check to make sure species are valid and only have a count of 1
         checked_species = []
         if not all(isinstance(s, Species) for s in species):
+            print(species)
             raise ValueError("A non-species object was used as a species!")
 
         for s in species:
