@@ -1,22 +1,25 @@
+
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
-
-from .txtl import BasicExtract
+# from .extracts import *
 from .mixture import Mixture
 from .dna_assembly import DNAassembly
-import csv
+from .extracts import *
 import libsbml
+import warnings
+import inspect
+import sys
 
-
-class CRNLab(Mixture):
-    """
+class CRNLab(object):
+    '''
     Implements high level modeling akin to experimental TX-TL experiments
-    """
-    def __init__(self, name):
+    '''
+    def __init__(self, name = '', **kwargs):
         self.Mixture = Mixture
         self.name = name
         self.volume = 0
         self.crn = None
+        self.warning_print = True
 
     def mixture(self, name, **kwargs):
         """
@@ -24,79 +27,44 @@ class CRNLab(Mixture):
         Specify the extract and buffer optionally
         Specify extra parameters to be loaded as dictionaries optionally
         """
-        extract = kwargs.get('extract')
-        buffer = kwargs.get('buffer')
-        extract_parameters = kwargs.get('extract_parameters')
-        extract_volume = kwargs.get('extract_volume')
-        buffer_parameters = kwargs.get('buffer_parameters')
-        buffer_volume = kwargs.get('buffer_volume')
+        extract = kwargs.get('extract') 
+        if 'warning_print' in kwargs:
+            self.warning_print = kwargs['warning_print']
+        if not extract:
+            if self.warning_print or kwargs['parameter_warnings']:
+                warnings.warn('The extract argument not given, using the BasicExtract by default.')
+            extract = 'BasicExtract'
+        mixture_parameters = kwargs.get('mixture_parameters')
+        if not mixture_parameters:
+            if self.warning_print or kwargs['parameter_warnings']:
+                warnings.warn('Using default parameters for the mixture {0}'.format(self.name))
+        elif 'mixture_parameters' in kwargs:
+            kwargs['parameter_file'] = mixture_parameters
         if kwargs.get('mixture_volume'):
             self.volume += kwargs.get('mixture_volume')
         if kwargs.get('final_volume'):
             self.volume = kwargs.get('final_volume')
 
-        if kwargs.get('final_volume') and kwargs.get('mix_volume'):
+        if kwargs.get('final_volume') and kwargs.get('mixture_volume'):
             raise ValueError('Either set initial volume or the final volume')
-
-        filename = name + str('.csv')
-        with open(filename, 'r') as f:
-            reader = csv.reader(f)
-            # Read off the parameters
-            params = {}
-            for row in reader:
-                temp = row[1].replace('.','',1).replace('e','',1).replace('-',
-                                                                          '',1)
-                if temp.isdigit():
-                    params[str(row[0])] = float(row[1])
-
-        if extract:
-            self.extract(extract, parameters = extract_parameters,
-                         volume = extract_volume)
-        if buffer:
-            self.txtl_buffer(extract, parameters = buffer_parameters,
-                             volume = buffer_volume)
-        return self.Mixture
-
-    def extract(self, name, parameters = {}, volume = 0):
-        """
-        Create BasicExtract with the given name
-        (Searches for the name.csv in the current folder to load parameters)
-        Optionally load other parameters as dictionary.
-        """
-        if volume:
-            self.volume += volume
-        # Look for extract config file of the given name
-        filename = name + str('.csv')
-        import csv
-        with open(filename, 'r') as f:
-            reader = csv.reader(f)
-            # Read off the parameters
-            params = {}
-            for row in reader:
-                temp = row[1].replace('.','',1).replace('e','',1).replace('-',
-                                                                          '',1)
-                if temp.isdigit():
-                    params[str(row[0])] = float(row[1])
-        if parameters:
-            # If manually given
-            params = parameters
-            extract_mix = BasicExtract(self.name, parameters = params)
-        else:
-            extract_mix = BasicExtract(self.name, parameters = params)
+        elif not kwargs.get('final_volume') and not kwargs.get('mixture_volume'):
+            if self.warning_print or kwargs['parameter_warnings']:
+                warnings.warn('Default volume of 1 uL will be set for {0}'.format(self.name))
+            self.volume += 1e-6
+        
+        extracts_classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+        for class_t in extracts_classes:
+            if class_t[0] == extract:
+                # Call the appropriate class with the arguments
+                # and get the Mixture object back to update `self.Mixture`
+                extract_mix = class_t[1](self.name, **kwargs)
         self.Mixture = extract_mix
         return self.Mixture
 
-    def txtl_buffer(self, name ="", components = [], parameters = {}, volume = 0):
-        """
-        TODO : To be implemented using energy models
-        """
-        self.name = name
-        if volume:
-            self.volume += volume
-        return
-
-    def add_dna(self, dna = None, name = "", promoter = "", rbs = "",
-                protein = "", initial_conc ="", final_conc = "", volume = 0):
+   
+    def add_dna(self, dna = None, name = "", promoter = "", 
+                rbs = "", protein = "", initial_conc ="", 
+                final_conc = "", volume = 0, **kwargs):
         if volume:
             self.volume += volume
         if dna:
@@ -118,7 +86,6 @@ class CRNLab(Mixture):
     def add_component(self, component):
         self.Mixture.add_components(component)
         return self.Mixture
-
     def set_volumes(self):
         final_volume = self.volume
         # Not implemented yet
@@ -133,8 +100,7 @@ class CRNLab(Mixture):
             return self.volume
         else:
             return
-
-    def combine_tubes(self):
+    def get_model(self):
         self.crn = self.Mixture.compile_crn()
         return self.crn
 
@@ -145,10 +111,22 @@ class CRNLab(Mixture):
             document, _ = self.crn.generate_sbml_model(**kwargs)
         else:
             document, _ = self.crn.generate_sbml_model(**kwargs)
-        sbml_string = libsbml.writeSBMLToString(document)
-        f = open(filename, 'w')
-        f.write(sbml_string)
-        f.close()
-        return f
+        if document.getNumErrors() and self.warning_print:
+            warnings.warn('SBML document has errors. It is recommended that you fix them before generating this model.')
+        status = libsbml.writeSBML(document, filename)
+        if status == libsbml.LIBSBML_OPERATION_SUCCESS:
+            print('SBML file written successfully to {0}'.format(filename))
+        return document 
 
+    def validate_sbml_generated(self, **kwargs):
+        document, _ = self.crn.generate_sbml_model(**kwargs)
+        if document.getNumErrors() and self.warning_print:
+            warnings.warn('SBML document has errors. It is recommended that you fix them before generating this model.')
+            print('Here are the errors')
+            print(document.getErrorLog())
+        else:
+            print('The SBML model generated is a valid document according to the SBML Level 3 Version 1 specifications. Use sbml.org/validator for further troubleshooting.')
 
+# TODO : 
+# Need to create more CRNLab examples to create models for other stuff. 
+# Try to copy stuff over from MATLAB txtl to implement examples there and recreate the results.  

@@ -124,8 +124,8 @@ class TestChemicalReactionNetwork(TestCase):
 
         document, model = crn.generate_sbml_model()
 
-        self.assertEqual(len(model.species), len(crn.species))
-        self.assertEqual(len(model.reactions), len(crn.reactions))
+        self.assertEqual(len(model.getListOfSpecies()), len(crn.species))
+        self.assertEqual(len(model.getListOfReactions()), len(crn.reactions))
 
     def test_write_sbml_file(self):
 
