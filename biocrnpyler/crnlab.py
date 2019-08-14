@@ -38,7 +38,6 @@ class CRNLab(object):
         if not mixture_parameters:
             if self.warning_print or kwargs['parameter_warnings']:
                 warnings.warn('Using default parameters for the mixture {0}'.format(self.name))
-            # kwargs['parameter_file'] = extract + '.tsv'
         elif 'mixture_parameters' in kwargs:
             kwargs['parameter_file'] = mixture_parameters
         if kwargs.get('mixture_volume'):
@@ -87,7 +86,6 @@ class CRNLab(object):
     def add_component(self, component):
         self.Mixture.add_components(component)
         return self.Mixture
-
     def set_volumes(self):
         final_volume = self.volume
         # Not implemented yet
@@ -102,8 +100,6 @@ class CRNLab(object):
             return self.volume
         else:
             return
-
-
     def get_model(self):
         self.crn = self.Mixture.compile_crn()
         return self.crn
@@ -131,9 +127,6 @@ class CRNLab(object):
         else:
             print('The SBML model generated is a valid document according to the SBML Level 3 Version 1 specifications. Use sbml.org/validator for further troubleshooting.')
 
-
 # TODO : 
-# Need to test extensively with Parameter class and if its working.
-# Ensure extracts.py acts as a holder for all extract modules that user can directly call. 
 # Need to create more CRNLab examples to create models for other stuff. 
 # Try to copy stuff over from MATLAB txtl to implement examples there and recreate the results.  
