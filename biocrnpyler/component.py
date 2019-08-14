@@ -45,7 +45,7 @@ class Component(object):
 
         self.custom_mechanisms = {}
         self.mechanisms = {}
-
+        self.species = None
         if mixture is not None:
             mixture_mechanisms = mixture.mechanisms
         else:

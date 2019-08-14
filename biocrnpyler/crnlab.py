@@ -1,22 +1,25 @@
 
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
-from .extracts import BasicExtract
+# from .extracts import *
 from .mixture import Mixture
 from .dna_assembly import DNAassembly
-import csv
+from .extracts import *
 import libsbml
 import warnings
+import inspect
+import sys
 
 class CRNLab(object):
     '''
     Implements high level modeling akin to experimental TX-TL experiments
     '''
-    def __init__(self, name = ''):
+    def __init__(self, name = '', **kwargs):
         self.Mixture = Mixture
         self.name = name
         self.volume = 0
         self.crn = None
+        self.warning_print = True
 
     def mixture(self, name, **kwargs):
         """
@@ -25,62 +28,35 @@ class CRNLab(object):
         Specify extra parameters to be loaded as dictionaries optionally
         """
         extract = kwargs.get('extract') 
-        extract_parameters = kwargs.get('extract_parameters')
-        extract_volume = kwargs.get('extract_volume')
+        if 'warning_print' in kwargs:
+            self.warning_print = kwargs['warning_print']
+        if not extract:
+            if self.warning_print or kwargs['parameter_warnings']:
+                warnings.warn('The extract argument not given, using the BasicExtract by default.')
+            extract = 'BasicExtract'
+        mixture_parameters = kwargs.get('mixture_parameters')
+        if not mixture_parameters:
+            if self.warning_print or kwargs['parameter_warnings']:
+                warnings.warn('Using {0} file for parameters of {1}'.format(extract + '.tsv', self.name))
+            kwargs['parameter_file'] = extract + '.tsv'
+        elif 'mixture_parameters' in kwargs:
+            kwargs['parameter_file'] = mixture_parameters
         if kwargs.get('mixture_volume'):
             self.volume += kwargs.get('mixture_volume')
         if kwargs.get('final_volume'):
             self.volume = kwargs.get('final_volume')
 
-        if kwargs.get('final_volume') and kwargs.get('mix_volume'):
+        if kwargs.get('final_volume') and kwargs.get('mixture_volume'):
             raise ValueError('Either set initial volume or the final volume')
-
-        try:
-            filename = name + str('.csv')
-            with open(filename, 'r') as f:
-                reader = csv.reader(f)
-                # Read off the parameters
-                params = {}
-                for row in reader:
-                    temp = row[1].replace('.','',1).replace('e','',1).replace('-','',1)
-                    if temp.isdigit():
-                        params[str(row[0])] = float(row[1])
-        except:
-            if kwargs.get('parameter_warnings'):
-                warnings.warn('{0}.csv does not exist. Mixture will use default parameter files available.'.format(name))
-            
-        # if extract:
-        self.extract(extract, parameters = extract_parameters, volume = extract_volume, **kwargs)
-        # if buffer:
-        #     self.buffer(extract, parameters = buffer_parameters, volume = buffer_volume, **kwargs)
-        return self.Mixture
-
-    def extract(self, name, parameters = {}, volume = 0, **kwargs):
-        """
-        Create BasicExtract with the given name
-        (Searches for the name.csv in the current folder to load parameters)
-        Optionally load other parameters as dictionary.
-        """
-        if volume:
-            self.volume += volume
-        # Look for extract config file of the given name
-        if kwargs.get('parameters'):
-            parameters = kwargs.get('parameters')
-            # If manually given
-            filename = name + str('.csv')
-            import csv
-            with open(filename, 'r') as f:
-                reader = csv.reader(f)
-                # Read off the parameters
-                params = {}
-                for row in reader:
-                    temp = row[1].replace('.','',1).replace('e','',1).replace('-','',1)
-                    if temp.isdigit():
-                        params[str(row[0])] = float(row[1])
-            params = parameters
-            extract_mix = BasicExtract(self.name, parameters = params, **kwargs)
-        else:
-            extract_mix = BasicExtract(self.name, **kwargs)
+        elif not kwargs.get('final_volume') and not kwargs.get('mixture_volume'):
+            if self.warning_print or kwargs['parameter_warnings']:
+                warnings.warn('Default volume of 1 uL will be set for {0}'.format(self.name))
+            self.volume += 1e-6
+        
+        clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+        for class_tuple in clsmembers:
+            if class_tuple[0] == extract:
+                extract_mix = class_tuple[1](self.name, **kwargs)
         self.Mixture = extract_mix
         return self.Mixture
 
@@ -135,7 +111,7 @@ class CRNLab(object):
             document, _ = self.crn.generate_sbml_model(**kwargs)
         else:
             document, _ = self.crn.generate_sbml_model(**kwargs)
-        if document.getNumErrors():
+        if document.getNumErrors() and self.warning_print:
             warnings.warn('SBML document has errors. It is recommended that you fix them before generating this model.')
         status = libsbml.writeSBML(document, filename)
         if status == libsbml.LIBSBML_OPERATION_SUCCESS:
@@ -144,7 +120,7 @@ class CRNLab(object):
 
     def validate_sbml_generated(self, **kwargs):
         document, _ = self.crn.generate_sbml_model(**kwargs)
-        if document.getNumErrors():
+        if document.getNumErrors() and self.warning_print:
             warnings.warn('SBML document has errors. It is recommended that you fix them before generating this model.')
             print('Here are the errors')
             print(document.getErrorLog())
@@ -154,5 +130,6 @@ class CRNLab(object):
 
 # TODO : 
 # Need to test extensively with Parameter class and if its working.
+# Ensure extracts.py acts as a holder for all extract modules that user can directly call. 
 # Need to create more CRNLab examples to create models for other stuff. 
 # Try to copy stuff over from MATLAB txtl to implement examples there and recreate the results.  

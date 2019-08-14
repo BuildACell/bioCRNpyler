@@ -8,6 +8,7 @@ from .mixture import Mixture
 from .chemical_reaction_network import Species
        
 
+# You can add other extract or other custom mixture models in this file based on the code here.
 class BasicExtract(Mixture):
     def __init__(self, name="", mechanisms={}, components=[],
                  rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
@@ -111,5 +112,19 @@ class BasicBuffer(Mixture):
         default_components = [self.atp, self.ntp, self.aa]
         # Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
                         # components=components+default_components, **kwargs)
+        raise NotImplementedError
 
-# You can add other extract models here based on the code above.
+class Extract(Mixture):
+    def __init__(self, name="", mechanisms={}, components=[], 
+                rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
+        raise NotImplementedError
+
+class CustomExtract(Mixture):
+    def __init__(self, name = "", **kwargs):
+        raise NotImplementedError
+
+
+class EnergyBuffer(Mixture):
+    def __init__(self, name = "", **kwargs):
+        raise NotImplementedError
+                
