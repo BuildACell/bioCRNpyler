@@ -130,3 +130,4 @@ class CRNLab(object):
 # TODO : 
 # Need to create more CRNLab examples to create models for other stuff. 
 # Try to copy stuff over from MATLAB txtl to implement examples there and recreate the results.  
+# Add unit tests for CRNLab
