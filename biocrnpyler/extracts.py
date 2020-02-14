@@ -45,7 +45,7 @@ class BasicExtract(Mixture):
         if init:
             self.rnap.get_species().initial_concentration = init["protein_RNAP"]
             self.rnaase.get_species().initial_concentration = init["protein_RNAase"]
-            self.ribosome.get_specie().initial_concentration = init["protein_Ribo"]
+            self.ribosome.get_species().initial_concentration = init["protein_Ribo"]
         mech_tx = Transcription_MM(rnap = self.rnap.get_species())
         mech_tl = Translation_MM(ribosome = self.ribosome.get_species())
         mech_rna_deg = Degredation_mRNA_MM(nuclease = self.rnaase.get_species()) 
