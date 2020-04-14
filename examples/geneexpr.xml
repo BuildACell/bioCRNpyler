@@ -15,28 +15,29 @@
       <species id="protein_RNAP" name="protein_RNAP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="protein_Ribo" name="protein_Ribo" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="protein_RNAase" name="protein_RNAase" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="rna_G2" name="rna_G2" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="complex_rna_G2_protein_Ribo" name="complex_rna_G2_protein_Ribo" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="dna_G2" name="dna_G2" compartment="default" initialConcentration="1e-06" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="protein_tetR" name="protein_tetR" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="complex_dna_G2_protein_RNAP" name="complex_dna_G2_protein_RNAP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="complex_rna_G2_protein_RNAase" name="complex_rna_G2_protein_RNAase" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_dna_G1_protein_RNAP" name="complex_dna_G1_protein_RNAP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="protein_GFP" name="protein_GFP" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dna_G1" name="dna_G1" compartment="default" initialConcentration="1e-06" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_rna_G1_protein_RNAase" name="complex_rna_G1_protein_RNAase" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="complex_rna_G1_protein_Ribo" name="complex_rna_G1_protein_Ribo" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="rna_G1" name="rna_G1" compartment="default" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
     </listOfSpecies>
     <listOfReactions>
       <reaction id="r0" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="dna_G2" stoichiometry="1" constant="false"/>
+          <speciesReference species="dna_G1" stoichiometry="1" constant="false"/>
           <speciesReference species="protein_RNAP" stoichiometry="1" constant="false"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="complex_dna_G2_protein_RNAP" constant="false"/>
+          <speciesReference species="complex_dna_G1_protein_RNAP" constant="false"/>
         </listOfProducts>
         <kineticLaw>
+          <annotation>propensity definition=&apos; type=massaction k=100.0&apos;</annotation>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> dna_G2 </ci>
+              <ci> dna_G1 </ci>
               <ci> protein_RNAP </ci>
             </apply>
           </math>
@@ -47,18 +48,19 @@
       </reaction>
       <reaction id="r0_1" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="complex_dna_G2_protein_RNAP" stoichiometry="1" constant="false"/>
+          <speciesReference species="complex_dna_G1_protein_RNAP" stoichiometry="1" constant="false"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="dna_G2" constant="false"/>
+          <speciesReference species="dna_G1" constant="false"/>
           <speciesReference species="protein_RNAP" constant="false"/>
         </listOfProducts>
         <kineticLaw>
+          <annotation>propensity definition=&apos; type=massaction k=10.0&apos;</annotation>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> complex_dna_G2_protein_RNAP </ci>
+              <ci> complex_dna_G1_protein_RNAP </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -68,19 +70,20 @@
       </reaction>
       <reaction id="r2" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="complex_dna_G2_protein_RNAP" stoichiometry="1" constant="false"/>
+          <speciesReference species="complex_dna_G1_protein_RNAP" stoichiometry="1" constant="false"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="dna_G2" constant="false"/>
-          <speciesReference species="rna_G2" constant="false"/>
+          <speciesReference species="dna_G1" constant="false"/>
+          <speciesReference species="rna_G1" constant="false"/>
           <speciesReference species="protein_RNAP" constant="false"/>
         </listOfProducts>
         <kineticLaw>
+          <annotation>propensity definition=&apos; type=massaction k=3.0&apos;</annotation>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> complex_dna_G2_protein_RNAP </ci>
+              <ci> complex_dna_G1_protein_RNAP </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -88,20 +91,21 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r4" reversible="false" fast="false">
+      <reaction id="r3" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="rna_G2" stoichiometry="1" constant="false"/>
+          <speciesReference species="rna_G1" stoichiometry="1" constant="false"/>
           <speciesReference species="protein_Ribo" stoichiometry="1" constant="false"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="complex_rna_G2_protein_Ribo" constant="false"/>
+          <speciesReference species="complex_rna_G1_protein_Ribo" constant="false"/>
         </listOfProducts>
         <kineticLaw>
+          <annotation>propensity definition=&apos; type=massaction k=10.0&apos;</annotation>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> rna_G2 </ci>
+              <ci> rna_G1 </ci>
               <ci> protein_Ribo </ci>
             </apply>
           </math>
@@ -110,20 +114,21 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r4_1" reversible="false" fast="false">
+      <reaction id="r3_1" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="complex_rna_G2_protein_Ribo" stoichiometry="1" constant="false"/>
+          <speciesReference species="complex_rna_G1_protein_Ribo" stoichiometry="1" constant="false"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="rna_G2" constant="false"/>
+          <speciesReference species="rna_G1" constant="false"/>
           <speciesReference species="protein_Ribo" constant="false"/>
         </listOfProducts>
         <kineticLaw>
+          <annotation>propensity definition=&apos; type=massaction k=0.25&apos;</annotation>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> complex_rna_G2_protein_Ribo </ci>
+              <ci> complex_rna_G1_protein_Ribo </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -131,21 +136,22 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r6" reversible="false" fast="false">
+      <reaction id="r5" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="complex_rna_G2_protein_Ribo" stoichiometry="1" constant="false"/>
+          <speciesReference species="complex_rna_G1_protein_Ribo" stoichiometry="1" constant="false"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="rna_G2" constant="false"/>
-          <speciesReference species="protein_tetR" constant="false"/>
+          <speciesReference species="rna_G1" constant="false"/>
+          <speciesReference species="protein_GFP" constant="false"/>
           <speciesReference species="protein_Ribo" constant="false"/>
         </listOfProducts>
         <kineticLaw>
+          <annotation>propensity definition=&apos; type=massaction k=2.0&apos;</annotation>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> complex_rna_G2_protein_Ribo </ci>
+              <ci> complex_rna_G1_protein_Ribo </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -153,20 +159,21 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r8" reversible="false" fast="false">
+      <reaction id="r6" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="rna_G2" stoichiometry="1" constant="false"/>
+          <speciesReference species="rna_G1" stoichiometry="1" constant="false"/>
           <speciesReference species="protein_RNAase" stoichiometry="1" constant="false"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="complex_rna_G2_protein_RNAase" constant="false"/>
+          <speciesReference species="complex_rna_G1_protein_RNAase" constant="false"/>
         </listOfProducts>
         <kineticLaw>
+          <annotation>propensity definition=&apos; type=massaction k=10.0&apos;</annotation>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> rna_G2 </ci>
+              <ci> rna_G1 </ci>
               <ci> protein_RNAase </ci>
             </apply>
           </math>
@@ -175,20 +182,21 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r8_1" reversible="false" fast="false">
+      <reaction id="r6_1" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="complex_rna_G2_protein_RNAase" stoichiometry="1" constant="false"/>
+          <speciesReference species="complex_rna_G1_protein_RNAase" stoichiometry="1" constant="false"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="rna_G2" constant="false"/>
+          <speciesReference species="rna_G1" constant="false"/>
           <speciesReference species="protein_RNAase" constant="false"/>
         </listOfProducts>
         <kineticLaw>
+          <annotation>propensity definition=&apos; type=massaction k=0.5&apos;</annotation>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> complex_rna_G2_protein_RNAase </ci>
+              <ci> complex_rna_G1_protein_RNAase </ci>
             </apply>
           </math>
           <listOfLocalParameters>
@@ -196,19 +204,20 @@
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
-      <reaction id="r10" reversible="false" fast="false">
+      <reaction id="r8" reversible="false" fast="false">
         <listOfReactants>
-          <speciesReference species="complex_rna_G2_protein_RNAase" stoichiometry="1" constant="false"/>
+          <speciesReference species="complex_rna_G1_protein_RNAase" stoichiometry="1" constant="false"/>
         </listOfReactants>
         <listOfProducts>
           <speciesReference species="protein_RNAase" constant="false"/>
         </listOfProducts>
         <kineticLaw>
+          <annotation>propensity definition=&apos; type=massaction k=1.0&apos;</annotation>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> k </ci>
-              <ci> complex_rna_G2_protein_RNAase </ci>
+              <ci> complex_rna_G1_protein_RNAase </ci>
             </apply>
           </math>
           <listOfLocalParameters>
