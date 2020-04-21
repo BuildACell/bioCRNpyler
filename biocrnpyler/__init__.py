@@ -16,3 +16,4 @@ from .crnlab import *
 
 # Additional functions
 from .sbmlutil import *
+from .plotting import *
