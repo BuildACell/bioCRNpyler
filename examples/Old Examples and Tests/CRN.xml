@@ -19,7 +19,7 @@
     <listOfReactions>
       <reaction id="r0" reversible="false" fast="false">
         <annotation>
-          <PropensityType> type=proportionalhillpositive k=1.0 K=10.0 n=2 s1=protein_A d=dna_G</PropensityType>
+          <PropensityType> type=proportionalhillnegative k=1.0 K=10.0 n=2 s1=protein_A d=dna_G</PropensityType>
         </annotation>
         <listOfReactants>
           <speciesReference species="dna_G" stoichiometry="1" constant="false"/>
@@ -36,11 +36,6 @@
                 <times/>
                 <ci> k </ci>
                 <ci> dna_G </ci>
-                <apply>
-                  <power/>
-                  <ci> protein_A </ci>
-                  <ci> n </ci>
-                </apply>
               </apply>
               <apply>
                 <plus/>
@@ -57,6 +52,26 @@
             <localParameter id="k" value="1"/>
             <localParameter id="n" value="2"/>
             <localParameter id="K" value="10"/>
+          </listOfLocalParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r1" reversible="false" fast="false">
+        <annotation>
+          <PropensityType> type=massaction k=0.1</PropensityType>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="protein_X" stoichiometry="1" constant="false"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> k </ci>
+              <ci> protein_X </ci>
+            </apply>
+          </math>
+          <listOfLocalParameters>
+            <localParameter id="k" value="0.1"/>
           </listOfLocalParameters>
         </kineticLaw>
       </reaction>
