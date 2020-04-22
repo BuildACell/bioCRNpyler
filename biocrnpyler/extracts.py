@@ -7,8 +7,33 @@ from .mechanism import Transcription_MM, Translation_MM, Degredation_mRNA_MM
 from .mixture import Mixture
 from .chemical_reaction_network import Species
        
+#A Model for Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.)
+class ExpressionExtract(Mixture):
+    def __init__(self, name="", mechanisms={}, components=[], **kwargs):
+        init = kwargs.get('init')
+        parameter_warnings = kwargs.get('parameter_warnings')
+        if parameter_warnings:
+            warn('Parameter warnings have been set True. Verbose warnings regarding parameter files will be displayed.')
+        else:
+            parameter_warnings = False
+            kwargs['parameter_warnings'] = parameter_warnings
+        if not init and parameter_warnings:
+            warn('Initial concentrations for extract species will all be set to zero.')
+        
+        dummy_transcription = EmptyMechanism()
+        mech_expression = Transcription_MM(rnap = self.rnap.get_species())
 
-# You can add other extract or other custom mixture models in this file based on the code here.
+        default_mechanisms = {
+            "transcription": dummy_transcription,
+            mech_expression.mechanism_type: mech_expression
+        }
+
+        default_components = []
+        Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
+                        components=components+default_components, **kwargs)
+
+#A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
+#This model does not include any energy
 class BasicExtract(Mixture):
     def __init__(self, name="", mechanisms={}, components=[],
                  rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
@@ -61,7 +86,9 @@ class BasicExtract(Mixture):
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
                         components=components+default_components, **kwargs)
 
+# Below are unimplemented classes...
 # Outline for BasicBuffer
+# TODO
 class BasicBuffer(Mixture):
     def __init__(self, name="", mechanisms={}, components=[],
                 atp = "ATP", ntp = "NTP", aa  = "AA", **kwargs):

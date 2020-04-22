@@ -197,13 +197,13 @@ class Translation_MM(MichalisMentenCopyRXN):
             self.ribosome = ribosome.get_species()
         else:
             raise ValueError(
-                "'ribosome' parameter must be a string, a with defined "
+                "'ribosome' parameter must be a string, a Component with defined "
                 "get_species, or a chemical_reaction_network.species")
         MichalisMentenCopyRXN.__init__(self=self, name=name,
                                        enzyme=self.ribosome,
                                        mechanism_type="translation")
 
-    def update_species(self, transcript, return_protein=False,
+    def update_species(self, transcript, return_protein=True,
                        return_ribosome=False, **keywords):
         species = []
         if return_ribosome:
@@ -349,3 +349,31 @@ class Two_Step_Cooperative_Binding(Mechanism):
                      k_rev=ku2)]
 
         return rxns
+
+class OneStepGeneExpression(Mechanism):
+    def __init__(self, name="gene_expression",
+                 mechanism_type="translation"):
+        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+
+    def update_species(self, gene, return_product=False, **keywords):
+        species = []
+        if return_product:
+            species += [Species(gene.name, material_type="protein")]
+        return species
+
+    def update_reactions(self, gene, kexpress,
+                         product=None, **keywords):
+        if product is None:
+            product = Species(gene.name, material_type="protein")
+        rxns [Reaction(inputs=[gene], outputs=[gene, product], k = kexpress)]
+        return rxns
+
+class EmptyMechanism(Mechanism):
+    def __init__(self, name, mechanism_type="gene_expression"):
+        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+
+    def update_species(self, **keywords):
+        return []
+
+    def update_reactions(self, **keywords):
+        return []

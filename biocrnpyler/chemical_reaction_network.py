@@ -275,10 +275,42 @@ class Reaction(object):
         txt += tab
 
         if self.propensity_type == "massaction":
+            input_func_args = ""
+            input_prod = f"{self.k}"
+            for i in range(len(self.inputs)):
+                input_func_args += f"{self.inputs[i]}"
+
+                if self.input_coefs[i] > 1:
+                    input_prod+=f"*{self.inputs[i]}^{self.input_coefs[i]}"
+                else:
+                    input_prod+=f"*{self.inputs[i]}"
+
+                if i < len(self.inputs)-1:
+                    input_func_args += ","
+
+            if len(self.inputs) > 0:
+                input_func_args = "("+input_func_args+")"
+            txt += f"massaction: k_f{input_func_args}={input_prod}"
+
             if self.reversible:
-                txt += f"massaction: k_f={self.k},\tk_r={self.k_r}"
-            else:
-                txt += f"massaction: k_f={self.k}"
+                output_func_args = ""
+                output_prod = f"{self.k_r}"
+                for i in range(len(self.outputs)):
+                    output_func_args += f"{self.outputs[i]}"
+
+                    if self.output_coefs[i] > 1:
+                        output_prod+=f"*{self.outputs[i]}^{self.output_coefs[i]}"
+                    else:
+                        output_prod+=f"*{self.outputs[i]}"
+
+                    if i < len(self.outputs)-1:
+                        output_func_args += ","
+
+                if len(self.outputs) > 0:
+                    output_func_args = "("+output_func_args+")"
+                txt += f"{tab}k_r{output_func_args}={output_prod}"
+
+        
         elif self.propensity_type == "hillpositive":
             s1 = repr(self.propensity_params["s1"])
             kd = str(self.propensity_params["K"])
