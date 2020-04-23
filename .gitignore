@@ -55,3 +55,6 @@ docs/_build/
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries
+
+.vscode/settings.json
+.vscode/**
