@@ -109,56 +109,70 @@ class Reaction(object):
     If the reaction is reversible, the reverse reaction is also included:
        \sum_i m_i O_i  --> \sum_i n_i I_i @ rate = k_rev
     """
-    def __init__(self, inputs, outputs, k, input_coefs = None,
+    def __init__(self, inputs, outputs, k = 0, input_coefs = None,
                  output_coefs = None, k_rev = 0, propensity_type = "massaction",
                  rate_formula = None, propensity_params = None):
+
+        if k != 0 and propensity_params != None and "k" not in propensity_params:
+            propensity_params["k"] = k
+        elif k == 0 and propensity_params != None and "k" in propensity_params:
+            k = propensity_params["k"]
+        elif k != 0 and propensity_params != None and k != propensity_params['k']:
+            print("k=", k, "propensity_params[k]", propensity_params["k"], "propensity_params", propensity_params)
+            raise ValueError("Inconsistent rate constants: propensity_params['k'] != k.")
 
         if propensity_type == "massaction" and propensity_params != None:
             warn("ValueWarning: propensity_params dictionary passed into a "
                  "massaction propensity. Massaction propensities do not "
                  "require a param dictionary.")
+        elif propensity_type != "massaction" and propensity_params == None:
+            raise ValueError("Non-massaction propensities require a propensity_params dictionary passed to the propensity_params keyword.")
         elif propensity_type != "massaction" and k_rev != 0:
             raise ValueError("Invalid reversible reaction for propensity "
                              f"type = {propensity_type}. Only massaction "
-                             "propensities support the reversible rate k_r. "
+                             "propensities support the reversible rate k_rev. "
                              "Consider creating two seperate reactions "
                              "instead.")
         elif propensity_type == "hillpositive":
-            if not ("s1" in propensity_params and "K" in propensity_params \
+            if not ("k" in propensity_params and "s1" in propensity_params and "K" in propensity_params \
                     and "n" in propensity_params):
                 raise ValueError("hillpositive propensities, p(s1; k, K, n) "
                         "= k*s1^n/(s1^n + K), require the following "
                         "propensity_params: "
+                        "'k':rate constant (float)"
                         "'s1':species (chemical_reaction_network.species), "
                         "'n':cooperativity(float), "
                         "and 'K':dissociationc constant (float).")
         elif propensity_type == "hillnegative":
-            if not ("s1" in propensity_params and "K" in propensity_params \
+            if not ("k" in propensity_params and "s1" in propensity_params and "K" in propensity_params \
                     and "n" in propensity_params):
                 raise ValueError("hillnegative propensities, "
                         "p(s1; k, K, n) = k*1/(s1^n + K), require "
-                        "the following propensity_params: "
+                        "the following propensity_params:"
+                        "'k':rate constant (float)"
                         "'s1':species (chemical_reaction_network.species), "
                         "'n':cooperativity(float), "
                         "and 'K':dissociationc constant (float)")
         elif propensity_type == "proportionalhillpositive":
-            if not ("s1" in propensity_params and "d" in propensity_params \
+            if not ("k" in propensity_params and "s1" in propensity_params and "d" in propensity_params \
                     and "K" in propensity_params \
                     and "n" in propensity_params):
                 raise ValueError("proportionalhillpositive propensities, "
                     "p(s1, d; k, K, n) = k*d*s1^n/(s1^n + K), require the "
                     "following propensity_params: "
+                    "'k':rate constant (float)"
                     "'s1':species (chemical_reaction_network.species), "
                     "'d':species (chemical_reaction_network.species), "
                     "'n':cooperativity(float), "
                     "and 'K':dissociationc onstant (float)")
         elif propensity_type == "proportionalhillnegative":
-            if not ("s1" in propensity_params and "d" in propensity_params \
+            if not ("k" in propensity_params and "s1" in propensity_params and "d" in propensity_params \
                     and "K" in propensity_params \
                     and "n" in propensity_params):
                 raise ValueError("proportionalhillnegative propensities, "
                     "p(s1, d; k, K, n) = k*d/(s1^n + K), require the "
                     "following propensity_params: "
+                    "'k':rate constant (float)"
                     "'s1':species (chemical_reaction_network.species), "
                     "'d':species (chemical_reaction_network.species), "
                     "'n':cooperativity(float), "
@@ -261,10 +275,42 @@ class Reaction(object):
         txt += tab
 
         if self.propensity_type == "massaction":
+            input_func_args = ""
+            input_prod = f"{self.k}"
+            for i in range(len(self.inputs)):
+                input_func_args += f"{self.inputs[i]}"
+
+                if self.input_coefs[i] > 1:
+                    input_prod+=f"*{self.inputs[i]}^{self.input_coefs[i]}"
+                else:
+                    input_prod+=f"*{self.inputs[i]}"
+
+                if i < len(self.inputs)-1:
+                    input_func_args += ","
+
+            if len(self.inputs) > 0:
+                input_func_args = "("+input_func_args+")"
+            txt += f"massaction: k_f{input_func_args}={input_prod}"
+
             if self.reversible:
-                txt += f"massaction: k_f={self.k},\tk_r={self.k_r}"
-            else:
-                txt += f"massaction: k_f={self.k}"
+                output_func_args = ""
+                output_prod = f"{self.k_r}"
+                for i in range(len(self.outputs)):
+                    output_func_args += f"{self.outputs[i]}"
+
+                    if self.output_coefs[i] > 1:
+                        output_prod+=f"*{self.outputs[i]}^{self.output_coefs[i]}"
+                    else:
+                        output_prod+=f"*{self.outputs[i]}"
+
+                    if i < len(self.outputs)-1:
+                        output_func_args += ","
+
+                if len(self.outputs) > 0:
+                    output_func_args = "("+output_func_args+")"
+                txt += f"{tab}k_r{output_func_args}={output_prod}"
+
+        
         elif self.propensity_type == "hillpositive":
             s1 = repr(self.propensity_params["s1"])
             kd = str(self.propensity_params["K"])
@@ -282,7 +328,7 @@ class Reaction(object):
             n = str(self.propensity_params["n"])
             txt += (f"proportionalhillpositive: k({s1}, "
                    f"{s2})={self.k}*{s2}*{s1}^{n}/({kd}+{s1}^{n})")
-        elif self.propensity_type == "proportionalhillpositive":
+        elif self.propensity_type == "proportionalhillnegative":
             s1 = repr(self.propensity_params["s1"])
             s2 = repr(self.propensity_params["d"])
             kd = str(self.propensity_params["K"])
@@ -310,19 +356,19 @@ class Reaction(object):
                                                          other.outputs,
                                                          other.output_coefs)
         rates_equal = (other.k == self.k and other.k_r == self.k_r)
+        propensity_types_equal = (self.propensity_type == other.propensity_type)
 
         # must both be reactions with the same rates and numbers of inputs and
         # outputs.
         if not isinstance(other, Reaction):
             return False
-
-        if complexes_equal and rates_equal:
+        if complexes_equal and rates_equal and propensity_types_equal:
             return True
-        elif complexes_equal:
-            warn("Two reactions with the same inputs and outputs but different "
-                 "rates are formally different, but may be undesired:"
-                 f"{repr(self)} and {repr(other)}.")
-            return True
+        elif complexes_equal and propensity_types_equal:
+            #warn("Two reactions with the same inputs and outputs but different "
+                 #"rates are formally different, but may be undesired:"
+                 #f"{repr(self)} and {repr(other)}.")
+            return False
 
         # If the reactions are reversible inverses of eachother, one's forward
         # reaction could be the other's reverse
@@ -422,11 +468,12 @@ class ChemicalReactionNetwork(object):
 
         for r in reactions:
             if reactions.count(r) > 1:
-                warn(f"Reaction {r} duplicated in CRN definitions. Duplicates "
-                     "have been removed.")
+                warn(f"Reaction {r} may be duplicated in CRN definitions. Duplicates "
+                     "have NOT been removed.")
 
-            if r not in checked_reactions:
-                checked_reactions.append(r)
+            checked_reactions.append(r)
+            #if r not in checked_reactions:
+            #    checked_reactions.append(r)
 
             for s in r.inputs:
                 if s not in checked_species and warnings:
@@ -502,16 +549,18 @@ class ChemicalReactionNetwork(object):
         for r in self.reactions:
             rxn_id = "r" + str(rxn_count)
             add_reaction(model, r.inputs, r.input_coefs, r.outputs,
-                         r.output_coefs, r.k, rxn_id,
+                         r.output_coefs, rxn_id, r.k,
                          stochastic = stochastic_model,
-                         propensity_type=r.propensity_type)
+                         propensity_type=r.propensity_type,
+                         propensity_params = r.propensity_params)
             rxn_count += 1
-            if r.reversible:
+
+            if r.reversible and r.propensity_type == "massaction":
                 add_reaction(model, r.outputs, r.output_coefs, r.inputs,
-                             r.input_coefs, r.k_r, rxn_id,
+                             r.input_coefs, rxn_id, r.k_r,
                              stochastic=stochastic_model,
                              propensity_type=r.propensity_type)
-            rxn_count += 1
+                rxn_count += 1
 
         if document.getNumErrors():
             warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
@@ -552,7 +601,16 @@ class ChemicalReactionNetwork(object):
             if rxn.propensity_params == None:
                 prop_params = {}
             else:
-                prop_params = dict(rxn.propensity_params)
+                prop_params = {}
+                for k in rxn.propensity_params:
+                    v = rxn.propensity_params[k]
+                    if isinstance(v, Species):
+                        prop_params[k] = repr(v)
+                    elif isinstance(v, str):
+                        prop_params[k] = v
+                    else:
+                        prop_params[k] = float(v)
+
 
             prop_params['propensity_type'] = rxn.propensity_type
             prop_params['k'] = rxn.k
@@ -568,14 +626,13 @@ class ChemicalReactionNetwork(object):
                 raise ValueError("Only massaction irreversible reactions are "
                                  "supported for automatic bioscrape simulation."
                                  " Consider creating two seperate reactions.")
-
         model = Model(species = species_list, reactions = reaction_list,
                       initial_condition_dict = initial_condition_dict)
         return model
 
     def simulate_with_bioscrape(self, timepoints, initial_condition_dict = {},
                                 stochastic = False, return_dataframe = True,
-                                safe = True):
+                                safe = False, via_sbml = True):
         from bioscrape.simulator import py_simulate_model
         m = self.create_bioscrape_model()
         m.set_species(initial_condition_dict)
@@ -589,17 +646,20 @@ class ChemicalReactionNetwork(object):
         return result
 
 
-    def simulate_with_bioscrape_deterministic_via_sbml(self, timepoints, file,
-                initial_condition_dict, return_dataframe = True,
+    def simulate_with_bioscrape_via_sbml(self, timepoints, file = None,
+                initial_condition_dict = {}, return_dataframe = True,
                 stochastic = False):
         import bioscrape
 
-        if isinstance(file, str):
+        if file is None:
+            self.write_sbml_file(file_name ="temp_sbml_file.xml")
+            file_name = "temp_sbml_file.xml"
+        elif isinstance(file, str):
             file_name = file
         else:
             file_name = file.name
 
-        m = bioscrape.types.read_model_from_sbml(file_name)
+        m = bioscrape.types.Model(sbml_filename = file_name)
 
         m.set_species(initial_condition_dict)
         result = bioscrape.simulator.py_simulate_model(timepoints, Model = m,
@@ -631,7 +691,7 @@ class ChemicalReactionNetwork(object):
         else:
             filename = file.name
 
-        m = bioscrape.types.read_model_from_sbml(filename)
+        m = bioscrape.sbmlutil.import_sbml(filename)
         s = bioscrape.simulator.ModelCSimInterface(m)
         if simtype == 'deterministic':
             s.py_prep_deterministic_simulation()
