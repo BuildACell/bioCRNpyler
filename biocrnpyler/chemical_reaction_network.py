@@ -356,19 +356,19 @@ class Reaction(object):
                                                          other.outputs,
                                                          other.output_coefs)
         rates_equal = (other.k == self.k and other.k_r == self.k_r)
+        propensity_types_equal = (self.propensity_type == other.propensity_type)
 
         # must both be reactions with the same rates and numbers of inputs and
         # outputs.
         if not isinstance(other, Reaction):
             return False
-
-        if complexes_equal and rates_equal:
+        if complexes_equal and rates_equal and propensity_types_equal:
             return True
-        elif complexes_equal:
-            warn("Two reactions with the same inputs and outputs but different "
-                 "rates are formally different, but may be undesired:"
-                 f"{repr(self)} and {repr(other)}.")
-            return True
+        elif complexes_equal and propensity_types_equal:
+            #warn("Two reactions with the same inputs and outputs but different "
+                 #"rates are formally different, but may be undesired:"
+                 #f"{repr(self)} and {repr(other)}.")
+            return False
 
         # If the reactions are reversible inverses of eachother, one's forward
         # reaction could be the other's reverse
@@ -468,11 +468,12 @@ class ChemicalReactionNetwork(object):
 
         for r in reactions:
             if reactions.count(r) > 1:
-                warn(f"Reaction {r} duplicated in CRN definitions. Duplicates "
-                     "have been removed.")
+                warn(f"Reaction {r} may be duplicated in CRN definitions. Duplicates "
+                     "have NOT been removed.")
 
-            if r not in checked_reactions:
-                checked_reactions.append(r)
+            checked_reactions.append(r)
+            #if r not in checked_reactions:
+            #    checked_reactions.append(r)
 
             for s in r.inputs:
                 if s not in checked_species and warnings:

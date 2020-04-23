@@ -235,8 +235,7 @@ class Mixture(object):
         # update with global mechanisms
         for mech in self.global_mechanisms:
             self.crn_reactions += \
-                self.global_mechanisms[mech].update_reactions_global(
-                                            self.crn_species, self.parameters)
+                self.global_mechanisms[mech].update_reactions_global(self.crn_species, self.parameters)
         return self.crn_reactions
 
     def compile_crn(self) -> ChemicalReactionNetwork:
@@ -265,6 +264,6 @@ class Mixture(object):
             txt+="\n\t"+mech+":"+self.mechanisms[mech].name
         txt+=" }\nGlobal Mechanisms = {"
         for mech in self.global_mechanisms:
-            txt+="\n\t"+mech+":"+self.mechanisms[mech].name
+            txt+="\n\t"+mech+":"+self.global_mechanisms[mech].name
         txt+=" }"
         return txt
