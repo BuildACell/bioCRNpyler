@@ -15,7 +15,7 @@ class Mixture(object):
     def __init__(self, name="", mechanisms={}, components = [], parameters = {},
                  parameter_file = None, default_mechanisms = {},
                  global_mechanisms = {}, default_components = [],
-                 species = [],
+                 species = [], custom_initial_condition = {},
                  parameter_warnings = None, **kwargs):
         """
         A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
@@ -32,6 +32,18 @@ class Mixture(object):
         :param default_components:
         :param parameter_warnings: suppressing parameter related warnings
         """
+
+        init = kwargs.get('init')
+        parameter_warnings = kwargs.get('parameter_warnings')
+        if parameter_warnings:
+            warn('Parameter warnings have been set True. Verbose warnings regarding parameter files will be displayed.')
+        else:
+            parameter_warnings = False
+            kwargs['parameter_warnings'] = parameter_warnings
+        if not init and parameter_warnings:
+            warn('Initial concentrations for extract species will all be set to zero.')
+
+
         # Initialize instance variables
         self.name = name  # Save the name of the mixture
 
@@ -45,6 +57,11 @@ class Mixture(object):
         # default parameters are used by mixture subclasses.
         self.default_mechanisms = default_mechanisms
         self.custom_mechanisms = mechanisms
+
+        #Initial conditions are searched for by defauled in the parameter file
+        #see Mixture.set_initial_condition(self)
+        #These can be overloaded with custom_initial_condition dictionary: component.name --> initial amount
+        self.custom_initial_condition = custom_initial_condition
 
         # Mechanisms stores the mechanisms used for compilation where defaults
         # are overwritten by custom mechanisms.
@@ -91,6 +108,21 @@ class Mixture(object):
 
         self.added_species += species_list
 
+
+    
+
+    #Used to set internal species froms strings, Species or Components
+    def set_species(self, species, material_type = None, attributes = None):
+        if isinstance(species, Species):
+                return species
+        elif isinstance(species, str):
+            return Species(name = species, material_type = material_type, attributes = attributes)
+        elif isinstance(species, Component) and species.get_species() != None:
+            return species.get_species()
+        else:
+            raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
+
+
     def add_components(self, components):
         if not isinstance(components, list):
             components = [components]
@@ -104,6 +136,67 @@ class Mixture(object):
             if self.parameter_warnings is not None:
                 component.set_parameter_warnings(self.parameter_warnings)
 
+    #Sets the initial condition for all components with internal species
+    #Does this for the species returned during compilation to prevent errors
+    # First checks if (mixture.name, repr(species) is in the self.custom_initial_condition_dict
+    # Then checks if (repr(species) is in the self.custom_initial_condition_dict
+    # First checks if (mixture.name, component.name) is in the self.custom_initial_condition_dictionary
+    # Then checks if (component.name) is in the self.custom_initial_condition_dictionary
+
+    # First checks if (mixture.name, repr(species) is in the parameter dictionary
+    # Then checks if repr(species) is in the parameter dictionary
+    # Then checks if (mixture.name, component.name) is in the parameter dictionary
+    # Then checks if component.name is in the parameter dictionary
+    # Then defaults to 0
+    def set_initial_condition(self, species):
+        return_species = []
+        for s in species:
+            found = False
+            if not found and (self.name, repr(s)) in self.custom_initial_condition:
+                s.initial_concentration = self.custom_initial_condition[self.name, repr(s)]
+                found = True
+            elif not found and repr(s) in self.custom_initial_condition:
+                s.initial_concentration = self.custom_initial_condition[repr(s)]
+                found = True
+            elif not found:
+                for comp in self.components:
+
+                    s_comp = comp.get_species()
+                    if repr(s_comp) == repr(s):
+                        if not found and (self.name, comp.name) in self.custom_initial_condition:
+                            s.initial_concentration = self.custom_initial_condition[(self.name, comp.name)]
+                            s_comp.initial_concentration = self.custom_initial_condition[(self.name, comp.name)]
+                            found = True
+                        elif not found and comp.name in self.custom_initial_condition:
+                            s.initial_concentration = self.custom_initial_condition[comp.name]
+                            s_comp.initial_concentration = self.custom_initial_condition[comp.name]
+                            found = True
+
+            if not found and (self.name, repr(s)) in self.parameters:
+                s.initial_concentration = self.parameters[self.name, repr(s)]
+                s_comp.initial_concentration = self.parameters[self.name, repr(s)]
+                found = True
+            elif not found and repr(s) in self.parameters:
+                s.initial_concentration = self.parameters[repr(s)]
+                s_comp.initial_concentration = self.parameters[repr(s)]
+                found = True
+            elif not found:
+                for comp in self.components:
+                    s_comp = comp.get_species()
+                    if not found and repr(s_comp) == repr(s):
+                        if not found and (self.name, comp.name) in self.parameters:
+                            s.initial_concentration = self.parameters[(self.name, comp.name)]
+                            s_comp.initial_concentration = self.parameters[(self.name, comp.name)]
+                            found = True
+                        elif not found and comp.name in self.parameters:
+                            s.initial_concentration = self.parameters[comp.name]
+                            s_comp.initial_concentration = self.parameters[comp.name]
+                            found = True
+        return species
+    
+    def append_species(self, new_species):
+        self.crn_species += [s for s in new_species if s not in self.crn_species]
+
     def update_species(self) -> List[Species]:
         """ it generates the list of species based on all the mechanisms and global mechanisms
 
@@ -112,7 +205,7 @@ class Mixture(object):
         # TODO check if we can merge the two variables
         self.crn_species = self.added_species
         for component in self.components:
-            self.crn_species += component.update_species()
+            self.append_species(component.update_species())
 
         # Update Global Mechanisms
         for mech in self.global_mechanisms:
@@ -145,8 +238,7 @@ class Mixture(object):
         # update with global mechanisms
         for mech in self.global_mechanisms:
             self.crn_reactions += \
-                self.global_mechanisms[mech].update_reactions_global(
-                                            self.crn_species, self.parameters)
+                self.global_mechanisms[mech].update_reactions_global(self.crn_species, self.parameters)
         return self.crn_reactions
 
     def compile_crn(self) -> ChemicalReactionNetwork:
@@ -154,9 +246,12 @@ class Mixture(object):
         :return: ChemicalReactionNetwork
         """
         resetwarnings()#Reset warnings - better to toggle them off manually.
+
         species = self.update_species()
         reactions = self.update_reactions()
+        species = self.set_initial_condition(species)
         CRN = ChemicalReactionNetwork(species, reactions)
+
         return CRN
 
     def __str__(self):
@@ -172,6 +267,6 @@ class Mixture(object):
             txt+="\n\t"+mech+":"+self.mechanisms[mech].name
         txt+=" }\nGlobal Mechanisms = {"
         for mech in self.global_mechanisms:
-            txt+="\n\t"+mech+":"+self.mechanisms[mech].name
+            txt+="\n\t"+mech+":"+self.global_mechanisms[mech].name
         txt+=" }"
         return txt

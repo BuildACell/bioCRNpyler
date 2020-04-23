@@ -11,7 +11,7 @@ class TestReaction(TestCase):
         from biocrnpyler import Reaction
 
         with self.assertWarns(Warning):
-            Reaction(inputs=[], outputs=[], k=0.1, propensity_type="massaction", propensity_params=0)
+            Reaction(inputs=[], outputs=[], k=0.1, propensity_type="massaction", propensity_params=None)
 
         with self.assertRaises(ValueError):
             Reaction(inputs=[], outputs=[], k=0.1, propensity_type="not_massaction", k_rev=1)

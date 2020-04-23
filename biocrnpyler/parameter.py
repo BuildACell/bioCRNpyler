@@ -14,64 +14,67 @@ Parameter processing
 Parameters are used to set the rate constants for reactions, as well
 as the initial concentrations of extract and buffer.
 
-The following general guidelines hold for usage of parameters in the
-`txtl` toolbox:
+Please see the Parameter ipynb in examples for details on mechanism parameters.
 
-1. Parameter values for all pre-defined components (including extracts
-   and buffers) should be contained in a config file, formatted as a
-   CSV file with filename that matches the component name.  The
-   configuration file will be searched for in the current directory,
-   then in the directory of the component, and finally in the default
-   TX-TL component library [not yet implemented].
+#### Parameter File Overview:
+Parameter files can be TSVs or CSVs. The first line of the file should contain column headings. 
 
-2. Component parameter values are local to the reactions set up by the
-   component, allowing reuse of the same name (eg, promoter binding
-   strength) across multiple parameters.  Extract parameter values are
-   stored in the containing mixture and create global parameters in
-   the SBML model for the system.  These global parameters can be
-   accessed by using the extract parameter name within an txtl
-   reaction.
+The following headings are required (in any order): mechanism_id, part_id, param_name, param_val 
+    (spaces can be substituted for underscores and headings are not case sensitive).
 
-3. Default configuration files can be overridden at the time that a
-   component is defined by using the `config_file` argument.  If a
-   pathname is not provided, the file will be searched for in the same
-   order as default configuration files.  Examples:
+mechanism_id is the name of the Mechanism or the kind of mechanism that will use this parameter, 
+    for example "transcription" or  "transcription_mm" for Mechalis-Menten transcription would go in this column. 
+part_id refers to the name of the Component that will use this mechanism, 
+    for example "ptet" for a tet repressed promoter. 
+param_name refers to the name of the model parameter, 
+    for example "ktx", "kb", or "ku". The value of these columns is case sensitive and underscores are different from spaces.
 
-     promoter = Promoter('pconst')
-     promoter = Promoter('pconst', 'pconst.csv')
-     promoter = Promoter('pconst', './configs/pconst.csv')
+#### Parameter Value Defaulting:
+Not all parameters need to have the required headings. 
+    The only two required columns are "param_val" and "param_name". 
+    BioCRNpyler uses a form of parameter name defaulting discussed below to find default parameters 
+    if no exact match is in the config file. This makes it easy to set default parameters for things 
+    like "ku" and "ktx" to quickly build models.
 
-4. Individual parameter values can be overriden at the time that a
-   component is defined using named arguments in the construction of
-   the component or using the `parameters` argument (passed as a dict
-   object, described below).  Examples:
+#### Parameters inside BioCRNpyler:
+Inside of bioCRNpyler, parameters are stored as a dictionary key value pair: 
+    (mechanism_name, part_id, param_name) --> param_val. If that particular parameter key cannot be found, 
+    the software will default to the following keys: 
+    (mechanism_type, part_id, param_name) >> (part_id, param_name) >> 
+    (mechanism_name, param_name) >> (mechanism_type, param_name) >>
+    (param_name) and give a warning. 
+    As a note, mechanism_name refers to the .name variable of a Mechanism. mechanism_type refers to the .type variable of a Mechanism. 
+    Either of these can be used as a mechanism_id. This allows for models to be constructed easily using default parameter values and 
+    for parameters to be shared between different Mechanisms and/or Components.
 
-     myptet = Promoter('ptet', RNAPbound_F=20)
-     myptet = Promoter('ptet', parameters={'RNAPbound_F':20})
-     ptet_param = {
-       'RNAPbound_F' : 20,
-       'RNAPbound_R' : Parameter('my_param', 'Numeric', 20)
-     }
-     myptet = Promoter('ptet', ptet_param)
+#### Initial Conditions are also Parameters
+The initial condition of any Species (or Component) will also be looked up as a parameters automatically.
+    Initial conditions can be customized in through the custom_initial_condition keyword in the Mixture constructor.
+    custom_initial_conditions will take precedent to parameter initial conditions.
 
-5. Parameter dictionaries should have the parameter name as the
-   dictionary key and the value can be one of three different object
-   types:
-     * A parameter object (from the Parameter class)
-     * A floating point number
-     * A string (representing a global parameter name)
+    During compilation, Mixture.set_initial_condition() checks for parameters for all species in the following order:
 
-6. Parameter objects can be of type 'Numeric', 'Expression', or
-   'Global' [not implemented].  Numeric parameters are passed directly
-   to libsbml.  Expression parameters are evaluated using the current
-   dictionary, augmented by the following variables:
+    # First checks if (mixture.name, repr(species) is in the self.custom_initial_condition_dict
+    # Then checks if (repr(species) is in the self.custom_initial_condition_dict
+    # Then checks if (mixture.name, component.name) is in the self.custom_initial_condition_dictionary
+    # Then checks if (component.name) is in the self.custom_initial_condition_dictionary
 
-     * RNA_LENGTH - number of basepairs in the RNA sequence
-     * AA_LENGTH = number of amino acides in the protein sequence
+    # Then checks if (mixture.name, repr(species) is in the parameter dictionary
+    # Then checks if repr(species) is in the parameter dictionary
+    # Then checks if (mixture.name, component.name) is in the parameter dictionary
+    # Then checks if component.name is in the parameter dictionary
+    # Then defaults to 0
 
-7. Parameters for all possible mechanisms that are defined for a
-   component should be defined using the config file or parameter
-   argument when the component is created.
+#### Multiple Parameter Files:
+Components and Mixtures can both have one more multiple parameter files by passing in a list of filenames 
+    instead of a single filename to the parameter_file keyword. 
+    Components use parameters loaded from their file(s) before defaulting to the file(s) supplied to a Mixture. 
+    The last file in any list will take precedent and overwrite parameter files which were written earlier.
+
+#### Suppressing warnings
+To suppress parameter warnings, use the keyword parameter_warnings = False inside a Mixture or Component constructor.
+
+Below is an example csv with all the parameters for a tetR promoter undergoing Michalis Menten transcription and translation.
 
 """
 
@@ -205,7 +208,6 @@ class Parameter(object):
                         else:
                             param_name = row[field_names['param_name']]
                             param_dict[param_name] = param_value
-
         return param_dict
 
     @staticmethod
