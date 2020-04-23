@@ -184,9 +184,9 @@ class Transcription_MM(MichalisMentenCopyRXN):
         MichalisMentenCopyRXN.__init__(self=self, name=name, enzyme=self.rnap,
                                        mechanism_type="transcription")
 
-    def update_species(self, dna, transcript=None, return_rnap=False,
+    def update_species(self, dna, transcript=None, return_rnap=True,
                        **keywords):
-        species = []
+        species = [dna]
         if return_rnap:
             species += [self.rnap]
 
@@ -240,8 +240,8 @@ class Translation_MM(MichalisMentenCopyRXN):
                                        mechanism_type="translation")
 
     def update_species(self, transcript, protein=None,
-                       return_ribosome=False, **keywords):
-        species = []
+                       return_ribosome=True, **keywords):
+        species = [transcript]
         if return_ribosome:
             species += [self.ribosome]
         if protein is None:
@@ -289,8 +289,8 @@ class Degredation_mRNA_MM(MichalisMentenRXN):
         MichalisMentenRXN.__init__(self=self, name=name, enzyme=self.nuclease,
                                    mechanism_type="rna_degredation")
 
-    def update_species(self, rna, return_nuclease=False, **keywords):
-        species = []
+    def update_species(self, rna, return_nuclease=True, **keywords):
+        species = [rna]
         if return_nuclease:
             species += [self.nuclease]
         species += MichalisMentenRXN.update_species(self, rna)
@@ -438,13 +438,60 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
         return rxns
 
-class OneStepGeneExpression(Mechanism):
-    def __init__(self, name="gene_expression",
-                 mechanism_type="translation"):
+
+class SimpleTranscription(Mechanism):
+    def __init__(self, name = "simple_transcription", mechanism_type = "transcription"):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
-    def update_species(self, dna, protein=None, transcript = None, **keywords):
-        species = []
+    def update_species(self, dna, transcript = None, **keywords):
+        if transcript is None:
+            transcript = Species(dna.name, material_type="rna")
+
+        return [dna, transcript]
+
+    def update_reactions(self, dna, component = None, ktx = None, part_id = None, transcript = None, **keywords):
+
+        if ktx == None and Component != None:
+            ktx = component.get_parameter("ktx", part_id = part_id, mechanism = self)
+        elif component == None and ktx == None:
+            raise ValueError("Must pass in component or a value for ktx")
+
+        if transcript is None:
+            transcript = Species(dna.name, material_type="rna")
+
+        rxns = [Reaction(inputs = [dna], outputs = [dna, transcript], k = ktx)]
+        return rxns
+
+class SimpleTranslation(Mechanism):
+    def __init__(self, name = "simple_translation", mechanism_type = "translation"):
+        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+
+    def update_species(self, transcript, protein = None,  **keywords):
+        if protein is None:
+            protein = Species(transcript.name, material_type="protein")
+
+        return [transcript, protein]
+
+    def update_reactions(self, transcript, component = None, ktl = None, part_id = None, protein = None, **keywords):
+
+        if ktl == None and Component != None:
+            ktl = component.get_parameter("ktl", part_id = part_id, mechanism = self)
+        elif component == None and ktl == None:
+            raise ValueError("Must pass in component or a value for ktl")
+
+        if protein is None:
+            protein = Species(transcript.name, material_type="protein")
+
+        rxns = [Reaction(inputs = [transcript], outputs = [transcript, protein], k = ktl)]
+        return rxns
+
+class OneStepGeneExpression(Mechanism):
+    def __init__(self, name="gene_expression",
+                 mechanism_type="transcription"):
+        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+
+    def update_species(self, dna, protein=None, transcript=None, **keywords):
+        species = [dna]
         if protein == None:
             protein = Species(dna.name, material_type="protein")
 

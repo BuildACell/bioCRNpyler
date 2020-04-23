@@ -32,6 +32,18 @@ class Mixture(object):
         :param default_components:
         :param parameter_warnings: suppressing parameter related warnings
         """
+
+        init = kwargs.get('init')
+        parameter_warnings = kwargs.get('parameter_warnings')
+        if parameter_warnings:
+            warn('Parameter warnings have been set True. Verbose warnings regarding parameter files will be displayed.')
+        else:
+            parameter_warnings = False
+            kwargs['parameter_warnings'] = parameter_warnings
+        if not init and parameter_warnings:
+            warn('Initial concentrations for extract species will all be set to zero.')
+
+
         # Initialize instance variables
         self.name = name  # Save the name of the mixture
 
@@ -91,6 +103,21 @@ class Mixture(object):
 
         self.added_species += species_list
 
+
+    
+
+    #Used to set internal species froms strings, Species or Components
+    def set_species(self, species, material_type = None, attributes = None):
+        if isinstance(species, Species):
+                return species
+        elif isinstance(species, str):
+            return Species(name = species, material_type = material_type, attributes = attributes)
+        elif isinstance(species, Component) and species.get_species() != None:
+            return species.get_species()
+        else:
+            raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
+
+
     def add_components(self, components):
         if not isinstance(components, list):
             components = [components]
@@ -103,6 +130,9 @@ class Mixture(object):
             component.update_parameters(mixture_parameters=self.parameters)
             if self.parameter_warnings is not None:
                 component.set_parameter_warnings(self.parameter_warnings)
+
+    #Sets the initial condition for all components
+    def set_initial_condition(self):
 
     def update_species(self) -> List[Species]:
         """ it generates the list of species based on all the mechanisms and global mechanisms
