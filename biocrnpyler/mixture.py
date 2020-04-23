@@ -138,37 +138,62 @@ class Mixture(object):
 
     #Sets the initial condition for all components with internal species
     #Does this for the species returned during compilation to prevent errors
+    # First checks if (mixture.name, repr(species) is in the self.custom_initial_condition_dict
+    # Then checks if (repr(species) is in the self.custom_initial_condition_dict
     # First checks if (mixture.name, component.name) is in the self.custom_initial_condition_dictionary
     # Then checks if (component.name) is in the self.custom_initial_condition_dictionary
+
+    # First checks if (mixture.name, repr(species) is in the parameter dictionary
+    # Then checks if repr(species) is in the parameter dictionary
     # Then checks if (mixture.name, component.name) is in the parameter dictionary
     # Then checks if component.name is in the parameter dictionary
     # Then defaults to 0
     def set_initial_condition(self, species):
         return_species = []
         for s in species:
-            for comp in self.components:
-                s_comp = comp.get_species()
-                if repr(s_comp) == repr(s):
-                    if (self.name, comp.name) in self.custom_initial_condition:
-                        s.initial_concentration = self.custom_initial_condition[(self.name, comp.name)]
-                        s_comp.initial_concentration = self.custom_initial_condition[(self.name, comp.name)]
-                    elif comp.name in self.custom_initial_condition:
-                        s.initial_concentration = self.custom_initial_condition[comp.name]
-                        s_comp.initial_concentration = self.custom_initial_condition[comp.name]
-                    elif (self.name, comp.name) in self.parameters:
-                        s.initial_concentration = self.parameters[(self.name, comp.name)]
-                        s_comp.initial_concentration = self.parameters[(self.name, comp.name)]
-                    elif comp.name in self.parameters:
-                        s.initial_concentration = self.parameters[comp.name]
-                        s_comp.initial_concentration = self.parameters[comp.name]
-                    else:
-                        warn("Initial concentration of " + str(comp.name)+" not found in parameter file, parameter dictionary, or custom_initial_condition dictionary")
-                        s.initial_concentration = 0
-                        s_comp.initial_concentration = 0
-            return_species.append(s)
-        return return_species
+            found = False
+            if not found and (self.name, repr(s)) in self.custom_initial_condition:
+                s.initial_concentration = self.custom_initial_condition[self.name, repr(s)]
+                found = True
+            elif not found and repr(s) in self.custom_initial_condition:
+                s.initial_concentration = self.custom_initial_condition[repr(s)]
+                found = True
+            elif not found:
+                for comp in self.components:
 
+                    s_comp = comp.get_species()
+                    if repr(s_comp) == repr(s):
+                        if not found and (self.name, comp.name) in self.custom_initial_condition:
+                            s.initial_concentration = self.custom_initial_condition[(self.name, comp.name)]
+                            s_comp.initial_concentration = self.custom_initial_condition[(self.name, comp.name)]
+                            found = True
+                        elif not found and comp.name in self.custom_initial_condition:
+                            s.initial_concentration = self.custom_initial_condition[comp.name]
+                            s_comp.initial_concentration = self.custom_initial_condition[comp.name]
+                            found = True
 
+            if not found and (self.name, repr(s)) in self.parameters:
+                s.initial_concentration = self.parameters[self.name, repr(s)]
+                s_comp.initial_concentration = self.parameters[self.name, repr(s)]
+                found = True
+            elif not found and repr(s) in self.parameters:
+                s.initial_concentration = self.parameters[repr(s)]
+                s_comp.initial_concentration = self.parameters[repr(s)]
+                found = True
+            elif not found:
+                for comp in self.components:
+                    s_comp = comp.get_species()
+                    if not found and repr(s_comp) == repr(s):
+                        if not found and (self.name, comp.name) in self.parameters:
+                            s.initial_concentration = self.parameters[(self.name, comp.name)]
+                            s_comp.initial_concentration = self.parameters[(self.name, comp.name)]
+                            found = True
+                        elif not found and comp.name in self.parameters:
+                            s.initial_concentration = self.parameters[comp.name]
+                            s_comp.initial_concentration = self.parameters[comp.name]
+                            found = True
+        return species
+                    
     def update_species(self) -> List[Species]:
         """ it generates the list of species based on all the mechanisms and global mechanisms
 
@@ -222,8 +247,9 @@ class Mixture(object):
 
         species = self.update_species()
         reactions = self.update_reactions()
-        CRN = ChemicalReactionNetwork(species, reactions)
         species = self.set_initial_condition(species)
+        CRN = ChemicalReactionNetwork(species, reactions)
+
         return CRN
 
     def __str__(self):
