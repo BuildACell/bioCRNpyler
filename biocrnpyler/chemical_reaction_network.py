@@ -645,14 +645,14 @@ class ChemicalReactionNetwork(object):
         return result
 
 
-    def simulate_with_bioscrape_via_sbml(self, timepoints, file,
+    def simulate_with_bioscrape_via_sbml(self, timepoints, file = None,
                 initial_condition_dict = {}, return_dataframe = True,
                 stochastic = False):
         import bioscrape
 
         if file is None:
             self.write_sbml_file(file_name ="temp_sbml_file.xml")
-            file = "temp_sbml_file.xml"
+            file_name = "temp_sbml_file.xml"
         elif isinstance(file, str):
             file_name = file
         else:

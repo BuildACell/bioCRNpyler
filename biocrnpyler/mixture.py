@@ -15,7 +15,7 @@ class Mixture(object):
     def __init__(self, name="", mechanisms={}, components = [], parameters = {},
                  parameter_file = None, default_mechanisms = {},
                  global_mechanisms = {}, default_components = [],
-                 species = [],
+                 species = [], custom_initial_condition = {},
                  parameter_warnings = None, **kwargs):
         """
         A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
@@ -57,6 +57,11 @@ class Mixture(object):
         # default parameters are used by mixture subclasses.
         self.default_mechanisms = default_mechanisms
         self.custom_mechanisms = mechanisms
+
+        #Initial conditions are searched for by defauled in the parameter file
+        #see Mixture.set_initial_condition(self)
+        #These can be overloaded with custom_initial_condition dictionary: component.name --> initial amount
+        self.custom_initial_condition = custom_initial_condition
 
         # Mechanisms stores the mechanisms used for compilation where defaults
         # are overwritten by custom mechanisms.
@@ -131,8 +136,38 @@ class Mixture(object):
             if self.parameter_warnings is not None:
                 component.set_parameter_warnings(self.parameter_warnings)
 
-    #Sets the initial condition for all components
-    def set_initial_condition(self):
+    #Sets the initial condition for all components with internal species
+    #Does this for the species returned during compilation to prevent errors
+    # First checks if (mixture.name, component.name) is in the self.custom_initial_condition_dictionary
+    # Then checks if (component.name) is in the self.custom_initial_condition_dictionary
+    # Then checks if (mixture.name, component.name) is in the parameter dictionary
+    # Then checks if component.name is in the parameter dictionary
+    # Then defaults to 0
+    def set_initial_condition(self, species):
+        return_species = []
+        for s in species:
+            for comp in self.components:
+                s_comp = comp.get_species()
+                if repr(s_comp) == repr(s):
+                    if (self.name, comp.name) in self.custom_initial_condition:
+                        s.initial_concentration = self.custom_initial_condition[(self.name, comp.name)]
+                        s_comp.initial_concentration = self.custom_initial_condition[(self.name, comp.name)]
+                    elif comp.name in self.custom_initial_condition:
+                        s.initial_concentration = self.custom_initial_condition[comp.name]
+                        s_comp.initial_concentration = self.custom_initial_condition[comp.name]
+                    elif (self.name, comp.name) in self.parameters:
+                        s.initial_concentration = self.parameters[(self.name, comp.name)]
+                        s_comp.initial_concentration = self.parameters[(self.name, comp.name)]
+                    elif comp.name in self.parameters:
+                        s.initial_concentration = self.parameters[comp.name]
+                        s_comp.initial_concentration = self.parameters[comp.name]
+                    else:
+                        warn("Initial concentration of " + str(comp.name)+" not found in parameter file, parameter dictionary, or custom_initial_condition dictionary")
+                        s.initial_concentration = 0
+                        s_comp.initial_concentration = 0
+            return_species.append(s)
+        return return_species
+
 
     def update_species(self) -> List[Species]:
         """ it generates the list of species based on all the mechanisms and global mechanisms
@@ -184,9 +219,11 @@ class Mixture(object):
         :return: ChemicalReactionNetwork
         """
         resetwarnings()#Reset warnings - better to toggle them off manually.
+
         species = self.update_species()
         reactions = self.update_reactions()
         CRN = ChemicalReactionNetwork(species, reactions)
+        species = self.set_initial_condition(species)
         return CRN
 
     def __str__(self):
