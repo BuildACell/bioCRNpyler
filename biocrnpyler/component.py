@@ -24,7 +24,12 @@ class Component(object):
                  **keywords  # parameter keywords
                  ):
 
-        self.name = name
+        if isinstance(name, Species):
+            self.name = name.name
+        elif isinstance(name, str):
+            self.name = name
+        else:
+            raise ValueError("name must be a Species or string")
 
         # Toggles whether warnings will be sent when parameters aren't found by
         # the default name.
@@ -84,6 +89,17 @@ class Component(object):
         warn("get_species() not defined for component {self.name}, "
              "None returned.")
         return None
+
+    #If allows species to be set from strings, species, or Components
+    def set_species(self, species, material_type = None, attributes = None):
+        if isinstance(species, Species):
+                return species
+        elif isinstance(species, str):
+            return Species(name = species, material_type = material_type, attributes = attributes)
+        elif isinstance(species, Component) and species.get_species() != None:
+            return species.get_species()
+        else:
+            raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
 
     def __hash__(self):
         return str.__hash__(repr(self.get_species()))

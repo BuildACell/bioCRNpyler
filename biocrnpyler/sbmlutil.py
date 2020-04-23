@@ -114,9 +114,12 @@ def find_parameter(mixture, id):
 
 # Helper function to add a reaction to a model
 # reaction must be a chemical_reaction_network.reaction object
-def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k,
-                 reaction_id, kname = None,
-                 stochastic = False, propensity_type = "massaction"):
+#propensity params is a dictionary of the parameters for non-massaction propensities.
+def add_reaction(model, inputs, input_coefs, outputs, output_coefs,
+                 reaction_id, k = None, kname = None,
+                 stochastic = False, propensity_type = "massaction", 
+                 propensity_params = None, propensity_annotation = True):
+
     # Create the reaction
     reaction = model.createReaction()
     reaction.setReversible(False)
@@ -124,21 +127,67 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k,
     all_ids = getAllIds(model.getSBMLDocument().getListOfAllElements())
     trans = SetIdFromNames(all_ids)
     reaction.setId(trans.getValidIdForName(reaction_id))
+    ratestring = "" #Stores the string representing the rate function
+    annotation_dict = {"type":propensity_type}
+    
 
-    if kname == None:
-        kname = "k"
-        ratestring = kname
-
+    #Create Local Propensity Parameters
     if propensity_type=="massaction":
+        if kname == None:
+            kname = "k"
         # Create a kinetic law for the reaction
         ratelaw = reaction.createKineticLaw()
+        
         param = ratelaw.createParameter()
         param.setId(kname)
         param.setConstant(True)
-        param.setValue(k)
+        if k != None and propensity_params == None:
+            param.setValue(k)
+            annotation_dict["k"] = k
+        elif 'k' in propensity_params:
+            param.setValue(propensity_params['k'])
+            annotation_dict["k"] = propensity_params['k']
+        elif k != None and "k" in propensity_params and propensity_params['k'] != k:
+            raise ValueError("Keyword k and propensity_params['k'] have different values. Only one of these arguments is needed or they must match.")
+        else:
+            raise ValueError("Massaction propensities require a rate k which can be passed into add_reaction as a keyword k= or inside the propensity_params keyword dictionary.")
+        
+        ratestring = kname
+
+    #Hill Function Propensities
+    elif propensity_type in ["hillpositive", "hillnegative", "proportionalhillpositive", "proportionalhillnegative"]:
+        if not ("k" in propensity_params and "K" in propensity_params and "n" in propensity_params):
+            raise ValueError(propensity_type+" requires the following keys in the propensity_params dictionary: "
+                    "'k':rate constant (float)"
+                    "'n':cooperativity(float), "
+                    "and 'K':dissociationc constant (float).")
+        ratelaw = reaction.createKineticLaw()
+        param_k = ratelaw.createParameter()
+        param_k.setId("k")
+        param_k.setConstant(True)
+        param_k.setValue(propensity_params['k'])
+
+        param_n = ratelaw.createParameter()
+        param_n.setId("n")
+        param_n.setConstant(True)
+        param_n.setValue(propensity_params['n'])
+
+        param_K = ratelaw.createParameter()
+        param_K.setId("K")
+        param_K.setConstant(True)
+        param_K.setValue(propensity_params['K'])
+
+        ratestring = "k"
+
+        annotation_dict["k"] = propensity_params['k']
+        annotation_dict["K"] = propensity_params['K']
+        annotation_dict["n"] = propensity_params['n']
+
+
+    elif propensity_type == "general":
+        raise NotImplementedError("SBML writing of general propensities not implemented")
     else:
-        raise NotImplementedError("SBML Writing of non-massaction ratelaws "
-                                  "not implemented yet")
+        raise ValueError(propensity_type+" is not a supported propensity_type")
 
     # Create the reactants
     for i in range(len(inputs)):
@@ -153,6 +202,7 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k,
         reactant.setConstant(False)
         reactant.setStoichiometry(stoichiometry)
 
+        #Create Rate-strings for massaction propensities
         if propensity_type=="massaction" and stochastic:
             for i in range(stoichiometry):
                 if i > 0:
@@ -166,6 +216,70 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k,
             else:
                 ratestring += f" * {species_id}"
 
+    #Create ratestring for non-massaction propensities
+    if propensity_type == "hillpositive":
+        if not ("s1" in propensity_params):
+            raise ValueError("hillpositive propensities, p(s1; k, K, n) "
+                    "= k*s1^n/(s1^n + K), require the following key in the propensity_params dictionary:"
+                    "'s1':species (chemical_reaction_network.species)")
+
+        s = str(propensity_params['s1']).replace("'", "")
+        s_species_id = getSpeciesByName(model,s).getId()
+
+        ratestring+=f"*{s_species_id}^n/({s_species_id}^n+K)"
+
+        annotation_dict["s1"] = s_species_id
+
+    elif propensity_type == "hillnegative":
+        if not ("s1" in propensity_params):
+            raise ValueError("hillnegative propensities, "
+                    "p(s1; k, K, n) = k*1/(s1^n + K), require the following key in the propensity_params dictionary:"
+                    "'s1':species (chemical_reaction_network.species)")
+        s = str(propensity_params['s1']).replace("'", "")
+        s_species_id = getSpeciesByName(model,s).getId()
+
+        ratestring+=f"/({s_species_id}^n+K)"
+
+        annotation_dict["s1"] = s_species_id
+
+    elif propensity_type == "proportionalhillpositive":
+        if not ("s1" in propensity_params and "d" in propensity_params):
+            raise ValueError("proportionalhillpositive propensities, "
+                "p(s1, d; k, K, n) = k*d*s1^n/(s1^n + K), require the following key in the propensity_params dictionary:"
+                "'s1':species (chemical_reaction_network.species)"
+                "'d':species (chemical_reaction_network.species), ")
+
+        s = str(propensity_params['s1']).replace("'", "")
+        d = str(propensity_params['d']).replace("'", "")
+        s_species_id = getSpeciesByName(model,s).getId()
+        d_species_id = getSpeciesByName(model,d).getId()
+
+        ratestring+=f"*{d_species_id}*{s_species_id}^n/({s_species_id}^n + K)"
+
+        annotation_dict["s1"] = s_species_id
+        annotation_dict["d"] = d_species_id
+
+    elif propensity_type == "proportionalhillnegative":
+        if not ("s1" in propensity_params and "d" in propensity_params):
+            raise ValueError("proportionalhillnegative propensities, "
+                "p(s1, d; k, K, n) = k*d/(s1^n + K), require the following key in the propensity_params dictionary:"
+                "'s1':species (chemical_reaction_network.species)"
+                "'d':species (chemical_reaction_network.species), ")
+
+        s = str(propensity_params['s1']).replace("'", "")
+        d = str(propensity_params['d']).replace("'", "")
+        s_species_id = getSpeciesByName(model,s).getId()
+        d_species_id = getSpeciesByName(model,d).getId()
+
+        ratestring+=f"*{d_species_id}/({s_species_id}^n+K)"
+
+        annotation_dict["s1"] = s_species_id
+        annotation_dict["d"] = d_species_id
+
+    elif propensity_type == "general":
+        raise NotImplementedError("General propensity SBML Writing Not Implemented")
+
+
     # Create the products
     for i in range(len(outputs)):
         species = str(outputs[i]).replace("'", "")
@@ -176,11 +290,16 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs, k,
         reactant.setStoichiometry(stoichiometry)
         product.setConstant(False)
 
-    math_ast = libsbml.parseL3Formula(ratestring)
-
     # Set the ratelaw to the ratestring
     math_ast = libsbml.parseL3Formula(ratestring)
     ratelaw.setMath(math_ast)
+    if propensity_annotation:
+        annotation_string = "<PropensityType>"
+        for k in annotation_dict:
+            annotation_string += " "+k + "=" + str(annotation_dict[k])
+        annotation_string += "</PropensityType>"
+        reaction.appendAnnotation(annotation_string)
+
     return reaction
 
 

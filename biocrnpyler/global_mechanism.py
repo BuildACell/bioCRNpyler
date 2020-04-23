@@ -129,20 +129,39 @@ class GlobalMechanism(Mechanism):
         """
         return []
 
+    def get_parameter(self, s, parameters, param_name):
+        if (self.name, repr(s), param_name) in parameters:
+            return parameters[(self.name, repr(s), param_name)]
+        elif (self.mechanism_type, repr(s), param_name) in parameters:
+            return parameters[(self.mechanism_type, repr(s), param_name)]
+        elif (repr(s), param_name) in parameters:
+            return parameters[(repr(s), param_name)]
+        elif (self.name, param_name) in parameters:
+            return parameters[(self.name, param_name)]
+        elif (self.mechanism_type, param_name) in parameters:
+            return parameters[(self.mechanism_type, param_name)]
+        elif (param_name) in parameters:
+            return parameters[param_name]
+        else:
+            raise ValueError(f"No parameter found for GlobalMechanism name: {self.name} type: {self.mechanism_type} species: {repr(s)} param: {param_name}")
+
 
 class Dilution(GlobalMechanism):
     def __init__(self, name = "global_degredation_via_dilution",
-                 material_type = "dilution", filter_dict = {},
+                 mechanism_type = "dilution", filter_dict = {},
                  default_on = True):
         GlobalMechanism.__init__(self, name = name,
-                                 mechanism_type = material_type,
+                                 mechanism_type = mechanism_type,
                                  default_on = default_on,
                                  filter_dict = filter_dict)
 
     def update_reactions(self, s, parameters):
-        k_dil = parameters["kdil"]
+        k_dil = self.get_parameter(s, parameters, "kdil")
         rxn = Reaction([s], [], k_dil)
         return [rxn]
+
+
+
 
 
 class AnitDilutionConstiutiveCreation(GlobalMechanism):
