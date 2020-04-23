@@ -36,20 +36,19 @@ class Promoter(Component):
 
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]
-        species = [self.transcript]
-        species += mech_tx.update_species(self.assembly.dna)
+        species = []
+        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, protein = self.assembly.protein)
         return species
 
     def update_reactions(self):
         mech_tx = self.mechanisms["transcription"]
         reactions = []
-        ktx = self.get_parameter("ktx", part_id = self.name, mechanism = mech_tx)
-        kb = self.get_parameter("kb", part_id = self.name, mechanism = mech_tx)
-        ku = self.get_parameter("ku", part_id = self.name, mechanism = mech_tx)
+        #ktx = self.get_parameter("ktx", part_id = self.name, mechanism = mech_tx)
+        #kb = self.get_parameter("kb", part_id = self.name, mechanism = mech_tx)
+        #ku = self.get_parameter("ku", part_id = self.name, mechanism = mech_tx)
 
-        reactions += mech_tx.update_reactions(self.assembly.dna, ktx = ktx,
-                                              ku = ku, kb = kb, complex = None,
-                                              transcript = self.transcript)
+        reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, complex = None,
+                                              transcript = self.transcript, protein = self.assembly.protein)
         return reactions
 
 
@@ -103,7 +102,7 @@ class RegulatedPromoter(Promoter):
             species += species_b
             complex_ = species_b[0]
             self.complexes += [complex_]
-            species += mech_tx.update_species(dna = complex_)
+            species += mech_tx.update_species(dna = complex_, transcript = self.transcript, protein = self.assembly.protein)
         return species
 
     def update_reactions(self):
@@ -112,41 +111,29 @@ class RegulatedPromoter(Promoter):
         mech_b = self.mechanisms['binding']
 
         if self.leak != False:
-            ktx = self.get_parameter("ktx", mechanism = mech_tx,
-                                     part_id = self.name)
-            ku = self.get_parameter("ku", mechanism = mech_tx,
-                                    part_id = self.name)
-            kb = self.get_parameter("kb", mechanism = mech_tx,
-                                    part_id = self.name)
-            reactions += mech_tx.update_reactions(dna = self.assembly.dna,
-                                                  ktx = ktx, ku = ku, kb = kb)
+            #ktx = self.get_parameter("ktx", mechanism = mech_tx,
+                                     #part_id = self.name)
+            #ku = self.get_parameter("ku", mechanism = mech_tx,
+                                    #part_id = self.name)
+            #kb = self.get_parameter("kb", mechanism = mech_tx,
+                                    #part_id = self.name)
+            reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, transcript = self.transcript, protein = self.assembly.protein)
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
             complex_ = self.complexes[i]
-            ktx = self.get_parameter("ktx", mechanism = mech_tx,
-                                     part_id = self.name+"_"+regulator.name)
+            #ktx = self.get_parameter("ktx", mechanism = mech_tx,part_id = self.name+"_"+regulator.name)
 
-            ku_tx = self.get_parameter("ku", mechanism = mech_tx,
-                                       part_id = self.name+"_"+regulator.name)
-            kb_tx = self.get_parameter("kb", mechanism = mech_tx,
-                                       part_id = self.name+"_"+regulator.name)
+            #ku_tx = self.get_parameter("ku", mechanism = mech_tx,part_id = self.name+"_"+regulator.name)
+            #kb_tx = self.get_parameter("kb", mechanism = mech_tx, part_id = self.name+"_"+regulator.name)
 
-            ku_c = self.get_parameter("ku", mechanism = mech_b,
-                                      part_id = self.name+"_"+regulator.name)
-            kb_c = self.get_parameter("kb", mechanism = mech_b,
-                                      part_id = self.name+"_"+regulator.name)
+            #ku_c = self.get_parameter("ku", mechanism = mech_b,part_id = self.name+"_"+regulator.name)
+            #kb_c = self.get_parameter("kb", mechanism = mech_b,part_id = self.name+"_"+regulator.name)
 
-            coop = self.get_parameter("cooperativity",
-                                      part_id = f"{self.name}_{regulator.name}",
-                                      mechanism = mech_b)
+            #coop = self.get_parameter("cooperativity",part_id = f"{self.name}_{regulator.name}",mechanism = mech_b)
 
-            reactions += mech_b.update_reactions(regulator, self.assembly.dna,
-                                                 ku = ku_c, kb=kb_c,
-                                                 cooperativity = coop)
-            reactions += mech_tx.update_reactions(dna = complex_, kb = kb_tx,
-                                                 ku = ku_tx, ktx = ktx,
-                                                 transcript = self.transcript)
+            reactions += mech_b.update_reactions(regulator, self.assembly.dna, component = self, part_id = self.name+"_"+regulator.name)
+            reactions += mech_tx.update_reactions(dna = complex_, component = self, part_id = self.name+"_"+regulator.name, transcript = self.transcript, protein = self.assembly.protein)
 
         return reactions
 
@@ -190,21 +177,19 @@ class RBS(Component):
 
     def update_species(self):
         mech_tl = self.mechanisms['translation']
-        species = [self.transcript, self.protein]
-        species += mech_tl.update_species(self.transcript)
+        species = []
+        species += mech_tl.update_species(transcript = self.transcript, protein = self.protein)
         return species
 
     def update_reactions(self):
         mech_tl = self.mechanisms['translation']
         reactions = []
 
-        ktl = self.get_parameter("ktl", part_id = self.name,
-                                 mechanism = mech_tl)
-        kb = self.get_parameter("kb", part_id = self.name, mechanism = mech_tl)
-        ku = self.get_parameter("ku", part_id = self.name, mechanism = mech_tl)
+        #ktl = self.get_parameter("ktl", part_id = self.name,mechanism = mech_tl)
+        #kb = self.get_parameter("kb", part_id = self.name, mechanism = mech_tl)
+        #ku = self.get_parameter("ku", part_id = self.name, mechanism = mech_tl)
         reactions += mech_tl.update_reactions(transcript = self.transcript,
-                                              protein = self.protein,
-                                              ku = ku, kb = kb, ktl = ktl)
+                                              protein = self.protein, component = self, part_id = self.name)
         return reactions
 
 
@@ -357,7 +342,7 @@ class DNAassembly(DNA):
 
         if "rna_degredation" in self.mechanisms and self.promoter is not None:
             deg_mech = self.mechanisms["rna_degredation"]
-            species += deg_mech.update_species(self.transcript)
+            species += deg_mech.update_species(rna = self.transcript)
 
         # TODO raise a warning if there were duplicate species
         return list(set(species))
@@ -374,12 +359,11 @@ class DNAassembly(DNA):
 
         if "rna_degredation" in self.mechanisms and self.promoter is not None:
             deg_mech = self.mechanisms["rna_degredation"]
-            ku = self.get_parameter("ku", mechanism=deg_mech)
-            kb = self.get_parameter("kb", mechanism=deg_mech)
-            kdeg = self.get_parameter("kdeg", mechanism=deg_mech)
+            #ku = self.get_parameter("ku", mechanism=deg_mech)
+            #kb = self.get_parameter("kb", mechanism=deg_mech)
+            #kdeg = self.get_parameter("kdeg", mechanism=deg_mech)
 
-            reactions += deg_mech.update_reactions(self.transcript, ku = ku,
-                                                    kb = kb, kdeg = kdeg)
+            reactions += deg_mech.update_reactions(rna = self.transcript, component = self.promoter)
         # TODO check that the reaction list is unique
         return reactions
 

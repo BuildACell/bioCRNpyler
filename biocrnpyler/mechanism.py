@@ -56,7 +56,7 @@ class Mechanism(object):
         warn(f"Default Update Species Called for Mechanism = {self.name}.")
         return []
 
-    def update_reactions(self):
+    def update_reactions(self, component = None, part_id = None):
         """
         the child class should implement this method
         :return: empty list
@@ -87,8 +87,21 @@ class MichalisMentenRXN(Mechanism):
         complex = ComplexSpecies([Sub, self.Enzyme])
         return [complex]
 
-    def update_reactions(self, Sub, Prod, complex=None, kb=100, ku=10,
-                         kcat=1, **keywords):
+    def update_reactions(self, Sub, Prod, component = None, part_id = None, complex=None, kb=None, ku=None,
+                         kcat=None, **keywords):
+        #Get Parameters
+        if part_id == None and component != None:
+            part_id = component.name
+
+        if kb == None:
+            kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+        if ku == None:
+            ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+        if kcat == None:
+            kcat = component.get_parameter("kcat", part_id = component.name, mechanism = self)
+        if component == None and (kb == None or ku == None or kcat == None):
+            raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
+
         if complex == None:
             complex = ComplexSpecies([Sub, self.Enzyme])
 
@@ -123,11 +136,23 @@ class MichalisMentenCopyRXN(Mechanism):
         complex = ComplexSpecies([Sub, self.Enzyme])
         return [complex]
 
-    def update_reactions(self, Sub, Prod, complex=None, kb=100, ku=10,
-                         kcat=1, **keywords):
+    def update_reactions(self, Sub, Prod, component = None, part_id = None, complex=None, kb=None, ku=None,
+                         kcat=None, **keywords):
         if complex == None:
             complex = ComplexSpecies([Sub, self.Enzyme])
 
+        #Get Parameters
+        if part_id == None and component != None:
+            part_id = component.name
+
+        if kb == None and component != None:
+            kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+        if ku == None and component != None:
+            ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+        if kcat == None and component != None:
+            kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
+        if component == None and (kb == None or ku == None or kcat == None):
+            raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
         # Sub + Enz <--> Sub:Enz
         binding_rxn = Reaction(inputs=[Sub, self.Enzyme], outputs=[complex],
                                k=kb, k_rev=ku)
@@ -159,21 +184,32 @@ class Transcription_MM(MichalisMentenCopyRXN):
         MichalisMentenCopyRXN.__init__(self=self, name=name, enzyme=self.rnap,
                                        mechanism_type="transcription")
 
-    def update_species(self, dna, return_transcript=False, return_rnap=False,
+    def update_species(self, dna, transcript=None, return_rnap=False,
                        **keywords):
         species = []
         if return_rnap:
             species += [self.rnap]
 
         species += MichalisMentenCopyRXN.update_species(self, dna)
-        if return_transcript:
-            species += [Species(dna.name, material_type="rna")]
+        if transcript is None:
+            transcript = Species(dna.name, material_type="rna")
+        
+        species += [transcript]
+
         return species
 
-    def update_reactions(self, dna, kb, ku, ktx, complex=None, transcript=None,
+    def update_reactions(self, dna, component, part_id = None, complex=None, transcript=None,
                          **keywords):
-        rxns = []
 
+        #Get Parameters
+        if part_id == None and component != None:
+            part_id = component.name
+
+        ktx = component.get_parameter("ktx", part_id = part_id, mechanism = self)
+        kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+        ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+
+        rxns = []
         if transcript is None:
             transcript = Species(dna.name, material_type="rna")
         rxns += MichalisMentenCopyRXN.update_reactions(self, dna, transcript,
@@ -203,19 +239,30 @@ class Translation_MM(MichalisMentenCopyRXN):
                                        enzyme=self.ribosome,
                                        mechanism_type="translation")
 
-    def update_species(self, transcript, return_protein=True,
+    def update_species(self, transcript, protein=None,
                        return_ribosome=False, **keywords):
         species = []
         if return_ribosome:
-            species = [self.ribosome]
+            species += [self.ribosome]
+        if protein is None:
+            protein = Species(transcript.name, material_type="protein")
+        species += [protein]
+
         species += MichalisMentenCopyRXN.update_species(self, transcript)
-        if return_protein:
-            species += [Species(transcript.name, material_type="protein")]
+
         return species
 
-    def update_reactions(self, transcript, kb, ku, ktl, complex=None,
+    def update_reactions(self, transcript, component, part_id = None, complex=None,
                          protein=None, **keywords):
         rxns = []
+
+        #Get Parameters
+        if part_id == None and component != None:
+            part_id = component.name
+
+        ktl = component.get_parameter("ktl", part_id = part_id, mechanism = self)
+        kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+        ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
 
         if protein is None:
             protein = Species(transcript.name, material_type="protein")
@@ -249,12 +296,18 @@ class Degredation_mRNA_MM(MichalisMentenRXN):
         species += MichalisMentenRXN.update_species(self, rna)
         return species
 
-    def update_reactions(self, rna, kb, ku, kdeg, complex=None, **keywords):
+    def update_reactions(self, rna, component, part_id = None, complex=None, **keywords):
+
+        #Get Parameters
+        if part_id == None and component != None:
+            part_id = component.name
+
+        kdeg = component.get_parameter("kdeg", part_id = part_id, mechanism = self)
+        kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+        ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+
         rxns = []
-        rxns += MichalisMentenRXN.update_reactions(self, rna, Prod=None,
-                                                   complex=complex,
-                                                   kb=kb, ku=ku,
-                                                   kcat=kdeg)
+        rxns += MichalisMentenRXN.update_reactions(self, rna, Prod=None, complex=complex, kb=kb, ku=ku, kcat=kdeg)
         return rxns
 
 
@@ -267,7 +320,18 @@ class Reversible_Bimolecular_Binding(Mechanism):
         complex = ComplexSpecies([s1, s2])
         return [complex]
 
-    def update_reactions(self, s1, s2, kb, ku, **keywords):
+    def update_reactions(self, s1, s2, component = None, kb = None, ku = None, part_id = None, **keywords):
+
+        #Get Parameters
+        if part_id == None:
+            repr(s1)+"-"+repr(s2)
+        if kb == None and component != None:
+            kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+        if ku == None and component != None:
+            ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+        if component == None and (kb == None or ku == None):
+            raise ValueError("Must pass in a Component or values for kb, ku.")
+
         complex = ComplexSpecies([s1, s2])
         rxns = [Reaction([s1, s2], [complex], k=kb, k_rev=ku)]
         return rxns
@@ -288,7 +352,20 @@ class One_Step_Cooperative_Binding(Mechanism):
         complex = ComplexSpecies([binder, bindee], name = complex_name)
         return [complex]
 
-    def update_reactions(self, s1, s2, kb, ku, cooperativity=1, **kwords):
+    def update_reactions(self, s1, s2, component = None, kb = None, ku = None, part_id = None, cooperativity=None, **kwords):
+
+        #Get Parameters
+        if part_id == None:
+            part_id = repr(s1)+"-"+repr(s2)
+        if kb == None and component != None:
+            kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+        if ku == None and component != None:
+            ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+        if cooperativity == None and component != None:
+            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
+        if component == None and (kb == None or ku == None or cooperativity):
+            raise ValueError("Must pass in a Component or values for kb, ku.")
+
         binder, bindee = s1, s2
         complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"
                         f"{bindee.material_type}_{bindee.name}")
@@ -317,7 +394,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
         complex = ComplexSpecies([n_mer, bindee])
         return [complex, n_mer]
 
-    def update_reactions(self, s1, s2, kb, ku, cooperativity=2, **keywords):
+    def update_reactions(self, s1, s2, kb = None, ku = None, component = None, part_id = None, cooperativity=None, **keywords):
         """
         Returns reactions:
         cooperativity binder <--> n_mer, kf = kb1, kr = ku1
@@ -331,11 +408,22 @@ class Two_Step_Cooperative_Binding(Mechanism):
         :return:
         """
         binder, bindee = s1, s2
-        if len(kb) != len(ku) != 2:
+        if part_id == None:
+            repr(s1)+"-"+repr(s2)
+        if (kb == None or ku == None or cooperativity == None) and Component != None:
+            kb1 = component.get_parameter("kb1", part_id = part_id, mechanism = self)
+            kb2 = component.get_parameter("kb2", part_id = part_id, mechanism = self)
+            ku1 = component.get_parameter("ku1", part_id = part_id, mechanism = self)
+            ku2 = component.get_parameter("ku2", part_id = part_id, mechanism = self)
+            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
+        elif component == None and (kb == None or ku == None or cooperativity == None):
+            raise ValueError("Must pass in a Component or values for kb, ku, and cooperativity")
+        elif len(kb) != len(ku) != 2:
             raise ValueError("kb and ku must contain 2 values each for "
                              "two-step binding")
-        kb1, kb2 = kb
-        ku1, ku2 = ku
+        else:
+            kb1, kb2 = kb
+            ku1, ku2 = ku
         n_mer_name = f"{cooperativity}x_{binder.material_type}_{binder.name}"
         n_mer = ComplexSpecies([binder], name = n_mer_name)
         complex = ComplexSpecies([n_mer, bindee])
@@ -355,21 +443,29 @@ class OneStepGeneExpression(Mechanism):
                  mechanism_type="translation"):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
-    def update_species(self, gene, return_product=False, **keywords):
+    def update_species(self, dna, protein=None, transcript = None, **keywords):
         species = []
-        if return_product:
-            species += [Species(gene.name, material_type="protein")]
+        if protein == None:
+            protein = Species(dna.name, material_type="protein")
+
+        species += [protein]
         return species
 
-    def update_reactions(self, gene, kexpress,
-                         product=None, **keywords):
-        if product is None:
-            product = Species(gene.name, material_type="protein")
-        rxns [Reaction(inputs=[gene], outputs=[gene, product], k = kexpress)]
+    def update_reactions(self, dna, component = None, kexpress = None,
+                         protein=None, transcript = None, part_id = None, **keywords):
+
+        if kexpress == None and Component != None:
+            kexpress = component.get_parameter("kexpress", part_id = part_id, mechanism = self)
+        elif component == None and kexpress == None:
+            raise ValueError("Must pass in component or a value for kexpress")
+
+        if protein is None:
+            protein = Species(dna.name, material_type="protein")
+        rxns = [Reaction(inputs=[dna], outputs=[dna, protein], k = kexpress)]
         return rxns
 
 class EmptyMechanism(Mechanism):
-    def __init__(self, name, mechanism_type="gene_expression"):
+    def __init__(self, name, mechanism_type):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     def update_species(self, **keywords):

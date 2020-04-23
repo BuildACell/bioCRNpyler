@@ -3,7 +3,7 @@
 
 from warnings import warn
 from .component import Protein, ChemicalComplex
-from .mechanism import Transcription_MM, Translation_MM, Degredation_mRNA_MM
+from .mechanism import Transcription_MM, Translation_MM, Degredation_mRNA_MM, EmptyMechanism, OneStepGeneExpression
 from .mixture import Mixture
 from .chemical_reaction_network import Species
        
@@ -20,12 +20,12 @@ class ExpressionExtract(Mixture):
         if not init and parameter_warnings:
             warn('Initial concentrations for extract species will all be set to zero.')
         
-        dummy_transcription = EmptyMechanism()
-        mech_expression = Transcription_MM(rnap = self.rnap.get_species())
+        dummy_translation = EmptyMechanism(name = "dummy_translation", mechanism_type = "translation")
+        mech_expression = OneStepGeneExpression()
 
         default_mechanisms = {
-            "transcription": dummy_transcription,
-            mech_expression.mechanism_type: mech_expression
+            "transcription": mech_expression,
+            "translation": dummy_translation
         }
 
         default_components = []
@@ -34,7 +34,7 @@ class ExpressionExtract(Mixture):
 
 #A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
 #This model does not include any energy
-class BasicExtract(Mixture):
+class TxTlExtract(Mixture):
     def __init__(self, name="", mechanisms={}, components=[],
                  rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
         init = kwargs.get('init')
