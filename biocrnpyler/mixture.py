@@ -193,7 +193,10 @@ class Mixture(object):
                             s_comp.initial_concentration = self.parameters[comp.name]
                             found = True
         return species
-                    
+    
+    def append_species(self, new_species):
+        self.crn_species += [s for s in new_species if s not in self.crn_species]
+
     def update_species(self) -> List[Species]:
         """ it generates the list of species based on all the mechanisms and global mechanisms
 
@@ -202,7 +205,7 @@ class Mixture(object):
         # TODO check if we can merge the two variables
         self.crn_species = self.added_species
         for component in self.components:
-            self.crn_species += component.update_species()
+            self.append_species(component.update_species())
 
         # Update Global Mechanisms
         for mech in self.global_mechanisms:
