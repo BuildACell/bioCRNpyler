@@ -42,6 +42,55 @@ class Promoter(Component):
                                               transcript = self.transcript, protein = self.assembly.protein)
         return reactions
 
+class Terminator(Component):
+    def __init__(self, name, assembly=None,
+                upstream_transcripts=None,downstream_transcripts=None,
+                length=0,mechanisms={},parameters={},**keywords):
+        self.assembly = assembly
+        self.length = length
+        if upstream_transcripts is None and assembly is None:
+            #if you didnt put this terminator in an assembly then it does nothing
+            self.upstream_transcripts = None
+        elif upstream_transcripts is None:
+            #in this case it is in an assembly, but the transcripts have not been assigned to it
+            self.upstream_transcripts = assembly.get_transcripts_upstream(assembly.get_component_position(self))
+            #the idea is that we find all promoters that are upstream of this terminator. They can all get terminated here.
+            #a transcript has to start with a forward pointing promoter
+        if downstream_transcripts is None and assembly is None:
+            #after the terminator, we can keep reading
+            self.downstream_transcripts = None
+        elif downstream_transcripts is None:
+            self.downstream_transcripts = assembly.get_transcripts_downstream(assembly.get_component_position(self))
+            #in this case anything can be transcribed since we are assuming there was a promoter upstream of this terminator
+        
+        Component.__init__(self, name = name, mechanisms = mechanisms,
+                           parameters = parameters, **keywords)
+    def update_species(self):
+        #do i need another mechanism for leaky termination?
+        mech_term = self.mechanisms["termination"]
+
+        species = []
+        for(transcript in self.upstream_transcripts):
+            species += mech_term.update_species(dna = self.assembly.dna,transcript = transcript)
+            #i think the idea here is to make it so that the terminator creates an "unbinding" reaction that goes with the
+            #transcript upstream. This could yield a useless RNA or an RNA that has useful features, depending on where the terminator is.
+            #how does this interact with the promoter mechanism? well the promoter mechanism should be *only* making a transcript, then
+            #the transcript gets an "RBS" mechanism, right? How would this interact with the "simple transcription" model?
+            for(downstream_transcript in self.downstream_transcripts):
+                #so the polymerase could read through. That means that downstream transcripts result in whichever polymerases didn't stop
+                #i think that means we take the production rate of the promoter and apply it to a longer transcript.
+                species += mech_term.update_species(dna = self.assembly.dna,transcript = transcript+downstream_transcript)
+        return species
+    def update_reactions(self):
+        mech_term = self.mechanisms["termination"]
+        reactions = []
+        for(transcript in self.upstream_transcripts):
+            reactions += mech_term.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, complex = None,
+                                                transcript = transcript)
+            for(downstream_transcript in self.downstream_transcripts):
+                reactions += mech_term.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, complex = None,
+                                                transcript = transcript+downstream_transcript)
+
 
 class RegulatedPromoter(Promoter):
     def __init__(self, name, regulators, leak = True, assembly = None,
@@ -92,14 +141,17 @@ class RegulatedPromoter(Promoter):
         mech_b = self.mechanisms['binding']
 
         if self.leak != False:
-            reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, transcript = self.transcript, protein = self.assembly.protein)
+            reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, \
+                                                            transcript = self.transcript, protein = self.assembly.protein)
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
             complex_ = self.complexes[i]
 
-            reactions += mech_b.update_reactions(regulator, self.assembly.dna, component = self, part_id = self.name+"_"+regulator.name)
-            reactions += mech_tx.update_reactions(dna = complex_, component = self, part_id = self.name+"_"+regulator.name, transcript = self.transcript, protein = self.assembly.protein)
+            reactions += mech_b.update_reactions(regulator, self.assembly.dna, component = self, \
+                                                                                        part_id = self.name+"_"+regulator.name)
+            reactions += mech_tx.update_reactions(dna = complex_, component = self, part_id = self.name+"_"+regulator.name, \
+                                                                transcript = self.transcript, protein = self.assembly.protein)
 
         return reactions
 
@@ -168,6 +220,21 @@ class DNAassembly(DNA):
                         protein = self.protein)
 
         self.set_parameter_warnings(parameter_warnings)
+    @classmethod
+    def from_part_seq(part_sequence,attributes = [], mechanisms = {}, parameters = {}, \
+                                initial_conc = None, parameter_warnings = True, **keywords):
+        '''this initializes a DNAassembly from a sequence of parts. 
+        A sequence looks like a list of Components and their facing.
+        Example:
+        
+        [[Promoter("J23101"),"forward"],[RBS("utr1"),"forward"],[Protein("GFP"),"forward"],[Terminator("T16m"),"forward"]]'''
+        dnaname = [repr(part[0])+" "+part[1][0] for part in part_sequence]
+        newDNA = DNA(dnaname,length=len(dnaname), mechanisms = mechanisms,
+                     parameters = parameters, initial_conc = initial_conc,
+                     parameter_warnings = parameter_warnings,
+                     attributes = list(attributes), **keywords)
+        for part in part_sequence:
+            
 
     def set_parameter_warnings(self, parameter_warnings):
         self.parameter_warnings = parameter_warnings
