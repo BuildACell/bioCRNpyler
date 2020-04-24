@@ -12,7 +12,7 @@ install:
 
 # command to run tests
 script:
-          - "python setup.py nosetests --tests tests/ --with-coverage"
+          - "python setup.py nosetests --tests Tests/ --with-coverage"
 
 # Push the results back to codecov
 after_success:
