@@ -31,7 +31,8 @@ class Promoter(Component):
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]
         species = []
-        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, protein = self.assembly.protein)
+        species += mech_tx.update_species(dna = self.assembly.dna, \
+            transcript = self.transcript, protein = self.assembly.protein)
         return species
 
     def update_reactions(self):
@@ -39,8 +40,9 @@ class Promoter(Component):
         reactions = []
 
 
-        reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, complex = None,
-                                              transcript = self.transcript, protein = self.assembly.protein)
+        reactions += mech_tx.update_reactions(dna = self.assembly.dna, \
+                        component = self, part_id = self.name, complex = None,
+                        transcript = self.transcript, protein = self.assembly.protein)
         return reactions
 
 class RegulatedPromoter(Promoter):
@@ -67,7 +69,6 @@ class RegulatedPromoter(Promoter):
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
-
         species = []
         self.complexes = []
         if self.leak is not False:
@@ -75,11 +76,13 @@ class RegulatedPromoter(Promoter):
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
-            species_b = mech_b.update_species(regulator, self.assembly.dna)
+            species_b = mech_b.update_species(regulator, self.assembly.dna,\
+                                            part_id = self.name,component=self)
             species += species_b
             complex_ = species_b[0]
             self.complexes += [complex_]
-            species += mech_tx.update_species(dna = complex_, transcript = self.transcript, protein = self.assembly.protein)
+            species += mech_tx.update_species(dna = complex_, \
+                    transcript = self.transcript, protein = self.assembly.protein)
         return species
 
     def update_reactions(self):
@@ -96,9 +99,9 @@ class RegulatedPromoter(Promoter):
             complex_ = self.complexes[i]
 
             reactions += mech_b.update_reactions(regulator, self.assembly.dna, component = self, \
-                                                                                        part_id = self.name+"_"+regulator.name)
+                                                                    part_id = self.name+"_"+regulator.name)
             reactions += mech_tx.update_reactions(dna = complex_, component = self, part_id = self.name+"_"+regulator.name, \
-                                                                transcript = self.transcript, protein = self.assembly.protein)
+                                            transcript = self.transcript, protein = self.assembly.protein)
 
         return reactions
 
@@ -143,21 +146,24 @@ class CombinatorialPromoter(Promoter):
         else:
             made_complex = core_dna
             for element in key:
-                made_complex = mech_b.update_species(made_complex,element)[0]
+                made_complex = mech_b.update_species(element,made_complex,\
+                                        part_id = self.name,component=self)[0]
             dp_dict[key]=made_complex
             return made_complex
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
-
+        
         species = []
+
+        
         self.complexes = []
         if self.leak is not False:
             species += mech_tx.update_species(dna = self.assembly.dna)
         complex_combinations = {}
-        for i in range(1, len(self.regulators)):
+        for i in range(1, len(self.regulators)+1):
             # Get all unique complexes of len i
-            species += [self.regulators[i]]
+            #species += [self.regulators[i]]
             for combination in it.combinations(self.regulators, i):
 
                 temp_complex = self.dp_complex_combination(combination,self.complex_combinations)
@@ -176,7 +182,7 @@ class CombinatorialPromoter(Promoter):
             reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, \
                                                             transcript = self.transcript, protein = self.assembly.protein)
 
-        for i in range(1, len(self.regulators)):
+        for i in range(1, len(self.regulators)+1):
             # Get all unique complexes of len i
             for bigger in it.combinations(self.regulators, i):
                 # Get all unique complexes len i-1
@@ -188,9 +194,9 @@ class CombinatorialPromoter(Promoter):
                         #so now we have to come up with the "bigger" complex
                         big_complex = self.dp_complex_combination(bigger,self.complex_combinations)
                         #now we do the same thing for "smaller"
-                        small_complex = self.dp_complex_combination(bigger,self.complex_combinations)
-                        reactions+=mech_b.update_reactions(small_complex,regulator_to_add,\
-                                                        complex=big_complex,component = self,)
+                        small_complex = self.dp_complex_combination(smaller,self.complex_combinations)
+                        reactions+=mech_b.update_reactions(regulator_to_add,small_complex,\
+                                  complex=big_complex,part_id = self.name, component = self,)
                         if([self.regulators.index(a) for a in sorted(bigger)] in self.tx_capable_list):
                             mech_tx.update_reactions(dna=big_complex,component=self,\
                                             transcript=self.transcript,protein=self.assembly.protein)

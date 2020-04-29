@@ -8,7 +8,6 @@ import copy
 import numpy as np
 import networkx as nx
 
-
 class Species(object):
     """ A formal species object for a CRN
      A Species must have a name. They may also have a materialtype (such as DNA,
@@ -41,7 +40,7 @@ class Species(object):
         return txt
 
     def add_attribute(self, attribute):
-        assert isinstance(attribute, str) or attribute is None,  "Attribute: %s must be a string or None" % attribute
+        assert isinstance(attribute, str) and attribute is not None, "Attribute: %s must be a string" % attribute
 
         self.attributes.append(attribute)
 

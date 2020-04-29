@@ -130,7 +130,7 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force"):
     #when you mouse over and click
     edge_hover_tool = HoverTool(tooltips= None,renderers=[edges_renderer])
     node_hover_tool = HoverTool(tooltips=[("name", "@species"), ("type", "@type")],\
-                                        renderers=[reaction_renderer,species_renderer])
+                                        renderers=[reaction_renderer,species_renderer],attachment="right")
     plot.add_tools(edge_hover_tool,node_hover_tool, TapTool(), BoxSelectTool(),PanTool(),WheelZoomTool())
 
     edges_renderer.selection_policy = NodesAndLinkedEdges()

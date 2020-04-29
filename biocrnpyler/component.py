@@ -105,24 +105,16 @@ class Component(object):
         return str.__hash__(repr(self.get_species()))
 
     def set_attributes(self, attributes):
-        for attribute in attributes:
-            if isinstance(attribute, str):
-                self.attributes.append(attribute)
-            elif attribute is not None:
-                raise RuntimeError("Invalid Attribute: {repr_attribute} "
-                                   "attributes must be strings")
-
-    # TODO merge set_attribute and add_attribute
+        if attributes is not None:
+            for attribute in attributes:
+                self.add_Attribute(attribute)
     def add_attribute(self, attribute):
-        assert isinstance(attribute, str), "Attribute: %s must be a str" % attribute
-
+        assert isinstance(attribute, str) and attribute is not None, "Attribute: %s must be a str" % attribute
         self.attributes.append(attribute)
-
         if hasattr(self, 'species') and self.species is not None:
             self.species.add_attribute(attribute)
         else:
-            raise Warning("Species was empty, did you call the right object?")
-
+            raise Warning(f"Component {self.name} has no internal species and therefore no attributes")
     def update_parameters(self, mixture_parameters = {}, parameters = {},
                           overwrite_custom_parameters = True):
 
@@ -363,16 +355,12 @@ class Protein(Component):
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
             attributes=[],
-            degredation_tag=None,
             initial_conc=None,
             **keywords
     ):
         self.length = length
-        self.degredation_tag = degredation_tag
-        if degredation_tag not in attributes:
-            attributes.append(degredation_tag)
         self.species = Species(name, material_type="protein",
-                               attributes=list(attributes))
+                               attributes=attributes)
 
         Component.__init__(self=self, name=name, mechanisms=mechanisms,
                            parameters=parameters, attributes=attributes,

@@ -346,8 +346,15 @@ class One_Step_Cooperative_Binding(Mechanism):
                  mechanism_type="cooperative_binding"):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, s1, s2, cooperativity=1, **kwords):
+    def update_species(self, s1, s2, component=None,part_id = None, cooperativity=None, **kwords):
         binder, bindee = s1, s2
+        if cooperativity == None and component != None:
+            search_id = part_id+"_"+str(s1.name) #cooperativity could be different
+                                        #depending on who's binding!!
+            cooperativity = component.get_parameter("cooperativity", \
+                                  part_id = search_id, mechanism = self)
+        if cooperativity == None and component == None:
+            raise ValueError("Must pass in a Component or a value for cooperativity")
         complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"
                        f"{bindee.material_type}_{bindee.name}")
         complex = ComplexSpecies([binder, bindee], name = complex_name)
@@ -392,8 +399,13 @@ class Two_Step_Cooperative_Binding(Mechanism):
                  mechanism_type="cooperative_binding"):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, s1, s2, cooperativity=2, **keywords):
+    def update_species(self, s1, s2, cooperativity=None,component=None,part_id = None,  **keywords):
         binder, bindee = s1, s2
+        if cooperativity == None and component != None:
+            cooperativity = component.get_parameter("cooperativity", \
+                                  part_id = part_id, mechanism = self)
+        if cooperativity == None and component == None:
+            raise ValueError("Must pass in a Component or a value for cooperativity")
         n_mer_name = f"{cooperativity}x_{binder.material_type}_{binder.name}"
         n_mer = ComplexSpecies([binder], name = n_mer_name)
         complex = ComplexSpecies([n_mer, bindee])
