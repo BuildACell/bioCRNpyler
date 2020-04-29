@@ -320,7 +320,8 @@ class Reversible_Bimolecular_Binding(Mechanism):
         complex = ComplexSpecies([s1, s2])
         return [complex]
 
-    def update_reactions(self, s1, s2, component = None, kb = None, ku = None, part_id = None, **keywords):
+    def update_reactions(self, s1, s2, component = None, kb = None, ku = None, \
+                                              part_id = None,complex=None, **keywords):
 
         #Get Parameters
         if part_id == None:
@@ -331,8 +332,8 @@ class Reversible_Bimolecular_Binding(Mechanism):
             ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
         if component == None and (kb == None or ku == None):
             raise ValueError("Must pass in a Component or values for kb, ku.")
-
-        complex = ComplexSpecies([s1, s2])
+        if(complex==None):
+            complex = ComplexSpecies([s1, s2])
         rxns = [Reaction([s1, s2], [complex], k=kb, k_rev=ku)]
         return rxns
 
@@ -352,7 +353,8 @@ class One_Step_Cooperative_Binding(Mechanism):
         complex = ComplexSpecies([binder, bindee], name = complex_name)
         return [complex]
 
-    def update_reactions(self, s1, s2, component = None, kb = None, ku = None, part_id = None, cooperativity=None, **kwords):
+    def update_reactions(self, s1, s2, component = None, kb = None, ku = None, \
+                               part_id = None, cooperativity=None,complex=None, **kwords):
 
         #Get Parameters
         if part_id == None:
@@ -362,14 +364,17 @@ class One_Step_Cooperative_Binding(Mechanism):
         if ku == None and component != None:
             ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
         if cooperativity == None and component != None:
-            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
+            cooperativity = component.get_parameter("cooperativity", \
+                                  part_id = part_id, mechanism = self)
         if component == None and (kb == None or ku == None or cooperativity):
             raise ValueError("Must pass in a Component or values for kb, ku.")
 
         binder, bindee = s1, s2
-        complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"
+        
+        if(complex == None):
+            complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"
                         f"{bindee.material_type}_{bindee.name}")
-        complex = ComplexSpecies([binder, bindee], name = complex_name)
+            complex = ComplexSpecies([binder, bindee], name = complex_name)
         rxns = []
         rxns += [
             Reaction(inputs=[binder, bindee], outputs=[complex],
@@ -394,7 +399,8 @@ class Two_Step_Cooperative_Binding(Mechanism):
         complex = ComplexSpecies([n_mer, bindee])
         return [complex, n_mer]
 
-    def update_reactions(self, s1, s2, kb = None, ku = None, component = None, part_id = None, cooperativity=None, **keywords):
+    def update_reactions(self, s1, s2, kb = None, ku = None, component = None, \
+                        part_id = None, cooperativity=None,complex=None, **keywords):
         """
         Returns reactions:
         cooperativity binder <--> n_mer, kf = kb1, kr = ku1
@@ -426,7 +432,8 @@ class Two_Step_Cooperative_Binding(Mechanism):
             ku1, ku2 = ku
         n_mer_name = f"{cooperativity}x_{binder.material_type}_{binder.name}"
         n_mer = ComplexSpecies([binder], name = n_mer_name)
-        complex = ComplexSpecies([n_mer, bindee])
+        if(complex == None):
+            complex = ComplexSpecies([n_mer, bindee])
 
 
         rxns = [

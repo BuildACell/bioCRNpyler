@@ -60,6 +60,10 @@ class Species(object):
             return True
         else:
             return False
+    def __gt__(self,Species2):
+        return self.name > Species2.name
+    def __lt__(self,Species2):
+        return self.name < Species2.name
 
     def __hash__(self):
         return str.__hash__(repr(self))
