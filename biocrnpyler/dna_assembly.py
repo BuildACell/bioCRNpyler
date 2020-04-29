@@ -5,7 +5,8 @@ from .component import Component, DNA
 from .chemical_reaction_network import Species
 from .mechanism import One_Step_Cooperative_Binding
 from warnings import warn as pywarn
-
+import itertools as it
+import numpy as np
 
 def warn(txt):
     pywarn(txt)
@@ -42,56 +43,6 @@ class Promoter(Component):
                                               transcript = self.transcript, protein = self.assembly.protein)
         return reactions
 
-class Terminator(Component):
-    def __init__(self, name, assembly=None,
-                upstream_transcripts=None,downstream_transcripts=None,
-                length=0,mechanisms={},parameters={},**keywords):
-        self.assembly = assembly
-        self.length = length
-        if upstream_transcripts is None and assembly is None:
-            #if you didnt put this terminator in an assembly then it does nothing
-            self.upstream_transcripts = None
-        elif upstream_transcripts is None:
-            #in this case it is in an assembly, but the transcripts have not been assigned to it
-            self.upstream_transcripts = assembly.get_transcripts_upstream(assembly.get_component_position(self))
-            #the idea is that we find all promoters that are upstream of this terminator. They can all get terminated here.
-            #a transcript has to start with a forward pointing promoter
-        if downstream_transcripts is None and assembly is None:
-            #after the terminator, we can keep reading
-            self.downstream_transcripts = None
-        elif downstream_transcripts is None:
-            self.downstream_transcripts = assembly.get_transcripts_downstream(assembly.get_component_position(self))
-            #in this case anything can be transcribed since we are assuming there was a promoter upstream of this terminator
-        
-        Component.__init__(self, name = name, mechanisms = mechanisms,
-                           parameters = parameters, **keywords)
-    def update_species(self):
-        #do i need another mechanism for leaky termination?
-        mech_term = self.mechanisms["termination"]
-
-        species = []
-        for(transcript in self.upstream_transcripts):
-            species += mech_term.update_species(dna = self.assembly.dna,transcript = transcript)
-            #i think the idea here is to make it so that the terminator creates an "unbinding" reaction that goes with the
-            #transcript upstream. This could yield a useless RNA or an RNA that has useful features, depending on where the terminator is.
-            #how does this interact with the promoter mechanism? well the promoter mechanism should be *only* making a transcript, then
-            #the transcript gets an "RBS" mechanism, right? How would this interact with the "simple transcription" model?
-            for(downstream_transcript in self.downstream_transcripts):
-                #so the polymerase could read through. That means that downstream transcripts result in whichever polymerases didn't stop
-                #i think that means we take the production rate of the promoter and apply it to a longer transcript.
-                species += mech_term.update_species(dna = self.assembly.dna,transcript = transcript+downstream_transcript)
-        return species
-    def update_reactions(self):
-        mech_term = self.mechanisms["termination"]
-        reactions = []
-        for(transcript in self.upstream_transcripts):
-            reactions += mech_term.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, complex = None,
-                                                transcript = transcript)
-            for(downstream_transcript in self.downstream_transcripts):
-                reactions += mech_term.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, complex = None,
-                                                transcript = transcript+downstream_transcript)
-
-
 class RegulatedPromoter(Promoter):
     def __init__(self, name, regulators, leak = True, assembly = None,
                  transcript = None, length = 0, mechanisms = {},
@@ -124,11 +75,7 @@ class RegulatedPromoter(Promoter):
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
-            coop = self.get_parameter(param_name = "cooperativity",
-                                      part_id = f"{self.name}_{regulator.name}",
-                                      mechanism = mech_b)
-            species_b = mech_b.update_species(regulator, self.assembly.dna,
-                                              cooperativity = coop)
+            species_b = mech_b.update_species(regulator, self.assembly.dna)
             species += species_b
             complex_ = species_b[0]
             self.complexes += [complex_]
@@ -155,9 +102,104 @@ class RegulatedPromoter(Promoter):
 
         return reactions
 
+class CombinatorialPromoter(Promoter):
+    def __init__(self, name, regulators, leak = True, assembly = None,
+                 transcript = None, length = 0, mechanisms = {},
+                 parameters = {},tx_capable_list = None, **keywords):
+        """
+        tx_capable_list = [[1,2,3],[0,2,3]] this means having regulator 1, 2, and 3 will transcribe
+                                           but also 3, 2, and 0.
+                                           #TODO make it force sorted list
+        """
+        if not isinstance(regulators, list):
+            regulators = [regulators]
+        if(tx_capable_list == None):
+            tx_capable_list = [[a for a in range(len(regulators))]]
+        self.tx_capable_list = tx_capable_list #TODO make this better
+        self.regulators = []
+        for regulator in regulators:
+            self.regulators += [self.set_species(regulator, material_type = "protein")]
+        self.regulators = sorted(self.regulators)
+        self.leak = leak
+
+        self.default_mechanisms = {"binding": One_Step_Cooperative_Binding()}
+
+        Promoter.__init__(self, name = name, assembly = assembly,
+                          transcript = transcript, length = length,
+                          mechanisms = mechanisms, parameters = parameters,
+                          **keywords)
+        self.complex_combinations = {}
+    def dp_complex_combination(self,key,dp_dict,core_dna=None,\
+                                            mech_b=None):
+        """retrieves a key from a list, otherwise, makes an element
+        and stores it"""
+
+        if(core_dna==None):
+            core_dna = self.assembly.dna
+        if(mech_b == None):
+            mech_b = self.mechanisms['binding']
+        if(key in dp_dict):
+            return dp_dict[key]
+        else:
+            made_complex = core_dna
+            for element in key:
+                made_complex = mech_b.update_species(made_complex,element)[0]
+            dp_dict[key]=made_complex
+            return made_complex
+    def update_species(self):
+        mech_tx = self.mechanisms["transcription"]
+        mech_b = self.mechanisms['binding']
+
+        species = []
+        self.complexes = []
+        if self.leak is not False:
+            species += mech_tx.update_species(dna = self.assembly.dna)
+        complex_combinations = {}
+        for i in range(1, len(self.regulators)):
+            # Get all unique complexes of len i
+            species += [self.regulators[i]]
+            for combination in it.combinations(self.regulators, i):
+
+                temp_complex = self.dp_complex_combination(combination,self.complex_combinations)
+                species+=[temp_complex]
+                if([self.regulators.index(a) for a in sorted(combination)] in self.tx_capable_list):
+                    species += mech_tx.update_species(dna = temp_complex, transcript = self.transcript, protein = self.assembly.protein)
+        print(species)
+        return species
+
+    def update_reactions(self):
+        reactions = []
+        mech_tx = self.mechanisms["transcription"]
+        mech_b = self.mechanisms['binding']
+
+        if self.leak != False:
+            reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, \
+                                                            transcript = self.transcript, protein = self.assembly.protein)
+
+        for i in range(1, len(self.regulators)):
+            # Get all unique complexes of len i
+            for bigger in it.combinations(self.regulators, i):
+                # Get all unique complexes len i-1
+                for smaller in it.combinations(self.regulators, i-1):
+                    # If smaller is only 1 activator away
+                    if (bigger > smaller):
+                        #this is the regulator that is different
+                        regulator_to_add = np.setdiff1d(bigger,smaller)[0]
+                        #so now we have to come up with the "bigger" complex
+                        big_complex = self.dp_complex_combination(bigger,self.complex_combinations)
+                        #now we do the same thing for "smaller"
+                        small_complex = self.dp_complex_combination(bigger,self.complex_combinations)
+                        reactions+=mech_b.update_reactions(small_complex,regulator_to_add,\
+                                                        complex=big_complex,component = self,)
+                        if([self.regulators.index(a) for a in sorted(bigger)] in self.tx_capable_list):
+                            mech_tx.update_reactions(dna=big_complex,component=self,\
+                                            transcript=self.transcript,protein=self.assembly.protein)
+        
+        return reactions
+
 
 class RBS(Component):
-    def __init__(self, name, assembly,
+    def __init__(self, name, assembly = None,
                  transcript = None, protein = None, length = 0,
                  mechanisms = {}, parameters = {}, **keywords):
         self.assembly = assembly
@@ -220,20 +262,7 @@ class DNAassembly(DNA):
                         protein = self.protein)
 
         self.set_parameter_warnings(parameter_warnings)
-    @classmethod
-    def from_part_seq(part_sequence,attributes = [], mechanisms = {}, parameters = {}, \
-                                initial_conc = None, parameter_warnings = True, **keywords):
-        '''this initializes a DNAassembly from a sequence of parts. 
-        A sequence looks like a list of Components and their facing.
-        Example:
-        
-        [[Promoter("J23101"),"forward"],[RBS("utr1"),"forward"],[Protein("GFP"),"forward"],[Terminator("T16m"),"forward"]]'''
-        dnaname = [repr(part[0])+" "+part[1][0] for part in part_sequence]
-        newDNA = DNA(dnaname,length=len(dnaname), mechanisms = mechanisms,
-                     parameters = parameters, initial_conc = initial_conc,
-                     parameter_warnings = parameter_warnings,
-                     attributes = list(attributes), **keywords)
-        for part in part_sequence:
+
             
 
     def set_parameter_warnings(self, parameter_warnings):
@@ -403,3 +432,220 @@ class DNAassembly(DNA):
             txt += "\n\t" + repr(self.rbs)
             txt += "\n\tprotein = " + repr(self._protein)
         return txt
+
+
+
+
+
+#ANDREY'S STUFF BELOW!!! here be dagrons
+from matplotlib import cm
+import matplotlib.pyplot as plt
+import random
+class DNA_part:
+    def __init__(self,name,biocrnpyler_class=None,attributes={},**keywords):
+        """this represents a sequence. These get compiled into working components"""
+        self.biocrnpyler_class = biocrnpyler_class
+        self.sequence = None
+        self.integrase = None
+        self.dinucleotide = None
+        self.part_type=None
+        self.regulator = None
+        self.name = name
+        self.protein = None
+        self.no_stop_codons = []
+        self.attributes = attributes
+
+
+        if("no_stop_codons" in attributes):
+            self.no_stop_codons = attributes["no_stop_codons"]
+        if("sequence" in attributes):
+            self.sequence = attributes["sequence"]
+        if("part_type" in attributes):
+            #acceptable part 
+            self.part_type = attributes["part_type"]
+        if(self.part_type in ["attB","attP","attL","attR"]):
+            if("integrase" in attributes):
+                self.integrase = attributes["integrase"]
+            else:
+                self.integrase = "int1"
+            if("dinucleotide" in attributes):
+                self.dinucleotide = attributes["dinucleotide"]
+            else:
+                self.dinucleotide = 1
+        if(self.part_type == "promoter"):
+            if("regulator" in attributes):
+                self.regulator = attributes["regulator"]
+        if(self.part_type == "CDS"):
+            if("protein" in attributes):
+                self.protein = attributes["protein"]
+    def __repr__(self):
+        myname = self.name
+        if(self.part_type in ["attB","attP","attL","attR"]):
+            myname += "-" + self.integrase
+            if(self.dinucleotide != 1):
+                myname += "-"+str(self.dinucleotide) 
+        return myname
+    def dnaplotlib_design(self,direction=True,color=(1,4,2),color2=(3,2,4)):
+        dnaplotlib_dict = {\
+            "promoter":"Promoter",\
+            "rbs":"RBS",\
+            "CDS":"CDS",\
+            "terminator":"Terminator",\
+            "attP":"RecombinaseSite",\
+            "attB":"RecombinaseSite",\
+            "attL":"RecombinaseSite2",\
+            "attR":"RecombinaseSite2"}
+        dpl_type = dnaplotlib_dict[self.part_type]
+        outdesign = [{'type':dpl_type,"name":self.name,"fwd":direction,'opts':{'color':color,'color2':color2}}]
+        if(self.regulator!= None):
+            outdesign += [{"type":"Operator","name":self.regulator,"fwd":direction,'opts':{'color':color,'color2':color2}}]
+        if(not direction):
+            outdesign = outdesign[::-1]
+        return outdesign
+from copy import deepcopy as dc
+def rev_dir(dir):
+    reversedict = {"forward":"reverse","reverse":"forward"}
+    return reversedict[dir]
+class DNA_construct:
+    def __init__(self,parts_list,circular=False,**keywords):
+        """this represents a bunch of parts in a row.
+        A parts list has [[part,direction],[part,direction],...]"""
+        self.parts_list = parts_list
+        self.circular=circular
+    def explore_txtl(self):
+        """this function finds promoters and terminators and stuff in the construct"""
+        transcribing = False
+        translating = False
+        txrxns = []
+        tlrxns = []
+        made_proteins = {}
+        all_rnas = []
+        all_proteins = []
+        current_rnas = {}
+        current_proteins = {}
+        current_rbs = None
+        for direction in ["forward","reverse"]:
+            #go forwards and also backwards!
+            if(direction == "reverse"):
+                #if we go backwards then also list the parts backwards
+                #deepcopy so we don't mangle the list
+                newlist = dc(self.parts_list)[::-1]
+            else:
+                newlist = dc(self.parts_list)
+            for part_index in range(len(newlist)):
+                #
+                # iterate through all parts!
+                #
+                part = newlist[part_index]
+                '''
+                #this part is for picking out the next and previous parts.
+                #is it needed? unclear
+                try:
+                    #look ahead!
+                    next_part = newlist[part_index+1]
+                except IndexError:
+                    #this means we fell off the end of the list!
+                    if(self.circular == True):
+                        #if we are circular then look back at the beginning
+                        next_part = newlist[0]
+                    else:
+                        #otherwise, it's the end!
+                        next_part = None
+                previous_part = newlist[part_index-1]
+                #unlike looking off the end of the list, -1 is a valid index.
+                if(self.circular == False):
+                    previous_part = None
+                #'''
+                effective_direction = part[1]
+
+                if(direction=="reverse"):
+                    #if we are reverse then everything is backwards
+                    effective_direction = rev_dir(effective_direction)
+                part_object = part[0]
+
+
+                if(current_rnas!={}):
+                    #this means we are compiling an RNA
+                    terminated = 0
+                    if(part_object.part_type=="rbs" and effective_direction == "forward"):
+                        #rbs makes protein!! we add this to a list and then LATER decide which RNA gets it.
+                        #because, there could be no protein after the rbs, and then we dont care!
+                        #we don't track ORFs or do any kind of ribosome simulation so this could get tricky
+                        #ideally you just look at one protein following the RBS, but...
+                        #1- conditional RNA motifs could exist
+                        #2- attachment sites inside of protein coding sequences
+                        #3- fusion proteins
+                        #4- translational coupling
+                        #
+                        #i think the solution is just to track cds'es which have stop codons.
+                        #let's just assume that valid CDSes have stop codons.
+                        #logically though 
+                        current_proteins[part_object]= []
+                        if(current_rbs == None):
+                            #this means nobody is translating yet
+                            current_rbs = part_object
+                        else:
+                            #another RBS is translating. this could mean a few things:
+                            #1: translational coupling. the previous translation ends and turns
+                            #   into this one, with an added coupling term when that gets implemented
+                            #2: it just terminates the previous translation. Chances are it would, right?
+                            current_rbs = part_object
+                            # TODO add coupling
+                    elif(effective_direction in part_object.no_stop_codons and current_rbs != None):
+                        #this means we can translate through the current part!
+                        current_proteins[current_rbs] = current_proteins[current_rbs]+[[part_object,effective_direction]]
+                    elif(current_rbs != None):
+                        #this means we CAN'T translate through the current part, but we are translating
+                        current_proteins[current_rbs] = current_proteins[current_rbs] + [[part_object,effective_direction]]
+                        #this also means we perhaps have a chance to evaluate the latest 'protein' and see if it's good.
+                        current_rbs = None
+                    
+                    for promoter in current_rnas:
+                        current_rnas[promoter]+=[[part_object,effective_direction]]
+                        #we add the current part
+                        if(part_object.part_type=="terminator" and effective_direction == "forward"):
+                            terminated = 1 #a terminator ends everything. This does not account for leakiness
+                            #this stops the RNA! but only in the forward direction
+                            current_rna_name = str(promoter)+"="+'_'.join([str(a[0])+"-r"*(a[1]=="reverse") for a in current_rnas[promoter]])
+                            made_proteins[current_rna_name]={}
+                            #compile the name, keeping track of which promoter made the rna and all the parts on it
+                            for rbs in current_proteins:
+                                #ending the RNA also ends all the proteins being generated here.
+                                proteins_per_rbs = []
+                                # TODO this will run multiple times for each RNA. make it so it runs once!
+                                for protein_part in current_proteins[rbs]:
+                                    if(protein_part[1] == "forward"):
+                                        #it is essential to be forwards
+                                        if(protein_part[0].protein != None):
+                                            #this happens if we do in fact make a protein
+                                            proteins_per_rbs+=[protein_part[0]]
+                                made_proteins[current_rna_name].update({rbs:proteins_per_rbs})
+                                #we want to clear the current proteins, but there could be multiple RNAs that run over the same proteins,
+                                #so wait until we are done tallying all the RNAs before removing everything from current_proteins
+                            all_rnas +=[[promoter,current_rnas[promoter]]]
+                    
+                        
+                    if(terminated):
+                        current_rnas = {}
+                        current_proteins = {}
+                        current_rbs = None
+                        terminated = 0
+                if(part_object.part_type=="promoter" and effective_direction=="forward"):
+                    #this part is a promoter, so it transcribes!
+                    current_rnas.update({part_object:[]})
+        return all_rnas,made_proteins
+    def __repr__(self):
+        output = ""
+        output = '_'.join([str(a[0])+"-r"*(a[1]=="reverse") for a in self.parts_list])
+        if(self.circular):
+            output+="-o"
+        return output
+    def dnaplotlib_design(self):
+        outdesign = []
+        cmap = cm.Set1(range(len(self.parts_list)))
+        pind = 0
+        for part in self.parts_list:
+
+            outdesign+=part[0].dnaplotlib_design(part[1]=="forward",color=cmap[pind][:-1],color2 = random.choice(cmap)[:-1])
+            pind+=1
+        return outdesign
