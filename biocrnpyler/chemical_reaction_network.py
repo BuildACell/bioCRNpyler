@@ -40,7 +40,7 @@ class Species(object):
         return txt
 
     def add_attribute(self, attribute):
-        assert isinstance(attribute, str) or attribute is None,  "Attribute: %s must be a string or None" % attribute
+        assert isinstance(attribute, str) and attribute is not None, "Attribute: %s must be a string" % attribute
 
         self.attributes.append(attribute)
 
