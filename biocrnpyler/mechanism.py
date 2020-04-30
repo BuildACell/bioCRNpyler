@@ -360,9 +360,9 @@ class One_Step_Cooperative_Binding(Mechanism):
                 complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"f"{bindee.material_type}_{bindee.name}")
             else:
                 complex_name = (f"{binder.material_type}_{binder.name}_"f"{bindee.material_type}_{bindee.name}")
-        elif isInstance(complex_species, str):
+        elif isinstance(complex_species, str):
             complex_name = complex_species
-        elif isInstance(complex_species, Species):
+        elif isinstance(complex_species, Species):
             complex = complex_species
         else:
             raise TypeError("complex_species keyword must be a str, Species, or None.")
@@ -395,9 +395,9 @@ class One_Step_Cooperative_Binding(Mechanism):
                 complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"f"{bindee.material_type}_{bindee.name}")
             else:
                 complex_name = (f"{binder.material_type}_{binder.name}_"f"{bindee.material_type}_{bindee.name}")
-        elif isInstance(complex_species, str):
+        elif isinstance(complex_species, str):
             complex_name = complex_species
-        elif isInstance(complex_species, Species):
+        elif isinstance(complex_species, Species):
             complex = complex_species
         else:
             raise TypeError("complex_species keyword must be a str, Species, or None.")
@@ -433,9 +433,9 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
         if n_mer_species is None:
             n_mer_name = f"{cooperativity}x_{binder.material_type}_{binder.name}"
-        elif isInstance(n_mer_Species, str):
+        elif isinstance(n_mer_Species, str):
             n_mer_name = n_mer_species
-        elif isInstance(n_mer_species, Species):
+        elif isinstance(n_mer_species, Species):
             n_mer = n_mer_species
         else:
             raise TypeError("n_mer_species keyword nust be a str, Species, or None. Not "+str(n_mer_species))
@@ -449,9 +449,9 @@ class Two_Step_Cooperative_Binding(Mechanism):
                 complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"f"{bindee.material_type}_{bindee.name}")
             else:
                 complex_name = (f"{binder.material_type}_{binder.name}_"f"{bindee.material_type}_{bindee.name}")
-        elif isInstance(complex_species, str):
+        elif isinstance(complex_species, str):
             complex_name = complex_species
-        elif isInstance(complex_species, Species):
+        elif isinstance(complex_species, Species):
             complex = complex_species
         else:
             raise TypeError("complex_species keyword must be a str, Species, or None. Not "+str(complex_species))
@@ -499,9 +499,9 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
         if n_mer_species is None:
             n_mer_name = f"{cooperativity}x_{binder.material_type}_{binder.name}"
-        elif isInstance(n_mer_Species, str):
+        elif isinstance(n_mer_Species, str):
             n_mer_name = n_mer_species
-        elif isInstance(n_mer_species, Species):
+        elif isinstance(n_mer_species, Species):
             n_mer = n_mer_species
         else:
             raise TypeError("n_mer_species keyword nust be a str, Species, or None. Not "+str(n_mer_species))
@@ -515,9 +515,9 @@ class Two_Step_Cooperative_Binding(Mechanism):
                 complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"f"{bindee.material_type}_{bindee.name}")
             else:
                 complex_name = (f"{binder.material_type}_{binder.name}_"f"{bindee.material_type}_{bindee.name}")
-        elif isInstance(complex_species, str):
+        elif isinstance(complex_species, str):
             complex_name = complex_species
-        elif isInstance(complex_species, Species):
+        elif isinstance(complex_species, Species):
             complex = complex_species
         else:
             raise TypeError("complex_species keyword must be a str, Species, or None. Not "+str(complex_species))

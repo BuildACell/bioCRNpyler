@@ -200,7 +200,7 @@ class CombinatorialPromoter(Promoter):
                             #now we do the same thing for "smaller"
                             small_complex = self.dp_complex_combination(smaller,self.complex_combinations)
                             reactions+=mech_b.update_reactions(regulator_to_add,small_complex,\
-                                    complex=big_complex,part_id = self.name, component = self,)
+                                    complex_species=big_complex,part_id = self.name, component = self,)
                             
         
         return reactions
