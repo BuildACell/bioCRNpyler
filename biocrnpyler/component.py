@@ -119,14 +119,22 @@ class Component(object):
         else:
             raise Warning(f"Component {self.name} has no internal species and therefore no attributes")
 
+    #This function gives Components their own parameter dictionary. By default, components get all the parameters from Mixture
+    #Parameters passed in from mixture are superceded by parameters passed in the parameters keyword
+    #parameters already saved as custom parameters also supersede parameters from the Mixture
+    #In other words, the component remembers custom changes to parameters and mixture parameters will never overwrite those changes
+    #Mixture parameters are only ever used by default when no other component-level parameter has ever been given with the same key.
+    #the overwrite_custom_parameters keyword lets this function overwrite the existing custom Component-level parameters,
     def update_parameters(self, mixture_parameters = {}, parameters = {},
                           overwrite_custom_parameters = True):
+
 
         for p in parameters:
             if overwrite_custom_parameters or p not in self.custom_parameters:
                 self.parameters[p] = parameters[p]
                 if p in self.custom_parameters:
                     self.custom_parameters[p] = parameters[p]
+
 
         for p in mixture_parameters:
             if p not in self.parameters:

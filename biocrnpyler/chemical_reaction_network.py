@@ -67,12 +67,20 @@ class Species(object):
 class ComplexSpecies(Species):
     """ A special kind of species which is formed as a complex of two or more species.
         Used for attribute inheritance
+        ordered = True: the order species are added to the complex matters
+            In this case, the name of the complex depends on the order species are added.
+        ordered = False: the order species are added to the complex doesn't matter
+            In this case, the name of the complex does not depend on the order. 
+            Species are automatically ordered alphabetically.
+
     """
     def __init__(self, species, name = None, material_type = "complex",
-                 attributes = None, initial_concentration = 0):
+                 attributes = None, initial_concentration = 0, ordered = False):
         if len(species) < 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
+
+        self.ordered = ordered
 
         if name == None:
             name = ""
