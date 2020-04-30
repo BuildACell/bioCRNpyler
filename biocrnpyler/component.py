@@ -107,9 +107,11 @@ class Component(object):
     def set_attributes(self, attributes):
         if attributes is not None:
             for attribute in attributes:
-                self.add_Attribute(attribute)
+                self.add_attribute(attribute)
+
     def add_attribute(self, attribute):
         assert isinstance(attribute, str) and attribute is not None, "Attribute: %s must be a str" % attribute
+
         self.attributes.append(attribute)
         if hasattr(self, 'species') and self.species is not None:
             self.species.add_attribute(attribute)

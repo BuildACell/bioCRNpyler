@@ -346,22 +346,34 @@ class One_Step_Cooperative_Binding(Mechanism):
                  mechanism_type="cooperative_binding"):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, s1, s2, component=None,part_id = None, cooperativity=None, **kwords):
+    def update_species(self, s1, s2, complex_species = None, cooperativity=None, component = None, part_id = None, **kwords):
         binder, bindee = s1, s2
+
         if cooperativity == None and component != None:
-            search_id = part_id+"_"+str(s1.name) #cooperativity could be different
-                                        #depending on who's binding!!
-            cooperativity = component.get_parameter("cooperativity", \
-                                  part_id = search_id, mechanism = self)
-        if cooperativity == None and component == None:
-            raise ValueError("Must pass in a Component or a value for cooperativity")
-        complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"
-                       f"{bindee.material_type}_{bindee.name}")
-        complex = ComplexSpecies([binder, bindee], name = complex_name)
+            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
+        elif component == None and cooperativity == None:
+            raise ValueError("Must pass in a Component or values for cooperativity")
+
+        complex = None
+        if complex_species is None:
+            if cooperativity > 1:
+                complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"f"{bindee.material_type}_{bindee.name}")
+            else:
+                complex_name = (f"{binder.material_type}_{binder.name}_"f"{bindee.material_type}_{bindee.name}")
+        elif isInstance(complex_species, str):
+            complex_name = complex_species
+        elif isInstance(complex_species, Species):
+            complex = complex_species
+        else:
+            raise TypeError("complex_species keyword must be a str, Species, or None.")
+
+        if complex == None:
+            complex = ComplexSpecies([binder, bindee], name = complex_name)
+
+        
         return [complex]
 
-    def update_reactions(self, s1, s2, component = None, kb = None, ku = None, \
-                               part_id = None, cooperativity=None,complex=None, **kwords):
+    def update_reactions(self, s1, s2, complex_species = None, component = None, kb = None, ku = None, part_id = None, cooperativity=None, **kwords):
 
         #Get Parameters
         if part_id == None:
@@ -371,17 +383,28 @@ class One_Step_Cooperative_Binding(Mechanism):
         if ku == None and component != None:
             ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
         if cooperativity == None and component != None:
-            cooperativity = component.get_parameter("cooperativity", \
-                                  part_id = part_id, mechanism = self)
-        if component == None and (kb == None or ku == None or cooperativity):
-            raise ValueError("Must pass in a Component or values for kb, ku.")
+            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
+        if component == None and (kb == None or ku == None or cooperativity == None):
+            raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
 
         binder, bindee = s1, s2
-        
-        if(complex == None):
-            complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"
-                        f"{bindee.material_type}_{bindee.name}")
+
+        complex = None
+        if complex_species is None:
+            if cooperativity > 1:
+                complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"f"{bindee.material_type}_{bindee.name}")
+            else:
+                complex_name = (f"{binder.material_type}_{binder.name}_"f"{bindee.material_type}_{bindee.name}")
+        elif isInstance(complex_species, str):
+            complex_name = complex_species
+        elif isInstance(complex_species, Species):
+            complex = complex_species
+        else:
+            raise TypeError("complex_species keyword must be a str, Species, or None.")
+
+        if complex == None:
             complex = ComplexSpecies([binder, bindee], name = complex_name)
+
         rxns = []
         rxns += [
             Reaction(inputs=[binder, bindee], outputs=[complex],
@@ -399,20 +422,45 @@ class Two_Step_Cooperative_Binding(Mechanism):
                  mechanism_type="cooperative_binding"):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, s1, s2, cooperativity=None,component=None,part_id = None,  **keywords):
+    def update_species(self, s1, s2, component = None, complex_species = None, n_mer_species = None, cooperativity=None, part_id = None, **keywords):
         binder, bindee = s1, s2
+
+        n_mer = None
         if cooperativity == None and component != None:
-            cooperativity = component.get_parameter("cooperativity", \
-                                  part_id = part_id, mechanism = self)
-        if cooperativity == None and component == None:
-            raise ValueError("Must pass in a Component or a value for cooperativity")
-        n_mer_name = f"{cooperativity}x_{binder.material_type}_{binder.name}"
-        n_mer = ComplexSpecies([binder], name = n_mer_name)
-        complex = ComplexSpecies([n_mer, bindee])
+            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
+        elif component == None and cooperativity == None:
+            raise ValueError("Must pass in a Component or values for cooperativity")
+
+        if n_mer_species is None:
+            n_mer_name = f"{cooperativity}x_{binder.material_type}_{binder.name}"
+        elif isInstance(n_mer_Species, str):
+            n_mer_name = n_mer_species
+        elif isInstance(n_mer_species, Species):
+            n_mer = n_mer_species
+        else:
+            raise TypeError("n_mer_species keyword nust be a str, Species, or None. Not "+str(n_mer_species))
+
+        if n_mer is None:
+            n_mer = ComplexSpecies([binder], name = n_mer_name)
+
+        complex = None
+        if complex_species is None:
+            if cooperativity > 1:
+                complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"f"{bindee.material_type}_{bindee.name}")
+            else:
+                complex_name = (f"{binder.material_type}_{binder.name}_"f"{bindee.material_type}_{bindee.name}")
+        elif isInstance(complex_species, str):
+            complex_name = complex_species
+        elif isInstance(complex_species, Species):
+            complex = complex_species
+        else:
+            raise TypeError("complex_species keyword must be a str, Species, or None. Not "+str(complex_species))
+
+        if complex == None:
+            complex = ComplexSpecies([binder, bindee], name = complex_name)
         return [complex, n_mer]
 
-    def update_reactions(self, s1, s2, kb = None, ku = None, component = None, \
-                        part_id = None, cooperativity=None,complex=None, **keywords):
+    def update_reactions(self, s1, s2, kb = None, ku = None, component = None, part_id = None, cooperativity=None, complex_species = None, n_mer_species = None, **keywords):
         """
         Returns reactions:
         cooperativity binder <--> n_mer, kf = kb1, kr = ku1
@@ -447,6 +495,35 @@ class Two_Step_Cooperative_Binding(Mechanism):
         if(complex == None):
             complex = ComplexSpecies([n_mer, bindee])
 
+
+
+        if n_mer_species is None:
+            n_mer_name = f"{cooperativity}x_{binder.material_type}_{binder.name}"
+        elif isInstance(n_mer_Species, str):
+            n_mer_name = n_mer_species
+        elif isInstance(n_mer_species, Species):
+            n_mer = n_mer_species
+        else:
+            raise TypeError("n_mer_species keyword nust be a str, Species, or None. Not "+str(n_mer_species))
+
+        if n_mer is None:
+            n_mer = ComplexSpecies([binder], name = n_mer_name)
+
+        complex = None
+        if complex_species is None:
+            if cooperativity > 1:
+                complex_name = (f"{binder.material_type}_{cooperativity}x{binder.name}_"f"{bindee.material_type}_{bindee.name}")
+            else:
+                complex_name = (f"{binder.material_type}_{binder.name}_"f"{bindee.material_type}_{bindee.name}")
+        elif isInstance(complex_species, str):
+            complex_name = complex_species
+        elif isInstance(complex_species, Species):
+            complex = complex_species
+        else:
+            raise TypeError("complex_species keyword must be a str, Species, or None. Not "+str(complex_species))
+
+        if complex == None:
+            complex = ComplexSpecies([binder, bindee], name = complex_name)
 
         rxns = [
             Reaction(inputs=[binder], outputs=[n_mer],
