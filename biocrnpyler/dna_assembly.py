@@ -168,9 +168,10 @@ class CombinatorialPromoter(Promoter):
 
                 temp_complex = self.dp_complex_combination(combination,self.complex_combinations)
                 species+=[temp_complex]
+                
                 if([self.regulators.index(a) for a in sorted(combination)] in self.tx_capable_list):
                     species += mech_tx.update_species(dna = temp_complex, transcript = self.transcript, protein = self.assembly.protein)
-        print(species)
+                    
         return species
 
     def update_reactions(self):
@@ -186,20 +187,22 @@ class CombinatorialPromoter(Promoter):
             # Get all unique complexes of len i
             for bigger in it.combinations(self.regulators, i):
                 # Get all unique complexes len i-1
+                if([self.regulators.index(a) for a in sorted(bigger)] in self.tx_capable_list):
+                    tx_complex = self.dp_complex_combination(bigger,self.complex_combinations)
+                    reactions+=mech_tx.update_reactions(dna=tx_complex,component=self,\
+                                    transcript=self.transcript,protein=self.assembly.protein)
                 for smaller in it.combinations(self.regulators, i-1):
-                    # If smaller is only 1 activator away
-                    if (bigger > smaller):
-                        #this is the regulator that is different
-                        regulator_to_add = np.setdiff1d(bigger,smaller)[0]
-                        #so now we have to come up with the "bigger" complex
-                        big_complex = self.dp_complex_combination(bigger,self.complex_combinations)
-                        #now we do the same thing for "smaller"
-                        small_complex = self.dp_complex_combination(smaller,self.complex_combinations)
-                        reactions+=mech_b.update_reactions(regulator_to_add,small_complex,\
-                                  complex=big_complex,part_id = self.name, component = self,)
-                        if([self.regulators.index(a) for a in sorted(bigger)] in self.tx_capable_list):
-                            mech_tx.update_reactions(dna=big_complex,component=self,\
-                                            transcript=self.transcript,protein=self.assembly.protein)
+                    #look through all regulators to see which one will turn smaller into bigger
+                    for regulator_to_add in self.regulators:
+                        #we use set so that order doesnt matter
+                        if(set(smaller+(regulator_to_add,))==set(bigger)):
+                            #so now we have to come up with the "bigger" complex
+                            big_complex = self.dp_complex_combination(bigger,self.complex_combinations)
+                            #now we do the same thing for "smaller"
+                            small_complex = self.dp_complex_combination(smaller,self.complex_combinations)
+                            reactions+=mech_b.update_reactions(regulator_to_add,small_complex,\
+                                    complex=big_complex,part_id = self.name, component = self,)
+                            
         
         return reactions
 
