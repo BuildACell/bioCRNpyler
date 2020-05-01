@@ -14,6 +14,7 @@ class TestReaction(TestCase):
         # with self.assertWarns(Warning):
         #     Reaction(inputs=[], outputs=[], k=0.1, propensity_type="massaction", propensity_params=None)
 
+        #non-massaction propensities cannot be reversible
         with self.assertRaises(ValueError):
             Reaction(inputs=[], outputs=[], k=0.1, propensity_type="not_massaction", k_rev=1)
 
