@@ -48,10 +48,17 @@ class TestComplexSpecies(TestCase):
         oc1 = OrderedComplexSpecies([s2, s1])
         c1 = ComplexSpecies([s2, s1])
         m1 = Multimer(s1, 2)
-     
+        c3 = ComplexSpecies([s1, s1])
+        
+        #ComplexSpecies should sort the species added alphabetically by representation
         self.assertEqual(repr(c1), "complex_"+repr(s1)+"_"+repr(s2))
+        
+        #OrderedComplexSpecies do not sort their internal species
         self.assertEqual(repr(oc1), "ordered_complex_"+repr(s2)+"_"+repr(s1))
-        self.assertEqual(repr(m1), "multimer_2x_"+repr(s1))
+        
+        #Multimers are just complexes with multiplicity
+        self.assertEqual(repr(m1), "complex_2x_"+repr(s1))
+        self.assertEqual(repr(c3), repr(m1))
         
         
         

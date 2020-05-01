@@ -89,8 +89,13 @@ class ComplexSpecies(Species):
         if name == None:
             name = ""
             list.sort(self.species, key = lambda s:repr(s))
-            for s in self.species:
-                if s.material_type != "complex":
+            self.species_set = list(set(self.species))
+            list.sort(self.species_set, key = lambda s:repr(s))
+            for s in self.species_set:
+                count = self.species.count(s)
+                if count > 1:
+                    name+=f"{count}x_"
+                if not isinstance(s, ComplexSpecies):
                     name+=f"{s.material_type}_{s.name}_"
                 else:
                     name+=f"{s.name}_"
@@ -115,18 +120,18 @@ class Multimer(ComplexSpecies):
     """A subclass of ComplexSpecies for Complexes made entirely of the same kind of species,
     eg dimers, tetramers, etc.
     """
-    def __init__(self, species, multiplicity, name = None, material_type = "multimer", attributes = None, initial_concentration = 0):
+    def __init__(self, species, multiplicity, name = None, material_type = "complex", attributes = None, initial_concentration = 0):
 
             if not isinstance(species, Species):
-                raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof).")
+                raise ValueError("Multimer must be defined by a Species (or subclasses thereof) and a multiplicity (int).")
             else:
-                self.species = species
+                self.species = [species]
 
             if multiplicity <= 1:
                 raise ValueError("multiplicity must be an integer greater than 1 for Multimers.")
 
             if name == None:
-                name = str(multiplicity)+"x_"+repr(species)
+                name = str(multiplicity)+"x_"+repr(self.species[0])
 
             self.name = name
             self.material_type = material_type
@@ -135,7 +140,7 @@ class Multimer(ComplexSpecies):
             if attributes == None:
                 attributes = []
             
-            attributes += self.species.attributes
+            attributes += self.species[0].attributes
             attributes = list(set(attributes))
 
             while None in attributes:
