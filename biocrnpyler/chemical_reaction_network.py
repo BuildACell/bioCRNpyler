@@ -77,13 +77,13 @@ class ComplexSpecies(Species):
         This is good for modelling order-indpendent binding complexes.
         For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
     """
-    def __init__(self, species, name = None, material_type = "complex", attributes = None, initial_concentration = 0):
+    def __init__(self, species, name = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
         if len(species) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
 
-        self.species = copy.copy(species)
-        if False in [isinstance(s, Species) for s in self.species]:
+        self.species = [s if isinstance(s, Species) else Species(s) for s in species]
+        if False in [isinstance(s, Species) or isinstance(s, str) for s in self.species]:
             raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof).")
 
         if name == None:
@@ -95,7 +95,7 @@ class ComplexSpecies(Species):
                 count = self.species.count(s)
                 if count > 1:
                     name+=f"{count}x_"
-                if not isinstance(s, ComplexSpecies):
+                if not (isinstance(s, ComplexSpecies) or s.material_type == ""):
                     name+=f"{s.material_type}_{s.name}_"
                 else:
                     name+=f"{s.name}_"
@@ -122,31 +122,14 @@ class Multimer(ComplexSpecies):
     """
     def __init__(self, species, multiplicity, name = None, material_type = "complex", attributes = None, initial_concentration = 0):
 
-            if not isinstance(species, Species):
-                raise ValueError("Multimer must be defined by a Species (or subclasses thereof) and a multiplicity (int).")
-            else:
-                self.species = [species]
+        if isinstance(species, str):
+            species = [Species(name = species)]
+        elif not isinstance(species, Species):
+            raise ValueError("Multimer must be defined by a Species (or subclasses thereof) and a multiplicity (int).")
+        else:
+            species = [species]
 
-            if multiplicity <= 1:
-                raise ValueError("multiplicity must be an integer greater than 1 for Multimers.")
-
-            if name == None:
-                name = str(multiplicity)+"x_"+repr(self.species[0])
-
-            self.name = name
-            self.material_type = material_type
-            self.initial_concentration = initial_concentration
-
-            if attributes == None:
-                attributes = []
-            
-            attributes += self.species[0].attributes
-            attributes = list(set(attributes))
-
-            while None in attributes:
-                attributes.remove(None)
-
-            self.attributes = attributes
+        ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)   
 
 class OrderedComplexSpecies(Species):
     """ A special kind of species which is formed as a complex of two or more species.
@@ -160,14 +143,16 @@ class OrderedComplexSpecies(Species):
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
 
-        self.species = copy.copy(species)
-        if False in [isinstance(s, Species) for s in self.species]:
-            raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof).")
+        self.species = [s if isinstance(s, Species) else Species(s) for s in species]
+        if False in [isinstance(s, Species) or isinstance(s, str) for s in self.species]:
+            raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof) or strings.")
 
         if name == None:
             name = ""
             for s in species:
-                if s.material_type not in ["complex", "ordered_complex"]:
+                if isinstance(s, str):
+                    s = Species(name = s)
+                if s.material_type not in ["complex", "ordered_complex", ""]:
                     name+=f"{s.material_type}_{s.name}_"
                 else:
                     name+=f"{s.name}_"

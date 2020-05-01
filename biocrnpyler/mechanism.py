@@ -348,7 +348,7 @@ class One_Step_Cooperative_Binding(Mechanism):
     def update_species(self, binder, bindee, complex_species = None, cooperativity=None, component = None, part_id = None, **kwords):
 
         if part_id == None:
-            part_id = repr(s1)+"-"+repr(s2)
+            part_id = repr(binder)+"-"+repr(bindee)
 
         if cooperativity == None and component != None:
             cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
@@ -380,7 +380,7 @@ class One_Step_Cooperative_Binding(Mechanism):
 
         #Get Parameters
         if part_id == None:
-            part_id = repr(s1)+"-"+repr(s2)
+            part_id = repr(binder)+"-"+repr(bindee)
         if kb == None and component != None:
             kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
         if ku == None and component != None:
@@ -411,7 +411,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
     def update_species(self, binder, bindee, component = None, complex_species = None, n_mer_species = None, cooperativity=None, part_id = None, **keywords):
 
         if part_id == None:
-            part_id = repr(s1)+"-"+repr(s2)
+            part_id = repr(binder)+"-"+repr(bindee)
 
         if cooperativity == None and component != None:
             cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
@@ -464,7 +464,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
         """
 
         if part_id == None:
-            repr(s1)+"-"+repr(s2)
+            repr(binder)+"-"+repr(bindee)
         if (kb == None or ku == None or cooperativity == None) and Component != None:
             kb1 = component.get_parameter("kb1", part_id = part_id, mechanism = self)
             kb2 = component.get_parameter("kb2", part_id = part_id, mechanism = self)

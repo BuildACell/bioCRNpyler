@@ -15,7 +15,7 @@ class TestComplexSpecies(TestCase):
         from biocrnpyler import Multimer
         
         
-        s1 = Species(name='s1', material_type = "m1")
+        s1 = Species(name='s1')
         s2 = Species(name = 's2', material_type = "m2")
         
         
@@ -31,27 +31,24 @@ class TestComplexSpecies(TestCase):
         #Check invalidity of multimers with fewer than 1 component
         with self.assertRaises(ValueError):
             m = Multimer(s1, 1)
-            
-        #Check invalidity of ComplexSpecies with non-species
-        with self.assertRaises(ValueError):
-            c = ComplexSpecies(["s1", "s2"])
         
-        #Check invalidity of OrderedComplexSpecies with non-species
-        with self.assertRaises(ValueError):
-            oc = OrderedComplexSpecies(["s1", "s2"])
         
-        #Check invalidity of multimers with non-species
-        with self.assertRaises(ValueError):
-            m = Multimer("s1", 2)
+
+        
         
         #Check the naming conventions
         oc1 = OrderedComplexSpecies([s2, s1])
         c1 = ComplexSpecies([s2, s1])
         m1 = Multimer(s1, 2)
         c3 = ComplexSpecies([s1, s1])
+
+        #Check validity of ComplexSpecies, Multimers and OrderedComplexSpecies with strings instead of species
+        self.assertEqual(OrderedComplexSpecies([s2, "s1"]), oc1)
+        self.assertEqual(ComplexSpecies([s2, "s1"]), c1)
+        self.assertEqual(Multimer("s1", 2), m1)
         
         #ComplexSpecies should sort the species added alphabetically by representation
-        self.assertEqual(repr(c1), "complex_"+repr(s1)+"_"+repr(s2))
+        self.assertEqual(repr(c1), "complex_"+repr(s2)+"_"+repr(s1))
         
         #OrderedComplexSpecies do not sort their internal species
         self.assertEqual(repr(oc1), "ordered_complex_"+repr(s2)+"_"+repr(s1))
