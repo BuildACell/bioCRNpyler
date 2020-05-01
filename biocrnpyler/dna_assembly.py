@@ -2,8 +2,8 @@
 #  See LICENSE file in the project root directory for details.
 
 from .component import Component, DNA
-from .chemical_reaction_network import Species
-from .mechanism import One_Step_Cooperative_Binding
+from .chemical_reaction_network import ComplexSpecies, Species
+from .mechanism import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
 from warnings import warn as pywarn
 import itertools as it
 import numpy as np
@@ -116,7 +116,9 @@ class CombinatorialPromoter(Promoter):
         if not isinstance(regulators, list):
             regulators = [regulators]
         if(tx_capable_list == None):
-            tx_capable_list = [[a for a in range(len(regulators))]]
+            tx_capable_list = [regulators]
+        if(type(tx_capable_list)==list):
+            tx_capable_list = [set(a) for a in tx_capable_list]
         self.tx_capable_list = tx_capable_list #TODO make this better
         self.regulators = []
         for regulator in regulators:
@@ -124,13 +126,15 @@ class CombinatorialPromoter(Promoter):
         self.regulators = sorted(self.regulators)
         self.leak = leak
 
-        self.default_mechanisms = {"binding": One_Step_Cooperative_Binding()}
+        self.default_mechanisms = {"binding": Combinatorial_Cooperative_Binding()}
 
         Promoter.__init__(self, name = name, assembly = assembly,
                           transcript = transcript, length = length,
                           mechanisms = mechanisms, parameters = parameters,
                           **keywords)
         self.complex_combinations = {}
+        self.tx_capable_complexes = []
+    '''
     def dp_complex_combination(self,key,dp_dict,core_dna=None,\
                                             mech_b=None):
         """retrieves a key from a list, otherwise, makes an element
@@ -147,30 +151,42 @@ class CombinatorialPromoter(Promoter):
             for element in key:
                 made_complex = mech_b.update_species(element,made_complex,\
                                         part_id = self.name,component=self)[0]
+                print(made_complex,type(made_complex))
+                #print(isinstance(made_complex,))
             dp_dict[key]=made_complex
             return made_complex
+    #'''
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
         
         species = []
-
-        
         self.complexes = []
         if self.leak is not False:
             species += mech_tx.update_species(dna = self.assembly.dna)
-        complex_combinations = {}
-        for i in range(1, len(self.regulators)+1):
-            # Get all unique complexes of len i
-            #species += [self.regulators[i]]
-            for combination in it.combinations(self.regulators, i):
 
-                temp_complex = self.dp_complex_combination(combination,self.complex_combinations)
-                species+=[temp_complex]
-                
-                if([self.regulators.index(a) for a in sorted(combination)] in self.tx_capable_list):
-                    species += mech_tx.update_species(dna = temp_complex, transcript = self.transcript, protein = self.assembly.protein)
-                    
+        bound_species = mech_b.update_species(self.regulators,self.assembly.dna,component = self,part_id = self.name)
+        #above is all the species with DNA bound to regulators. Now, we need to extract only the ones which
+        #are transcribable
+        for bound_complex in bound_species:
+            species_inside = []
+            for regulator in self.regulators:
+                if(regulator.name in bound_complex.name):
+                    species_inside += [regulator.name] 
+            
+            if(set(species_inside) in self.tx_capable_list):
+                #print(set(species_inside))
+                #print(self.tx_capable_list)
+                print("bound complex")
+                print(bound_complex)
+                tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, \
+                                                                                    protein = self.assembly.protein)
+
+                print("tx capable species")
+                print(tx_capable_species)
+                species +=tx_capable_species[1:]
+                self.tx_capable_complexes +=[bound_complex]
+        species+=bound_species  
         return species
 
     def update_reactions(self):
@@ -182,27 +198,14 @@ class CombinatorialPromoter(Promoter):
             reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, \
                                                             transcript = self.transcript, protein = self.assembly.protein)
 
-        for i in range(1, len(self.regulators)+1):
-            # Get all unique complexes of len i
-            for bigger in it.combinations(self.regulators, i):
-                # Get all unique complexes len i-1
-                if([self.regulators.index(a) for a in sorted(bigger)] in self.tx_capable_list):
-                    tx_complex = self.dp_complex_combination(bigger,self.complex_combinations)
-                    reactions+=mech_tx.update_reactions(dna=tx_complex,component=self,\
-                                    transcript=self.transcript,protein=self.assembly.protein)
-                for smaller in it.combinations(self.regulators, i-1):
-                    #look through all regulators to see which one will turn smaller into bigger
-                    for regulator_to_add in self.regulators:
-                        #we use set so that order doesnt matter
-                        if(set(smaller+(regulator_to_add,))==set(bigger)):
-                            #so now we have to come up with the "bigger" complex
-                            big_complex = self.dp_complex_combination(bigger,self.complex_combinations)
-                            #now we do the same thing for "smaller"
-                            small_complex = self.dp_complex_combination(smaller,self.complex_combinations)
-                            reactions+=mech_b.update_reactions(regulator_to_add,small_complex,\
-                                    complex_species=big_complex,part_id = self.name, component = self,)
-                            
-        
+        reactions += mech_b.update_reactions(self.regulators,self.assembly.dna,component = self,part_id = self.name)
+        if(self.tx_capable_complexes == None):
+            species = self.update_species()
+        else:
+            for specie in self.tx_capable_complexes:
+                reactions += mech_tx.update_reactions(dna = specie, component = self,  \
+                                            transcript = self.transcript, protein = self.assembly.protein)
+
         return reactions
 
 
