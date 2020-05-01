@@ -35,6 +35,7 @@ class TestComponent(TestCase):
 
     def test_set_attributes(self):
         from biocrnpyler import Component
+        from biocrnpyler import DNA
 
         comp_name = 'test_component'
 
@@ -42,27 +43,13 @@ class TestComponent(TestCase):
                               mixture=None, attributes=[], initial_conc=0, parameter_warnings=True)
 
         attr_list = ['attr1','attr2']
-        component.set_attributes(attr_list)
-        self.assertTrue(len(component.attributes) == len(attr_list))
-
-        with self.assertRaises(RuntimeError):
-            attr_list = [5, 2]
-            component.set_attributes(attr_list)
-
-    def test_add_attribute(self):
-
-        from biocrnpyler import Component
-        comp_name = 'test_component'
-
-        component = Component(name=comp_name, mechanisms={}, parameters={}, parameter_file=None,
-                              mixture=None, attributes=[], initial_conc=0, parameter_warnings=True)
-
-        with self.assertRaises(AssertionError):
-            component.add_attribute(2)
-
-        attr = 'atr1'
+        
         with self.assertRaises(Warning):
-            component.add_attribute(attr)
+            component.set_attributes(attr_list)
+        
+        dna = DNA("dna")
+        dna.set_attributes(attr_list)
+        self.assertTrue(len(dna.attributes) == len(attr_list))
 
     def test_update_parameters(self):
         from biocrnpyler import Component

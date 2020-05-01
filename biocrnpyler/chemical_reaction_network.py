@@ -21,7 +21,7 @@ class Species(object):
         self.initial_concentration = initial_concentration
         if material_type == "complex":
             warn("species which are formed of two species or more should be "
-                 "called using the chemical_reaction_network.complex "
+                 "called using the chemical_reaction_network.ComplexSpecies "
                  "constructor for attribute inheritance purposes.")
 
         self.attributes = []
@@ -31,7 +31,12 @@ class Species(object):
                 self.add_attribute(attribute)
 
     def __repr__(self):
-        txt = self.material_type + "_" + self.name
+        txt = ""
+        if self.material_type not in ["", None]:
+            txt = self.material_type + "_"
+
+        txt += self.name
+
         if len(self.attributes) > 0 and self.attributes != []:
             for i in self.attributes:
                 if i is not None:
@@ -66,39 +71,38 @@ class Species(object):
 
 class ComplexSpecies(Species):
     """ A special kind of species which is formed as a complex of two or more species.
-        Used for attribute inheritance
-        ordered = True: the order species are added to the complex matters
-            In this case, the name of the complex depends on the order species are added.
-        ordered = False: the order species are added to the complex doesn't matter
-            In this case, the name of the complex does not depend on the order. 
-            Species are automatically ordered alphabetically.
-
+        Used for attribute inheritance and storing groups of bounds Species. 
+        Note taht in a ComplexSpecies, the order of the species list does not matter.
+        This means that ComplexSpecies([s1, s2]) = ComplexSpecies([s2, s1]). 
+        This is good for modelling order-indpendent binding complexes.
+        For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
     """
-    def __init__(self, species, name = None, material_type = "complex",
-                 attributes = None, initial_concentration = 0, ordered = False):
-        if len(species) < 1:
+    def __init__(self, species, name = None, material_type = "complex", attributes = None, initial_concentration = 0):
+        if len(species) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
 
-        self.ordered = ordered
+        self.species = copy.copy(species)
+        if False in [isinstance(s, Species) for s in self.species]:
+            raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof).")
 
         if name == None:
             name = ""
-            species = copy.copy(species)
-            list.sort(species, key = lambda s:s.name)
-            for s in species:
+            list.sort(self.species, key = lambda s:repr(s))
+            for s in self.species:
                 if s.material_type != "complex":
                     name+=f"{s.material_type}_{s.name}_"
                 else:
                     name+=f"{s.name}_"
             name = name[:-1]
+
         self.name = name
         self.material_type = material_type
         self.initial_concentration = initial_concentration
 
         if attributes == None:
             attributes = []
-        for s in species:
+        for s in self.species:
             attributes += s.attributes
         attributes = list(set(attributes))
 
@@ -107,6 +111,77 @@ class ComplexSpecies(Species):
 
         self.attributes = attributes
 
+class Multimer(ComplexSpecies):
+    """A subclass of ComplexSpecies for Complexes made entirely of the same kind of species,
+    eg dimers, tetramers, etc.
+    """
+    def __init__(self, species, multiplicity, name = None, material_type = "multimer", attributes = None, initial_concentration = 0):
+
+            if not isinstance(species, Species):
+                raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof).")
+            else:
+                self.species = species
+
+            if multiplicity <= 1:
+                raise ValueError("multiplicity must be an integer greater than 1 for Multimers.")
+
+            if name == None:
+                name = str(multiplicity)+"x_"+repr(species)
+
+            self.name = name
+            self.material_type = material_type
+            self.initial_concentration = initial_concentration
+
+            if attributes == None:
+                attributes = []
+            
+            attributes += self.species.attributes
+            attributes = list(set(attributes))
+
+            while None in attributes:
+                attributes.remove(None)
+
+            self.attributes = attributes
+
+class OrderedComplexSpecies(Species):
+    """ A special kind of species which is formed as a complex of two or more species.
+        In OrderedComplexSpecies the order in which the complex subspecies are is defined
+        denote different species, eg [s1, s2, s3] != [s1, s3, s2].
+        Used for attribute inheritance and storing groups of bounds Species. 
+    """
+
+    def __init__(self, species, name = None, material_type = "ordered_complex", attributes = None, initial_concentration = 0):
+        if len(species) <= 1:
+            raise ValueError("chemical_reaction_network.complex requires 2 "
+                             "or more species in its constructor.")
+
+        self.species = copy.copy(species)
+        if False in [isinstance(s, Species) for s in self.species]:
+            raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof).")
+
+        if name == None:
+            name = ""
+            for s in species:
+                if s.material_type not in ["complex", "ordered_complex"]:
+                    name+=f"{s.material_type}_{s.name}_"
+                else:
+                    name+=f"{s.name}_"
+            name = name[:-1]
+
+        self.name = name
+        self.material_type = material_type
+        self.initial_concentration = initial_concentration
+
+        if attributes == None:
+            attributes = []
+        for s in self.species:
+            attributes += s.attributes
+        attributes = list(set(attributes))
+
+        while None in attributes:
+            attributes.remove(None)
+
+        self.attributes = attributes
 
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
@@ -120,6 +195,9 @@ class Reaction(object):
     def __init__(self, inputs, outputs, k = 0, input_coefs = None,
                  output_coefs = None, k_rev = 0, propensity_type = "massaction",
                  rate_formula = None, propensity_params = None):
+
+        if len(inputs) == 0 and len(outputs) == 0:
+            warnings.warn("Reaction Inputs and Outputs both contain 0 Species.")
 
         if k != 0 and propensity_params != None and "k" not in propensity_params:
             propensity_params["k"] = k
