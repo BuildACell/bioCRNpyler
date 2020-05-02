@@ -107,7 +107,7 @@ class RegulatedPromoter(Promoter):
 class CombinatorialPromoter(Promoter):
     def __init__(self, name, regulators, leak = True, assembly = None,
                  transcript = None, length = 0, mechanisms = {},
-                 parameters = {},tx_capable_list = None, **keywords):
+                 parameters = {},tx_capable_list = None,cooperativity = None, **keywords):
         """
         tx_capable_list = [[1,2,3],[0,2,3]] this means having regulator 1, 2, and 3 will transcribe
                                            but also 3, 2, and 0.
@@ -115,17 +115,18 @@ class CombinatorialPromoter(Promoter):
         """
         if not isinstance(regulators, list):
             regulators = [regulators]
-        if(tx_capable_list == None):
-            tx_capable_list = [regulators]
+        
+            #tx_capable_list = [regulators]
         if(type(tx_capable_list)==list):
             tx_capable_list = [set(a) for a in tx_capable_list]
-        self.tx_capable_list = tx_capable_list #TODO make this better
+        self.cooperativity = cooperativity
         self.regulators = []
         for regulator in regulators:
             self.regulators += [self.set_species(regulator, material_type = "protein")]
         self.regulators = sorted(self.regulators)
         self.leak = leak
-
+        if(tx_capable_list == None):
+            self.tx_capable_list = [[a.name for a in self.regulators]]
         self.default_mechanisms = {"binding": Combinatorial_Cooperative_Binding()}
 
         Promoter.__init__(self, name = name, assembly = assembly,
@@ -134,28 +135,6 @@ class CombinatorialPromoter(Promoter):
                           **keywords)
         self.complex_combinations = {}
         self.tx_capable_complexes = []
-    '''
-    def dp_complex_combination(self,key,dp_dict,core_dna=None,\
-                                            mech_b=None):
-        """retrieves a key from a list, otherwise, makes an element
-        and stores it"""
-
-        if(core_dna==None):
-            core_dna = self.assembly.dna
-        if(mech_b == None):
-            mech_b = self.mechanisms['binding']
-        if(key in dp_dict):
-            return dp_dict[key]
-        else:
-            made_complex = core_dna
-            for element in key:
-                made_complex = mech_b.update_species(element,made_complex,\
-                                        part_id = self.name,component=self)[0]
-                print(made_complex,type(made_complex))
-                #print(isinstance(made_complex,))
-            dp_dict[key]=made_complex
-            return made_complex
-    #'''
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
@@ -165,7 +144,8 @@ class CombinatorialPromoter(Promoter):
         if self.leak is not False:
             species += mech_tx.update_species(dna = self.assembly.dna)
 
-        bound_species = mech_b.update_species(self.regulators,self.assembly.dna,component = self,part_id = self.name)
+        bound_species = mech_b.update_species(self.regulators,self.assembly.dna,\
+                        component = self,part_id = self.name,cooperativity=self.cooperativity)
         #above is all the species with DNA bound to regulators. Now, we need to extract only the ones which
         #are transcribable
         for bound_complex in bound_species:
@@ -173,17 +153,13 @@ class CombinatorialPromoter(Promoter):
             for regulator in self.regulators:
                 if(regulator.name in bound_complex.name):
                     species_inside += [regulator.name] 
-            
-            if(set(species_inside) in self.tx_capable_list):
-                #print(set(species_inside))
-                #print(self.tx_capable_list)
-                print("bound complex")
-                print(bound_complex)
+            #print("species_inside is "+str(species_inside))
+            #print("tx capable is " +str(self.tx_capable_list))
+            #print(set(species_inside) in [set(a) for a in self.tx_capable_list])
+            if(set(species_inside) in [set(a) for a in self.tx_capable_list]):
+                
                 tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, \
                                                                                     protein = self.assembly.protein)
-
-                print("tx capable species")
-                print(tx_capable_species)
                 species +=tx_capable_species[1:]
                 self.tx_capable_complexes +=[bound_complex]
         species+=bound_species  
@@ -198,12 +174,28 @@ class CombinatorialPromoter(Promoter):
             reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, \
                                                             transcript = self.transcript, protein = self.assembly.protein)
 
-        reactions += mech_b.update_reactions(self.regulators,self.assembly.dna,component = self,part_id = self.name)
-        if(self.tx_capable_complexes == None):
+        reactions += mech_b.update_reactions(self.regulators,self.assembly.dna,component = self,\
+                                                        part_id = self.name,cooperativity=self.cooperativity)
+        if(self.tx_capable_complexes == None or self.tx_capable_complexes == []):
+            warn("nothing can transcribe from combinatorial promoter {}".format(self.name))
             species = self.update_species()
         else:
             for specie in self.tx_capable_complexes:
-                reactions += mech_tx.update_reactions(dna = specie, component = self,  \
+                tx_partid = self.name
+                for part in specie.species_set:
+                    #construct the name of the promoter with regulators bound
+                    if part.material_type == "dna":
+                        #the DNA doesn't matter
+                        pass
+                    else:
+                        #put in the regulators!
+                        tx_partid += "_"+part.name
+                if(tx_partid[0]=="_"):
+                    tx_partid = tx_partid[1:]
+                #if it's bound to RNAP then it transcribes, right?
+                tx_partid = tx_partid+"_RNAP"
+                #print("tx_partid is "+ str(tx_partid))
+                reactions += mech_tx.update_reactions(dna = specie, component = self, part_id = tx_partid, \
                                             transcript = self.transcript, protein = self.assembly.protein)
 
         return reactions

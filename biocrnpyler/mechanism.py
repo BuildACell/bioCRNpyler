@@ -27,7 +27,7 @@
 
 
 from warnings import warn
-from .chemical_reaction_network import Species, Reaction, ComplexSpecies
+from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
 from .component import Component
 import itertools as it
 
@@ -348,7 +348,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         each one's cooperativity"""
         complexed_species_list = []
         for binder in combo:
-            binder_cooperativity = int(cooperativity[binder])
+            binder_cooperativity = int(cooperativity[binder.name])
             #I hope that cooperativity is an int! what if it isn't
             complexed_species_list += [binder]*binder_cooperativity
         complexed_species_list += [bindee]
@@ -369,7 +369,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                 coop_val = cooperativity[binder.name]
             if component == None and ( cooperativity == None):
                 raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
-            cooperativity_dict[binder]=coop_val
+            cooperativity_dict[binder.name]=coop_val
         #allbinders = binders+[bindee]
         out_species = []
         for i in range(1, len(binders)+1):
@@ -406,7 +406,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
             binder_params[binder] = {"kb":kb,"ku":ku,"cooperativity":coop_val}
         #out_rxns = []
         rxndict = {}
-        coop_dict = {a:binder_params[a]["cooperativity"] for a in binder_params}
+        coop_dict = {a.name:binder_params[a]["cooperativity"] for a in binder_params}
         for i in range(1, len(binders)+1):
             for combo in it.combinations(binders,i):
                 #come up with all combinations of binders
@@ -446,7 +446,7 @@ class One_Step_Cooperative_Binding(Mechanism):
     def update_species(self, binder, bindee, complex_species = None, cooperativity=None, component = None, part_id = None, **kwords):
 
         if part_id == None:
-            part_id = repr(s1)+"-"+repr(s2)
+            part_id = repr(binder)+"-"+repr(bindee)
 
         if cooperativity == None and component != None:
             cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
@@ -478,7 +478,7 @@ class One_Step_Cooperative_Binding(Mechanism):
 
         #Get Parameters
         if part_id == None:
-            part_id = repr(s1)+"-"+repr(s2)
+            part_id = repr(binder)+"-"+repr(bindee)
         if kb == None and component != None:
             kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
         if ku == None and component != None:
@@ -509,7 +509,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
     def update_species(self, binder, bindee, component = None, complex_species = None, n_mer_species = None, cooperativity=None, part_id = None, **keywords):
 
         if part_id == None:
-            part_id = repr(s1)+"-"+repr(s2)
+            part_id = repr(binder)+"-"+repr(bindee)
 
         if cooperativity == None and component != None:
             cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
@@ -520,7 +520,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
         if n_mer_species is None:
             n_mer_name = binder.name
             n_mer_material = binder.material_type
-        elif isinstance(n_mer_Species, str):
+        elif isinstance(n_mer_species, str):
             n_mer_name = n_mer_species
             n_mer_material = "complex"
         elif isinstance(n_mer_species, Species):
@@ -562,7 +562,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
         """
 
         if part_id == None:
-            repr(s1)+"-"+repr(s2)
+            repr(binder)+"-"+repr(bindee)
         if (kb == None or ku == None or cooperativity == None) and Component != None:
             kb1 = component.get_parameter("kb1", part_id = part_id, mechanism = self)
             kb2 = component.get_parameter("kb2", part_id = part_id, mechanism = self)

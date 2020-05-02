@@ -70,6 +70,8 @@ class DNA_part:
         if(not direction):
             outdesign = outdesign[::-1]
         return outdesign
+
+
 from copy import deepcopy as dc
 def rev_dir(dir):
     reversedict = {"forward":"reverse","reverse":"forward"}
@@ -82,13 +84,8 @@ class DNA_construct:
         self.circular=circular
     def explore_txtl(self):
         """this function finds promoters and terminators and stuff in the construct"""
-        transcribing = False
-        translating = False
-        txrxns = []
-        tlrxns = []
         made_proteins = {}
         all_rnas = []
-        all_proteins = []
         current_rnas = {}
         current_proteins = {}
         current_rbs = None
@@ -202,6 +199,18 @@ class DNA_construct:
                     #this part is a promoter, so it transcribes!
                     current_rnas.update({part_object:[]})
         return all_rnas,made_proteins
+    '''
+    def explore_integrase(self):
+        """this function finds all possible DNA states that can be attained by reactions
+        between compatible integrase sites"""
+        #TODO this function should be global for all constructs!!
+        integrase_mechanism = {"attB":"attP","attP":"attB"}
+        integrases_react = {}
+        for part in self.parts_list:
+            if(part.integrase!= None):
+
+                integrases_react[part.integrase] = integrases_react[part.integrase]+part
+    #'''
     def __repr__(self):
         output = ""
         output = '_'.join([str(a[0])+"-r"*(a[1]=="reverse") for a in self.parts_list])
