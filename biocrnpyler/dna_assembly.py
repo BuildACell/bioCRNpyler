@@ -127,6 +127,8 @@ class CombinatorialPromoter(Promoter):
         self.leak = leak
         if(tx_capable_list == None):
             self.tx_capable_list = [[a.name for a in self.regulators]]
+        else:
+            self.tx_capable_list = tx_capable_list
         self.default_mechanisms = {"binding": Combinatorial_Cooperative_Binding()}
 
         Promoter.__init__(self, name = name, assembly = assembly,
