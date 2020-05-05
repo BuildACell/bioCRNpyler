@@ -139,3 +139,70 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force"):
     plot.renderers.append(edges_renderer)
     plot.renderers.append(reaction_renderer)
     plot.renderers.append(species_renderer)
+
+def generate_networkx_graph(CRN,useweights=False):
+    """generates a networkx DiGraph object that represents the CRN."""
+    CRNgraph = nx.DiGraph()
+    allnodenum = 1 #every node has an index
+    nodedict = {} #this is so that we can write out the reactions in
+                #the reaction "species" field
+                #it has {species:index}
+    rxnlist = [] #list of numbers corresponding to only reaction nodes
+    speclist = CRN.species
+    nodedict["nothing"]=0
+    CRNgraph.add_node(0)
+    CRNgraph.nodes[0]["type"]="nothing"
+    CRNgraph.nodes[0]["species"]="nothing"
+    CRNgraph.nodes[0]["color"]="purple"
+    for specie in CRN.species:
+        mycol = "teal"
+        if(specie.material_type=="complex"):
+            mycol = "cyan"
+        elif(specie.material_type=="protein"):
+            mycol = "green"
+        elif(specie.material_type=="dna"):
+            mycol = "grey"
+        elif(specie.material_type=="rna"):
+            mycol = "orange"
+        nodedict[specie]=allnodenum
+        CRNgraph.add_node(allnodenum)
+        CRNgraph.nodes[allnodenum]["type"]=str(specie.material_type)
+        CRNgraph.nodes[allnodenum]["species"]=str(specie)
+        CRNgraph.nodes[allnodenum]["color"]=mycol
+        allnodenum +=1
+    for rxn in CRN.reactions:
+        CRNgraph.add_node(allnodenum)
+        CRNgraph.nodes[allnodenum]["type"]=rxn.propensity_type
+        mycol = "blue"
+        #CRNgraph.nodes[allnodenum]
+        kval = rxn.k
+        if(not useweights):
+            kval = 1
+        krev_val = rxn.k_r
+        if((krev_val > 0) and (not useweights)):
+            krev_val = 1
+        for reactant in rxn.inputs:
+            CRNgraph.add_edge(nodedict[reactant],allnodenum,weight=kval)
+            if(krev_val>0):
+                CRNgraph.add_edge(allnodenum,nodedict[reactant],weight=krev_val)
+        for product in rxn.outputs:
+            CRNgraph.add_edge(allnodenum,nodedict[product],weight=kval)
+            if(krev_val>0):
+                CRNgraph.add_edge(nodedict[product],allnodenum,weight=krev_val)
+        if(len(rxn.outputs)==0):
+            CRNgraph.add_edge(allnodenum,0,weight=kval)
+            if(krev_val>0):
+                CRNgraph.add_edge(0,allnodenum,weight=krev_val)
+        elif(len(rxn.inputs)==0):
+            CRNgraph.add_edge(0,allnodenum,weight=kval)
+            if(krev_val>0):
+                CRNgraph.add_edge(allnodenum,0,weight=krev_val)
+        CRNgraph.nodes[allnodenum]["color"]=mycol
+        CRNgraph.nodes[allnodenum]["species"]=str(rxn)
+        rxnlist += [allnodenum]
+        allnodenum +=1
+    CRNspeciesonly = CRNgraph.copy()
+    CRNspeciesonly.remove_nodes_from(rxnlist)
+    CRNreactionsonly = CRNgraph.copy()
+    CRNreactionsonly.remove_nodes_from(range(rxnlist[0]))
+    return CRNgraph,CRNspeciesonly,CRNreactionsonly

@@ -17,5 +17,9 @@ from .crnlab import *
 
 # Additional functions
 from .sbmlutil import *
-from .plotting import *
+try:
+    from .plotting import *
+except ModuleNotFoundError as e:
+    warn(str(e))
+    warn("plotting is disabled because you are missing some libraries")
 from .dna_construct import *
