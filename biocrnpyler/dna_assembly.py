@@ -114,21 +114,29 @@ class CombinatorialPromoter(Promoter):
                                            #TODO make it force sorted list
         """
         if not isinstance(regulators, list):
+            #you could give one string as a regulator
             regulators = [regulators]
-        
-            #tx_capable_list = [regulators]
-        if(type(tx_capable_list)==list):
-            tx_capable_list = [set(a) for a in tx_capable_list]
         self.cooperativity = cooperativity
         self.regulators = []
         for regulator in regulators:
-            self.regulators += [self.set_species(regulator, material_type = "protein")]
+            if(isinstance(regulator,str)):
+                self.regulators += [self.set_species(regulator, material_type = "protein")]
+                #if it's a string then assume it's a protein
+            elif(isinstance(regulator,Species)):
+                #if it's already a species then add it wholesale
+                self.regulators += [regulator]
+        #after we've sanitized the inputs, then sort
         self.regulators = sorted(self.regulators)
-        self.leak = leak
+        #now let's work out the tx_capable_list
         if(tx_capable_list == None):
-            self.tx_capable_list = [[a.name for a in self.regulators]]
-        else:
-            self.tx_capable_list = tx_capable_list
+            #if nothing is passed assume default
+            self.tx_capable_list = [set([a.name for a in self.regulators])]
+        elif(type(tx_capable_list)==list):
+            #if the user passed a list then the user knows what they want
+            self.tx_capable_list = [set(a) for a in tx_capable_list]
+
+        self.leak = leak
+        
         self.default_mechanisms = {"binding": Combinatorial_Cooperative_Binding()}
 
         Promoter.__init__(self, name = name, assembly = assembly,
@@ -138,9 +146,11 @@ class CombinatorialPromoter(Promoter):
         self.complex_combinations = {}
         self.tx_capable_complexes = []
     def update_species(self):
+
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
-        
+        #set the tx_capable_complexes to nothing because we havent updated species yet!
+        self.tx_capable_complexes = []
         species = []
         self.complexes = []
         if self.leak is not False:
@@ -179,8 +189,12 @@ class CombinatorialPromoter(Promoter):
         reactions += mech_b.update_reactions(self.regulators,self.assembly.dna,component = self,\
                                                         part_id = self.name,cooperativity=self.cooperativity)
         if(self.tx_capable_complexes == None or self.tx_capable_complexes == []):
-            warn("nothing can transcribe from combinatorial promoter {}".format(self.name))
+            #this could mean we haven't run update_species() yet
             species = self.update_species()
+            if(self.tx_capable_complexes == []):
+                #if it's still zero after running update_species then we could be in trouble
+                warn("nothing can transcribe from combinatorial promoter {}".format(self.name))
+            
         else:
             for specie in self.tx_capable_complexes:
                 tx_partid = self.name

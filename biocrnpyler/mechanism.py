@@ -350,7 +350,10 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         for binder in combo:
             binder_cooperativity = int(cooperativity[binder.name])
             #I hope that cooperativity is an int! what if it isn't
-            complexed_species_list += [binder]*binder_cooperativity
+            if(binder_cooperativity > 1):
+                complexed_species_list += [Multimer(binder,binder_cooperativity)]
+            else:
+                complexed_species_list += [binder]
         complexed_species_list += [bindee]
         if(len(complexed_species_list)==1):
             myspecies = complexed_species_list[0]
@@ -362,11 +365,11 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         cooperativity_dict = {}
         for binder in binders:
             binder_partid = part_id+"_"+binder.name
-            if ((cooperativity == None) or (type(cooperativity)==dict and binder.name not in cooperativity) \
+            if ((cooperativity == None) or (type(cooperativity)==dict and binder_partid not in cooperativity) \
                                                                                         and (component != None)):
                 coop_val = component.get_parameter("cooperativity", part_id = binder_partid, mechanism = self)
-            elif type(cooperativity)==dict and binder.name in cooperativity:
-                coop_val = cooperativity[binder.name]
+            elif type(cooperativity)==dict and binder_partid in cooperativity:
+                coop_val = cooperativity[binder_partid]
             if component == None and ( cooperativity == None):
                 raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
             cooperativity_dict[binder.name]=coop_val
