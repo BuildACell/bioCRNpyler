@@ -8,6 +8,8 @@ import copy
 import numpy as np
 
 
+
+
 class Species(object):
     """ A formal species object for a CRN
      A Species must have a name. They may also have a materialtype (such as DNA,
@@ -42,6 +44,28 @@ class Species(object):
                 if i is not None:
                     txt += "_" + str(i)
         txt.replace("'", "")
+        return txt
+
+    #A more powerful printing function
+    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+        txt = ""
+        if self.material_type not in ["", None] and show_material:
+            txt = self.material_type + "["
+
+        txt += self.name
+
+        if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
+            txt += "("
+            for i in self.attributes:
+                if i is not None:
+                    txt += str(i)+", "
+            txt = txt[:-2]+")"
+
+        txt.replace("'", "")
+
+        if self.material_type not in ["", None] and show_material:
+            txt += "]"
+
         return txt
 
     def add_attribute(self, attribute):
@@ -116,6 +140,33 @@ class ComplexSpecies(Species):
 
         self.attributes = attributes
 
+    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+        txt = ""
+        if self.material_type not in ["", None] and show_material:
+            txt += self.material_type+"["
+        
+        for s in self.species_set:
+            count = self.species.count(s)
+            if count > 1:
+                txt += f"{count}x_"
+            txt += s.pretty_print(show_material = show_material, show_attributes = False)+":"
+        txt = txt[:-1]
+
+        if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
+            txt += "("
+            for i in self.attributes:
+                if i is not None:
+                    txt += str(i)+", "
+            txt = txt[:-2]+")"
+
+        txt.replace("'", "")
+
+        if self.material_type not in ["", None] and show_material:
+            txt += "]"
+
+        return txt
+
+
 class Multimer(ComplexSpecies):
     """A subclass of ComplexSpecies for Complexes made entirely of the same kind of species,
     eg dimers, tetramers, etc.
@@ -131,7 +182,7 @@ class Multimer(ComplexSpecies):
 
         ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)   
 
-class OrderedComplexSpecies(Species):
+class OrderedComplexSpecies(ComplexSpecies):
     """ A special kind of species which is formed as a complex of two or more species.
         In OrderedComplexSpecies the order in which the complex subspecies are is defined
         denote different species, eg [s1, s2, s3] != [s1, s3, s2].
@@ -172,6 +223,30 @@ class OrderedComplexSpecies(Species):
             attributes.remove(None)
 
         self.attributes = attributes
+
+    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+        txt = ""
+        if self.material_type not in ["", None] and show_material:
+            txt += self.material_type+"["
+        
+
+        for s in self.species:
+            txt += s.pretty_print(show_material = show_material, show_attributes = False)+":"
+        txt = txt[:-1]
+
+        if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
+            txt += "("
+            for i in self.attributes:
+                if i is not None:
+                    txt += str(i)+", "
+            txt = txt[:-2]+")"
+
+        txt.replace("'", "")
+
+        if self.material_type not in ["", None] and show_material:
+            txt += "]"
+
+        return txt
 
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
@@ -327,39 +402,25 @@ class Reaction(object):
             raise ValueError(f"len(output_coefs) ({len(output_coefs)}) doesn't "
                              f"match len(self.outputs) ({len(self.outputs)}).")
 
-    def __repr__(self, **kwargs):
-        txt = ""
-        for i in range(len(self.inputs)):
-            if self.input_coefs[i] > 1:
-                txt += str(self.input_coefs[i]) + "*" + str(self.inputs[i])
-            else:
-                txt += str(self.inputs[i])
-            if i < len(self.inputs) - 1:
-                txt += " + "
-        if self.reversible:
-            txt += " <--> "
-        else:
-            txt += " --> "
-        for i in range(len(self.outputs)):
-            if self.output_coefs[i] > 1:
-                txt += str(self.output_coefs[i]) + "*" + str(self.outputs[i])
-            else:
-                txt += str(self.outputs[i])
-            if i < len(self.outputs) - 1:
-                txt += " + "
+    #Helper function to print the text of a rate function
+    def rate_func_text(self, pretty_print = False,  show_material = True, show_attributes = True, **kwargs):
         tab = (" " * 8)
-        txt += tab
-
+        txt = ""
         if self.propensity_type == "massaction":
             input_func_args = ""
             input_prod = f"{self.k}"
             for i in range(len(self.inputs)):
-                input_func_args += f"{self.inputs[i]}"
+                if pretty_print:
+                    sin = self.inputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+                else:
+                    sin = repr(self.inputs[i])
+
+                input_func_args += f"{sin}"
 
                 if self.input_coefs[i] > 1:
-                    input_prod+=f"*{self.inputs[i]}^{self.input_coefs[i]}"
+                    input_prod+=f"*{sin}^{self.input_coefs[i]}"
                 else:
-                    input_prod+=f"*{self.inputs[i]}"
+                    input_prod+=f"*{sin}"
 
                 if i < len(self.inputs)-1:
                     input_func_args += ","
@@ -371,42 +432,66 @@ class Reaction(object):
             if self.reversible:
                 output_func_args = ""
                 output_prod = f"{self.k_r}"
+               
                 for i in range(len(self.outputs)):
-                    output_func_args += f"{self.outputs[i]}"
+                    if pretty_print:
+                        sout = self.outputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+                    else:
+                        sout = repr(self.outputs[i])
+
+                    output_func_args += f"{sout}"
 
                     if self.output_coefs[i] > 1:
-                        output_prod+=f"*{self.outputs[i]}^{self.output_coefs[i]}"
+                        output_prod+=f"*{sout}^{self.output_coefs[i]}"
                     else:
-                        output_prod+=f"*{self.outputs[i]}"
+                        output_prod+=f"*{sout}"
 
                     if i < len(self.outputs)-1:
                         output_func_args += ","
 
                 if len(self.outputs) > 0:
                     output_func_args = "("+output_func_args+")"
-                txt += f"{tab}k_r{output_func_args}={output_prod}"
+                txt += f" k_r{output_func_args}={output_prod}"
 
-        
         elif self.propensity_type == "hillpositive":
-            s1 = repr(self.propensity_params["s1"])
+            if pretty_print:
+                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                s1 = repr(self.propensity_params["s1"])
+
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
             txt += f"hillpositive: k({s1})={self.k}*{s1}^{n}/({kd}+{s1}^{n})"
         elif self.propensity_type == "hillnegative":
-            s1 = repr(self.propensity_params["s1"])
+
+            if pretty_print:
+                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                s1 = repr(self.propensity_params["s1"])
+
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
             txt += f"hillnegative: k({s1})={self.k}*1/({kd}+{s1}^{n})"
         elif self.propensity_type == "proportionalhillpositive":
-            s1 = repr(self.propensity_params["s1"])
-            s2 = repr(self.propensity_params["d"])
+            if pretty_print:
+                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+                s2 = self.propensity_params["d"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                s1 = repr(self.propensity_params["s1"])
+                s2 = repr(self.propensity_params["d"])
+
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
             txt += (f"proportionalhillpositive: k({s1}, "
                    f"{s2})={self.k}*{s2}*{s1}^{n}/({kd}+{s1}^{n})")
         elif self.propensity_type == "proportionalhillnegative":
-            s1 = repr(self.propensity_params["s1"])
-            s2 = repr(self.propensity_params["d"])
+            if pretty_print:
+                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+                s2 = self.propensity_params["d"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                s1 = repr(self.propensity_params["s1"])
+                s2 = repr(self.propensity_params["d"])
+
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
             txt += (f"proportionalhillnegative: k({s1}, "
@@ -417,7 +502,67 @@ class Reaction(object):
         else:
             raise ValueError("Unknown Propensity Type: "
                              f"{self.propensity_type}.")
+
         return txt
+
+    def __repr__(self, **kwargs):
+        tab = (" " * 8)
+        txt = ""
+        for i in range(len(self.inputs)):
+            if self.input_coefs[i] > 1:
+                txt += str(self.input_coefs[i]) + " " + str(self.inputs[i])
+            else:
+                txt += str(self.inputs[i])
+            if i < len(self.inputs) - 1:
+                txt += " + "
+        if self.reversible:
+            txt += " <--> "
+        else:
+            txt += " --> "
+        for i in range(len(self.outputs)):
+            if self.output_coefs[i] > 1:
+                txt += str(self.output_coefs[i]) + " " + str(self.outputs[i])
+            else:
+                txt += str(self.outputs[i])
+            if i < len(self.outputs) - 1:
+                txt += " + "
+        txt += tab
+        txt += self.rate_func_text(**kwargs)
+        
+        return txt
+
+    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, **kwargs):
+        tab = (" " * 8)
+        txt = ""
+        for i in range(len(self.inputs)):
+            if self.input_coefs[i] > 1:
+                txt += str(self.input_coefs[i]) + " " + self.inputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                txt += self.inputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            if i < len(self.inputs) - 1:
+                txt += " + "
+        if self.reversible:
+            txt += " <--> "
+        else:
+            txt += " --> "
+        for i in range(len(self.outputs)):
+            if self.output_coefs[i] > 1:
+                txt += str(self.output_coefs[i]) + " " + self.outputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                txt += self.outputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            if i < len(self.outputs) - 1:
+                txt += " + "
+        txt += tab
+        if show_rates:
+            if self.reversible:
+                rate_txt = self.rate_func_text(pretty_print = True, show_material = show_material, show_attributes = show_attributes, **kwargs)
+                rate_txt = rate_txt.replace(" k_r", "\n"+tab+"k_r")
+                txt += "\n"+tab+rate_txt
+            else:
+                txt += "\n"+tab+self.rate_func_text(pretty_print = True, show_material = show_material, show_attributes = show_attributes, **kwargs)
+
+        return txt
+
 
     def __eq__(self, other):
         """Overrides the default implementation.
@@ -572,6 +717,20 @@ class ChemicalReactionNetwork(object):
 
         for r in self.reactions:
             txt += "\t" + repr(r) + "\n"
+        txt += "]"
+        return txt
+
+    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, **kwargs):
+        txt = f"Species ({len(self.species)}) = "+"{"
+        for sind in range(len(self.species)):
+            s = self.species[sind]
+            txt += f"{sind}. "+s.pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs) + ", "
+        txt = txt[:-2] + '}\n'
+        txt += f"Reactions ({len(self.reactions)}) = [\n"
+
+        for rind in range(len(self.reactions)):
+            r = self.reactions[rind]
+            txt += f"{rind}. " + r.pretty_print(show_rates = show_rates, show_material = show_material, show_attributes = show_attributes, **kwargs) + "\n"
         txt += "]"
         return txt
 
