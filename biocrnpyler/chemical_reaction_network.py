@@ -107,13 +107,14 @@ class ComplexSpecies(Species):
                              "or more species in its constructor.")
 
         self.species = [s if isinstance(s, Species) else Species(s) for s in species]
+        self.species_set = list(set(self.species))
         if False in [isinstance(s, Species) or isinstance(s, str) for s in self.species]:
             raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof).")
 
         if name == None:
             name = ""
             list.sort(self.species, key = lambda s:repr(s))
-            self.species_set = list(set(self.species))
+            
             list.sort(self.species_set, key = lambda s:repr(s))
             for s in self.species_set:
                 count = self.species.count(s)

@@ -2,8 +2,9 @@
 #  See LICENSE file in the project root directory for details.
 
 from warnings import warn as pywarn
-from .chemical_reaction_network import Species
+from .chemical_reaction_network import Species, ComplexSpecies
 from .parameter import Parameter
+
 
 
 def warn(txt):
@@ -401,10 +402,26 @@ class ChemicalComplex(Component):
             parameters={},  # customized parameters,
             attributes=[],
             initial_conc=None,
+            material_type = "complex",
             **keywords
     ):
-        self.species = Species(self.name, material_type="complex",
-                               attributes=list(attributes))
+
+        if len(species) < 2 or not isinstance(species, list):
+            raise ValueError("Species must be a list of Species, strings, Component objects.")
+
+        self.internal_species = [] #a list of species inside the complex
+
+        for s in species:
+            self.internal_species.append(self.set_species(s))
+
+        self.species = ComplexSpecies(species = self.internal_species, name = name, material_type=material_type, attributes=list(attributes))
+
+        if name == None:
+            name = self.species.name
+
+        from .mechanism import One_Step_Binding
+        self.default_mechanisms = {"binding": One_Step_Binding()}
+
         Component.__init__(self=self, name=name, mechanisms=mechanisms,
                            parameters=parameters, attributes=attributes,
                            initial_conc=initial_conc, **keywords)
@@ -413,8 +430,17 @@ class ChemicalComplex(Component):
         return self.species
 
     def update_species(self):
-        species = [self.get_species()]
+
+        mech_b = self.mechanisms['binding']
+
+        species = mech_b.update_species(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
+
         return species
 
     def update_reactions(self):
-        return []
+
+        mech_b = self.mechanisms['binding']
+
+        reactions = mech_b.update_reactions(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
+        
+        return reactions
