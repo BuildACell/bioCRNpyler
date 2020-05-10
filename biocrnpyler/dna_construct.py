@@ -6,10 +6,11 @@
 #
 ################################################################
 
-from matplotlib import cm
 import matplotlib.pyplot as plt
 import random
 from warnings import warn
+from matplotlib import cm
+
 integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 class DNA_part:
     #TODO can this be a component?
@@ -89,34 +90,6 @@ class DNA_part:
         else:
             raise ValueError("direction is not forward or reverse! It's "+self.direction)
         return self
-    #TODO move this to another file
-    def dnaplotlib_design(self,direction=None,color=(1,4,2),color2=(3,2,4),showlabel=False):
-        if(direction==None and self.direction != None):
-            direction == self.direction=="forward"
-        elif(direction==None):
-            direction = True
-        if(not type(self.color)==type(None)):
-            color = self.color
-        if(not type(self.color2)==type(None)):
-            color2 = self.color2
-        dnaplotlib_dict = {\
-            "promoter":"Promoter",\
-            "rbs":"RBS",\
-            "CDS":"CDS",\
-            "terminator":"Terminator",\
-            "attP":"RecombinaseSite",\
-            "attB":"RecombinaseSite",\
-            "attL":"RecombinaseSite2",\
-            "attR":"RecombinaseSite2"}
-        dpl_type = dnaplotlib_dict[self.part_type]
-        outdesign = [{'type':dpl_type,"name":self.name,"fwd":direction,'opts':{'color':color,'color2':color2}}]
-        if(self.regulator!= None):
-            outdesign += [{"type":"Operator","name":self.regulator,"fwd":direction,'opts':{'color':color,'color2':color2}}]
-        if(showlabel):
-            outdesign[0]["opts"].update({'label':str(self),'label_size':13,'label_y_offset':-8,})
-        if(not direction):
-            outdesign = outdesign[::-1]
-        return outdesign
 
 
 
@@ -260,7 +233,6 @@ class IntegraseMechanism:
                     newdna_1.reverse()
                 if(site2_initial_facing != prod2.direction):
                     newdna_2.reverse()
-
                 newdna = [newdna_1,newdna_2]
         return(newdna)   
         
@@ -303,7 +275,7 @@ class DNA_construct:
             if(type(part.color2)==type(None)):
                 if(part.part_type in ["attL","attR"]):
                     #this is the only scenario in which we need a color2
-                    #
+                    #TODO make this more general
                     pind+=1
                     part.color2 = cmap[pind][:-1]
             pind+=1
@@ -349,7 +321,6 @@ class DNA_construct:
         current_rbs = None
         for direction in ["forward","reverse"]:
             current_rnas = {}
-            
             #go forwards and also backwards!
             if(direction == "reverse"):
                 #if we go backwards then also list the parts backwards
@@ -358,57 +329,35 @@ class DNA_construct:
             else:
                 newlist = dc(self.parts_list)
             part_index = 0
-            searchend = len(newlist)-1
+            searchend = len(newlist)-1 #this is the index of the last part in the sequence
             secondloop = False #we may go through the plasmid twice if it's circular
             while True:
-            #for part_index in range(len(newlist)):
                 #
                 # iterate through all parts!
-                #
+                # we use a while loop here because if the plasmid is circular you may
+                # have to go through multiple times
                 part = newlist[part_index]
-                '''
-                #this part is for picking out the next and previous parts.
-                #is it needed? unclear
-                try:
-                    #look ahead!
-                    next_part = newlist[part_index+1]
-                except IndexError:
-                    #this means we fell off the end of the list!
-                    if(self.circular == True):
-                        #if we are circular then look back at the beginning
-                        next_part = newlist[0]
-                    else:
-                        #otherwise, it's the end!
-                        next_part = None
-                previous_part = newlist[part_index-1]
-                #unlike looking off the end of the list, -1 is a valid index.
-                if(self.circular == False):
-                    previous_part = None
-                #'''
                 effective_direction = part.direction
 
                 if(direction=="reverse"):
-                    #if we are reverse then everything is backwards
+                    # if we are reverse then everything is backwards
                     effective_direction = rev_dir(effective_direction)
                 part_object = part
-
-
                 if(current_rnas!={}):
                     #this means we are compiling an RNA
                     terminated = 0
                     if(part_object.part_type=="rbs" and effective_direction == "forward"):
-                        #rbs makes protein!! we add this to a list and then LATER decide which RNA gets it.
-                        #because, there could be no protein after the rbs, and then we dont care!
-                        #we don't track ORFs or do any kind of ribosome simulation so this could get tricky
-                        #ideally you just look at one protein following the RBS, but...
-                        #1- conditional RNA motifs could exist
-                        #2- attachment sites inside of protein coding sequences
-                        #3- fusion proteins
-                        #4- translational coupling
+                        # rbs makes protein!! we add this to a list and then LATER decide which RNA gets it.
+                        # because, there could be no protein after the rbs, and then we dont care!
+                        # we don't track ORFs or do any kind of ribosome simulation so this could get tricky
+                        # ideally you just look at one protein following the RBS, but...
+                        # 1- conditional RNA motifs could exist
+                        # 2- attachment sites inside of protein coding sequences
+                        # 3- fusion proteins
+                        # 4- translational coupling
                         #
-                        #i think the solution is just to track cds'es which have stop codons.
-                        #let's just assume that valid CDSes have stop codons.
-                        #logically though 
+                        # i think the solution is just to track cds'es which have stop codons.
+                        # let's just assume that valid CDSes have stop codons.
                         current_proteins[part_object]= []
                         if(current_rbs == None):
                             #this means nobody is translating yet
@@ -447,7 +396,7 @@ class DNA_construct:
                     #this part is a promoter, so it transcribes!
                     current_rnas.update({part_object:[]})
                 if(part_index == searchend and current_rnas!={} and self.circular):
-                    #if current RNAs is not done then IF the plasmid is circular we should read on
+                    #if current RNA is not done then IF the plasmid is circular we should read on
                     part_index = 0
                     secondloop = 1
                 elif(part_index == searchend and current_rnas!={} and (not self.circular or secondloop)):
@@ -470,6 +419,7 @@ class DNA_construct:
                     part_index +=1
         return all_rnas,made_proteins
     def __repr__(self):
+        """the name of a DNA has to be unique and usable as a component name in biocrnpyler"""
         output = ""
         output = '_'.join([str(a) for a in self.parts_list])
         if(self.circular):
@@ -533,17 +483,133 @@ class DNA_construct:
         part.clone(0,direction,self)
         for part_ind,part in zip(range(len(self.parts_list)),self.parts_list):
             part.pos = part_ind
-    def dnaplotlib_design(self,showlabels=[]):
-        outdesign = []
-        cmap = cm.Set1(range(len(self.parts_list)))
-        pind = 0
-        for part in self.parts_list:
-            showlabel = False
-            if(part.part_type in showlabels):
-                showlabel = True
-            outdesign+=part.dnaplotlib_design(part.direction=="forward",color=cmap[pind][:-1],color2 = random.choice(cmap)[:-1],showlabel=showlabel)
-            pind+=1
-        return outdesign
+
+class TxTl_Explorer():
+    def __init__(self,possible_rxns=("transcription","translation"),\
+                        part_defs={"promoter":"transcription", "rbs":"translation"},direction="forward"):
+        self.current_rnas = {}
+        self.current_proteins = {}
+        self.made_rnas = {}
+        self.all_rnas = {}
+        self.made_proteins = {}
+        self.current_rbs = None
+        self.possible_rxns = possible_rxns
+        self.part_defs = part_defs
+        self.direction=direction
+    def see(self,part):
+        """the explorer sees a part. This does different stuff depending on
+        1) what state we are in
+        2) what the part is
+        """
+        effective_direction = part.direction
+        if(self.direction=="reverse"):
+            effective_direction = rev_dir(effective_direction)
+        if(self.current_rnas!={}):
+            terminated = 0
+            if(self.part_defs[part.part_type]=="translation" and 
+                            effective_direction == "forward"):
+                self.current_proteins[part]= []
+                if(self.current_rbs == None):
+                    #this means nobody is translating yet
+                    self.current_rbs = part
+                else:
+                    #another RBS is translating. this could mean a few things:
+                    #1: translational coupling. the previous translation ends and turns
+                    #   into this one, with an added coupling term when that gets implemented
+                    #2: it terminates the previous translation. Chances are it would, right?
+                    self.current_rbs = part
+                    # TODO add coupling
+            elif(effective_direction in part.no_stop_codons and self.current_rbs != None):
+                #this means we can translate through the current part!
+                self.current_proteins[self.current_rbs] = self.current_proteins[self.current_rbs]+\
+                                                                        [[part,effective_direction]]
+            elif(self.current_rbs != None):
+                #this means we CAN'T translate through the current part, but we are translating
+                self.current_proteins[self.current_rbs] = self.current_proteins[self.current_rbs] + \
+                                                    [[part,effective_direction]]
+                self.current_rbs = None #current RBS has done its work
+            for promoter in self.current_rnas:
+                self.current_rnas[promoter]+=[[part,effective_direction]]
+                #we add the current part
+                if(part.part_type=="terminator" and effective_direction == "forward"):
+                    terminated = 1 #a terminator ends everything. This does not account for leakiness
+                    self.terminate_transcription(promoter)
+            if(terminated):
+                assert(self.current_rnas=={}) #this should be true if terminate_transcription() worked
+                # this means that all RNAs have been stopped. But, since the proteins didn't know
+                # which RNAs they belonged to, they are still hanging around so we have to
+                # clean them up
+                self.current_proteins = {}
+                self.current_rbs = None
+                terminated = 0
+    def terminate_transcription(self,promoter=None):
+        """this terminates the transcription of a specific RNA, started by the promoter
+        given in the argument. the RNA is deleted from the list of currently transcribing RNAs,
+        and any proteins that it was making are catalogued"""
+        if(promoter==None):
+            #if you don't specify then it terminates the first one
+            promoter = list(self.current_rnas.keys())[0]
+        rna_partslist = self.current_rnas[promoter]
+        rna_construct = RNA_construct(rna_partslist)
+        del self.current_rnas[promoter] # this removes the current RNA from the list, because it's
+                                        # being terminated!!
+        #current_rna_name = str(promoter)+"-"+str(rna_construct)
+        self.made_proteins[rna_construct]={}
+        #compile the name, keeping track of which promoter made the rna and all the parts on it
+        for rbs in self.current_proteins:
+            #ending the RNA also ends all the proteins being generated here.
+            proteins_per_rbs = []
+            # TODO this will run multiple times for each RNA. make it so it runs once!
+            for protein_part in self.current_proteins[rbs]:
+                if(protein_part[1] == "forward"):
+                    #it is essential to be forwards
+                    if(protein_part[0].protein != None):
+                        #this happens if we do in fact make a protein
+                        proteins_per_rbs+=[protein_part[0]]
+            self.made_proteins[rna_construct].update({rbs:proteins_per_rbs})
+            # so this has to be done at the end of the RNA only because only then do we know
+            # exactly what that full RNA is going to be.
+            # we want to clear the current proteins, but there could be multiple RNAs that run over the same proteins,
+            # so wait until we are done tallying all the RNAs before removing everything from current_proteins
+        self.all_rnas.update({promoter:rna_construct})
+
+
+
+class RNA_construct(DNA_construct):
+    #TODO this must work as an RNA! How is that different from DNA?
+    # 1: there are no promoters to detect
+    # 2: it must be linear
+    # 3: parts know that they are part of an RNA
+    # 4: the representation is different
+    # 5: maybe a DNA object contains RNAs??
+    def __init__(self,parts_list,**keywords):
+        DNA_construct.__init__(parts_list,circular=False,**keywords)
+        self.material_type = "rna"
+    def explore_txtl(self):
+        """an RNA has no tx, only TL! central dogma exists, right?"""
+        # lets try to make this more modular shall we?
+        explorer = TxTl_Explorer(possible_rxns = ("translation",))
+        explorer.make_rna(self.name)
+        part_index = 0
+        while explorer.keep_going:
+            part = self.parts_list[part_index]
+            whatnext = explorer.see(part)
+            part_index+=1
+            if(part_index==len(parts_list)):
+                part_index = 0
+                if(self.circular):
+                    explorer.second_loop()
+                else:
+                    explorer.end()
+        proteins = explorer.get_proteins()
+        return proteins
+    def __repr__(self):
+        """the name of an RNA should be different from DNA, right?"""
+        output = ""
+        output = '_'.join([str(a) for a in self.parts_list])
+        output+="-rna"
+        return output
+
 class Chassis():
     def __init__(self,dna_constructs,name="myChassis"):
         """a chassis is a combination of DNA parts. This is either your TXTL tube which can contain
