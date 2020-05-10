@@ -6,6 +6,7 @@
 # Copyright (c) 2018, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
+import random
 import networkx as nx
 import statistics
 from bokeh.models import (BoxSelectTool, Circle,Square, EdgesAndLinkedNodes, HoverTool,
@@ -14,6 +15,10 @@ from bokeh.palettes import Spectral4
 from bokeh.models.graphs import from_networkx
 from fa2 import ForceAtlas2
 import numpy as np
+from matplotlib import cm
+import dnaplotlib as dpl
+import matplotlib.pyplot as plt
+from biocrnpyler.dna_construct import DNA_construct
 
 def updateLimits(limits,xvalues):
     for value in xvalues:
@@ -206,3 +211,80 @@ def generate_networkx_graph(CRN,useweights=False):
     CRNreactionsonly = CRNgraph.copy()
     CRNreactionsonly.remove_nodes_from(range(rxnlist[0]))
     return CRNgraph,CRNspeciesonly,CRNreactionsonly
+
+def make_dpl_from_construct(construct,showlabels=[]):
+    outdesign = []
+    cmap = cm.Set1(range(len(construct.parts_list)))
+    pind = 0
+    for part in construct.parts_list:
+        showlabel = False
+        if(part.part_type in showlabels):
+            showlabel = True
+        outdesign+=make_dpl_from_part(part,color=cmap[pind][:-1],color2 = random.choice(cmap)[:-1],showlabel=showlabel)
+        pind+=1
+    return outdesign
+def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabel=False):
+    if(direction==None and part.direction != None):
+        direction = part.direction=="forward"
+    elif(direction==None):
+        direction = True
+    if(not type(part.color)==type(None)):
+        color = part.color
+    if(not type(part.color2)==type(None)):
+        color2 = part.color2
+    dnaplotlib_dict = {\
+        "promoter":"Promoter",\
+        "rbs":"RBS",\
+        "CDS":"CDS",\
+        "terminator":"Terminator",\
+        "attP":"RecombinaseSite",\
+        "attB":"RecombinaseSite",\
+        "attL":"RecombinaseSite2",\
+        "attR":"RecombinaseSite2"}
+    dpl_type = dnaplotlib_dict[part.part_type]
+    outdesign = [{'type':dpl_type,"name":part.name,"fwd":direction,'opts':{'color':color,'color2':color2}}]
+    if(part.regulator!= None):
+        outdesign += [{"type":"Operator","name":part.regulator,"fwd":direction,'opts':{'color':color,'color2':color2}}]
+    if(showlabel):
+        outdesign[0]["opts"].update({'label':str(part),'label_size':13,'label_y_offset':-8,})
+    if(not direction):
+        outdesign = outdesign[::-1]
+    return outdesign
+
+def plotConstruct(DNA_construct_obj,dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3),\
+                                    rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0)),\
+                                    plot_rnas=False,debug=False):
+    """helper function for making dnaplotlib plots of a DNA_construct object. Plots the
+    DNAs and the RNAs that come from that DNA, using DNA_construct.explore_txtl"""
+    design = make_dpl_from_construct(DNA_construct_obj,showlabels=["attB","attP","attL","attR"])
+    circular=DNA_construct_obj.circular
+    plotDesign(design,circular=circular)
+    if(plot_rnas):
+        rnas,proteins = DNA_construct_obj.explore_txtl()
+        if(debug):
+            print("rna:")
+            print(rnas)
+            print("protein")
+            print(proteins)
+        for promoter in rnas:
+            rnadesign = make_dpl_from_construct(DNA_construct(rnas[promoter]))
+            rnacolor = rna_renderer.linecolor
+            for part in rnadesign:
+                if("edgecolor" not in part['opts']):
+                    part['opts'].update({'edgecolor':rnacolor})
+            plotDesign(rnadesign,renderer=rna_renderer)
+
+def plotDesign(design,renderer = dpl.DNARenderer(scale = 5,linewidth=3),part_renderers=None,\
+                circular=False):
+    """helper function for doing dnaplotlib plots. You need to set the size and min max of the
+    plot, and that's what this function does"""
+    if(part_renderers==None):
+        part_renderers = renderer.SBOL_part_renderers()
+    fig = plt.figure(figsize=(len(design)*.75,1.1))
+    ax = fig.add_axes([0,0,1,1])
+    start,end = renderer.renderDNA(ax,design,part_renderers,circular=circular)
+    ax.axis('off')
+    addedsize=1
+    ax.set_xlim([start-addedsize,end+addedsize])
+    ax.set_ylim([-15,15])
+    plt.show()
