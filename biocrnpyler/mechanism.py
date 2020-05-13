@@ -597,6 +597,43 @@ class Two_Step_Cooperative_Binding(Mechanism):
         return rxns
 
 
+class One_Step_Binding(Mechanism):
+    def __init__(self, name="one_step_binding",
+                 mechanism_type="binding"):
+        Mechanism.__init__(self, name, mechanism_type)
+
+    def update_species(self, species, component = None, complex_species = None, part_id = None, **keywords):
+        if part_id == None:
+            part_id = ""
+            for s in self.internal_species:
+                part_id += s.name+"_"
+            part_id = part_id[:-1]
+
+        if complex_species is None:
+            complex_species = ComplexSpecies(species)
+
+        return species + [complex_species]
+
+
+    def update_reactions(self, species, component = None, complex_species = None, part_id = None, kb = None, ku = None, **keywords):
+        if part_id is None:
+            part_id = ""
+            for s in self.internal_species:
+                part_id += s.name+"_"
+            part_id = part_id[:-1]
+
+        if (kb == None or ku == None) and Component != None:
+            kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+            ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+        elif component is None and (kb == None or ku == None):
+            raise ValueError("Must pass in a Component or values for kb and ku")
+
+        if complex_species is None:
+            complex_species = ComplexSpecies(species)
+
+        return [Reaction(inputs = species, outputs = [complex_species], k = kb, k_rev = ku)]
+
+
 class SimpleTranscription(Mechanism):
     def __init__(self, name = "simple_transcription", mechanism_type = "transcription"):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
