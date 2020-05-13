@@ -16,9 +16,7 @@ from bokeh.models.graphs import from_networkx
 from fa2 import ForceAtlas2
 import numpy as np
 from matplotlib import cm
-import dnaplotlib as dpl
 import matplotlib.pyplot as plt
-from biocrnpyler.dna_construct import DNA_construct
 
 def updateLimits(limits,xvalues):
     for value in xvalues:
