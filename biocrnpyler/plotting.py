@@ -267,7 +267,7 @@ def plotConstruct(DNA_construct_obj,dna_renderer=dpl.DNARenderer(scale = 5,linew
             print("protein")
             print(proteins)
         for promoter in rnas:
-            rnadesign = make_dpl_from_construct(DNA_construct(rnas[promoter]))
+            rnadesign = make_dpl_from_construct(rnas[promoter])
             rnacolor = rna_renderer.linecolor
             for part in rnadesign:
                 if("edgecolor" not in part['opts']):
