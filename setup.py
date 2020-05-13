@@ -9,7 +9,7 @@ setup(
     version='0.1',
     author='William Poole',
     author_email='wpoole@caltech.edu',
-    url='https://github.com/WilliamIX/biocrnplyler/',
+    url='https://github.com/WilliamIX/biocrnpyler/',
     description='A chemical reaction network compiler for generating large biological circuit models',
     long_description=long_description,
     packages=['biocrnpyler'],

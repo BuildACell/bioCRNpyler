@@ -351,7 +351,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
             binder_cooperativity = int(cooperativity[binder.name])
             #I hope that cooperativity is an int! what if it isn't
             if(binder_cooperativity > 1):
-                complexed_species_list += [Multimer(binder,binder_cooperativity)]
+                complexed_species_list += [binder]*binder_cooperativity
             else:
                 complexed_species_list += [binder]
         complexed_species_list += [bindee]

@@ -48,7 +48,6 @@ class TestCombinatorialPromoter(TestCase):
 
         
         sp_treg1 = Species("treg1",material_type="protein")
-        mu_treg1 = Multimer(sp_treg1,2)
         sp_treg2 = Species("treg2",material_type="rna")
         #mu_treg2 = Multimer(sp_treg2,2)
 
@@ -56,9 +55,9 @@ class TestCombinatorialPromoter(TestCase):
         sp_rnap = Species("RNAP",material_type="protein")
         sp_rna = Species("testDNA",material_type="rna")
         cp_dna_rnap = ComplexSpecies([sp_dna,sp_rnap])
-        cp_dna_treg1 = ComplexSpecies([sp_dna,mu_treg1])
+        cp_dna_treg1 = ComplexSpecies([sp_dna,sp_treg1,sp_treg1])
         cp_dna_treg2 = ComplexSpecies([sp_dna,sp_treg2])
-        cp_dna_treg1_treg2 = ComplexSpecies([sp_dna,mu_treg1,sp_treg2])
+        cp_dna_treg1_treg2 = ComplexSpecies([sp_dna,sp_treg1,sp_treg1,sp_treg2])
         cp_dna_treg1_treg2_rnap = ComplexSpecies([cp_dna_treg1_treg2,sp_rnap])
 
         knownspecies = [sp_dna,sp_rnap,sp_rna,cp_dna_rnap,cp_dna_treg1,\
@@ -99,9 +98,8 @@ class TestCombinatorialPromoter(TestCase):
         sp_rnap = Species("RNAP",material_type="protein")
         #now the complexes
         sp_dna_rnap = ComplexSpecies([sp_dna,sp_rnap])
-        mul_treg1 = Multimer(sp_treg1,2)
-        sp_dna_treg1 = ComplexSpecies([sp_dna,mul_treg1])
-        sp_dna_treg1_rnap = ComplexSpecies([sp_dna,mul_treg1,sp_rnap])
+        sp_dna_treg1 = ComplexSpecies([sp_dna,sp_treg1,sp_treg1])
+        sp_dna_treg1_rnap = ComplexSpecies([sp_dna_treg1,sp_rnap])
         #print('\n\n'.join([str(a) for a in newprom_rxns]))
         #now, we generate the reaction input outputs manually
         r0 = [set([sp_rnap,sp_dna]),set([sp_dna_rnap]),100,10] #RNAP binding to DNA
@@ -123,6 +121,7 @@ class TestCombinatorialPromoter(TestCase):
                     self.assertTrue(rxn.k_r==rset[3])
                     correctPick = True
                     break
+
             self.assertTrue(correctPick)
         #5 reactions must be generated
         self.assertTrue(len(newprom_rxns)==5)

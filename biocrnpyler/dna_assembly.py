@@ -133,7 +133,17 @@ class CombinatorialPromoter(Promoter):
             self.tx_capable_list = [set([a.name for a in self.regulators])]
         elif(type(tx_capable_list)==list):
             #if the user passed a list then the user knows what they want
-            self.tx_capable_list = [set(a) for a in tx_capable_list]
+            newlist = []
+            #this part converts any species in the tx_capable_list into a string
+            for element in tx_capable_list:
+                sublist = []
+                for specie in element:
+                    if(isinstance(specie,Species)):
+                        sublist += [specie.name]
+                    else:
+                        sublist += [specie]
+                newlist+=[sublist]
+            self.tx_capable_list = [set(a) for a in newlist]
 
         self.leak = leak
         
@@ -145,6 +155,8 @@ class CombinatorialPromoter(Promoter):
                           **keywords)
         self.complex_combinations = {}
         self.tx_capable_complexes = []
+    def flatten_complex(self,complex):
+        """output a list of all species in all complexes contained within this complex"""
     def update_species(self):
 
         mech_tx = self.mechanisms["transcription"]
@@ -160,16 +172,14 @@ class CombinatorialPromoter(Promoter):
                         component = self,part_id = self.name,cooperativity=self.cooperativity)
         #above is all the species with DNA bound to regulators. Now, we need to extract only the ones which
         #are transcribable
-        for bound_complex in bound_species:
+        for bound_complex in bound_species: 
             species_inside = []
             for regulator in self.regulators:
-                if(regulator.name in bound_complex.name):
+                if(regulator in bound_complex.species):
+                    #so this doesn't work if the bound_complex contains multimers. Which it WILL, if cooperativity is > 1, right?
                     species_inside += [regulator.name] 
-            #print("species_inside is "+str(species_inside))
-            #print("tx capable is " +str(self.tx_capable_list))
-            #print(set(species_inside) in [set(a) for a in self.tx_capable_list])
             if(set(species_inside) in [set(a) for a in self.tx_capable_list]):
-                
+                #only the transcribable complexes get transcription reactions
                 tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, \
                                                                                     protein = self.assembly.protein)
                 species +=tx_capable_species[1:]
