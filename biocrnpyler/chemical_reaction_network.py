@@ -6,7 +6,8 @@ from .sbmlutil import *
 import warnings
 import copy
 import numpy as np
-import networkx as nx
+
+
 
 
 class Species(object):
@@ -22,7 +23,7 @@ class Species(object):
         self.initial_concentration = initial_concentration
         if material_type == "complex":
             warn("species which are formed of two species or more should be "
-                 "called using the chemical_reaction_network.complex "
+                 "called using the chemical_reaction_network.ComplexSpecies "
                  "constructor for attribute inheritance purposes.")
 
         self.attributes = []
@@ -32,7 +33,12 @@ class Species(object):
                 self.add_attribute(attribute)
 
     def __repr__(self):
-        txt = self.material_type + "_" + self.name
+        txt = ""
+        if self.material_type not in ["", None]:
+            txt = self.material_type + "_"
+
+        txt += self.name
+
         if len(self.attributes) > 0 and self.attributes != []:
             for i in self.attributes:
                 if i is not None:
@@ -40,8 +46,30 @@ class Species(object):
         txt.replace("'", "")
         return txt
 
+    #A more powerful printing function
+    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+        txt = ""
+        if self.material_type not in ["", None] and show_material:
+            txt = self.material_type + "["
+
+        txt += self.name
+
+        if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
+            txt += "("
+            for i in self.attributes:
+                if i is not None:
+                    txt += str(i)+", "
+            txt = txt[:-2]+")"
+
+        txt.replace("'", "")
+
+        if self.material_type not in ["", None] and show_material:
+            txt += "]"
+
+        return txt
+
     def add_attribute(self, attribute):
-        assert isinstance(attribute, str) or attribute is None,  "Attribute: %s must be a string or None" % attribute
+        assert isinstance(attribute, str) and attribute is not None, "Attribute: %s must be a string" % attribute
 
         self.attributes.append(attribute)
 
@@ -71,31 +99,44 @@ class Species(object):
 
 class ComplexSpecies(Species):
     """ A special kind of species which is formed as a complex of two or more species.
-        Used for attribute inheritance
+        Used for attribute inheritance and storing groups of bounds Species. 
+        Note taht in a ComplexSpecies, the order of the species list does not matter.
+        This means that ComplexSpecies([s1, s2]) = ComplexSpecies([s2, s1]). 
+        This is good for modelling order-indpendent binding complexes.
+        For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
     """
-    def __init__(self, species, name = None, material_type = "complex",
-                 attributes = None, initial_concentration = 0):
-        if len(species) < 1:
+    def __init__(self, species, name = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
+        if len(species) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
 
+        self.species = [s if isinstance(s, Species) else Species(s) for s in species]
+        self.species_set = list(set(self.species))
+        if False in [isinstance(s, Species) or isinstance(s, str) for s in self.species]:
+            raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof).")
+
         if name == None:
             name = ""
-            species = copy.copy(species)
-            list.sort(species, key = lambda s:s.name)
-            for s in species:
-                if s.material_type != "complex":
+            list.sort(self.species, key = lambda s:repr(s))
+            
+            list.sort(self.species_set, key = lambda s:repr(s))
+            for s in self.species_set:
+                count = self.species.count(s)
+                if count > 1:
+                    name+=f"{count}x_"
+                if not (isinstance(s, ComplexSpecies) or s.material_type == ""):
                     name+=f"{s.material_type}_{s.name}_"
                 else:
                     name+=f"{s.name}_"
             name = name[:-1]
+
         self.name = name
         self.material_type = material_type
         self.initial_concentration = initial_concentration
 
         if attributes == None:
             attributes = []
-        for s in species:
+        for s in self.species:
             attributes += s.attributes
         attributes = list(set(attributes))
 
@@ -104,6 +145,113 @@ class ComplexSpecies(Species):
 
         self.attributes = attributes
 
+    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+        txt = ""
+        if self.material_type not in ["", None] and show_material:
+            txt += self.material_type+"["
+        
+        for s in self.species_set:
+            count = self.species.count(s)
+            if count > 1:
+                txt += f"{count}x_"
+            txt += s.pretty_print(show_material = show_material, show_attributes = False)+":"
+        txt = txt[:-1]
+
+        if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
+            txt += "("
+            for i in self.attributes:
+                if i is not None:
+                    txt += str(i)+", "
+            txt = txt[:-2]+")"
+
+        txt.replace("'", "")
+
+        if self.material_type not in ["", None] and show_material:
+            txt += "]"
+
+        return txt
+
+
+class Multimer(ComplexSpecies):
+    """A subclass of ComplexSpecies for Complexes made entirely of the same kind of species,
+    eg dimers, tetramers, etc.
+    """
+    def __init__(self, species, multiplicity, name = None, material_type = "complex", attributes = None, initial_concentration = 0):
+
+        if isinstance(species, str):
+            species = [Species(name = species)]
+        elif not isinstance(species, Species):
+            raise ValueError("Multimer must be defined by a Species (or subclasses thereof) and a multiplicity (int).")
+        else:
+            species = [species]
+
+        ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)   
+
+class OrderedComplexSpecies(ComplexSpecies):
+    """ A special kind of species which is formed as a complex of two or more species.
+        In OrderedComplexSpecies the order in which the complex subspecies are is defined
+        denote different species, eg [s1, s2, s3] != [s1, s3, s2].
+        Used for attribute inheritance and storing groups of bounds Species. 
+    """
+
+    def __init__(self, species, name = None, material_type = "ordered_complex", attributes = None, initial_concentration = 0):
+        if len(species) <= 1:
+            raise ValueError("chemical_reaction_network.complex requires 2 "
+                             "or more species in its constructor.")
+
+        self.species = [s if isinstance(s, Species) else Species(s) for s in species]
+        if False in [isinstance(s, Species) or isinstance(s, str) for s in self.species]:
+            raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof) or strings.")
+
+        if name == None:
+            name = ""
+            for s in species:
+                if isinstance(s, str):
+                    s = Species(name = s)
+                if s.material_type not in ["complex", "ordered_complex", ""]:
+                    name+=f"{s.material_type}_{s.name}_"
+                else:
+                    name+=f"{s.name}_"
+            name = name[:-1]
+
+        self.name = name
+        self.material_type = material_type
+        self.initial_concentration = initial_concentration
+
+        if attributes == None:
+            attributes = []
+        for s in self.species:
+            attributes += s.attributes
+        attributes = list(set(attributes))
+
+        while None in attributes:
+            attributes.remove(None)
+
+        self.attributes = attributes
+
+    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+        txt = ""
+        if self.material_type not in ["", None] and show_material:
+            txt += self.material_type+"["
+        
+
+        for s in self.species:
+            txt += s.pretty_print(show_material = show_material, show_attributes = False)+":"
+        txt = txt[:-1]
+
+        if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
+            txt += "("
+            for i in self.attributes:
+                if i is not None:
+                    txt += str(i)+", "
+            txt = txt[:-2]+")"
+
+        txt.replace("'", "")
+
+        if self.material_type not in ["", None] and show_material:
+            txt += "]"
+
+        return txt
 
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
@@ -117,6 +265,9 @@ class Reaction(object):
     def __init__(self, inputs, outputs, k = 0, input_coefs = None,
                  output_coefs = None, k_rev = 0, propensity_type = "massaction",
                  rate_formula = None, propensity_params = None):
+
+        if len(inputs) == 0 and len(outputs) == 0:
+            warnings.warn("Reaction Inputs and Outputs both contain 0 Species.")
 
         if k != 0 and propensity_params != None and "k" not in propensity_params:
             propensity_params["k"] = k
@@ -256,39 +407,25 @@ class Reaction(object):
             raise ValueError(f"len(output_coefs) ({len(output_coefs)}) doesn't "
                              f"match len(self.outputs) ({len(self.outputs)}).")
 
-    def __repr__(self, **kwargs):
-        txt = ""
-        for i in range(len(self.inputs)):
-            if self.input_coefs[i] > 1:
-                txt += str(self.input_coefs[i]) + "*" + str(self.inputs[i])
-            else:
-                txt += str(self.inputs[i])
-            if i < len(self.inputs) - 1:
-                txt += " + "
-        if self.reversible:
-            txt += " <--> "
-        else:
-            txt += " --> "
-        for i in range(len(self.outputs)):
-            if self.output_coefs[i] > 1:
-                txt += str(self.output_coefs[i]) + "*" + str(self.outputs[i])
-            else:
-                txt += str(self.outputs[i])
-            if i < len(self.outputs) - 1:
-                txt += " + "
+    #Helper function to print the text of a rate function
+    def rate_func_text(self, pretty_print = False,  show_material = True, show_attributes = True, **kwargs):
         tab = (" " * 8)
-        txt += tab
-
+        txt = ""
         if self.propensity_type == "massaction":
             input_func_args = ""
             input_prod = f"{self.k}"
             for i in range(len(self.inputs)):
-                input_func_args += f"{self.inputs[i]}"
+                if pretty_print:
+                    sin = self.inputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+                else:
+                    sin = repr(self.inputs[i])
+
+                input_func_args += f"{sin}"
 
                 if self.input_coefs[i] > 1:
-                    input_prod+=f"*{self.inputs[i]}^{self.input_coefs[i]}"
+                    input_prod+=f"*{sin}^{self.input_coefs[i]}"
                 else:
-                    input_prod+=f"*{self.inputs[i]}"
+                    input_prod+=f"*{sin}"
 
                 if i < len(self.inputs)-1:
                     input_func_args += ","
@@ -300,42 +437,66 @@ class Reaction(object):
             if self.reversible:
                 output_func_args = ""
                 output_prod = f"{self.k_r}"
+               
                 for i in range(len(self.outputs)):
-                    output_func_args += f"{self.outputs[i]}"
+                    if pretty_print:
+                        sout = self.outputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+                    else:
+                        sout = repr(self.outputs[i])
+
+                    output_func_args += f"{sout}"
 
                     if self.output_coefs[i] > 1:
-                        output_prod+=f"*{self.outputs[i]}^{self.output_coefs[i]}"
+                        output_prod+=f"*{sout}^{self.output_coefs[i]}"
                     else:
-                        output_prod+=f"*{self.outputs[i]}"
+                        output_prod+=f"*{sout}"
 
                     if i < len(self.outputs)-1:
                         output_func_args += ","
 
                 if len(self.outputs) > 0:
                     output_func_args = "("+output_func_args+")"
-                txt += f"{tab}k_r{output_func_args}={output_prod}"
+                txt += f" k_r{output_func_args}={output_prod}"
 
-        
         elif self.propensity_type == "hillpositive":
-            s1 = repr(self.propensity_params["s1"])
+            if pretty_print:
+                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                s1 = repr(self.propensity_params["s1"])
+
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
             txt += f"hillpositive: k({s1})={self.k}*{s1}^{n}/({kd}+{s1}^{n})"
         elif self.propensity_type == "hillnegative":
-            s1 = repr(self.propensity_params["s1"])
+
+            if pretty_print:
+                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                s1 = repr(self.propensity_params["s1"])
+
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
             txt += f"hillnegative: k({s1})={self.k}*1/({kd}+{s1}^{n})"
         elif self.propensity_type == "proportionalhillpositive":
-            s1 = repr(self.propensity_params["s1"])
-            s2 = repr(self.propensity_params["d"])
+            if pretty_print:
+                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+                s2 = self.propensity_params["d"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                s1 = repr(self.propensity_params["s1"])
+                s2 = repr(self.propensity_params["d"])
+
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
             txt += (f"proportionalhillpositive: k({s1}, "
                    f"{s2})={self.k}*{s2}*{s1}^{n}/({kd}+{s1}^{n})")
         elif self.propensity_type == "proportionalhillnegative":
-            s1 = repr(self.propensity_params["s1"])
-            s2 = repr(self.propensity_params["d"])
+            if pretty_print:
+                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+                s2 = self.propensity_params["d"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                s1 = repr(self.propensity_params["s1"])
+                s2 = repr(self.propensity_params["d"])
+
             kd = str(self.propensity_params["K"])
             n = str(self.propensity_params["n"])
             txt += (f"proportionalhillnegative: k({s1}, "
@@ -346,7 +507,67 @@ class Reaction(object):
         else:
             raise ValueError("Unknown Propensity Type: "
                              f"{self.propensity_type}.")
+
         return txt
+
+    def __repr__(self, **kwargs):
+        tab = (" " * 8)
+        txt = ""
+        for i in range(len(self.inputs)):
+            if self.input_coefs[i] > 1:
+                txt += str(self.input_coefs[i]) + " " + str(self.inputs[i])
+            else:
+                txt += str(self.inputs[i])
+            if i < len(self.inputs) - 1:
+                txt += " + "
+        if self.reversible:
+            txt += " <--> "
+        else:
+            txt += " --> "
+        for i in range(len(self.outputs)):
+            if self.output_coefs[i] > 1:
+                txt += str(self.output_coefs[i]) + " " + str(self.outputs[i])
+            else:
+                txt += str(self.outputs[i])
+            if i < len(self.outputs) - 1:
+                txt += " + "
+        txt += tab
+        txt += self.rate_func_text(**kwargs)
+        
+        return txt
+
+    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, **kwargs):
+        tab = (" " * 8)
+        txt = ""
+        for i in range(len(self.inputs)):
+            if self.input_coefs[i] > 1:
+                txt += str(self.input_coefs[i]) + " " + self.inputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                txt += self.inputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            if i < len(self.inputs) - 1:
+                txt += " + "
+        if self.reversible:
+            txt += " <--> "
+        else:
+            txt += " --> "
+        for i in range(len(self.outputs)):
+            if self.output_coefs[i] > 1:
+                txt += str(self.output_coefs[i]) + " " + self.outputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            else:
+                txt += self.outputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            if i < len(self.outputs) - 1:
+                txt += " + "
+        txt += tab
+        if show_rates:
+            if self.reversible:
+                rate_txt = self.rate_func_text(pretty_print = True, show_material = show_material, show_attributes = show_attributes, **kwargs)
+                rate_txt = rate_txt.replace(" k_r", "\n"+tab+"k_r")
+                txt += "\n"+tab+rate_txt
+            else:
+                txt += "\n"+tab+self.rate_func_text(pretty_print = True, show_material = show_material, show_attributes = show_attributes, **kwargs)
+
+        return txt
+
 
     def __eq__(self, other):
         """Overrides the default implementation.
@@ -504,6 +725,20 @@ class ChemicalReactionNetwork(object):
         txt += "]"
         return txt
 
+    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, **kwargs):
+        txt = f"Species ({len(self.species)}) = "+"{"
+        for sind in range(len(self.species)):
+            s = self.species[sind]
+            txt += f"{sind}. "+s.pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs) + ", "
+        txt = txt[:-2] + '}\n'
+        txt += f"Reactions ({len(self.reactions)}) = [\n"
+
+        for rind in range(len(self.reactions)):
+            r = self.reactions[rind]
+            txt += f"{rind}. " + r.pretty_print(show_rates = show_rates, show_material = show_material, show_attributes = show_attributes, **kwargs) + "\n"
+        txt += "]"
+        return txt
+
     def pyrepr(self):
         reactions = []
         for r in self.reactions:
@@ -570,72 +805,6 @@ class ChemicalReactionNetwork(object):
         if document.getNumErrors():
             warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
         return document, model
-    def generate_networkx_graph(self,useweights=False):
-        """generates a networkx DiGraph object that represents the CRN."""
-        CRNgraph = nx.DiGraph()
-        allnodenum = 1 #every node has an index
-        nodedict = {} #this is so that we can write out the reactions in
-                    #the reaction "species" field
-                    #it has {species:index}
-        rxnlist = [] #list of numbers corresponding to only reaction nodes
-        speclist = self.species
-        nodedict["nothing"]=0
-        CRNgraph.add_node(0)
-        CRNgraph.nodes[0]["type"]="nothing"
-        CRNgraph.nodes[0]["species"]="nothing"
-        CRNgraph.nodes[0]["color"]="purple"
-        for specie in self.species:
-            mycol = "teal"
-            if(specie.material_type=="complex"):
-                mycol = "cyan"
-            elif(specie.material_type=="protein"):
-                mycol = "green"
-            elif(specie.material_type=="dna"):
-                mycol = "grey"
-            elif(specie.material_type=="rna"):
-                mycol = "orange"
-            nodedict[specie]=allnodenum
-            CRNgraph.add_node(allnodenum)
-            CRNgraph.nodes[allnodenum]["type"]=str(specie.material_type)
-            CRNgraph.nodes[allnodenum]["species"]=str(specie)
-            CRNgraph.nodes[allnodenum]["color"]=mycol
-            allnodenum +=1
-        for rxn in self.reactions:
-            CRNgraph.add_node(allnodenum)
-            CRNgraph.nodes[allnodenum]["type"]=rxn.propensity_type
-            mycol = "blue"
-            #CRNgraph.nodes[allnodenum]
-            kval = rxn.k
-            if(not useweights):
-                kval = 1
-            krev_val = rxn.k_r
-            if((krev_val > 0) and (not useweights)):
-                krev_val = 1
-            for reactant in rxn.inputs:
-                CRNgraph.add_edge(nodedict[reactant],allnodenum,weight=kval)
-                if(krev_val>0):
-                    CRNgraph.add_edge(allnodenum,nodedict[reactant],weight=krev_val)
-            for product in rxn.outputs:
-                CRNgraph.add_edge(allnodenum,nodedict[product],weight=kval)
-                if(krev_val>0):
-                    CRNgraph.add_edge(nodedict[product],allnodenum,weight=krev_val)
-            if(len(rxn.outputs)==0):
-                CRNgraph.add_edge(allnodenum,0,weight=kval)
-                if(krev_val>0):
-                    CRNgraph.add_edge(0,allnodenum,weight=krev_val)
-            elif(len(rxn.inputs)==0):
-                CRNgraph.add_edge(0,allnodenum,weight=kval)
-                if(krev_val>0):
-                    CRNgraph.add_edge(allnodenum,0,weight=krev_val)
-            CRNgraph.nodes[allnodenum]["color"]=mycol
-            CRNgraph.nodes[allnodenum]["species"]=str(rxn)
-            rxnlist += [allnodenum]
-            allnodenum +=1
-        CRNspeciesonly = CRNgraph.copy()
-        CRNspeciesonly.remove_nodes_from(rxnlist)
-        CRNreactionsonly = CRNgraph.copy()
-        CRNreactionsonly.remove_nodes_from(range(rxnlist[0]))
-        return CRNgraph,CRNspeciesonly,CRNreactionsonly
 
     def write_sbml_file(self, file_name = None, **keywords):
         document, _ = self.generate_sbml_model(**keywords)

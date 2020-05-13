@@ -6,6 +6,7 @@
 # Copyright (c) 2018, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
+import random
 import networkx as nx
 import statistics
 from bokeh.models import (BoxSelectTool, Circle,Square, EdgesAndLinkedNodes, HoverTool,
@@ -14,6 +15,10 @@ from bokeh.palettes import Spectral4
 from bokeh.models.graphs import from_networkx
 from fa2 import ForceAtlas2
 import numpy as np
+from matplotlib import cm
+import dnaplotlib as dpl
+import matplotlib.pyplot as plt
+from biocrnpyler.dna_construct import DNA_construct
 
 def updateLimits(limits,xvalues):
     for value in xvalues:
@@ -130,7 +135,7 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force"):
     #when you mouse over and click
     edge_hover_tool = HoverTool(tooltips= None,renderers=[edges_renderer])
     node_hover_tool = HoverTool(tooltips=[("name", "@species"), ("type", "@type")],\
-                                        renderers=[reaction_renderer,species_renderer])
+                                        renderers=[reaction_renderer,species_renderer],attachment="right")
     plot.add_tools(edge_hover_tool,node_hover_tool, TapTool(), BoxSelectTool(),PanTool(),WheelZoomTool())
 
     edges_renderer.selection_policy = NodesAndLinkedEdges()
@@ -139,3 +144,147 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force"):
     plot.renderers.append(edges_renderer)
     plot.renderers.append(reaction_renderer)
     plot.renderers.append(species_renderer)
+
+def generate_networkx_graph(CRN,useweights=False):
+    """generates a networkx DiGraph object that represents the CRN."""
+    CRNgraph = nx.DiGraph()
+    allnodenum = 1 #every node has an index
+    nodedict = {} #this is so that we can write out the reactions in
+                #the reaction "species" field
+                #it has {species:index}
+    rxnlist = [] #list of numbers corresponding to only reaction nodes
+    speclist = CRN.species
+    nodedict["nothing"]=0
+    CRNgraph.add_node(0)
+    CRNgraph.nodes[0]["type"]="nothing"
+    CRNgraph.nodes[0]["species"]="nothing"
+    CRNgraph.nodes[0]["color"]="purple"
+    for specie in CRN.species:
+        mycol = "teal"
+        if(specie.material_type=="complex"):
+            mycol = "cyan"
+        elif(specie.material_type=="protein"):
+            mycol = "green"
+        elif(specie.material_type=="dna"):
+            mycol = "grey"
+        elif(specie.material_type=="rna"):
+            mycol = "orange"
+        nodedict[specie]=allnodenum
+        CRNgraph.add_node(allnodenum)
+        CRNgraph.nodes[allnodenum]["type"]=str(specie.material_type)
+        CRNgraph.nodes[allnodenum]["species"]=str(specie)
+        CRNgraph.nodes[allnodenum]["color"]=mycol
+        allnodenum +=1
+    for rxn in CRN.reactions:
+        CRNgraph.add_node(allnodenum)
+        CRNgraph.nodes[allnodenum]["type"]=rxn.propensity_type
+        mycol = "blue"
+        #CRNgraph.nodes[allnodenum]
+        kval = rxn.k
+        if(not useweights):
+            kval = 1
+        krev_val = rxn.k_r
+        if((krev_val > 0) and (not useweights)):
+            krev_val = 1
+        for reactant in rxn.inputs:
+            CRNgraph.add_edge(nodedict[reactant],allnodenum,weight=kval)
+            if(krev_val>0):
+                CRNgraph.add_edge(allnodenum,nodedict[reactant],weight=krev_val)
+        for product in rxn.outputs:
+            CRNgraph.add_edge(allnodenum,nodedict[product],weight=kval)
+            if(krev_val>0):
+                CRNgraph.add_edge(nodedict[product],allnodenum,weight=krev_val)
+        if(len(rxn.outputs)==0):
+            CRNgraph.add_edge(allnodenum,0,weight=kval)
+            if(krev_val>0):
+                CRNgraph.add_edge(0,allnodenum,weight=krev_val)
+        elif(len(rxn.inputs)==0):
+            CRNgraph.add_edge(0,allnodenum,weight=kval)
+            if(krev_val>0):
+                CRNgraph.add_edge(allnodenum,0,weight=krev_val)
+        CRNgraph.nodes[allnodenum]["color"]=mycol
+        CRNgraph.nodes[allnodenum]["species"]=str(rxn)
+        rxnlist += [allnodenum]
+        allnodenum +=1
+    CRNspeciesonly = CRNgraph.copy()
+    CRNspeciesonly.remove_nodes_from(rxnlist)
+    CRNreactionsonly = CRNgraph.copy()
+    CRNreactionsonly.remove_nodes_from(range(rxnlist[0]))
+    return CRNgraph,CRNspeciesonly,CRNreactionsonly
+
+def make_dpl_from_construct(construct,showlabels=[]):
+    outdesign = []
+    cmap = cm.Set1(range(len(construct.parts_list)))
+    pind = 0
+    for part in construct.parts_list:
+        showlabel = False
+        if(part.part_type in showlabels):
+            showlabel = True
+        outdesign+=make_dpl_from_part(part,color=cmap[pind][:-1],color2 = random.choice(cmap)[:-1],showlabel=showlabel)
+        pind+=1
+    return outdesign
+def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabel=False):
+    if(direction==None and part.direction != None):
+        direction = part.direction=="forward"
+    elif(direction==None):
+        direction = True
+    if(not type(part.color)==type(None)):
+        color = part.color
+    if(not type(part.color2)==type(None)):
+        color2 = part.color2
+    dnaplotlib_dict = {\
+        "promoter":"Promoter",\
+        "rbs":"RBS",\
+        "CDS":"CDS",\
+        "terminator":"Terminator",\
+        "attP":"RecombinaseSite",\
+        "attB":"RecombinaseSite",\
+        "attL":"RecombinaseSite2",\
+        "attR":"RecombinaseSite2"}
+    dpl_type = dnaplotlib_dict[part.part_type]
+    outdesign = [{'type':dpl_type,"name":part.name,"fwd":direction,'opts':{'color':color,'color2':color2}}]
+    if(part.regulator!= None):
+        outdesign += [{"type":"Operator","name":part.regulator,"fwd":direction,'opts':{'color':color,'color2':color2}}]
+    if(showlabel):
+        outdesign[0]["opts"].update({'label':str(part),'label_size':13,'label_y_offset':-8,})
+    if(not direction):
+        outdesign = outdesign[::-1]
+    return outdesign
+
+def plotConstruct(DNA_construct_obj,dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3),\
+                                    rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0)),\
+                                    plot_rnas=False,debug=False):
+    """helper function for making dnaplotlib plots of a DNA_construct object. Plots the
+    DNAs and the RNAs that come from that DNA, using DNA_construct.explore_txtl"""
+    design = make_dpl_from_construct(DNA_construct_obj,showlabels=["attB","attP","attL","attR"])
+    circular=DNA_construct_obj.circular
+    plotDesign(design,circular=circular)
+    if(plot_rnas):
+        rnas,proteins = DNA_construct_obj.explore_txtl()
+        if(debug):
+            print("rna:")
+            print(rnas)
+            print("protein")
+            print(proteins)
+        for promoter in rnas:
+            rnadesign = make_dpl_from_construct(rnas[promoter])
+            rnacolor = rna_renderer.linecolor
+            for part in rnadesign:
+                if("edgecolor" not in part['opts']):
+                    part['opts'].update({'edgecolor':rnacolor})
+            plotDesign(rnadesign,renderer=rna_renderer)
+
+def plotDesign(design,renderer = dpl.DNARenderer(scale = 5,linewidth=3),part_renderers=None,\
+                circular=False):
+    """helper function for doing dnaplotlib plots. You need to set the size and min max of the
+    plot, and that's what this function does"""
+    if(part_renderers==None):
+        part_renderers = renderer.SBOL_part_renderers()
+    fig = plt.figure(figsize=(len(design)*.75,1.1))
+    ax = fig.add_axes([0,0,1,1])
+    start,end = renderer.renderDNA(ax,design,part_renderers,circular=circular)
+    ax.axis('off')
+    addedsize=1
+    ax.set_xlim([start-addedsize,end+addedsize])
+    ax.set_ylim([-15,15])
+    plt.show()

@@ -10,14 +10,42 @@ class TestSpecies(TestCase):
         from biocrnpyler import Species
 
         with self.assertWarns(Warning):
+            #species should not have type 'complex' should use ComplexSpecies class
             Species(name='test_species', material_type='complex')
-
-        species = Species(name='test_species')
+        
+        #Tests naming convention repr without species type or attributes
+        species = Species(name = 'test_species')
+        self.assertEqual(repr(species), species.name)
+                        
+        #Tests material type
+        species = Species(name='test_species', material_type = "dna")
+        self.assertTrue(species.material_type == "dna")
+        
+        #tests emtpy attributes
         self.assertTrue(isinstance(species.attributes, list))
-
+        
+        #tests naming convention via repr without attributes
+        self.assertEqual(repr(species), species.material_type +"_"+species.name)
+        
+        #tests adding attributes
         attr_list = ['atr1', 'atr2']
         species = Species(name='test_species', attributes=attr_list)
         self.assertEqual(attr_list, species.attributes)
+        
+        #tests naming convention with attributes and no material
+        correct_name = species.name
+        for attribute in species.attributes:
+            correct_name += "_"+attribute
+        self.assertEqual(repr(species), correct_name)
+        
+        #tests initial condition by default should be 0
+        species = Species(name = 'test_species')
+        self.assertTrue(species.initial_concentration == 0)
+        
+        #tests setting correct initial concentration
+        initial_concentration = 10
+        species = Species(name = 'test_species', initial_concentration = initial_concentration)
+        self.assertEqual(species.initial_concentration, initial_concentration)
 
     def test_add_attribute(self):
         from biocrnpyler import Species
@@ -28,6 +56,7 @@ class TestSpecies(TestCase):
             species.add_attribute({'k': 'v'})
 
         species.add_attribute('attribute')
+        self.assertTrue('attribute' in species.attributes)
 
     def test_species_equality(self):
         from biocrnpyler import Species
