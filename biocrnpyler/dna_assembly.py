@@ -119,12 +119,8 @@ class CombinatorialPromoter(Promoter):
         self.cooperativity = cooperativity
         self.regulators = []
         for regulator in regulators:
-            if(isinstance(regulator,str)):
-                self.regulators += [self.set_species(regulator, material_type = "protein")]
-                #if it's a string then assume it's a protein
-            elif(isinstance(regulator,Species)):
-                #if it's already a species then add it wholesale
-                self.regulators += [regulator]
+            self.regulators += [self.set_species(regulator, material_type = "protein")]
+            
         #after we've sanitized the inputs, then sort
         self.regulators = sorted(self.regulators)
         #now let's work out the tx_capable_list

@@ -1,0 +1,43 @@
+mechanism_id	part_id	param_name	param_val	comments
+	e coli	Ribo	120	uM assuming ~72000 Ribosomes / e. coli with a volume 1 um^3
+	e coli	RNAP	15	uM assuming ~10000 RNAP molecules / e. coli with a volume 1 um^3
+	e coli	RNAase	30	uM assuming ~20000 RNAP molecules / e. coli with a volume 1 um^4
+	e coli extract 1	Ribo	24	1/5 th the Ribosome concentration of E. Coli
+	e coli extract 1	RNAP	3	1/5 th the rnap concentration of E. Coli
+	e coli extract 1	RNAase	6	1/5 th the rnaase concentration of E. Coli
+	e coli extract 2	Ribo	12	
+	e coli extract 2	RNAP	6	
+	e coli extract 2	RNAase	3	
+		ktx	0.05	transcripts / second per polymerase assuming 50nt/s and transcript length of 1000
+		ktl	0.05	proteins / second per ribosome assuming 15aa/s and protein length of 300
+		cooperativity	2	Seems like a good default
+		kb	100	assuming 10ms to diffuse across 1um (characteristic cell size)
+		ku	10	"""90% binding"""
+		kdil	0.001	assuming half life of ~20 minutes for everything (e coli doubling time)
+rna_degredation_mm		kdeg	0.000555556	assuming a half life of ~10 minutes for mRNA and 30uM of RNAase
+rna_degredation		kdil	0.002	assuming a half life of ~10 minutes for mRNA
+simple_transcription		ktx	0.1875	Assuming 25% of e coli rnap working at ktx above
+simple_translation		ktl	1.5	Assuming 25% of e coli ribosomes working at ktx above
+gene_expression		kexpress	0.28125	The product of the above two rates
+negativehill_transcription		k	0.01875	Estimates from Repressilator paper and the above numbers
+negativehill_transcription		K	10	Estimates from Repressilator paper and the above numbers
+negativehill_transcription		n	2	Estimates from Repressilator paper and the above numbers
+negativehill_transcription		kleak	0.000001	Estimates from Repressilator paper and the above numbers
+	J23103	ku	588.2352941	Anderson promoter (17x) strengths are proportional but gain factor is arbitrary
+	J23116	ku	25.25252525	Anderson promoter (396x) strengths are proportional but gain factor is arbitrary
+	J23107	ku	11.01321586	Anderson promoter (908x) strengths are proportional but gain factor is arbitrary
+	J23106	ku	8.438818565	Anderson promoter (1185x) strengths are proportional but gain factor is arbitrary
+	J23102	ku	4.589261129	Anderson promoter (2179x) strengths are proportional but gain factor is arbitrary
+	J23100	ku	3.926187672	Anderson promoter (2547x) strengths are proportional but gain factor is arbitrary
+simple_transcription	J23103	ktx	0.0031875	Above rescaled by ktx for simple transcription
+simple_transcription	J23116	ktx	0.07425	Above rescaled by ktx for simple transcription
+simple_transcription	J23107	ktx	0.17025	Above rescaled by ktx for simple transcription
+simple_transcription	J23106	ktx	0.2221875	Above rescaled by ktx for simple transcription
+simple_transcription	J23102	ktx	0.4085625	Above rescaled by ktx for simple transcription
+simple_transcription	J23100	ktx	0.4775625	Above rescaled by ktx for simple transcription
+	BCD2	ku	0.5	Strong BCD param value made up
+	BCD8	ku	10	Weak BCD param value made up
+	BCD12	ku	5	medium BCD param value made up
+simple_translation	BCD2	ktl	3	Above rescaled by ktl for simple translation
+simple_translation	BCD8	ktl	0.15	Above rescaled by ktl for simple translation
+simple_translation	BCD12	ktl	0.3	Above rescaled by ktl for simple translation
