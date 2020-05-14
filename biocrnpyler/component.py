@@ -97,7 +97,7 @@ class Component(object):
                 return species
         elif isinstance(species, str):
             return Species(name = species, material_type = material_type, attributes = attributes)
-        elif isinstance(species, Component) and species.get_species() != None:
+        elif isinstance(species, Component) and species.get_species() is not None:
             return species.get_species()
         else:
             raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
