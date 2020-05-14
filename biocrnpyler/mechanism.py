@@ -332,7 +332,7 @@ class Reversible_Bimolecular_Binding(Mechanism):
             ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
         if component == None and (kb == None or ku == None):
             raise ValueError("Must pass in a Component or values for kb, ku.")
-        if(complex==None):
+        if(complex is None):
             complex = ComplexSpecies([s1, s2])
         rxns = [Reaction([s1, s2], [complex], k=kb, k_rev=ku)]
         return rxns
@@ -351,7 +351,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
             binder_cooperativity = int(cooperativity[binder.name])
             #I hope that cooperativity is an int! what if it isn't
             if(binder_cooperativity > 1):
-                complexed_species_list += [Multimer(binder,binder_cooperativity)]
+                complexed_species_list += [binder]*binder_cooperativity
             else:
                 complexed_species_list += [binder]
         complexed_species_list += [bindee]
@@ -366,14 +366,15 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         for binder in binders:
             binder_partid = part_id+"_"+binder.name
             if ((cooperativity == None) or (type(cooperativity)==dict and binder_partid not in cooperativity) \
-                                                                                        and (component != None)):
+                                                                                        and (component is not None)):
+                #here we are extracting the relevant cooperativity value from the dictionary which should be passed
+                #in as the cooperativity argument
                 coop_val = component.get_parameter("cooperativity", part_id = binder_partid, mechanism = self)
             elif type(cooperativity)==dict and binder_partid in cooperativity:
                 coop_val = cooperativity[binder_partid]
-            if component == None and ( cooperativity == None):
+            if component is None and ( cooperativity == None):
                 raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
             cooperativity_dict[binder.name]=coop_val
-        #allbinders = binders+[bindee]
         out_species = []
         for i in range(1, len(binders)+1):
             for combo in it.combinations(binders,i):
@@ -387,24 +388,24 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         binder_params = {}
         for binder in binders:
             binder_partid = part_id+"_"+binder.name
-            if ((type(kbs)==dict and binder not in kbs) or (type(kbs)!=dict and component != None)):
+            if ((type(kbs)==dict and binder not in kbs) or (type(kbs)!=dict and component is not None)):
                 kb = component.get_parameter("kb", part_id = binder_partid, mechanism = self)
             elif(type(kbs)==dict and binder in kbs):
                 kb = kbs[binder.name]
             elif(type(kbs)!=dict and component == None):
                 raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
-            if ((type(kus)==dict and binder not in kus) or (kus == None and component != None)):
+            if ((type(kus)==dict and binder not in kus) or (kus == None and component is not None)):
                 ku = component.get_parameter("ku", part_id = binder_partid, mechanism = self)
             elif(type(kus)==dict and binder in kus):
                 ku = kus[binder.name]
             elif(type(kus)!=dict and component == None):
                 raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
             if ((cooperativity == None) or (type(cooperativity)==dict and binder.name not in cooperativity)  \
-                                                                                        and component != None):
+                                                                                        and component is not None):
                 coop_val = component.get_parameter("cooperativity", part_id = binder_partid, mechanism = self)
             elif type(cooperativity)==dict and binder.name in cooperativity:
                 coop_val = cooperativity[binder.name]
-            if component == None and (kb == None or ku == None or cooperativity == None):
+            if component is None and (kb == None or ku == None or cooperativity == None):
                 raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
             binder_params[binder] = {"kb":kb,"ku":ku,"cooperativity":coop_val}
         #out_rxns = []

@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = biocrnplyer
+source = biocrnpyler
 
 [report]
 exclude_lines =

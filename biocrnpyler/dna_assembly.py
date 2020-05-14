@@ -109,9 +109,33 @@ class CombinatorialPromoter(Promoter):
                  transcript = None, length = 0, mechanisms = {},
                  parameters = {},tx_capable_list = None,cooperativity = None, **keywords):
         """
-        tx_capable_list = [[1,2,3],[0,2,3]] this means having regulator 1, 2, and 3 will transcribe
-                                           but also 3, 2, and 0.
-                                           #TODO make it force sorted list
+        A combinatorial promoter is something where binding multiple regulators result in
+        qualitatively different transcription behaviour. For example, maybe it's an AND
+        gate promoter where it only transcribes if two regulators are bound, but not if 
+        either one is bound.
+        
+        =============
+        inputs
+        =============
+        name: the name of the promoter
+        regulators: a list of strings or species indicating all the possible regualtors that can bind
+        
+        leak: if true, then a promoter with nothing bound will transcribe
+        
+        assembly: a DNA_assembly object that contains this promoter
+        
+        transcript: the transcript that this promoter makes
+        
+        length: the length in nt? I don't think this is used for anything at the moment
+        
+        mechanisms: additional mechanisms. formatted with {"mechanism_type":mechanismObject(),...}
+        
+        parameters: promoter-specific parameters. Formatted as {("identifier1","identifier2"):value,...}
+        
+        tx_capable_list: list of which combination of regulators bound will lead to transcription. 
+                        formatted as [["regulator1","regulator2"],["regulator1"],...] regulators
+                        can be strings or Species
+        cooperativity: a dictionary of cooperativity values. For example, {"regulator":2,"regulator2":1,....}
         """
         if not isinstance(regulators, list):
             #you could give one string as a regulator
@@ -129,7 +153,17 @@ class CombinatorialPromoter(Promoter):
             self.tx_capable_list = [set([a.name for a in self.regulators])]
         elif(type(tx_capable_list)==list):
             #if the user passed a list then the user knows what they want
-            self.tx_capable_list = [set(a) for a in tx_capable_list]
+            newlist = []
+            #this part converts any species in the tx_capable_list into a string
+            for element in tx_capable_list:
+                sublist = []
+                for specie in element:
+                    if(isinstance(specie,Species)):
+                        sublist += [specie.name]
+                    else:
+                        sublist += [specie]
+                newlist+=[sublist]
+            self.tx_capable_list = [set(a) for a in newlist]
 
         self.leak = leak
         
@@ -156,16 +190,14 @@ class CombinatorialPromoter(Promoter):
                         component = self,part_id = self.name,cooperativity=self.cooperativity)
         #above is all the species with DNA bound to regulators. Now, we need to extract only the ones which
         #are transcribable
-        for bound_complex in bound_species:
+        for bound_complex in bound_species: 
             species_inside = []
             for regulator in self.regulators:
-                if(regulator.name in bound_complex.name):
+                if(regulator in bound_complex.species):
+                    #so this doesn't work if the bound_complex contains multimers. Which it WILL, if cooperativity is > 1, right?
                     species_inside += [regulator.name] 
-            #print("species_inside is "+str(species_inside))
-            #print("tx capable is " +str(self.tx_capable_list))
-            #print(set(species_inside) in [set(a) for a in self.tx_capable_list])
             if(set(species_inside) in [set(a) for a in self.tx_capable_list]):
-                
+                #only the transcribable complexes get transcription reactions
                 tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, \
                                                                                     protein = self.assembly.protein)
                 species +=tx_capable_species[1:]
@@ -203,10 +235,10 @@ class CombinatorialPromoter(Promoter):
                         #put in the regulators!
                         tx_partid += "_"+part.name
                 if(tx_partid[0]=="_"):
+                    #this will only happen if the name of the dna is ""
                     tx_partid = tx_partid[1:]
                 #if it's bound to RNAP then it transcribes, right?
                 tx_partid = tx_partid+"_RNAP"
-                #print("tx_partid is "+ str(tx_partid))
                 reactions += mech_tx.update_reactions(dna = specie, component = self, part_id = tx_partid, \
                                             transcript = self.transcript, protein = self.assembly.protein)
 
