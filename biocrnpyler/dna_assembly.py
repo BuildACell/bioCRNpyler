@@ -149,8 +149,12 @@ class CombinatorialPromoter(Promoter):
         self.regulators = sorted(self.regulators)
         #now let's work out the tx_capable_list
         if(tx_capable_list == None):
-            #if nothing is passed assume default
-            self.tx_capable_list = [set([a.name for a in self.regulators])]
+            #if nothing is passed, that means everything transcribes
+            allcomb = []
+            for r in range(1,len(self.regulators)+1):
+                #make all combinations of regulators
+                allcomb += [set(a) for a in it.combinations([a.name for a in self.regulators],r)]
+            self.tx_capable_list = allcomb
         elif(type(tx_capable_list)==list):
             #if the user passed a list then the user knows what they want
             newlist = []
@@ -175,33 +179,49 @@ class CombinatorialPromoter(Promoter):
                           **keywords)
         self.complex_combinations = {}
         self.tx_capable_complexes = []
+        self.leak_complexes = []
     def update_species(self):
 
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
         #set the tx_capable_complexes to nothing because we havent updated species yet!
         self.tx_capable_complexes = []
-        species = []
+        self.leak_complexes = []
+        species = [self.assembly.dna]
         self.complexes = []
-        if self.leak is not False:
-            species += mech_tx.update_species(dna = self.assembly.dna)
-
         bound_species = mech_b.update_species(self.regulators,self.assembly.dna,\
                         component = self,part_id = self.name,cooperativity=self.cooperativity)
         #above is all the species with DNA bound to regulators. Now, we need to extract only the ones which
         #are transcribable
+
+        if self.leak is not False:
+            #this part takes care of the promoter not bound to anything
+            species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript,\
+                                                                        protein = self.assembly.protein)
+            #self.leak_complexes += []
+
         for bound_complex in bound_species: 
             species_inside = []
             for regulator in self.regulators:
                 if(regulator in bound_complex.species):
-                    #so this doesn't work if the bound_complex contains multimers. Which it WILL, if cooperativity is > 1, right?
                     species_inside += [regulator.name] 
             if(set(species_inside) in [set(a) for a in self.tx_capable_list]):
-                #only the transcribable complexes get transcription reactions
+                #only the transcribable complexes in tx_capable_list get transcription reactions
                 tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, \
                                                                                     protein = self.assembly.protein)
                 species +=tx_capable_species[1:]
                 self.tx_capable_complexes +=[bound_complex]
+            else:
+                #in this case there's a combination of regulators which does not feature in tx_capable_list
+                #this means: 
+                # 1) this complex does nothing so don't add it
+                # 2) we said we wanted leak, so then you should add this, but with the "_leak" parameters
+                #                                                         (that happens in update_reactions)
+                if(self.leak is not False):
+                    leak_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, \
+                                                                                    protein = self.assembly.protein)
+                    species += leak_species[1:]
+                    self.leak_complexes += [bound_complex]
         species+=bound_species  
         return species
 
@@ -210,20 +230,22 @@ class CombinatorialPromoter(Promoter):
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
 
-        if self.leak != False:
-            reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, \
+        if self.leak is not False:
+            #once again the DNA not bound to anything gets special treatment
+            reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name+"_leak", \
                                                             transcript = self.transcript, protein = self.assembly.protein)
-
+        #the binding reactions happen no matter what
         reactions += mech_b.update_reactions(self.regulators,self.assembly.dna,component = self,\
                                                         part_id = self.name,cooperativity=self.cooperativity)
-        if(self.tx_capable_complexes == None or self.tx_capable_complexes == []):
+        if((self.tx_capable_complexes == None) or self.tx_capable_complexes == []):
             #this could mean we haven't run update_species() yet
             species = self.update_species()
             if(self.tx_capable_complexes == []):
-                #if it's still zero after running update_species then we could be in trouble
-                warn("nothing can transcribe from combinatorial promoter {}".format(self.name))
+                if(self.leak_complexes is None or self.leak_complexes == []):
+                    #if it's still zero after running update_species then we could be in trouble
+                    warn("nothing can transcribe from combinatorial promoter {}".format(self.name))
             
-        else:
+        if(len(self.tx_capable_complexes)>0):
             for specie in self.tx_capable_complexes:
                 tx_partid = self.name
                 for part in specie.species_set:
@@ -241,6 +263,13 @@ class CombinatorialPromoter(Promoter):
                 tx_partid = tx_partid+"_RNAP"
                 reactions += mech_tx.update_reactions(dna = specie, component = self, part_id = tx_partid, \
                                             transcript = self.transcript, protein = self.assembly.protein)
+        if(len(self.leak_complexes)>0):
+            for specie in self.leak_complexes:
+                #in this case every reaction uses the "promoter_leak" partid
+                leak_partid = self.name+"_leak"
+                reactions += mech_tx.update_reactions(dna = specie, component = self, part_id = leak_partid, \
+                                            transcript = self.transcript, protein = self.assembly.protein)
+
 
         return reactions
 
