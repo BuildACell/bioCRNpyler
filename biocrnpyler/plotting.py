@@ -250,7 +250,7 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
         CRNgraph.nodes[allnodenum]["type"]=rxn.propensity_type
         CRNgraph.nodes[allnodenum]["k"] = rxn.k
         CRNgraph.nodes[allnodenum]["k_r"] = rxn.k_r
-        mycol = "blue"
+        default_color = "blue"
         #CRNgraph.nodes[allnodenum]
         kval = rxn.k
         if(not useweights):
@@ -277,12 +277,12 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
             CRNgraph.add_edge(0,allnodenum,weight=kval)
             if(krev_val>0):
                 CRNgraph.add_edge(allnodenum,0,weight=krev_val)
-        CRNgraph.nodes[allnodenum]["color"]=mycol
+        CRNgraph.nodes[allnodenum]["color"]=default_color
         if(not use_pretty_print):
             CRNgraph.nodes[allnodenum]["species"]=str(rxn)
         else:
             rxntxt = rxn.pretty_print(show_material=pp_show_material, show_rates=pp_show_rates, show_attributes=pp_show_attributes)
-            CRNgraph.nodes[allnodenum]["species"]=rxntxt
+            CRNgraph.nodes[allnodenum]["species"]=rxntxt #this will show up as "reaction" in the tool tip
         #the name of the reaction is the string representation
         rxnlist += [allnodenum]
         allnodenum +=1
