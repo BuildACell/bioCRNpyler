@@ -109,9 +109,33 @@ class CombinatorialPromoter(Promoter):
                  transcript = None, length = 0, mechanisms = {},
                  parameters = {},tx_capable_list = None,cooperativity = None, **keywords):
         """
-        tx_capable_list = [[1,2,3],[0,2,3]] this means having regulator 1, 2, and 3 will transcribe
-                                           but also 3, 2, and 0.
-                                           #TODO make it force sorted list
+        A combinatorial promoter is something where binding multiple regulators result in
+        qualitatively different transcription behaviour. For example, maybe it's an AND
+        gate promoter where it only transcribes if two regulators are bound, but not if 
+        either one is bound.
+        
+        =============
+        inputs
+        =============
+        name: the name of the promoter
+        regulators: a list of strings or species indicating all the possible regualtors that can bind
+        
+        leak: if true, then a promoter with nothing bound will transcribe
+        
+        assembly: a DNA_assembly object that contains this promoter
+        
+        transcript: the transcript that this promoter makes
+        
+        length: the length in nt? I don't think this is used for anything at the moment
+        
+        mechanisms: additional mechanisms. formatted with {"mechanism_type":mechanismObject(),...}
+        
+        parameters: promoter-specific parameters. Formatted as {("identifier1","identifier2"):value,...}
+        
+        tx_capable_list: list of which combination of regulators bound will lead to transcription. 
+                        formatted as [["regulator1","regulator2"],["regulator1"],...] regulators
+                        can be strings or Species
+        cooperativity: a dictionary of cooperativity values. For example, {"regulator":2,"regulator2":1,....}
         """
         if not isinstance(regulators, list):
             #you could give one string as a regulator
@@ -155,8 +179,6 @@ class CombinatorialPromoter(Promoter):
                           **keywords)
         self.complex_combinations = {}
         self.tx_capable_complexes = []
-    def flatten_complex(self,complex):
-        """output a list of all species in all complexes contained within this complex"""
     def update_species(self):
 
         mech_tx = self.mechanisms["transcription"]
@@ -217,10 +239,10 @@ class CombinatorialPromoter(Promoter):
                         #put in the regulators!
                         tx_partid += "_"+part.name
                 if(tx_partid[0]=="_"):
+                    #this will only happen if the name of the dna is ""
                     tx_partid = tx_partid[1:]
                 #if it's bound to RNAP then it transcribes, right?
                 tx_partid = tx_partid+"_RNAP"
-                #print("tx_partid is "+ str(tx_partid))
                 reactions += mech_tx.update_reactions(dna = specie, component = self, part_id = tx_partid, \
                                             transcript = self.transcript, protein = self.assembly.protein)
 
