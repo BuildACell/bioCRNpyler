@@ -16,9 +16,7 @@ from bokeh.models.graphs import from_networkx
 from fa2 import ForceAtlas2
 import numpy as np
 from matplotlib import cm
-import dnaplotlib as dpl
 import matplotlib.pyplot as plt
-from biocrnpyler.dna_construct import DNA_construct
 
 def updateLimits(limits,xvalues):
     for value in xvalues:
@@ -37,10 +35,10 @@ def makeArrows2(graph_renderer,graph,positions,headsize=3,headangle=np.pi/6):
         #iterate through all the edges
         from_node = edge[0]
         to_node = edge[1]
-        from_x = positions[edge[0]][0]
-        from_y = positions[edge[0]][1]
-        to_x = positions[edge[1]][0]
-        to_y = positions[edge[1]][1]
+        from_x = positions[from_node][0]
+        from_y = positions[from_node][1]
+        to_x = positions[to_node][0]
+        to_y = positions[to_node][1]
         updateLimits(xbounds,[from_x,to_x])
         updateLimits(ybounds,[from_y,to_y])
         #above, we get all the variables
@@ -65,8 +63,21 @@ def makeArrows2(graph_renderer,graph,positions,headsize=3,headangle=np.pi/6):
     graph_renderer.edge_renderer.data_source.data['ys'] = ys
     return xbounds,ybounds
 
-def graphPlot(DG,DGspecies,DGreactions,plot,layout="force"):
-    """given a directed graph, plot it!"""
+def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,posscale = 1.0,layoutfunc=None):
+    """given a directed graph, plot it!
+    Inputs:
+    DG: a directed graph of type DiGraph
+    DGspecies: a directed graph which only contains the species nodes
+    DGreactions: a directed graph which only contains the reaction nodes
+    plot: a bokeh plot object
+    layout: graph layout function. 
+                'force' uses fa2 to push nodes apart
+                'circle' plots the nodes and reactions in two overlapping circles, with the reactions on the inside of the circle
+                'custom' allows user input "layoutfunc". Internally, layoutfunc is passed the three inputs (DG, DGspecies, DGreactions)
+                                                        and should output a position dictionary with node {<node number>:(x,y)}
+
+    positions: a dictionary of node names and x,y positions. this gets passed into the layout function
+    posscale: multiply the scaling of the plot. This only affects the arrows because the arrows are a hack :("""
     if(layout=="force"):
         #below are parameters for the force directed graph visualization
         forceatlas2 = ForceAtlas2(
@@ -83,17 +94,19 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force"):
                             multiThreaded=False,  # NOT IMPLEMENTED
 
                             # Tuning
-                            scalingRatio=2.0,
+                            scalingRatio=2.4*posscale,
                             strongGravityMode=False,
                             gravity=1.0,
 
                             # Log
                             verbose=False)
 
-        positions = forceatlas2.forceatlas2_networkx_layout(DG, pos=None, iterations=2000) 
+        positions = forceatlas2.forceatlas2_networkx_layout(DG, pos=positions, iterations=2000) 
     elif(layout == "circle"):
-        #here we would arrange the nodes in a circle
-        pass
+        positions = nx.circular_layout(DGspecies,scale=50*posscale)
+        positions.update(nx.circular_layout(DGreactions,scale=35*posscale))
+    elif(layout == "custom"):
+        positions = layoutfunc(DG,DGspecies,DGreactions)
     reaction_renderer = from_networkx(DGreactions, positions, center=(0, 0))
     species_renderer = from_networkx(DGspecies, positions, center=(0, 0))
     edges_renderer = from_networkx(DG, positions, center=(0, 0))
@@ -134,9 +147,12 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force"):
     #this part adds the interactive elements that make it so that the lines are highlighted 
     #when you mouse over and click
     edge_hover_tool = HoverTool(tooltips= None,renderers=[edges_renderer])
-    node_hover_tool = HoverTool(tooltips=[("name", "@species"), ("type", "@type")],\
-                                        renderers=[reaction_renderer,species_renderer],attachment="right")
-    plot.add_tools(edge_hover_tool,node_hover_tool, TapTool(), BoxSelectTool(),PanTool(),WheelZoomTool())
+    species_hover_tool = HoverTool(tooltips=[("name", "@species"), ("type", "@type")],\
+                                        renderers=[species_renderer],attachment="right")
+    rxn_hover_tool = HoverTool(tooltips=[("reaction", "@species"), ("type", "@type"),("k_f","@k"),("k_r","@k_r")],\
+                                        renderers=[reaction_renderer],attachment="right")
+    
+    plot.add_tools(edge_hover_tool,species_hover_tool,rxn_hover_tool, TapTool(), BoxSelectTool(),PanTool(),WheelZoomTool())
 
     edges_renderer.selection_policy = NodesAndLinkedEdges()
     edges_renderer.inspection_policy = EdgesAndLinkedNodes()
@@ -145,40 +161,96 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force"):
     plot.renderers.append(reaction_renderer)
     plot.renderers.append(species_renderer)
 
-def generate_networkx_graph(CRN,useweights=False):
-    """generates a networkx DiGraph object that represents the CRN."""
+def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_material=True,
+                                                    pp_show_rates=True,pp_show_attributes=True,
+                                                colordict={"complex":"cyan","protein":"green",
+                                                            "dna":"grey","rna":"orange",
+                                                            "ligand":"pink","phosphate":"yellow","nothing":"purple"}):
+    """generates a networkx DiGraph object that represents the CRN.
+    input:
+    ==========================
+    CRN: a CRN from mixture.get_model() for example
+    useweights: this will attempt to represent the reaction rates by the length of edges.
+                short edges are fast rates. It doesn't look very good usually
+    use_pretty_print: this uses the "pretty print" function to represent reactions and nodes a bit cleaner
+    the next three parameters are pretty_print parameters
+        pp_show_material: default false because this is listed in "type"
+        pp_show_rates: default true because this is useful information
+        pp_show_attributes
+    colordict: a dictionary containing which node types are what color based upon the following keywords:
+        Keywords are chosen to match species.material_type
+            {"complex": "cyan",
+            "protein": "green",
+            "dna": "grey",
+            "rna": "orange",
+            "ligand": "pink",
+            "phosphate": "yellow",
+            "nothing":"purple"}
+
+    When using a custom colordict, the following attributes will be checked to find colors with the first keys taking precedence:
+        repr(species): "color"
+        species.name: "color"
+        (species.material_type, tuple(species.attributes)): "color"
+        species.material_type: "color"
+        tuple(species.attributes): "color"
+
+    output:
+    ==================
+    CRNgraph: the DiGraph object containing all nodes and edges
+    CRNspeciesonly: a DiGraph object with only species
+    CRNreactionsonly: a DiGraph object with only reactions
+    """
     CRNgraph = nx.DiGraph()
     allnodenum = 1 #every node has an index
+    #this starts at 1 because "nothing" is node 0
     nodedict = {} #this is so that we can write out the reactions in
                 #the reaction "species" field
                 #it has {species:index}
     rxnlist = [] #list of numbers corresponding to only reaction nodes
-    speclist = CRN.species
+    #sometimes reactions have no products. I want this to be represented in the graph with this
+    #"nothing" node. However, usually we are making degradation reactions which yield the
+    #degradation enzyme, so then it doesn't go to nothing. This means actually this node
+    #isn't use for anything. But i think it's good to have just in case.
+    defaultcolor = "grey"
     nodedict["nothing"]=0
     CRNgraph.add_node(0)
     CRNgraph.nodes[0]["type"]="nothing"
     CRNgraph.nodes[0]["species"]="nothing"
-    CRNgraph.nodes[0]["color"]="purple"
-    for specie in CRN.species:
-        mycol = "teal"
-        if(specie.material_type=="complex"):
-            mycol = "cyan"
-        elif(specie.material_type=="protein"):
-            mycol = "green"
-        elif(specie.material_type=="dna"):
-            mycol = "grey"
-        elif(specie.material_type=="rna"):
-            mycol = "orange"
-        nodedict[specie]=allnodenum
+    if("nothing" in colordict):
+        CRNgraph.nodes[0]["color"]=colordict["nothing"]
+    for species in CRN.species:
+        #add all species first
+
+        if repr(species) in colordict:
+            mycol = colordict[repr(species)]
+        elif species.name in colordict:
+            mycol = colordict[species.name]
+        elif (species.material_type, tuple(species.attributes)) in colordict:
+            mycol = colordict[(species.material_type, tuple(species.attributes))]
+        elif(species.material_type in colordict):
+            mycol = colordict[species.material_type]
+        elif tuple(species.attributes) in colordict:
+            mycol = colordict[tuple(species.attributes)]
+        else:
+            mycol = defaultcolor
+
+        nodedict[species]=allnodenum
         CRNgraph.add_node(allnodenum)
-        CRNgraph.nodes[allnodenum]["type"]=str(specie.material_type)
-        CRNgraph.nodes[allnodenum]["species"]=str(specie)
+        CRNgraph.nodes[allnodenum]["type"]=str(species.material_type)
+        if(not use_pretty_print):
+            CRNgraph.nodes[allnodenum]["species"]=str(species)
+        else:
+            spectxt = species.pretty_print(pp_show_material)
+            CRNgraph.nodes[allnodenum]["species"]=spectxt
         CRNgraph.nodes[allnodenum]["color"]=mycol
         allnodenum +=1
+    #reactions follow, allnodenum is not reset between these two loops
     for rxn in CRN.reactions:
         CRNgraph.add_node(allnodenum)
         CRNgraph.nodes[allnodenum]["type"]=rxn.propensity_type
-        mycol = "blue"
+        CRNgraph.nodes[allnodenum]["k"] = rxn.k
+        CRNgraph.nodes[allnodenum]["k_r"] = rxn.k_r
+        default_color = "blue"
         #CRNgraph.nodes[allnodenum]
         kval = rxn.k
         if(not useweights):
@@ -189,21 +261,29 @@ def generate_networkx_graph(CRN,useweights=False):
         for reactant in rxn.inputs:
             CRNgraph.add_edge(nodedict[reactant],allnodenum,weight=kval)
             if(krev_val>0):
+                #if the k is 0 then the node does not exist, right?
                 CRNgraph.add_edge(allnodenum,nodedict[reactant],weight=krev_val)
         for product in rxn.outputs:
             CRNgraph.add_edge(allnodenum,nodedict[product],weight=kval)
             if(krev_val>0):
                 CRNgraph.add_edge(nodedict[product],allnodenum,weight=krev_val)
         if(len(rxn.outputs)==0):
+            #this adds an edge to the "nothing" node we made in the beginning
             CRNgraph.add_edge(allnodenum,0,weight=kval)
             if(krev_val>0):
                 CRNgraph.add_edge(0,allnodenum,weight=krev_val)
         elif(len(rxn.inputs)==0):
+            #this adds an edge from the "nothing" node we made in the beginning
             CRNgraph.add_edge(0,allnodenum,weight=kval)
             if(krev_val>0):
                 CRNgraph.add_edge(allnodenum,0,weight=krev_val)
-        CRNgraph.nodes[allnodenum]["color"]=mycol
-        CRNgraph.nodes[allnodenum]["species"]=str(rxn)
+        CRNgraph.nodes[allnodenum]["color"]=default_color
+        if(not use_pretty_print):
+            CRNgraph.nodes[allnodenum]["species"]=str(rxn)
+        else:
+            rxntxt = rxn.pretty_print(show_material=pp_show_material, show_rates=pp_show_rates, show_attributes=pp_show_attributes)
+            CRNgraph.nodes[allnodenum]["species"]=rxntxt #this will show up as "reaction" in the tool tip
+        #the name of the reaction is the string representation
         rxnlist += [allnodenum]
         allnodenum +=1
     CRNspeciesonly = CRNgraph.copy()
@@ -211,80 +291,3 @@ def generate_networkx_graph(CRN,useweights=False):
     CRNreactionsonly = CRNgraph.copy()
     CRNreactionsonly.remove_nodes_from(range(rxnlist[0]))
     return CRNgraph,CRNspeciesonly,CRNreactionsonly
-
-def make_dpl_from_construct(construct,showlabels=[]):
-    outdesign = []
-    cmap = cm.Set1(range(len(construct.parts_list)))
-    pind = 0
-    for part in construct.parts_list:
-        showlabel = False
-        if(part.part_type in showlabels):
-            showlabel = True
-        outdesign+=make_dpl_from_part(part,color=cmap[pind][:-1],color2 = random.choice(cmap)[:-1],showlabel=showlabel)
-        pind+=1
-    return outdesign
-def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabel=False):
-    if(direction==None and part.direction != None):
-        direction = part.direction=="forward"
-    elif(direction==None):
-        direction = True
-    if(not type(part.color)==type(None)):
-        color = part.color
-    if(not type(part.color2)==type(None)):
-        color2 = part.color2
-    dnaplotlib_dict = {\
-        "promoter":"Promoter",\
-        "rbs":"RBS",\
-        "CDS":"CDS",\
-        "terminator":"Terminator",\
-        "attP":"RecombinaseSite",\
-        "attB":"RecombinaseSite",\
-        "attL":"RecombinaseSite2",\
-        "attR":"RecombinaseSite2"}
-    dpl_type = dnaplotlib_dict[part.part_type]
-    outdesign = [{'type':dpl_type,"name":part.name,"fwd":direction,'opts':{'color':color,'color2':color2}}]
-    if(part.regulator!= None):
-        outdesign += [{"type":"Operator","name":part.regulator,"fwd":direction,'opts':{'color':color,'color2':color2}}]
-    if(showlabel):
-        outdesign[0]["opts"].update({'label':str(part),'label_size':13,'label_y_offset':-8,})
-    if(not direction):
-        outdesign = outdesign[::-1]
-    return outdesign
-
-def plotConstruct(DNA_construct_obj,dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3),\
-                                    rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0)),\
-                                    plot_rnas=False,debug=False):
-    """helper function for making dnaplotlib plots of a DNA_construct object. Plots the
-    DNAs and the RNAs that come from that DNA, using DNA_construct.explore_txtl"""
-    design = make_dpl_from_construct(DNA_construct_obj,showlabels=["attB","attP","attL","attR"])
-    circular=DNA_construct_obj.circular
-    plotDesign(design,circular=circular)
-    if(plot_rnas):
-        rnas,proteins = DNA_construct_obj.explore_txtl()
-        if(debug):
-            print("rna:")
-            print(rnas)
-            print("protein")
-            print(proteins)
-        for promoter in rnas:
-            rnadesign = make_dpl_from_construct(rnas[promoter])
-            rnacolor = rna_renderer.linecolor
-            for part in rnadesign:
-                if("edgecolor" not in part['opts']):
-                    part['opts'].update({'edgecolor':rnacolor})
-            plotDesign(rnadesign,renderer=rna_renderer)
-
-def plotDesign(design,renderer = dpl.DNARenderer(scale = 5,linewidth=3),part_renderers=None,\
-                circular=False):
-    """helper function for doing dnaplotlib plots. You need to set the size and min max of the
-    plot, and that's what this function does"""
-    if(part_renderers==None):
-        part_renderers = renderer.SBOL_part_renderers()
-    fig = plt.figure(figsize=(len(design)*.75,1.1))
-    ax = fig.add_axes([0,0,1,1])
-    start,end = renderer.renderDNA(ax,design,part_renderers,circular=circular)
-    ax.axis('off')
-    addedsize=1
-    ax.set_xlim([start-addedsize,end+addedsize])
-    ax.set_ylim([-15,15])
-    plt.show()

@@ -22,4 +22,3 @@ try:
 except ModuleNotFoundError as e:
     warn(str(e))
     warn("plotting is disabled because you are missing some libraries")
-from .dna_construct import *
