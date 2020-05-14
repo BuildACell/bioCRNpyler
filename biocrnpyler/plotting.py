@@ -161,8 +161,8 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,possca
     plot.renderers.append(reaction_renderer)
     plot.renderers.append(species_renderer)
 
-def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_material=False,
-                                                    pp_show_rates=True,pp_show_attributes=False,
+def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_material=True,
+                                                    pp_show_rates=True,pp_show_attributes=True,
                                                 colordict={"complex":"cyan","protein":"green",
                                                             "dna":"grey","rna":"orange",
                                                             "ligand":"pink","phosphate":"yellow","nothing":"purple"}):
@@ -177,15 +177,23 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
         pp_show_material: default false because this is listed in "type"
         pp_show_rates: default true because this is useful information
         pp_show_attributes
-    colordict: a dictionary containing which node types are what color.
-                default is:
-                {"complex": "cyan",
-                "protein": "green",
-                "dna": "grey",
-                "rna": "orange",
-                "ligand": "pink",
-                "phosphate": "yellow",
-                "nothing":"purple"}
+    colordict: a dictionary containing which node types are what color based upon the following keywords:
+        Keywords are chosen to match species.material_type
+            {"complex": "cyan",
+            "protein": "green",
+            "dna": "grey",
+            "rna": "orange",
+            "ligand": "pink",
+            "phosphate": "yellow",
+            "nothing":"purple"}
+
+    When using a custom colordict, the following attributes will be checked to find colors with the first keys taking precedence:
+        repr(species): "color"
+        species.name: "color"
+        (species.material_type, tuple(species.attributes)): "color"
+        species.material_type: "color"
+        tuple(species.attributes): "color"
+
     output:
     ==================
     CRNgraph: the DiGraph object containing all nodes and edges
@@ -210,18 +218,29 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     CRNgraph.nodes[0]["species"]="nothing"
     if("nothing" in colordict):
         CRNgraph.nodes[0]["color"]=colordict["nothing"]
-    for specie in CRN.species:
+    for species in CRN.species:
         #add all species first
-        mycol = "teal"
-        if(specie.material_type in colordict):
-            mycol = colordict[specie.material_type]
-        nodedict[specie]=allnodenum
-        CRNgraph.add_node(allnodenum)
-        CRNgraph.nodes[allnodenum]["type"]=str(specie.material_type)
-        if(not use_pretty_print):
-            CRNgraph.nodes[allnodenum]["species"]=str(specie)
+
+        if repr(species) in colordict:
+            mycol = colordict[repr(species)]
+        elif species.name in colordict:
+            mycol = colordict[species.name]
+        elif (species.material_type, tuple(species.attributes)) in colordict:
+            mycol = colordict[(species.material_type, tuple(species.attributes))]
+        elif(species.material_type in colordict):
+            mycol = colordict[species.material_type]
+        elif tuple(species.attributes) in colordict:
+            mycol = colordict[tuple(species.attributes)]
         else:
-            spectxt = specie.pretty_print(pp_show_material)
+            mycol = defaultcolor
+
+        nodedict[species]=allnodenum
+        CRNgraph.add_node(allnodenum)
+        CRNgraph.nodes[allnodenum]["type"]=str(species.material_type)
+        if(not use_pretty_print):
+            CRNgraph.nodes[allnodenum]["species"]=str(species)
+        else:
+            spectxt = species.pretty_print(pp_show_material)
             CRNgraph.nodes[allnodenum]["species"]=spectxt
         CRNgraph.nodes[allnodenum]["color"]=mycol
         allnodenum +=1
