@@ -144,7 +144,19 @@ class ComplexSpecies(Species):
             attributes.remove(None)
 
         self.attributes = attributes
-
+    def __contains__(self,item):
+        if(item in self.species):
+            #this is the base case
+            return True
+        else:
+            #this is the recursive part. We want to check all
+            #internal complexes for the thing we're looking for
+            for content in self.species:
+                if(isinstance(content,ComplexSpecies)):
+                    if(item in content):
+                        return True
+            #if we got here then we've failed to find it
+            return False
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         txt = ""
         if self.material_type not in ["", None] and show_material:
