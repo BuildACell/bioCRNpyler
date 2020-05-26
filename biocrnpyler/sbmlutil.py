@@ -133,7 +133,7 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs,
 
     #Create Local Propensity Parameters
     if propensity_type=="massaction":
-        if kname == None:
+        if kname is None:
             kname = "k"
         # Create a kinetic law for the reaction
         ratelaw = reaction.createKineticLaw()
@@ -141,13 +141,13 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs,
         param = ratelaw.createParameter()
         param.setId(kname)
         param.setConstant(True)
-        if k != None and propensity_params == None:
+        if k is not None and propensity_params is None:
             param.setValue(k)
             annotation_dict["k"] = k
         elif 'k' in propensity_params:
             param.setValue(propensity_params['k'])
             annotation_dict["k"] = propensity_params['k']
-        elif k != None and "k" in propensity_params and propensity_params['k'] != k:
+        elif k is not None and "k" in propensity_params and propensity_params['k'] != k:
             raise ValueError("Keyword k and propensity_params['k'] have different values. Only one of these arguments is needed or they must match.")
         else:
             raise ValueError("Massaction propensities require a rate k which can be passed into add_reaction as a keyword k= or inside the propensity_params keyword dictionary.")
@@ -368,7 +368,7 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
     # once for each SBase element in the model.
     def transform(self, element):
         # return in case we don't have a valid element
-        if (element == None \
+        if (element is None \
            or element.getTypeCode() == libsbml.SBML_LOCAL_PARAMETER):
             return libsbml.LIBSBML_OPERATION_SUCCESS
 
@@ -430,7 +430,7 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
 #  #
 def getAllIds(allElements):
     result = []
-    if (allElements == None or allElements.getSize() == 0):
+    if allElements is None or allElements.getSize() == 0:
         return result
 
     for i in range(0, allElements.getSize()):
