@@ -158,6 +158,7 @@ class TestComponent(TestCase):
         component = Component(name=comp_name, mechanisms={}, parameters={}, parameter_file=None,
                               mixture=None, attributes=[], initial_conc=0, parameter_warnings=True)
 
+        # warning if update_species on a component object
         with self.assertWarns(Warning):
             component.update_species()
 
@@ -168,5 +169,6 @@ class TestComponent(TestCase):
         component = Component(name=comp_name, mechanisms={}, parameters={}, parameter_file=None,
                               mixture=None, attributes=[], initial_conc=0, parameter_warnings=True)
 
+        # warning if update_reaction on a component object
         with self.assertWarns(Warning):
             component.update_reactions()

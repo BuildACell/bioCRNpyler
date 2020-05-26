@@ -51,29 +51,30 @@ class TestSpecies(TestCase):
         from biocrnpyler import Species
 
         species = Species(name='test_species')
-
+        # An attribute must be a string
         with self.assertRaises(AssertionError):
             species.add_attribute({'k': 'v'})
 
         species.add_attribute('attribute')
+        # Testing whether a valid attribute has been added to the attribute list
         self.assertTrue('attribute' in species.attributes)
 
     def test_species_equality(self):
         from biocrnpyler import Species
-
+        # testing species equality
         s1 = Species(name='a', material_type='mat1', attributes=['red'])
         s2 = Species(name='a', material_type='mat1', attributes=['red'])
-
+        # if two species have the same name, material_type and attributes, then they are the same
         self.assertTrue(s1 == s2)
 
         s3 = Species(name='b', material_type='mat1', attributes=['red'])
-
+        # different species name: not the same species
         self.assertFalse(s1 == s3)
 
         s4 = Species(name='a', material_type='mat2', attributes=['red'])
-
+        # different material type: not the same species
         self.assertFalse(s1 == s4)
 
         s5 = Species(name='a', material_type='mat1', attributes=['red', 'large'])
-
+        # different attributes: not the same species
         self.assertFalse(s1 == s5)

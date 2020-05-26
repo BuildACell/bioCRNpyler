@@ -269,6 +269,7 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         return txt
 
+
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
     A reaction has the form:
@@ -283,7 +284,7 @@ class Reaction(object):
                  rate_formula = None, propensity_params = None):
 
         if len(inputs) == 0 and len(outputs) == 0:
-            warnings.warn("Reaction Inputs and Outputs both contain 0 Species.")
+            warn("Reaction Inputs and Outputs both contain 0 Species.")
 
         if k != 0 and propensity_params != None and "k" not in propensity_params:
             propensity_params["k"] = k

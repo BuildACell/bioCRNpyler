@@ -14,8 +14,10 @@ class TestMixture(TestCase):
         mixture = Mixture()
         mixture.add_species(species)
 
+        # test that the new mixture only contain one species
         self.assertEqual([species], mixture.added_species)
 
+        # adding invalid species
         with self.assertRaises(AssertionError):
             mixture.add_species(['ok', 'ok'])
 
@@ -25,13 +27,15 @@ class TestMixture(TestCase):
         from biocrnpyler import Species
 
         mixture = Mixture()
+        # test that new mixture has no components
         self.assertTrue(len(mixture.components) == 0)
         component = Component('test_comp')
         mixture.add_components(component)
-
+        # test that the new components was added to the mixture
         self.assertTrue(component in mixture.components)
 
         species = Species('test_species')
+        # species are invalid components
         with self.assertRaises(AssertionError):
             mixture.add_components(species)
 
@@ -73,6 +77,7 @@ class TestMixture(TestCase):
 
         component = Component(name='test_component')
 
+        # creating a mock update function to decouple the update process from the rest of the code
         def mock_update_reactions():
             rxn = Reaction(inputs=[], outputs=[], k=0.1)
             return [rxn]
@@ -98,6 +103,7 @@ class TestMixture(TestCase):
 
         species_list = [a, b]
 
+        # creating a mock update function to decouple the update process from the rest of the code
         def mock_update_reactions():
             rxn = Reaction(inputs=[a], outputs=[b], k=0.1)
             return [rxn]
@@ -110,5 +116,7 @@ class TestMixture(TestCase):
         mixture.update_reactions = mock_update_reactions
 
         crn_from_mixture = mixture.compile_crn()
+        # test that the mixture has the same species as the manually build CRN object
         self.assertEqual(CRN.species, crn_from_mixture.species)
+        # test that the mixture has the same reactions as the manually build CRN object
         self.assertEqual(CRN.reactions, crn_from_mixture.reactions)

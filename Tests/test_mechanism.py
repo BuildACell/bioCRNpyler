@@ -9,9 +9,11 @@ class TestMechanism(TestCase):
     def test_mechanism_initialization(self):
         from biocrnpyler import Mechanism
 
+        # test a warning for instantiation without a mechanism_type
         with self.assertWarns(Warning):
             Mechanism(name='test_mech', mechanism_type=None)
 
+        # test a warning for instantiation without a mechanism_type
         with self.assertWarns(Warning):
             Mechanism(name='test_mech')
 
@@ -19,7 +21,7 @@ class TestMechanism(TestCase):
         from biocrnpyler import Mechanism
 
         mech = Mechanism(name='test_mechanism', mechanism_type='dummy')
-
+        # warning if update_species on a mechanism object
         with self.assertWarns(Warning):
             mech.update_species()
 
@@ -28,5 +30,6 @@ class TestMechanism(TestCase):
 
         mech = Mechanism(name='test_mechanism', mechanism_type='dummy')
 
+        # warning if update_reaction on a mechanism object
         with self.assertWarns(Warning):
             mech.update_reactions()
