@@ -14,7 +14,7 @@ reaction_id = 0
 # Create an SBML model
 def create_sbml_model(compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
                       length_units='metre', area_units='square_metre', volume_units='litre', volume = 1e-6):
-    document = libsbml.SBMLDocument(3, 1)
+    document = libsbml.SBMLDocument(3, 2)
     model = document.createModel()
 
     # Define units for area (not used, but keeps COPASI from complaining)
@@ -48,7 +48,6 @@ def create_sbml_model(compartment_id="default", time_units='second', extent_unit
 # Creates an SBML id from a chemical_reaction_network.species object
 def species_sbml_id(species, document=None):
     # Construct the species ID
-    # species_id = repr(species).replace(" ", "_").replace(":", "_").replace("--", "_").replace("-", "_").replace("'", "")
     all_ids = []
     if document:
         all_ids = getAllIds(document.getListOfAllElements())
@@ -123,31 +122,30 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs,
     # Create the reaction
     reaction = model.createReaction()
     reaction.setReversible(False)
-    reaction.setFast(False)
+    # reaction.setFast(False) # Deprecated in SBML
     all_ids = getAllIds(model.getSBMLDocument().getListOfAllElements())
     trans = SetIdFromNames(all_ids)
     reaction.setId(trans.getValidIdForName(reaction_id))
+    reaction.setName(reaction.getId())
     ratestring = "" #Stores the string representing the rate function
     annotation_dict = {"type":propensity_type}
-    
-
+    # Create a kinetic law for the reaction
+    ratelaw = reaction.createKineticLaw()
     #Create Local Propensity Parameters
     if propensity_type=="massaction":
-        if kname == None:
+        if kname is None:
             kname = "k"
-        # Create a kinetic law for the reaction
-        ratelaw = reaction.createKineticLaw()
         
         param = ratelaw.createParameter()
         param.setId(kname)
         param.setConstant(True)
-        if k != None and propensity_params == None:
+        if k is not None and propensity_params is None:
             param.setValue(k)
             annotation_dict["k"] = k
         elif 'k' in propensity_params:
             param.setValue(propensity_params['k'])
             annotation_dict["k"] = propensity_params['k']
-        elif k != None and "k" in propensity_params and propensity_params['k'] != k:
+        elif k is not None and "k" in propensity_params and propensity_params['k'] != k:
             raise ValueError("Keyword k and propensity_params['k'] have different values. Only one of these arguments is needed or they must match.")
         else:
             raise ValueError("Massaction propensities require a rate k which can be passed into add_reaction as a keyword k= or inside the propensity_params keyword dictionary.")
@@ -161,7 +159,6 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs,
                     "'k':rate constant (float)"
                     "'n':cooperativity(float), "
                     "and 'K':dissociationc constant (float).")
-        ratelaw = reaction.createKineticLaw()
         param_k = ratelaw.createParameter()
         param_k.setId("k")
         param_k.setConstant(True)
@@ -200,8 +197,9 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs,
         reactant = reaction.createReactant()
         reactant.setSpecies(species_id)  # ! TODO: add error checking
         reactant.setConstant(False)
+        if stoichiometry is None or stoichiometry is np.nan:
+            stoichiometry = 1.0
         reactant.setStoichiometry(stoichiometry)
-
         #Create Rate-strings for massaction propensities
         if propensity_type=="massaction" and stochastic:
             for i in range(stoichiometry):
@@ -287,6 +285,8 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs,
         product = reaction.createProduct()
         species_id = getSpeciesByName(model, species).getId()
         product.setSpecies(species_id)
+        if stoichiometry is None or stoichiometry is np.nan:
+            stoichiometry = 1.0
         reactant.setStoichiometry(stoichiometry)
         product.setConstant(False)
 
