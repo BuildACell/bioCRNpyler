@@ -2,8 +2,9 @@
 #  See LICENSE file in the project root directory for details.
 
 from warnings import warn as pywarn
-from .chemical_reaction_network import Species
+from .chemical_reaction_network import Species, ComplexSpecies
 from .parameter import Parameter
+
 
 
 def warn(txt):
@@ -96,7 +97,7 @@ class Component(object):
                 return species
         elif isinstance(species, str):
             return Species(name = species, material_type = material_type, attributes = attributes)
-        elif isinstance(species, Component) and species.get_species() != None:
+        elif isinstance(species, Component) and species.get_species() is not None:
             return species.get_species()
         else:
             raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
@@ -105,32 +106,35 @@ class Component(object):
         return str.__hash__(repr(self.get_species()))
 
     def set_attributes(self, attributes):
-        for attribute in attributes:
-            if isinstance(attribute, str):
-                self.attributes.append(attribute)
-            elif attribute is not None:
-                raise RuntimeError("Invalid Attribute: {repr_attribute} "
-                                   "attributes must be strings")
+        if attributes is not None:
+            for attribute in attributes:
+                self.add_attribute(attribute)
 
-    # TODO merge set_attribute and add_attribute
     def add_attribute(self, attribute):
-        assert isinstance(attribute, str), "Attribute: %s must be a str" % attribute
+        assert isinstance(attribute, str) and attribute is not None, "Attribute: %s must be a str" % attribute
 
         self.attributes.append(attribute)
-
         if hasattr(self, 'species') and self.species is not None:
             self.species.add_attribute(attribute)
         else:
-            raise Warning("Species was empty, did you call the right object?")
+            raise Warning(f"Component {self.name} has no internal species and therefore no attributes")
 
+    #This function gives Components their own parameter dictionary. By default, components get all the parameters from Mixture
+    #Parameters passed in from mixture are superceded by parameters passed in the parameters keyword
+    #parameters already saved as custom parameters also supersede parameters from the Mixture
+    #In other words, the component remembers custom changes to parameters and mixture parameters will never overwrite those changes
+    #Mixture parameters are only ever used by default when no other component-level parameter has ever been given with the same key.
+    #the overwrite_custom_parameters keyword lets this function overwrite the existing custom Component-level parameters,
     def update_parameters(self, mixture_parameters = {}, parameters = {},
                           overwrite_custom_parameters = True):
+
 
         for p in parameters:
             if overwrite_custom_parameters or p not in self.custom_parameters:
                 self.parameters[p] = parameters[p]
                 if p in self.custom_parameters:
                     self.custom_parameters[p] = parameters[p]
+
 
         for p in mixture_parameters:
             if p not in self.parameters:
@@ -363,16 +367,12 @@ class Protein(Component):
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
             attributes=[],
-            degredation_tag=None,
             initial_conc=None,
             **keywords
     ):
         self.length = length
-        self.degredation_tag = degredation_tag
-        if degredation_tag not in attributes:
-            attributes.append(degredation_tag)
         self.species = Species(name, material_type="protein",
-                               attributes=list(attributes))
+                               attributes=attributes)
 
         Component.__init__(self=self, name=name, mechanisms=mechanisms,
                            parameters=parameters, attributes=attributes,
@@ -401,10 +401,26 @@ class ChemicalComplex(Component):
             parameters={},  # customized parameters,
             attributes=[],
             initial_conc=None,
+            material_type = "complex",
             **keywords
     ):
-        self.species = Species(self.name, material_type="complex",
-                               attributes=list(attributes))
+
+        if len(species) < 2 or not isinstance(species, list):
+            raise ValueError("Species must be a list of Species, strings, Component objects.")
+
+        self.internal_species = [] #a list of species inside the complex
+
+        for s in species:
+            self.internal_species.append(self.set_species(s))
+
+        self.species = ComplexSpecies(species = self.internal_species, name = name, material_type=material_type, attributes=list(attributes))
+
+        if name == None:
+            name = self.species.name
+
+        from .mechanism import One_Step_Binding
+        self.default_mechanisms = {"binding": One_Step_Binding()}
+
         Component.__init__(self=self, name=name, mechanisms=mechanisms,
                            parameters=parameters, attributes=attributes,
                            initial_conc=initial_conc, **keywords)
@@ -413,8 +429,17 @@ class ChemicalComplex(Component):
         return self.species
 
     def update_species(self):
-        species = [self.get_species()]
+
+        mech_b = self.mechanisms['binding']
+
+        species = mech_b.update_species(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
+
         return species
 
     def update_reactions(self):
-        return []
+
+        mech_b = self.mechanisms['binding']
+
+        reactions = mech_b.update_reactions(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
+        
+        return reactions

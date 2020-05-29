@@ -1,7 +1,19 @@
+# Disable sudo to speed up the build
+sudo: false
+
 language: python
 python:
-          - "3.6"
-          - "3.7"
+  - "3.6"
+  - "3.7"
+
+# Install the codecov pip dependency
+install:
+  - pip install codecov
+
 # command to run tests
 script:
-          - "python setup.py test"
+          - "python setup.py nosetests --tests Tests/ --with-coverage"
+
+# Push the results back to codecov
+after_success:
+  - codecov
