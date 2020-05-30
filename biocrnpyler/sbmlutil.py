@@ -5,6 +5,7 @@
 # See LICENSE file in the project root directory for details.
 
 import libsbml
+import numpy as np
 from warnings import warn
 
 # Reaction ID number (global)
@@ -287,7 +288,7 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs,
         product.setSpecies(species_id)
         if stoichiometry is None or stoichiometry is np.nan:
             stoichiometry = 1.0
-        reactant.setStoichiometry(stoichiometry)
+        product.setStoichiometry(stoichiometry)
         product.setConstant(False)
 
     # Set the ratelaw to the ratestring
