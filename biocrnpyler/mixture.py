@@ -270,3 +270,7 @@ class Mixture(object):
             txt+="\n\t"+mech+":"+self.global_mechanisms[mech].name
         txt+=" }"
         return txt
+
+
+
+

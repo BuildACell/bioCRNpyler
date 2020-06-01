@@ -2,8 +2,9 @@
 # See LICENSE file in the project root directory for details.
 
 from warnings import warn
-from .component import Protein, ChemicalComplex
-from .mechanism import Transcription_MM, Translation_MM, Degredation_mRNA_MM, EmptyMechanism, OneStepGeneExpression
+from .basic_components import DNA, RNA, Protein, ChemicalComplex
+from .mechanism import EmptyMechanism
+from .txtl_mechanisms import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression
 from .mixture import Mixture
 from .chemical_reaction_network import Species
        
