@@ -5,7 +5,7 @@ from warnings import warn
 from .sbmlutil import *
 import warnings
 import numpy as np
-from typing import List, Union
+from typing import List, Union, Dict
 
 
 
@@ -676,7 +676,7 @@ class ChemicalReactionNetwork(object):
                         k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
                where a_i is the spectrometric coefficient of species i
     """
-    def __init__(self, species, reactions, warnings = False):
+    def __init__(self, species: List[Species], reactions: List[Reaction], warnings = False):
         self.species, self.reactions = ChemicalReactionNetwork.check_crn_validity(reactions, species, warnings=warnings)
 
         # TODO check whether we need this data structure
@@ -685,7 +685,7 @@ class ChemicalReactionNetwork(object):
             self.species2index[str(self.species[i])] = i
 
     @staticmethod
-    def check_crn_validity(reactions, species, warnings = False):
+    def check_crn_validity(reactions: List[Reaction], species: List[Species], warnings = False):
         # Check to make sure species are valid and only have a count of 1
         checked_species = []
         if not all(isinstance(s, Species) for s in species):
@@ -763,21 +763,21 @@ class ChemicalReactionNetwork(object):
         return species, reactions
 
     # TODO check whether we need this method
-    def species_index(self, species):
+    def species_index(self, species: Species):
         if len(self.species2index) != len(self.species):
             self.species2index = {}
             for i in range(len(self.species)):
                 self.species2index[str(self.species[i])] = i
         return self.species2index[str(species)]
 
-    def initial_condition_vector(self, init_cond_dict):
+    def initial_condition_vector(self, init_cond_dict: Dict[str,float]):
         x0 = [0.0] * len(self.species)
         for idx, s in enumerate(self.species):
             if s in init_cond_dict:
                 x0[idx] = init_cond_dict[s]
         return x0
 
-    def get_all_species_containing(self, species, return_as_strings = False):
+    def get_all_species_containing(self, species: Species, return_as_strings = False):
         """Returns all species (complexes and otherwise) containing a given species
            (or string).
         """
@@ -793,7 +793,7 @@ class ChemicalReactionNetwork(object):
                     return_list.append(s)
         return return_list
 
-    def generate_sbml_model(self, stochastic_model = False, **keywords):
+    def generate_sbml_model(self, stochastic_model=False, **keywords):
         document, model = create_sbml_model(**keywords)
 
         for s in self.species:
@@ -822,7 +822,7 @@ class ChemicalReactionNetwork(object):
             warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
         return document, model
 
-    def write_sbml_file(self, file_name = None, **keywords):
+    def write_sbml_file(self, file_name=None, **keywords):
         document, _ = self.generate_sbml_model(**keywords)
         sbml_string = libsbml.writeSBMLToString(document)
         with open(file_name, 'w') as f:
