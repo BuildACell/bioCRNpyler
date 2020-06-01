@@ -84,7 +84,7 @@ class RegulatedPromoter(Promoter):
                 if isinstance(s, ComplexSpecies) and self.assembly.dna in s.species and regulator in s.species:
                     self.complexes += [s]
 
-            species += mech_tx.update_species(dna = complex_, transcript = self.transcript, protein = self.assembly.protein, part_id = self.name+"_"+regulator.name)
+                    species += mech_tx.update_species(dna = s, transcript = self.transcript, protein = self.assembly.protein, part_id = self.name+"_"+regulator.name)
         return species
 
     def update_reactions(self):
