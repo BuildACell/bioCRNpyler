@@ -11,7 +11,6 @@ import numpy as np
 def warn(txt):
     pywarn(txt)
 
-
 class Promoter(Component):
     def __init__(self, name, assembly=None,
                  transcript=None, length=0,
@@ -79,8 +78,12 @@ class RegulatedPromoter(Promoter):
 
             species_b = mech_b.update_species(regulator, self.assembly.dna, component = self, part_id = self.name+"_"+regulator.name)
             species += species_b
-            complex_ = species_b[0]
-            self.complexes += [complex_]
+
+            #Find complexes containing DNA and the regulator
+            for s in species_b:
+                if isinstance(s, ComplexSpecies) and self.assembly.dna in s.species and regulator in s.species:
+                    self.complexes += [s]
+
             species += mech_tx.update_species(dna = complex_, transcript = self.transcript, protein = self.assembly.protein, part_id = self.name+"_"+regulator.name)
         return species
 
