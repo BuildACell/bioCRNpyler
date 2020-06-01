@@ -1,15 +1,13 @@
-#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
+from biocrnpyler import Mixture, Species, Component, DNA, Reaction, ChemicalReactionNetwork
 
 
 class TestMixture(TestCase):
 
     def test_add_species(self):
-        from biocrnpyler import Mixture
-        from biocrnpyler import Species
-
         species = Species('test_species')
         mixture = Mixture()
         mixture.add_species(species)
@@ -18,13 +16,10 @@ class TestMixture(TestCase):
         self.assertEqual([species], mixture.added_species)
 
         # adding invalid species
-        with self.assertRaises(AssertionError):
+        with self.assertRaisesRegexp(AssertionError,'only Species type is accepted!'):
             mixture.add_species(['ok', 'ok'])
 
     def test_add_components(self):
-        from biocrnpyler import Mixture
-        from biocrnpyler import Component
-        from biocrnpyler import Species
 
         mixture = Mixture()
         # test that new mixture has no components
@@ -36,15 +31,10 @@ class TestMixture(TestCase):
 
         species = Species('test_species')
         # species are invalid components
-        with self.assertRaises(AssertionError):
+        with self.assertRaisesRegexp(AssertionError,f'the object: {species} passed into mixture as component must be of the class Component'):
             mixture.add_components(species)
 
     def test_update_species(self):
-        from biocrnpyler import Mixture
-        from biocrnpyler import Species
-        from biocrnpyler import DNA
-        # from biocrnpyler import Dilution
-
         species = Species(name='H2O')
         mixture = Mixture(species=[species])
 
@@ -67,12 +57,8 @@ class TestMixture(TestCase):
         # mixture.update_species()
 
     def test_update_reactions(self):
-        from biocrnpyler import Mixture
-        from biocrnpyler import Reaction
-        from biocrnpyler import Component
-
         mixture = Mixture()
-        with self.assertRaises(AttributeError):
+        with self.assertRaisesRegexp(AttributeError, 'Mixture.crn_species not defined.'):
             mixture.update_reactions()
 
         component = Component(name='test_component')
@@ -93,11 +79,6 @@ class TestMixture(TestCase):
         # TODO add test for reactions added by global mechanisms
 
     def test_compile_crn(self):
-        from biocrnpyler import ChemicalReactionNetwork
-        from biocrnpyler import Species
-        from biocrnpyler import Reaction
-        from biocrnpyler import Mixture
-
         a = Species(name='a')
         b = Species(name='b')
 

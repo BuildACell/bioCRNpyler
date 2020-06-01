@@ -69,26 +69,25 @@ class Component(object):
         self.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters)
 
     @property
-    def initial_concentration(self) -> int:
+    def initial_concentration(self) -> float:
         return self._initial_conc
 
     @initial_concentration.setter
-    def initial_concentration(self, initial_conc: int):
+    def initial_concentration(self, initial_conc: float):
         if initial_conc is None:
             self._initial_conc = initial_conc
-        elif initial_conc < 0:
+        elif initial_conc < 0.0:
             raise ValueError("Initial concentration must be non-negative, "f"this was given: {initial_conc}")
         else:
             self._initial_conc = initial_conc
 
     # TODO implement as an abstractmethod
-    def get_species(self):
+    def get_species(self) -> None:
         """
         the child class should implement this method
-        :return: empty list
+        :return: None
         """
-        warn("get_species() not defined for component {self.name}, "
-             "None returned.")
+        warn(f"get_species is not defined for component {self.name}, None returned.")
         return None
 
     #If allows species to be set from strings, species, or Components
@@ -240,7 +239,7 @@ class Component(object):
             return return_val
 
     # TODO implement abstractmethod
-    def update_species(self):
+    def update_species(self) -> List:
         """
         the child class should implement this method
         :return: empty list
@@ -250,7 +249,7 @@ class Component(object):
         return species
 
     # TODO implement abstractmethod
-    def update_reactions(self):
+    def update_reactions(self) -> List:
         """
         the child class should implement this method
         :return: empty list

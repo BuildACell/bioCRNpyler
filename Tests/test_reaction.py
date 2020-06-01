@@ -1,16 +1,14 @@
 
-#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
+from biocrnpyler import Reaction, Species
 
 
 class TestReaction(TestCase):
 
     def test_reaction_initialization(self):
-        from biocrnpyler import Reaction
-        from biocrnpyler import Species
-
         # warns if both input and output species are empty
         with self.assertWarns(Warning):
             Reaction(inputs=[], outputs=[], k=0.1, propensity_type="massaction", propensity_params=None)
@@ -74,9 +72,6 @@ class TestReaction(TestCase):
         # TODO add test for the equality operator
 
     def test_complex_set_equality(self):
-        from biocrnpyler import Reaction
-        from biocrnpyler import Species
-
         sp1 = Species(name='test_species_a')
         sp2 = Species(name='test_species_b')
 
