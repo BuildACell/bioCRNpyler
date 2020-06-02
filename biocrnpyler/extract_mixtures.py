@@ -4,11 +4,12 @@
 from warnings import warn
 from .basic_components import DNA, RNA, Protein, ChemicalComplex
 from .mechanism import EmptyMechanism
-from .txtl_mechanisms import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression
+from .txtl_mechanisms import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
 from .mixture import Mixture
 from .chemical_reaction_network import Species
        
 #A Model for Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.)
+# Here transcription and Translation are lumped into one reaction: expression.
 class ExpressionExtract(Mixture):
     def __init__(self, name="", mechanisms={}, components=[], **kwargs):
 
@@ -23,6 +24,26 @@ class ExpressionExtract(Mixture):
         default_components = []
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
                         components=components+default_components, **kwargs)
+
+#A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.)
+#RNA is degraded via a global mechanism
+class SimpleTxTlExtract(Mixture):
+    def __init__(self, name="", mechanisms={}, components=[], **kwargs):
+
+        mech_tx = SimpleTranscription(name = "simple_transcription", mechanism_type = "transcription")
+        mech_tl = SimpleTranscription(name = "simple_translation", mechanism_type = "translation")
+
+        default_mechanisms = {
+            "transcription": mech_tx,
+            "translation": mech_tl
+        }
+
+        mech_rna_deg_global = Dilution(name = "rna_degredation", filter_dict = {"rna":True}, default_on = False)
+        global_mechanisms = {"rna_degredation":dilution_mrna}
+
+        default_components = []
+        Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
+                        components=components+default_components, global_mechanisms= global_mechanisms, **kwargs)
 
 #A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
 #This model does not include any energy
@@ -54,58 +75,3 @@ class TxTlExtract(Mixture):
         default_components = [self.rnap, self.ribosome, self.rnaase]
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
                         components=components+default_components, **kwargs)
-
-# Below are unimplemented classes...
-# Outline for BasicBuffer
-# TODO
-class BasicBuffer(Mixture):
-    def __init__(self, name="", mechanisms={}, components=[],
-                atp = "ATP", ntp = "NTP", aa  = "AA", **kwargs):
-    
-        if isinstance(ntp, Species):
-            self.ntp = ntp
-        if isinstance(ntp, str):
-            self.ntp = Protein(name=ntp)
-        else:
-            raise ValueError("ntp argument must be a str or chemical_reaction_network.specie")
-
-        if isinstance(aa, Species):
-            self.aa = aa
-        elif isinstance(aa, str):
-            self.aa = Protein(name=aa)
-        else:
-            raise ValueError("aa argument must be a str or chemical_reaction_network.specie")
-
-        self.atp.get_species().initial_concentration = init["protein_RNAP"]
-        self.ntp.get_species().initial_concentration = init["protein_RNAase"]
-        self.aa.get_species().initial_concentration = init["protein_Ribo"]
-        # mech_tx = Transcription_MM(rnap = self.atp.get_specie()) # TODO: Implement energy mechanisms here
-        # mech_tl = Translation_MM(ribosome = self.ntp.get_specie())
-        # mech_rna_deg = Degredation_mRNA_MM(nuclease = self.aa.get_specie())
-
-
-        # default_mechanisms = {
-        #     mech_tx.type: mech_tx,
-        #     mech_tl.type: mech_tl,
-        #     mech_rna_deg.type: mech_rna_deg
-        # }
-
-        default_components = [self.atp, self.ntp, self.aa]
-        # Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
-                        # components=components+default_components, **kwargs)
-        raise NotImplementedError
-
-class Extract(Mixture):
-    def __init__(self, name="", mechanisms={}, components=[], 
-                rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
-        raise NotImplementedError
-
-class CustomExtract(Mixture):
-    def __init__(self, name = "", **kwargs):
-        raise NotImplementedError
-
-
-class EnergyBuffer(Mixture):
-    def __init__(self, name = "", **kwargs):
-        raise NotImplementedError
-                
