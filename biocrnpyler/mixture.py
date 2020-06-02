@@ -12,7 +12,7 @@ from typing import List, Union
 
 
 class Mixture(object):
-    def __init__(self, name="", mechanisms={}, components = [], parameters = {},
+    def __init__(self, name="", mechanisms={}, components = [], parameters=None,
                  parameter_file = None, default_mechanisms = {},
                  global_mechanisms = {}, default_components = [],
                  species = [], custom_initial_condition = {},
@@ -117,7 +117,7 @@ class Mixture(object):
                 return species
         elif isinstance(species, str):
             return Species(name = species, material_type = material_type, attributes = attributes)
-        elif isinstance(species, Component) and species.get_species() != None:
+        elif isinstance(species, Component) and species.get_species() is not None:
             return species.get_species()
         else:
             raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")

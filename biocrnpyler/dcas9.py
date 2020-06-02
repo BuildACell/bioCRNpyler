@@ -14,7 +14,7 @@ class guideRNA(RNA):
             self.dCas = dCas9
         elif isinstance(dCas9, str):
             self.dCas = Species(dCas9, material_type ="protein")
-        elif isinstance(dCas9, Component) and dCas9.get_species()!= None:
+        elif isinstance(dCas9, Component) and dCas9.get_species() is not None:
             self.dCas = dCas9.get_species()
         else:
             raise ValueError("dCas9 parameter must be a "

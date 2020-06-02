@@ -61,7 +61,7 @@ class Mechanism(object):
         the child class should implement this method
         :return: empty list
         """
-        warn(f"Default Update Species Called for Mechanism = {self.name}.")
+        warn(f"Default Update Reactions Called for Mechanism = {self.name}.")
         return []
 
     def __repr__(self):

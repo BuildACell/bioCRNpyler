@@ -369,7 +369,7 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
     # once for each SBase element in the model.
     def transform(self, element):
         # return in case we don't have a valid element
-        if (element == None \
+        if (element is None \
            or element.getTypeCode() == libsbml.SBML_LOCAL_PARAMETER):
             return libsbml.LIBSBML_OPERATION_SUCCESS
 
@@ -431,7 +431,7 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
 #  #
 def getAllIds(allElements):
     result = []
-    if (allElements == None or allElements.getSize() == 0):
+    if allElements is None or allElements.getSize() == 0:
         return result
 
     for i in range(0, allElements.getSize()):

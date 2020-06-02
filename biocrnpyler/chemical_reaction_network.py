@@ -4,19 +4,18 @@
 from warnings import warn
 from .sbmlutil import *
 import warnings
-import copy
 import numpy as np
-
+from typing import List, Union, Dict
 
 
 
 class Species(object):
     """ A formal species object for a CRN
-     A Species must have a name. They may also have a materialtype (such as DNA,
+     A Species must have a name. They may also have a material_type (such as DNA,
      RNA, Protein), and a list of attributes.
     """
 
-    def __init__(self, name, material_type="", attributes=[],
+    def __init__(self, name: str, material_type="", attributes=[],
                  initial_concentration=0):
         self.name = name
         self.material_type = material_type
@@ -68,7 +67,7 @@ class Species(object):
 
         return txt
 
-    def add_attribute(self, attribute):
+    def add_attribute(self, attribute: str):
         assert isinstance(attribute, str) and attribute is not None, "Attribute: %s must be a string" % attribute
 
         self.attributes.append(attribute)
@@ -105,7 +104,7 @@ class ComplexSpecies(Species):
         This is good for modelling order-indpendent binding complexes.
         For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
     """
-    def __init__(self, species, name = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
+    def __init__(self, species: List[Union[Species,str]], name = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
         if len(species) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
@@ -115,7 +114,7 @@ class ComplexSpecies(Species):
         if False in [isinstance(s, Species) or isinstance(s, str) for s in self.species]:
             raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof).")
 
-        if name == None:
+        if name is None:
             name = ""
             list.sort(self.species, key = lambda s:repr(s))
             
@@ -134,7 +133,7 @@ class ComplexSpecies(Species):
         self.material_type = material_type
         self.initial_concentration = initial_concentration
 
-        if attributes == None:
+        if attributes is None:
             attributes = []
         for s in self.species:
             attributes += s.attributes
@@ -147,16 +146,16 @@ class ComplexSpecies(Species):
 
     def __contains__(self,item):
         if not item.isinstance(Species):
-            raise ValueError("Operator 'in' requires chemical_reaction_network.Species (or a subclass). Recieved: "+str(item))
-        if(item in self.species):
+            raise ValueError("Operator 'in' requires chemical_reaction_network.Species (or a subclass). Received: "+str(item))
+        if item in self.species:
             #this is the base case
             return True
         else:
             #this is the recursive part. We want to check all
             #internal complexes for the thing we're looking for
             for content in self.species:
-                if(isinstance(content,ComplexSpecies)):
-                    if(item in content):
+                if isinstance(content,ComplexSpecies) :
+                    if item in content:
                         return True
             #if we got here then we've failed to find it
             return False
@@ -219,7 +218,7 @@ class OrderedComplexSpecies(ComplexSpecies):
         if False in [isinstance(s, Species) or isinstance(s, str) for s in self.species]:
             raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof) or strings.")
 
-        if name == None:
+        if name is None:
             name = ""
             for s in species:
                 if isinstance(s, str):
@@ -234,7 +233,7 @@ class OrderedComplexSpecies(ComplexSpecies):
         self.material_type = material_type
         self.initial_concentration = initial_concentration
 
-        if attributes == None:
+        if attributes is None:
             attributes = []
         for s in self.species:
             attributes += s.attributes
@@ -269,6 +268,7 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         return txt
 
+
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
     A reaction has the form:
@@ -283,21 +283,21 @@ class Reaction(object):
                  rate_formula = None, propensity_params = None):
 
         if len(inputs) == 0 and len(outputs) == 0:
-            warnings.warn("Reaction Inputs and Outputs both contain 0 Species.")
+            warn("Reaction Inputs and Outputs both contain 0 Species.")
 
-        if k != 0 and propensity_params != None and "k" not in propensity_params:
+        if k != 0 and propensity_params is not None and "k" not in propensity_params:
             propensity_params["k"] = k
-        elif k == 0 and propensity_params != None and "k" in propensity_params:
+        elif k == 0 and propensity_params is not None and "k" in propensity_params:
             k = propensity_params["k"]
-        elif k != 0 and propensity_params != None and k != propensity_params['k']:
+        elif k != 0 and propensity_params is not None and k != propensity_params['k']:
             print("k=", k, "propensity_params[k]", propensity_params["k"], "propensity_params", propensity_params)
             raise ValueError("Inconsistent rate constants: propensity_params['k'] != k.")
 
-        if propensity_type == "massaction" and propensity_params != None:
+        if propensity_type == "massaction" and propensity_params is not None:
             warn("ValueWarning: propensity_params dictionary passed into a "
                  "massaction propensity. Massaction propensities do not "
                  "require a param dictionary.")
-        elif propensity_type != "massaction" and propensity_params == None:
+        elif propensity_type != "massaction" and propensity_params is None:
             raise ValueError("Non-massaction propensities require a propensity_params dictionary passed to the propensity_params keyword.")
         elif propensity_type != "massaction" and k_rev != 0:
             raise ValueError("Invalid reversible reaction for propensity "
@@ -676,7 +676,7 @@ class ChemicalReactionNetwork(object):
                         k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
                where a_i is the spectrometric coefficient of species i
     """
-    def __init__(self, species, reactions, warnings = False):
+    def __init__(self, species: List[Species], reactions: List[Reaction], warnings = False):
         self.species, self.reactions = ChemicalReactionNetwork.check_crn_validity(reactions, species, warnings=warnings)
 
         # TODO check whether we need this data structure
@@ -685,7 +685,7 @@ class ChemicalReactionNetwork(object):
             self.species2index[str(self.species[i])] = i
 
     @staticmethod
-    def check_crn_validity(reactions, species, warnings = False):
+    def check_crn_validity(reactions: List[Reaction], species: List[Species], warnings = False):
         # Check to make sure species are valid and only have a count of 1
         checked_species = []
         if not all(isinstance(s, Species) for s in species):
@@ -763,21 +763,21 @@ class ChemicalReactionNetwork(object):
         return species, reactions
 
     # TODO check whether we need this method
-    def species_index(self, species):
+    def species_index(self, species: Species):
         if len(self.species2index) != len(self.species):
             self.species2index = {}
             for i in range(len(self.species)):
                 self.species2index[str(self.species[i])] = i
         return self.species2index[str(species)]
 
-    def initial_condition_vector(self, init_cond_dict):
+    def initial_condition_vector(self, init_cond_dict: Dict[str,float]):
         x0 = [0.0] * len(self.species)
         for idx, s in enumerate(self.species):
             if s in init_cond_dict:
                 x0[idx] = init_cond_dict[s]
         return x0
 
-    def get_all_species_containing(self, species, return_as_strings = False):
+    def get_all_species_containing(self, species: Species, return_as_strings = False):
         """Returns all species (complexes and otherwise) containing a given species
            (or string).
         """
@@ -793,7 +793,7 @@ class ChemicalReactionNetwork(object):
                     return_list.append(s)
         return return_list
 
-    def generate_sbml_model(self, stochastic_model = False, **keywords):
+    def generate_sbml_model(self, stochastic_model=False, **keywords):
         document, model = create_sbml_model(**keywords)
 
         for s in self.species:
@@ -822,7 +822,7 @@ class ChemicalReactionNetwork(object):
             warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
         return document, model
 
-    def write_sbml_file(self, file_name = None, **keywords):
+    def write_sbml_file(self, file_name=None, **keywords):
         document, _ = self.generate_sbml_model(**keywords)
         sbml_string = libsbml.writeSBMLToString(document)
         with open(file_name, 'w') as f:
@@ -854,7 +854,7 @@ class ChemicalReactionNetwork(object):
                 products += [repr(rxn.outputs[i])]*int(rxn.output_coefs[i])
 
             prop_type = rxn.propensity_type
-            if rxn.propensity_params == None:
+            if rxn.propensity_params is None:
                 prop_params = {}
             else:
                 prop_params = {}
