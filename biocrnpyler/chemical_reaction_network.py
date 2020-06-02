@@ -916,7 +916,7 @@ class ChemicalReactionNetwork(object):
             file_name = file.name
 
         m = bioscrape.types.Model(sbml_filename = file_name)
-
+        # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
         m.set_species(initial_condition_dict)
         result = bioscrape.simulator.py_simulate_model(timepoints, Model = m,
                                             stochastic = stochastic,
