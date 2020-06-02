@@ -56,6 +56,9 @@ class SimpleTxTlDilutionMixture(Mixture):
 #A Model for Transcription and Translation with Ribosomes, Polymerases, and Endonucleases labelled as Machinery. 
 #Unlike TxTlExtract, has global dilution for non-DNA and non-Machinery
 #This model does not include any energy
+
+#TODO:
+#Include some "internal" gene which provides background loading of all machinery
 class TxTlDilutionMixture(Mixture):
     def __init__(self, name="", mechanisms={}, components=[],
                  rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):

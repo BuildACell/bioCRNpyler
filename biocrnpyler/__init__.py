@@ -18,7 +18,6 @@ from .txtl_mechanisms import *
 # Core components
 from .extract_mixtures import *
 from .cell_mixtures import *
-from .invivo_mixtures import *
 from .dna_assembly import *
 from .crnlab import *
 from .promoters import *
