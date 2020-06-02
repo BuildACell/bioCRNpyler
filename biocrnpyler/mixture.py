@@ -12,7 +12,7 @@ from typing import List, Union
 
 
 class Mixture(object):
-    def __init__(self, name="", mechanisms={}, components = [], parameters = {},
+    def __init__(self, name="", mechanisms={}, components = [], parameters=None,
                  parameter_file = None, default_mechanisms = {},
                  global_mechanisms = {}, default_components = [],
                  species = [], custom_initial_condition = {},
