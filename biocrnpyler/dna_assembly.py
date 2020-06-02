@@ -108,7 +108,7 @@ class RegulatedPromoter(Promoter):
         return reactions
 
 class RBS(Component):
-    def __init__(self, name, assembly = None,
+    def __init__(self, name: str, assembly = None,
                  transcript = None, protein = None, length = 0,
                  mechanisms = {}, parameters = {}, **keywords):
         self.assembly = assembly
@@ -148,7 +148,7 @@ class RBS(Component):
 
 
 class DNAassembly(DNA):
-    def __init__(self, name, dna = None, promoter = None, transcript = None,
+    def __init__(self, name: str, dna = None, promoter = None, transcript = None,
                  rbs = None, protein = None, length = None,
                  attributes = [], mechanisms = {}, parameters = {}, initial_conc = None,
                  parameter_warnings = True, **keywords):
@@ -177,10 +177,10 @@ class DNAassembly(DNA):
     def set_parameter_warnings(self, parameter_warnings):
         self.parameter_warnings = parameter_warnings
 
-        if self.parameter_warnings != None:
-            if self.promoter != None:
+        if self.parameter_warnings is not None:
+            if self.promoter is not None:
                 self.promoter.set_parameter_warnings(parameter_warnings)
-            if self.rbs != None:
+            if self.rbs is not None:
                 self.rbs.set_parameter_warnings(parameter_warnings)
 
 

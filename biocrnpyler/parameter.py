@@ -87,7 +87,8 @@ class Parameter(object):
     """Parameter value (reaction rates)"""
 
     def __init__(self, name, param_type, value, comment="", debug=False):
-        assert type(param_type) is str
+        if not isinstance(param_type, str):
+            raise ValueError('parameter_type must be a string')
 
         self.name = name.strip()
         self.param_type = param_type.strip()
@@ -111,8 +112,14 @@ class Parameter(object):
         :param accepted_field_names: dictionary of possible field names and their valid aliases
         :return: dictionary of currently used field names (aliases)
         """
-        assert isinstance(field_names, list) and len(field_names) > 0
-        assert isinstance(accepted_field_names, dict) and len(accepted_field_names) > 0
+        if not isinstance(field_names, list):
+            raise ValueError('field_names must be a list of strings')
+        if isinstance(field_names, list) and len(field_names) == 0:
+            raise ValueError('field_names cannot be empty list!')
+        if not isinstance(accepted_field_names, dict):
+            raise ValueError('accepted_field_names must be a dictionary')
+        if isinstance(accepted_field_names, dict) and len(accepted_field_names) == 0:
+            raise ValueError('accepted_field_names cannot be empty dictionary')
 
         return_field_names = dict.fromkeys(accepted_field_names.keys())
         for accepted_name in accepted_field_names:
