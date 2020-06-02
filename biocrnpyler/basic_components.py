@@ -3,6 +3,7 @@ from .chemical_reaction_network import Species, ComplexSpecies, OrderedComplexSp
 from .mechanism import *
 from .binding_mechanisms import *
 
+
 # These subclasses of Component represent different kinds of biomolecules.
 class DNA(Component):
     """DNA class
@@ -34,7 +35,7 @@ class DNA(Component):
     """
 
     def __init__(
-            self, name, length=0,  # positional arguments
+            self, name: str, length=0,  # positional arguments
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
             attributes=[],
@@ -74,7 +75,7 @@ class DNA(Component):
 
 class RNA(Component):
     def __init__(
-            self, name, length=0,  # positional arguments
+            self, name: str, length=0,  # positional arguments
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
             attributes=[],
@@ -101,7 +102,7 @@ class RNA(Component):
 
 class Protein(Component):
     def __init__(
-            self, name, length=0,  # positional arguments
+            self, name: str, length=0,  # positional arguments
             mechanisms={},  # custom mechanisms
             parameters={},  # customized parameters
             attributes=[],
@@ -153,9 +154,10 @@ class ChemicalComplex(Component):
 
         self.species = ComplexSpecies(species = self.internal_species, name = name, material_type=material_type, attributes=list(attributes))
 
-        if name == None:
+        if name is None:
             name = self.species.name
 
+        from .mechanism import One_Step_Binding
         self.default_mechanisms = {"binding": One_Step_Binding()}
 
         Component.__init__(self=self, name=name, mechanisms=mechanisms,
@@ -165,7 +167,7 @@ class ChemicalComplex(Component):
     def get_species(self):
         return self.species
 
-    def update_species(self):
+    def update_species(self) -> List[Species]:
 
         mech_b = self.mechanisms['binding']
 
@@ -173,7 +175,7 @@ class ChemicalComplex(Component):
 
         return species
 
-    def update_reactions(self):
+    def update_reactions(self) -> List[Reaction]:
 
         mech_b = self.mechanisms['binding']
 
