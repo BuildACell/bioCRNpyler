@@ -6,7 +6,8 @@ from .components_basic import DNA, RNA, Protein, ChemicalComplex
 from .mechanism import EmptyMechanism
 from .mechanisms_txtl import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
 from .mixture import Mixture
-from .chemical_reaction_network import Species
+from .chemical_reaction_network import Species, ChemicalReactionNetwork
+from .dna_assembly import DNAassembly
        
 #A Model for Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.)
 # Here transcription and Translation are lumped into one reaction: expression.
@@ -24,6 +25,16 @@ class ExpressionExtract(Mixture):
         default_components = []
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
                         components=components+default_components, **kwargs)
+
+    #Overwriting compile_crn to replace transcripts with proteins for all DNA_assemblies
+    def compile_crn(self) -> ChemicalReactionNetwork:
+        CRN = Mixture.compile_crn(self)
+        for comp in self.components:
+            if isinstance(comp, DNAassembly):
+                if comp.transcript is not None and comp.protein is not None:
+                    print("replacing", comp.transcript, "with", comp.protein)
+                    CRN.replace_species(comp.transcript, comp.protein)
+        return CRN
 
 #A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.)
 #RNA is degraded via a global mechanism

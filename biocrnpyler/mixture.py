@@ -250,6 +250,9 @@ class Mixture(object):
         species = self.update_species()
         reactions = self.update_reactions()
         species = self.set_initial_condition(species)
+
+        species.sort(key = lambda s:repr(s))
+        reactions.sort(key = lambda r:repr(r))
         CRN = ChemicalReactionNetwork(species, reactions)
 
         return CRN

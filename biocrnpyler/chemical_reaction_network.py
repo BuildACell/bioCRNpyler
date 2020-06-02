@@ -114,7 +114,10 @@ class ComplexSpecies(Species):
         if False in [isinstance(s, Species) or isinstance(s, str) for s in self.species]:
             raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof).")
 
-        if name is None:
+        if name is not None:
+            self.custom_name = True
+        elif name is None:
+            self.custom_name = False
             name = ""
             list.sort(self.species, key = lambda s:repr(s))
             
@@ -159,6 +162,31 @@ class ComplexSpecies(Species):
                         return True
             #if we got here then we've failed to find it
             return False
+
+    #Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
+    def replace_species(self, species: Species, new_species: Species):
+        if not isinstance(species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        if not isinstance(new_species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        new_species_list = []
+        for s in self.species:
+            if s == species:
+                new_species_list.append(new_species)
+            elif isinstance(s, ComplexSpecies):
+                new_s = s.replace_species(species, new_species)
+                new_species_list.append(new_s)
+            else:
+                new_species_list.append(s)
+
+        new_name = None
+        if self.custom_name == True:
+            new_name = self.name
+        
+        print(self, "returning complex", ComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes))
+        return ComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
 
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         txt = ""
@@ -218,7 +246,10 @@ class OrderedComplexSpecies(ComplexSpecies):
         if False in [isinstance(s, Species) or isinstance(s, str) for s in self.species]:
             raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof) or strings.")
 
-        if name is None:
+        if name is not None:
+            self.custom_name = True
+        elif name is None:
+            self.custom_name = False
             name = ""
             for s in species:
                 if isinstance(s, str):
@@ -243,6 +274,30 @@ class OrderedComplexSpecies(ComplexSpecies):
             attributes.remove(None)
 
         self.attributes = attributes
+
+    #Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
+    def replace_species(self, species: Species, new_species: Species):
+        if not isinstance(species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        if not isinstance(new_species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        new_species_list = []
+        for s in self.species:
+            if s == species:
+                new_species_list.append(new_species)
+            elif isinstance(s, ComplexSpecies):
+                new_s = s.replace_species(species, new_species)
+                new_species_list.append(new_s)
+            else:
+                new_species_list.append(s)
+
+        new_name = None
+        if self.custom_name == True:
+            new_name = self.name
+        
+        return OrderedComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
 
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         txt = ""
@@ -417,11 +472,55 @@ class Reaction(object):
             self.output_coefs = output_coefs
         elif len(output_coefs) == len(outputs) \
              and len(self.outputs) != len(outputs):
-            raise ValueError("Output species and output_coefs contain "
+            raise ValueError(f"Output species ({self.outputs}) and output_coefs ({output_coefs}) contain "
                              "contradictory counts.")
         else:
             raise ValueError(f"len(output_coefs) ({len(output_coefs)}) doesn't "
                              f"match len(self.outputs) ({len(self.outputs)}).")
+
+
+    #Replaces species with new_species in the entire CRN
+    def replace_species(self, species: Species, new_species: Species):
+        if not isinstance(species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        if not isinstance(new_species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        new_inputs = []
+        for s in self.inputs:
+            if s == species:
+                new_inputs.append(new_species)
+            elif isinstance(s, ComplexSpecies):
+                new_s = s.replace_species(species, new_species)
+                new_inputs.append(new_s)
+            else:
+                new_inputs.append(s)
+        self.inputs = new_inputs
+
+        new_outputs = []
+        for s in self.outputs:
+            if s == species:
+                new_outputs.append(new_species)
+            elif isinstance(s, ComplexSpecies):
+                new_s = s.replace_species(species, new_species)
+                new_outputs.append(new_s)
+            else:
+                new_outputs.append(s)
+        self.outputs = new_outputs
+
+        if self.propensity_params is not None:
+            new_params = {}
+            for key in self.propensity_params:
+                if isinstance(self.propensity_params[key], ComplexSpecies):
+                    new_params[key] = self.propensity_params[key].replace_species(species, new_species)
+                elif isinstance(self.propensity_params[key], Species) and self.propensity_params[key] == species:
+                    new_params[key] = new_species
+                else:
+                    new_params[key] = self.propensity_params[key]
+
+        new_r = Reaction(inputs = self.inputs, outputs = self.outputs, input_coefs = self.input_coefs, output_coefs = self.output_coefs, propensity_type = self.propensity_type, propensity_params = self.propensity_params, k = self.k, k_rev = self.k_r)
+        return new_r
 
     #Helper function to print the text of a rate function
     def rate_func_text(self, pretty_print = False,  show_material = True, show_attributes = True, **kwargs):
@@ -786,12 +885,40 @@ class ChemicalReactionNetwork(object):
             raise ValueError('species argument must be an instance of Species!')
 
         for s in self.species:
-            if repr(species) in repr(s):
+            if species == s or (isinstance(s, ComplexSpecies) and species in s.species):
                 if return_as_strings:
                     return_list.append(repr(s))
                 else:
                     return_list.append(s)
         return return_list
+
+    #Replaces species with new_species in the entire CRN
+    def replace_species(self, species: Species, new_species: Species):
+        if not isinstance(species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        if not isinstance(new_species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        new_species_list = []
+        for s in self.species:
+            if s == species:
+                new_species_list.append(new_species)
+            elif isinstance(s, ComplexSpecies):
+                new_s = s.replace_species(species, new_species)
+                new_species_list.append(new_s)
+            else:
+                new_species_list.append(s)
+
+        new_reaction_list = []
+
+        for r in self.reactions:
+            new_r = r.replace_species(species, new_species)
+            new_reaction_list.append(new_r)
+
+
+        return ChemicalReactionNetwork(new_species_list, new_reaction_list)
+
 
     def generate_sbml_model(self, stochastic_model=False, **keywords):
         document, model = create_sbml_model(**keywords)
