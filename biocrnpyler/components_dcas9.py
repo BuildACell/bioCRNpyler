@@ -2,8 +2,8 @@
 #  See LICENSE file in the project root directory for details.
 
 from .component import Component
-from .basic_components import DNA, RNA, Protein
-from .binding_mechanisms import Reversible_Bimolecular_Binding
+from .components_basic import DNA, RNA, Protein
+from .mechanisms_binding import Reversible_Bimolecular_Binding
 from .chemical_reaction_network import Species
 
 

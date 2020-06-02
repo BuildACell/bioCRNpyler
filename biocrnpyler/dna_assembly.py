@@ -2,14 +2,14 @@
 #  See LICENSE file in the project root directory for details.
 
 from .component import Component
-from .basic_components import DNA, RNA, Protein
+from .components_basic import DNA, RNA, Protein
 from .chemical_reaction_network import ComplexSpecies, Species
-from .binding_mechanisms import One_Step_Cooperative_Binding
+from .mechanisms_binding import One_Step_Cooperative_Binding
 from warnings import warn as pywarn
 import itertools as it
 import numpy as np
-from .promoters import *
-from .ribosome_binding_sites import *
+from .dna_assembly_promoter import *
+from .dna_assembly_rbs import *
 
 def warn(txt):
     pywarn(txt)

@@ -1,8 +1,8 @@
 from .component import Component
-from .basic_components import DNA, RNA, Protein
+from .components_basic import DNA, RNA, Protein
 from .chemical_reaction_network import ComplexSpecies, Species
-from .binding_mechanisms import *
-from .txtl_mechanisms import *
+from .mechanisms_binding import *
+from .mechanisms_txtl import *
 
 class RBS(Component):
     def __init__(self, name: str, assembly = None,

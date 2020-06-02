@@ -1,7 +1,7 @@
 from .component import *
 from .chemical_reaction_network import Species, ComplexSpecies, OrderedComplexSpecies
 from .mechanism import *
-from .binding_mechanisms import *
+from .mechanisms_binding import *
 
 
 # These subclasses of Component represent different kinds of biomolecules.
@@ -157,7 +157,6 @@ class ChemicalComplex(Component):
         if name is None:
             name = self.species.name
 
-        from .mechanism import One_Step_Binding
         self.default_mechanisms = {"binding": One_Step_Binding()}
 
         Component.__init__(self=self, name=name, mechanisms=mechanisms,

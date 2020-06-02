@@ -10,21 +10,22 @@ from .global_mechanism import *
 from .chemical_reaction_network import *
 
 #core mechanisms
-from .binding_mechanisms import *
-from .enzyme_mechanisms import *
-from .txtl_mechanisms import *
-
+from .mechanisms_binding import *
+from .mechanisms_enzyme import *
+from .mechanisms_txtl import *
 
 # Core components
-from .extract_mixtures import *
-from .cell_mixtures import *
+from .mixtures_extract import *
+from .mixtures_cell import *
 from .dna_assembly import *
+from .dna_assembly_promoter import *
+from .dna_assembly_rbs import *
+
+#CRNlab imports
 from .crnlab import *
-from .promoters import *
-from .ribosome_binding_sites import *
 
 #specialized components - maybe these shouldn't be auto-imported?
-from .dcas9 import *
+from .components_dcas9 import *
 
 
 # Additional functions

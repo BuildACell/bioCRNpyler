@@ -4,8 +4,8 @@
 # from .extracts import *
 from .mixture import Mixture
 from .dna_assembly import DNAassembly
-from .cell_mixtures import *
-from .extract_mixtures import *
+from .mixtures_cell import *
+from .mixtures_extract import *
 import libsbml
 import warnings
 import inspect

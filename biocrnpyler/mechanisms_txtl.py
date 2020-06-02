@@ -1,6 +1,6 @@
 from .mechanism import *
 from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
-from .enzyme_mechanisms import *
+from .mechanisms_enzyme import *
 
 
 class Transcription_MM(MichalisMentenCopyRXN):
