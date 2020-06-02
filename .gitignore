@@ -12,6 +12,7 @@ coverage.xml
 .ipynb_checkpoints
 examples/.ipynb_checkpoints/
 *.orig
+*.py.orig
 
 build/
 dist/
