@@ -69,9 +69,15 @@ class TestParameter(TestCase):
     def test_create_parameter_dictionary(self):
         from biocrnpyler import Parameter
 
+        # test that no parameter dictionary or parameter files are given empty parameter dict is returned
+        empty_dict = {}
         parameters = Parameter.create_parameter_dictionary(parameters=None, parameter_file=None)
+        self.assertEqual(parameters, empty_dict)
 
-        self.assertEqual(parameters, None)
+        # test that no parameter file is given then the supplied parameter dictionary is returned
+        param_dict = {'kb': 10.0}
+        parameters = Parameter.create_parameter_dictionary(parameters=param_dict, parameter_file=None)
+        self.assertEqual(parameters, param_dict)
 
         with self.assertRaises(FileNotFoundError):
             Parameter.create_parameter_dictionary(parameters={}, parameter_file='dummy_file')

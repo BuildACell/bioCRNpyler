@@ -16,8 +16,8 @@ class Component(object):
 
     def __init__(self, name: Union[str, Species],
                  mechanisms={},  # custom mechanisms
-                 parameters={},  # parameter configuration
-                 parameter_file = None, #custom parameter file
+                 parameters=None,  # parameter configuration
+                 parameter_file=None, #custom parameter file
                  mixture=None,
                  attributes=[],
                  initial_conc=0,

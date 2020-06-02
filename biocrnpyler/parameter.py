@@ -215,15 +215,19 @@ class Parameter(object):
                                     parameter_file: Union[None, str, List[str]]) -> Union[None, Dict]:
         """
         Loads parameter config file(s) and merges the parameters with the existing parameters dictionary
-        :param parameters: existing parameters dictionary
+        :param parameters: existing parameters dictionary or None
         :param parameter_file: valid parameter file(s)
-        :return: updated parameters dictionary
+        :return: updated parameters dictionary (empty dict if no parameter file was given)
         """
-        # empty call no parameters are loaded
-        if parameters is None or parameter_file is None:
+
+        # no parameter dictionary was given creating one
+        if not isinstance(parameters, dict):
+            parameters = {}
+
+        # empty parameter_file no new parameters are loaded
+        if parameter_file is None:
             return parameters
 
-        assert isinstance(parameters, dict)
         assert isinstance(parameter_file, str) or isinstance(parameter_file, list)
 
         if isinstance(parameter_file, list):
