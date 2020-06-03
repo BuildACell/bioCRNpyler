@@ -45,6 +45,18 @@ class Species(object):
         txt.replace("'", "")
         return txt
 
+    def replace_species(self, species, new_species):
+        if not isinstance(species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        if not isinstance(new_species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        if self == species:
+            return new_species
+        else:
+            return self
+
     #A more powerful printing function
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         txt = ""
@@ -185,14 +197,13 @@ class ComplexSpecies(Species):
         if self.custom_name == True:
             new_name = self.name
         
-        print(self, "returning complex", ComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes))
         return ComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
 
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         txt = ""
         if self.material_type not in ["", None] and show_material:
             txt += self.material_type
-        
+        txt += "["
         for s in self.species_set:
             count = self.species.count(s)
             if count > 1:
@@ -209,8 +220,7 @@ class ComplexSpecies(Species):
 
         txt.replace("'", "")
 
-        if self.material_type not in ["", None] and show_material:
-            txt += "]"
+        txt += "]"
 
         return txt
 
@@ -304,6 +314,7 @@ class OrderedComplexSpecies(ComplexSpecies):
         if self.material_type not in ["", None] and show_material:
             txt += self.material_type+"["
         
+        txt += "["
 
         for s in self.species:
             txt += s.pretty_print(show_material = show_material, show_attributes = False)+":"
@@ -317,9 +328,7 @@ class OrderedComplexSpecies(ComplexSpecies):
             txt = txt[:-2]+")"
 
         txt.replace("'", "")
-
-        if self.material_type not in ["", None] and show_material:
-            txt += "]"
+        txt += "]"
 
         return txt
 

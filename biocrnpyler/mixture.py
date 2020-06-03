@@ -55,13 +55,13 @@ class Mixture(object):
 
         # Override the default mechanisms with anything we were passed
         # default parameters are used by mixture subclasses.
-        self.default_mechanisms = default_mechanisms
-        self.custom_mechanisms = mechanisms
+        self.default_mechanisms = dict(default_mechanisms)
+        self.custom_mechanisms = dict(mechanisms)
 
         #Initial conditions are searched for by defauled in the parameter file
         #see Mixture.set_initial_condition(self)
         #These can be overloaded with custom_initial_condition dictionary: component.name --> initial amount
-        self.custom_initial_condition = custom_initial_condition
+        self.custom_initial_condition = dict(custom_initial_condition)
 
         # Mechanisms stores the mechanisms used for compilation where defaults
         # are overwritten by custom mechanisms.
@@ -82,7 +82,7 @@ class Mixture(object):
         # components inside a mixture
         # Global mechanisms should be used rarely, and with care. An example
         # usecase is degradation via dilution.
-        self.global_mechanisms = global_mechanisms
+        self.global_mechanisms = dict(global_mechanisms)
 
         self.components = []  # components contained in mixture
         # if chemical_reaction_network.species objects are passed in as
@@ -197,6 +197,7 @@ class Mixture(object):
     def append_species(self, new_species):
         self.crn_species += [s for s in new_species if s not in self.crn_species]
 
+
     def update_species(self) -> List[Species]:
         """ it generates the list of species based on all the mechanisms and global mechanisms
 
@@ -206,13 +207,6 @@ class Mixture(object):
         self.crn_species = self.added_species
         for component in self.components:
             self.append_species(component.update_species())
-
-        # Update Global Mechanisms
-        for mech in self.global_mechanisms:
-            self.crn_species += \
-                self.global_mechanisms[mech].update_species_global(
-                                                            self.crn_species,
-                                                            self.parameters)
 
         return self.crn_species
 
@@ -232,14 +226,30 @@ class Mixture(object):
         for component in self.components:
             if self.parameter_warnings is not None:
                 component.set_parameter_warnings(self.parameter_warnings)
-
             self.crn_reactions += component.update_reactions()
 
-        # update with global mechanisms
-        for mech in self.global_mechanisms:
-            self.crn_reactions += \
-                self.global_mechanisms[mech].update_reactions_global(self.crn_species, self.parameters)
         return self.crn_reactions
+
+        
+
+    def apply_global_mechanisms(self) -> (List[Species], List[Reaction]):
+        # update with global mechanisms
+
+        if self.crn_species is None:
+            raise AttributeError("Mixture.crn_species not defined. "
+                                 "mixture.update_species() must be called "
+                                 "before mixture.apply_global_mechanisms()")
+
+        global_mech_species = []
+        global_mech_reactions = []
+
+        for mech in self.global_mechanisms:
+            # Update Global Mechanisms
+            global_mech_species += self.global_mechanisms[mech].update_species_global(self.crn_species, self.parameters)
+            global_mech_reactions += self.global_mechanisms[mech].update_reactions_global(self.crn_species, self.parameters)
+
+        return global_mech_species, global_mech_reactions
+
 
     def compile_crn(self) -> ChemicalReactionNetwork:
         """ Creates a chemical reaction network from the species and reactions associated with a mixture object
@@ -249,12 +259,17 @@ class Mixture(object):
 
         species = self.update_species()
         reactions = self.update_reactions()
-        species = self.set_initial_condition(species)
 
+        #global mechanisms are applied last and only to all the species 
+        global_mech_species, global_mech_reactions = self.apply_global_mechanisms()
+
+        species += global_mech_species
+        reactions += global_mech_reactions
+
+        species = self.set_initial_condition(species)
         species.sort(key = lambda s:repr(s))
         reactions.sort(key = lambda r:repr(r))
         CRN = ChemicalReactionNetwork(species, reactions)
-
         return CRN
 
     def __str__(self):

@@ -2,6 +2,7 @@
 # See LICENSE file in the project root directory for details.
 
 from warnings import warn
+from warnings import resetwarnings
 from .components_basic import DNA, RNA, Protein, ChemicalComplex
 from .mechanism import EmptyMechanism
 from .mechanisms_txtl import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
@@ -28,12 +29,33 @@ class ExpressionExtract(Mixture):
 
     #Overwriting compile_crn to replace transcripts with proteins for all DNA_assemblies
     def compile_crn(self) -> ChemicalReactionNetwork:
-        CRN = Mixture.compile_crn(self)
+        """ Creates a chemical reaction network from the species and reactions associated with a mixture object
+        :return: ChemicalReactionNetwork
+        """
+        resetwarnings()#Reset warnings - better to toggle them off manually.
+        species = self.update_species()
+        reactions = self.update_reactions()
+
         for comp in self.components:
             if isinstance(comp, DNAassembly):
                 if comp.transcript is not None and comp.protein is not None:
-                    print("replacing", comp.transcript, "with", comp.protein)
-                    CRN.replace_species(comp.transcript, comp.protein)
+                    for i, s in enumerate(species):
+                        species[i] = s.replace_species(comp.transcript, comp.protein)
+                    for i, r in enumerate(reactions):
+                        reactions[i] = r.replace_species(comp.transcript, comp.protein)
+
+        self.crn_species = list(set(species))
+        self.crn_reactions = reactions
+        #global mechanisms are applied last and only to all the species 
+        global_mech_species, global_mech_reactions = self.apply_global_mechanisms()
+
+        species += global_mech_species
+        reactions += global_mech_reactions
+
+        species = self.set_initial_condition(species)
+        species.sort(key = lambda s:repr(s))
+        reactions.sort(key = lambda r:repr(r))
+        CRN = ChemicalReactionNetwork(species, reactions)
         return CRN
 
 #A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.)
