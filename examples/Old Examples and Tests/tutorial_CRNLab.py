@@ -10,7 +10,7 @@ txtl = CRNLab("txtl_gfp")
 txtl.mixture("mixture1", extract = "BasicExtract", mixture_parameters = "BasicExtract.tsv", mixture_volume = 1e-6)
 
 # OR, Optionally, do the following, 
-# initial_concentration_dict = {"protein_Ribo":10, "protein_RNAP":5, "protein_RNAase":2.5} # If not, default values will be used
+# init = {"protein_Ribo":10, "protein_RNAP":5, "protein_RNAase":2.5} # If not, default values will be used
 # Specify what extract and buffer to use
 # txtl.extract("test_extract", init = initial_condition_dict)
 # Buffer with energy models will be available in future releases

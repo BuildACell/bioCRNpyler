@@ -2,9 +2,9 @@
 #  See LICENSE file in the project root directory for details.
 
 from warnings import warn as pywarn
-from .chemical_reaction_network import Species, ComplexSpecies
+from .chemical_reaction_network import Species, ComplexSpecies, Reaction
 from .parameter import Parameter
-
+from typing import List, Union
 
 
 def warn(txt):
@@ -14,10 +14,10 @@ def warn(txt):
 # Component class for core components
 class Component(object):
 
-    def __init__(self, name,
+    def __init__(self, name: Union[str, Species],
                  mechanisms={},  # custom mechanisms
-                 parameters={},  # parameter configuration
-                 parameter_file = None, #custom parameter file
+                 parameters=None,  # parameter configuration
+                 parameter_file=None, #custom parameter file
                  mixture=None,
                  attributes=[],
                  initial_conc=0,
@@ -69,30 +69,29 @@ class Component(object):
         self.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters)
 
     @property
-    def initial_concentration(self) -> int:
+    def initial_concentration(self) -> float:
         return self._initial_conc
 
     @initial_concentration.setter
-    def initial_concentration(self, initial_conc: int):
+    def initial_concentration(self, initial_conc: float):
         if initial_conc is None:
             self._initial_conc = initial_conc
-        elif initial_conc < 0:
+        elif initial_conc < 0.0:
             raise ValueError("Initial concentration must be non-negative, "f"this was given: {initial_conc}")
         else:
             self._initial_conc = initial_conc
 
-    # TODO implement abstractmethod
-    def get_species(self):
+    # TODO implement as an abstractmethod
+    def get_species(self) -> None:
         """
         the child class should implement this method
-        :return: empty list
+        :return: None
         """
-        warn("get_species() not defined for component {self.name}, "
-             "None returned.")
+        warn(f"get_species is not defined for component {self.name}, None returned.")
         return None
 
     #If allows species to be set from strings, species, or Components
-    def set_species(self, species, material_type = None, attributes = None):
+    def set_species(self, species: Union[Species, str], material_type = None, attributes = None):
         if isinstance(species, Species):
                 return species
         elif isinstance(species, str):
@@ -105,12 +104,12 @@ class Component(object):
     def __hash__(self):
         return str.__hash__(repr(self.get_species()))
 
-    def set_attributes(self, attributes):
+    def set_attributes(self, attributes: List[str]):
         if attributes is not None:
             for attribute in attributes:
                 self.add_attribute(attribute)
 
-    def add_attribute(self, attribute):
+    def add_attribute(self, attribute: str):
         assert isinstance(attribute, str) and attribute is not None, "Attribute: %s must be a str" % attribute
 
         self.attributes.append(attribute)
@@ -173,7 +172,7 @@ class Component(object):
         self.parameter_warnings = parameter_warnings
 
     # Get Parameter Hierarchy:
-    def get_parameter(self, param_name, part_id=None, mechanism=None):
+    def get_parameter(self, param_name: str, part_id=None, mechanism=None):
         return_val = None
         warning_txt = None
 
@@ -240,7 +239,7 @@ class Component(object):
             return return_val
 
     # TODO implement abstractmethod
-    def update_species(self):
+    def update_species(self) -> List:
         """
         the child class should implement this method
         :return: empty list
@@ -250,7 +249,7 @@ class Component(object):
         return species
 
     # TODO implement abstractmethod
-    def update_reactions(self):
+    def update_reactions(self) -> List:
         """
         the child class should implement this method
         :return: empty list
@@ -262,184 +261,3 @@ class Component(object):
     def __repr__(self):
         return type(self).__name__ + ": " + self.name
 
-
-# These subclasses of Component represent different kinds of biomolecules.
-
-
-class DNA(Component):
-    """DNA class
-
-    The DNA class is used to represent a DNA sequence that has a given
-    length.  Its main purpose is as the parent object for DNA
-    fragments and DNA assemblies.
-
-    Note: for initialization of members of this class, the arguments
-    should be as follows:
-
-      DNA(name, length, [mechanisms], [config_file], [prefix])
-
-        DNAtype(name, required_arguments, [length], [mechanisms],
-                [config_file], [prefix], [optional_arguments])
-
-          DNAelement(name, required_arguments, [length], [mechanisms],
-                     [config_file], [optional_arguments])
-
-
-    Data attributes
-    ---------------
-    name        Name of the sequence (str)
-    length      Length of the sequence (int)
-    assy        DNA assembly that we are part of
-    mechanisms  Local mechanisms for this component (overrides defaults)
-    parameters  Parameter dictionary for the DNA element
-
-    """
-
-    def __init__(
-            self, name, length=0,  # positional arguments
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters
-            attributes=[],
-            initial_conc=None,
-            parameter_warnings = True,
-            **keywords
-    ):
-        self.species = Species(name, material_type="dna",
-                               attributes=list(attributes))
-        self._length = length
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc,
-                           parameter_warnings = parameter_warnings, **keywords)
-
-    def get_species(self):
-        return self.species
-
-    def update_species(self):
-        species = [self.get_species()]
-        return species
-
-    def update_reactions(self):
-        return []
-
-    @property
-    def length(self):
-        return  self._length
-
-    @length.setter
-    def length(self, dna_length):
-        if dna_length >= 0:
-            self._length = dna_length
-        else:
-            raise ValueError("Length cannot be negative!")
-
-
-class RNA(Component):
-    def __init__(
-            self, name, length=0,  # positional arguments
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters
-            attributes=[],
-            initial_conc=None,
-            **keywords
-    ):
-        self.length = length
-        self.species = Species(name, material_type="rna",
-                               attributes=list(attributes))
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc, **keywords)
-
-    def get_species(self):
-        return self.species
-
-    def update_species(self):
-        species = [self.get_species()]
-        return species
-
-    def update_reactions(self):
-        return []
-
-
-class Protein(Component):
-    def __init__(
-            self, name, length=0,  # positional arguments
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters
-            attributes=[],
-            initial_conc=None,
-            **keywords
-    ):
-        self.length = length
-        self.species = Species(name, material_type="protein",
-                               attributes=attributes)
-
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc, **keywords)
-
-    def get_species(self):
-        return self.species
-
-    def update_species(self):
-        species = [self.get_species()]
-        return species
-
-    def update_reactions(self):
-        return []
-
-
-class ChemicalComplex(Component):
-    """
-    A complex forms when two or more species bind together
-    Complexes inherit the attributes of their species
-    """
-    def __init__(
-            self, species,  # positional arguments
-            name = None, #Override the default naming convention for a complex
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters,
-            attributes=[],
-            initial_conc=None,
-            material_type = "complex",
-            **keywords
-    ):
-
-        if len(species) < 2 or not isinstance(species, list):
-            raise ValueError("Species must be a list of Species, strings, Component objects.")
-
-        self.internal_species = [] #a list of species inside the complex
-
-        for s in species:
-            self.internal_species.append(self.set_species(s))
-
-        self.species = ComplexSpecies(species = self.internal_species, name = name, material_type=material_type, attributes=list(attributes))
-
-        if name == None:
-            name = self.species.name
-
-        from .mechanism import One_Step_Binding
-        self.default_mechanisms = {"binding": One_Step_Binding()}
-
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc, **keywords)
-
-    def get_species(self):
-        return self.species
-
-    def update_species(self):
-
-        mech_b = self.mechanisms['binding']
-
-        species = mech_b.update_species(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
-
-        return species
-
-    def update_reactions(self):
-
-        mech_b = self.mechanisms['binding']
-
-        reactions = mech_b.update_reactions(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
-        
-        return reactions

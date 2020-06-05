@@ -4,7 +4,8 @@
 # from .extracts import *
 from .mixture import Mixture
 from .dna_assembly import DNAassembly
-from .extracts import *
+from .mixtures_cell import *
+from .mixtures_extract import *
 import libsbml
 import warnings
 import inspect
@@ -130,3 +131,4 @@ class CRNLab(object):
 # TODO : 
 # Need to create more CRNLab examples to create models for other stuff. 
 # Try to copy stuff over from MATLAB txtl to implement examples there and recreate the results.  
+# Add unit tests for CRNLab
