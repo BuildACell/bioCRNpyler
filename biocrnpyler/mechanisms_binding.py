@@ -186,7 +186,105 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
         return rxns
 
-
+class Combinatorial_Cooperative_Binding(Mechanism):
+    """a reaction where some number of binders bind combinatorially to a bindee"""
+    def __init__(self,name="Combinatorial_Cooperative_binding",
+                            mechanism_type="cooperative_binding"):
+        Mechanism.__init__(self,name,mechanism_type)
+    def make_cooperative_complex(self,combo,bindee,cooperativity):
+        """given a list of binders and their cooperativities, make a complex
+        that contains the binders present N number of times where N is
+        each one's cooperativity"""
+        complexed_species_list = []
+        for binder in combo:
+            binder_cooperativity = int(cooperativity[binder.name])
+            #I hope that cooperativity is an int! what if it isn't
+            if(binder_cooperativity > 1):
+                complexed_species_list += [binder]*binder_cooperativity
+            else:
+                complexed_species_list += [binder]
+        complexed_species_list += [bindee]
+        if(len(complexed_species_list)==1):
+            myspecies = complexed_species_list[0]
+        else:
+            myspecies = ComplexSpecies(complexed_species_list)
+        return myspecies
+    def update_species(self,binders,bindee,cooperativity=None,\
+                            component = None, part_id = None, **kwords):
+        cooperativity_dict = {}
+        for binder in binders:
+            binder_partid = part_id+"_"+binder.name
+            if ((cooperativity == None) or (type(cooperativity)==dict and binder_partid not in cooperativity) \
+                                                                                        and (component is not None)):
+                #here we are extracting the relevant cooperativity value from the dictionary which should be passed
+                #in as the cooperativity argument
+                coop_val = component.get_parameter("cooperativity", part_id = binder_partid, mechanism = self)
+            elif type(cooperativity)==dict and binder_partid in cooperativity:
+                coop_val = cooperativity[binder_partid]
+            if component is None and ( cooperativity == None):
+                raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
+            cooperativity_dict[binder.name]=coop_val
+        out_species = []
+        for i in range(1, len(binders)+1):
+            for combo in it.combinations(binders,i):
+                #go through every possible combination of reactants and dna and make
+                #all the complexes
+                out_species += [self.make_cooperative_complex(combo,bindee,cooperativity_dict)]
+        return out_species
+    
+    def update_reactions(self,binders,bindee,component=None,kbs=None,kus=None,\
+                                                            part_id = None,cooperativity=None,**kwords):
+        binder_params = {}
+        for binder in binders:
+            binder_partid = part_id+"_"+binder.name
+            if ((type(kbs)==dict and binder not in kbs) or (type(kbs)!=dict and component is not None)):
+                kb = component.get_parameter("kb", part_id = binder_partid, mechanism = self)
+            elif(type(kbs)==dict and binder in kbs):
+                kb = kbs[binder.name]
+            elif(type(kbs)!=dict and component == None):
+                raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
+            if ((type(kus)==dict and binder not in kus) or (kus == None and component is not None)):
+                ku = component.get_parameter("ku", part_id = binder_partid, mechanism = self)
+            elif(type(kus)==dict and binder in kus):
+                ku = kus[binder.name]
+            elif(type(kus)!=dict and component == None):
+                raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
+            if ((cooperativity == None) or (type(cooperativity)==dict and binder.name not in cooperativity)  \
+                                                                                        and component is not None):
+                coop_val = component.get_parameter("cooperativity", part_id = binder_partid, mechanism = self)
+            elif type(cooperativity)==dict and binder.name in cooperativity:
+                coop_val = cooperativity[binder.name]
+            if component is None and (kb == None or ku == None or cooperativity == None):
+                raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
+            binder_params[binder] = {"kb":kb,"ku":ku,"cooperativity":coop_val}
+        #out_rxns = []
+        rxndict = {}
+        coop_dict = {a.name:binder_params[a]["cooperativity"] for a in binder_params}
+        for i in range(1, len(binders)+1):
+            for combo in it.combinations(binders,i):
+                #come up with all combinations of binders
+                
+                product = self.make_cooperative_complex(combo,bindee,coop_dict)
+                #this is the complex which becomes the product
+                for binder in combo:
+                    #then in each case, one binder can be added to make
+                    #this combination
+                    reactant = tuple(set(combo)-set([binder]))
+                    rxn_prototype = (binder,reactant)
+                    
+                    #this part makes a describer of the reaction; which reactants are combining?
+                    #print(rxn_prototype)
+                    #print(rxndict)
+                    if(rxn_prototype in rxndict):
+                        #if we already did this reaction then forget about it
+                        continue
+                    else:
+                        reactant_complex = self.make_cooperative_complex(reactant,bindee,coop_dict)
+                        reaction = Reaction(inputs=[binder, reactant_complex], outputs=[product],
+                        input_coefs=[binder_params[binder]["cooperativity"], 1], output_coefs=[1], \
+                                         k=binder_params[binder]["kb"],k_rev=binder_params[binder]["ku"])
+                        rxndict[rxn_prototype]=reaction
+        return [rxndict[a] for a in rxndict]
 class One_Step_Binding(Mechanism):
     def __init__(self, name="one_step_binding",
                  mechanism_type="binding"):
