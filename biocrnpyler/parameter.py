@@ -87,7 +87,8 @@ class Parameter(object):
     """Parameter value (reaction rates)"""
 
     def __init__(self, name, param_type, value, comment="", debug=False):
-        assert type(param_type) is str
+        if not isinstance(param_type, str):
+            raise ValueError('parameter_type must be a string')
 
         self.name = name.strip()
         self.param_type = param_type.strip()
@@ -111,8 +112,14 @@ class Parameter(object):
         :param accepted_field_names: dictionary of possible field names and their valid aliases
         :return: dictionary of currently used field names (aliases)
         """
-        assert isinstance(field_names, list) and len(field_names) > 0
-        assert isinstance(accepted_field_names, dict) and len(accepted_field_names) > 0
+        if not isinstance(field_names, list):
+            raise ValueError('field_names must be a list of strings')
+        if isinstance(field_names, list) and len(field_names) == 0:
+            raise ValueError('field_names cannot be empty list!')
+        if not isinstance(accepted_field_names, dict):
+            raise ValueError('accepted_field_names must be a dictionary')
+        if isinstance(accepted_field_names, dict) and len(accepted_field_names) == 0:
+            raise ValueError('accepted_field_names cannot be empty dictionary')
 
         return_field_names = dict.fromkeys(accepted_field_names.keys())
         for accepted_name in accepted_field_names:
@@ -215,15 +222,19 @@ class Parameter(object):
                                     parameter_file: Union[None, str, List[str]]) -> Union[None, Dict]:
         """
         Loads parameter config file(s) and merges the parameters with the existing parameters dictionary
-        :param parameters: existing parameters dictionary
+        :param parameters: existing parameters dictionary or None
         :param parameter_file: valid parameter file(s)
-        :return: updated parameters dictionary
+        :return: updated parameters dictionary (empty dict if no parameter file was given)
         """
-        # empty call no parameters are loaded
-        if parameters is None or parameter_file is None:
+
+        # no parameter dictionary was given creating one
+        if not isinstance(parameters, dict):
+            parameters = {}
+
+        # empty parameter_file no new parameters are loaded
+        if parameter_file is None:
             return parameters
 
-        assert isinstance(parameters, dict)
         assert isinstance(parameter_file, str) or isinstance(parameter_file, list)
 
         if isinstance(parameter_file, list):

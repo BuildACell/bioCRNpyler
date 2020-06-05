@@ -1,151 +1,22 @@
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from .component import Component, DNA
+from .component import Component
+from .components_basic import DNA, RNA, Protein
 from .chemical_reaction_network import ComplexSpecies, Species
-from .mechanism import One_Step_Cooperative_Binding
+from .mechanisms_binding import One_Step_Cooperative_Binding
 from warnings import warn as pywarn
 import itertools as it
 import numpy as np
+from .dna_assembly_promoter import *
+from .dna_assembly_rbs import *
 
 def warn(txt):
     pywarn(txt)
 
 
-class Promoter(Component):
-    def __init__(self, name, assembly=None,
-                 transcript=None, length=0,
-                 mechanisms={}, parameters={}, **keywords):
-        self.assembly = assembly
-        self.length = length
-        if transcript is None and assembly is None:
-            self.transcript = None
-        elif transcript is None:
-            self.transcript = Species(assembly.name, material_type="rna")
-        else:
-            self.transcript = self.set_species(transcript, material_type = 'rna')
-
-        Component.__init__(self, name = name, mechanisms = mechanisms,
-                           parameters = parameters, **keywords)
-
-    def update_species(self):
-        mech_tx = self.mechanisms["transcription"]
-        species = []
-        species += mech_tx.update_species(dna = self.assembly.dna, \
-            transcript = self.transcript, protein = self.assembly.protein)
-        return species
-
-    def update_reactions(self):
-        mech_tx = self.mechanisms["transcription"]
-        reactions = []
-
-
-        reactions += mech_tx.update_reactions(dna = self.assembly.dna, \
-                        component = self, part_id = self.name, complex = None,
-                        transcript = self.transcript, protein = self.assembly.protein)
-        return reactions
-
-class RegulatedPromoter(Promoter):
-    def __init__(self, name, regulators, leak = True, assembly = None,
-                 transcript = None, length = 0, mechanisms = {},
-                 parameters = {}, **keywords):
-
-        if not isinstance(regulators, list):
-            regulators = [regulators]
-
-        self.regulators = []
-        for regulator in regulators:
-            self.regulators += [self.set_species(regulator, material_type = "protein")]
-
-        self.leak = leak
-
-        self.default_mechanisms = {"binding": One_Step_Cooperative_Binding()}
-
-        Promoter.__init__(self, name = name, assembly = assembly,
-                          transcript = transcript, length = length,
-                          mechanisms = mechanisms, parameters = parameters,
-                          **keywords)
-
-    def update_species(self):
-        mech_tx = self.mechanisms["transcription"]
-        mech_b = self.mechanisms['binding']
-        species = []
-        self.complexes = []
-        if self.leak is not False:
-            species += mech_tx.update_species(dna = self.assembly.dna, component = self)
-
-        for i in range(len(self.regulators)):
-            regulator = self.regulators[i]
-
-            species_b = mech_b.update_species(regulator, self.assembly.dna, component = self, part_id = self.name+"_"+regulator.name)
-            species += species_b
-            complex_ = species_b[0]
-            self.complexes += [complex_]
-            species += mech_tx.update_species(dna = complex_, transcript = self.transcript, protein = self.assembly.protein, part_id = self.name+"_"+regulator.name)
-        return species
-
-    def update_reactions(self):
-        reactions = []
-        mech_tx = self.mechanisms["transcription"]
-        mech_b = self.mechanisms['binding']
-
-        if self.leak != False:
-            reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, \
-                                                            transcript = self.transcript, protein = self.assembly.protein)
-
-        for i in range(len(self.regulators)):
-            regulator = self.regulators[i]
-            complex_ = self.complexes[i]
-
-            reactions += mech_b.update_reactions(regulator, self.assembly.dna, component = self, \
-                                                                    part_id = self.name+"_"+regulator.name)
-            reactions += mech_tx.update_reactions(dna = complex_, component = self, part_id = self.name+"_"+regulator.name, \
-                                            transcript = self.transcript, protein = self.assembly.protein)
-
-        return reactions
-
-class RBS(Component):
-    def __init__(self, name, assembly = None,
-                 transcript = None, protein = None, length = 0,
-                 mechanisms = {}, parameters = {}, **keywords):
-        self.assembly = assembly
-        self.length = length
-
-        Component.__init__(self, name = name, mechanisms = mechanisms,
-                           parameters = parameters, **keywords)
-
-        if transcript is None and assembly is None:
-            self.transcript = None
-        elif transcript is None:
-            self.transcript = Species(assembly.name, material_type = "rna")
-        else:
-            self.transcript = self.set_species(transcript, material_type = "rna")
- 
-        if protein is None:
-            self.protein = Species(assembly.name, material_type = "protein")
-        else:
-            self.protein = self.set_species(protein, material_type = "protein")
-
-        Component.__init__(self, name = name, mechanisms = mechanisms,
-                           parameters = parameters, **keywords)
-
-    def update_species(self):
-        mech_tl = self.mechanisms['translation']
-        species = []
-        species += mech_tl.update_species(transcript = self.transcript, protein = self.protein)
-        return species
-
-    def update_reactions(self):
-        mech_tl = self.mechanisms['translation']
-        reactions = []
-
-        reactions += mech_tl.update_reactions(transcript = self.transcript,
-                                              protein = self.protein, component = self, part_id = self.name)
-        return reactions
-
-
 class DNAassembly(DNA):
-    def __init__(self, name, dna = None, promoter = None, transcript = None,
+    def __init__(self, name: str, dna = None, promoter = None, transcript = None,
                  rbs = None, protein = None, length = None,
                  attributes = [], mechanisms = {}, parameters = {}, initial_conc = None,
                  parameter_warnings = True, **keywords):
@@ -174,10 +45,10 @@ class DNAassembly(DNA):
     def set_parameter_warnings(self, parameter_warnings):
         self.parameter_warnings = parameter_warnings
 
-        if self.parameter_warnings != None:
-            if self.promoter != None:
+        if self.parameter_warnings is not None:
+            if self.promoter is not None:
                 self.promoter.set_parameter_warnings(parameter_warnings)
-            if self.rbs != None:
+            if self.rbs is not None:
                 self.rbs.set_parameter_warnings(parameter_warnings)
 
 
