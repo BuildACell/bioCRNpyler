@@ -258,8 +258,7 @@ class CombinatorialPromoter(Promoter):
 
         if self.leak is not False:
             #this part takes care of the promoter not bound to anything
-            species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript,\
-                                                                        protein = self.assembly.protein)
+            species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, protein = self.assembly.protein, component = self, part_id = self.name+"_leak")
             #self.leak_complexes += []
 
         for bound_complex in bound_species: 
@@ -269,8 +268,7 @@ class CombinatorialPromoter(Promoter):
                     species_inside += [regulator.name] 
             if(set(species_inside) in [set(a) for a in self.tx_capable_list]):
                 #only the transcribable complexes in tx_capable_list get transcription reactions
-                tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, \
-                                                                                    protein = self.assembly.protein)
+                tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, protein = self.assembly.protein, component = self, part_id = self.name)
                 species +=tx_capable_species[1:]
                 self.tx_capable_complexes +=[bound_complex]
             else:
@@ -280,8 +278,7 @@ class CombinatorialPromoter(Promoter):
                 # 2) we said we wanted leak, so then you should add this, but with the "_leak" parameters
                 #                                                         (that happens in update_reactions)
                 if(self.leak is not False):
-                    leak_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, \
-                                                                                    protein = self.assembly.protein)
+                    leak_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, protein = self.assembly.protein, component = self, part_id = self.name+"_leak")
                     species += leak_species[1:]
                     self.leak_complexes += [bound_complex]
         species+=bound_species  
