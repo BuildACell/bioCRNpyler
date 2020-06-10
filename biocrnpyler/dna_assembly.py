@@ -141,7 +141,7 @@ class DNAassembly(DNA):
 
         if "rna_degredation" in self.mechanisms and self.promoter is not None:
             deg_mech = self.mechanisms["rna_degredation"]
-            species += deg_mech.update_species(rna = self.transcript)
+            species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
 
         # TODO raise a warning if there were duplicate species
         return list(set(species))
@@ -160,7 +160,7 @@ class DNAassembly(DNA):
             deg_mech = self.mechanisms["rna_degredation"]
 
 
-            reactions += deg_mech.update_reactions(rna = self.transcript, component = self.promoter)
+            reactions += deg_mech.update_reactions(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
         # TODO check that the reaction list is unique
         return reactions
 

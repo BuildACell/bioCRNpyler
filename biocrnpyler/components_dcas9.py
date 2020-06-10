@@ -43,15 +43,9 @@ class guideRNA(RNA):
 
     def update_species(self):
         species = [self.gRNA, self.dCas]
-        species += self.mechanisms['dCas9_binding'].update_species(self.gRNA,
-                                                                   self.dCas)
+        species += self.mechanisms['dCas9_binding'].update_species(self.gRNA, self.dCas, component = self, part_id = self.name)
         return species
 
     def update_reactions(self):
-        ku = self.get_parameter("ku", part_id = self.gRNA.name,
-                                mechanism = self.mechanisms['dCas9_binding'])
-        kb = self.get_parameter("kb", part_id = self.gRNA.name,
-                                mechanism = self.mechanisms['dCas9_binding'])
-        rxns = self.mechanisms['dCas9_binding'].update_reactions(self.gRNA,
-                                                    self.dCas, kb = kb, ku = ku)
+        rxns = self.mechanisms['dCas9_binding'].update_reactions(self.gRNA, self.dCas, component = self, part_id = self.name)
         return rxns

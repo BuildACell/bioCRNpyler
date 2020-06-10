@@ -228,18 +228,19 @@ class PositiveHillTranscription(Mechanism):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
     
     #Overwrite update_species
-    def update_species(self, dna, activator, transcript = None, **keywords):
+    def update_species(self, dna, regulator, transcript = None, **keywords):
         
-        if transcript == None: #Species names can be automatically created
+        if transcript is None: #Species names can be automatically created
             transcript = Species(dna.name, material = "rna")
             
-        return [dna, transcript, activator] #it is best to return all species that will be involved in the reactions
+        return [dna, transcript, regulator] #it is best to return all species that will be involved in the reactions
+
     
     #Overwrite update_reactions
     #This always requires the inputs component and part_id to find the relevant parameters
-    def update_reactions(self, dna, activator, component, part_id, transcript = None, **keywords):
+    def update_reactions(self, dna, regulator, component, part_id, transcript = None, **keywords):
         
-        if transcript == None: #Species names should be automatically created the same here as above
+        if transcript is None: #Species names should be automatically created the same here as above
             transcript = Species(dna.name, material = "rna")
         
         ktx = component.get_parameter("k", part_id = part_id, mechanism = self)
@@ -247,7 +248,7 @@ class PositiveHillTranscription(Mechanism):
         K = component.get_parameter("K", part_id = part_id, mechanism = self)
         kleak = component.get_parameter("kleak", part_id = part_id, mechanism = self)
         
-        params = {"k":ktx, "n":n, "K":K, "s1":activator, "d":dna}
+        params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
         
         reaction = Reaction(inputs = [dna], outputs = [dna, transcript], 
                             propensity_type = "proportionalhillpositive", propensity_params = params)
@@ -263,18 +264,18 @@ class NegativeHillTranscription(Mechanism):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
     
     #Overwrite update_species
-    def update_species(self, dna, repressor, transcript = None, **keywords):
+    def update_species(self, dna, regulator, transcript = None, **keywords):
         
-        if transcript == None: #Species names can be automatically created
+        if transcript is None: #Species names can be automatically created
             transcript = Species(dna.name, material = "rna")
             
-        return [dna, transcript, repressor] #it is best to return all species that will be involved in the reactions
+        return [dna, transcript, regulator] #it is best to return all species that will be involved in the reactions
     
     #Overwrite update_reactions
     #This always requires the inputs component and part_id to find the relevant parameters
-    def update_reactions(self, dna, repressor, component, part_id, transcript = None, **keywords):
+    def update_reactions(self, dna, regulator, component, part_id, transcript = None, **keywords):
         
-        if transcript == None: #Species names should be automatically created the same here as above
+        if transcript is None: #Species names should be automatically created the same here as above
             transcript = Species(dna.name, material = "rna")
         
         ktx = component.get_parameter("k", part_id = part_id, mechanism = self)
@@ -282,7 +283,7 @@ class NegativeHillTranscription(Mechanism):
         K = component.get_parameter("K", part_id = part_id, mechanism = self)
         kleak = component.get_parameter("kleak", part_id = part_id, mechanism = self)
         
-        params = {"k":ktx, "n":n, "K":K, "s1":repressor, "d":dna}
+        params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
         
         reaction = Reaction(inputs = [dna], outputs = [dna, transcript], 
                             propensity_type = "proportionalhillnegative", propensity_params = params)

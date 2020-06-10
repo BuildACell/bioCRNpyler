@@ -27,7 +27,8 @@ class Promoter(Component):
         mech_tx = self.mechanisms["transcription"]
         species = []
         species += mech_tx.update_species(dna = self.assembly.dna, \
-            transcript = self.transcript, protein = self.assembly.protein)
+            transcript = self.transcript, protein = self.assembly.protein,
+            component = self, part_id = self.name)
         return species
 
     def update_reactions(self):
@@ -72,7 +73,7 @@ class RegulatedPromoter(Promoter):
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
 
-            species_b = mech_b.update_species(regulator, self.assembly.dna, component = self, part_id = self.name+"_"+regulator.name)
+            species_b = mech_b.update_species(regulator, self.assembly.dna, part_id = self.name+"_"+regulator.name, component = self)
             species += species_b
 
             #Find complexes containing DNA and the regulator
@@ -80,7 +81,7 @@ class RegulatedPromoter(Promoter):
                 if isinstance(s, ComplexSpecies) and self.assembly.dna in s.species and regulator in s.species:
                     self.complexes += [s]
 
-                    species += mech_tx.update_species(dna = s, transcript = self.transcript, protein = self.assembly.protein, part_id = self.name+"_"+regulator.name)
+                    species += mech_tx.update_species(dna = s, transcript = self.transcript, protein = self.assembly.protein, part_id = self.name+"_"+regulator.name, component = self)
         return species
 
     def update_reactions(self):
@@ -103,7 +104,6 @@ class RegulatedPromoter(Promoter):
 
         return reactions
 
-
 #A class for a promoter which can be activated by a single species, modelled as a positive hill function
 class ActivatablePromotor(Promoter):
     def __init__(self, name, transcript, activator, **keywords):
@@ -123,7 +123,7 @@ class ActivatablePromotor(Promoter):
         mech_tx = self.mechanisms["transcription"]
         
         species = [] #A list of species must be returned
-        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, activator = self.activator)
+        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, regulator = self.activator, part_id = self.name+"_"+activator.name, component = self)
         
         return species
 
@@ -131,7 +131,7 @@ class ActivatablePromotor(Promoter):
         mech_tx = self.mechanisms["transcription"]
         
         reactions = [] #a list of reactions must be returned
-        reactions += mech_tx.update_reactions(dna = self.assembly.dna, transcript = self.transcript, repressor = self.repressor, 
+        reactions += mech_tx.update_reactions(dna = self.assembly.dna, transcript = self.transcript, regulator = self.repressor, 
                                              component = self, part_id = self.name+"_"+self.activator.name, **keywords)
         return reactions
 
@@ -154,7 +154,7 @@ class RepressablePromotor(Promoter):
         mech_tx = self.mechanisms["transcription"]
         
         species = [] #A list of species must be returned
-        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, repressor = self.repressor)
+        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, regulator = self.repressor, component = self, part_id = self.name+"_"+self.repressor.name)
         
         return species
 
@@ -162,6 +162,6 @@ class RepressablePromotor(Promoter):
         mech_tx = self.mechanisms["transcription"]
         
         reactions = [] #a list of reactions must be returned
-        reactions += mech_tx.update_reactions(dna = self.assembly.dna, transcript = self.transcript, repressor = self.repressor, 
+        reactions += mech_tx.update_reactions(dna = self.assembly.dna, transcript = self.transcript, regulator = self.repressor, 
                                              component = self, part_id = self.name+"_"+self.repressor.name, **keywords)
         return reactions

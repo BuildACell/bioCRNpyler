@@ -48,7 +48,7 @@ class Mechanism(object):
             warn(f"Mechanism {name} instantiated without a type. This could "
                  "prevent the mechanism from being inherited properly.")
 
-    def update_species(self):
+    def update_species(self, component = None, part_id = None):
         """
         the child class should implement this method
         :return: empty list
@@ -72,8 +72,8 @@ class EmptyMechanism(Mechanism):
     def __init__(self, name, mechanism_type):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
-    def update_species(self, **keywords):
+    def update_species(self, component = None, part_id = None, **keywords):
         return []
 
-    def update_reactions(self, **keywords):
+    def update_reactions(self, component = None, part_id = None, **keywords):
         return []
