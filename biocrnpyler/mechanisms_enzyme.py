@@ -8,7 +8,7 @@ class MichalisMentenRXN(Mechanism):
        Sub+Enz <--> Sub:Enz --> Enz+Prod
     """
 
-    def __init__(self, name, enzyme, mechanism_type, **keywords):
+    def __init__(self, name, enzyme, mechanism_type = "catalysis", **keywords):
         if isinstance(enzyme, Species):
             self.Enzyme = enzyme
         else:
@@ -57,7 +57,7 @@ class MichalisMentenCopyRXN(Mechanism):
     """In the Copy RXN version, the Substrate is not Consumed
        Sub+Enz <--> Sub:Enz --> Sub+Enz+Prod
     """
-    def __init__(self, name, enzyme, mechanism_type, **keywords):
+    def __init__(self, name, enzyme, mechanism_type = "copy", **keywords):
         if isinstance(enzyme, Species):
             self.Enzyme = enzyme
         else:

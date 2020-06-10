@@ -285,6 +285,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                                          k=binder_params[binder]["kb"],k_rev=binder_params[binder]["ku"])
                         rxndict[rxn_prototype]=reaction
         return [rxndict[a] for a in rxndict]
+
+        
 class One_Step_Binding(Mechanism):
     def __init__(self, name="one_step_binding",
                  mechanism_type="binding"):
