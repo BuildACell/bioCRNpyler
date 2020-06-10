@@ -17,8 +17,9 @@ class Species(object):
 
     def __init__(self, name: str, material_type="", attributes=[],
                  initial_concentration=0):
-        self.name = name
-        self.material_type = material_type
+
+        self.name = self.check_name(name)
+        self.material_type = self.check_material_type(material_type)
         self.initial_concentration = initial_concentration
         if material_type == "complex":
             warn("species which are formed of two species or more should be "
@@ -30,6 +31,28 @@ class Species(object):
         if attributes is not None:
             for attribute in attributes:
                 self.add_attribute(attribute)
+
+     #Check that the string contains is alpha-numeric characters or "_" and that the first character is a letter. IF the name is a starts with a number, there must be a material type.
+    def check_material_type(self, material_type):
+
+        
+        if material_type in [None, ""] and self.name[0].isnumeric():
+            raise ValueError(f"species name: {self.name} contains a number as the first character and therefore requires a material_type.")
+        elif material_type == None:
+            return ""
+        elif (material_type.replace("_", "").isalnum() and material_type.replace("_", "")[0].isalpha()) or material_type == "":
+                return material_type
+        else:
+            raise ValueError(f"material_type {material_type} must be alpha-numeric and start with a letter.")
+
+    
+    #Check that the string contains only underscores and alpha-numeric characters
+    def check_name(self, name):
+        no_underscore_string = name.replace("_", "")
+        if no_underscore_string.isalnum():
+            return name
+        else:
+            raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores.")
 
     def __repr__(self):
         txt = ""
@@ -80,8 +103,7 @@ class Species(object):
         return txt
 
     def add_attribute(self, attribute: str):
-        assert isinstance(attribute, str) and attribute is not None, "Attribute: %s must be a string" % attribute
-
+        assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(), "Attribute: %s must be an alpha-numeric string" % attribute
         self.attributes.append(attribute)
 
     def __eq__(self, other):
@@ -144,8 +166,8 @@ class ComplexSpecies(Species):
                     name+=f"{s.name}_"
             name = name[:-1]
 
-        self.name = name
-        self.material_type = material_type
+        self.name = self.check_name(name)
+        self.material_type = self.check_material_type(material_type)
         self.initial_concentration = initial_concentration
 
         if attributes is None:
@@ -270,8 +292,8 @@ class OrderedComplexSpecies(ComplexSpecies):
                     name+=f"{s.name}_"
             name = name[:-1]
 
-        self.name = name
-        self.material_type = material_type
+        self.name = self.check_name(name)
+        self.material_type = self.check_material_type(material_type)
         self.initial_concentration = initial_concentration
 
         if attributes is None:
