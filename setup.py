@@ -6,7 +6,7 @@ with open('README.md') as fp:
 
 setup(
     name='biocrnpyler',
-    version='0.1',
+    version='0.2',
     author='BuildACell',
     author_email='wpoole@caltech.edu',
     url='https://github.com/BuildACell/biocrnplyler/',

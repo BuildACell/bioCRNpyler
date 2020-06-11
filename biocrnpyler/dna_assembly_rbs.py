@@ -32,7 +32,7 @@ class RBS(Component):
     def update_species(self):
         mech_tl = self.mechanisms['translation']
         species = []
-        species += mech_tl.update_species(transcript = self.transcript, protein = self.protein)
+        species += mech_tl.update_species(transcript = self.transcript, protein = self.protein, component = self, part_id = self.name)
         return species
 
     def update_reactions(self):
