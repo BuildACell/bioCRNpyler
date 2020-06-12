@@ -6,8 +6,9 @@ from .mechanisms_txtl import *
 from warnings import warn as pywarn
 import itertools as it
 import numpy as np
+from .dna_part import DNA_part
 
-class Promoter(Component):
+class Promoter(DNA_part):
     def __init__(self, name, assembly=None,
                  transcript=None, length=0,
                  mechanisms={}, parameters={}, **keywords):
@@ -20,14 +21,14 @@ class Promoter(Component):
         else:
             self.transcript = self.set_species(transcript, material_type = 'rna')
 
-        Component.__init__(self, name = name, mechanisms = mechanisms,
+        DNA_part.__init__(self, name = name, mechanisms = mechanisms,
                            parameters = parameters, **keywords)
 
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]
         species = []
         species += mech_tx.update_species(dna = self.assembly.dna, \
-            transcript = self.transcript, protein = self.assembly.protein,
+            transcript = self.transcript,
             component = self, part_id = self.name)
         return species
 
@@ -38,7 +39,7 @@ class Promoter(Component):
 
         reactions += mech_tx.update_reactions(dna = self.assembly.dna, \
                         component = self, part_id = self.name, complex = None,
-                        transcript = self.transcript, protein = self.assembly.protein)
+                        transcript = self.transcript)
         return reactions
 
 class RegulatedPromoter(Promoter):
@@ -56,7 +57,7 @@ class RegulatedPromoter(Promoter):
         self.leak = leak
 
         self.default_mechanisms = {"binding": One_Step_Cooperative_Binding()}
-
+        self.complexes = []
         Promoter.__init__(self, name = name, assembly = assembly,
                           transcript = transcript, length = length,
                           mechanisms = mechanisms, parameters = parameters,
@@ -81,7 +82,7 @@ class RegulatedPromoter(Promoter):
                 if isinstance(s, ComplexSpecies) and self.assembly.dna in s.species and regulator in s.species:
                     self.complexes += [s]
 
-                    species += mech_tx.update_species(dna = s, transcript = self.transcript, protein = self.assembly.protein, part_id = self.name+"_"+regulator.name, component = self)
+                    species += mech_tx.update_species(dna = s, transcript = self.transcript, part_id = self.name+"_"+regulator.name, component = self)
         return species
 
     def update_reactions(self):
@@ -91,8 +92,9 @@ class RegulatedPromoter(Promoter):
 
         if self.leak != False:
             reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, \
-                                                            transcript = self.transcript, protein = self.assembly.protein)
-
+                                                            transcript = self.transcript)
+        if(len(self.complexes)<len(self.regulators)):
+            self.update_species()
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
             complex_ = self.complexes[i]
@@ -100,7 +102,7 @@ class RegulatedPromoter(Promoter):
             reactions += mech_b.update_reactions(regulator, self.assembly.dna, component = self, \
                                                                     part_id = self.name+"_"+regulator.name)
             reactions += mech_tx.update_reactions(dna = complex_, component = self, part_id = self.name+"_"+regulator.name, \
-                                            transcript = self.transcript, protein = self.assembly.protein)
+                                            transcript = self.transcript)
 
         return reactions
 

@@ -207,7 +207,7 @@ class Mixture(object):
         self.crn_species = self.added_species
         for component in self.components:
             self.append_species(component.update_species())
-
+        self.crn_species = list(set(self.crn_species)) #species should be unique!
         return self.crn_species
 
     def update_reactions(self) -> List[Reaction]:

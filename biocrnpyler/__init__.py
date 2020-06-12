@@ -18,8 +18,14 @@ from .mechanisms_txtl import *
 from .mixtures_extract import *
 from .mixtures_cell import *
 from .dna_assembly import *
-from .dna_assembly_promoter import *
-from .dna_assembly_rbs import *
+from .dna_part_promoter import *
+from .dna_part_rbs import *
+from .dna_part_cds import *
+from .dna_part_terminator import *
+from .dna_part_misc import *
+
+from .dna_part import *
+from .dna_construct import *
 
 #CRNlab imports
 from .crnlab import *

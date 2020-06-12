@@ -3,15 +3,15 @@ from .components_basic import DNA, RNA, Protein
 from .chemical_reaction_network import ComplexSpecies, Species
 from .mechanisms_binding import *
 from .mechanisms_txtl import *
-
-class RBS(Component):
+from .dna_part import DNA_part
+class RBS(DNA_part):
     def __init__(self, name: str, assembly = None,
                  transcript = None, protein = None, length = 0,
                  mechanisms = {}, parameters = {}, **keywords):
         self.assembly = assembly
         self.length = length
 
-        Component.__init__(self, name = name, mechanisms = mechanisms,
+        DNA_part.__init__(self, name = name, mechanisms = mechanisms,
                            parameters = parameters, **keywords)
 
         if transcript is None and assembly is None:
@@ -21,7 +21,9 @@ class RBS(Component):
         else:
             self.transcript = self.set_species(transcript, material_type = "rna")
  
-        if protein is None:
+        if protein is None and assembly is None:
+            self.protein = None
+        elif protein is None:
             self.protein = Species(assembly.name, material_type = "protein")
         else:
             self.protein = self.set_species(protein, material_type = "protein")

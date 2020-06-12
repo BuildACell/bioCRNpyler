@@ -6,7 +6,7 @@ from .sbmlutil import *
 import warnings
 import numpy as np
 from typing import List, Union, Dict
-
+import copy
 
 
 class Species(object):
@@ -121,6 +121,8 @@ class Species(object):
             return True
         else:
             return False
+    def get_species(self):
+        return self
     def __gt__(self,Species2):
         return self.name > Species2.name
     def __lt__(self,Species2):
@@ -129,6 +131,62 @@ class Species(object):
     def __hash__(self):
         return str.__hash__(repr(self))
 
+def make_complex(species,**keywords):
+    """ this function replaces the class instatiation for ComplexSpecies to allow for automatically
+    creating an OrderedComplexSpecies or a regular ComplexSpecies depending on what we need.
+    An OrderedComplexSpecies represents a piece of DNA with many binding sites.
+    The last element of an OrderedComplexSpecies is the name of the DNA molecule, with other
+    elements representing the different binding sites"""
+    valent_complex = None
+    bindloc = None
+    other_species = []
+    for specie in species:
+        if(isinstance(specie,OrderedComplexSpecies) and valent_complex is None):
+            valent_complex = copy.deepcopy(specie)
+            for attribute in specie.attributes:
+                #an OrderedComplexSpecies has many binding sites, and so it
+                #must know where you are trying to bind to it.
+                if("bindloc" in attribute and bindloc is None):
+                    #when the OrderedComplexSpecies is fed into a Component, it can only bind at one location,
+                    #specified by an attribute called "bindloc_<site_number>"
+                    bindloc = int(attribute.split("_")[1])
+                    something_bound = specie.species[bindloc]
+                    if(something_bound is not None): #this should basically never be None
+                        other_species += [something_bound]
+                elif("bindloc" in attribute):
+                    #this happens if there are two "bindloc" attributes
+                    raise ValueError("{} has more than one bindloc attribute defined, but only one is allowed".format(specie))
+            if(bindloc is None):
+                raise ValueError("{} has a malformed bindloc that returned a binding location of None".format(specie))
+        elif(isinstance(specie,OrderedComplexSpecies)):
+            #this means there are two OrderedComplexSpecies in here. We don't know what to do then!
+            raise ValueError("binding together two OrderedComplexSpecies!")
+        else:
+            other_species += [specie]
+    if(valent_complex is None):
+        #this means we are making a normal complex
+        if(len(species)==1):
+            if(isinstance(species[0],Species)):
+                #in this case we wanted to make a complex with only one species. Then no complex is made
+                return species[0]
+            else:
+                raise ValueError("tried to make a complex with {}, which isn't a Species object".format(species))
+        elif(len(species)>1):
+            #ComplexSpecies should already handle making a complex with weird stuff like strings
+            return ComplexSpecies(species, **keywords)
+    else:
+        if(len(other_species)==1):
+            newspeclist = copy.deepcopy(valent_complex.species) #this is the list inside the OrderedComplexSpecies
+            newspeclist[bindloc] = other_species[0] #i'm not sure if this actually does anything besides
+                                                    #just returning the same OrderedComplexSpecies back out
+            mycomplex = OrderedComplexSpecies(newspeclist,attributes=valent_complex.attributes) 
+            #TODO this doesn't get the keywords. Is that bad?
+            return mycomplex
+        else:
+            newspeclist = copy.deepcopy(valent_complex.species)
+            newspeclist[bindloc] = ComplexSpecies(other_species,**keywords) #we make a sub complex
+            mycomplex = OrderedComplexSpecies(newspeclist,attributes=valent_complex.attributes)
+            return mycomplex
 
 class ComplexSpecies(Species):
     """ A special kind of species which is formed as a complex of two or more species.
@@ -260,7 +318,8 @@ class Multimer(ComplexSpecies):
         else:
             species = [species]
 
-        ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)   
+        ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, \
+                                                        attributes = attributes, initial_concentration = initial_concentration)   
 
 class OrderedComplexSpecies(ComplexSpecies):
     """ A special kind of species which is formed as a complex of two or more species.
@@ -450,7 +509,7 @@ class Reaction(object):
 
         # Check that inputs and outputs only contain species
         if any(not isinstance(s, Species) for s in inputs + outputs):
-            raise ValueError("A non-species object was used as a species.")
+            raise ValueError("A non-species object was used as a species in {}".format(self))
 
         # internal representation of a reaction
 

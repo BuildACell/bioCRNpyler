@@ -1,6 +1,6 @@
 from warnings import warn
 from .mechanism import *
-from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
+from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer, make_complex
 
 class MichalisMentenRXN(Mechanism):
     """Helper class to automatically generate Michalis-Menten Type Reactions
@@ -18,7 +18,7 @@ class MichalisMentenRXN(Mechanism):
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(self, Sub, **keywords):
-        complex = ComplexSpecies([Sub, self.Enzyme])
+        complex = make_complex([Sub, self.Enzyme])
         return [complex]
 
     def update_reactions(self, Sub, Prod, component = None, part_id = None, complex=None, kb=None, ku=None,
@@ -37,7 +37,7 @@ class MichalisMentenRXN(Mechanism):
             raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
 
         if complex == None:
-            complex = ComplexSpecies([Sub, self.Enzyme])
+            complex = make_complex([Sub, self.Enzyme])
 
         # Sub + Enz <--> Sub:Enz
         binding_rxn = Reaction(inputs=[Sub, self.Enzyme], outputs=[complex],
@@ -67,13 +67,13 @@ class MichalisMentenCopyRXN(Mechanism):
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(self, Sub, **keywords):
-        complex = ComplexSpecies([Sub, self.Enzyme])
+        complex = make_complex([Sub, self.Enzyme])
         return [complex]
 
     def update_reactions(self, Sub, Prod, component = None, part_id = None, complex=None, kb=None, ku=None,
                          kcat=None, **keywords):
         if complex == None:
-            complex = ComplexSpecies([Sub, self.Enzyme])
+            complex = make_complex([Sub, self.Enzyme])
 
         #Get Parameters
         if part_id == None and component != None:
@@ -92,7 +92,11 @@ class MichalisMentenCopyRXN(Mechanism):
                                k=kb, k_rev=ku)
 
         # Sub:Enz --> Enz + Prod + Sub
-        cat_rxn = Reaction(inputs=[complex], outputs=[Sub, Prod, self.Enzyme],
-                           k=kcat)
+        if(isinstance(Prod,list)):
+            cat_rxn = Reaction(inputs=[complex], outputs=[Sub] + Prod + [self.Enzyme],
+                            k=kcat)
+        elif(isinstance(Prod,Species)):
+            cat_rxn = Reaction(inputs=[complex],outputs = [Sub,Prod,self.Enzyme],
+                            k=kcat)
 
         return [binding_rxn, cat_rxn]

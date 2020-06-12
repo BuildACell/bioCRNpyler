@@ -31,9 +31,11 @@ class Transcription_MM(MichalisMentenCopyRXN):
 
         species += MichalisMentenCopyRXN.update_species(self, dna)
         if transcript is None:
-            transcript = Species(dna.name, material_type="rna")
+            transcript = [Species(dna.name, material_type="rna")]
+        elif isinstance(transcript,Species):
+            transcript=[transcript]
         
-        species += [transcript]
+        species += transcript
 
         return species
 
@@ -50,7 +52,9 @@ class Transcription_MM(MichalisMentenCopyRXN):
 
         rxns = []
         if transcript is None:
-            transcript = Species(dna.name, material_type="rna")
+            transcript = [Species(dna.name, material_type="rna")]
+        elif isinstance(transcript,Species):
+            transcript = [transcript]
         rxns += MichalisMentenCopyRXN.update_reactions(self, dna, transcript,
                                                        complex=complex, kb=kb,
                                                        ku=ku, kcat=ktx)
@@ -85,7 +89,10 @@ class Translation_MM(MichalisMentenCopyRXN):
             species += [self.ribosome]
         if protein is None:
             protein = Species(transcript.name, material_type="protein")
-        species += [protein]
+        if isinstance(protein,list):
+            species += protein
+        elif isinstance(protein,Species):
+            species += [protein]
 
         species += MichalisMentenCopyRXN.update_species(self, transcript)
 

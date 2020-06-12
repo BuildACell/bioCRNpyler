@@ -1,5 +1,5 @@
 from .mechanism import *
-from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
+from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer, make_complex
 
 class Reversible_Bimolecular_Binding(Mechanism):
     def __init__(self, name="reversible_bimolecular_binding",
@@ -7,7 +7,7 @@ class Reversible_Bimolecular_Binding(Mechanism):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     def update_species(self, s1, s2, **keywords):
-        complex = ComplexSpecies([s1, s2])
+        complex = make_complex([s1, s2])
         return [complex]
 
     def update_reactions(self, s1, s2, component = None, kb = None, ku = None, \
@@ -23,7 +23,7 @@ class Reversible_Bimolecular_Binding(Mechanism):
         if component is None and (kb is None or ku is None):
             raise ValueError("Must pass in a Component or values for kb, ku.")
         if(complex==None):
-            complex = ComplexSpecies([s1, s2])
+            complex = make_complex([s1, s2])
         rxns = [Reaction([s1, s2], [complex], k=kb, k_rev=ku)]
         return rxns
 
@@ -60,7 +60,7 @@ class One_Step_Cooperative_Binding(Mechanism):
             raise TypeError("complex_species keyword must be a str, Species, or None.")
 
         if complex is None:
-            complex = ComplexSpecies([binder]*int(cooperativity)+[bindee], name = complex_name, material_type = material_type)
+            complex = make_complex([binder]*int(cooperativity)+[bindee], name = complex_name, material_type = material_type)
 
         
         return [complex]
@@ -137,7 +137,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
             raise TypeError("complex_species keyword must be a str, Species, or None. Not "+str(complex_species))
 
         if complex is None:
-            complex = ComplexSpecies([n_mer, bindee], name = complex_name)
+            complex = make_complex([n_mer, bindee], name = complex_name)
         return [complex, n_mer]
 
     def update_reactions(self, binder, bindee, kb = None, ku = None, component = None, part_id = None, cooperativity=None, complex_species = None, n_mer_species = None, **keywords):
@@ -171,9 +171,9 @@ class Two_Step_Cooperative_Binding(Mechanism):
             kb1, kb2 = kb
             ku1, ku2 = ku
         n_mer_name = f"{cooperativity}x_{binder.material_type}_{binder.name}"
-        n_mer = ComplexSpecies([binder], name = n_mer_name)
+        n_mer = make_complex([binder], name = n_mer_name)
         if(complex is None):
-            complex = ComplexSpecies([n_mer, bindee])
+            complex = make_complex([n_mer, bindee])
 
         complex, n_mer = self.update_species(binder, bindee, component = None, complex_species = None, n_mer_species = None, cooperativity=None, part_id = None, **keywords)
 
@@ -207,7 +207,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         if(len(complexed_species_list)==1):
             myspecies = complexed_species_list[0]
         else:
-            myspecies = ComplexSpecies(complexed_species_list)
+            myspecies = make_complex(complexed_species_list)
         return myspecies
     def update_species(self,binders,bindee,cooperativity=None,\
                             component = None, part_id = None, **kwords):
@@ -300,7 +300,7 @@ class One_Step_Binding(Mechanism):
             part_id = part_id[:-1]
 
         if complex_species is None:
-            complex_species = ComplexSpecies(species)
+            complex_species = make_complex(species)
 
         return species + [complex_species]
 
@@ -319,6 +319,6 @@ class One_Step_Binding(Mechanism):
             raise ValueError("Must pass in a Component or values for kb and ku")
 
         if complex_species is None:
-            complex_species = ComplexSpecies(species)
+            complex_species = make_complex(species)
 
         return [Reaction(inputs = species, outputs = [complex_species], k = kb, k_rev = ku)]

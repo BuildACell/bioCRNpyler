@@ -8,8 +8,8 @@ from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Coop
 from warnings import warn as pywarn
 import itertools as it
 import numpy as np
-from .dna_assembly_promoter import *
-from .dna_assembly_rbs import *
+from .dna_part_promoter import *
+from .dna_part_rbs import *
 
 def warn(txt):
     pywarn(txt)

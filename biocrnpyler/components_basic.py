@@ -1,5 +1,5 @@
 from .component import *
-from .chemical_reaction_network import Species, ComplexSpecies, OrderedComplexSpecies
+from .chemical_reaction_network import Species, ComplexSpecies, OrderedComplexSpecies, make_complex
 from .mechanism import *
 from .mechanisms_binding import *
 
@@ -152,7 +152,7 @@ class ChemicalComplex(Component):
         for s in species:
             self.internal_species.append(self.set_species(s))
 
-        self.species = ComplexSpecies(species = self.internal_species, name = name, material_type=material_type, attributes=list(attributes))
+        self.species = make_complex(species = self.internal_species, name = name, material_type=material_type, attributes=list(attributes))
 
         if name is None:
             name = self.species.name
