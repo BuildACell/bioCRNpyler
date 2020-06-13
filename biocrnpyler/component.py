@@ -234,7 +234,7 @@ class Component(object):
                             f"{param_name})")
 
         else:
-            if warning_txt is not None and self.parameter_warnings:
+            if (warning_txt is not None) and self.parameter_warnings:
                 warn(warning_txt)
             return return_val
 

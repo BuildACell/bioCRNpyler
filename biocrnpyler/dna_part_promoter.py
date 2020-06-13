@@ -18,6 +18,8 @@ class Promoter(DNA_part):
             self.transcript = None
         elif transcript is None:
             self.transcript = Species(assembly.name, material_type="rna")
+        elif type(transcript) == list:
+            self.transcript = transcript
         else:
             self.transcript = self.set_species(transcript, material_type = 'rna')
 
@@ -46,7 +48,7 @@ class RegulatedPromoter(Promoter):
     def __init__(self, name, regulators, leak = True, assembly = None,
                  transcript = None, length = 0, mechanisms = {},
                  parameters = {}, **keywords):
-
+        
         if not isinstance(regulators, list):
             regulators = [regulators]
 
@@ -62,14 +64,14 @@ class RegulatedPromoter(Promoter):
                           transcript = transcript, length = length,
                           mechanisms = mechanisms, parameters = parameters,
                           **keywords)
-
+        
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
         species = []
         self.complexes = []
         if self.leak is not False:
-            species += mech_tx.update_species(dna = self.assembly.dna, component = self)
+            species += mech_tx.update_species(dna = self.assembly.dna,transcript=self.transcript, component = self)
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
@@ -79,9 +81,8 @@ class RegulatedPromoter(Promoter):
 
             #Find complexes containing DNA and the regulator
             for s in species_b:
-                if isinstance(s, ComplexSpecies) and self.assembly.dna in s.species and regulator in s.species:
+                if isinstance(s, ComplexSpecies) and self.assembly.dna in s and regulator in s:
                     self.complexes += [s]
-
                     species += mech_tx.update_species(dna = s, transcript = self.transcript, part_id = self.name+"_"+regulator.name, component = self)
         return species
 
@@ -108,7 +109,7 @@ class RegulatedPromoter(Promoter):
 
 #A class for a promoter which can be activated by a single species, modelled as a positive hill function
 class ActivatablePromotor(Promoter):
-    def __init__(self, name, transcript, activator, **keywords):
+    def __init__(self, name, activator,transcript=None,  **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
@@ -139,7 +140,7 @@ class ActivatablePromotor(Promoter):
 
 #A class for a promoter which can be repressed by a single species, modelled as a negative hill function
 class RepressablePromotor(Promoter):
-    def __init__(self, name, transcript, repressor, **keywords):
+    def __init__(self, name, repressor, transcript=None, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
@@ -266,11 +267,11 @@ class CombinatorialPromoter(Promoter):
         for bound_complex in bound_species: 
             species_inside = []
             for regulator in self.regulators:
-                if(regulator in bound_complex.species):
+                if(regulator in bound_complex):
                     species_inside += [regulator.name] 
             if(set(species_inside) in [set(a) for a in self.tx_capable_list]):
                 #only the transcribable complexes in tx_capable_list get transcription reactions
-                tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, protein = self.assembly.protein, component = self, part_id = self.name)
+                tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, component = self, part_id = self.name)
                 species +=tx_capable_species[1:]
                 self.tx_capable_complexes +=[bound_complex]
             else:
@@ -280,7 +281,7 @@ class CombinatorialPromoter(Promoter):
                 # 2) we said we wanted leak, so then you should add this, but with the "_leak" parameters
                 #                                                         (that happens in update_reactions)
                 if(self.leak is not False):
-                    leak_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, protein = self.assembly.protein, component = self, part_id = self.name+"_leak")
+                    leak_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, component = self, part_id = self.name+"_leak")
                     species += leak_species[1:]
                     self.leak_complexes += [bound_complex]
         species+=bound_species  
@@ -298,7 +299,7 @@ class CombinatorialPromoter(Promoter):
         #the binding reactions happen no matter what
         reactions += mech_b.update_reactions(self.regulators,self.assembly.dna,component = self,\
                                                         part_id = self.name,cooperativity=self.cooperativity)
-        if((self.tx_capable_complexes == None) or self.tx_capable_complexes == []):
+        if((self.tx_capable_complexes is None) or self.tx_capable_complexes == []):
             #this could mean we haven't run update_species() yet
             species = self.update_species()
             if(self.tx_capable_complexes == []):
@@ -323,13 +324,13 @@ class CombinatorialPromoter(Promoter):
                 #if it's bound to RNAP then it transcribes, right?
                 tx_partid = tx_partid+"_RNAP"
                 reactions += mech_tx.update_reactions(dna = specie, component = self, part_id = tx_partid, \
-                                            transcript = self.transcript, protein = self.assembly.protein)
+                                            transcript = self.transcript)
         if(len(self.leak_complexes)>0):
             for specie in self.leak_complexes:
                 #in this case every reaction uses the "promoter_leak" partid
                 leak_partid = self.name+"_leak"
                 reactions += mech_tx.update_reactions(dna = specie, component = self, part_id = leak_partid, \
-                                            transcript = self.transcript, protein = self.assembly.protein)
+                                            transcript = self.transcript)
 
 
         return reactions

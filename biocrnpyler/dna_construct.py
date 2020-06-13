@@ -103,6 +103,7 @@ class DNA_construct(DNA):
                     attributes=attributes,initial_conc = initial_conc,
                     parameter_warnings=parameter_warnings, **keywords)
         self.transcripts = []
+        self.set_parameter_warnings(parameter_warnings)
     def reverse(self):
         """reverses everything, without actually changing the DNA"""
         newlist = self.parts_list[::-1]
@@ -118,6 +119,12 @@ class DNA_construct(DNA):
             self.dna = self.set_species(self.name, material_type = "dna", attributes = attributes)
         else:
             self.dna = self.set_species(dna, material_type = "dna", attributes = attributes)
+    def set_parameter_warnings(self, parameter_warnings):
+        """updates all components with the proper parameter warnings"""
+        self.parameter_warnings = parameter_warnings
+        if(self.parameter_warnings is not None):
+            for part in self.parts_list:
+                part.set_parameter_warnings(parameter_warnings)
     def update_parameters(self, mixture_parameters = {}, parameters = {},
                           overwrite_custom_parameters = True):
         """update parameters of all parts in the construct"""
@@ -143,7 +150,7 @@ class DNA_construct(DNA):
         proteins = {}
         rnas = {}
         for direction in ["forward","reverse"]:
-            explorer = TxTl_Explorer()
+            explorer = TxTl_Explorer(parameter_warnings=self.parameter_warnings)
             explorer.direction=direction
             if(direction == "reverse"):
                 #if we go backwards then also list the parts backwards
@@ -201,7 +208,7 @@ class DNA_construct(DNA):
             #if we get a string, that means we want to know if the name exists anywhere
             return obj2 in str(self)
     def get_species(self):
-        return OrderedComplexSpecies([a.name for a in self.parts_list]+[self.name],material_type="dna")
+        return OrderedComplexSpecies([Species(a.name,material_type="dna") for a in self.parts_list]+[Species(self.name,material_type="dna")],material_type="dna")
     def cut(self,position,keep_part=False):
         """cuts the construct and returns the resulting piece or pieces"""
         left = self.parts_list[:position]
@@ -510,7 +517,7 @@ class DNA_construct(DNA):
                 reactions += rna.update_reactions(norna=True)
         return reactions
 class TxTl_Explorer():
-    def __init__(self,possible_rxns=("transcription","translation"),direction="forward"):
+    def __init__(self,possible_rxns=("transcription","translation"),direction="forward",parameter_warnings=True):
         """this class goes through a parts_list of a DNA_construct and decides what RNAs are made
         and what proteins are made based on orientation and location of parts"""
         self.current_rnas = {}
@@ -522,6 +529,7 @@ class TxTl_Explorer():
         self.possible_rxns = possible_rxns
         self.direction=direction
         self.second_looping = False
+        self.parameter_warnings =parameter_warnings
     def see(self,part):
         """the explorer sees a part. This does different stuff depending on
         1) if there is a current rna or current rbs
@@ -621,7 +629,7 @@ class TxTl_Explorer():
         rna_partslist = self.current_rnas[promoter][0]
         #print(self.current_rnas)
         #print(self.current_proteins)
-        rna_construct = RNA_construct(rna_partslist)
+        rna_construct = RNA_construct(rna_partslist,parameter_warnings=self.parameter_warnings)
         
         #current_rna_name = str(promoter)+"-"+str(rna_construct)
         self.made_proteins[rna_construct]={}
@@ -706,7 +714,7 @@ class RNA_construct(DNA_construct):
     def explore_txtl(self):
         """an RNA has no tx, only TL! central dogma exists, right?"""
         # lets try to make this more modular shall we?
-        explorer = TxTl_Explorer(possible_rxns = ("translation",))
+        explorer = TxTl_Explorer(possible_rxns = ("translation",),parameter_warnings=self.parameter_warnings)
         explorer.make_rna(self.name)
         part_index = 0
         keep_going = 1

@@ -105,7 +105,12 @@ class Species(object):
     def add_attribute(self, attribute: str):
         assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(), "Attribute: %s must be an alpha-numeric string" % attribute
         self.attributes.append(attribute)
-
+    def extract_attribute_containing(self,attrib):
+        retvals = []
+        for attr in self.attributes:
+            if(attrib in attr):
+                retvals += [attr]
+        return retvals
     def __eq__(self, other):
         """
         Overrides the default implementation
@@ -191,7 +196,7 @@ def make_complex(species,**keywords):
 class ComplexSpecies(Species):
     """ A special kind of species which is formed as a complex of two or more species.
         Used for attribute inheritance and storing groups of bounds Species. 
-        Note taht in a ComplexSpecies, the order of the species list does not matter.
+        Note that in a ComplexSpecies, the order of the species list does not matter.
         This means that ComplexSpecies([s1, s2]) = ComplexSpecies([s2, s1]). 
         This is good for modelling order-indpendent binding complexes.
         For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
@@ -240,7 +245,7 @@ class ComplexSpecies(Species):
         self.attributes = attributes
 
     def __contains__(self,item):
-        if not item.isinstance(Species):
+        if not isinstance(item,Species):
             raise ValueError("Operator 'in' requires chemical_reaction_network.Species (or a subclass). Received: "+str(item))
         if item in self.species:
             #this is the base case
@@ -366,6 +371,26 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         self.attributes = attributes
 
+    @property
+    def species_set(self):
+        bindval = self.extract_attribute_containing("bindloc")
+        if(len(bindval)==0):
+            #no binding location, so extract everything!
+            return list(set(self.species))
+        elif(len(bindval)==1):
+            bindloc = int(bindval[0].split("_")[1])
+            bindloc_species = self.species[bindloc]
+            if(isinstance(bindloc_species,ComplexSpecies)):
+                return self.species[bindloc].species_set
+            elif(isinstance(bindloc_species,Species)):
+                return [self.species[bindloc]]
+            else:
+                ValueError()
+            
+        elif(len(bindval)>1):
+            raise ValueError("{} has two bindloc attributes!".format(self))
+        
+
     #Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
     def replace_species(self, species: Species, new_species: Species):
         if not isinstance(species, Species):
@@ -393,7 +418,7 @@ class OrderedComplexSpecies(ComplexSpecies):
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         txt = ""
         if self.material_type not in ["", None] and show_material:
-            txt += self.material_type+"["
+            txt += self.material_type
         
         txt += "["
 
@@ -412,7 +437,47 @@ class OrderedComplexSpecies(ComplexSpecies):
         txt += "]"
 
         return txt
+    def __contains__(self,item):
+        """we want the orderedcomplexspecies to know if it is a superset of another OrderedComplexSpecies"""
+        if(isinstance(item,OrderedComplexSpecies)):
+            for myel,otherel in zip(self.species,item.species):
+                if(type(myel)==Species):
+                    if(myel == otherel):
+                        pass
+                    else:
+                        return False
+                else:
+                    if(otherel in myel):
+                        pass
+                    elif(otherel == myel):
+                        pass
+                    else:
+                        return False
 
+            return True
+        else:
+            binding_site = None
+            if(len(self.attributes)>0):
+                for attrib in self.attributes:
+                    #if we only care about a specific binding location, then only check there!
+                    if("bindloc" in attrib):
+                        binding_site = int(attrib.split("_")[1])
+            if(binding_site is None):
+                #otherwise use the contains function from the super class
+                return super().__contains__(item)
+            else:
+                return (item in self.species[binding_site])
+
+
+
+def flatten_list(in_list):
+    out_list = []
+    for element in in_list:
+        if(type(element)==list):
+            out_list += flatten_list(element)
+        else:
+            out_list += [element]
+    return out_list
 
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
@@ -429,7 +494,10 @@ class Reaction(object):
 
         if len(inputs) == 0 and len(outputs) == 0:
             warn("Reaction Inputs and Outputs both contain 0 Species.")
-
+        if(type(inputs)==list):
+            inputs = flatten_list(inputs)
+        if(type(outputs)==list):
+            outputs = flatten_list(outputs)
         if k != 0 and propensity_params is not None and "k" not in propensity_params:
             propensity_params["k"] = k
         elif k == 0 and propensity_params is not None and "k" in propensity_params:

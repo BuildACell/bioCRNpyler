@@ -92,11 +92,7 @@ class MichalisMentenCopyRXN(Mechanism):
                                k=kb, k_rev=ku)
 
         # Sub:Enz --> Enz + Prod + Sub
-        if(isinstance(Prod,list)):
-            cat_rxn = Reaction(inputs=[complex], outputs=[Sub] + Prod + [self.Enzyme],
-                            k=kcat)
-        elif(isinstance(Prod,Species)):
-            cat_rxn = Reaction(inputs=[complex],outputs = [Sub,Prod,self.Enzyme],
+        cat_rxn = Reaction(inputs=[complex],outputs = [Sub,Prod,self.Enzyme],
                             k=kcat)
 
         return [binding_rxn, cat_rxn]
