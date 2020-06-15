@@ -1046,7 +1046,10 @@ class ChemicalReactionNetwork(object):
 
     def simulate_with_bioscrape(self, timepoints, initial_condition_dict = {},
                                 stochastic = False, return_dataframe = True,
-                                safe = False, via_sbml = True):
+                                safe = False, **kwargs):
+        '''
+        Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
+        '''
         from bioscrape.simulator import py_simulate_model
         m = self.create_bioscrape_model()
         m.set_species(initial_condition_dict)
@@ -1055,14 +1058,14 @@ class ChemicalReactionNetwork(object):
         result = py_simulate_model(timepoints, Model = m,
                                    stochastic = stochastic,
                                    return_dataframe = return_dataframe,
-                                   safe = safe)
+                                   safe = safe, sbml_warnings = False)
 
         return result
 
 
     def simulate_with_bioscrape_via_sbml(self, timepoints, file = None,
                 initial_condition_dict = {}, return_dataframe = True,
-                stochastic = False):
+                stochastic = False, **kwargs):
         import bioscrape
 
         if file is None:
@@ -1078,7 +1081,7 @@ class ChemicalReactionNetwork(object):
         m.set_species(initial_condition_dict)
         result = bioscrape.simulator.py_simulate_model(timepoints, Model = m,
                                             stochastic = stochastic,
-                                            return_dataframe = return_dataframe)
+                                            return_dataframe = return_dataframe, sbml_warnings = False)
 
 
         return result, m
