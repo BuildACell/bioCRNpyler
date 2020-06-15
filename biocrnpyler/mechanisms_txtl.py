@@ -231,7 +231,7 @@ class PositiveHillTranscription(Mechanism):
     def update_species(self, dna, regulator, transcript = None, **keywords):
         
         if transcript is None: #Species names can be automatically created
-            transcript = Species(dna.name, material = "rna")
+            transcript = Species(dna.name, material_type = "rna")
             
         return [dna, transcript, regulator] #it is best to return all species that will be involved in the reactions
 
@@ -241,7 +241,7 @@ class PositiveHillTranscription(Mechanism):
     def update_reactions(self, dna, regulator, component, part_id, transcript = None, **keywords):
         
         if transcript is None: #Species names should be automatically created the same here as above
-            transcript = Species(dna.name, material = "rna")
+            transcript = Species(dna.name, material_type = "rna")
         
         ktx = component.get_parameter("k", part_id = part_id, mechanism = self)
         n = component.get_parameter("n", part_id = part_id, mechanism = self)
@@ -267,7 +267,7 @@ class NegativeHillTranscription(Mechanism):
     def update_species(self, dna, regulator, transcript = None, **keywords):
         
         if transcript is None: #Species names can be automatically created
-            transcript = Species(dna.name, material = "rna")
+            transcript = Species(dna.name, material_type = "rna")
             
         return [dna, transcript, regulator] #it is best to return all species that will be involved in the reactions
     
@@ -276,7 +276,7 @@ class NegativeHillTranscription(Mechanism):
     def update_reactions(self, dna, regulator, component, part_id, transcript = None, **keywords):
         
         if transcript is None: #Species names should be automatically created the same here as above
-            transcript = Species(dna.name, material = "rna")
+            transcript = Species(dna.name, material_type = "rna")
         
         ktx = component.get_parameter("k", part_id = part_id, mechanism = self)
         n = component.get_parameter("n", part_id = part_id, mechanism = self)
