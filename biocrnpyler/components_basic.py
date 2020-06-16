@@ -156,8 +156,6 @@ class ChemicalComplex(Component):
         if name is None:
             name = self.species.name
 
-        self.default_mechanisms = {"binding": One_Step_Binding()}
-
         Component.__init__(self=self, name=name, mechanisms=mechanisms,
                            parameters=parameters, attributes=attributes,
                            initial_conc=initial_conc, **keywords)
@@ -192,15 +190,50 @@ class Enzyme(Component):
         self.product = self.set_species(product)
       
         Component.__init__(self = self, name = self.enzyme.name, **keywords)
-        
+    
+    def get_species(self):
+        return self.enzyme
+
     def update_species(self):
         mech_cat = self.mechanisms['catalysis']
 
-        return mech_cat.update_species(self.enzyme, self.fuel_list, self.substrate_list, self.product_list, self.waste_list) 
+        return mech_cat.update_species(self.enzyme, self.substrate, self.product) 
                                                                                            
     
     def update_reactions(self):
         mech_cat = self.mechanisms['catalysis']
 
-        return mech_cat.update_reactions(self.enzyme, self.fuel_list, self.substrate_list, self.product_list, self.waste_list, component = None,  part_id = None)
+        return mech_cat.update_reactions(self.enzyme, self.substrate, self.product, component = self,  part_id = self.name)
+
+
+class MultyEnzyme(Component):
+    def __init__(self, enzyme, substrates, products, **keywords):
+      
+        # ENZYME NAME
+        self.enzyme = self.set_species(enzyme, material_type = 'protein')
+    
+        # SUBSTRATE
+        self.substrate = []
+        for substrate in substrates:
+            self.substrates.append(self.set_species(substrate))
+
+        self.products = []
+        for product in products:
+            self.products.append(self.set_species(product))
+      
+        Component.__init__(self = self, name = self.enzyme.name, **keywords)
+    
+    def get_species(self):
+        return self.enzyme
+
+    def update_species(self):
+        mech_cat = self.mechanisms['catalysis']
+
+        return mech_cat.update_species(self.enzyme, self.substrate, self.product) 
+                                                                                           
+    
+    def update_reactions(self):
+        mech_cat = self.mechanisms['catalysis']
+
+        return mech_cat.update_reactions(self.enzyme, self.substrate, self.product, component = self,  part_id = self.name)
 

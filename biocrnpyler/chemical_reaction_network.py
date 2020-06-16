@@ -449,8 +449,31 @@ class Reaction(object):
         self.propensity_params = propensity_params
 
         # Check that inputs and outputs only contain species
-        if any(not isinstance(s, Species) for s in inputs + outputs):
-            raise ValueError("A non-species object was used as a species.")
+        #if inputs or outputs is a nested list, flatten that list
+        new_inputs = []
+        for s in inputs:
+            if isinstance(s, Species):
+                new_inputs.append(s)
+            elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
+                new_inputs += s
+            else:
+                raise ValueError("A non-species object was used as a species.")
+        inputs = new_inputs
+
+        new_outputs = []
+        for s in outputs:
+            if isinstance(s, Species):
+                new_outputs.append(s)
+            elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
+                new_outputs += s
+            else:
+                raise ValueError("A non-species object was used as a species.")
+        outputs = new_outputs
+
+        #OLD CHECK
+        # Check that inputs and outputs only contain species
+        #if any(not isinstance(s, Species) for s in inputs + outputs):
+        #    raise ValueError("A non-species object was used as a species.")
 
         # internal representation of a reaction
 

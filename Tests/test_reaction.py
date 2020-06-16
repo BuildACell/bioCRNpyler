@@ -69,7 +69,20 @@ class TestReaction(TestCase):
         with self.assertRaises(ValueError):
             Reaction(inputs=[], outputs=[], k=0.1, output_coefs=[1, 2])
 
-        # TODO add test for the equality operator
+        # test for the equality operator
+        rxn1 = Reaction(inputs = [sp1, sp2], outputs = [sp2, sp2], k = 1)
+        rxn2 = Reaction(inputs = [sp2, sp1], outputs = [sp2, sp2], k = 1)
+        rxn3 = Reaction(inputs = [sp2, sp1], outputs = [sp2, sp2], k = 10)
+        rxn4 = Reaction(inputs = [sp2, sp1], outputs = [sp2], k = 1)
+        self.assertTrue(rxn1 == rxn2)
+        self.assertFalse(rxn1 == rxn3)
+        self.assertFalse(rxn1 == rxn4)
+
+        #Test for reaction list flattening
+        rxn1 = Reaction(inputs = [sp1, [sp1, sp2]], outputs = [[sp2, sp2], sp1], k = 1)
+        rxn2 = Reaction(inputs = [sp1, sp1, sp2], outputs = [sp1, sp2, sp2], k = 1)
+        self.assertTrue(rxn1 == rxn2)
+        
 
     def test_complex_set_equality(self):
         sp1 = Species(name='test_species_a')

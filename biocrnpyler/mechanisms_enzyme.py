@@ -7,7 +7,7 @@ class BasicCatalysis(Mechanism):
     """
     Mechanism for the schema S + C --> P + C
     """
-    def __init__(self, name, mechanism_type = "catalysis", **keywords):
+    def __init__(self, name = "basic_catalysis", mechanism_type = "catalysis", **keywords):
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(self, Enzyme, Sub, Prod = None, **keywords):
@@ -22,7 +22,7 @@ class BasicCatalysis(Mechanism):
         elif kcat is None:
             kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
 
-        return Reaction([Enzyme, Sub], [Enzyme, Prod], kcat)
+        return [Reaction([Enzyme, Sub], [Enzyme, Prod], kcat)]
 
 class MichalisMenten(Mechanism):
     """Mechanism to automatically generate Michalis-Menten Type Reactions
