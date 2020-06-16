@@ -3,7 +3,6 @@ from .chemical_reaction_network import Species, ComplexSpecies, OrderedComplexSp
 from .mechanism import *
 from .mechanisms_binding import *
 
-
 # These subclasses of Component represent different kinds of biomolecules.
 class DNA(Component):
     """DNA class
@@ -182,7 +181,6 @@ class ChemicalComplex(Component):
         
         return reactions
 
-
 class Enzyme(Component):
     def __init__(self, enzyme, substrate, product, **keywords):
       
@@ -192,7 +190,6 @@ class Enzyme(Component):
         # SUBSTRATE
         self.substrate = self.set_species(substrate)
         self.product = self.set_species(product)
-        self.substrate_list = []
       
         Component.__init__(self = self, name = self.enzyme.name, **keywords)
         
@@ -206,4 +203,4 @@ class Enzyme(Component):
         mech_cat = self.mechanisms['catalysis']
 
         return mech_cat.update_reactions(self.enzyme, self.fuel_list, self.substrate_list, self.product_list, self.waste_list, component = None,  part_id = None)
-    
+
