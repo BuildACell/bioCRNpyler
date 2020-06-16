@@ -143,10 +143,18 @@ class ComplexSpecies(Species):
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
 
-        self.species = [s if isinstance(s, Species) else Species(s) for s in species]
+
+        self.species = []
+        for s in species:
+            if isinstance(s, Species):
+                self.species.append(s)
+            elif isinstance(s, str):
+                self.species.append(Species(s))
+            elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
+                self.species += s
+            else:
+                raise ValueError("ComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
         self.species_set = list(set(self.species))
-        if False in [isinstance(s, Species) or isinstance(s, str) for s in self.species]:
-            raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof).")
 
         if name is not None:
             self.custom_name = True
@@ -180,6 +188,7 @@ class ComplexSpecies(Species):
             attributes.remove(None)
 
         self.attributes = attributes
+
 
     def __contains__(self,item):
         if not item.isinstance(Species):
@@ -274,9 +283,17 @@ class OrderedComplexSpecies(ComplexSpecies):
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
 
-        self.species = [s if isinstance(s, Species) else Species(s) for s in species]
-        if False in [isinstance(s, Species) or isinstance(s, str) for s in self.species]:
-            raise ValueError("ComplexSpecies must be defined by list of Species (or subclasses thereof) or strings.")
+
+        self.species = []
+        for s in species:
+            if isinstance(s, Species):
+                self.species.append(s)
+            elif isinstance(s, str):
+                self.species.append(Species(s))
+            elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
+                self.species += s
+            else:
+                raise ValueError("OrderedComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
 
         if name is not None:
             self.custom_name = True
