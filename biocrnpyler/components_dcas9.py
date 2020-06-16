@@ -8,7 +8,7 @@ from .chemical_reaction_network import Species, ComplexSpecies
 
 
 class guideRNA(RNA):
-    def __init__(self, guide_name, dCas9 = "dCas9", **keywords):
+    def __init__(self, guide_name: str, dCas9 = "dCas9", **keywords):
 
         if isinstance(dCas9, Species):
             self.dCas = dCas9

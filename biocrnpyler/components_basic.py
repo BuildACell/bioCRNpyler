@@ -27,7 +27,6 @@ class DNA(Component):
     ---------------
     name        Name of the sequence (str)
     length      Length of the sequence (int)
-    assy        DNA assembly that we are part of
     mechanisms  Local mechanisms for this component (overrides defaults)
     parameters  Parameter dictionary for the DNA element
 
@@ -35,15 +34,15 @@ class DNA(Component):
 
     def __init__(
             self, name: str, length=0,  # positional arguments
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters
-            attributes=[],
+            mechanisms=None,  # custom mechanisms
+            parameters=None,  # customized parameters
+            attributes=None,
             initial_conc=None,
             parameter_warnings = True,
             **keywords
     ):
         self.species = Species(name, material_type="dna",
-                               attributes=list(attributes))
+                               attributes=attributes)
         self._length = length
         Component.__init__(self=self, name=name, mechanisms=mechanisms,
                            parameters=parameters, attributes=attributes,
@@ -75,15 +74,15 @@ class DNA(Component):
 class RNA(Component):
     def __init__(
             self, name: str, length=0,  # positional arguments
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters
-            attributes=[],
+            mechanisms=None,  # custom mechanisms
+            parameters=None,  # customized parameters
+            attributes=None,
             initial_conc=None,
             **keywords
     ):
         self.length = length
         self.species = Species(name, material_type="rna",
-                               attributes=list(attributes))
+                               attributes=attributes)
         Component.__init__(self=self, name=name, mechanisms=mechanisms,
                            parameters=parameters, attributes=attributes,
                            initial_conc=initial_conc, **keywords)
@@ -102,9 +101,9 @@ class RNA(Component):
 class Protein(Component):
     def __init__(
             self, name: str, length=0,  # positional arguments
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters
-            attributes=[],
+            mechanisms=None,  # custom mechanisms
+            parameters=None,  # customized parameters
+            attributes=None,
             initial_conc=None,
             **keywords
     ):
@@ -133,13 +132,13 @@ class ChemicalComplex(Component):
     Complexes inherit the attributes of their species
     """
     def __init__(
-            self, species,  # positional arguments
-            name = None, #Override the default naming convention for a complex
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters,
-            attributes=[],
+            self, species: List[Species],  # positional arguments
+            name=None,  # Override the default naming convention for a complex
+            mechanisms=None,  # custom mechanisms
+            parameters=None,  # customized parameters,
+            attributes=None,
             initial_conc=None,
-            material_type = "complex",
+            material_type="complex",
             **keywords
     ):
 
@@ -151,7 +150,7 @@ class ChemicalComplex(Component):
         for s in species:
             self.internal_species.append(self.set_species(s))
 
-        self.species = ComplexSpecies(species = self.internal_species, name = name, material_type=material_type, attributes=list(attributes))
+        self.species = ComplexSpecies(species = self.internal_species, name = name, material_type=material_type, attributes=attributes)
 
         if name is None:
             name = self.species.name
@@ -243,4 +242,3 @@ class MultiEnzyme(Component):
         mech_cat = self.mechanisms['catalysis']
 
         return mech_cat.update_reactions(self.enzyme, self.substrates, self.products, component = self,  part_id = self.name)
-
