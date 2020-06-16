@@ -1049,6 +1049,7 @@ class ChemicalReactionNetwork(object):
                                 safe = False, **kwargs):
         '''
         Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
+        Returns the data for all species as Pandas dataframe.
         '''
         from bioscrape.simulator import py_simulate_model
         m = self.create_bioscrape_model()
@@ -1058,7 +1059,7 @@ class ChemicalReactionNetwork(object):
         result = py_simulate_model(timepoints, Model = m,
                                    stochastic = stochastic,
                                    return_dataframe = return_dataframe,
-                                   safe = safe, sbml_warnings = False)
+                                   safe = safe)
 
         return result
 
@@ -1066,6 +1067,10 @@ class ChemicalReactionNetwork(object):
     def simulate_with_bioscrape_via_sbml(self, timepoints, file = None,
                 initial_condition_dict = {}, return_dataframe = True,
                 stochastic = False, **kwargs):
+        '''
+        Simulate CRN model with bioscrape via writing a SBML file temporarily.(https://github.com/biocircuits/bioscrape).
+        Returns the data for all species as Pandas dataframe.
+        '''
         import bioscrape
 
         if file is None:
@@ -1076,100 +1081,37 @@ class ChemicalReactionNetwork(object):
         else:
             file_name = file.name
 
-        m = bioscrape.types.Model(sbml_filename = file_name)
+        if 'sbml_warnings' in kwargs:
+            sbml_warnings = kwargs.get('sbml_warnings')
+        else:
+            sbml_warnings = False
+        m = bioscrape.types.Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
         # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
         m.set_species(initial_condition_dict)
         result = bioscrape.simulator.py_simulate_model(timepoints, Model = m,
                                             stochastic = stochastic,
-                                            return_dataframe = return_dataframe, sbml_warnings = False)
+                                            return_dataframe = return_dataframe)
+
 
 
         return result, m
 
-    def runsim_bioscrape(self, timepoints, file, simtype = "deterministic",
-                         species_to_plot = [], plot_show = True):
-        '''
-        To simulate using bioscrape.
-        Returns the data for all species and bioscrape model object which can be
-        used to find out species indexes.
-        NOTE : Needs bioscrape package installed to simulate.
-        TODO : Returns result and model
-        '''
-
-        import matplotlib.pyplot as plt
-        try:
-            import bioscrape
-        except:
-            print("Bioscrape package must be installed to run simulations "
-                  "using bioscrape.")
-
-        if isinstance(file, str):
-            filename = file
-        else:
-            filename = file.name
-
-        m = bioscrape.sbmlutil.import_sbml(filename)
-        s = bioscrape.simulator.ModelCSimInterface(m)
-        if simtype == 'deterministic':
-            s.py_prep_deterministic_simulation()
-            s.py_set_initial_time(timepoints[0])
-            sim = bioscrape.simulator.DeterministicSimulator()
-            result = sim.py_simulate(s, timepoints)
-            result = result.py_get_result()
-            if plot_show:
-                if species_to_plot:
-                    for species in species_to_plot:
-                        ind = m.get_species_index(species)
-                        plt.plot(timepoints,result[:,ind])
-                    plt.title(str(species_to_plot) + ' vs time')
-                    plt.show()
-                else:
-                    plt.plot(timepoints, result)
-                    plt.show()
-            return result, m
-        elif simtype == 'stochastic':
-            warnings.warn("For stochastic simulation of SBML models using "
-                          "bioscrape, it is highly recommended to NOT use "
-                          "reversible reactions as the SSA algorithm might not "
-                          "work for such cases.")
-            sim = bioscrape.simulator.SSASimulator()
-            s.py_set_initial_time(timepoints[0])
-            result = sim.py_simulate(s,timepoints)
-            result = result.py_get_result()
-            if plot_show:
-                if species_to_plot:
-                    for species in species_to_plot:
-                        ind = m.get_species_index(species)
-                        plt.plot(timepoints,result[:,ind])
-                    plt.title(str(species_to_plot) + ' vs time')
-                    plt.show()
-                else:
-                    plt.plot(timepoints, result)
-                    plt.show()
-            return result, m
-        else:
-            raise ValueError("Optional argument 'simtype' must be either "
-                             "deterministic or stochastic")
-
     def runsim_roadrunner(self, timepoints, filename, species_to_plot = []):
         '''
-        To simulate using roadrunner.
-        Returns the data for all species and bioscrape model object which can be
-        used to find out species indexes.
+        To simulate using roadrunner. 
+        Arguments:
+        timepoints: The array of time points to run the simulation for. 
+        filename: Name of the SBML file to simulate
+        Returns the results array as returned by RoadRunner. 
+        Refer to the libRoadRunner simulator library documentation 
+        for details on simulation results: http://libroadrunner.org/
         NOTE : Needs roadrunner package installed to simulate.
-        TODO : species_to_plot not implemented.
-        TODO : plot_show not implemented
-        TODO : bioscrape.convert_to_sbml not implemented (possibly available
-                in later versions of bioscrape)
         '''
         try:
             import roadrunner
         except:
-            print('roadrunner is not installed.')
-
+            raise ModuleNotFoundError
         rr = roadrunner.RoadRunner(filename)
-        if species_to_plot:
-            rr.timeCourseSelections = ['time', species_to_plot]
         result = rr.simulate(timepoints[0],timepoints[-1],len(timepoints))
         res_ar = np.array(result)
-        return res_ar[:,0],res_ar[:,1]
+        return res_ar
