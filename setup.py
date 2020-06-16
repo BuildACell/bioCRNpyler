@@ -28,12 +28,11 @@ setup(
     install_requires=[
           'python-libsbml',
           'numpy',
-          'nose',
           'matplotlib',
           'networkx',
           'bokeh==1.4.0',
           'fa2',
       ],
-    test_suite='nose.collector',
-    tests_require=['nose'],
+    setup_requires=["pytest-runner"],
+    tests_require=["pytest", "pytest-cov", "nbval"],
 )
