@@ -181,3 +181,29 @@ class ChemicalComplex(Component):
         reactions = mech_b.update_reactions(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
         
         return reactions
+
+
+class Enzyme(Component):
+    def __init__(self, enzyme, substrate, product, **keywords):
+      
+        # ENZYME NAME
+        self.enzyme = self.set_species(enzyme, material_type = 'protein')
+    
+        # SUBSTRATE
+        self.substrate = self.set_species(substrate)
+        self.product = self.set_species(product)
+        self.substrate_list = []
+      
+        Component.__init__(self = self, name = self.enzyme.name, **keywords)
+        
+    def update_species(self):
+        mech_cat = self.mechanisms['catalysis']
+
+        return mech_cat.update_species(self.enzyme, self.fuel_list, self.substrate_list, self.product_list, self.waste_list) 
+                                                                                           
+    
+    def update_reactions(self):
+        mech_cat = self.mechanisms['catalysis']
+
+        return mech_cat.update_reactions(self.enzyme, self.fuel_list, self.substrate_list, self.product_list, self.waste_list, component = None,  part_id = None)
+    

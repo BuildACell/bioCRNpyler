@@ -5,6 +5,7 @@ from warnings import warn
 from warnings import resetwarnings
 from .components_basic import DNA, RNA, Protein, ChemicalComplex
 from .mechanism import EmptyMechanism
+from .mechanisms_enzyme import BasicCatalysis, MichalisMenten
 from .mechanisms_txtl import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
 from .mixture import Mixture
 from .chemical_reaction_network import Species, ChemicalReactionNetwork
@@ -17,10 +18,12 @@ class ExpressionExtract(Mixture):
 
         dummy_translation = EmptyMechanism(name = "dummy_translation", mechanism_type = "translation")
         mech_expression = OneStepGeneExpression()
+        mech_cat = BasicCatalysis()
 
         default_mechanisms = {
-            "transcription": mech_expression,
-            "translation": dummy_translation
+            mech_expression.mechanism_type: mech_expression,
+            dummy_translation.mechanism_type: dummy_translation,
+            mech_cat.mechanism_type: mech_cat
         }
 
         default_components = []
@@ -65,10 +68,12 @@ class SimpleTxTlExtract(Mixture):
 
         mech_tx = SimpleTranscription(name = "simple_transcription", mechanism_type = "transcription")
         mech_tl = SimpleTranscription(name = "simple_translation", mechanism_type = "translation")
+        mech_cat = BasicCatalysis()
 
         default_mechanisms = {
-            "transcription": mech_tx,
-            "translation": mech_tl
+            mech_tx.mechanism_type: mech_tx,
+            mech_tl.mechanism_type: mech_tl,
+            mech_cat.mechanism_type: mech_cat
         }
 
         mech_rna_deg_global = Dilution(name = "rna_degredation", filter_dict = {"rna":True}, default_on = False)
@@ -97,12 +102,15 @@ class TxTlExtract(Mixture):
         mech_tx = Transcription_MM(rnap = self.rnap.get_species())
         mech_tl = Translation_MM(ribosome = self.ribosome.get_species())
         mech_rna_deg = Degredation_mRNA_MM(nuclease = self.rnaase.get_species()) 
+        mech_cat = MichalisMenten()
+
 
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
             mech_tl.mechanism_type: mech_tl,
-            mech_rna_deg.mechanism_type: mech_rna_deg
+            mech_rna_deg.mechanism_type: mech_rna_deg,
+            mech_cat.mechanism_type: mech_cat
         }
 
         default_components = [self.rnap, self.ribosome, self.rnaase]
