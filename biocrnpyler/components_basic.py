@@ -206,14 +206,14 @@ class Enzyme(Component):
         return mech_cat.update_reactions(self.enzyme, self.substrate, self.product, component = self,  part_id = self.name)
 
 
-class MultyEnzyme(Component):
+class MultiEnzyme(Component):
     def __init__(self, enzyme, substrates, products, **keywords):
       
         # ENZYME NAME
         self.enzyme = self.set_species(enzyme, material_type = 'protein')
     
         # SUBSTRATE
-        self.substrate = []
+        self.substrates = []
         for substrate in substrates:
             self.substrates.append(self.set_species(substrate))
 
@@ -229,11 +229,11 @@ class MultyEnzyme(Component):
     def update_species(self):
         mech_cat = self.mechanisms['catalysis']
 
-        return mech_cat.update_species(self.enzyme, self.substrate, self.product) 
+        return mech_cat.update_species(self.enzyme, self.substrates, self.products) 
                                                                                            
     
     def update_reactions(self):
         mech_cat = self.mechanisms['catalysis']
 
-        return mech_cat.update_reactions(self.enzyme, self.substrate, self.product, component = self,  part_id = self.name)
+        return mech_cat.update_reactions(self.enzyme, self.substrates, self.products, component = self,  part_id = self.name)
 

@@ -154,6 +154,7 @@ class ComplexSpecies(Species):
                 self.species += s
             else:
                 raise ValueError("ComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
+
         self.species_set = list(set(self.species))
 
         if name is not None:
@@ -300,7 +301,7 @@ class OrderedComplexSpecies(ComplexSpecies):
         elif name is None:
             self.custom_name = False
             name = ""
-            for s in species:
+            for s in self.species:
                 if isinstance(s, str):
                     s = Species(name = s)
                 if s.material_type not in ["complex", "ordered_complex", ""]:

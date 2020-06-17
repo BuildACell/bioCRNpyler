@@ -108,7 +108,7 @@ class TestComponent(TestCase):
 
         # testing an invalid mechanism format
         with self.assertRaisesRegexp(ValueError, 'Mechanisms must be passed as a list of instantiated objects or a '
-                                                 'dictionary {type:mechanism}'):
+                                                 'dictionary {mechanism_type:mechanism instance}'):
             self.component.update_mechanisms(mechanisms=(tx, tl))
 
     def test_get_parameter(self):
