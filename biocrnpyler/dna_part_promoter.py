@@ -33,7 +33,8 @@ class Promoter(DNA_part):
             transcript = self.transcript,
             component = self, part_id = self.name)
         return species
-
+    def get_species(self):
+        return None
     def update_reactions(self):
         mech_tx = self.mechanisms["transcription"]
         reactions = []

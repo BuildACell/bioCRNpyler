@@ -15,11 +15,22 @@ def warn(txt):
     pywarn(txt)
 
 
+
 class DNAassembly(DNA):
-    def __init__(self, name: str, dna = None, promoter = None, transcript = None,
-                 rbs = None, protein = None, length = None,
-                 attributes = [], mechanisms = {}, parameters = {}, initial_conc = None,
-                 parameter_warnings = True, **keywords):
+    def __init__(self, 
+                name: str, 
+                dna = None, 
+                promoter = None, 
+                transcript = None,
+                rbs = None, 
+                protein = None, 
+                length = None,
+                attributes = [], 
+                mechanisms = {}, 
+                parameters = {}, 
+                initial_conc = None,
+                parameter_warnings = True, 
+                **keywords):
         self.promoter = None
         self.rbs = None
         self.transcript = None

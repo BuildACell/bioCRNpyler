@@ -336,6 +336,11 @@ def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabe
     if(part.color2 is not None):
         color2 = part.color2
     dpl_type = "UserDefined" #this is the default part type
+    try:
+        part_dpl = part.dpl_type
+    except AttributeError:
+        #this happens if part doesn't have the part_dpl variable
+        pass
     if(isinstance(part,Promoter)):
         dpl_type = "Promoter"
         try:
@@ -369,7 +374,6 @@ def plotDesign(design,renderer = dpl.DNARenderer(scale = 5,linewidth=3),part_ren
                 circular=False):
     """helper function for doing dnaplotlib plots. You need to set the size and min max of the
     plot, and that's what this function does"""
-    #TODO make this more general
     if(part_renderers==None):
         part_renderers = renderer.SBOL_part_renderers()
     fig = plt.figure(figsize=(len(design)*.75,1.1))
@@ -383,11 +387,11 @@ def plotDesign(design,renderer = dpl.DNARenderer(scale = 5,linewidth=3),part_ren
 
 def plotConstruct(DNA_construct_obj,dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3),\
                                     rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0)),\
-                                    plot_rnas=False,debug=False):
+                                    plot_rnas=False,debug=False,showlabels = [AttachmentSite]):
     """helper function for making dnaplotlib plots of a DNA_construct object. Plots the
     DNAs and the RNAs that come from that DNA, using DNA_construct.explore_txtl"""
-    #TODO: make this more general
-    design = make_dpl_from_construct(DNA_construct_obj,showlabels=[AttachmentSite])
+    #TODO: make the label showing more general
+    design = make_dpl_from_construct(DNA_construct_obj,showlabels=showlabels)
     circular=DNA_construct_obj.circular
     plotDesign(design,circular=circular)
     if(plot_rnas):

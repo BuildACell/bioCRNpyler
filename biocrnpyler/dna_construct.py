@@ -12,7 +12,7 @@ import random
 from .chemical_reaction_network import ComplexSpecies, Species, OrderedComplexSpecies
 from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
 from matplotlib import cm
-from .components_basic import DNA
+from .components_basic import DNA, Protein
 
 from .dna_part import DNA_part
 from .dna_part_misc import AttachmentSite
@@ -50,6 +50,9 @@ class dummyAssembly:
     def del_dna(self):
         del self._dna
     dna = property(get_dna,set_dna,del_dna)
+
+        
+        
 
 class DNA_construct(DNA):
     def __init__(self,
@@ -95,8 +98,8 @@ class DNA_construct(DNA):
                     part.color2 = cmap[pind][:-1]
             pind+=1
         self.circular=circular
-        if(name == None):
-            name = str(self) #our name is our string representation
+        if(name is None):
+            name = self.make_name() #automatic naming
         self.update_dna(name) #this creates the dna Species object
         DNA.__init__(self=self,name=name,length = len(parts_list),
                     mechanisms=mechanisms,parameters=parameters,
@@ -104,6 +107,12 @@ class DNA_construct(DNA):
                     parameter_warnings=parameter_warnings, **keywords)
         self.transcripts = []
         self.set_parameter_warnings(parameter_warnings)
+    def make_name(self):
+        output = ""
+        output = '_'.join([str(a) for a in self.parts_list])
+        if(self.circular):
+            output+="_o"
+        return output
     def reverse(self):
         """reverses everything, without actually changing the DNA"""
         newlist = self.parts_list[::-1]
@@ -164,26 +173,39 @@ class DNA_construct(DNA):
             while keep_going: #we may have to loop through the parts twice because the construct is circular.
                                 #this does not account for infinite loops, RCA, etc.
                 part = newlist[part_index] #pull out the part
+                #print("part is " + str(part))
                 keep_going = explorer.see(part) #the explorer keeps track of everything
                 part_index+=1 #keep going+
                 if(part_index==len(self.parts_list)):
                     part_index = 0 #this takes care of looping
                     if(self.circular and second_looping == 0):
+                        #print('restart from beginning')
                         second_looping = 1 #during the second loop, we don't care about promoters
                         explorer.second_loop() #tell the explorer that we don't care about promoters
                     else:
                         explorer.end() #this completes all "in progress" RNAs and proteins
                         break
-            proteins.update(explorer.get_proteins())
+            #proteins.update(explorer.get_proteins())
             rnas.update(explorer.get_rnas())
+        proteins = {}
+        for promoter in rnas:
+            prots = rnas[promoter].explore_txtl()
+            proteins.update({rnas[promoter]:prots})
         return rnas,proteins
     def __repr__(self):
-        """the name of a DNA has to be unique and usable as a component name in biocrnpyler"""
-        output = ""
-        output = '_'.join([str(a) for a in self.parts_list])
-        if(self.circular):
-            output+="_o"
-        return output
+        """this is just for display purposes"""
+        txt = "dna = "+ self.name
+        rnas,proteins = self.explore_txtl()
+        if(len(rnas)>0):
+            for promoter in rnas:
+                txt += "\n\t"+repr(promoter)
+                txt += "\n\ttranscript = " + repr(rnas[promoter])
+                if(rnas[promoter] in proteins):
+                    for rbs in proteins[rnas[promoter]]:
+                        txt += "\n\t"+repr(rbs)
+                        for protein in proteins[rnas[promoter]][rbs]:
+                            txt += "\n\tprotein = "+repr(protein)
+        return txt
     
     def __contains__(self,obj2):
         """checks if this construct contains a certain part, or a copy of a certain part"""
@@ -435,50 +457,7 @@ class DNA_construct(DNA):
             return True
         else:
             return False
-    #apparently below won't work because you can't hash the parts_list
-    #this means the equality won't work for circular constructs. oops!
-    '''
-        if(len(self.parts_list) != len(construct2.parts_list)):
-            return False
-        else:
-            if(self.circular == construct2.circular):
-                if(self.circular == False):
-                    for p1,p2 in zip(self.parts_list,construct2.parts_list):
-                        if((p1.name != p2.name) or type(p1)!=type(p2) or p1.pos!=p2.pos):
-                            #name and type are the crucial elements
-                            #the pos should always match up. If it doesn't, then one of the two
-                            #DNA_constructs is super wrong somehow...
-                            
-                            return False
-                    #if you look through the whole list and don't find a mismatch then it's a match
-                    return True
-                elif(self.circular == True):
-                    #in this case we need to rotate them until they align
-                    #this opens up a can of worms though. How can we refer to positions of things
-                    #if the sequence can be rotated???
-                    poslist = [a for a in range(len(construct2.parts_list))]
-                    for part_id in range(len(construct2.parts_list)):
-                        #try every possible rotation of the thing we're comparing against
-                        permuted_id_list = poslist[part_id:]+poslist[:part_id]
-                        #we're just making a new list with the parts_list rotated
-                        permuted_p2list = [construct2.parts_list[a] for a in permuted_id_list]
-                        match = True #if you make it through the loop, then the match is true
-                        for p1,p2 in zip(self.parts_list,permuted_p2list):
-                            #compare each element to each other element
-                            if((p1.name != p2.name) or type(p1)!=type(p2)):
-                                match = False
-                                #as soon as you find something wrong, quit
-                                break
-                        if(match==False):
-                            #try the next permutation
-                            continue
-                        else:
-                            #if we made it all the way here then it matches!
-                            return True
-                    #if we are here then we've gone through all permutations and hit "continue" every time.
-                    #that means there is no orientation in which it matches
-                    return False
-    #'''
+    
     def update_species(self,norna=False):
         species = [self.get_species()]
         rnas = None
@@ -493,7 +472,6 @@ class DNA_construct(DNA):
         if(not norna):
             for rna in proteins:
                 species += rna.update_species(norna=True)
-        #TODO integrase species; this should be done inside chassis? 
         return species
     def update_reactions(self,norna=False):
         reactions = []
@@ -516,6 +494,59 @@ class DNA_construct(DNA):
             for rna in proteins:
                 reactions += rna.update_reactions(norna=True)
         return reactions
+
+class DNAassembly_inprog(DNA_construct):
+    def __init__(self, 
+                name: str, 
+                promoter = None, 
+                transcript = None,
+                rbs = None, 
+                protein = None, 
+                length = None,
+                attributes = [], 
+                mechanisms = {}, 
+                parameters = {}, 
+                initial_conc = None,
+                parameter_warnings = True, 
+                **keywords):
+        if(isinstance(promoter,str)):
+            #if the promoter is a string that means make
+            #a default constitutitve promoter
+            part_promoter = Promoter(promoter)
+        elif(promoter is None):
+            part_promoter = Promoter(name)
+        if(isinstance(transcript,str)):
+            #the name of the transcript must be settable but currently it is not
+            self.transcriptName = transcript
+        elif(isinstance(transcript,RNA)):
+            self.transcriptName = transcript.name
+        elif(transcript is None):
+            self.transcriptName = name
+        
+        if(isinstance(rbs,str)):
+            part_rbs = RBS(rbs)
+        elif(rbs is None):
+            part_rbs = RBS(name)
+        
+        if(isinstance(protein,Protein)):
+            part_cds = CDS(protein.name,protein = protein)
+        elif(isinstance(protein,str)):
+            part_cds = CDS(protein,protein = Protein(protein))
+        
+        parts_list = [[part_promoter,"forward"],[part_rbs,"forward"],[part_cds,"forward"]]
+        DNA_construct(self=self,
+                    parts_list=parts_list,
+                    name=name,
+                    circular=False,
+                    mechanisms=mechanisms,  # custom mechanisms
+                    parameters=parameters,  # customized parameters
+                    attributes=attributes,
+                    initial_conc=initial_conc,
+                    parameter_warnings = parameter_warnings,
+                    **keywords
+                    )
+
+
 class TxTl_Explorer():
     def __init__(self,possible_rxns=("transcription","translation"),direction="forward",parameter_warnings=True):
         """this class goes through a parts_list of a DNA_construct and decides what RNAs are made
@@ -719,6 +750,7 @@ class RNA_construct(DNA_construct):
         part_index = 0
         keep_going = 1
         while keep_going:
+            
             part = self.parts_list[part_index]
             keep_going = explorer.see(part)
             part_index+=1
@@ -747,3 +779,51 @@ class RNA_construct(DNA_construct):
         output = ""
         output = '_'.join([str(a) for a in self.parts_list])
         return output
+
+
+
+#DEPRECATED circular matching code below
+#apparently below won't work because you can't hash the parts_list
+    #this means the equality won't work for circular constructs. oops!
+    '''
+        if(len(self.parts_list) != len(construct2.parts_list)):
+            return False
+        else:
+            if(self.circular == construct2.circular):
+                if(self.circular == False):
+                    for p1,p2 in zip(self.parts_list,construct2.parts_list):
+                        if((p1.name != p2.name) or type(p1)!=type(p2) or p1.pos!=p2.pos):
+                            #name and type are the crucial elements
+                            #the pos should always match up. If it doesn't, then one of the two
+                            #DNA_constructs is super wrong somehow...
+                            
+                            return False
+                    #if you look through the whole list and don't find a mismatch then it's a match
+                    return True
+                elif(self.circular == True):
+                    #in this case we need to rotate them until they align
+                    #this opens up a can of worms though. How can we refer to positions of things
+                    #if the sequence can be rotated???
+                    poslist = [a for a in range(len(construct2.parts_list))]
+                    for part_id in range(len(construct2.parts_list)):
+                        #try every possible rotation of the thing we're comparing against
+                        permuted_id_list = poslist[part_id:]+poslist[:part_id]
+                        #we're just making a new list with the parts_list rotated
+                        permuted_p2list = [construct2.parts_list[a] for a in permuted_id_list]
+                        match = True #if you make it through the loop, then the match is true
+                        for p1,p2 in zip(self.parts_list,permuted_p2list):
+                            #compare each element to each other element
+                            if((p1.name != p2.name) or type(p1)!=type(p2)):
+                                match = False
+                                #as soon as you find something wrong, quit
+                                break
+                        if(match==False):
+                            #try the next permutation
+                            continue
+                        else:
+                            #if we made it all the way here then it matches!
+                            return True
+                    #if we are here then we've gone through all permutations and hit "continue" every time.
+                    #that means there is no orientation in which it matches
+                    return False
+    #'''
