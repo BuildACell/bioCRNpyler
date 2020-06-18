@@ -3,9 +3,9 @@ mechanism_id	part_id	param_name	param_val	comments
 	e coli	RNAP	15	uM assuming ~10000 RNAP molecules / e. coli with a volume 1 um^3
 	e coli	RNAase	45	uM assuming ~30000 RNAP molecules / e. coli with a volume 1 um^4
 	e coli	cellular_processes	5	somewhat arbitary concentration for ~3000 genes in e. coli assuming weak loading on all of them
-	e coli extract 1	Ribo	24	1/5 th the Ribosome concentration of E. Coli
-	e coli extract 1	RNAP	3	1/5 th the rnap concentration of E. Coli
-	e coli extract 1	RNAase	6	1/5 th the rnaase concentration of E. Coli
+	e coli extract	Ribo	24	1/5 th the Ribosome concentration of E. Coli
+	e coli extract	RNAP	3	1/5 th the rnap concentration of E. Coli
+	e coli extract	RNAase	6	1/5 th the rnaase concentration of E. Coli
 	e coli extract 2	Ribo	12	
 	e coli extract 2	RNAP	6	
 	e coli extract 2	RNAase	3	

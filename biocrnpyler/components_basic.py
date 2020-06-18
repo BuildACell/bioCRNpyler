@@ -186,8 +186,15 @@ class Enzyme(Component):
         self.enzyme = self.set_species(enzyme, material_type = 'protein')
     
         # SUBSTRATE
-        self.substrate = self.set_species(substrate)
-        self.product = self.set_species(product)
+        if substrate is None:
+            self.substrate = None
+        else:
+            self.substrate = self.set_species(substrate)
+        if product is None:
+            self.product = None
+        else:
+            self.product = self.set_species(product)
+
       
         Component.__init__(self = self, name = self.enzyme.name, **keywords)
     

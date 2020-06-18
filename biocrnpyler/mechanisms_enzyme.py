@@ -27,6 +27,40 @@ class BasicCatalysis(Mechanism):
 
         return [Reaction([Enzyme, Sub], [Enzyme, Prod], kcat)]
 
+class BasicProduction(Mechanism):
+    """
+    Mechanism for the schema C --> P + C
+    """
+    def __init__(self, name = "basic_production", mechanism_type = "catalysis", **keywords):
+        Mechanism.__init__(self, name, mechanism_type)
+
+    def update_species(self, Enzyme, Sub = None, Prod = None, **keywords):
+        species = [Enzyme]
+        if Prod is not None:
+            species += [Prod]
+        if Sub is not None:
+            species += [Sub]
+
+        return species
+
+    def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, kcat = None, **keywords):
+        if part_id is None and component is not None:
+            part_id = component.name
+
+        if kcat is None and component is None:
+            raise ValueError("Must pass in either a component or kcat.")
+        elif kcat is None:
+            kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
+
+        inputs = [Enzyme]
+        outputs = [Enzyme]
+        if Prod is not None:
+            outputs += [Prod]
+        if Sub is not None:
+            inputs += [Sub]
+
+        return [Reaction(inputs, outputs, kcat)]
+
 class MichalisMenten(Mechanism):
     """Mechanism to automatically generate Michalis-Menten Type Reactions
        In the Copy RXN version, the Substrate is not Consumed

@@ -849,6 +849,16 @@ class ChemicalReactionNetwork(object):
         for i in range(len(self.species)):
             self.species2index[str(self.species[i])] = i
 
+    def add_species(self, species, warnings = False):
+        if not isinstance(species, list):
+            species = [species]
+        self.species, self.reactions = ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species+species, warnings=warnings)
+
+    def add_reactions(self, reactions, warnings = False):
+        if not isinstance(reactions, list):
+            reactions = [reactions]
+        self.species, self.reactions = ChemicalReactionNetwork.check_crn_validity(self.reactions+reactions, self.species, warnings=warnings)
+
     @staticmethod
     def check_crn_validity(reactions: List[Reaction], species: List[Species], warnings = False):
         # Check to make sure species are valid and only have a count of 1
