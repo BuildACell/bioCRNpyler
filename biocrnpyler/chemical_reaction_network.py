@@ -185,6 +185,8 @@ def make_complex(species,**keywords):
             newspeclist[bindloc] = other_species[0] #i'm not sure if this actually does anything besides
                                                     #just returning the same OrderedComplexSpecies back out
             mycomplex = OrderedComplexSpecies(newspeclist,attributes=valent_complex.attributes) 
+            if(mycomplex.species == valent_complex.species):
+                return valent_complex
             #TODO this doesn't get the keywords. Is that bad?
             return mycomplex
         else:

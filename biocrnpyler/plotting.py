@@ -170,7 +170,7 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,possca
 def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_material=True,
                                                     pp_show_rates=True,pp_show_attributes=True,
                                                 colordict={"complex":"cyan","protein":"green",
-                                                            "dna":"grey","rna":"orange",
+                                                            "dna":"white","rna":"orange",
                                                             "ligand":"pink","phosphate":"yellow","nothing":"purple"}):
     """generates a networkx DiGraph object that represents the CRN.
     input:
@@ -371,7 +371,7 @@ def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabe
     return outdesign
 
 def plotDesign(design,renderer = dpl.DNARenderer(scale = 5,linewidth=3),part_renderers=None,\
-                circular=False):
+                circular=False,title=None):
     """helper function for doing dnaplotlib plots. You need to set the size and min max of the
     plot, and that's what this function does"""
     if(part_renderers==None):
@@ -380,6 +380,8 @@ def plotDesign(design,renderer = dpl.DNARenderer(scale = 5,linewidth=3),part_ren
     ax = fig.add_axes([0,0,1,1])
     start,end = renderer.renderDNA(ax,design,part_renderers,circular=circular)
     ax.axis('off')
+    if title is not None:
+        ax.set_title(title)
     addedsize=1
     ax.set_xlim([start-addedsize,end+addedsize])
     ax.set_ylim([-15,15])
@@ -393,7 +395,7 @@ def plotConstruct(DNA_construct_obj,dna_renderer=dpl.DNARenderer(scale = 5,linew
     #TODO: make the label showing more general
     design = make_dpl_from_construct(DNA_construct_obj,showlabels=showlabels)
     circular=DNA_construct_obj.circular
-    plotDesign(design,circular=circular)
+    plotDesign(design,circular=circular,title=DNA_construct_obj.get_species())
     if(plot_rnas):
         rnas,proteins = DNA_construct_obj.explore_txtl()
         if(debug):
@@ -407,4 +409,4 @@ def plotConstruct(DNA_construct_obj,dna_renderer=dpl.DNARenderer(scale = 5,linew
             for part in rnadesign:
                 if("edgecolor" not in part['opts']):
                     part['opts'].update({'edgecolor':rnacolor})
-            plotDesign(rnadesign,renderer=rna_renderer)
+            plotDesign(rnadesign,renderer=rna_renderer,title=rnas[promoter].get_species())

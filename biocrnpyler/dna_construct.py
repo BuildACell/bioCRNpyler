@@ -109,7 +109,13 @@ class DNA_construct(DNA):
         self.set_parameter_warnings(parameter_warnings)
     def make_name(self):
         output = ""
-        output = '_'.join([str(a) for a in self.parts_list])
+        outlst = []
+        for part in self.parts_list:
+            pname = part.name
+            if(part.direction=="reverse"):
+                pname+="_r"
+            outlst += [pname]
+        output = '_'.join(outlst)
         if(self.circular):
             output+="_o"
         return output
@@ -199,7 +205,7 @@ class DNA_construct(DNA):
         if(len(rnas)>0):
             for promoter in rnas:
                 txt += "\n\t"+repr(promoter)
-                txt += "\n\ttranscript = " + repr(rnas[promoter])
+                txt += "\n\t" + repr(rnas[promoter])
                 if(rnas[promoter] in proteins):
                     for rbs in proteins[rnas[promoter]]:
                         txt += "\n\t"+repr(rbs)
@@ -230,7 +236,8 @@ class DNA_construct(DNA):
             #if we get a string, that means we want to know if the name exists anywhere
             return obj2 in str(self)
     def get_species(self):
-        return OrderedComplexSpecies([Species(a.name,material_type="dna") for a in self.parts_list]+[Species(self.name,material_type="dna")],material_type="dna")
+        ocomplx = [Species(a.name,material_type="dna") for a in self.parts_list]+[Species(self.name,material_type="dna")]
+        return OrderedComplexSpecies(ocomplx,name=self.name,material_type="dna")
     def cut(self,position,keep_part=False):
         """cuts the construct and returns the resulting piece or pieces"""
         left = self.parts_list[:position]
@@ -290,7 +297,7 @@ class DNA_construct(DNA):
                         #result in binding at a specific site. If there's something already there, then
                         #we skip those
                         continue
-                    new_mv_self = copy.copy(comb_specie)
+                    new_mv_self = copy.deepcopy(comb_specie)
                     new_mv_self.attributes = ["bindloc_"+str(promoter.pos)]
                     new_assy = dummyAssembly(new_mv_self) #this allows the promoter to get the right DNA
                     #a promoter can make multiple RNAs, however...
@@ -418,9 +425,11 @@ class DNA_construct(DNA):
                 for spec in combo:
                     new_material = "ordered_complex"
                     new_backbone_species[spec[1]] = spec[0]
-                
+                newname = None
+                if(new_backbone_species==self.get_species().species):
+                    newname = self.get_species().name
                 combinatorial_complexes += [OrderedComplexSpecies(new_backbone_species,\
-                    material_type=new_material)] #we make a new OrderedComplexSpecies
+                    material_type=new_material,name=newname)] #we make a new OrderedComplexSpecies
         return combinatorial_complexes
     def update_components(self,rnas=None):
         multivalent_self = self.get_species()
@@ -709,11 +718,11 @@ class RNA_construct(DNA_construct):
         can only be linear"""
         #TODO make sure we are subclassing RNA and not DNA. I am not sure how to do this,
         #since DNA_construct subclasses DNA
-        DNA_construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,**keywords)
-        if(name == None):
-            name = str(self)
-        self.name = name
-        self.material_type = "rna"
+        DNA_construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,material_type="rna",**keywords)
+        #if(name == None):
+        #    name = self.make_name()
+        #self.name = super().name
+        #self.material_type = "rna"
     
     def update_rbses(self,proteins,combinatorial_species=None):
         my_rbses = [] #output list of RBSes
@@ -776,8 +785,7 @@ class RNA_construct(DNA_construct):
         return out_components
     def __repr__(self):
         """the name of an RNA should be different from DNA, right?"""
-        output = ""
-        output = '_'.join([str(a) for a in self.parts_list])
+        output = "rna = "+self.name
         return output
 
 
