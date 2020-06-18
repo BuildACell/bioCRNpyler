@@ -131,7 +131,7 @@ class Mixture(object):
             assert isinstance(component, Component), \
                 "the object: %s passed into mixture as component must be of the class Component" % str(component)
             self.components.append(component)
-            component.update_mechanisms(mixture_mechanisms=self.mechanisms)
+            component.update_mechanisms(mixture_mechanisms=self.mechanisms, overwrite_custom_mechanisms = False)
             component.update_parameters(mixture_parameters=self.parameters)
             if self.parameter_warnings is not None:
                 component.set_parameter_warnings(self.parameter_warnings)
@@ -194,8 +194,17 @@ class Mixture(object):
                             found = True
         return species
     
-    def append_species(self, new_species):
-        self.crn_species += [s for s in new_species if s not in self.crn_species]
+    #Allows mechanisms to return nested lists of species. These lists are flattened.
+    def append_species(self, new_species, component):
+        for s in new_species:
+            if isinstance(s, Species):
+                self.crn_species.append(s)
+            elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
+                self.crn_species+=s
+            elif s is not None:
+                raise ValueError(f"Invalid Species Returned in {component}.update_species(): {s}.")
+        #Old Version
+        #self.crn_species += [s for s in new_species if s not in self.crn_species]
 
 
     def update_species(self) -> List[Species]:
@@ -206,7 +215,7 @@ class Mixture(object):
         # TODO check if we can merge the two variables
         self.crn_species = self.added_species
         for component in self.components:
-            self.append_species(component.update_species())
+            self.append_species(component.update_species(), component)
 
         return self.crn_species
 
@@ -267,8 +276,7 @@ class Mixture(object):
         reactions += global_mech_reactions
 
         species = self.set_initial_condition(species)
-        species.sort(key = lambda s:repr(s))
-        reactions.sort(key = lambda r:repr(r))
+
         CRN = ChemicalReactionNetwork(species, reactions)
         return CRN
 

@@ -168,20 +168,21 @@ class DNAassembly(DNA):
                           overwrite_custom_parameters = True):
         DNA.update_parameters(self = self,
                               mixture_parameters = mixture_parameters,
-                              parameters = parameters)
+                              parameters = parameters, 
+                              overwrite_custom_parameters = overwrite_custom_parameters)
 
         if self.promoter is not None:
             self.promoter.update_parameters(
                                     mixture_parameters = mixture_parameters,
                                     parameters = parameters,
-                                    overwrite_custom_parameters = False)
+                                    overwrite_custom_parameters = overwrite_custom_parameters)
         if self.rbs is not None:
             self.rbs.update_parameters(mixture_parameters = mixture_parameters,
                                        parameters = parameters,
-                                       overwrite_custom_parameters = False)
+                                       overwrite_custom_parameters = overwrite_custom_parameters)
 
     def update_mechanisms(self, mixture_mechanisms = {}, mechanisms = {},
-                          overwrite_custom_parameters = True):
+                          overwrite_custom_mechanisms = False):
         DNA.update_mechanisms(self = self,
                               mixture_mechanisms = mixture_mechanisms,
                               mechanisms = mechanisms)
@@ -190,12 +191,12 @@ class DNAassembly(DNA):
             mech_tx = self.mechanisms["transcription"]
             mechs = {"transcription": mech_tx}
             self.promoter.update_mechanisms(mechanisms = mechs,
-                                            overwrite_custom_mechanisms = False)
+                                            overwrite_custom_mechanisms = overwrite_custom_mechanisms)
         if self.rbs is not None and "translation" in self.mechanisms:
             mech_tl = self.mechanisms["translation"]
             mechs = {"translation": mech_tl}
             self.rbs.update_mechanisms(mechanisms = mechs,
-                                       overwrite_custom_mechanisms = False)
+                                       overwrite_custom_mechanisms = overwrite_custom_mechanisms)
 
     def __str__(self):
         return type(self).__name__ + ": " + self.name
