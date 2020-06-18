@@ -37,7 +37,9 @@ class TestChemicalReactionNetwork(TestCase):
         # injecting a None to the species list
         species_list_with_none.append(None)
         # test whether a non-species object is detected and Value error has been raised
-        with self.assertRaisesRegexp(ValueError, 'A non-species object was used as a species!'):
+        #                                         A non-species object was used as a species: [test_species1, test_species2, None]!"'
+        #                                         A non-species object was used as a species: [test_species1, test_species2, None]!"
+        with self.assertRaisesRegexp(ValueError, "A non-species object was used as a species!"):
             ChemicalReactionNetwork.check_crn_validity(reactions=self.rxn_list, species=species_list_with_none)
 
         rxn_list_with_none = self.rxn_list.copy()

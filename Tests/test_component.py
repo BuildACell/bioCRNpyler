@@ -31,9 +31,8 @@ class TestComponent(TestCase):
 
     def test_get_species(self):
 
-        # components has no valid get_species function, it raise warning when it gets called
-        with self.assertWarnsRegex(Warning, f'get_species is not defined for component {self.component.name}, None returned.'):
-            self.component.get_species()
+        # components has no valid get_species function, it returns None
+        self.assertTrue(self.component.get_species() is None)
 
     def test_set_attributes(self):
 

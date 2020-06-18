@@ -145,16 +145,15 @@ class ComplexSpecies(Species):
 
 
         self.species = []
-        for s in species:
+        for s in  flatten_list(species):
             if isinstance(s, Species):
                 self.species.append(s)
             elif isinstance(s, str):
                 self.species.append(Species(s))
-            elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
-                self.species += s
             else:
                 raise ValueError("ComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
 
+        
         self.species_set = list(set(self.species))
 
         if name is not None:
@@ -192,7 +191,7 @@ class ComplexSpecies(Species):
 
 
     def __contains__(self,item):
-        if not item.isinstance(Species):
+        if not isinstance(item, Species):
             raise ValueError("Operator 'in' requires chemical_reaction_network.Species (or a subclass). Received: "+str(item))
         if item in self.species:
             #this is the base case
@@ -285,14 +284,13 @@ class OrderedComplexSpecies(ComplexSpecies):
                              "or more species in its constructor.")
 
 
+        new_species = flatten_list(species)
         self.species = []
-        for s in species:
+        for s in new_species:
             if isinstance(s, Species):
                 self.species.append(s)
             elif isinstance(s, str):
                 self.species.append(Species(s))
-            elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
-                self.species += s
             else:
                 raise ValueError("OrderedComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
 
@@ -469,23 +467,19 @@ class Reaction(object):
         # Check that inputs and outputs only contain species
         #if inputs or outputs is a nested list, flatten that list
         new_inputs = []
-        for s in inputs:
+        for s in flatten_list(inputs):
             if isinstance(s, Species):
                 new_inputs.append(s)
-            elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
-                new_inputs += s
             else:
-                raise ValueError("A non-species object was used as a species.")
+                raise ValueError(f"A non-species object was used as a species: {s}!")
         inputs = new_inputs
 
         new_outputs = []
-        for s in outputs:
+        for s in flatten_list(outputs):
             if isinstance(s, Species):
                 new_outputs.append(s)
-            elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
-                new_outputs += s
             else:
-                raise ValueError("A non-species object was used as a species.")
+                raise ValueError(f"A non-species object was used as a species: {s}!")
         outputs = new_outputs
 
         #OLD CHECK
@@ -860,7 +854,7 @@ class ChemicalReactionNetwork(object):
         # Check to make sure species are valid and only have a count of 1
         checked_species = []
         if not all(isinstance(s, Species) for s in species):
-            print(species)
+            print(f"A non-species object was used as a species: {species}!")
             raise ValueError("A non-species object was used as a species!")
 
         for s in species:
@@ -1092,17 +1086,22 @@ class ChemicalReactionNetwork(object):
         Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
         Returns the data for all species as Pandas dataframe.
         '''
-        from bioscrape.simulator import py_simulate_model
-        m = self.create_bioscrape_model()
-        m.set_species(initial_condition_dict)
-        if not stochastic and safe:
-            safe = False
-        result = py_simulate_model(timepoints, Model = m,
-                                   stochastic = stochastic,
-                                   return_dataframe = return_dataframe,
-                                   safe = safe)
+        try:
+            from bioscrape.simulator import py_simulate_model
+            m = self.create_bioscrape_model()
+            m.set_species(initial_condition_dict)
+            if not stochastic and safe:
+                safe = False
+            result = py_simulate_model(timepoints, Model = m,
+                                       stochastic = stochastic,
+                                       return_dataframe = return_dataframe,
+                                       safe = safe)
 
-        return result
+            return result
+
+        except ModuleNotFoundError:
+            print("Bioscrape not installed. Simulation via bioscrape is disabled.")
+            return False
 
 
     def simulate_with_bioscrape_via_sbml(self, timepoints, file = None,
@@ -1112,30 +1111,31 @@ class ChemicalReactionNetwork(object):
         Simulate CRN model with bioscrape via writing a SBML file temporarily.(https://github.com/biocircuits/bioscrape).
         Returns the data for all species as Pandas dataframe.
         '''
-        import bioscrape
+        try:
+            import bioscrape
+            if file is None:
+                self.write_sbml_file(file_name ="temp_sbml_file.xml")
+                file_name = "temp_sbml_file.xml"
+            elif isinstance(file, str):
+                file_name = file
+            else:
+                file_name = file.name
 
-        if file is None:
-            self.write_sbml_file(file_name ="temp_sbml_file.xml")
-            file_name = "temp_sbml_file.xml"
-        elif isinstance(file, str):
-            file_name = file
-        else:
-            file_name = file.name
-
-        if 'sbml_warnings' in kwargs:
-            sbml_warnings = kwargs.get('sbml_warnings')
-        else:
-            sbml_warnings = False
-        m = bioscrape.types.Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
-        # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
-        m.set_species(initial_condition_dict)
-        result = bioscrape.simulator.py_simulate_model(timepoints, Model = m,
-                                            stochastic = stochastic,
-                                            return_dataframe = return_dataframe)
-
-
-
-        return result, m
+            if 'sbml_warnings' in kwargs:
+                sbml_warnings = kwargs.get('sbml_warnings')
+            else:
+                sbml_warnings = False
+            m = bioscrape.types.Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
+            # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
+            m.set_species(initial_condition_dict)
+            result = bioscrape.simulator.py_simulate_model(timepoints, Model = m,
+                                                stochastic = stochastic,
+                                                return_dataframe = return_dataframe)
+            return result, m
+        except ModuleNotFoundError:
+            print("Bioscrape not installed. Simulation via bioscrape is disabled.")
+            return False, False
+        
 
     def runsim_roadrunner(self, timepoints, filename, species_to_plot = []):
         '''
@@ -1156,3 +1156,13 @@ class ChemicalReactionNetwork(object):
         result = rr.simulate(timepoints[0],timepoints[-1],len(timepoints))
         res_ar = np.array(result)
         return res_ar
+
+#Helper function to flatten lists
+def flatten_list(in_list):
+    out_list = []
+    for element in in_list:
+        if isinstance(element, list):
+            out_list += flatten_list(element)
+        else:
+            out_list += [element]
+    return out_list

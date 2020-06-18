@@ -87,7 +87,7 @@ class Component(object):
         the child class should implement this method
         :return: None
         """
-        warn(f"get_species is not defined for component {self.name}, None returned.")
+        #warn(f"get_species is not defined for component {self.name}, None returned.")
         return None
 
     #If allows species to be set from strings, species, or Components
@@ -143,10 +143,8 @@ class Component(object):
 
         if isinstance(mechanisms, dict):
             for mech_type in mechanisms:
-                print("mech_type", mech_type, mechanisms[mech_type])
                 if overwrite_custom_mechanisms \
                    or mech_type not in self.custom_mechanisms:
-                    print("updating")
                     self.mechanisms[mech_type] = mechanisms[mech_type]
                     self.custom_mechanisms[mech_type] = mechanisms[mech_type]
         elif isinstance(mechanisms, list):

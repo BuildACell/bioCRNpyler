@@ -11,7 +11,10 @@ class BasicCatalysis(Mechanism):
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(self, Enzyme, Sub, Prod = None, **keywords):
-        return [Enzyme, Sub, Prod]
+        if Prod is None:
+            return [Enzyme, Sub]
+        else:
+            return [Enzyme, Sub, Prod]
 
     def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, kcat = None, **keywords):
         if part_id is None and component is not None:
@@ -33,9 +36,15 @@ class MichalisMenten(Mechanism):
     def __init__(self, name = "michalis_menten", mechanism_type = "catalysis", **keywords):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, Enzyme, Sub, Prod = None, **keywords):
-        complex = ComplexSpecies([Sub, Enzyme])
-        return [Enzyme, Sub, complex]
+    def update_species(self, Enzyme, Sub, Prod = None, complex=None, **keywords):
+        if complex is None:
+            complexS = ComplexSpecies([Sub, Enzyme])
+        else:
+            complexS = complex
+        if Prod is None:
+            return [Enzyme, Sub, complexS]
+        else:
+            return [Enzyme, Sub, Prod, complexS]
 
     def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, complex=None, kb=None, ku=None,
                          kcat=None, **keywords):
@@ -53,19 +62,21 @@ class MichalisMenten(Mechanism):
             kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
         
 
-        if complex == None:
-            complex = ComplexSpecies([Sub, Enzyme])
+        if complex is None:
+            complexS = ComplexSpecies([Sub, Enzyme])
+        else:
+            complexS = complex
 
         # Sub + Enz <--> Sub:Enz
-        binding_rxn = Reaction(inputs=[Sub, Enzyme], outputs=[complex],
+        binding_rxn = Reaction(inputs=[Sub, Enzyme], outputs=[complexS],
                                k=kb, k_rev=ku)
         if Prod is not None:
             # Sub:Enz --> Enz + Prod
-            cat_rxn = Reaction(inputs=[complex],
+            cat_rxn = Reaction(inputs=[complexS],
                                outputs=[Prod, Enzyme], k=kcat)
         else:  # Degradation Reaction
             # Sub:Enz --> Enz
-            cat_rxn = Reaction(inputs=[complex], outputs=[Enzyme],
+            cat_rxn = Reaction(inputs=[complexS], outputs=[Enzyme],
                                k=kcat)
         return [binding_rxn, cat_rxn]
 
@@ -79,9 +90,15 @@ class MichalisMentenReversible(Mechanism):
     def __init__(self, name = "michalis_menten_reverse_binding", mechanism_type = "catalysis", **keywords):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, Enzyme, Sub, Prod, **keywords):
-        complex1 = ComplexSpecies([Sub, Enzyme])
-        complex2 = ComplexSpecies([Prod, Enzyme])
+    def update_species(self, Enzyme, Sub, Prod, complex=None, complex2 = None, **keywords):
+        if complex is None:
+            complex1 = ComplexSpecies([Sub, Enzyme])
+        else:
+            complex1 = complex
+        if complex2 is None:
+            complex2 = ComplexSpecies([Prod, Enzyme])
+        else:
+            complex2 = complex2
         return [Enzyme, Sub, Prod, complex1, complex2]
 
     def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, complex=None, complex2 = None, kb=None, ku=None,
@@ -109,20 +126,22 @@ class MichalisMentenReversible(Mechanism):
             kcat, kcat_rev = kcat
         
 
-        if complex == None:
-            complex = ComplexSpecies([Sub, Enzyme])
+        if complex is None:
+            complex1 = ComplexSpecies([Sub, Enzyme])
+        else:
+            complex1 = complex
         if complex2 == None:
             complex2 = ComplexSpecies([Prod, Enzyme])
 
         # Sub + Enz <--> Sub:Enz
-        binding_rxn1 = Reaction(inputs=[Sub, Enzyme], outputs=[complex],
+        binding_rxn1 = Reaction(inputs=[Sub, Enzyme], outputs=[complex1],
                                k=kb1, k_rev=ku1)
 
         binding_rxn2 = Reaction(inputs=[Prod, Enzyme], outputs=[complex2],
                                k=kb2, k_rev=ku2)
 
         # Sub:Enz --> Enz:Prod
-        cat_rxn = Reaction(inputs=[complex], outputs=[complex2], k=kcat, k_rev = kcat_rev)
+        cat_rxn = Reaction(inputs=[complex1], outputs=[complex2], k=kcat, k_rev = kcat_rev)
         
         return [binding_rxn1, binding_rxn2, cat_rxn]
 
@@ -134,14 +153,24 @@ class MichalisMentenCopy(Mechanism):
     def __init__(self, name = "michalis_menten_copy", mechanism_type = "copy", **keywords):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, Enzyme, Sub, Prod = None, **keywords):
-        complex = ComplexSpecies([Sub, Enzyme])
-        return [complex]
+    def update_species(self, Enzyme, Sub, complex=None, Prod = None, **keywords):
+        if complex is None:
+            complexS = ComplexSpecies([Sub, Enzyme])
+        else:
+            complexS = complex
+
+        if Prod is None:
+            return [Enzyme, Sub, complexS]
+        else:
+            return [Enzyme, Sub, Prod, complexS]
 
     def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, complex=None, kb=None, ku=None,
                          kcat=None, **keywords):
-        if complex == None:
-            complex = ComplexSpecies([Sub, Enzyme])
+        if complex is None:
+            complexS = ComplexSpecies([Sub, Enzyme])
+        else:
+            complexS = complex
+        
 
         #Get Parameters
         if part_id == None and component != None:
@@ -156,11 +185,11 @@ class MichalisMentenCopy(Mechanism):
         if component == None and (kb == None or ku == None or kcat == None):
             raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
         # Sub + Enz <--> Sub:Enz
-        binding_rxn = Reaction(inputs=[Sub, Enzyme], outputs=[complex],
+        binding_rxn = Reaction(inputs=[Sub, Enzyme], outputs=[complexS],
                                k=kb, k_rev=ku)
 
         # Sub:Enz --> Enz + Prod + Sub
-        cat_rxn = Reaction(inputs=[complex], outputs=[Sub, Prod, Enzyme],
+        cat_rxn = Reaction(inputs=[complexS], outputs=[Sub, Prod, Enzyme],
                            k=kcat)
 
         return [binding_rxn, cat_rxn]

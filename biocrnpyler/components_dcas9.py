@@ -4,7 +4,7 @@
 from .component import Component
 from .components_basic import DNA, RNA, Protein
 from .mechanisms_binding import Reversible_Bimolecular_Binding
-from .chemical_reaction_network import Species
+from .chemical_reaction_network import Species, ComplexSpecies
 
 
 class guideRNA(RNA):
@@ -32,14 +32,19 @@ class guideRNA(RNA):
         self.gRNA = self.get_species()
 
     def get_dCasComplex(self):
-        binding_species = \
-           self.mechanisms['dCas9_binding'].update_species(self.gRNA, self.dCas)
-        if len(binding_species) > 1:
-            raise ValueError("dCas9_binding mechanisms "
+        binding_species = self.mechanisms['dCas9_binding'].update_species(self.gRNA, self.dCas)
+
+        complexS = None
+        for c in [b for b in binding_species if isinstance(b, ComplexSpecies)]:
+            if self.gRNA in c and self.dCas in c:
+                if complexS is None:
+                    complexS = c
+                else:
+                    raise ValueError("dCas9_binding mechanisms "
                             f"{self.mechanisms['dCas9_binding'].name} returned "
-                            "multiple complexes. Unclear which is active." )
-        else:
-            return binding_species[0]
+                            "multiple complexes containing dCas9 and the guideRNA. Unclear which is correct." )
+        
+        return complexS
 
     def update_species(self):
         species = [self.gRNA, self.dCas]
