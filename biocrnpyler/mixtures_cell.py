@@ -2,6 +2,8 @@ from warnings import warn
 from warnings import resetwarnings
 from .components_basic import DNA, RNA, Protein, ChemicalComplex
 from .mechanism import EmptyMechanism
+from .mechanisms_enzyme import BasicCatalysis, MichalisMenten
+from .mechanisms_binding import One_Step_Binding
 from .mechanisms_txtl import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
 from .mixture import Mixture
 from .chemical_reaction_network import Species, ChemicalReactionNetwork
@@ -18,10 +20,14 @@ class ExpressionDilutionMixture(Mixture):
 
         dummy_translation = EmptyMechanism(name = "dummy_translation", mechanism_type = "translation")
         mech_expression = OneStepGeneExpression()
+        mech_cat = BasicCatalysis()
+        mech_bind = One_Step_Binding()
 
         default_mechanisms = {
-            "transcription": mech_expression,
-            "translation": dummy_translation
+            mech_expression.mechanism_type: mech_expression,
+            dummy_translation.mechanism_type: dummy_translation,
+            mech_cat.mechanism_type:mech_cat,
+            mech_bind.mechanism_type:mech_bind
         }
 
         dilution_mechanism= Dilution(name = "dilution", filter_dict = {"dna":False}, default_on = True)
@@ -72,19 +78,23 @@ class SimpleTxTlDilutionMixture(Mixture):
         
         simple_transcription = SimpleTranscription() #Transcription will not involve machinery
         simple_translation = SimpleTranslation()
+        mech_cat = BasicCatalysis()
+        mech_bind = One_Step_Binding()
         
         default_mechanisms = {
-            "transcription": simple_transcription,
-            "translation": simple_translation
+            simple_transcription.mechanism_type: simple_transcription,
+            simple_translation.mechanism_type: simple_translation,
+            mech_cat.mechanism_type:mech_cat,
+            mech_bind.mechanism_type:mech_bind
         }
     
         #By Default Species are diluted S-->0 Unless:
         # They are of type 'dna'
         # They have the attribute 'machinery'
         dilution_mechanism = Dilution(filter_dict = {"dna":False}, default_on = True)
-        dilution_mrna = Dilution(name = "rna_degredation", filter_dict = {"rna":True}, default_on = False)
+        deg_mrna = Dilution(name = "rna_degredation", filter_dict = {"rna":True}, default_on = False)
 
-        global_mechanisms = {"dilution":dilution_mechanism, "rna_degredation":dilution_mrna}
+        global_mechanisms = {"dilution":dilution_mechanism, "rna_degredation":deg_mrna}
         
         #Always call the superclass __init__ with **keywords
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, global_mechanisms = global_mechanisms, **keywords)
@@ -115,13 +125,16 @@ class TxTlDilutionMixture(Mixture):
 
         mech_tx = Transcription_MM(rnap = self.rnap.get_species())
         mech_tl = Translation_MM(ribosome = self.ribosome.get_species())
-        mech_rna_deg = Degredation_mRNA_MM(nuclease = self.rnaase.get_species()) 
-
+        mech_rna_deg = Degredation_mRNA_MM(nuclease = self.rnaase.get_species())
+        mech_cat = MichalisMenten()
+        mech_bind = One_Step_Binding()
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
             mech_tl.mechanism_type: mech_tl,
-            mech_rna_deg.mechanism_type: mech_rna_deg
+            mech_rna_deg.mechanism_type: mech_rna_deg,
+            mech_cat.mechanism_type: mech_cat,
+            mech_bind.mechanism_type:mech_bind
         }
 
         dilution_mechanism = Dilution(filter_dict = {"dna":False, "machinery":False}, default_on = True)

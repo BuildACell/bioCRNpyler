@@ -87,7 +87,7 @@ class Component(object):
         the child class should implement this method
         :return: None
         """
-        warn(f"get_species is not defined for component {self.name}, None returned.")
+        #warn(f"get_species is not defined for component {self.name}, None returned.")
         return None
 
     #If allows species to be set from strings, species, or Components
@@ -139,16 +139,7 @@ class Component(object):
             if p not in self.parameters:
                 self.parameters[p] = mixture_parameters[p]
 
-    def update_mechanisms(self, mixture_mechanisms={}, mechanisms={},
-                          overwrite_custom_mechanisms=True):
-
-        for mech_type in mixture_mechanisms:
-            self.mechanisms[mech_type] = mixture_mechanisms[mech_type]
-
-        # The mechanisms used during compilation are stored as their own
-        # dictionary
-        for mech_type in self.default_mechanisms:
-            self.mechanisms[mech_type] = self.default_mechanisms[mech_type]
+    def update_mechanisms(self, mixture_mechanisms={}, mechanisms={}, overwrite_custom_mechanisms=True):
 
         if isinstance(mechanisms, dict):
             for mech_type in mechanisms:
@@ -165,7 +156,22 @@ class Component(object):
         else:
             raise ValueError("Mechanisms must be passed as a list of "
                              "instantiated objects or a dictionary "
-                             "{type:mechanism}")
+                             "{mechanism_type:mechanism instance}")
+
+        # The mechanisms used during compilation are stored as their own
+        # dictionary
+        for mech_type in self.default_mechanisms:
+            if mech_type not in self.custom_mechanisms:
+                self.mechanisms[mech_type] = self.default_mechanisms[mech_type]
+
+        for mech_type in mixture_mechanisms:
+            if mech_type not in self.custom_mechanisms:
+                self.mechanisms[mech_type] = mixture_mechanisms[mech_type]
+
+        
+
+        
+        
 
     #Set get_parameter property
     def set_parameter_warnings(self, parameter_warnings):

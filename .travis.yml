@@ -6,13 +6,17 @@ python:
   - "3.6"
   - "3.7"
 
-# Install the codecov pip dependency
+# Install the codecov and pytest pip dependencies
 install:
   - pip install codecov
+  - pip install pytest
+  - pip install pytest-runner
+  - pip install pytest-cov
+  - pip install nbval
 
 # command to run tests
 script:
-          - "python setup.py nosetests --tests Tests/ --with-coverage"
+          - "python setup.py test"
 
 # Push the results back to codecov
 after_success:

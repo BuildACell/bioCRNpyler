@@ -15,6 +15,7 @@ from .mechanisms_enzyme import *
 from .mechanisms_txtl import *
 
 # Core components
+from .components_basic import *
 from .mixtures_extract import *
 from .mixtures_cell import *
 from .dna_assembly import *

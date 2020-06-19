@@ -3,7 +3,6 @@ from .chemical_reaction_network import Species, ComplexSpecies, OrderedComplexSp
 from .mechanism import *
 from .mechanisms_binding import *
 
-
 # These subclasses of Component represent different kinds of biomolecules.
 class DNA(Component):
     """DNA class
@@ -157,8 +156,6 @@ class ChemicalComplex(Component):
         if name is None:
             name = self.species.name
 
-        self.default_mechanisms = {"binding": One_Step_Binding()}
-
         Component.__init__(self=self, name=name, mechanisms=mechanisms,
                            parameters=parameters, attributes=attributes,
                            initial_conc=initial_conc, **keywords)
@@ -181,3 +178,69 @@ class ChemicalComplex(Component):
         reactions = mech_b.update_reactions(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
         
         return reactions
+
+class Enzyme(Component):
+    def __init__(self, enzyme, substrate, product, **keywords):
+      
+        # ENZYME NAME
+        self.enzyme = self.set_species(enzyme, material_type = 'protein')
+    
+        # SUBSTRATE
+        if substrate is None:
+            self.substrate = None
+        else:
+            self.substrate = self.set_species(substrate)
+        if product is None:
+            self.product = None
+        else:
+            self.product = self.set_species(product)
+
+      
+        Component.__init__(self = self, name = self.enzyme.name, **keywords)
+    
+    def get_species(self):
+        return self.enzyme
+
+    def update_species(self):
+        mech_cat = self.mechanisms['catalysis']
+
+        return mech_cat.update_species(self.enzyme, self.substrate, self.product) 
+                                                                                           
+    
+    def update_reactions(self):
+        mech_cat = self.mechanisms['catalysis']
+
+        return mech_cat.update_reactions(self.enzyme, self.substrate, self.product, component = self,  part_id = self.name)
+
+
+class MultiEnzyme(Component):
+    def __init__(self, enzyme, substrates, products, **keywords):
+      
+        # ENZYME NAME
+        self.enzyme = self.set_species(enzyme, material_type = 'protein')
+    
+        # SUBSTRATE
+        self.substrates = []
+        for substrate in substrates:
+            self.substrates.append(self.set_species(substrate))
+
+        self.products = []
+        for product in products:
+            self.products.append(self.set_species(product))
+      
+        Component.__init__(self = self, name = self.enzyme.name, **keywords)
+    
+    def get_species(self):
+        return self.enzyme
+
+    def update_species(self):
+        mech_cat = self.mechanisms['catalysis']
+
+        return mech_cat.update_species(self.enzyme, self.substrates, self.products) 
+                                                                                           
+    
+    def update_reactions(self):
+        mech_cat = self.mechanisms['catalysis']
+
+        return mech_cat.update_reactions(self.enzyme, self.substrates, self.products, component = self,  part_id = self.name)
+

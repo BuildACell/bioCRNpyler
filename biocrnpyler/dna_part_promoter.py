@@ -29,6 +29,7 @@ class Promoter(DNA_part):
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]
         species = []
+
         species += mech_tx.update_species(dna = self.assembly.dna, \
             transcript = self.transcript,
             component = self, part_id = self.name)
@@ -38,7 +39,6 @@ class Promoter(DNA_part):
     def update_reactions(self):
         mech_tx = self.mechanisms["transcription"]
         reactions = []
-
 
         reactions += mech_tx.update_reactions(dna = self.assembly.dna, \
                         component = self, part_id = self.name, complex = None,
@@ -70,6 +70,7 @@ class RegulatedPromoter(Promoter):
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
         species = []
+
         self.complexes = []
         if self.leak is not False:
             species += mech_tx.update_species(dna = self.assembly.dna,transcript=self.transcript, component = self)

@@ -151,14 +151,14 @@ class DNA_construct(DNA):
                                     parameters = parameters,
                                     overwrite_custom_parameters = False)
     def update_mechanisms(self, mixture_mechanisms = {}, mechanisms = {},
-                          overwrite_custom_parameters = True):
+                          overwrite_custom_parameters = True,overwrite_custom_mechanisms = False):
         DNA.update_mechanisms(self = self,
                               mixture_mechanisms = mixture_mechanisms,
-                              mechanisms = mechanisms)
+                              mechanisms = mechanisms,overwrite_custom_mechanisms = overwrite_custom_mechanisms)
         for part in self.parts_list:
             part.update_mechanisms(mechanisms = mechanisms,
                                     mixture_mechanisms = mixture_mechanisms,
-                                    overwrite_custom_mechanisms = False)
+                                    overwrite_custom_mechanisms = overwrite_custom_mechanisms)
     def explore_txtl(self):
         """this function finds promoters and terminators and stuff in the construct"""
         # lets try to make this more modular shall we?\

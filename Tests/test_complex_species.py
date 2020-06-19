@@ -54,6 +54,17 @@ class TestComplexSpecies(TestCase):
         self.assertEqual(repr(m1), "complex_2x_"+repr(s1))
         self.assertEqual(repr(c3), repr(m1))
 
+        # Nested list creation of ComplexSpecies
+        c1 = ComplexSpecies([s1, [s2, s1]])
+        c2 = ComplexSpecies([s1, s2, s1])
+        self.assertEqual(c1, c2)
+
+        c1 = OrderedComplexSpecies([s1, [s2, s1]])
+        c2 = OrderedComplexSpecies([s1, s2, s1])
+        c3 = OrderedComplexSpecies([s1, [s1, s2]])
+        self.assertEqual(c1, c2)
+        self.assertFalse(c1==c3)
+
     def test_species_equality(self):
 
         s1 = Species(name='s1', material_type="m1")
