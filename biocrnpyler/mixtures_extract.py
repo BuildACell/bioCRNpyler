@@ -71,7 +71,7 @@ class SimpleTxTlExtract(Mixture):
     def __init__(self, name="", mechanisms={}, components=[], **kwargs):
 
         mech_tx = SimpleTranscription()
-        mech_tl = SimpleTranscription()
+        mech_tl = SimpleTranslation()
         mech_cat = BasicCatalysis()
         mech_bind = One_Step_Binding()
 
