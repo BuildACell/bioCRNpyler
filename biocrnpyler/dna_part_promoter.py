@@ -24,7 +24,7 @@ class Promoter(DNA_part):
             self.transcript = self.set_species(transcript, material_type = 'rna')
 
         DNA_part.__init__(self, name = name, mechanisms = mechanisms,
-                           parameters = parameters, **keywords)
+                           parameters = parameters, assembly=assembly, **keywords)
 
     def update_species(self):
         mech_tx = self.mechanisms["transcription"]

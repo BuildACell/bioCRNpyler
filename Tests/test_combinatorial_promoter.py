@@ -84,7 +84,7 @@ class TestCombinatorialPromoter(TestCase):
                                     DNAassembly,Transcription_MM, Translation_MM, ComplexSpecies, Multimer
         
         #make a relatively simple combinatorial promoter
-        newprom = CombinatorialPromoter("testprom",["treg1","treg2"],tx_capable_list=[["treg2","treg1"]])
+        newprom = CombinatorialPromoter("testprom",["treg1","treg2"],tx_capable_list=[["treg2","treg1"]],leak=True)
         #you have to put it into an assembly
         newdna = DNAassembly("testDNA",promoter=newprom)
         #adding mechanisms because there is no mixture. I believe this is what the mixture does
