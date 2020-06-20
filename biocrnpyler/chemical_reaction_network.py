@@ -3,6 +3,7 @@
 
 from warnings import warn
 from .sbmlutil import *
+from .propensities import Propensity, MassAction
 import warnings
 import numpy as np
 from typing import List, Union, Dict
@@ -428,89 +429,24 @@ class Reaction(object):
     If the reaction is reversible, the reverse reaction is also included:
        \sum_i m_i O_i  --> \sum_i n_i I_i @ rate = k_rev
     """
-    def __init__(self, inputs, outputs, k = 0, input_coefs = None,
-                 output_coefs = None, k_rev = 0, propensity_type = "massaction",
-                 rate_formula = None, propensity_params = None):
+    def __init__(self, inputs: List[Species], outputs: List[Species],
+                 propensity_type: Propensity, k=0, k_rev=0, input_coefs=None,
+                 output_coefs=None):
 
         if len(inputs) == 0 and len(outputs) == 0:
             warn("Reaction Inputs and Outputs both contain 0 Species.")
 
-        if k != 0 and propensity_params is not None and "k" not in propensity_params:
-            propensity_params["k"] = k
-        elif k == 0 and propensity_params is not None and "k" in propensity_params:
-            k = propensity_params["k"]
-        elif k != 0 and propensity_params is not None and k != propensity_params['k']:
-            print("k=", k, "propensity_params[k]", propensity_params["k"], "propensity_params", propensity_params)
-            raise ValueError("Inconsistent rate constants: propensity_params['k'] != k.")
+        if propensity_type is None:
+            propensity_type = MassAction(k=k, k_rev=k_rev)
 
-        if propensity_type == "massaction" and propensity_params is not None:
-            warn("ValueWarning: propensity_params dictionary passed into a "
-                 "massaction propensity. Massaction propensities do not "
-                 "require a param dictionary.")
-        elif propensity_type != "massaction" and propensity_params is None:
-            raise ValueError("Non-massaction propensities require a propensity_params dictionary passed to the propensity_params keyword.")
-        elif propensity_type != "massaction" and k_rev != 0:
-            raise ValueError("Invalid reversible reaction for propensity "
-                             f"type = {propensity_type}. Only massaction "
-                             "propensities support the reversible rate k_rev. "
-                             "Consider creating two seperate reactions "
-                             "instead.")
-        elif propensity_type == "hillpositive":
-            if not ("k" in propensity_params and "s1" in propensity_params and "K" in propensity_params \
-                    and "n" in propensity_params):
-                raise ValueError("hillpositive propensities, p(s1; k, K, n) "
-                        "= k*s1^n/(s1^n + K), require the following "
-                        "propensity_params: "
-                        "'k':rate constant (float)"
-                        "'s1':species (chemical_reaction_network.species), "
-                        "'n':cooperativity(float), "
-                        "and 'K':dissociationc constant (float).")
-        elif propensity_type == "hillnegative":
-            if not ("k" in propensity_params and "s1" in propensity_params and "K" in propensity_params \
-                    and "n" in propensity_params):
-                raise ValueError("hillnegative propensities, "
-                        "p(s1; k, K, n) = k*1/(s1^n + K), require "
-                        "the following propensity_params:"
-                        "'k':rate constant (float)"
-                        "'s1':species (chemical_reaction_network.species), "
-                        "'n':cooperativity(float), "
-                        "and 'K':dissociationc constant (float)")
-        elif propensity_type == "proportionalhillpositive":
-            if not ("k" in propensity_params and "s1" in propensity_params and "d" in propensity_params \
-                    and "K" in propensity_params \
-                    and "n" in propensity_params):
-                raise ValueError("proportionalhillpositive propensities, "
-                    "p(s1, d; k, K, n) = k*d*s1^n/(s1^n + K), require the "
-                    "following propensity_params: "
-                    "'k':rate constant (float)"
-                    "'s1':species (chemical_reaction_network.species), "
-                    "'d':species (chemical_reaction_network.species), "
-                    "'n':cooperativity(float), "
-                    "and 'K':dissociationc onstant (float)")
-        elif propensity_type == "proportionalhillnegative":
-            if not ("k" in propensity_params and "s1" in propensity_params and "d" in propensity_params \
-                    and "K" in propensity_params \
-                    and "n" in propensity_params):
-                raise ValueError("proportionalhillnegative propensities, "
-                    "p(s1, d; k, K, n) = k*d/(s1^n + K), require the "
-                    "following propensity_params: "
-                    "'k':rate constant (float)"
-                    "'s1':species (chemical_reaction_network.species), "
-                    "'d':species (chemical_reaction_network.species), "
-                    "'n':cooperativity(float), "
-                    "and 'K':dissociationc onstant (float)")
-        elif propensity_type == "general":
-            if "rate" not in propensity_params:
-                raise ValueError("general propensities, p(s) = k * f(s), "
-                    "require the propensity_params: "
-                    "'rate':f(s) where f(s) is an SBML compatable function "
-                    "of arbitrary species, "
-                    "s (use repr(chemical_reaction_network.species) to get "
-                    "the proper text representation of a species name).")
-        elif propensity_type != "massaction":
-            raise ValueError(f"Unknown propensity type: {propensity_type}.")
+        Propensity.is_valid_propensity(propensity_type)
+
+        if not propensity_type.check_species(inputs):
+            raise ValueError(f'the given inputs {inputs} does not contain the species '
+                             f'required by the selected propensity! '
+                             f'required species: {propensity_type.get_species()}')
+
         self.propensity_type = propensity_type
-        self.propensity_params = propensity_params
 
         # Check that inputs and outputs only contain species
         #if inputs or outputs is a nested list, flatten that list
