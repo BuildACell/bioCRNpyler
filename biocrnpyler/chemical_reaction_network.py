@@ -885,8 +885,7 @@ class ChemicalReactionNetwork(object):
 
         for r in reactions:
             if reactions.count(r) > 1:
-                warn(f"Reaction {r} may be duplicated in CRN definitions. Duplicates "
-                     "have NOT been removed.")
+                pass
 
             checked_reactions.append(r)
             #if r not in checked_reactions:
