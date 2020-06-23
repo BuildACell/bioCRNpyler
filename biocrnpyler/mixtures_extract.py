@@ -5,7 +5,7 @@ from warnings import warn
 from warnings import resetwarnings
 from .components_basic import DNA, RNA, Protein, ChemicalComplex
 from .mechanism import EmptyMechanism
-from .mechanisms_enzyme import BasicCatalysis, MichalisMenten
+from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
 from .mechanisms_binding import One_Step_Binding
 from .mechanisms_txtl import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
 from .global_mechanism import Dilution
@@ -108,7 +108,7 @@ class TxTlExtract(Mixture):
         mech_tx = Transcription_MM(rnap = self.rnap.get_species())
         mech_tl = Translation_MM(ribosome = self.ribosome.get_species())
         mech_rna_deg = Degredation_mRNA_MM(nuclease = self.rnaase.get_species()) 
-        mech_cat = MichalisMenten()
+        mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 
 
