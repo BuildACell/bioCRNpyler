@@ -30,7 +30,7 @@ setup(
           'numpy',
           'matplotlib',
           'networkx',
-          'bokeh==1.4.0',
+          'bokeh>=1.4.0',
           'fa2',
       ],
     setup_requires=["pytest-runner"],
