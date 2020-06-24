@@ -1,4 +1,4 @@
-# pathutil.py - path utilities
+# plotting.py - plotting utilities
 # ASS, 21 Apr 2020
 #
 # This file contains some utility functions for plotting CRNs

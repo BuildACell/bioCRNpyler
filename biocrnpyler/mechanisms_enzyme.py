@@ -61,8 +61,8 @@ class BasicProduction(Mechanism):
 
         return [Reaction(inputs, outputs, kcat)]
 
-class MichalisMenten(Mechanism):
-    """Mechanism to automatically generate Michalis-Menten Type Reactions
+class MichaelisMenten(Mechanism):
+    """Mechanism to automatically generate Michaelis-Menten Type Reactions
        In the Copy RXN version, the Substrate is not Consumed
        Sub+Enz <--> Sub:Enz --> Enz+Prod
     """
@@ -115,8 +115,8 @@ class MichalisMenten(Mechanism):
         return [binding_rxn, cat_rxn]
 
 
-class MichalisMentenReversible(Mechanism):
-    """Mechanism to automatically generate Michalis-Menten Type Reactions with products that can bind to enzymes
+class MichaelisMentenReversible(Mechanism):
+    """Mechanism to automatically generate Michaelis-Menten Type Reactions with products that can bind to enzymes
        In the Copy RXN version, the Substrate is not Consumed
        Sub+Enz <--> Sub:Enz --> Enz:Prod <--> Enz + Prod
     """
@@ -180,7 +180,7 @@ class MichalisMentenReversible(Mechanism):
         return [binding_rxn1, binding_rxn2, cat_rxn]
 
 
-class MichalisMentenCopy(Mechanism):
+class MichaelisMentenCopy(Mechanism):
     """In the Copy RXN version, the Substrate is not Consumed
        Sub+Enz <--> Sub:Enz --> Sub+Enz+Prod
     """

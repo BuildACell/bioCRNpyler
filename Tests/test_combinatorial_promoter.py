@@ -33,12 +33,14 @@ class TestCombinatorialPromoter(TestCase):
                                                 Species("treg2",material_type="rna")])
         #make sure the default mechanism is the correct one
         self.assertTrue(isinstance(newprom4.default_mechanisms["binding"],Combinatorial_Cooperative_Binding))
+
     def test_update_species(self):
         from biocrnpyler import CombinatorialPromoter, Protein, Species, Combinatorial_Cooperative_Binding, \
                                     DNAassembly,Transcription_MM, Translation_MM, Multimer, ComplexSpecies
         #make a complicated promoter
         newprom = CombinatorialPromoter("testprom",["treg1",Species("treg2",material_type="rna")],\
                                 tx_capable_list = [["treg1","treg2"]],cooperativity={"testprom_treg2":1},leak=True)
+
         newdna = DNAassembly("testDNA",promoter=newprom)
         newdna.update_mechanisms(mechanisms={"transcription":Transcription_MM(), "translation":Translation_MM()})
         newdna.update_parameters(parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2})

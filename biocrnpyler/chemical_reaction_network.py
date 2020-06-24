@@ -1217,22 +1217,19 @@ class ChemicalReactionNetwork(object):
         Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
         Returns the data for all species as Pandas dataframe.
         '''
-        try:
-            from bioscrape.simulator import py_simulate_model
-            m = self.create_bioscrape_model()
-            m.set_species(initial_condition_dict)
-            if not stochastic and safe:
-                safe = False
-            result = py_simulate_model(timepoints, Model = m,
-                                       stochastic = stochastic,
-                                       return_dataframe = return_dataframe,
-                                       safe = safe)
+        
+        from bioscrape.simulator import py_simulate_model
+        m = self.create_bioscrape_model()
+        m.set_species(initial_condition_dict)
+        if not stochastic and safe:
+            safe = False
+        result = py_simulate_model(timepoints, Model = m,
+                                   stochastic = stochastic,
+                                   return_dataframe = return_dataframe,
+                                   safe = safe)
 
-            return result
+        return result
 
-        except ModuleNotFoundError:
-            print("Bioscrape not installed. Simulation via bioscrape is disabled.")
-            return False
 
 
     def simulate_with_bioscrape_via_sbml(self, timepoints, file = None,
@@ -1242,30 +1239,25 @@ class ChemicalReactionNetwork(object):
         Simulate CRN model with bioscrape via writing a SBML file temporarily.(https://github.com/biocircuits/bioscrape).
         Returns the data for all species as Pandas dataframe.
         '''
-        try:
-            import bioscrape
-            if file is None:
-                self.write_sbml_file(file_name ="temp_sbml_file.xml")
-                file_name = "temp_sbml_file.xml"
-            elif isinstance(file, str):
-                file_name = file
-            else:
-                file_name = file.name
+        if file is None:
+            self.write_sbml_file(file_name ="temp_sbml_file.xml")
+            file_name = "temp_sbml_file.xml"
+        elif isinstance(file, str):
+            file_name = file
+        else:
+            file_name = file.name
 
-            if 'sbml_warnings' in kwargs:
-                sbml_warnings = kwargs.get('sbml_warnings')
-            else:
-                sbml_warnings = False
-            m = bioscrape.types.Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
-            # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
-            m.set_species(initial_condition_dict)
-            result = bioscrape.simulator.py_simulate_model(timepoints, Model = m,
-                                                stochastic = stochastic,
-                                                return_dataframe = return_dataframe)
-            return result, m
-        except ModuleNotFoundError:
-            print("Bioscrape not installed. Simulation via bioscrape is disabled.")
-            return False, False
+        if 'sbml_warnings' in kwargs:
+            sbml_warnings = kwargs.get('sbml_warnings')
+        else:
+            sbml_warnings = False
+        m = bioscrape.types.Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
+        # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
+        m.set_species(initial_condition_dict)
+        result = bioscrape.simulator.py_simulate_model(timepoints, Model = m,
+                                            stochastic = stochastic,
+                                            return_dataframe = return_dataframe)
+        return result, m
         
 
     def runsim_roadrunner(self, timepoints, filename, species_to_plot = []):

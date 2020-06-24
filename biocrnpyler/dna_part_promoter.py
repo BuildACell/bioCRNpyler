@@ -73,7 +73,7 @@ class RegulatedPromoter(Promoter):
 
         self.complexes = []
         if self.leak is not False:
-            species += mech_tx.update_species(dna = self.assembly.dna,transcript=self.transcript, component = self)
+            species += mech_tx.update_species(dna = self.assembly.dna, component = self, part_id = self.name+"_leak")
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
@@ -94,8 +94,8 @@ class RegulatedPromoter(Promoter):
         mech_b = self.mechanisms['binding']
 
         if self.leak != False:
-            reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, \
-                                                            transcript = self.transcript)
+            reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name+"_leak", \
+                                                            transcript = self.transcript, protein = self.assembly.protein)
         if(len(self.complexes)<len(self.regulators)):
             self.update_species()
         for i in range(len(self.regulators)):
