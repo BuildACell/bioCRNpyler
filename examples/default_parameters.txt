@@ -54,3 +54,7 @@ simple_translation	weak	ktl	0.06	Above rescaled by ktl for simple translation
 simple_transcription	weak	ktx	0.0031875	Above rescaled by ktx for simple transcription
 simple_transcription	medium	ktx	0.2221875	Above rescaled by ktx for simple transcription
 simple_transcription	strong	ktx	0.4775625	Above rescaled by ktx for simple transcription
+	combinatorial_promoter_leak	ktx	0.0005	1% of ktx default
+	combinatorial_promoter_leak	kexpress	0.0028125	1% of kexpress default
+	regulated_promoter_leak	ktx	0.0005	1% of ktx default
+	regulated_promoter_leak	kexpress	0.0028125	1% of kexpress default
