@@ -74,7 +74,7 @@ Components and Mixtures can both have one more multiple parameter files by passi
 #### Suppressing warnings
 To suppress parameter warnings, use the keyword parameter_warnings = False inside a Mixture or Component constructor.
 
-Below is an example csv with all the parameters for a tetR promoter undergoing Michalis Menten transcription and translation.
+Below is an example csv with all the parameters for a tetR promoter undergoing Michaelis Menten transcription and translation.
 
 """
 

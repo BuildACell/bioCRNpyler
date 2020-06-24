@@ -28,7 +28,7 @@ setup(
     install_requires=[
           'python-libsbml',
           'numpy',
-          'matplotlib',
+          'matplotlib<=3.2.2',
           'networkx',
           'bokeh>=1.4.0',
           'fa2',
