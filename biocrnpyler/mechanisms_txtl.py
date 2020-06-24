@@ -55,7 +55,7 @@ class Transcription_MM(MichaelisMentenCopy):
             transcript = [Species(dna.name, material_type="rna")]
         elif isinstance(transcript,Species):
             transcript = [transcript]
-        rxns += MichalisMentenCopy.update_reactions(self,self.rnap, dna, transcript,
+        rxns += MichaelisMentenCopy.update_reactions(self,self.rnap, dna, transcript,
                                                        complex=complex, kb=kb,
                                                        ku=ku, kcat=ktx)
 
