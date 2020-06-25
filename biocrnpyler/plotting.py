@@ -23,7 +23,11 @@ from .dna_part_rbs import RBS
 from .dna_part_cds import CDS
 from .dna_part_terminator import Terminator
 from .dna_part_misc import AttachmentSite
-import dnaplotlib as dpl
+PLOT_DNA = True
+try:
+    import dnaplotlib as dpl
+except ModuleNotFoundError:
+    PLOT_DNA = False
 def updateLimits(limits,xvalues):
     for value in xvalues:
         if(value < limits[0]):
@@ -370,29 +374,41 @@ def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabe
         outdesign = outdesign[::-1]
     return outdesign
 
-def plotDesign(design,renderer = dpl.DNARenderer(scale = 5,linewidth=3),part_renderers=None,\
+def plotDesign(design,renderer = None,part_renderers=None,\
                 circular=False,title=None):
     """helper function for doing dnaplotlib plots. You need to set the size and min max of the
     plot, and that's what this function does"""
-    if(part_renderers==None):
-        part_renderers = renderer.SBOL_part_renderers()
-    fig = plt.figure(figsize=(len(design)*.75,1.1))
-    ax = fig.add_axes([0,0,1,1])
-    start,end = renderer.renderDNA(ax,design,part_renderers,circular=circular)
-    ax.axis('off')
-    if title is not None:
-        ax.set_title(title)
-    addedsize=1
-    ax.set_xlim([start-addedsize,end+addedsize])
-    ax.set_ylim([-15,15])
-    plt.show()    
+    if(PLOT_DNA):
+        if(renderer is None):
+            renderer = dpl.DNARenderer(scale = 5,linewidth=3)
+        if(part_renderers is None):
+            part_renderers = renderer.SBOL_part_renderers()
+        fig = plt.figure(figsize=(len(design)*.75,1.1))
+        ax = fig.add_axes([0,0,1,1])
+        start,end = renderer.renderDNA(ax,design,part_renderers,circular=circular)
+        ax.axis('off')
+        if title is not None:
+            ax.set_title(title)
+        addedsize=1
+        ax.set_xlim([start-addedsize,end+addedsize])
+        ax.set_ylim([-15,15])
+        plt.show()
+    else:
+        print("plotting DNA has been disabled because you don't have DNAplotlib")
 
-def plotConstruct(DNA_construct_obj,dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3),\
-                                    rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0)),\
+def plotConstruct(DNA_construct_obj,dna_renderer=None,\
+                                    rna_renderer=None,\
                                     plot_rnas=False,debug=False,showlabels = [AttachmentSite]):
     """helper function for making dnaplotlib plots of a DNA_construct object. Plots the
     DNAs and the RNAs that come from that DNA, using DNA_construct.explore_txtl"""
     #TODO: make the label showing more general
+    if(PLOT_DNA):
+        if(dna_renderer is None):
+            dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3)
+        if(rna_renderer is None):
+            rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0))
+
+
     design = make_dpl_from_construct(DNA_construct_obj,showlabels=showlabels)
     circular=DNA_construct_obj.circular
     plotDesign(design,circular=circular,title=DNA_construct_obj.get_species())
