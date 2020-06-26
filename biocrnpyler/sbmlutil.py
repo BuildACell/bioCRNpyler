@@ -15,6 +15,11 @@ reaction_id = 0
 # Create an SBML model
 def create_sbml_model(compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
                       length_units='metre', area_units='square_metre', volume_units='litre', volume = 1e-6):
+    '''
+    Creates an SBML Level 3 Version 2 model with some fixed standard settings.
+    Returns the SBMLDocument and the Model object as a tuple.
+    Refer to python-libsbml for more information on SBML API.
+    '''
     document = libsbml.SBMLDocument(3, 2)
     model = document.createModel()
     name = 'biocrnpyler_'+str(np.random.randint(1e6))
