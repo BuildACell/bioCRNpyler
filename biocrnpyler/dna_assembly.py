@@ -45,7 +45,7 @@ class DNAassembly(DNA):
         self.update_dna(dna, attributes = list(attributes))
         self.update_transcript(transcript)
         self.update_protein(protein)
-        self.update_promoter(promoter, transcript = self.transcript)
+        self.update_promoter(promoter, transcript = self.transcript,protein = self.protein)
         self.update_rbs(rbs, transcript = self.transcript,
                         protein = self.protein)
 
@@ -90,18 +90,20 @@ class DNAassembly(DNA):
         if self.rbs is not None:
             self.rbs.transcript = self.protein
 
-    def update_promoter(self, promoter, transcript=None):
+    def update_promoter(self, promoter, transcript=None,protein = None):
         if transcript is not None:
             self.update_transcript(transcript)
 
         if isinstance(promoter, str):
             self.promoter = Promoter(assembly = self, name = promoter,
                                      transcript = self.transcript,
-                                     parameters = self.parameters)
+                                     parameters = self.parameters,
+                                     protein = protein)
         elif isinstance(promoter, Promoter):
             self.promoter = promoter
             self.promoter.assembly = self
             self.promoter.transcript = self.transcript
+            self.promoter.protein = protein
         elif promoter is not None:
             raise ValueError("Improper promoter type recieved by DNAassembly. "
                              "Expected string or promoter object. "
@@ -144,6 +146,13 @@ class DNAassembly(DNA):
         species = []
         species.append(self.dna)
         if self.promoter is not None and self.rbs is not None:
+            print("promoter's species are ")
+            print(self.promoter.update_species())
+
+            print("rbs's species are ")
+            print(self.rbs.update_species())
+            print(self.rbs.transcript)
+            print(self.rbs.protein)
             species += self.promoter.update_species()
             species += self.rbs.update_species()
 

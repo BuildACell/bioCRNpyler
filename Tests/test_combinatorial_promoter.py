@@ -32,7 +32,7 @@ class TestCombinatorialPromoter(TestCase):
         self.assertTrue(newprom4.regulators == [Species("treg1",material_type="protein"),
                                                 Species("treg2",material_type="rna")])
         #make sure the default mechanism is the correct one
-        self.assertTrue(isinstance(newprom4.default_mechanisms["binding"],Combinatorial_Cooperative_Binding))
+        self.assertTrue(isinstance(newprom4.mechanisms["binding"],Combinatorial_Cooperative_Binding))
 
     def test_update_species(self):
         from biocrnpyler import CombinatorialPromoter, Protein, Species, Combinatorial_Cooperative_Binding, \
@@ -63,7 +63,7 @@ class TestCombinatorialPromoter(TestCase):
 
         knownspecies = [sp_dna,sp_rnap,sp_rna,cp_dna_rnap,cp_dna_treg1,\
                             cp_dna_treg2,cp_dna_treg1_treg2,cp_dna_treg1_rnap, \
-                                cp_dna_treg2_rnap,cp_dna_treg1_treg2_rnap]
+                                cp_dna_treg2_rnap,cp_dna_treg1_treg2_rnap,sp_treg1,sp_treg2]
 
         #these are the species that should come out
         test_set = set([str(a) for a in newprom_spec])

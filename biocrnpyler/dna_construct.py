@@ -283,7 +283,7 @@ class DNA_construct(DNA):
                         sites += [new_site]
         return sites
                         
-    def update_promoters(self,rnas,combinatorial_species=None):
+    def update_promoters(self,rnas,proteins,combinatorial_species=None):
         """this function properly populates all promoters"""
         if(combinatorial_species is None):
             combinatorial_species = [self.get_species()]
@@ -302,6 +302,8 @@ class DNA_construct(DNA):
                     new_assy = dummyAssembly(new_mv_self) #this allows the promoter to get the right DNA
                     #a promoter can make multiple RNAs, however...
                     new_promoter.transcript = rnas[promoter].get_species() 
+                    rbslist = proteins[rnas[promoter]]
+                    new_promoter.protein = [rbslist[a] for a in rbslist]
                     #currently, it's only possible for one promoter to make one RNA
                     new_promoter.assembly = new_assy 
                     promoters += [new_promoter]
@@ -431,10 +433,10 @@ class DNA_construct(DNA):
                 combinatorial_complexes += [OrderedComplexSpecies(new_backbone_species,\
                     material_type=new_material,name=newname)] #we make a new OrderedComplexSpecies
         return combinatorial_complexes
-    def update_components(self,rnas=None):
+    def update_components(self,rnas=None,proteins=None):
         multivalent_self = self.get_species()
         species = [multivalent_self]
-        if(rnas is None):
+        if((rnas is None) or (proteins is None)):
             rnas,proteins = self.explore_txtl()
         #problem is they reach beyond just this DNA_construct so we can't just run
         #explore_integrases here
@@ -447,14 +449,14 @@ class DNA_construct(DNA):
             if(isinstance(a,AttachmentSite)):
                 active_attsites+=[a]
         attsites = self.update_attachment_sites(active_attsites)
-        promoters = self.update_promoters(rnas)
+        promoters = self.update_promoters(rnas,proteins)
         #rbses = self.update_rbses(proteins)
 
         active_components = promoters+attsites
         combinatorial_complexes = self.update_combinatorial_complexes(active_components)
         #print("combinatorial complexes are "+str(combinatorial_complexes))
         attsites = self.update_attachment_sites(active_attsites,combinatorial_complexes)
-        promoters= self.update_promoters(rnas,combinatorial_complexes)
+        promoters= self.update_promoters(rnas,proteins,combinatorial_complexes)
         #rbses= self.update_rbses(proteins,combinatorial_complexes)
         out_components = promoters+attsites
         return out_components
@@ -470,11 +472,12 @@ class DNA_construct(DNA):
     def update_species(self,norna=False):
         species = [self.get_species()]
         rnas = None
+        proteins = None
         if(norna):
             proteins = self.explore_txtl()
         else:
             rnas,proteins = self.explore_txtl()
-        out_components = self.update_components(rnas=rnas)
+        out_components = self.update_components(rnas,proteins)
         for part in out_components:
             sp_list =  self.remove_bindloc(part.update_species())
             species+=sp_list
@@ -485,11 +488,12 @@ class DNA_construct(DNA):
     def update_reactions(self,norna=False):
         reactions = []
         rnas = None
+        proteins = None
         if(norna):
             proteins = self.explore_txtl()
         else:
             rnas,proteins = self.explore_txtl()
-        out_components = self.update_components(rnas=rnas)
+        out_components = self.update_components(rnas,proteins)
         for part in out_components:
             #print(part)
             rx_list = []
@@ -774,9 +778,9 @@ class RNA_construct(DNA_construct):
         return proteins[list(proteins.keys())[0]]
     def get_species(self):
         return OrderedComplexSpecies([a.name for a in self.parts_list]+[self.name],material_type="rna")
-    def update_components(self,rnas=None):
-        
-        proteins = self.explore_txtl()
+    def update_components(self,rnas=None,proteins=None):
+        if(proteins is None):
+            proteins = self.explore_txtl()
         rbses = self.update_rbses(proteins)
         active_components = rbses
         combinatorial_complexes = self.update_combinatorial_complexes(active_components)

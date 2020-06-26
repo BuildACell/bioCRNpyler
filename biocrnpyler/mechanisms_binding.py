@@ -215,6 +215,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
     def update_species(self,binders,bindee,cooperativity=None,\
                             component = None, part_id = None, **kwords):
         cooperativity_dict = {}
+        out_species = []
         for binder in binders:
             binder_partid = part_id+"_"+binder.name
             if ((cooperativity is None) or (type(cooperativity)==dict and binder_partid not in cooperativity) \
@@ -227,7 +228,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
             if component is None and ( cooperativity is None):
                 raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
             cooperativity_dict[binder.name]=coop_val
-        out_species = []
+        
         for i in range(1, len(binders)+1):
             for combo in it.combinations(binders,i):
                 #go through every possible combination of reactants and dna and make

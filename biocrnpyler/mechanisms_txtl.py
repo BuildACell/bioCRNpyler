@@ -208,10 +208,12 @@ class OneStepGeneExpression(Mechanism):
 
     def update_species(self, dna, protein=None, transcript=None, **keywords):
         species = [dna]
-        if protein == None:
+        if protein is None:
             protein = Species(dna.name, material_type="protein")
-
-        species += [protein]
+        if(isinstance(protein,list)):
+            species += protein
+        else:
+            species += [protein]
         return species
 
     def update_reactions(self, dna, component = None, kexpress = None,
