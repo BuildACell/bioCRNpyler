@@ -130,7 +130,7 @@ class TestChemicalReactionNetwork(TestCase):
 
         file_name = 'test_sbml.xml'
         with patch("builtins.open", new=mock_open()) as _file:
-            self.crn.write_sbml_file(file_name)
+            self.crn.write_sbml_file(file_name, model_id = 'test_model')
 
             _file.assert_called_once_with(file_name, 'w')
             _file().write.assert_called_once_with(sbml_string)
