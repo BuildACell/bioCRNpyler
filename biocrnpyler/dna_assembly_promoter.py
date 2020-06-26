@@ -69,7 +69,7 @@ class RegulatedPromoter(Promoter):
 
         self.complexes = []
         if self.leak is not False:
-            species += mech_tx.update_species(dna = self.assembly.dna, component = self)
+            species += mech_tx.update_species(dna = self.assembly.dna, component = self, part_id = self.name+"_leak")
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
@@ -91,7 +91,7 @@ class RegulatedPromoter(Promoter):
         mech_b = self.mechanisms['binding']
 
         if self.leak != False:
-            reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name, \
+            reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name+"_leak", \
                                                             transcript = self.transcript, protein = self.assembly.protein)
 
         for i in range(len(self.regulators)):
@@ -107,7 +107,7 @@ class RegulatedPromoter(Promoter):
 
 #A class for a promoter which can be activated by a single species, modelled as a positive hill function
 class ActivatablePromotor(Promoter):
-    def __init__(self, name, transcript, activator, **keywords):
+    def __init__(self, name, activator, transcript = None, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
@@ -124,7 +124,7 @@ class ActivatablePromotor(Promoter):
         mech_tx = self.mechanisms["transcription"]
         
         species = [] #A list of species must be returned
-        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, regulator = self.activator, part_id = self.name+"_"+activator.name, component = self)
+        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, regulator = self.activator, part_id = self.name+"_"+self.activator.name, component = self)
         
         return species
 
@@ -132,13 +132,13 @@ class ActivatablePromotor(Promoter):
         mech_tx = self.mechanisms["transcription"]
         
         reactions = [] #a list of reactions must be returned
-        reactions += mech_tx.update_reactions(dna = self.assembly.dna, transcript = self.transcript, regulator = self.repressor, 
+        reactions += mech_tx.update_reactions(dna = self.assembly.dna, transcript = self.transcript, regulator = self.activator, 
                                              component = self, part_id = self.name+"_"+self.activator.name, **keywords)
         return reactions
 
 #A class for a promoter which can be repressed by a single species, modelled as a negative hill function
 class RepressablePromotor(Promoter):
-    def __init__(self, name, transcript, repressor, **keywords):
+    def __init__(self, name, repressor, transcript = None, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
@@ -168,7 +168,7 @@ class RepressablePromotor(Promoter):
         return reactions
 
 class CombinatorialPromoter(Promoter):
-    def __init__(self, name, regulators, leak = True, assembly = None,
+    def __init__(self, name, regulators, leak = False, assembly = None,
                  transcript = None, length = 0, mechanisms = {},
                  parameters = {},tx_capable_list = None,cooperativity = None, **keywords):
         """
