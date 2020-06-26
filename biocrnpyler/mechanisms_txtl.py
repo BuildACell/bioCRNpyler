@@ -208,6 +208,7 @@ class OneStepGeneExpression(Mechanism):
 
     def update_species(self, dna, protein=None, transcript=None, **keywords):
         species = [dna]
+        #TODO what if we want to express a transcript?
         if protein is None:
             protein = Species(dna.name, material_type="protein")
         if(isinstance(protein,list)):

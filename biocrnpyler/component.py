@@ -48,11 +48,8 @@ class Component(object):
         # mechanisms.
         if not hasattr(self, 'default_mechanisms'):
             self.default_mechanisms = {}
-        if not hasattr(self, 'custom_mechanisms'):
-            self.custom_mechanisms = {}
-        else:
-            self.custom_mechanisms = getattr(self,"custom_mechanisms")
-        
+
+        self.custom_mechanisms = {}
         self.mechanisms = {}
         if mixture is not None:
             mixture_mechanisms = mixture.mechanisms

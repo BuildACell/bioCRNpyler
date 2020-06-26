@@ -146,13 +146,6 @@ class DNAassembly(DNA):
         species = []
         species.append(self.dna)
         if self.promoter is not None and self.rbs is not None:
-            print("promoter's species are ")
-            print(self.promoter.update_species())
-
-            print("rbs's species are ")
-            print(self.rbs.update_species())
-            print(self.rbs.transcript)
-            print(self.rbs.protein)
             species += self.promoter.update_species()
             species += self.rbs.update_species()
 
