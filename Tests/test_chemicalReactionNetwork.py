@@ -125,7 +125,7 @@ class TestChemicalReactionNetwork(TestCase):
 
     def test_write_sbml_file(self):
 
-        document, _ = self.crn.generate_sbml_model()
+        document, _ = self.crn.generate_sbml_model(model_id = 'test_model')
         sbml_string = libsbml.writeSBMLToString(document)
 
         file_name = 'test_sbml.xml'

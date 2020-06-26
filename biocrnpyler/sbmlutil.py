@@ -14,7 +14,7 @@ reaction_id = 0
 
 # Create an SBML model
 def create_sbml_model(compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
-                      length_units='metre', area_units='square_metre', volume_units='litre', volume = 1e-6):
+                      length_units='metre', area_units='square_metre', volume_units='litre', volume = 1e-6, model_id = None):
     '''
     Creates an SBML Level 3 Version 2 model with some fixed standard settings.
     Returns the SBMLDocument and the Model object as a tuple.
@@ -22,7 +22,8 @@ def create_sbml_model(compartment_id="default", time_units='second', extent_unit
     '''
     document = libsbml.SBMLDocument(3, 2)
     model = document.createModel()
-    name = 'biocrnpyler_'+str(np.random.randint(1e6))
+    if model_id is None:
+        model_id = 'biocrnpyler_'+str(np.random.randint(1e6))
     model.setId(name)
     model.setName(name)
     # Define units for area (not used, but keeps COPASI from complaining)
