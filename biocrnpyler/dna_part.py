@@ -47,10 +47,10 @@ class DNA_part(Component):
         return myname
     def clone(self,position,direction,parent_dna):
         """this defines where the part is in what piece of DNA"""
+        #TODO add warning if DNA_part is not cloned
         self.pos = position
         self.direction = direction
         self.assembly = parent_dna
-        #TODO make this a copy function, so we don't have circular references
         return self
     def unclone(self):
         """removes the current part from anything"""

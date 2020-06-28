@@ -12,7 +12,7 @@ import random
 from .chemical_reaction_network import ComplexSpecies, Species, OrderedComplexSpecies
 from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
 from matplotlib import cm
-from .components_basic import DNA, Protein
+from .components_basic import DNA, Protein, RNA
 
 from .dna_part import DNA_part
 from .dna_part_misc import AttachmentSite
@@ -26,7 +26,7 @@ import copy
 
 from warnings import warn
 
-integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
+#integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 
 def all_comb(input_list):
     out_list = []
@@ -284,7 +284,8 @@ class DNA_construct(DNA):
         return sites
                         
     def update_promoters(self,rnas,proteins,combinatorial_species=None):
-        """this function properly populates all promoters"""
+        """this function properly populates all promoters
+        returns a combinatorial list of transcribable states"""
         if(combinatorial_species is None):
             combinatorial_species = [self.get_species()]
         promoters = []
@@ -298,6 +299,7 @@ class DNA_construct(DNA):
                         #we skip those
                         continue
                     new_mv_self = copy.deepcopy(comb_specie)
+                    #TODO make this attribute thing better
                     new_mv_self.attributes = ["bindloc_"+str(promoter.pos)]
                     new_assy = dummyAssembly(new_mv_self) #this allows the promoter to get the right DNA
                     #a promoter can make multiple RNAs, however...
@@ -470,6 +472,7 @@ class DNA_construct(DNA):
             return False
     
     def update_species(self,norna=False):
+        #TODO make a seperate function for RNA_construct
         species = [self.get_species()]
         rnas = None
         proteins = None
@@ -477,6 +480,7 @@ class DNA_construct(DNA):
             proteins = self.explore_txtl()
         else:
             rnas,proteins = self.explore_txtl()
+            #TODO explain what rnas and proteins is
         out_components = self.update_components(rnas,proteins)
         for part in out_components:
             sp_list =  self.remove_bindloc(part.update_species())
@@ -505,6 +509,7 @@ class DNA_construct(DNA):
             reactions+= rx_list
         if(not norna):
             for rna in proteins:
+                #TODO get rid of this "norna" thing
                 reactions += rna.update_reactions(norna=True)
         return reactions
 
@@ -673,6 +678,7 @@ class TxTl_Explorer():
         rna_partslist = self.current_rnas[promoter][0]
         #print(self.current_rnas)
         #print(self.current_proteins)
+        #TODO copy parts here and not in the constructor
         rna_construct = RNA_construct(rna_partslist,parameter_warnings=self.parameter_warnings)
         
         #current_rna_name = str(promoter)+"-"+str(rna_construct)
@@ -690,6 +696,7 @@ class TxTl_Explorer():
                         proteins_per_rbs+=[protein_part[0]]
             #print(rna_partslist)
             #print("currently we are translating from "+str(rbs)+ " which is located at " + str(rbs.pos))
+            #TODO correct_rbs is possibly not needed
             correct_rbs = rna_construct.parts_list[rna_partslist.index([rbs,"forward"])]
             self.made_proteins[rna_construct].update({correct_rbs:proteins_per_rbs})
 

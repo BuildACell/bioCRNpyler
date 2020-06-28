@@ -7,8 +7,11 @@ class CDS(DNA_part):
         """a CDS is a sequence of DNA that codes for a protein"""
         self.name = name
         DNA_part.__init__(self,name,no_stop_codons=no_stop_codons,protein=None, **keywords)
+        #TODO make this contain a species and not a component
+        #TODO use set_species()
         if(protein is None):
             self.protein = Protein(name)
+        
         elif(isinstance(protein,str)):
             self.protein = Protein(name)
         elif(isinstance(protein,Component)):

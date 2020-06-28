@@ -6,6 +6,7 @@ from warnings import warn
 integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 
 class AttachmentSite(DNA_part):
+    #TODO generalize to "DNA binding site"
     def __init__(self,name,site_type,integrase="int1",integrase_cooperativity=2,dinucleotide=1,no_stop_codons=["forward","reverse"],**keywords):
         """an integrase attachment site binds to integrase"""
         self.mechanisms = {"binding":One_Step_Cooperative_Binding()}
