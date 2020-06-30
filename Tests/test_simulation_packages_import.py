@@ -9,7 +9,9 @@ def test_bioscrape_import_simulate():
 
     CRN = ChemicalReactionNetwork(species=[],reactions=[])
     with pytest.warns(None) as record:
-        CRN.simulate_with_bioscrape(timepoints=[], initial_condition_dict = {})
+        sim_result = CRN.simulate_with_bioscrape(timepoints=[], initial_condition_dict = {})
+
+    assert sim_result is None
 
     # only one warning was triggered
     assert len(record) == 1
@@ -22,7 +24,10 @@ def test_bioscrape_import_simulate_via_sbml():
 
     CRN = ChemicalReactionNetwork(species=[],reactions=[])
     with pytest.warns(None) as record:
-        CRN.simulate_with_bioscrape_via_sbml(timepoints=[], initial_condition_dict={})
+        sim_result, bioscrape_model  = CRN.simulate_with_bioscrape_via_sbml(timepoints=[], initial_condition_dict={})
+
+    assert sim_result is None
+    assert bioscrape_model is None
 
     # only one warning was triggered
     assert len(record) == 1
@@ -35,7 +40,9 @@ def test_libroadrunner_import():
 
     CRN = ChemicalReactionNetwork(species=[],reactions=[])
     with pytest.warns(None) as record:
-        CRN.runsim_roadrunner(timepoints=[], filename=None)
+        sim_results = CRN.runsim_roadrunner(timepoints=[], filename=None)
+
+    assert sim_results is None
 
     # only one warning was triggered
     assert len(record) == 1
