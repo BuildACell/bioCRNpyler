@@ -1,5 +1,5 @@
 from .mechanism import *
-from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
+from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer, ChemicalComplex
 
 class Reversible_Bimolecular_Binding(Mechanism):
     """
@@ -29,7 +29,7 @@ class Reversible_Bimolecular_Binding(Mechanism):
             complexS = ComplexSpecies([s1, s2])
         else:
             complexS = complex
-        rxns = [Reaction([s1, s2], [complexS], k=kb, k_rev=ku)]
+        rxns = [Reaction.from_mass_action([s1, s2], [complexS], k_forward=kb, k_reverse=ku)]
         return rxns
 
 
@@ -86,12 +86,10 @@ class One_Step_Cooperative_Binding(Mechanism):
         if component is None and (kb is None or ku is None or cooperativity is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
 
+        inputs = [ChemicalComplex(species=binder, stoichiometry=cooperativity),
+                  ChemicalComplex(species=bindee, stoichiometry=1)]
 
-        rxns = []
-        rxns += [
-            Reaction(inputs=[binder, bindee], outputs=[complexS],
-                     input_coefs=[cooperativity, 1], output_coefs=[1], k=kb,
-                     k_rev=ku)]
+        rxns = [Reaction.from_mass_action(inputs=inputs, outputs=[complexS], k_forward=kb, k_reverse=ku)]
         return rxns
 
 
@@ -180,12 +178,11 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
         binder, bindee, complexS, n_mer = self.update_species(binder, bindee, component = component, complex_species = complex_species, n_mer_species = n_mer_species, cooperativity=cooperativity, part_id = part_id, **keywords)
 
+        inputs_for_rxn1 = [ChemicalComplex(species=binder, stoichiometry=cooperativity)]
         rxns = [
-            Reaction(inputs=[binder], outputs=[n_mer],
-                     input_coefs=[cooperativity], output_coefs=[1], k=kb1,
-                     k_rev=ku1),
-            Reaction(inputs=[n_mer, bindee], outputs=[complexS], k=kb2,
-                     k_rev=ku2)]
+            Reaction.from_mass_action(inputs=inputs_for_rxn1, outputs=[n_mer], k_forward=kb1, k_reverse=ku1),
+            Reaction.from_mass_action(inputs=[n_mer, bindee], outputs=[complexS], k_forward=kb2, k_reverse=ku2)
+        ]
 
         return rxns
 
@@ -284,9 +281,13 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                         continue
                     else:
                         reactant_complex = self.make_cooperative_complex(reactant,bindee,coop_dict)
-                        reaction = Reaction(inputs=[binder, reactant_complex], outputs=[product],
-                        input_coefs=[binder_params[binder]["cooperativity"], 1], output_coefs=[1], \
-                                         k=binder_params[binder]["kb"],k_rev=binder_params[binder]["ku"])
+
+                        inputs = [ChemicalComplex(species=binder, stoichiometry=binder_params[binder]["cooperativity"]),
+                                  ChemicalComplex(species=reactant_complex, stoichiometry=1)]
+
+                        reaction = Reaction.from_mass_action(inputs=inputs, outputs=[product],
+                                                             k_forward=binder_params[binder]["kb"],
+                                                             k_reverse=binder_params[binder]["ku"])
                         rxndict[rxn_prototype]=reaction
         return [rxndict[a] for a in rxndict]
 
@@ -329,9 +330,4 @@ class One_Step_Binding(Mechanism):
         if complex_species is None:
             complex_species = ComplexSpecies(species)
 
-        return [Reaction(inputs = species, outputs = [complex_species], k = kb, k_rev = ku)]
-
-
-    
-
-
+        return [Reaction.from_mass_action(inputs=species, outputs=[complex_species], k_forward=kb, k_reverse=ku)]

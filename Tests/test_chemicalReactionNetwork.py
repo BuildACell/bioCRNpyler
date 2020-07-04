@@ -19,7 +19,7 @@ class TestChemicalReactionNetwork(TestCase):
 
         self.species_list = [self.s1, self.s2]
         # creating a valid reaction two species
-        self.rx1 = Reaction(inputs=[self.s1], outputs=[self.s2], k=0.1)
+        self.rx1 = Reaction.from_mass_action(inputs=[self.s1], outputs=[self.s2], k_forward=0.1)
         self.rxn_list = [self.rx1]
 
         self.crn = ChemicalReactionNetwork(species=self.species_list, reactions=self.rxn_list)
@@ -49,12 +49,12 @@ class TestChemicalReactionNetwork(TestCase):
         with self.assertRaisesRegexp(ValueError, 'A non-reaction object was used as a reaction!'):
             ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list_with_none, species=self.species_list)
 
-        rxn2 = Reaction(inputs=[self.s1], outputs=[self.s3], k=0.1)
+        rxn2 = Reaction.from_mass_action(inputs=[self.s1], outputs=[self.s3], k_forward=0.1)
         # test warning raised if a species (in the reaction outputs) is detected which is not part of the species list
         with self.assertWarnsRegex(Warning, f'contains a species {self.s3.name} which is not in the CRN'):
             ChemicalReactionNetwork.check_crn_validity(reactions=[rxn2], species=self.species_list, warnings=True)
 
-        rxn3 = Reaction(inputs=[self.s4], outputs=[self.s2], k=0.1)
+        rxn3 = Reaction.from_mass_action(inputs=[self.s4], outputs=[self.s2], k_forward=0.1)
         # test warning raised if a species (in the reaction inputs) is detected which is not part of the species list
         with self.assertWarnsRegex(Warning, f'contains a species {self.s4.name} which is not in the CRN'):
             ChemicalReactionNetwork.check_crn_validity(reactions=[rxn3], species=self.species_list, warnings=True)
@@ -170,7 +170,7 @@ class TestChemicalReactionNetwork(TestCase):
         self.assertEqual(len(model.getListOfReactions()), len(self.crn.reactions))
 
         # test a reversible reaction
-        rx1 = Reaction(inputs=[self.s1], outputs=[self.s2], k=0.1, k_rev=0.1)
+        rx1 = Reaction.from_mass_action(inputs=[self.s1], outputs=[self.s2], k_forward=0.1, k_reverse=0.1)
         rxn_list = [rx1]
         crn = ChemicalReactionNetwork(species=self.species_list, reactions=rxn_list)
 

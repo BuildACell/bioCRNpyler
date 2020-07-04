@@ -8,6 +8,7 @@ from .component import *
 from .parameter import *
 from .global_mechanism import *
 from .chemical_reaction_network import *
+from .propensities import *
 
 #core mechanisms
 from .mechanisms_binding import *

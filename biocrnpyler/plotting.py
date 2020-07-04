@@ -250,14 +250,14 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     for rxn in CRN.reactions:
         CRNgraph.add_node(allnodenum)
         CRNgraph.nodes[allnodenum]["type"]=rxn.propensity_type
-        CRNgraph.nodes[allnodenum]["k"] = rxn.k
-        CRNgraph.nodes[allnodenum]["k_r"] = rxn.k_r
+        CRNgraph.nodes[allnodenum]["k"] = rxn.k_forward
+        CRNgraph.nodes[allnodenum]["k_r"] = rxn.k_reverse
         default_color = "blue"
         #CRNgraph.nodes[allnodenum]
-        kval = rxn.k
+        kval = rxn.k_forward
         if(not useweights):
             kval = 1
-        krev_val = rxn.k_r
+        krev_val = rxn.k_reverse
         if((krev_val > 0) and (not useweights)):
             krev_val = 1
         for reactant in rxn.inputs:

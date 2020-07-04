@@ -3,86 +3,68 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import Reaction, Species
+from biocrnpyler import Reaction, Species, MassAction, ChemicalComplex
 
 
 class TestReaction(TestCase):
 
     def test_reaction_initialization(self):
         # warns if both input and output species are empty
+        mak = MassAction(k_forward=0.1)
         with self.assertWarns(Warning):
-            Reaction(inputs=[], outputs=[], k=0.1, propensity_type="massaction", propensity_params=None)
+            Reaction(inputs=[], outputs=[], propensity_type=mak)
 
-        # non-massaction propensities require propensity_params dict
+        # test for invalid propensity type
         with self.assertRaises(ValueError):
-            Reaction(inputs=[], outputs=[], k=0.1, propensity_type="not_massaction")
-
-        # non-massaction propensities cannot be reversible
-        with self.assertRaises(ValueError):
-            Reaction(inputs=[], outputs=[], k=0.1, propensity_type="not_massaction", propensity_params={}, k_rev=1)
-
-        # test under specified propensity parameters
-        propensity_types = ["hillpositive", "hillnegative", "proportionalhillpositive", "proportionalhillnegative"]
-        for propensity_type in propensity_types:
-            with self.assertRaises(ValueError):
-                Reaction(inputs=[], outputs=[], k=0.1, propensity_type=propensity_type, propensity_params={'s1': 0})
-
-        # test when rate is missing from the propensity parameter dictionary for a general propensity
-        with self.assertRaises(ValueError):
-            Reaction(inputs=[], outputs=[], k=0.1, propensity_type='general', propensity_params={})
-
-        # test unknown propensity type
-        with self.assertRaises(ValueError):
-            Reaction(inputs=[], outputs=[], k=0.1, propensity_type="dummy", propensity_params={})
+            Reaction(inputs=[], outputs=[], propensity_type=Species)
 
         # input must be a valid species object
         with self.assertRaises(ValueError):
-            Reaction(inputs=['a'], outputs=[], k=0.1)
+            Reaction(inputs=['a'], outputs=[], propensity_type=mak)
         # output must be a valid species object
         with self.assertRaises(ValueError):
-            Reaction(inputs=[], outputs=['b'], k=0.1)
+            Reaction(inputs=[], outputs=['b'], propensity_type=mak)
 
-        # reaction rate coefficient must be larger than zero
-        with self.assertRaises(ValueError):
-            Reaction(inputs=[], outputs=[], k=0)
-        # reaction rate coefficient must be larger than zero
-        with self.assertRaises(ValueError):
-            Reaction(inputs=[], outputs=[], k=-1)
-
-        rxn = Reaction(inputs=[], outputs=[], k=0.1, k_rev=1)
+        rxn = Reaction.from_mass_action(inputs=[], outputs=[], k_forward=0.1, k_reverse=1)
         # test whether the reaction is registered as reversible
-        self.assertTrue(rxn.reversible)
+        self.assertTrue(rxn.is_reversible)
         # test whether the reaction is registered as massaction
-        self.assertTrue(rxn.propensity_type == 'massaction')
+        self.assertTrue(isinstance(MassAction, rxn.propensity_type))
 
-        # test overspecified mass action
+        # test ChemicalComplex inputs
         sp1 = Species(name='test_species_a')
         sp2 = Species(name='test_species_b')
-        with self.assertWarns(Warning):
-            Reaction(inputs=[sp1], outputs=[sp2], propensity_type="massaction", propensity_params={}, k=0.1)
+        chem_com_sp1 = ChemicalComplex(species=sp1, stoichiometry=2)
+        chem_com_sp2 = ChemicalComplex(species=sp2, stoichiometry=1)
+        Reaction(inputs=[chem_com_sp1], outputs=[chem_com_sp2], propensity_type=MassAction(k_forward=1))
 
-        # test whether the number of input and output coefficients match
+        # test different input and output lists
+        Reaction(inputs=[chem_com_sp1], outputs=[sp2], propensity_type=MassAction(k_forward=1))
+
+        # mixing ChemicalComplex and Species is not allowed
         with self.assertRaises(ValueError):
-            Reaction(inputs=[], outputs=[], k=0.1, input_coefs=[1,2])
+            Reaction(inputs=[chem_com_sp1, sp2], outputs=[sp1], propensity_type=MassAction(k_forward=1))
 
-        # test whether the number of input and output coefficients match
-        with self.assertRaises(ValueError):
-            Reaction(inputs=[], outputs=[], k=0.1, output_coefs=[1, 2])
-
-        # test for the equality operator
-        rxn1 = Reaction(inputs = [sp1, sp2], outputs = [sp2, sp2], k = 1)
-        rxn2 = Reaction(inputs = [sp2, sp1], outputs = [sp2, sp2], k = 1)
-        rxn3 = Reaction(inputs = [sp2, sp1], outputs = [sp2, sp2], k = 10)
-        rxn4 = Reaction(inputs = [sp2, sp1], outputs = [sp2], k = 1)
+    def test_reaction_equality(self):
+        """test for the_equality operator"""
+        sp1 = Species(name='test_species_a')
+        sp2 = Species(name='test_species_b')
+        rxn1 = Reaction(inputs=[sp1, sp2], outputs=[sp2, sp2], propensity_type=MassAction(k_forward=1))
+        rxn2 = Reaction(inputs=[sp2, sp1], outputs=[sp2, sp2], propensity_type=MassAction(k_forward=1))
+        rxn3 = Reaction(inputs=[sp2, sp1], outputs=[sp2, sp2], propensity_type=MassAction(k_forward=10))
+        rxn4 = Reaction(inputs=[sp2, sp1], outputs=[sp2], propensity_type=MassAction(k_forward=1))
         self.assertTrue(rxn1 == rxn2)
         self.assertFalse(rxn1 == rxn3)
         self.assertFalse(rxn1 == rxn4)
 
-        #Test for reaction list flattening
-        rxn1 = Reaction(inputs = [sp1, [sp1, sp2]], outputs = [[sp2, sp2], sp1], k = 1)
-        rxn2 = Reaction(inputs = [sp1, sp1, sp2], outputs = [sp1, sp2, sp2], k = 1)
+    def test_reaction_list_flattening(self):
+        sp1 = Species(name='test_species_a')
+        sp2 = Species(name='test_species_b')
+        k_f = 1
+        mak = MassAction(k_forward=k_f)
+        rxn1 = Reaction.from_nested_list(inputs=[sp1, [sp1, sp2]], outputs=[[sp2, sp2], sp1], propensity_type=mak)
+        rxn2 = Reaction(inputs=[sp1, sp1, sp2], outputs=[sp1, sp2, sp2], propensity_type=mak)
         self.assertTrue(rxn1 == rxn2)
-        
 
     def test_complex_set_equality(self):
         sp1 = Species(name='test_species_a')

@@ -25,7 +25,8 @@ class BasicCatalysis(Mechanism):
         elif kcat is None:
             kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
 
-        return [Reaction([Enzyme, Sub], [Enzyme, Prod], kcat)]
+        return [Reaction.from_mass_action(inputs=[Enzyme, Sub], outputs=[Enzyme, Prod], k_forward=kcat)]
+
 
 class BasicProduction(Mechanism):
     """
@@ -59,7 +60,8 @@ class BasicProduction(Mechanism):
         if Sub is not None:
             inputs += [Sub]
 
-        return [Reaction(inputs, outputs, kcat)]
+        return [Reaction.from_mass_action(inputs=inputs, outputs=outputs, k_forward=kcat)]
+
 
 class MichaelisMenten(Mechanism):
     """Mechanism to automatically generate Michaelis-Menten Type Reactions
@@ -102,16 +104,20 @@ class MichaelisMenten(Mechanism):
             complexS = complex
 
         # Sub + Enz <--> Sub:Enz
-        binding_rxn = Reaction(inputs=[Sub, Enzyme], outputs=[complexS],
-                               k=kb, k_rev=ku)
+        binding_rxn = Reaction.from_mass_action(inputs=[Sub, Enzyme],
+                                                outputs=[complexS],
+                                                k_forward=kb,
+                                                k_reverse=ku)
         if Prod is not None:
             # Sub:Enz --> Enz + Prod
-            cat_rxn = Reaction(inputs=[complexS],
-                               outputs=[Prod, Enzyme], k=kcat)
+            cat_rxn = Reaction.from_mass_action(inputs=[complexS],
+                                                outputs=[Prod, Enzyme],
+                                                k_forward=kcat)
         else:  # Degradation Reaction
             # Sub:Enz --> Enz
-            cat_rxn = Reaction(inputs=[complexS], outputs=[Enzyme],
-                               k=kcat)
+            cat_rxn = Reaction.from_mass_action(inputs=[complexS],
+                                                outputs=[Enzyme],
+                                                k_forward=kcat)
         return [binding_rxn, cat_rxn]
 
 
@@ -168,14 +174,21 @@ class MichaelisMentenReversible(Mechanism):
             complex2 = ComplexSpecies([Prod, Enzyme])
 
         # Sub + Enz <--> Sub:Enz
-        binding_rxn1 = Reaction(inputs=[Sub, Enzyme], outputs=[complex1],
-                               k=kb1, k_rev=ku1)
+        binding_rxn1 = Reaction.from_mass_action(inputs=[Sub, Enzyme],
+                                                 outputs=[complex1],
+                                                 k_forward=kb1,
+                                                 k_reverse=ku1)
 
-        binding_rxn2 = Reaction(inputs=[Prod, Enzyme], outputs=[complex2],
-                               k=kb2, k_rev=ku2)
+        binding_rxn2 = Reaction.from_mass_action(inputs=[Prod, Enzyme],
+                                                 outputs=[complex2],
+                                                 k_forward=kb2,
+                                                 k_reverse=ku2)
 
         # Sub:Enz --> Enz:Prod
-        cat_rxn = Reaction(inputs=[complex1], outputs=[complex2], k=kcat, k_rev = kcat_rev)
+        cat_rxn = Reaction.from_mass_action(inputs=[complex1],
+                                            outputs=[complex2],
+                                            k_forward=kcat,
+                                            k_reverse=kcat_rev)
         
         return [binding_rxn1, binding_rxn2, cat_rxn]
 
@@ -218,12 +231,14 @@ class MichaelisMentenCopy(Mechanism):
         if component is None and (kb is None or ku is None or kcat is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
         # Sub + Enz <--> Sub:Enz
-        binding_rxn = Reaction(inputs=[Sub, Enzyme], outputs=[complexS],
-                               k=kb, k_rev=ku)
+        binding_rxn = Reaction.from_mass_action(inputs=[Sub, Enzyme],
+                                                outputs=[complexS],
+                                                k_forward=kb,
+                                                k_reverse=ku)
 
         # Sub:Enz --> Enz + Prod + Sub
-        cat_rxn = Reaction(inputs=[complexS], outputs=[Sub, Prod, Enzyme],
-                           k=kcat)
+        cat_rxn = Reaction.from_mass_action(inputs=[complexS],
+                                            outputs=[Sub, Prod, Enzyme],
+                                            k_forward=kcat)
 
         return [binding_rxn, cat_rxn]
-
