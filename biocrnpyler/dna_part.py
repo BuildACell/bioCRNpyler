@@ -48,12 +48,22 @@ class DNA_part(Component):
     def clone(self,position,direction,parent_dna):
         """this defines where the part is in what piece of DNA"""
         #TODO add warning if DNA_part is not cloned
+        
+        if(self.assembly is not None):
+            warn(str(self) + " already belongs to "+str(self.assembly.name)+"! It will now be part of the new assembly")
+            self.unclone()
+
         self.pos = position
         self.direction = direction
         self.assembly = parent_dna
         return self
     def unclone(self):
         """removes the current part from anything"""
+        if(self.assembly is not None):
+            rightparts = self.assembly.parts_list[self.pos+1:]
+            for part in rightparts:
+                part.pos -= 1
+            self.assembly.parts_list = self.assembly.parts_list[:self.pos]+rightparts
         self.pos = None
         self.direction = None
         self.assembly = None
@@ -64,7 +74,7 @@ class DNA_part(Component):
         elif(self.direction=="reverse"):
             self.direction = "forward"
         elif(self.direction==None):
-            warn(self.name+" has no direction. Perhaps it wasn't cloned?")
+            warn(str(self)+" has no direction. Perhaps it wasn't cloned?")
         else:
             raise ValueError("direction is not forward or reverse! It's "+self.direction)
         return self

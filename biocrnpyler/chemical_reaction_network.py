@@ -48,9 +48,11 @@ class Species(object):
     
     #Check that the string contains only underscores and alpha-numeric characters
     def check_name(self, name):
-        no_underscore_string = name.replace("_", "")
+        myname = str(name)
+        #print(myname)
+        no_underscore_string = myname.replace("_", "")
         if no_underscore_string.isalnum():
-            return name
+            return myname
         else:
             raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores.")
 
@@ -487,8 +489,94 @@ class OrderedComplexSpecies(ComplexSpecies):
                 return (item in self.species[binding_site])
 
 
+class DNAComplexSpecies(OrderedComplexSpecies):
+    def __init__(self,species, name, base_species = None, material_type = "DNA_complex", \
+                            binding = None, attributes = None, initial_concentration = 0,circular = False):
+        self.material_type = material_type
+        self.circular = circular
+        self.species = []
+        for specie in species:
+            if isinstance(specie,str):
+                self.species += [Species(specie,material_type="dna")]
+            elif isinstance(specie,Species):
+                self.species += [specie]
+            else:
+                self.species += [Species("_",material_type="")]
+        if(name is None):
+            self.name = self.make_name()
+        else:
+            self.name = name
+        
+        OrderedComplexSpecies.__init__(self,self.species,self.name,attributes=attributes,initial_concentration=initial_concentration)
+        if(base_species is None):
+            self.base_species = Species(self.name,material_type = material_type)
+        elif(isinstance(base_species,Species)):
+            self.base_species = base_species
+        elif(isinstance(base_species,str)):
+            self.base_species = Species(base_species,material_type = material_type)
+        else:
+            TypeError("base_species is of type "+type(base_species)+" which is not acceptable. Use Species or str")
+        
+        self.binding = binding
+    def unbind(self):
+        self.binding = None
+        return self
+    def bind(self,position):
+        self.binding = position
+        return self
+    @property
+    def species_set(self):
+        if(self.binding is None):
+            #no binding location, so extract everything!
+            return list(set(self.species))
+        else:
+            bindloc_species = self.species[self.binding]
+            if(isinstance(bindloc_species,ComplexSpecies)):
+                return bindloc_species.species_set
+            elif(isinstance(bindloc_species,Species)):
+                return [bindloc_species]
+            else:
+                ValueError()
+    def complex_with(self,specie):
+        if(isinstance(specie,Species)):
+            specie = [specie]
+        if(self.binding is not None):
+            newcomplex_list = [self.species[self.binding]]+specie
+            newcomplex = ComplexSpecies(newcomplex_list)
+            speclist = copy.deepcopy(self.species)
+            speclist[self.binding]=newcomplex
+            newobject = DNAComplexSpecies(speclist,name=None,base_species=self.base_species,binding= self.binding)
+            return newobject
+            #self.species[self.binding]=newcomplex
+            #self.name = self.make_name()
 
-
+        else:
+            return ComplexSpecies([self]+specie)
+    
+    def getname(self):
+        if(self.name is None and (self.species is None) or (self.species == [])):
+            return ""
+        elif(self.name is None):
+            self.name = self.make_name(self)
+            return self.name
+        else:
+            return self.name
+    def setname(self,name):
+        self.name = name
+    def make_name(self,part_list=None):
+        if(part_list is None):
+            part_list = self.species
+        output = ""
+        outlst = []
+        for part in part_list:
+            pname = part.name
+            #if(part.direction=="reverse"):
+            #    pname+="_r"
+            outlst += [pname]
+        output = '_'.join(outlst)
+        if(self.circular):
+            output+="_o"
+        return output
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
     A reaction has the form:

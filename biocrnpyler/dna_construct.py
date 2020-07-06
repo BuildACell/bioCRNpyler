@@ -63,25 +63,26 @@ class DNA_construct(DNA):
                 parameters={},  # customized parameters
                 attributes=[],
                 initial_conc=None,
-                parameter_warnings = True,
+                parameter_warnings = True, copy_parts=True,
                 **keywords):
         """this represents a bunch of parts in a row.
         A parts list has [[part,direction],[part,direction],...]"""
         myparts = []
         curpos = 0
-        
+        if(copy_parts):
+            parts_list = [[copy.deepcopy(a[0]).unclone(),a[1]] for a in parts_list]
         for part in parts_list:
             if(isinstance(part,list)):
                 #if you give it a list, then that means the second element of the
                 #list is the direction
-                myparts += [copy.deepcopy(part[0]).clone(curpos,part[1],self)]
+                myparts += [part[0].clone(curpos,part[1],self)]
             elif(isinstance(part,DNA_part)):
                 if(part.direction==None):
                     #in this case the direction wasn't provided, but we assume it's forward!
-                    myparts += [copy.deepcopy(part).clone(curpos,"forward",self)]
+                    myparts += [part.clone(curpos,"forward",self)]
                 else:
                     #in this case the direction is provided in the part. This is a "recloned" part
-                    myparts += [copy.deepcopy(part).clone(curpos,part.direction,self)]
+                    myparts += [part.clone(curpos,part.direction,self)]
             curpos += 1
         self.parts_list = myparts
         cmap = cm.Set1(range(len(self.parts_list)+5))
@@ -195,8 +196,8 @@ class DNA_construct(DNA):
             rnas.update(explorer.get_rnas())
         proteins = {}
         for promoter in rnas:
-            prots = rnas[promoter].explore_txtl()
-            proteins.update({rnas[promoter]:prots})
+            _,prots = rnas[promoter].explore_txtl()
+            proteins.update(prots)
         return rnas,proteins
     def __repr__(self):
         """this is just for display purposes"""
@@ -209,6 +210,10 @@ class DNA_construct(DNA):
                 if(rnas[promoter] in proteins):
                     for rbs in proteins[rnas[promoter]]:
                         txt += "\n\t"+repr(rbs)
+                        #print("promoter is "+str(promoter))
+                        #print("rbs is "+ str(rbs))
+                        #print("rnas is "+ str(rnas))
+                        #print("proteins is "+ str(proteins))
                         for protein in proteins[rnas[promoter]][rbs]:
                             txt += "\n\tprotein = "+repr(protein)
         return txt
@@ -292,6 +297,9 @@ class DNA_construct(DNA):
         for comb_specie in combinatorial_species:
             if(isinstance(comb_specie,OrderedComplexSpecies) and comb_specie.species[-1].name == self.name):
                 for promoter in rnas:
+                    #print(promoter)
+                    if(promoter == "unknown"):
+                        continue
                     new_promoter = copy.deepcopy(promoter) #copy the promoter because we could have the same one many times
                     if(isinstance(comb_specie.species[promoter.pos],ComplexSpecies)):
                         #for each promoter, we generate all complexes which
@@ -447,6 +455,7 @@ class DNA_construct(DNA):
         active_attsites = []
         for a in self.parts_list:
             #TODO can we update all components in this loop? Why are promoters and RBSes special?
+            #TODO make AttachmentSite a ProteinBindingSite or something
             #pull out all integrase sites.
             if(isinstance(a,AttachmentSite)):
                 active_attsites+=[a]
@@ -471,35 +480,33 @@ class DNA_construct(DNA):
         else:
             return False
     
-    def update_species(self,norna=False):
+    def update_species(self):
         #TODO make a seperate function for RNA_construct
         species = [self.get_species()]
         rnas = None
         proteins = None
-        if(norna):
-            proteins = self.explore_txtl()
-        else:
-            rnas,proteins = self.explore_txtl()
-            #TODO explain what rnas and proteins is
+        rnas,proteins = self.explore_txtl()
+        #rnas:
+        #this is a dictionary of the form:
+        #{promoter:rna_construct,promoter2:rna_construct2}
+        #proteins:
+        #this is a dictionary of the form:
+        #{rna_construct:{RBS:[Product1,Product2],RBS2:[Product3]}}
         out_components = self.update_components(rnas,proteins)
         for part in out_components:
             sp_list =  self.remove_bindloc(part.update_species())
             species+=sp_list
-        if(not norna):
-            for rna in proteins:
-                species += rna.update_species(norna=True)
+        for rna in proteins:
+            if(not rna == self):
+                species += rna.update_species()
         return species
     def update_reactions(self,norna=False):
         reactions = []
         rnas = None
         proteins = None
-        if(norna):
-            proteins = self.explore_txtl()
-        else:
-            rnas,proteins = self.explore_txtl()
+        rnas,proteins = self.explore_txtl()
         out_components = self.update_components(rnas,proteins)
         for part in out_components:
-            #print(part)
             rx_list = []
             for rxn in part.update_reactions():
                 new_rxn = copy.copy(rxn)
@@ -507,10 +514,9 @@ class DNA_construct(DNA):
                 new_rxn.outputs = self.remove_bindloc(rxn.outputs)
                 rx_list+=[new_rxn]
             reactions+= rx_list
-        if(not norna):
-            for rna in proteins:
-                #TODO get rid of this "norna" thing
-                reactions += rna.update_reactions(norna=True)
+        for rna in proteins:
+            if(not rna == self):
+                reactions += rna.update_reactions()
         return reactions
 
 class DNAassembly_inprog(DNA_construct):
@@ -679,7 +685,8 @@ class TxTl_Explorer():
         #print(self.current_rnas)
         #print(self.current_proteins)
         #TODO copy parts here and not in the constructor
-        rna_construct = RNA_construct(rna_partslist,parameter_warnings=self.parameter_warnings)
+
+        rna_construct = RNA_construct(copy.deepcopy(rna_partslist),made_by = promoter,parameter_warnings=self.parameter_warnings)
         
         #current_rna_name = str(promoter)+"-"+str(rna_construct)
         self.made_proteins[rna_construct]={}
@@ -697,6 +704,8 @@ class TxTl_Explorer():
             #print(rna_partslist)
             #print("currently we are translating from "+str(rbs)+ " which is located at " + str(rbs.pos))
             #TODO correct_rbs is possibly not needed
+            #print(rbs)
+            #print(rna_partslist)
             correct_rbs = rna_construct.parts_list[rna_partslist.index([rbs,"forward"])]
             self.made_proteins[rna_construct].update({correct_rbs:proteins_per_rbs})
 
@@ -724,20 +733,24 @@ class TxTl_Explorer():
 
 
 class RNA_construct(DNA_construct):
-    def __init__(self,parts_list,name=None,**keywords):
+    def __init__(self,parts_list,name=None,made_by="unknown",**keywords):
         """an RNA_construct is a lot like a DNA_construct except it can only translate, and
         can only be linear"""
         #TODO make sure we are subclassing RNA and not DNA. I am not sure how to do this,
         #since DNA_construct subclasses DNA
+        self.my_promoter = made_by
         DNA_construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,material_type="rna",**keywords)
         #if(name == None):
         #    name = self.make_name()
         #self.name = super().name
         #self.material_type = "rna"
     
-    def update_rbses(self,proteins,combinatorial_species=None):
+    def update_rbses(self,in_proteins,combinatorial_species=None):
         my_rbses = [] #output list of RBSes
         #print(proteins)
+        if(len(in_proteins)>1):
+            warn("expected one RNA, but we detected more! proteins looks like "+str(in_proteins))
+        proteins = in_proteins[self]
         rbses = list(proteins.keys())
         
         #proteins looks like this:
@@ -782,9 +795,10 @@ class RNA_construct(DNA_construct):
                     explorer.end()
                     break
         proteins = explorer.get_proteins()
-        return proteins[list(proteins.keys())[0]]
+        rnadict = {self.my_promoter:self}
+        return rnadict, proteins
     def get_species(self):
-        return OrderedComplexSpecies([a.name for a in self.parts_list]+[self.name],material_type="rna")
+        return OrderedComplexSpecies([a.name for a in self.parts_list]+[self.name],material_type="rna",name=self.name)
     def update_components(self,rnas=None,proteins=None):
         if(proteins is None):
             proteins = self.explore_txtl()
