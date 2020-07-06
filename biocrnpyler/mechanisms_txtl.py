@@ -227,7 +227,7 @@ class PositiveHillTranscription(Mechanism):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     #Overwrite update_species
-    def update_species(self, dna, regulator, transcript = None, **keywords):
+    def update_species(self, dna, regulator, transcript = None, leak = False, **keywords):
 
         if transcript is None: #Species names can be automatically created
             transcript = Species(dna.name, material_type = "rna")
@@ -237,7 +237,7 @@ class PositiveHillTranscription(Mechanism):
 
     #Overwrite update_reactions
     #This always requires the inputs component and part_id to find the relevant parameters
-    def update_reactions(self, dna, regulator, component, part_id, transcript = None, **keywords):
+    def update_reactions(self, dna, regulator, component, part_id, transcript = None, leak = False, **keywords):
 
         if transcript is None: #Species names should be automatically created the same here as above
             transcript = Species(dna.name, material_type = "rna")
@@ -249,13 +249,14 @@ class PositiveHillTranscription(Mechanism):
 
         params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
 
-        reaction = Reaction(inputs = [dna], outputs = [dna, transcript],
-                            propensity_type = "proportionalhillpositive", propensity_params = params)
+        reactions = []
+        reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], propensity_type = "proportionalhillpositive", propensity_params = params))
 
-        reaction_leak = Reaction(inputs = [dna], outputs = [dna, transcript], k = kleak)
+        if leak:
+            reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], k = kleak))
 
         #In this case, we just return one reaction
-        return [reaction, reaction_leak]
+        return reactions
 
 class NegativeHillTranscription(Mechanism):
     #Set the name and mechanism_type
@@ -263,7 +264,7 @@ class NegativeHillTranscription(Mechanism):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     #Overwrite update_species
-    def update_species(self, dna, regulator, transcript = None, **keywords):
+    def update_species(self, dna, regulator, transcript = None, leak = False, **keywords):
 
         if transcript is None: #Species names can be automatically created
             transcript = Species(dna.name, material_type = "rna")
@@ -272,7 +273,7 @@ class NegativeHillTranscription(Mechanism):
 
     #Overwrite update_reactions
     #This always requires the inputs component and part_id to find the relevant parameters
-    def update_reactions(self, dna, regulator, component, part_id, transcript = None, **keywords):
+    def update_reactions(self, dna, regulator, component, part_id, transcript = None, leak = False, **keywords):
 
         if transcript is None: #Species names should be automatically created the same here as above
             transcript = Species(dna.name, material_type = "rna")
@@ -284,13 +285,14 @@ class NegativeHillTranscription(Mechanism):
 
         params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
 
-        reaction = Reaction(inputs = [dna], outputs = [dna, transcript],
-                            propensity_type = "proportionalhillnegative", propensity_params = params)
+        reactions = []
+        reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], propensity_type = "proportionalhillnegative", propensity_params = params))
 
-        reaction_leak = Reaction(inputs = [dna], outputs = [dna, transcript], k = kleak)
+        if leak:
+            reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], k = kleak))
 
         #In this case, we just return one reaction
-        return [reaction, reaction_leak]
+        return reactions
 
 class multi_tx(Mechanism):
     '''
