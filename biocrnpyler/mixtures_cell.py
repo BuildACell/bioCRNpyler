@@ -16,7 +16,7 @@ from .dna_assembly import DNAassembly
 # Here transcription and Translation are lumped into one reaction: expression.
 #A global mechanism is used to dilute all non-dna species
 class ExpressionDilutionMixture(Mixture):
-    def __init__(self, name="", mechanisms={}, components=[], **kwargs):
+    def __init__(self, name="", mechanisms=None, components=None, **kwargs):
 
         dummy_translation = EmptyMechanism(name = "dummy_translation", mechanism_type = "translation")
         mech_expression = OneStepGeneExpression()
@@ -106,7 +106,7 @@ class SimpleTxTlDilutionMixture(Mixture):
 #TODO:
 #Include some "internal" gene which provides background loading of all machinery
 class TxTlDilutionMixture(Mixture):
-    def __init__(self, name="", mechanisms={}, components=[],
+    def __init__(self, name="", mechanisms=None, components=None,
                  rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
         
         self.rnap = Protein(rnap)

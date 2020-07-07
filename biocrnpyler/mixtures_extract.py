@@ -1,4 +1,5 @@
-# Copyright (c) 2018, Build-A-Cell. All rights reserved.
+
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
 from warnings import warn
@@ -13,11 +14,16 @@ from .mixture import Mixture
 from .chemical_reaction_network import Species, ChemicalReactionNetwork
 from .dna_assembly import DNAassembly
        
-#A Model for Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.)
-# Here transcription and Translation are lumped into one reaction: expression.
-class ExpressionExtract(Mixture):
-    def __init__(self, name="", mechanisms={}, components=[], **kwargs):
 
+class ExpressionExtract(Mixture):
+    """A Model for Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.)
+
+    Here transcription and Translation are lumped into one reaction: expression.
+    """
+    def __init__(self, name="", mechanisms=None, components=None, **kwargs):
+
+        if components is None:
+            components = []
         dummy_translation = EmptyMechanism(name = "dummy_translation", mechanism_type = "translation")
         mech_expression = OneStepGeneExpression()
         mech_cat = BasicCatalysis()
@@ -68,7 +74,10 @@ class ExpressionExtract(Mixture):
 #A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.)
 #RNA is degraded via a global mechanism
 class SimpleTxTlExtract(Mixture):
-    def __init__(self, name="", mechanisms={}, components=[], **kwargs):
+    def __init__(self, name="", mechanisms=None, components=None, **kwargs):
+
+        if components is None:
+             components = []
 
         mech_tx = SimpleTranscription()
         mech_tl = SimpleTranslation()
@@ -89,15 +98,21 @@ class SimpleTxTlExtract(Mixture):
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
                         components=components+default_components, global_mechanisms= global_mechanisms, **kwargs)
 
-#A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
-#This model does not include any energy
+
 class TxTlExtract(Mixture):
-    def __init__(self, name="", mechanisms={}, components=[],
-                 rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
+    """A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
+
+    This model does not include any energy
+    """
+    def __init__(self, name="", mechanisms=None, components=None,
+                 rnap="RNAP", ribosome="Ribo", rnaase="RNAase", **kwargs):
         
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
         self.rnaase = Protein(rnaase)
+
+        if components is None:
+            components = []
 
         init = kwargs.get('init')
         if init:

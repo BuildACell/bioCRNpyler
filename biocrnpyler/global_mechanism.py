@@ -67,8 +67,8 @@ from typing import List, Union
 
 
 class GlobalMechanism(Mechanism):
-    def __init__(self, name: str, mechanism_type = "", filter_dict = {},
-                 default_on = False):
+    def __init__(self, name: str, mechanism_type="", filter_dict=None,
+                 default_on=False):
         self.filter_dict = filter_dict
         self.default_on = default_on
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
@@ -90,7 +90,7 @@ class GlobalMechanism(Mechanism):
         for subs in species_list:
             for a in s.attributes+[subs.material_type, repr(subs), subs.name]:
                 if a in fd:
-                    if use_mechanism == None:
+                    if use_mechanism is None:
                         use_mechanism = fd[a]
                     elif use_mechanism != fd[a]:
                         raise AttributeError(f"species {repr(s)} has multiple attributes(or material type) which conflict with global mechanism filter {repr(self)}.")
@@ -155,7 +155,7 @@ class GlobalMechanism(Mechanism):
 
 class Dilution(GlobalMechanism):
     def __init__(self, name = "global_degredation_via_dilution",
-                 mechanism_type = "dilution", filter_dict = {},
+                 mechanism_type = "dilution", filter_dict=None,
                  default_on = True):
         GlobalMechanism.__init__(self, name = name,
                                  mechanism_type = mechanism_type,
@@ -177,7 +177,7 @@ class AnitDilutionConstiutiveCreation(GlobalMechanism):
     Useful for keeping machinery species like ribosomes and polymerases at a constant concentration.
     """
     def __init__(self, name = "anti_dilution_constiuitive_creation",
-                 material_type = "dilution", filter_dict = {},
+                 material_type="dilution", filter_dict=None,
                  default_on = True):
         GlobalMechanism.__init__(self, name = name,
                                  mechanism_type = material_type,
