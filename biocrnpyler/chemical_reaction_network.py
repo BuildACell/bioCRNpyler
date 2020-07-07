@@ -1103,8 +1103,10 @@ class ChemicalReactionNetwork(object):
             if not stochastic and safe:
                 safe = False
                 
-            result = py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe, safe = safe)
-
+            result = py_simulate_model(timepoints, Model = m,
+                                        stochastic = stochastic,
+                                        return_dataframe = return_dataframe,
+                                        safe = safe)
         except ModuleNotFoundError:
             warnings.warn('bioscrape was not found, please install bioscrape')
 
