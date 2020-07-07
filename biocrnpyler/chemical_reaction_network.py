@@ -1102,10 +1102,9 @@ class ChemicalReactionNetwork(object):
             m.set_species(initial_condition_dict)
             if not stochastic and safe:
                 safe = False
-                result = py_simulate_model(timepoints, Model = m,
-                                           stochastic = stochastic,
-                                           return_dataframe = return_dataframe,
-                                           safe = safe)
+                
+            result = py_simulate_model(timepoints, Model = m, stochastic = stochastic, return_dataframe = return_dataframe, safe = safe)
+
         except ModuleNotFoundError:
             warnings.warn('bioscrape was not found, please install bioscrape')
 
@@ -1124,6 +1123,7 @@ class ChemicalReactionNetwork(object):
         m = None
         try:
             from bioscrape.simulator import py_simulate_model
+            from bioscrape.types import Model
             if file is None:
                 self.write_sbml_file(file_name ="temp_sbml_file.xml")
                 file_name = "temp_sbml_file.xml"
@@ -1136,7 +1136,7 @@ class ChemicalReactionNetwork(object):
                 sbml_warnings = kwargs.get('sbml_warnings')
             else:
                 sbml_warnings = False
-            m = bioscrape.types.Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
+            m = Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
             # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
             m.set_species(initial_condition_dict)
             result = py_simulate_model(timepoints, Model = m,
