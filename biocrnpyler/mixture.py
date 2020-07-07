@@ -275,7 +275,6 @@ class Mixture(object):
 
         return global_mech_species, global_mech_reactions
 
-
     def compile_crn(self) -> ChemicalReactionNetwork:
         """ Creates a chemical reaction network from the species and reactions associated with a mixture object
         :return: ChemicalReactionNetwork

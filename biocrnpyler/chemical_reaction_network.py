@@ -10,6 +10,8 @@ from typing import List, Union, Dict
 from dataclasses import dataclass
 import functools
 import operator
+import itertools
+import collections
 
 class Species(object):
     """ A formal species object for a CRN
@@ -43,7 +45,7 @@ class Species(object):
         """
         if material_type in [None, ""] and self.name[0].isnumeric():
             raise ValueError(f"species name: {self.name} contains a number as the first character and therefore requires a material_type.")
-        elif material_type == None:
+        elif material_type is None:
             return ""
         elif (material_type.replace("_", "").isalnum() and material_type.replace("_", "")[0].isalpha()) or material_type == "":
                 return material_type
@@ -129,39 +131,55 @@ class Species(object):
         self.attributes.append(attribute)
 
     def __eq__(self, other):
-        """
-        Overrides the default implementation
-        Two species are equivalent if they have the same name, type, and attributes
+        """Two species are equivalent if they have the same name, type, and attributes
+
         :param other: Species instance
         :return: boolean
         """
-
-        if isinstance(other, Species) \
-                            and self.material_type == other.material_type \
-                            and self.name == other.name \
-                            and set(self.attributes) == set(other.attributes):
-            return True
+        if other.__class__ is self.__class__:
+            return (self.material_type, self.name, set(self.attributes)) \
+                   == (other.material_type, other.name, set(other.attributes))
         else:
             return False
-    def __gt__(self,Species2):
+
+    def __gt__(self, Species2):
         return self.name > Species2.name
-    def __lt__(self,Species2):
+
+    def __lt__(self, Species2):
         return self.name < Species2.name
 
     def __hash__(self):
         return str.__hash__(repr(self))
 
-
-@dataclass
-class ChemicalComplex:
-    species: Species
-    stoichiometry: int
-
-    def __eq__(self, other):
-        if self.species is other.species \
-                and self.stoichiometry == other.stoichiometry:
+    def __contains__(self, item):
+        if item == self:
             return True
         return False
+
+    @staticmethod
+    def flatten_list(species) -> List:
+        if isinstance(species, list):
+            species = functools.reduce(operator.iconcat, species, [])
+        else:
+            species = [species]
+        return species
+
+
+@dataclass(frozen=True)
+class WeightedSpecies:
+    species: Species
+    stoichiometry: int = 1
+
+    def pretty_print(self, **kwargs):
+        return f'{self.stoichiometry if self.stoichiometry > 1 else ""}{self.species.pretty_print(**kwargs)}'
+
+    def __contains__(self, item):
+        if item in self.species:
+            return True
+        return False
+
+    def __eq__(self, other):
+        return self.species == other.species
 
 
 class ComplexSpecies(Species):
@@ -172,23 +190,13 @@ class ComplexSpecies(Species):
         This is good for modelling order-indpendent binding complexes.
         For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
     """
-    def __init__(self, species: List[Union[Species,str]], name: Union[str,None] = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
+    def __init__(self, species: List[Union[Species,str]], name: Union[str,None] = None, material_type="complex", attributes=None, initial_concentration = 0, **keywords):
         if len(species) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
 
-
-        self.species = []
-        for s in  flatten_list(species):
-            if isinstance(s, Species):
-                self.species.append(s)
-            elif isinstance(s, str):
-                self.species.append(Species(s))
-            else:
-                raise ValueError("ComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
-
-        
-        self.species_set = list(set(self.species))
+        self.species_set = list(set(species))
+        self.species = species
 
         if name is not None:
             self.custom_name = True
@@ -222,7 +230,6 @@ class ComplexSpecies(Species):
             attributes.remove(None)
 
         self.attributes = attributes
-
 
     def __contains__(self,item):
         """
@@ -313,6 +320,23 @@ class ComplexSpecies(Species):
 
         return txt
 
+    @classmethod
+    def from_nested_list(cls,  species, name=None,
+                         material_type="complex",
+                         attributes=None, initial_concentration=0):
+        """if species are nested lists, then they are flattened before
+        a Complex is initialized
+
+        """
+        species = Species.flatten_list(species)
+
+        return cls(species=species, name=name, material_type=material_type,
+                   attributes=attributes,
+                   initial_concentration=initial_concentration)
+
+    def __hash__(self):
+        return str.__hash__(repr(self))
+
 
 class Multimer(ComplexSpecies):
     """A subclass of ComplexSpecies for Complexes made entirely of the same kind of species,
@@ -342,16 +366,7 @@ class OrderedComplexSpecies(ComplexSpecies):
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
 
-
-        new_species = flatten_list(species)
-        self.species = []
-        for s in new_species:
-            if isinstance(s, Species):
-                self.species.append(s)
-            elif isinstance(s, str):
-                self.species.append(Species(s))
-            else:
-                raise ValueError("OrderedComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
+        self.species = species
 
         if name is not None:
             self.custom_name = True
@@ -382,7 +397,21 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         self.attributes = attributes
 
+    @classmethod
+    def from_nested_list(cls,  species, name=None,
+                         material_type="ordered_complex",
+                         attributes=None, initial_concentration=0):
+        """if species are nested lists, then they are flattened before
+        an OrderedComplex is initialized
 
+        """
+        species = functools.reduce(operator.iconcat, species, [])
+
+        return cls(species=species, name=name, material_type=material_type,
+                   attributes=attributes,
+                   initial_concentration=initial_concentration)
+
+    #Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
     def replace_species(self, species: Species, new_species: Species):
         """
         Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
@@ -446,15 +475,15 @@ class Reaction(object):
     .. math::
        \sum_i m_i O_i  --> \sum_i n_i I_i @ rate = k_rev
     """
-    def __init__(self, inputs: Union[List[Species], List[ChemicalComplex]],
-                 outputs: Union[List[Species], List[ChemicalComplex]],
+    def __init__(self, inputs: Union[List[Species], List[WeightedSpecies]],
+                 outputs: Union[List[Species], List[WeightedSpecies]],
                  propensity_type: Propensity):
 
         if len(inputs) == 0 and len(outputs) == 0:
             warn("Reaction Inputs and Outputs both contain 0 Species.")
 
-        self.input_complexes = inputs
-        self.output_complexes = outputs
+        self.inputs = inputs
+        self.outputs = outputs
         self.propensity_type = propensity_type
 
     @property
@@ -474,8 +503,8 @@ class Reaction(object):
         self._propensity_type = new_propensity_type
 
     @classmethod
-    def from_mass_action(cls, inputs: Union[List[Species], List[ChemicalComplex]],
-                         outputs: Union[List[Species], List[ChemicalComplex]],
+    def from_mass_action(cls, inputs: Union[List[Species], List[WeightedSpecies]],
+                         outputs: Union[List[Species], List[WeightedSpecies]],
                          k_forward: float, k_reverse: float = None):
         """ Initialize a Reaction object with mass action kinetics
         :param inputs:
@@ -493,29 +522,46 @@ class Reaction(object):
         return self.propensity_type.is_reversible
 
     @property
-    def input_complexes(self) -> List[ChemicalComplex]:
+    def inputs(self) -> List[WeightedSpecies]:
         return self._input_complexes
 
-    @input_complexes.setter
-    def input_complexes(self, new_input_complexes: List[ChemicalComplex]):
+    @inputs.setter
+    def inputs(self, new_input_complexes: List[WeightedSpecies]):
         self._input_complexes = Reaction._check_and_convert_complex_list(complexes=new_input_complexes)
 
+    @property
+    def outputs(self) -> List[WeightedSpecies]:
+        return self._output_complexes
+
+    @outputs.setter
+    def outputs(self, new_output_complexes: List[WeightedSpecies]):
+        self._output_complexes = Reaction._check_and_convert_complex_list(complexes=new_output_complexes)
+
     @staticmethod
-    def _check_and_convert_complex_list(complexes: Union[List[Species], List[ChemicalComplex]]):
-        if all(isinstance(Species, one_complex) for one_complex in complexes):
-            complexes = [ChemicalComplex(species=species, stoichiometry=1) for species in complexes]
+    def _check_and_convert_complex_list(complexes: Union[List[Species], List[WeightedSpecies]]) -> List[WeightedSpecies]:
+        if all([isinstance(one_complex, Species) for one_complex in complexes]):
+            # we wrap each Species object to WeightedSpecies
+            complexes = [WeightedSpecies(species=species) for species in complexes]
         else:
-            if not all(isinstance(ChemicalComplex, one_complex) for one_complex in complexes):
+            if not all([isinstance(one_complex, WeightedSpecies) for one_complex in complexes]):
                 raise TypeError(f'inputs must be list of Species or list of ChemicalComplexes!')
 
-        # TODO combine multiplications
-        # [inputs.count(s) for s in self.inputs]
+        # filter out duplicates and adjust stoichiometry
+        out_list = []
+        # Create a dictionary of elements and their frequency count
+        frequency_count = dict(collections.Counter(complexes))
+        for one_complex, frequency in frequency_count.items():
+            if frequency == 1:
+                out_list.append(one_complex)
+            else:
+                new_complex = WeightedSpecies(species=one_complex.species, stoichiometry=frequency)
+                out_list.append(new_complex)
 
-        return complexes
+        return out_list
 
     @classmethod
-    def from_nested_list(cls, inputs: Union[List[Species], List[ChemicalComplex]],
-                         outputs: Union[List[Species], List[ChemicalComplex]],
+    def from_nested_list(cls, inputs: Union[List[Species], List[WeightedSpecies]],
+                         outputs: Union[List[Species], List[WeightedSpecies]],
                          propensity_type: Propensity):
         """if inputs or outputs are nested lists, then they are flattened before
            a reaction is initialized
@@ -570,248 +616,67 @@ class Reaction(object):
         new_r = Reaction(inputs = new_inputs, outputs = new_outputs, propensity_type = self.propensity_type, propensity_params = new_params, k = self.k, k_rev = self.k_r)
         return new_r
 
+    def __repr__(self):
+        """Helper function to print the text of a rate function"""
+        return self.pretty_print(show_rates=False, show_material=False, show_attributes=False)
 
-    def rate_func_text(self, pretty_print = False,  show_material = True, show_attributes = True, **kwargs):
-        """
-        Helper function to print the text of a rate function
-        """
-        tab = (" " * 8)
-        txt = ""
-        if self.propensity_type == "massaction":
-            input_func_args = ""
-            input_prod = f"{self.k}"
-            for i in range(len(self.inputs)):
-                if pretty_print:
-                    sin = self.inputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-                else:
-                    sin = repr(self.inputs[i])
+    def pretty_print(self, show_rates=True, show_material=True, show_attributes=True, **kwargs):
 
-                input_func_args += f"{sin}"
+        txt = '+'.join([s.pretty_print(show_material=show_material,
+                                       show_attributes=show_attributes,
+                                       **kwargs)
+                        for s in self.inputs])
 
-                if self.input_coefs[i] > 1:
-                    input_prod+=f"*{sin}^{self.input_coefs[i]}"
-                else:
-                    input_prod+=f"*{sin}"
-
-                if i < len(self.inputs)-1:
-                    input_func_args += ","
-
-            if len(self.inputs) > 0:
-                input_func_args = "("+input_func_args+")"
-            txt += f"massaction: k_f{input_func_args}={input_prod}"
-
-            if self.reversible:
-                output_func_args = ""
-                output_prod = f"{self.k_r}"
-               
-                for i in range(len(self.outputs)):
-                    if pretty_print:
-                        sout = self.outputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-                    else:
-                        sout = repr(self.outputs[i])
-
-                    output_func_args += f"{sout}"
-
-                    if self.output_coefs[i] > 1:
-                        output_prod+=f"*{sout}^{self.output_coefs[i]}"
-                    else:
-                        output_prod+=f"*{sout}"
-
-                    if i < len(self.outputs)-1:
-                        output_func_args += ","
-
-                if len(self.outputs) > 0:
-                    output_func_args = "("+output_func_args+")"
-                txt += f" k_r{output_func_args}={output_prod}"
-
-        elif self.propensity_type == "hillpositive":
-            if pretty_print:
-                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-            else:
-                s1 = repr(self.propensity_params["s1"])
-
-            kd = str(self.propensity_params["K"])
-            n = str(self.propensity_params["n"])
-            txt += f"hillpositive: k({s1})={self.k}*{s1}^{n}/({kd}+{s1}^{n})"
-        elif self.propensity_type == "hillnegative":
-
-            if pretty_print:
-                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-            else:
-                s1 = repr(self.propensity_params["s1"])
-
-            kd = str(self.propensity_params["K"])
-            n = str(self.propensity_params["n"])
-            txt += f"hillnegative: k({s1})={self.k}*1/({kd}+{s1}^{n})"
-        elif self.propensity_type == "proportionalhillpositive":
-            if pretty_print:
-                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-                s2 = self.propensity_params["d"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-            else:
-                s1 = repr(self.propensity_params["s1"])
-                s2 = repr(self.propensity_params["d"])
-
-            kd = str(self.propensity_params["K"])
-            n = str(self.propensity_params["n"])
-            txt += (f"proportionalhillpositive: k({s1}, "
-                   f"{s2})={self.k}*{s2}*{s1}^{n}/({kd}+{s1}^{n})")
-        elif self.propensity_type == "proportionalhillnegative":
-            if pretty_print:
-                s1 = self.propensity_params["s1"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-                s2 = self.propensity_params["d"].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-            else:
-                s1 = repr(self.propensity_params["s1"])
-                s2 = repr(self.propensity_params["d"])
-
-            kd = str(self.propensity_params["K"])
-            n = str(self.propensity_params["n"])
-            txt += (f"proportionalhillnegative: k({s1}, "
-                   f"{s2})={self.k}*{s2}/({kd}+{s1}^{n})")
-        elif self.propensity_type == "general":
-            eq = self.propensity_params["rate"]
-            txt += f"general: k(x)={self.k}*{eq}"
-        else:
-            raise ValueError("Unknown Propensity Type: "
-                             f"{self.propensity_type}.")
-
-        return txt
-
-    def __repr__(self, **kwargs):
-        tab = (" " * 8)
-        txt = ""
-        for i in range(len(self.inputs)):
-            if self.input_coefs[i] > 1:
-                txt += str(self.input_coefs[i]) + " " + str(self.inputs[i])
-            else:
-                txt += str(self.inputs[i])
-            if i < len(self.inputs) - 1:
-                txt += " + "
-        if self.reversible:
+        if self.is_reversible:
             txt += " <--> "
         else:
             txt += " --> "
-        for i in range(len(self.outputs)):
-            if self.output_coefs[i] > 1:
-                txt += str(self.output_coefs[i]) + " " + str(self.outputs[i])
-            else:
-                txt += str(self.outputs[i])
-            if i < len(self.outputs) - 1:
-                txt += " + "
-        txt += tab
-        txt += self.rate_func_text(**kwargs)
-        
-        return txt
 
-    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, **kwargs):
-        tab = (" " * 8)
-        txt = ""
-        for i in range(len(self.inputs)):
-            if self.input_coefs[i] > 1:
-                txt += str(self.input_coefs[i]) + " " + self.inputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-            else:
-                txt += self.inputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-            if i < len(self.inputs) - 1:
-                txt += " + "
-        if self.reversible:
-            txt += " <--> "
-        else:
-            txt += " --> "
-        for i in range(len(self.outputs)):
-            if self.output_coefs[i] > 1:
-                txt += str(self.output_coefs[i]) + " " + self.outputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-            else:
-                txt += self.outputs[i].pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
-            if i < len(self.outputs) - 1:
-                txt += " + "
-        txt += tab
+        txt += '+'.join([s.pretty_print(show_material=show_material,
+                                        show_attributes=show_attributes,
+                                        **kwargs)
+                         for s in self.outputs])
         if show_rates:
-            if self.reversible:
-                rate_txt = self.rate_func_text(pretty_print = True, show_material = show_material, show_attributes = show_attributes, **kwargs)
-                rate_txt = rate_txt.replace(" k_r", "\n"+tab+"k_r")
-                txt += "\n"+tab+rate_txt
-            else:
-                txt += "\n"+tab+self.rate_func_text(pretty_print = True, show_material = show_material, show_attributes = show_attributes, **kwargs)
+            txt += f'{self.propensity_type.pretty_print(show_material=show_material, **kwargs)}'
 
         return txt
-
 
     def __eq__(self, other):
-        """Overrides the default implementation.
-           Two reactions are equivalent if they have the same inputs, outputs,
-           and rates."""
-        complexes_equal = Reaction.complex_set_equality(self.inputs,
-                                                    self.input_coefs,
-                                                    other.inputs,
-                                                    other.input_coefs) \
-                           and Reaction.complex_set_equality(self.outputs,
-                                                         self.output_coefs,
-                                                         other.outputs,
-                                                         other.output_coefs)
-        rates_equal = (other.k_forward == self.k and other.k_r == self.k_r)
-        propensity_types_equal = (self.propensity_type == other.propensity_type)
-
-        # must both be reactions with the same rates and numbers of inputs and
-        # outputs.
+        """Two reactions are equivalent if they have the same inputs, outputs,
+           and propensity."""
         if not isinstance(other, Reaction):
-            return False
-        if complexes_equal and rates_equal and propensity_types_equal:
-            return True
-        elif complexes_equal and propensity_types_equal:
-            #warn("Two reactions with the same inputs and outputs but different "
-                 #"rates are formally different, but may be undesired:"
-                 #f"{repr(self)} and {repr(other)}.")
+            raise TypeError(f'Only reactions can be compared with reaction! We got {type(other)}.')
+
+        if len(self.inputs) != len(other.inputs) or len(self.outputs) != len(other.outputs):
             return False
 
-        # If the reactions are reversible inverses of eachother, one's forward
-        # reaction could be the other's reverse
-        elif self.reversible and other.reversible:
-            reverse_complex_equal = Reaction.complex_set_equality(self.inputs,
-                                                            self.input_coefs,
-                                                            other.outputs,
-                                                            other.output_coefs)\
-                        and Reaction.complex_set_equality(self.outputs,
-                                                      self.output_coefs,
-                                                      other.inputs,
-                                                      other.input_coefs)
-            reverse_rates_equal = (other.k == self.k_r and other.k_r == self.k)
-            if reverse_complex_equal and reverse_rates_equal:
+        return (set(self.inputs), set(self.outputs), self.propensity_type) == (set(other.inputs), set(other.outputs), other.propensity_type)
+
+    def __contains__(self, item):
+        if isinstance(item, Species):
+            if item in self.inputs \
+                    or item in self.outputs \
+                    or item in self.propensity_type.species:
                 return True
-            elif reverse_complex_equal:
-                warn("Two reversible reactions with the same inputs and outputs"
-                    " (reversed) but different rates are formally equal, but "
-                    f"may be undesired:{repr(self)} and {repr(other)}")
-                return True
-            else:
-                return False
         else:
-            return False
+            raise NotImplementedError
+        return False
 
-    @staticmethod
-    def complex_set_equality(c1, c1_coefs, c2, c2_coefs):
-        """Checks to see if two formal complexes (reaction input or output sets) are equal."""
-        if len(c1) != len(c2):
-            return False
-        else:
-            for i in range(len(c1)):
-                s1 = c1[i]
-                coef1 = c1_coefs[i]
-                if s1 not in c2 or coef1 != c2_coefs[c2.index(s1)]:
-                    return False
-        return True
+    @property
+    def species(self) -> List[Species]:
+        """returns a list of species in the reactions collected from the inputs
+        and outputs and the propensity (e.g. Hill kinetics has species in it)
 
-    def pyrepr(self):
-        if self.reversible:
-            return [
-                ([repr(i) for i in self.inputs], self.input_coefs,
-                 [repr(i) for i in self.outputs], self.output_coefs,
-                 self.k),
-                ([repr(i) for i in self.outputs], self.output_coefs,
-                 [repr(i) for i in self.inputs], self.input_coefs,
-                 self.k_r)]
-        else:
-            return [([repr(i) for i in self.inputs], self.input_coefs,
-                     [repr(i) for i in self.outputs],
-                     self.output_coefs, self.k)]
+        :return: list of species in the reactions
+        """
+        in_part = []
+        for s in self.inputs:
+            in_part.extend(Species.flatten_list(s.species))
+        out_part = []
+        for s in self.outputs:
+            out_part.extend(Species.flatten_list(s.species))
+
+        return list(itertools.chain(in_part, out_part, self.propensity_type.species))
 
 
 class ChemicalReactionNetwork(object):
@@ -828,67 +693,50 @@ class ChemicalReactionNetwork(object):
                 k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
                where a_i is the spectrometric coefficient of species i
     """
-    def __init__(self, species: List[Species], reactions: List[Reaction], warnings = False):
-        self.species, self.reactions = ChemicalReactionNetwork.check_crn_validity(reactions, species, warnings=warnings)
+    def __init__(self, species: List[Species], reactions: List[Reaction], show_warnings=False):
+        self.reactions, self.species = ChemicalReactionNetwork.check_crn_validity(reactions, species, show_warnings=show_warnings)
 
-        # TODO check whether we need this data structure
-        self.species2index = {}
-        for i in range(len(self.species)):
-            self.species2index[str(self.species[i])] = i
-
-    def add_species(self, species, warnings = False):
+    def add_species(self, species, show_warnings=False):
         if not isinstance(species, list):
             species = [species]
-        self.species, self.reactions = ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species+species, warnings=warnings)
+        self.reactions, self.species = ChemicalReactionNetwork.check_crn_validity(self.reactions, list(itertools.chain(self.species, species)), show_warnings=show_warnings)
 
-    def add_reactions(self, reactions, warnings = False):
+    def add_reactions(self, reactions, show_warnings=False):
         if not isinstance(reactions, list):
             reactions = [reactions]
-        self.species, self.reactions = ChemicalReactionNetwork.check_crn_validity(self.reactions+reactions, self.species, warnings=warnings)
+        self.reactions, self.species = ChemicalReactionNetwork.check_crn_validity(list(itertools.chain(self.reactions, reactions)), self.species, show_warnings=show_warnings)
 
     @staticmethod
-    def check_crn_validity(reactions: List[Reaction], species: List[Species], warnings = False):
-        # Check to make sure species are valid and only have a count of 1
-        checked_species = []
-        if not all(isinstance(s, Species) for s in species):
-            print(f"A non-species object was used as a species: {species}!")
-            raise ValueError("A non-species object was used as a species!")
-
-        for s in species:
-            if species.count(s) > 1:
-                pass
-                #warn("Species "+str(s)+" duplicated in CRN definition.
-                # Duplicates have been removed.")
-            if s not in checked_species:
-                checked_species.append(s)
-
-        # Check to make sure reactions are valid meaning:
-        #   only have a count of 1
-        #   all species in the inputs/outputs are also in the species list
-        checked_reactions = []
+    def check_crn_validity(reactions: List[Reaction], species: List[Species], show_warnings=True):
 
         if not all(isinstance(r, Reaction) for r in reactions):
             raise ValueError("A non-reaction object was used as a reaction!")
 
+        if not all(isinstance(s, Species) for s in species):
+            raise ValueError("A non-species object was used as a species!")
+
         for r in reactions:
-            if reactions.count(r) > 1:
-                pass
+            if reactions.count(r) > 1 and show_warnings:
+                warn(f"Reaction {r} may be duplicated in CRN definitions. "
+                     f"Duplicates have NOT been removed.")
 
-            checked_reactions.append(r)
-            #if r not in checked_reactions:
-            #    checked_reactions.append(r)
+        for s in species:
+            if species.count(s) > 1 and show_warnings:
+                warn(f"Species {s} is duplicated in the CRN definition. "
+                     f"Duplicates have NOT been removed.")
 
-            for s in r.inputs:
-                if s not in checked_species and warnings:
-                    warn(f"Reaction {repr(r)} contains a species {repr(s)} "
-                         "which is not in the CRN.")
+        # check that all species in the reactions are also in the species list and vice versa
+        unique_species = set(species)
+        all_species_in_reactions = set(Species.flatten_list([r.species for r in reactions]))
+        if unique_species != all_species_in_reactions:
+            species_without_reactions = unique_species - all_species_in_reactions
+            if species_without_reactions and show_warnings:
+                warn(f'These Species {list(species_without_reactions)} are not part of any reactions in the CRN!')
+            unlisted_reactions = all_species_in_reactions - unique_species
+            if unlisted_reactions and show_warnings:
+                warn(f'These Species {list(unlisted_reactions)} are not listed in the Species list, but part of the reactions!')
 
-            for s in r.outputs:
-                if s not in checked_species and warnings:
-                    warn(f"Reaction {repr(r)} contains a species {repr(s)} "
-                         "which is not in the CRN.")
-
-        return checked_species, checked_reactions
+        return reactions, species
 
     def __repr__(self):
         txt = "Species = "
@@ -923,13 +771,6 @@ class ChemicalReactionNetwork(object):
             txt += f"{rind}. " + r.pretty_print(show_rates = show_rates, show_material = show_material, show_attributes = show_attributes, **kwargs) + "\n"
         txt += "]"
         return txt
-
-    def pyrepr(self):
-        reactions = []
-        for r in self.reactions:
-            reactions += r.pyrepr()
-        species = [str(s) for s in self.species]
-        return species, reactions
 
     # TODO check whether we need this method
     def species_index(self, species: Species):
@@ -986,9 +827,7 @@ class ChemicalReactionNetwork(object):
             new_r = r.replace_species(species, new_species)
             new_reaction_list.append(new_r)
 
-
         return ChemicalReactionNetwork(new_species_list, new_reaction_list)
-
 
     def generate_sbml_model(self, stochastic_model=False, **keywords):
         """
@@ -1011,7 +850,7 @@ class ChemicalReactionNetwork(object):
                          propensity_params = r.propensity_params)
             rxn_count += 1
 
-            if r.reversible and r.propensity_type == "massaction":
+            if r.is_reversible and r.propensity_type == "massaction":
                 add_reaction(model, r.outputs, r.output_coefs, r.inputs,
                              r.input_coefs, rxn_id, r.k_r,
                              stochastic=stochastic_model,
@@ -1080,11 +919,11 @@ class ChemicalReactionNetwork(object):
             reaction_list.append((reactants, products, prop_type,
                                   dict(prop_params)))
 
-            if rxn.reversible and rxn.propensity_type == "massaction":
+            if rxn.is_reversible and rxn.propensity_type == "massaction":
                 prop_params['k'] = rxn.k_r
                 reaction_list.append((products, reactants, prop_type,
                                       dict(prop_params)))
-            elif rxn.reversible:
+            elif rxn.is_reversible:
                 raise ValueError("Only massaction irreversible reactions are "
                                  "supported for automatic bioscrape simulation."
                                  " Consider creating two seperate reactions.")

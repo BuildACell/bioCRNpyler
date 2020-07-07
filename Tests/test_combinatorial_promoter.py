@@ -82,7 +82,6 @@ class TestCombinatorialPromoter(TestCase):
         self.assertTrue(len(test_set)==len(knownspecies))
         self.assertTrue(not mistake_found)
 
-        
     def test_update_reactions(self):
         """this function tests the CombinatorialPromoter for the ability to make
         reactions with the proper inputs and outputs."""

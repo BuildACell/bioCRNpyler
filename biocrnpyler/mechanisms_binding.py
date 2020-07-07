@@ -1,5 +1,5 @@
 from .mechanism import *
-from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer, ChemicalComplex
+from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer, WeightedSpecies
 
 class Reversible_Bimolecular_Binding(Mechanism):
     """
@@ -86,8 +86,8 @@ class One_Step_Cooperative_Binding(Mechanism):
         if component is None and (kb is None or ku is None or cooperativity is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
 
-        inputs = [ChemicalComplex(species=binder, stoichiometry=cooperativity),
-                  ChemicalComplex(species=bindee, stoichiometry=1)]
+        inputs = [WeightedSpecies(species=binder, stoichiometry=cooperativity),
+                  WeightedSpecies(species=bindee, stoichiometry=1)]
 
         rxns = [Reaction.from_mass_action(inputs=inputs, outputs=[complexS], k_forward=kb, k_reverse=ku)]
         return rxns
@@ -178,7 +178,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
         binder, bindee, complexS, n_mer = self.update_species(binder, bindee, component = component, complex_species = complex_species, n_mer_species = n_mer_species, cooperativity=cooperativity, part_id = part_id, **keywords)
 
-        inputs_for_rxn1 = [ChemicalComplex(species=binder, stoichiometry=cooperativity)]
+        inputs_for_rxn1 = [WeightedSpecies(species=binder, stoichiometry=cooperativity)]
         rxns = [
             Reaction.from_mass_action(inputs=inputs_for_rxn1, outputs=[n_mer], k_forward=kb1, k_reverse=ku1),
             Reaction.from_mass_action(inputs=[n_mer, bindee], outputs=[complexS], k_forward=kb2, k_reverse=ku2)
@@ -282,8 +282,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                     else:
                         reactant_complex = self.make_cooperative_complex(reactant,bindee,coop_dict)
 
-                        inputs = [ChemicalComplex(species=binder, stoichiometry=binder_params[binder]["cooperativity"]),
-                                  ChemicalComplex(species=reactant_complex, stoichiometry=1)]
+                        inputs = [WeightedSpecies(species=binder, stoichiometry=binder_params[binder]["cooperativity"]),
+                                  WeightedSpecies(species=reactant_complex, stoichiometry=1)]
 
                         reaction = Reaction.from_mass_action(inputs=inputs, outputs=[product],
                                                              k_forward=binder_params[binder]["kb"],

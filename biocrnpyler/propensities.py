@@ -1,7 +1,7 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from typing import List
+from typing import Set
 
 
 class Propensity(object):
@@ -18,11 +18,26 @@ class Propensity(object):
         :param propensity_type: Propensity
         :returns bool
         """
-        pass
+        for propensity in Propensity.get_available_propensities():
+            if isinstance(propensity_type, propensity):
+                return True
+        return False
 
     @staticmethod
-    def get_available_propensities() -> List[str]:
-        pass
+    def _all_subclasses(cls):
+        """Returns a set of all subclasses of cls (recursively calculated)
+
+        Source:
+        https://stackoverflow.com/questions/3862310/how-to-find-all-the-subclasses-of-a-class-given-its-name
+        :param cls: A class in the codebase, for example Propensity
+        :return: set of all subclasses from cls
+        """
+        return set(cls.__subclasses__()).union(
+            [s for c in cls.__subclasses__() for s in Propensity._all_subclasses(c)])
+
+    @staticmethod
+    def get_available_propensities() -> Set:
+        return Propensity._all_subclasses(Propensity)
 
     def check_species(self, species_list) -> bool:
         required_species = self.get_species()
@@ -36,9 +51,8 @@ class Propensity(object):
             # the current propensity doesn't require any species
             return True
 
-    def get_species(self):
-        """returns the instance variables that are species type"""
-        return []
+    def pretty_print(self, **kwargs):
+        raise NotImplementedError
 
     @property
     def is_reversible(self):
@@ -50,6 +64,14 @@ class Propensity(object):
 
     @property
     def k_reverse(self):
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        raise NotImplementedError
+
+    @property
+    def species(self):
+        """returns the instance variables that are species type"""
         raise NotImplementedError
 
 
@@ -95,6 +117,22 @@ class MassAction(Propensity):
         else:
             return True
 
+    def pretty_print(self, **kwargs):
+        if 'reaction_direction' in kwargs and kwargs['react_direction'] is 'reverse':
+            if self.is_reversible:
+                return f''
+            else:
+                return None
+        else:
+            return f''
+
+    def __eq__(self, other):
+        return self.k_forward == other.k_forward and self.k_reverse == other.k_reverse
+
+    @property
+    def species(self):
+        return []
+
 
 class HillPositive(MassAction):
     def __init__(self, k_forward: float, s1, K: float, n: float):
@@ -109,6 +147,23 @@ class HillPositive(MassAction):
         super(HillPositive, self).__init__(k_forward=k_forward)
         self.s1 = s1
         self.K = K
+        self.n = n
+
+    def pretty_print(self,**kwargs):
+        if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
+            return super().pretty_print(**kwargs)
+
+        return f'k_f({self.s1}) = {self.k_forward}*{self.s1}^{self.n}/({self.s1}^{self.n} + {self.K})'
+
+    def __eq__(self, other):
+        return super(HillPositive, self).__eq__(other) \
+               and self.s1 is other.s1 \
+               and self.K == other.K \
+               and self.n == other.n
+
+    @property
+    def species(self):
+        return [self.s1]
 
 
 class HillNegative(MassAction):
@@ -127,6 +182,22 @@ class HillNegative(MassAction):
         self.K = K
         self.n = n
 
+    def pretty_print(self,**kwargs):
+        if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
+            return super().pretty_print(**kwargs)
+
+        return f'k_f({self.s1}) = {self.k_forward}/({self.s1}^{self.n} + {self.K})'
+
+    def __eq__(self, other):
+        return super(HillNegative, self).__eq__(other) \
+               and self.s1 is other.s1 \
+               and self.K == other.K \
+               and self.n == other.n
+
+    @property
+    def species(self):
+        return [self.s1]
+
 
 class ProportionalHillPositive(HillPositive):
     def __init__(self, k_forward: float, s1, K: float, n: float, d):
@@ -143,10 +214,24 @@ class ProportionalHillPositive(HillPositive):
         super(ProportionalHillPositive, self).__init__(k_forward=k_forward, s1=s1, K=K, n=n)
         self.d = d
 
+    def pretty_print(self,**kwargs):
+        if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
+            return super().pretty_print(**kwargs)
+
+        return '*'.join([self.d, super(ProportionalHillPositive, self).pretty_print(**kwargs)])
+
+    def __eq__(self, other):
+        return super(ProportionalHillPositive, self).__eq__(other) \
+               and self.d is other.d
+
+    @property
+    def species(self):
+        return [*super(ProportionalHillPositive, self).species, self.d]
+
 
 class ProportionalHillNegative(HillNegative):
     def __init__(self, k_forward: float, s1, K: float, n: float, d):
-        """ proportional Hill positive propensity with the following formula
+        """ proportional Hill negative propensity with the following formula
 
             p(s1, d; k, K, n) = k*d/(s1^n + K)
 
@@ -158,3 +243,17 @@ class ProportionalHillNegative(HillNegative):
         """
         super(ProportionalHillNegative, self).__init__(k_forward=k_forward, s1=s1, K=K, n=n)
         self.d = d
+
+    def pretty_print(self,**kwargs):
+        if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
+            return super().pretty_print(**kwargs)
+
+        return '*'.join([self.d, super(ProportionalHillNegative, self).pretty_print(**kwargs)])
+
+    def __eq__(self, other):
+        return super(ProportionalHillNegative, self).__eq__(other) \
+               and self.d is other.d
+
+    @property
+    def species(self):
+        return [*super(ProportionalHillNegative, self).species, self.d]

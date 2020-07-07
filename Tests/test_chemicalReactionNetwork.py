@@ -6,6 +6,7 @@ from unittest import TestCase
 from unittest.mock import mock_open, patch
 from biocrnpyler import ChemicalReactionNetwork, Species, Reaction, ComplexSpecies, OrderedComplexSpecies
 import libsbml
+import warnings
 
 
 class TestChemicalReactionNetwork(TestCase):
@@ -26,7 +27,7 @@ class TestChemicalReactionNetwork(TestCase):
 
     def test_check_crn_validity(self):
 
-        checked_species, checked_reactions = ChemicalReactionNetwork.check_crn_validity(reactions=self.rxn_list,
+        checked_reactions, checked_species = ChemicalReactionNetwork.check_crn_validity(reactions=self.rxn_list,
                                                                                         species=self.species_list)
         # test that the returned species list is the same as the species list supplied
         self.assertEqual(self.species_list, checked_species)
@@ -51,24 +52,34 @@ class TestChemicalReactionNetwork(TestCase):
 
         rxn2 = Reaction.from_mass_action(inputs=[self.s1], outputs=[self.s3], k_forward=0.1)
         # test warning raised if a species (in the reaction outputs) is detected which is not part of the species list
-        with self.assertWarnsRegex(Warning, f'contains a species {self.s3.name} which is not in the CRN'):
-            ChemicalReactionNetwork.check_crn_validity(reactions=[rxn2], species=self.species_list, warnings=True)
+        with self.assertWarnsRegex(Warning, f'are not part of any reactions in the CRN'):
+            ChemicalReactionNetwork.check_crn_validity(reactions=[rxn2], species=self.species_list, show_warnings=True)
 
         rxn3 = Reaction.from_mass_action(inputs=[self.s4], outputs=[self.s2], k_forward=0.1)
         # test warning raised if a species (in the reaction inputs) is detected which is not part of the species list
-        with self.assertWarnsRegex(Warning, f'contains a species {self.s4.name} which is not in the CRN'):
-            ChemicalReactionNetwork.check_crn_validity(reactions=[rxn3], species=self.species_list, warnings=True)
+        with self.assertWarnsRegex(Warning, f'are not part of any reactions in the CRN'):
+            ChemicalReactionNetwork.check_crn_validity(reactions=[rxn3], species=self.species_list, show_warnings=True)
+
+        # test warning if reaction has unlisted species
+        rxn4 = Reaction.from_mass_action(inputs=[self.s4, self.s3], outputs=[self.s2], k_forward=0.1)
+        with self.assertWarnsRegex(Warning, f'are not listed in the Species list, but part of the reactions'):
+            ChemicalReactionNetwork.check_crn_validity(reactions=[rxn4], species=[self.s4, self.s2], show_warnings=True)
 
         # test duplicate reactions are both added
         rxn_list = [self.rx1, self.rx1]
+
         CRN = ChemicalReactionNetwork(species = [self.s1, self.s2], reactions = rxn_list)
         self.assertTrue(CRN.reactions.count(self.rx1) == 2)
-        #with self.assertWarnsRegex(Warning, 'may be duplicated in CRN definitions'):
-        #    ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list, species=self.species_list, warnings=True)
 
-    def test_species_index(self):
-        # TODO add test if we actually use this function
-        pass
+        with self.assertWarnsRegex(Warning, 'may be duplicated in CRN definitions'):
+            ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list, species=self.species_list, show_warnings=True)
+
+        # test warning suppression
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list, species=self.species_list, show_warnings=False)
+
+        assert not w
 
     def test_initial_condition_vector(self):
 

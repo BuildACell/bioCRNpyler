@@ -148,7 +148,7 @@ class ChemicalComplex(Component):
             **keywords
     ):
 
-        if len(species) < 2 or not isinstance(species, list):
+        if not isinstance(species, list) or len(species) < 2:
             raise ValueError(f"Invalid Species {species}. Species must be a list of Species, strings, Component objects.")
 
         self.internal_species = [] #a list of species inside the complex
@@ -186,7 +186,7 @@ class ChemicalComplex(Component):
 
 class Enzyme(Component):
     """
-    A class to represent Enzymes. 
+    A class to represent Enzymes.
     Assumes the enzyme converts a single substrate to a single product.
     Uses a mechanism called "catalysis"
     """
@@ -225,7 +225,7 @@ class Enzyme(Component):
 
 class MultiEnzyme(Component):
     """
-    A class to represent Enzymes with multiple substrates and products. 
+    A class to represent Enzymes with multiple substrates and products.
     Assumes the enzyme converts all substrates to a all products at once.
     For example: S1 + S2 + E --> P1 + P2 + E.
     For enzymes with multiple enzymatic reactions, create multiple Enzyme Components with the same internal species.
