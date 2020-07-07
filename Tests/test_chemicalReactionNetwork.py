@@ -59,10 +59,12 @@ class TestChemicalReactionNetwork(TestCase):
         with self.assertWarnsRegex(Warning, f'contains a species {self.s4.name} which is not in the CRN'):
             ChemicalReactionNetwork.check_crn_validity(reactions=[rxn3], species=self.species_list, warnings=True)
 
-        # test duplicate reactions
+        # test duplicate reactions are both added
         rxn_list = [self.rx1, self.rx1]
-        with self.assertWarnsRegex(Warning, 'may be duplicated in CRN definitions'):
-            ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list, species=self.species_list, warnings=True)
+        CRN = ChemicalReactionNetwork(species = [self.s1, self.s2], reactions = rxn_list)
+        self.assertTrue(CRN.reactions.count(self.rx1) == 2)
+        #with self.assertWarnsRegex(Warning, 'may be duplicated in CRN definitions'):
+        #    ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list, species=self.species_list, warnings=True)
 
     def test_species_index(self):
         # TODO add test if we actually use this function

@@ -887,8 +887,7 @@ class ChemicalReactionNetwork(object):
 
         for r in reactions:
             if reactions.count(r) > 1:
-                warn(f"Reaction {r} may be duplicated in CRN definitions. Duplicates "
-                     "have NOT been removed.")
+                pass
 
             checked_reactions.append(r)
             #if r not in checked_reactions:
@@ -1094,73 +1093,86 @@ class ChemicalReactionNetwork(object):
     def simulate_with_bioscrape(self, timepoints, initial_condition_dict=None,
                                 stochastic = False, return_dataframe = True,
                                 safe = False, **kwargs):
-        '''
-        Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
+
+        """Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
         Returns the data for all species as Pandas dataframe.
-        '''
-        
-        from bioscrape.simulator import py_simulate_model
-        m = self.create_bioscrape_model()
-        if not initial_condition_dict:
-            initial_condition_dict = {}
-        m.set_species(initial_condition_dict)
-        if not stochastic and safe:
-            safe = False
-        result = py_simulate_model(timepoints, Model = m,
-                                   stochastic = stochastic,
-                                   return_dataframe = return_dataframe,
-                                   safe = safe)
+        """
+        result = None
+        try:
+            from bioscrape.simulator import py_simulate_model
+            m = self.create_bioscrape_model()
+            if not initial_condition_dict:
+                initial_condition_dict = {}
+            m.set_species(initial_condition_dict)
+            if not stochastic and safe:
+                safe = False
+                result = py_simulate_model(timepoints, Model = m,
+                                           stochastic = stochastic,
+                                           return_dataframe = return_dataframe,
+                                           safe = safe)
+        except ModuleNotFoundError:
+            warnings.warn('bioscrape was not found, please install bioscrape')
 
         return result
-
-
 
     def simulate_with_bioscrape_via_sbml(self, timepoints, file = None,
                 initial_condition_dict = None, return_dataframe = True,
                 stochastic = False, **kwargs):
-        '''
-        Simulate CRN model with bioscrape via writing a SBML file temporarily.(https://github.com/biocircuits/bioscrape).
-        Returns the data for all species as Pandas dataframe.
-        '''
-        if file is None:
-            self.write_sbml_file(file_name ="temp_sbml_file.xml")
-            file_name = "temp_sbml_file.xml"
-        elif isinstance(file, str):
-            file_name = file
-        else:
-            file_name = file.name
 
-        if 'sbml_warnings' in kwargs:
-            sbml_warnings = kwargs.get('sbml_warnings')
-        else:
-            sbml_warnings = False
-        m = bioscrape.types.Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
-        # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
-        m.set_species(initial_condition_dict)
-        result = bioscrape.simulator.py_simulate_model(timepoints, Model = m,
-                                            stochastic = stochastic,
-                                            return_dataframe = return_dataframe)
+        """Simulate CRN model with bioscrape via writing a SBML file temporarily.
+        [Bioscrape on GitHub](https://github.com/biocircuits/bioscrape).
+
+        Returns the data for all species as Pandas dataframe.
+        """
+        result = None
+        m = None
+        try:
+            from bioscrape.simulator import py_simulate_model
+            if file is None:
+                self.write_sbml_file(file_name ="temp_sbml_file.xml")
+                file_name = "temp_sbml_file.xml"
+            elif isinstance(file, str):
+                file_name = file
+            else:
+                file_name = file.name
+
+            if 'sbml_warnings' in kwargs:
+                sbml_warnings = kwargs.get('sbml_warnings')
+            else:
+                sbml_warnings = False
+            m = bioscrape.types.Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
+            # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
+            m.set_species(initial_condition_dict)
+            result = py_simulate_model(timepoints, Model = m,
+                                                stochastic = stochastic,
+                                                return_dataframe = return_dataframe)
+        except ModuleNotFoundError:
+            warnings.warn('bioscrape was not found, please install bioscrape')
+
         return result, m
-        
 
     def runsim_roadrunner(self, timepoints, filename, species_to_plot = None):
-        '''
+        """
         To simulate using roadrunner. 
         Arguments:
         timepoints: The array of time points to run the simulation for. 
         filename: Name of the SBML file to simulate
-        Returns the results array as returned by RoadRunner. 
+
+        Returns the results array as returned by RoadRunner.
+
         Refer to the libRoadRunner simulator library documentation 
-        for details on simulation results: http://libroadrunner.org/
+        for details on simulation results: (http://libroadrunner.org/)[http://libroadrunner.org/]
         NOTE : Needs roadrunner package installed to simulate.
-        '''
+        """
+        res_ar = None
         try:
             import roadrunner
-        except:
-            raise ModuleNotFoundError
-        rr = roadrunner.RoadRunner(filename)
-        result = rr.simulate(timepoints[0],timepoints[-1],len(timepoints))
-        res_ar = np.array(result)
+
+            rr = roadrunner.RoadRunner(filename)
+            result = rr.simulate(timepoints[0],timepoints[-1],len(timepoints))
+            res_ar = np.array(result)
+        except ModuleNotFoundError:
+            warnings.warn('libroadrunner was not found, please install libroadrunner')
         return res_ar
 
 #Helper function to flatten lists
