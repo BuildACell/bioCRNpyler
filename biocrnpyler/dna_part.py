@@ -15,6 +15,7 @@ class DNA_part(Component):
         Component.__init__(self=self, name = name, mechanisms = mechanisms,
                            parameters = parameters, **keywords)
         self.name = name
+        self.assembly = property(self._get_assembly,self._set_assembly)
         self.assembly = None #this is already covered in self.assembly. Is this needed?
         self.direction=None #orientation
         self.color = None #this will be taken from higher up
@@ -22,6 +23,7 @@ class DNA_part(Component):
         self.pos = None #position in the dna_construct
         self.sequence = None #nucleotide sequence
         self.no_stop_codons = [] #some parts will set this, others won't. Default is that it has stop codons
+        
         for key, value in keywords.items():
             #goes through any extra parameters and sets them!
             if(key=="assembly"):
@@ -57,6 +59,15 @@ class DNA_part(Component):
         self.direction = direction
         self.assembly = parent_dna
         return self
+    def _set_assembly(self,assembly):
+        """set the "assembly" variable"""
+        self.assembly = assembly
+        if(assembly is None):
+            self.dna_to_bind = None
+        else:
+            self.dna_to_bind = assembly.dna
+    def _get_assembly(self):
+        return self.assembly
     def unclone(self):
         """removes the current part from anything"""
         if(self.assembly is not None):

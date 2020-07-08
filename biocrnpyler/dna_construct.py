@@ -283,8 +283,8 @@ class DNA_construct(DNA):
                         new_site = copy.deepcopy(site)
                         new_mv_self = copy.copy(comb_specie)
                         new_mv_self.attributes = ["bindloc_"+str(site.pos)]
-                        new_assy = dummyAssembly(new_mv_self)
-                        new_site.assembly = new_assy
+                        #new_assy = dummyAssembly(new_mv_self)
+                        new_site.dna_to_bind = new_mv_self
                         sites += [new_site]
         return sites
                         
@@ -309,13 +309,14 @@ class DNA_construct(DNA):
                     new_mv_self = copy.deepcopy(comb_specie)
                     #TODO make this attribute thing better
                     new_mv_self.attributes = ["bindloc_"+str(promoter.pos)]
-                    new_assy = dummyAssembly(new_mv_self) #this allows the promoter to get the right DNA
+                    #new_assy = dummyAssembly(new_mv_self) #this allows the promoter to get the right DNA
                     #a promoter can make multiple RNAs, however...
                     new_promoter.transcript = rnas[promoter].get_species() 
                     rbslist = proteins[rnas[promoter]]
                     new_promoter.protein = [rbslist[a] for a in rbslist]
                     #currently, it's only possible for one promoter to make one RNA
-                    new_promoter.assembly = new_assy 
+                    new_promoter.dna_to_bind = new_mv_self
+                    #new_promoter.assembly = new_assy 
                     promoters += [new_promoter]
         
         return promoters

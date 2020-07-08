@@ -3,6 +3,7 @@
 
 from warnings import warn
 from .sbmlutil import *
+#from .component import Component
 import warnings
 import numpy as np
 from typing import List, Union, Dict
@@ -196,6 +197,38 @@ def make_complex(species,**keywords):
             newspeclist[bindloc] = ComplexSpecies(other_species,**keywords) #we make a sub complex
             mycomplex = OrderedComplexSpecies(newspeclist,attributes=valent_complex.attributes)
             return mycomplex
+
+def make_species(speclist,flatten=False):
+    def make_species_helper(item):
+        outitem = None
+        if(isinstance(item,str)):
+            outitem = Species(item)
+        elif(isinstance(item,Species)):
+            outitem = item
+        #elif(isinstance(unit,Component)):
+        #    outitem = unit.get_species()
+        elif(isinstance(item,list)):
+            warn("list {} encountered while making {} into species! I just ignored it").format(str(unit),str(speclist))
+            outitem = item
+        else:
+            TypeError(str(item) + " of unrecognized type")
+        return outitem
+        
+    if(isinstance(speclist,list)):
+        if(flatten):
+            inlist = flatten_list(speclist)
+        else:
+            inlist = speclist
+        outlist = []
+        for unit in inlist:
+            newspec = make_species_helper(unit)
+            outlist += [newspec]
+        return outlist
+    else:
+        return make_species_helper(speclist)
+            
+
+
 
 class ComplexSpecies(Species):
     """ A special kind of species which is formed as a complex of two or more species.
