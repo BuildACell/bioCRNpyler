@@ -156,6 +156,27 @@ class Species(object):
             return True
         return False
 
+    def __rmul__(self, other):
+        if isinstance(other, int):
+            if other <= 0:
+                raise ValueError(f'Stochiometry must be nonnegative! We got {other}!')
+            return WeightedSpecies(species=self, stoichiometry=other)
+        else:
+            raise TypeError(f'Species can be multiplied by integer only! We got {type(other)}')
+
+    def __add__(self, other):
+        if isinstance(other, Species):
+            return [WeightedSpecies(species=other),
+                    WeightedSpecies(species=self)]
+        else:
+            if isinstance(other, WeightedSpecies):
+                if other.species == self:
+                    return WeightedSpecies(species=other.species, stoichiometry=other.stoichiometry+1)
+                else:
+                    return [other, WeightedSpecies(species=self)]
+
+        raise NotImplementedError(f'Either Species or WeightedSpecies can be added together! We got {type(other)}')
+
     @staticmethod
     def flatten_list(species) -> List:
         if isinstance(species, list):
@@ -178,8 +199,8 @@ class WeightedSpecies:
             return True
         return False
 
-    def __eq__(self, other):
-        return self.species == other.species
+    # def __eq__(self, other):
+    #     return self.species == other.species
 
 
 class ComplexSpecies(Species):
