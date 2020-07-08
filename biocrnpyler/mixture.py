@@ -12,11 +12,9 @@ from typing import List, Union
 
 
 class Mixture(object):
-    def __init__(self, name="", mechanisms={}, components = [], parameters=None,
-                 parameter_file = None, default_mechanisms = {},
-                 global_mechanisms = {}, default_components = [],
-                 species = [], custom_initial_condition = {},
-                 parameter_warnings = None, **kwargs):
+    def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
+                 default_mechanisms=None, global_mechanisms=None, species=None, custom_initial_condition=None,
+                 parameter_warnings=None, **kwargs):
         """
         A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
         and parameters related to the mixture itself (e.g. Transcription rate). Default components and mechanisms can be
@@ -29,9 +27,10 @@ class Mixture(object):
         :param parameter_file: Parameters can be loaded from a parameter file
         :param default_mechanisms:
         :param global_mechanisms: dict of global mechanisms that impacts all species (e.g. cell growth)
-        :param default_components:
         :param parameter_warnings: suppressing parameter related warnings
         """
+        if components is None:
+            components = []
 
         init = kwargs.get('init')
         parameter_warnings = kwargs.get('parameter_warnings')
@@ -55,34 +54,38 @@ class Mixture(object):
 
         # Override the default mechanisms with anything we were passed
         # default parameters are used by mixture subclasses.
-        self.default_mechanisms = dict(default_mechanisms)
-        self.custom_mechanisms = dict(mechanisms)
+        self.default_mechanisms = default_mechanisms
+        self.custom_mechanisms = mechanisms
 
-        #Initial conditions are searched for by defauled in the parameter file
-        #see Mixture.set_initial_condition(self)
-        #These can be overloaded with custom_initial_condition dictionary: component.name --> initial amount
-        self.custom_initial_condition = dict(custom_initial_condition)
+        # Initial conditions are searched for by defauled in the parameter file
+        # see Mixture.set_initial_condition(self)
+        # These can be overloaded with custom_initial_condition dictionary: component.name --> initial amount
+        if custom_initial_condition is None:
+            self.custom_initial_condition = []
+        else:
+            self.custom_initial_condition = custom_initial_condition
 
         # Mechanisms stores the mechanisms used for compilation where defaults
         # are overwritten by custom mechanisms.
-        self.mechanisms = dict(self.default_mechanisms)
+        self.mechanisms = self.default_mechanisms
 
-        if isinstance(self.custom_mechanisms, dict):
-            for mech_type in self.custom_mechanisms:
-                self.mechanisms[mech_type] = self.custom_mechanisms[mech_type]
-        elif isinstance(self.custom_mechanisms, list):
-            for mech in self.custom_mechanisms:
-                self.mechanisms[mech.type] = mech
-        else:
-            raise ValueError("Mechanisms must be passed as a list of "
-                             "instantiated objects or a dictionary "
-                             "{type:mechanism}")
+        if self.custom_mechanisms:
+            if isinstance(self.custom_mechanisms, dict):
+                for mech_type in self.custom_mechanisms:
+                    self.mechanisms[mech_type] = self.custom_mechanisms[mech_type]
+            elif isinstance(self.custom_mechanisms, list):
+                for mech in self.custom_mechanisms:
+                    self.mechanisms[mech.type] = mech
+            else:
+                raise ValueError("Mechanisms must be passed as a list of "
+                                 "instantiated objects or a dictionary "
+                                 "{type:mechanism}")
 
         # Global mechanisms are applied just once ALL species generated from
         # components inside a mixture
         # Global mechanisms should be used rarely, and with care. An example
         # usecase is degradation via dilution.
-        self.global_mechanisms = dict(global_mechanisms)
+        self.global_mechanisms = global_mechanisms
 
         self.components = []  # components contained in mixture
         # if chemical_reaction_network.species objects are passed in as
@@ -90,23 +93,23 @@ class Mixture(object):
         self.added_species = []
         # process the species
         self.add_species(species)
-        # TODO find out why do we need default_components!
         # process the components
-        self.add_components(components+default_components)
+        self.add_components(components)
 
         # internal lists for the species and reactions
         self.crn_species = None
         self.crn_reactions = None
 
     def add_species(self, species: Union[List[Species], Species]):
-        if not isinstance(species, list):
-            species_list = [species]
-        else:
-            species_list = species
+        if species:
+            if not isinstance(species, list):
+                species_list = [species]
+            else:
+                species_list = species
 
-        assert all(isinstance(x, Species) for x in species_list), 'only Species type is accepted!'
+            assert all(isinstance(x, Species) for x in species_list), 'only Species type is accepted!'
 
-        self.added_species += species_list
+            self.added_species += species_list
 
 
     
@@ -123,7 +126,7 @@ class Mixture(object):
             raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
 
 
-    def add_components(self, components):
+    def add_components(self, components: Union[List[Component],Component]):
         if not isinstance(components, list):
             components = [components]
 
@@ -251,11 +254,11 @@ class Mixture(object):
 
         global_mech_species = []
         global_mech_reactions = []
-
-        for mech in self.global_mechanisms:
-            # Update Global Mechanisms
-            global_mech_species += self.global_mechanisms[mech].update_species_global(self.crn_species, self.parameters)
-            global_mech_reactions += self.global_mechanisms[mech].update_reactions_global(self.crn_species, self.parameters)
+        if self.global_mechanisms:
+            for mech in self.global_mechanisms:
+                # Update Global Mechanisms
+                global_mech_species += self.global_mechanisms[mech].update_species_global(self.crn_species, self.parameters)
+                global_mech_reactions += self.global_mechanisms[mech].update_reactions_global(self.crn_species, self.parameters)
 
         return global_mech_species, global_mech_reactions
 
@@ -285,15 +288,18 @@ class Mixture(object):
 
     def __repr__(self):
         txt = str(self)+"\n"
-        txt += "Components = ["
-        for comp in self.components:
-            txt+="\n\t"+str(comp)
-        txt+=" ]\nMechanisms = {"
-        for mech in self.mechanisms:
-            txt+="\n\t"+mech+":"+self.mechanisms[mech].name
-        txt+=" }\nGlobal Mechanisms = {"
-        for mech in self.global_mechanisms:
-            txt+="\n\t"+mech+":"+self.global_mechanisms[mech].name
+        if self.components:
+            txt += "Components = ["
+            for comp in self.components:
+                txt+="\n\t"+str(comp)
+        if self.mechanisms:
+            txt+=" ]\nMechanisms = {"
+            for mech in self.mechanisms:
+                txt+="\n\t"+mech+":"+self.mechanisms[mech].name
+        if self.global_mechanisms:
+            txt+=" }\nGlobal Mechanisms = {"
+            for mech in self.global_mechanisms:
+                txt+="\n\t"+mech+":"+self.global_mechanisms[mech].name
         txt+=" }"
         return txt
 

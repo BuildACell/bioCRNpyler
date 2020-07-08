@@ -15,16 +15,17 @@ def warn(txt):
 class Component(object):
 
     def __init__(self, name: Union[str, Species],
-                 mechanisms={},  # custom mechanisms
+                 mechanisms=None,  # custom mechanisms
                  parameters=None,  # parameter configuration
                  parameter_file=None, #custom parameter file
                  mixture=None,
-                 attributes=[],
+                 attributes=None,
                  initial_conc=0,
                  parameter_warnings = True,
                  **keywords  # parameter keywords
                  ):
-
+        if mechanisms is None:
+            mechanisms = {}
         if isinstance(name, Species):
             self.name = name.name
         elif isinstance(name, str):
@@ -118,45 +119,59 @@ class Component(object):
         else:
             raise Warning(f"Component {self.name} has no internal species and therefore no attributes")
 
-    #This function gives Components their own parameter dictionary. By default, components get all the parameters from Mixture
-    #Parameters passed in from mixture are superceded by parameters passed in the parameters keyword
-    #parameters already saved as custom parameters also supersede parameters from the Mixture
-    #In other words, the component remembers custom changes to parameters and mixture parameters will never overwrite those changes
-    #Mixture parameters are only ever used by default when no other component-level parameter has ever been given with the same key.
-    #the overwrite_custom_parameters keyword lets this function overwrite the existing custom Component-level parameters,
-    def update_parameters(self, mixture_parameters = {}, parameters = {},
-                          overwrite_custom_parameters = True):
+    def update_parameters(self, mixture_parameters=None, parameters=None,
+                          overwrite_custom_parameters=True) -> None:
+        """
+        This function gives Components their own parameter dictionary.
+
+        By default, components get all the parameters from Mixture
+        Parameters passed in from mixture are superseded by parameters passed
+        in the parameters keyword parameters already saved as custom parameters
+        also supersede parameters from the Mixture. In other words, the
+        component remembers custom changes to parameters and mixture parameters
+        will never overwrite those changes Mixture parameters are only ever
+        used by default when no other component-level parameter has ever been
+        given with the same key.
+
+        :param mixture_parameters:
+        :param parameters:
+        :param overwrite_custom_parameters: lets this function to overwrite the
+        existing custom Component-level parameters.
+        :return: None
+        """
+
+        if parameters:
+            for p in parameters:
+                if overwrite_custom_parameters or p not in self.custom_parameters:
+                    self.parameters[p] = parameters[p]
+                    if p in self.custom_parameters:
+                        self.custom_parameters[p] = parameters[p]
+
+        if mixture_parameters:
+            for p in mixture_parameters:
+                if p not in self.parameters:
+                    self.parameters[p] = mixture_parameters[p]
 
 
-        for p in parameters:
-            if overwrite_custom_parameters or p not in self.custom_parameters:
-                self.parameters[p] = parameters[p]
-                if p in self.custom_parameters:
-                    self.custom_parameters[p] = parameters[p]
+    def update_mechanisms(self, mixture_mechanisms=None, mechanisms=None, overwrite_custom_mechanisms=True):
 
-
-        for p in mixture_parameters:
-            if p not in self.parameters:
-                self.parameters[p] = mixture_parameters[p]
-
-    def update_mechanisms(self, mixture_mechanisms={}, mechanisms={}, overwrite_custom_mechanisms=True):
-
-        if isinstance(mechanisms, dict):
-            for mech_type in mechanisms:
-                if overwrite_custom_mechanisms \
-                   or mech_type not in self.custom_mechanisms:
-                    self.mechanisms[mech_type] = mechanisms[mech_type]
-                    self.custom_mechanisms[mech_type] = mechanisms[mech_type]
-        elif isinstance(mechanisms, list):
-            for mech in mechanisms:
-                if overwrite_custom_mechanisms \
-                   or mech not in self.custom_mechanisms:
-                    self.mechanisms[mech.mechanism_type] = mech
-                    self.custom_mechanisms[mech.mechanism_type] = mech
-        else:
-            raise ValueError("Mechanisms must be passed as a list of "
-                             "instantiated objects or a dictionary "
-                             "{mechanism_type:mechanism instance}")
+        if mechanisms:
+            if isinstance(mechanisms, dict):
+                for mech_type in mechanisms:
+                    if overwrite_custom_mechanisms \
+                       or mech_type not in self.custom_mechanisms:
+                        self.mechanisms[mech_type] = mechanisms[mech_type]
+                        self.custom_mechanisms[mech_type] = mechanisms[mech_type]
+            elif isinstance(mechanisms, list):
+                for mech in mechanisms:
+                    if overwrite_custom_mechanisms \
+                       or mech not in self.custom_mechanisms:
+                        self.mechanisms[mech.mechanism_type] = mech
+                        self.custom_mechanisms[mech.mechanism_type] = mech
+            else:
+                raise ValueError("Mechanisms must be passed as a list of "
+                                 "instantiated objects or a dictionary "
+                                 "{mechanism_type:mechanism instance}")
 
         # The mechanisms used during compilation are stored as their own
         # dictionary
@@ -164,14 +179,11 @@ class Component(object):
             if mech_type not in self.custom_mechanisms:
                 self.mechanisms[mech_type] = self.default_mechanisms[mech_type]
 
-        for mech_type in mixture_mechanisms:
-            if mech_type not in self.custom_mechanisms:
-                self.mechanisms[mech_type] = mixture_mechanisms[mech_type]
+        if mixture_mechanisms:
+            for mech_type in mixture_mechanisms:
+                if mech_type not in self.custom_mechanisms:
+                    self.mechanisms[mech_type] = mixture_mechanisms[mech_type]
 
-        
-
-        
-        
 
     #Set get_parameter property
     def set_parameter_warnings(self, parameter_warnings):

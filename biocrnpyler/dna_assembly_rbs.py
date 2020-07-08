@@ -5,9 +5,9 @@ from .mechanisms_binding import *
 from .mechanisms_txtl import *
 
 class RBS(Component):
-    def __init__(self, name: str, assembly = None,
-                 transcript = None, protein = None, length = 0,
-                 mechanisms = {}, parameters = {}, **keywords):
+    def __init__(self, name: str, assembly=None,
+                 transcript=None, protein=None, length=0,
+                 mechanisms=None, parameters=None, **keywords):
         self.assembly = assembly
         self.length = length
 
