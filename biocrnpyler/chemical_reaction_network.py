@@ -82,6 +82,10 @@ class Species(object):
         else:
             return self
 
+    #Used in some recursive calls where ComplexSpecies returns a list and Species will return just themselves (in a list)
+    def get_species(self, **kwargs):
+        return [self]
+
     #A more powerful printing function
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         txt = ""
@@ -231,6 +235,18 @@ class ComplexSpecies(Species):
             new_name = self.name
         
         return ComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
+
+    #Returns all species in the ComplexSpecies. If recursive = True, returns species inside internal ComplexSpecies recursively as well.
+    def get_species(self, recursive = False):
+        if not recursive:
+            species = [self]
+        else:
+            species = []
+            for s in self.species:
+                species += s.get_species(recursive = True)
+
+        return species
+
 
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         txt = ""
