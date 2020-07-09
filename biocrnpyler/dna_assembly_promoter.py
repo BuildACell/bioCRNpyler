@@ -107,8 +107,8 @@ class RegulatedPromoter(Promoter):
         return reactions
 
 #A class for a promoter which can be activated by a single species, modelled as a positive hill function
-class ActivatablePromotor(Promoter):
-    def __init__(self, name, activator, leak = False, transcript = None, **keywords):
+class ActivatablePromoter(Promoter):
+    def __init__(self, name, activator, transcript = None, leak = False, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
@@ -144,8 +144,8 @@ class ActivatablePromotor(Promoter):
         return reactions
 
 #A class for a promoter which can be repressed by a single species, modelled as a negative hill function
-class RepressablePromotor(Promoter):
-    def __init__(self, name, repressor, leak = False, transcript = None, **keywords):
+class RepressablePromoter(Promoter):
+    def __init__(self, name, repressor, transcript = None, leak = False, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
@@ -179,8 +179,8 @@ class RepressablePromotor(Promoter):
 
 
 class CombinatorialPromoter(Promoter):
-    def __init__(self, name, regulators, leak = False, assembly = None,
-                 transcript = None, length = 0, mechanisms = None,
+    def __init__(self, name, regulators, transcript = None, leak = False, assembly = None,
+                 length = 0, mechanisms = None,
                  parameters = None,tx_capable_list = None,cooperativity = None, **keywords):
         """
         A combinatorial promoter is something where binding multiple regulators result in
