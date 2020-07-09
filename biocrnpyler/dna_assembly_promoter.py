@@ -144,7 +144,7 @@ class ActivatablePromoter(Promoter):
         return reactions
 
 #A class for a promoter which can be repressed by a single species, modelled as a negative hill function
-class RepressablePromoter(Promoter):
+class RepressiblePromoter(Promoter):
     def __init__(self, name, repressor, transcript = None, leak = False, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
