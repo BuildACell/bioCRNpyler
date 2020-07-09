@@ -851,38 +851,25 @@ class ChemicalReactionNetwork(object):
         return ChemicalReactionNetwork(new_species_list, new_reaction_list)
 
     def generate_sbml_model(self, stochastic_model=False, **keywords):
-        """
-        Produces an SBML model of the CRN.
+        """Creates an new SBML model and populates with the species and
+        reactions in the ChemicalReactionNetwork object
+
+        :param stochastic_model: whether the model is stochastic
+        :param keywords: extra keywords pass onto create_sbml_model()
+        :return: None
         """
         document, model = create_sbml_model(**keywords)
 
-        for s in self.species:
+        add_all_species(model=model, species=self.species)
 
-            add_species(model=model, compartment=model.getCompartment(0),
-                    species=s, initial_concentration=s.initial_concentration)
-
-        rxn_count = 0
-        for r in self.reactions:
-            rxn_id = "r" + str(rxn_count)
-            add_reaction(model, r.inputs, r.input_coefs, r.outputs,
-                         r.output_coefs, rxn_id, r.k,
-                         stochastic = stochastic_model,
-                         propensity_type=r.propensity_type,
-                         propensity_params = r.propensity_params)
-            rxn_count += 1
-
-            if r.is_reversible and r.propensity_type == "massaction":
-                add_reaction(model, r.outputs, r.output_coefs, r.inputs,
-                             r.input_coefs, rxn_id, r.k_r,
-                             stochastic=stochastic_model,
-                             propensity_type=r.propensity_type)
-                rxn_count += 1
+        add_all_reactions(model=model, reactions=self.reactions,
+                          stochastic=stochastic_model)
 
         if document.getNumErrors():
             warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
         return document, model
 
-    def write_sbml_file(self, file_name=None, **keywords):
+    def write_sbml_file(self, file_name=None, **keywords) -> bool:
         """
         Writes CRN to SBML
         """

@@ -1,7 +1,9 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from typing import Set
+from typing import Set, Union
+from numbers import Number
+from .parameter import Parameter
 
 
 class Propensity(object):
@@ -39,17 +41,18 @@ class Propensity(object):
     def get_available_propensities() -> Set:
         return Propensity._all_subclasses(Propensity)
 
-    def check_species(self, species_list) -> bool:
-        required_species = self.get_species()
-        if required_species:
-            found = False
-            for species in species_list:
-                if species in required_species:
-                    found = True
-            return found
+    @staticmethod
+    def _get_parameter_name(rate_coeff: Union[Number, Parameter]) -> str:
+        """checks whether a rate_coeff is a Number, if not this function calls for its string represention
+
+        :param rate_coeff: a number of a parameter object
+        :return: either None or the parameter's name
+        """
+        if not isinstance(rate_coeff, Number):
+            rate_coeff_name = str(rate_coeff)
         else:
-            # the current propensity doesn't require any species
-            return True
+            rate_coeff_name = 'k'
+        return rate_coeff_name
 
     def pretty_print(self, **kwargs):
         raise NotImplementedError
@@ -74,11 +77,17 @@ class Propensity(object):
         """returns the instance variables that are species type"""
         raise NotImplementedError
 
+    def create_kinetic_law(self, reaction, reverse_reaction, stochastic):
+        raise NotImplementedError
+
 
 class GeneralPropensity(Propensity):
     def __init__(self, propensity_function: str):
         super(GeneralPropensity, self).__init__()
         self.propensity_function = propensity_function
+
+    def create_kinetic_law(self, reaction):
+        raise NotImplementedError("SBML writing of general propensities not implemented")
 
 
 class MassAction(Propensity):
@@ -105,6 +114,9 @@ class MassAction(Propensity):
 
     @k_reverse.setter
     def k_reverse(self, new_k_reverse):
+        if not isinstance(self, MassAction):
+            # only mass action object can have reverse rates
+            raise NotImplementedError
         if new_k_reverse is not None and new_k_reverse <= 0:
             raise ValueError(f'Reverse reaction rate coefficient is negative! '
                              f'k={new_k_reverse}')
@@ -133,8 +145,136 @@ class MassAction(Propensity):
     def species(self):
         return []
 
+    def create_kinetic_law(self, reaction, stochastic, direction='forward'):
+        # Create a kinetic law for the reaction
+        ratelaw = reaction.createKineticLaw()
 
-class HillPositive(MassAction):
+        annotation_dict = {"type": self}
+        if direction == 'forward':
+            rate_coeff = self.k_forward
+        else:
+            rate_coeff = self.k_reverse
+
+        # get the name of the kinetic rate coefficient
+        rate_coeff_name = Propensity._get_parameter_name(rate_coeff)
+
+        param = ratelaw.createParameter()
+        param.setId(rate_coeff_name)
+        param.setConstant(True)
+        param.setValue(rate_coeff)
+        annotation_dict["k"] = rate_coeff
+
+        # Create Rate-strings for massaction propensities
+        ratestring = rate_coeff_name
+
+        if stochastic:
+            for i in range(stoichiometry):
+                if i > 0:
+                    ratestring += f" * ( {species_id} - {i} )"
+                else:
+                    ratestring += f" * {species_id}"
+
+        else:
+                ratestring += f" * {species_id}^{stoichiometry}"
+
+
+        # Set the ratelaw to the ratestring
+        math_ast = libsbml.parseL3Formula(ratestring)
+        ratelaw.setMath(math_ast)
+
+        if propensity_annotation:
+            annotation_string = "<PropensityType>"
+            for k in annotation_dict:
+                annotation_string += " "+k + "=" + str(annotation_dict[k])
+            annotation_string += "</PropensityType>"
+            reaction.appendAnnotation(annotation_string)
+
+        return ratelaw
+
+
+class Hill(MassAction):
+    def __init__(self, k_forward: float, s1, K: float, n: float):
+        super(Hill, self).__init__(k_forward=k_forward)
+        
+        self.s1 = s1
+        self.K = K
+        self.n = n
+
+    def __eq__(self, other):
+        return super(Hill, self).__eq__(other) \
+               and self.s1 is other.s1 \
+               and self.K == other.K \
+               and self.n == other.n
+
+    @property
+    def species(self):
+        return [self.s1]
+        
+    def create_kinetic_law(self, reaction, direction='forward'):
+        if direction != 'forward':
+            raise ValueError('Only MassAction can have reverse reaction!')
+
+        ratelaw = super(Hill, self).create_kinetic_law(reaction=reaction)
+
+        param_n = ratelaw.createParameter()
+        param_n.setId("n")
+        param_n.setConstant(True)
+        param_n.setValue(self.n)
+    
+        param_K = ratelaw.createParameter()
+        param_K.setId("K")
+        param_K.setConstant(True)
+        param_K.setValue(self.K)
+
+        annotation_dict["k"] = self.k_forward
+        annotation_dict["K"] = self.K
+        annotation_dict["n"] = self.n
+
+
+        #Create ratestring for non-massaction propensities
+    if propensity_type == "hillpositive":
+
+        s = str(propensity_params['s1']).replace("'", "")
+        s_species_id = getSpeciesByName(model,s).getId()
+
+        ratestring+=f"*{s_species_id}^n/({s_species_id}^n+K)"
+
+        annotation_dict["s1"] = s_species_id
+
+    elif propensity_type == "hillnegative":
+        s = str(propensity_params['s1']).replace("'", "")
+        s_species_id = getSpeciesByName(model,s).getId()
+
+        ratestring+=f"/({s_species_id}^n+K)"
+
+        annotation_dict["s1"] = s_species_id
+
+    elif propensity_type == "proportionalhillpositive":
+
+        s = str(propensity_params['s1']).replace("'", "")
+        d = str(propensity_params['d']).replace("'", "")
+        s_species_id = getSpeciesByName(model,s).getId()
+        d_species_id = getSpeciesByName(model,d).getId()
+
+        ratestring+=f"*{d_species_id}*{s_species_id}^n/({s_species_id}^n + K)"
+
+        annotation_dict["s1"] = s_species_id
+        annotation_dict["d"] = d_species_id
+
+    elif propensity_type == "proportionalhillnegative":
+
+        s = str(propensity_params['s1']).replace("'", "")
+        d = str(propensity_params['d']).replace("'", "")
+        s_species_id = getSpeciesByName(model,s).getId()
+        d_species_id = getSpeciesByName(model,d).getId()
+
+        ratestring+=f"*{d_species_id}/({s_species_id}^n+K)"
+
+        annotation_dict["s1"] = s_species_id
+        annotation_dict["d"] = d_species_id
+
+
+class HillPositive(Hill):
     def __init__(self, k_forward: float, s1, K: float, n: float):
         """ Hill positive propensity is a nonlinear propensity with the following formula
 
@@ -144,10 +284,7 @@ class HillPositive(MassAction):
         :param s1: species (chemical_reaction_network.species)
         :param K: dissociation constant (float)
         """
-        super(HillPositive, self).__init__(k_forward=k_forward)
-        self.s1 = s1
-        self.K = K
-        self.n = n
+        super(HillPositive, self).__init__(k_forward=k_forward, s1=s1, K=K, n=n)
 
     def pretty_print(self,**kwargs):
         if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
@@ -155,18 +292,8 @@ class HillPositive(MassAction):
 
         return f'k_f({self.s1}) = {self.k_forward}*{self.s1}^{self.n}/({self.s1}^{self.n} + {self.K})'
 
-    def __eq__(self, other):
-        return super(HillPositive, self).__eq__(other) \
-               and self.s1 is other.s1 \
-               and self.K == other.K \
-               and self.n == other.n
 
-    @property
-    def species(self):
-        return [self.s1]
-
-
-class HillNegative(MassAction):
+class HillNegative(Hill):
     def __init__(self, k_forward: float, s1, K: float, n: float):
         """ Hill negative propensity is a nonlinear propensity with the following formula
 
@@ -177,26 +304,13 @@ class HillNegative(MassAction):
         :param K: dissociation constant (float)
         :param n: cooperativity (float)
         """
-        super(HillNegative, self).__init__(k_forward=k_forward)
-        self.s1 = s1
-        self.K = K
-        self.n = n
+        super(HillNegative, self).__init__(k_forward=k_forward, s1=s1, K=K, n=n)
 
     def pretty_print(self,**kwargs):
         if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
             return super().pretty_print(**kwargs)
 
         return f'k_f({self.s1}) = {self.k_forward}/({self.s1}^{self.n} + {self.K})'
-
-    def __eq__(self, other):
-        return super(HillNegative, self).__eq__(other) \
-               and self.s1 is other.s1 \
-               and self.K == other.K \
-               and self.n == other.n
-
-    @property
-    def species(self):
-        return [self.s1]
 
 
 class ProportionalHillPositive(HillPositive):
@@ -245,6 +359,7 @@ class ProportionalHillNegative(HillNegative):
         self.d = d
 
     def pretty_print(self,**kwargs):
+        # TODO no reverse for nonmassaction!!!
         if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
             return super().pretty_print(**kwargs)
 
