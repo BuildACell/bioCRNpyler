@@ -183,9 +183,9 @@ class SimpleTranslation(Mechanism):
 
     def update_reactions(self, transcript, component = None, ktl = None, part_id = None, protein = None, **keywords):
 
-        if ktl == None and Component != None:
+        if ktl is None and Component is not None:
             ktl = component.get_parameter("ktl", part_id = part_id, mechanism = self)
-        elif component == None and ktl == None:
+        elif component is None and ktl is None:
             raise ValueError("Must pass in component or a value for ktl")
 
         if protein is None:
@@ -210,9 +210,9 @@ class OneStepGeneExpression(Mechanism):
     def update_reactions(self, dna, component = None, kexpress = None,
                          protein=None, transcript = None, part_id = None, **keywords):
 
-        if kexpress == None and Component != None:
+        if kexpress is None and Component is not None:
             kexpress = component.get_parameter("kexpress", part_id = part_id, mechanism = self)
-        elif component == None and kexpress == None:
+        elif component is None and kexpress is None:
             raise ValueError("Must pass in component or a value for kexpress")
 
         if protein is None:
@@ -227,7 +227,7 @@ class PositiveHillTranscription(Mechanism):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     #Overwrite update_species
-    def update_species(self, dna, regulator, transcript = None, **keywords):
+    def update_species(self, dna, regulator, transcript = None, leak = False, **keywords):
 
         if transcript is None: #Species names can be automatically created
             transcript = Species(dna.name, material_type = "rna")
@@ -237,7 +237,7 @@ class PositiveHillTranscription(Mechanism):
 
     #Overwrite update_reactions
     #This always requires the inputs component and part_id to find the relevant parameters
-    def update_reactions(self, dna, regulator, component, part_id, transcript = None, **keywords):
+    def update_reactions(self, dna, regulator, component, part_id, transcript = None, leak = False, **keywords):
 
         if transcript is None: #Species names should be automatically created the same here as above
             transcript = Species(dna.name, material_type = "rna")
@@ -249,13 +249,14 @@ class PositiveHillTranscription(Mechanism):
 
         params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
 
-        reaction = Reaction(inputs = [dna], outputs = [dna, transcript],
-                            propensity_type = "proportionalhillpositive", propensity_params = params)
+        reactions = []
+        reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], propensity_type = "proportionalhillpositive", propensity_params = params))
 
-        reaction_leak = Reaction(inputs = [dna], outputs = [dna, transcript], k = kleak)
+        if leak:
+            reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], k = kleak))
 
         #In this case, we just return one reaction
-        return [reaction, reaction_leak]
+        return reactions
 
 class NegativeHillTranscription(Mechanism):
     #Set the name and mechanism_type
@@ -263,7 +264,7 @@ class NegativeHillTranscription(Mechanism):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     #Overwrite update_species
-    def update_species(self, dna, regulator, transcript = None, **keywords):
+    def update_species(self, dna, regulator, transcript = None, leak = False, **keywords):
 
         if transcript is None: #Species names can be automatically created
             transcript = Species(dna.name, material_type = "rna")
@@ -272,7 +273,7 @@ class NegativeHillTranscription(Mechanism):
 
     #Overwrite update_reactions
     #This always requires the inputs component and part_id to find the relevant parameters
-    def update_reactions(self, dna, regulator, component, part_id, transcript = None, **keywords):
+    def update_reactions(self, dna, regulator, component, part_id, transcript = None, leak = False, **keywords):
 
         if transcript is None: #Species names should be automatically created the same here as above
             transcript = Species(dna.name, material_type = "rna")
@@ -284,16 +285,17 @@ class NegativeHillTranscription(Mechanism):
 
         params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
 
-        reaction = Reaction(inputs = [dna], outputs = [dna, transcript],
-                            propensity_type = "proportionalhillnegative", propensity_params = params)
+        reactions = []
+        reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], propensity_type = "proportionalhillnegative", propensity_params = params))
 
-        reaction_leak = Reaction(inputs = [dna], outputs = [dna, transcript], k = kleak)
+        if leak:
+            reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], k = kleak))
 
         #In this case, we just return one reaction
-        return [reaction, reaction_leak]
+        return reactions
 
 class multi_tx(Mechanism):
-    '''
+    """
     Multi-RNAp Transcription w/ Isomerization:
     Detailed transcription mechanism accounting for each individual
     RNAp occupancy states of gene.
@@ -309,7 +311,7 @@ class multi_tx(Mechanism):
     DNA:RNAp_n_c --> DNA with n open configuration RNAp and 1 closed configuration RNAp on it
 
     For more details, see examples/MultiTX_Demo.ipynb
-    '''
+    """
 
     # initialize mechanism subclass
     def __init__(self, pol, name='multi_tx', mechanism_type='transcription', **keywords):
@@ -347,17 +349,16 @@ class multi_tx(Mechanism):
         return cp_open + cp_closed + cp_misc
 
     def update_reactions(self, dna, transcript, component, part_id, **keywords):
+        """
+        DNA:RNAp_n + RNAp <--> DNA:RNAp_n_c --> DNA:RNAp_n+1
+        kf1 = k1, kr1 = k2, kf2 = k_iso
+        DNA:RNAp_n --> DNA:RNAp_0 + n RNAp + n mRNA
+        kf = ktx_solo
+        DNA:RNAp_n_c --> DNA:RNAp_0_c + n RNAp + n mRNA
+        kf = ktx_solo
 
-        '''
-    DNA:RNAp_n + RNAp <--> DNA:RNAp_n_c --> DNA:RNAp_n+1
-    kf1 = k1, kr1 = k2, kf2 = k_iso
-    DNA:RNAp_n --> DNA:RNAp_0 + n RNAp + n mRNA
-    kf = ktx_solo
-    DNA:RNAp_n_c --> DNA:RNAp_0_c + n RNAp + n mRNA
-    kf = ktx_solo
-
-    max_occ =  maximum occupancy of gene (physical limit)
-        '''
+        max_occ =  maximum occupancy of gene (physical limit)
+        """
 
         # parameter loading
         k1 = component.get_parameter("k1", part_id = part_id, mechanism = self)
@@ -410,7 +411,7 @@ class multi_tx(Mechanism):
         return rxn_all
 
 class multi_tl(Mechanism):
-    '''
+    """
     Multi-RBZ Translation w/ Isomerization:
     Detailed translation mechanism accounting for each individual
     RBZ occupancy states of mRNA. Still needs some work, so use with caution,
@@ -427,7 +428,7 @@ class multi_tl(Mechanism):
     mRNA:RBZ_n_c --> mRNA with n open configuration RBZ and 1 closed configuration RBZ on it
 
     For more details, see examples/MultiTX_Demo.ipynb
-    '''
+    """
 
     # initialize mechanism subclass
     def __init__(self, ribosome, name='multi_tl', mechanism_type='translation', **keywords):
@@ -469,14 +470,14 @@ class multi_tl(Mechanism):
         return cp_open + cp_closed + cp_misc
 
     def update_reactions(self, transcript, protein, component, part_id, **keywords):
-        '''
-    mRNA:RBZ_n + RBZ <--> mRNA:RBZ_n_c --> mRNA:RBZ_n+1
-    kf1 = kbr, kr1 = kur, kf2 = k_iso_r
-    mRNA:RBZ_n --> mRNA:RBZ_0 + n RBZ + n Protein
-    kf = ktl_solo
-    mRNA:RBZ_n_c --> mRNA:RBZ_0_c + n RBZ + n Protein
-    kf = ktl_solo
-        '''
+        """
+        mRNA:RBZ_n + RBZ <--> mRNA:RBZ_n_c --> mRNA:RBZ_n+1
+        kf1 = kbr, kr1 = kur, kf2 = k_iso_r
+        mRNA:RBZ_n --> mRNA:RBZ_0 + n RBZ + n Protein
+        kf = ktl_solo
+        mRNA:RBZ_n_c --> mRNA:RBZ_0_c + n RBZ + n Protein
+        kf = ktl_solo
+        """
 
         # parameter loading
         kbr = component.get_parameter("kbr", part_id = part_id, mechanism = self)

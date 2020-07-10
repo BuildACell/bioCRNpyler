@@ -16,9 +16,9 @@ class Reversible_Bimolecular_Binding(Mechanism):
         #Get Parameters
         if part_id is None:
             repr(s1)+"_"+repr(s2)
-        if kb is None and component != None:
+        if kb is None and component is not None:
             kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
-        if ku is None and component != None:
+        if ku is None and component is not None:
             ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
         if component is None and (kb is None or ku is None):
             raise ValueError("Must pass in a Component or values for kb, ku.")
@@ -74,11 +74,11 @@ class One_Step_Cooperative_Binding(Mechanism):
         #Get Parameters
         if part_id is None:
             part_id = repr(binder)+"-"+repr(bindee)
-        if kb is None and component != None:
+        if kb is None and component is not None:
             kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
-        if ku is None and component != None:
+        if ku is None and component is not None:
             ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
-        if cooperativity is None and component != None:
+        if cooperativity is None and component is not None:
             cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
         if component is None and (kb is None or ku is None or cooperativity is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")

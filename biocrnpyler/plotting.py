@@ -163,9 +163,7 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,possca
 
 def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_material=True,
                                                     pp_show_rates=True,pp_show_attributes=True,
-                                                colordict={"complex":"cyan","protein":"green",
-                                                            "dna":"grey","rna":"orange",
-                                                            "ligand":"pink","phosphate":"yellow","nothing":"purple"}):
+                                                colordict=None):
     """generates a networkx DiGraph object that represents the CRN.
     input:
     ==========================
@@ -200,6 +198,10 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     CRNspeciesonly: a DiGraph object with only species
     CRNreactionsonly: a DiGraph object with only reactions
     """
+    if not colordict:
+        colordict = {"complex":"cyan","protein":"green",
+                     "dna":"grey","rna":"orange",
+                     "ligand":"pink","phosphate":"yellow","nothing":"purple"}
     CRNgraph = nx.DiGraph()
     allnodenum = 1 #every node has an index
     #this starts at 1 because "nothing" is node 0

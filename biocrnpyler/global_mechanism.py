@@ -46,8 +46,10 @@ from typing import List, Union
    filter_dict[attribute] takes precedent. If multiple filter_dict[attribute]
    contradict for different attributes, an error is raised. 
 
-   For ComplexSpecies, filter based upon all subspecies.type. If there is a conflict, 
-   raise a warning and go with the default.
+ recursive_species_filtering keyword determines how the material_type and name of ComplexSpecies
+   is defined. If True: the filter based upon all subspecies.type and name recursively going through
+   all ComplexSpecies. If False: the filter dict will act only on the 
+   ComplexSpecies. By default, this is False.
 
  If the species's name, material type, and attributes are all not in the
     filter_dict, the GlobalMechanism will be called if default_on == True and
@@ -61,16 +63,22 @@ from typing import List, Union
     demonstrated in the Tests folder.
 
  GlobalMechanisms should be used cautiously or avoided alltogether - the order
-    in which they are called may have to be carefully user defined in the
+    in which they are called may have to be carefully user-defined in the
     subclasses of Mixture in order to ensure expected behavior.
 """
 
 
 class GlobalMechanism(Mechanism):
-    def __init__(self, name: str, mechanism_type = "", filter_dict = {},
-                 default_on = False):
-        self.filter_dict = filter_dict
+    def __init__(self, name: str, mechanism_type="", filter_dict=None,
+                 default_on=False, recursive_species_filtering = False):
+
+        if filter_dict is None:
+            self.filter_dict = {}
+        else:
+            self.filter_dict = filter_dict
+
         self.default_on = default_on
+        self.recursive_species_filtering = recursive_species_filtering
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     def apply_filter(self, s: Species):
@@ -82,15 +90,12 @@ class GlobalMechanism(Mechanism):
         fd = self.filter_dict
         use_mechanism = None
 
-        if isinstance(s, ComplexSpecies):
-            species_list = [s]+s.species
-        else:
-            species_list = [s]
+        species_list = s.get_species(recursive = self.recursive_species_filtering)
 
         for subs in species_list:
             for a in s.attributes+[subs.material_type, repr(subs), subs.name]:
                 if a in fd:
-                    if use_mechanism == None:
+                    if use_mechanism is None:
                         use_mechanism = fd[a]
                     elif use_mechanism != fd[a]:
                         raise AttributeError(f"species {repr(s)} has multiple attributes(or material type) which conflict with global mechanism filter {repr(self)}.")
@@ -155,12 +160,13 @@ class GlobalMechanism(Mechanism):
 
 class Dilution(GlobalMechanism):
     def __init__(self, name = "global_degredation_via_dilution",
-                 mechanism_type = "dilution", filter_dict = {},
-                 default_on = True):
+                 mechanism_type = "dilution", filter_dict=None,
+                 default_on = True, recursive_species_filtering = True):
         GlobalMechanism.__init__(self, name = name,
                                  mechanism_type = mechanism_type,
                                  default_on = default_on,
-                                 filter_dict = filter_dict)
+                                 filter_dict = filter_dict,
+                                 recursive_species_filtering = recursive_species_filtering)
 
     def update_reactions(self, s: Species, parameters):
         k_dil = self.get_parameter(s, parameters, "kdil")
@@ -177,12 +183,13 @@ class AnitDilutionConstiutiveCreation(GlobalMechanism):
     Useful for keeping machinery species like ribosomes and polymerases at a constant concentration.
     """
     def __init__(self, name = "anti_dilution_constiuitive_creation",
-                 material_type = "dilution", filter_dict = {},
-                 default_on = True):
+                 material_type="dilution", filter_dict=None,
+                 default_on = True,  recursive_species_filtering = True):
         GlobalMechanism.__init__(self, name = name,
                                  mechanism_type = material_type,
                                  default_on = default_on,
-                                 filter_dict = filter_dict)
+                                 filter_dict = filter_dict, 
+                                 recursive_species_filtering = recursive_species_filtering)
 
     def update_reactions(self, s, parameters):
         k_dil = parameters["kdil"]

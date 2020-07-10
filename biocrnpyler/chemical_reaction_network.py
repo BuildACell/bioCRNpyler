@@ -15,7 +15,7 @@ class Species(object):
      RNA, Protein), and a list of attributes.
     """
 
-    def __init__(self, name: str, material_type="", attributes=[],
+    def __init__(self, name: str, material_type="", attributes: Union[List,None] = None,
                  initial_concentration=0):
 
         self.name = self.check_name(name)
@@ -29,6 +29,8 @@ class Species(object):
         self.attributes = []
 
         if attributes is not None:
+            if not isinstance(attributes,list):
+                attributes = list(attributes)
             for attribute in attributes:
                 self.add_attribute(attribute)
 
@@ -79,6 +81,10 @@ class Species(object):
             return new_species
         else:
             return self
+
+    #Used in some recursive calls where ComplexSpecies returns a list and Species will return just themselves (in a list)
+    def get_species(self, **kwargs):
+        return [self]
 
     #A more powerful printing function
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
@@ -138,7 +144,7 @@ class ComplexSpecies(Species):
         This is good for modelling order-indpendent binding complexes.
         For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
     """
-    def __init__(self, species: List[Union[Species,str]], name = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
+    def __init__(self, species: List[Union[Species,str]], name: Union[str,None] = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
         if len(species) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
@@ -229,6 +235,18 @@ class ComplexSpecies(Species):
             new_name = self.name
         
         return ComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
+
+    #Returns all species in the ComplexSpecies. If recursive = True, returns species inside internal ComplexSpecies recursively as well.
+    def get_species(self, recursive = False):
+        if not recursive:
+            species = [self]
+        else:
+            species = []
+            for s in self.species:
+                species += s.get_species(recursive = True)
+
+        return species
+
 
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         txt = ""
@@ -1088,7 +1106,7 @@ class ChemicalReactionNetwork(object):
                       initial_condition_dict = initial_condition_dict)
         return model
 
-    def simulate_with_bioscrape(self, timepoints, initial_condition_dict = {},
+    def simulate_with_bioscrape(self, timepoints, initial_condition_dict=None,
                                 stochastic = False, return_dataframe = True,
                                 safe = False, **kwargs):
 
@@ -1099,6 +1117,8 @@ class ChemicalReactionNetwork(object):
         try:
             from bioscrape.simulator import py_simulate_model
             m = self.create_bioscrape_model()
+            if not initial_condition_dict:
+                initial_condition_dict = {}
             m.set_species(initial_condition_dict)
             if not stochastic and safe:
                 safe = False
@@ -1113,7 +1133,7 @@ class ChemicalReactionNetwork(object):
         return result
 
     def simulate_with_bioscrape_via_sbml(self, timepoints, file = None,
-                initial_condition_dict = {}, return_dataframe = True,
+                initial_condition_dict = None, return_dataframe = True,
                 stochastic = False, **kwargs):
 
         """Simulate CRN model with bioscrape via writing a SBML file temporarily.
@@ -1149,10 +1169,9 @@ class ChemicalReactionNetwork(object):
 
         return result, m
 
-    def runsim_roadrunner(self, timepoints, filename, species_to_plot = []):
-
-        """ To simulate using roadrunner
-
+    def runsim_roadrunner(self, timepoints, filename, species_to_plot = None):
+        """
+        To simulate using roadrunner. 
         Arguments:
         timepoints: The array of time points to run the simulation for. 
         filename: Name of the SBML file to simulate
