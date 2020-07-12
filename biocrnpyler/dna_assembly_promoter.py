@@ -20,6 +20,12 @@ class Promoter(Component):
         else:
             self.transcript = self.set_species(transcript, material_type = 'rna')
 
+        #Promoter should not have initial conditions. These need to be in DNAAssembly or DNAConstruct
+        if "initial_conc" in keywords.values() and keywords["initial_conc"] is not None:
+            raise AttributeError("Cannot set initial_conc of a Promoter. Must set initial_conc for the DNAassembly or DNAConstruct.")
+        if "initial_condition_dictionary" in keywords.values() and keywords["initial_condition_dictionary"] is not None:
+            raise AttributeError("Cannot set initial_condition_dictionary of a Promoter. Must set initial_condition_dictionary for the DNAassembly or DNAconstruct.")
+
         Component.__init__(self, name = name, mechanisms = mechanisms,
                            parameters = parameters, **keywords)
 

@@ -96,9 +96,7 @@ class DNAassembly(DNA):
                              "Expected string or promoter object. "
                              f"Recieved {repr(promoter)}.")
         if promoter is not None:
-            self.promoter.update_parameters(
-                                        mixture_parameters = self.parameters,
-                                        overwrite_custom_parameters = False)
+            self.promoter.update_parameters(parameter_database = self.parameter_database, overwrite_parameters = False)
 
     def update_rbs(self, rbs, transcript = None, protein = None):
         if protein is not None:
@@ -122,8 +120,7 @@ class DNAassembly(DNA):
                             f"{repr(rbs)}.")
 
         if rbs is not None:
-            self.rbs.update_parameters(mixture_parameters = self.parameters,
-                                       overwrite_custom_parameters = False)
+            self.rbs.update_parameters(parameter_database = self.parameter_database, overwrite_parameters = False)
 
     @property
     def protein(self):
@@ -143,7 +140,6 @@ class DNAassembly(DNA):
             deg_mech = self.mechanisms["rna_degredation"]
             species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
 
-        # TODO raise a warning if there were duplicate species
         return list(set(species))
 
     def update_reactions(self):
@@ -164,22 +160,15 @@ class DNAassembly(DNA):
         # TODO check that the reaction list is unique
         return reactions
 
-    def update_parameters(self, mixture_parameters=None, parameters=None,
-                          overwrite_custom_parameters=True):
-        DNA.update_parameters(self = self,
-                              mixture_parameters = mixture_parameters,
-                              parameters = parameters, 
-                              overwrite_custom_parameters = overwrite_custom_parameters)
+    def update_parameters(self, parameter_file = None, parameters = None, overwrite_parameters = True):
+
+        DNA.update_parameters(self = self, parameter_file = parameter_file, parameters = parameters, overwrite_parameters = overwrite_parameters)
 
         if self.promoter is not None:
-            self.promoter.update_parameters(
-                                    mixture_parameters = mixture_parameters,
-                                    parameters = parameters,
-                                    overwrite_custom_parameters = overwrite_custom_parameters)
+            self.promoter.update_parameters(parameter_file = parameter_file, parameters = parameters, overwrite_parameters = overwrite_parameters)
+
         if self.rbs is not None:
-            self.rbs.update_parameters(mixture_parameters = mixture_parameters,
-                                       parameters = parameters,
-                                       overwrite_custom_parameters = overwrite_custom_parameters)
+            self.rbs.update_parameters(parameter_file = parameter_file, parameters = parameters, overwrite_parameters = overwrite_parameters)
 
     def update_mechanisms(self, mixture_mechanisms=None, mechanisms=None,
                           overwrite_custom_mechanisms = False):

@@ -3,7 +3,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import Component, DNA
+from biocrnpyler import Component, DNA, ParameterDatabase
 from biocrnpyler import Transcription_MM, Translation_MM, Degredation_mRNA_MM
 
 
@@ -53,22 +53,23 @@ class TestComponent(TestCase):
         parameters = {"kb": kb, "ku": ku, "ktx": ktx, "ktl": ktl, "kdeg": kdeg}
 
         # test that the custom parameters dictionary is empty
-        self.assertTrue(isinstance(self.component.custom_parameters, dict)
-                        and len(self.component.custom_parameters) == 0)
+        self.assertTrue(isinstance(self.component.parameter_database, ParameterDatabase)
+                        and len(self.component.parameter_database.parameters) == 0)
 
-        one_param = {"kb": kb}
-        self.component.custom_parameters = one_param
+        
 
-        self.component.update_parameters(mixture_parameters={}, parameters=parameters, overwrite_custom_parameters=False)
-        # test that the new parameter is the only parameter custom parameter in the component
-        self.assertTrue(len(self.component.custom_parameters) == len(one_param))
+        self.component.update_parameters(parameters=parameters)
 
-        self.component.update_parameters(mixture_parameters={}, parameters=parameters)
-        self.assertEqual(self.component.custom_parameters, one_param)
+        # test that the component has all the parameters
+        self.assertTrue(len(self.component.parameter_database.parameters) == len(parameters))
 
-        self.component.update_parameters(mixture_parameters=parameters, parameters={})
-        # test that the parameter dictionary is still the same as before
-        self.assertEqual(self.component.parameters, parameters)
+        # test overwriting parameters
+        new_val = 111
+        one_param = {"kb": new_val}
+        self.component.update_parameters(parameters=one_param, overwrite_parameters = True)
+        self.assertEqual(self.component.parameter_database[(None, None, "kb")].value, new_val)
+        # test that the parameter dictionary is still the same length as before
+        self.assertTrue(len(self.component.parameter_database.parameters) == len(parameters))
 
     def test_update_mechanisms(self):
 
@@ -120,23 +121,24 @@ class TestComponent(TestCase):
         kb, ku, ktx, ktl, kdeg, cooperativity = 100, 10, 3, 2, 1, 1
         p_id = 'p10'
 
-        parameters = {"kb": kb, "ku": ku, "ktx": ktx, "ktl": ktl, "kdeg": kdeg, "cooperativity": cooperativity,
-                      # default params
-                      ("transcription", "ktx"): ktx,
-                      ("transcription", p_id, 'ku'): ku
-                      }
-
-        one_param = {"kb": kb}
-        self.component.update_parameters(mixture_parameters={}, parameters=one_param)
-        # testing that one_param was registered
-        self.assertEqual(self.component.get_parameter(param_name="kb"), one_param["kb"])
+        parameters = {"kb": kb, "kdeg":kdeg,
+                      ("transcription", None, "ktx"): ktx,
+                      ("transcription", p_id, 'ku'): ku,
+                      (None, p_id, "ktl"): ktl }
         # update the component parameters
         self.component.update_parameters(parameters=parameters)
-        # testing the different parameter definitions
-        tx = Transcription_MM()
-        self.assertEqual(self.component.get_parameter(mechanism=tx, param_name='ktx'), ktx)
 
+        tx = Transcription_MM()
+        # testing the different parameter definitions
+        self.assertEqual(self.component.get_parameter(param_name='kb'), kb)
+        self.assertEqual(self.component.get_parameter(mechanism=tx, param_name='ktx'), ktx)
+        self.assertEqual(self.component.get_parameter(part_id=p_id, param_name='ktl'), ktl)
         self.assertEqual(self.component.get_parameter(mechanism=tx, part_id=p_id, param_name='ku'), ku)
+
+        one_param = {"kb": kb}
+        self.component.update_parameters(parameters=one_param)
+        # testing that one_param was registered
+        self.assertEqual(self.component.get_parameter(param_name="kb"), one_param["kb"])
 
     def test_update_species(self):
         # warning if update_species on a component object

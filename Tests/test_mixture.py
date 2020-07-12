@@ -2,7 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import Mixture, Species, Component, DNA, Reaction, ChemicalReactionNetwork
+from biocrnpyler import Mixture, Species, Component, DNA, Reaction, ChemicalReactionNetwork, Component
 
 
 class TestMixture(TestCase):
@@ -84,17 +84,27 @@ class TestMixture(TestCase):
 
         species_list = [a, b]
 
-        # creating a mock update function to decouple the update process from the rest of the code
-        def mock_update_reactions():
-            rxn = Reaction(inputs=[a], outputs=[b], k=0.1)
-            return [rxn]
+        
 
         rxn = Reaction(inputs=[a], outputs=[b], k=0.1)
 
         CRN = ChemicalReactionNetwork(species_list, [rxn])
 
-        mixture = Mixture(species=species_list)
-        mixture.update_reactions = mock_update_reactions
+        #create a component
+        component = Component("comp")
+
+        # creating a mock update function to decouple the update process from the rest of the code
+        def mock_update_reactions():
+            rxn = Reaction(inputs=[a], outputs=[b], k=0.1)
+            return [rxn]
+        def mock_update_species():
+            return [a, b]
+
+        component.update_species = mock_update_species
+        component.update_reactions = mock_update_reactions
+        
+        mixture = Mixture(components = [component])
+
 
         crn_from_mixture = mixture.compile_crn()
         # test that the mixture has the same species as the manually build CRN object

@@ -91,8 +91,8 @@ class TestCombinatorialPromoter(TestCase):
         newdna = DNAassembly("testDNA",promoter=newprom)
         #adding mechanisms because there is no mixture. I believe this is what the mixture does
         newdna.update_mechanisms(mechanisms={"transcription":Transcription_MM(), "translation":Translation_MM()})
-        newdna.update_parameters(parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, ("testprom_leak","ktx"):.01,\
-                                                                ("testprom_leak","ku"):50,("testprom_treg1_treg2_RNAP","ku"):5})
+        newdna.update_parameters(parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, (None, "testprom_leak","ktx"):.01,\
+                                                                (None, "testprom_leak","ku"):50,(None, "testprom_treg1_treg2_RNAP","ku"):5})
         #you have to do update_species first
         newprom_spec = newprom.update_species()
         #now the test... does it produce the right reactions??
