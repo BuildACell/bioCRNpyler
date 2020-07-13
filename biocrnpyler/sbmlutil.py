@@ -9,7 +9,6 @@ import numpy as np
 import logging
 from typing import List
 from warnings import warn
-from .chemical_reaction_network import Reaction, Species
 from .propensities import MassAction
 
 
@@ -82,7 +81,7 @@ def species_sbml_id(species, document=None):
     return species_id
 
 
-def add_all_species(model, species: List[Species], compartment=None):
+def add_all_species(model, species: List, compartment=None):
     """ adds a list of Species to the SBML model
 
     :param model: valid SBML model
@@ -161,7 +160,7 @@ def find_parameter(mixture, id):
     return model.getParameter(id)  # ! TODO: add error checking
 
 
-def add_all_reactions(model, reactions: List[Reaction], stochastic=False):
+def add_all_reactions(model, reactions: List, stochastic=False):
     """adds a list of reactions to the SBML model
 
     :param model: an sbml model created by create_sbml_model()
@@ -181,7 +180,7 @@ def add_all_reactions(model, reactions: List[Reaction], stochastic=False):
             rxn_count += 1
 
 
-def add_reaction(model, crn_reaction: Reaction, reaction_id: str,
+def add_reaction(model, crn_reaction, reaction_id: str,
                  stochastic: bool=False, reverse_reaction=False, propensity_annotation=True):
     """adds a reaction to an sbml model
 
@@ -209,17 +208,17 @@ def add_reaction(model, crn_reaction: Reaction, reaction_id: str,
     # Creating both sides of a reaction
     if reverse_reaction is False:
         # forward reaction:  reactants: crn_inputs -> products: crn_outputs
-        create_reactants(reactant_list=crn_reaction.inputs, reaction=reaction, model=model)
-        create_products(product_list=crn_reaction.outputs, reaction=reaction, model=model)
+        _create_reactants(reactant_list=crn_reaction.inputs, reaction=reaction, model=model)
+        _create_products(product_list=crn_reaction.outputs, reaction=reaction, model=model)
     else:
-        # reverse reaction: reactants: crn_outputs -> products: crn_inouts
-        create_reactants(reactant_list=crn_reaction.outputs, reaction=reaction, model=model)
-        create_products(product_list=crn_reaction.inputs, reaction=reaction, model=model)
+        # reverse reaction: reactants: crn_outputs -> products: crn_inputs
+        _create_reactants(reactant_list=crn_reaction.outputs, reaction=reaction, model=model)
+        _create_products(product_list=crn_reaction.inputs, reaction=reaction, model=model)
 
     return reaction
 
 
-def create_reactants(reactant_list, reaction, model):
+def _create_reactants(reactant_list, reaction, model):
     for input in reactant_list:
         species = str(input.species).replace("'", "")
 
@@ -231,7 +230,7 @@ def create_reactants(reactant_list, reaction, model):
         reactant.setStoichiometry(input.stoichiometry)
 
 
-def create_products(product_list, reaction, model):
+def _create_products(product_list, reaction, model):
     for output in product_list:
         species = str(output.species).replace("'", "")
         product = reaction.createProduct()
