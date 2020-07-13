@@ -105,25 +105,25 @@ class GlobalMechanism(Mechanism):
 
         return use_mechanism
 
-    def update_species_global(self, species_list: List[Species], parameters):
+    def update_species_global(self, species_list: List[Species], mixture):
         new_species = []
         for s in species_list:
             use_mechanism = self.apply_filter(s)
             if use_mechanism:
-                new_species += self.update_species(s, parameters)
+                new_species += self.update_species(s, mixture)
         return new_species
 
-    def update_reactions_global(self, species_list: List[Species], parameters):
+    def update_reactions_global(self, species_list: List[Species], mixture):
         fd = self.filter_dict
         new_reactions = []
         for s in species_list:
             use_mechanism = self.apply_filter(s)
             if use_mechanism:
-                new_reactions += self.update_reactions(s, parameters)
+                new_reactions += self.update_reactions(s, mixture)
 
         return new_reactions
 
-    def update_species(self, s, parameters):
+    def update_species(self, s, mixture):
         """
         All global mechanisms must use update_species functions with these inputs
         :param s:
@@ -132,7 +132,7 @@ class GlobalMechanism(Mechanism):
         """
         return []
 
-    def update_reactions(self, s, parameters):
+    def update_reactions(self, s, mixture):
         """
         All global mechanisms must use update_reactions functions with these inputs
         :param s:
@@ -140,23 +140,6 @@ class GlobalMechanism(Mechanism):
         :return:
         """
         return []
-
-    def get_parameter(self, s, parameters, param_name):
-        if (self.name, repr(s), param_name) in parameters:
-            return parameters[(self.name, repr(s), param_name)]
-        elif (self.mechanism_type, repr(s), param_name) in parameters:
-            return parameters[(self.mechanism_type, repr(s), param_name)]
-        elif (repr(s), param_name) in parameters:
-            return parameters[(repr(s), param_name)]
-        elif (self.name, param_name) in parameters:
-            return parameters[(self.name, param_name)]
-        elif (self.mechanism_type, param_name) in parameters:
-            return parameters[(self.mechanism_type, param_name)]
-        elif (param_name) in parameters:
-            return parameters[param_name]
-        else:
-            raise ValueError(f"No parameter found for GlobalMechanism name: {self.name} type: {self.mechanism_type} species: {repr(s)} param: {param_name}")
-
 
 class Dilution(GlobalMechanism):
     def __init__(self, name = "global_degredation_via_dilution",
@@ -168,8 +151,8 @@ class Dilution(GlobalMechanism):
                                  filter_dict = filter_dict,
                                  recursive_species_filtering = recursive_species_filtering)
 
-    def update_reactions(self, s: Species, parameters):
-        k_dil = self.get_parameter(s, parameters, "kdil")
+    def update_reactions(self, s: Species, mixture):
+        k_dil = mixture.get_parameter(mechanism = self, part_id = repr(s), param_name = "kdil")
         rxn = Reaction([s], [], k_dil)
         return [rxn]
 
@@ -192,6 +175,6 @@ class AnitDilutionConstiutiveCreation(GlobalMechanism):
                                  recursive_species_filtering = recursive_species_filtering)
 
     def update_reactions(self, s, parameters):
-        k_dil = parameters["kdil"]
+        k_dil = mixture.get_parameter(mechanism = self, part_id = repr(s), param_name = "kdil")
         rxn = Reaction([], [s], k_dil)
         return [rxn]

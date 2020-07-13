@@ -3,7 +3,7 @@
 
 from warnings import warn as pywarn
 from .chemical_reaction_network import Species, ComplexSpecies, Reaction
-from .parameter import ParameterDatabase
+from .parameter import ParameterDatabase, ParameterEntry
 from typing import List, Union
  
 
@@ -216,23 +216,30 @@ class Component(object):
         self.parameter_warnings = parameter_warnings
 
     # Get Parameter Hierarchy:
+    # 1. tries to find the Parameter in Component.parameter_database
+    # 2. tries to find the parameter in Component.mixture.parameter_database
     def get_parameter(self, param_name: str, part_id=None, mechanism=None):
-        return_val = None
-        warning_txt = None
-
         #Try the Component ParameterDatabase
+        print("find parameter in Component")
         param = self.parameter_database.find_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
+
         #Next try the Mixture ParameterDatabase
+        print("self.mixture", self.mixture)
         if param is None and self.mixture is not None:
-            param = self.mixture.find_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
+            print("find parameter in mixture")
+            param = self.mixture.get_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
 
         if param is None:
             raise ValueError("No parameters can be found that match the "
                  "(mechanism, part_id, "
                 f"param_name)=({repr(mechanism)}, {part_id}, "
                 f"{param_name})")
-        else:
+
+        #TODO replace this with just returning the parameter, when reaction overhaul is complete
+        elif isinstance(param, ParameterEntry):
             return param.value
+        else:
+            return param
 
     # TODO implement abstractmethod
     def update_species(self) -> List:

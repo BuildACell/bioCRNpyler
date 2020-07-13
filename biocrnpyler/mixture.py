@@ -7,7 +7,7 @@ from warnings import resetwarnings
 
 from .component import Component
 from .chemical_reaction_network import ChemicalReactionNetwork, Species, Reaction
-from .parameter import ParameterDatabase
+from .parameter import ParameterDatabase, ParameterEntry
 from typing import List, Union
 
 
@@ -131,7 +131,8 @@ class Mixture(object):
                 "the object: %s passed into mixture as component must be of the class Component" % str(component)
             self.components.append(component)
 
-            component.mixture = self
+            #Reset components Mixtures
+            component.set_mixture(self)
 
             component.update_mechanisms(mixture_mechanisms=self.mechanisms, overwrite_custom_mechanisms = False)
             #component.update_parameters(mixture_parameters=self.parameters)
@@ -145,8 +146,14 @@ class Mixture(object):
         if parameters is not None:
             self.parameter_database.load_parameters_from_dictionary(parameter_dictionary, overwrite_parameters = overwrite_parameters)
     
-    def find_parameter(self, mechanism, part_id, param_name, parameter_warnings = False):
-        return self.parameter_database.find_parameter(mechanism, part_id, param_name, parameter_warnings = parameter_warnings)
+    def get_parameter(self, mechanism, part_id, param_name, parameter_warnings = False):
+        param = self.parameter_database.find_parameter(mechanism, part_id, param_name, parameter_warnings = parameter_warnings)
+
+        #TODO replace this with just returning the parameter, when reaction overhaul is complete
+        if isinstance(param, ParameterEntry):
+            return param.value
+        else:
+            return param
 
     #Sets the initial condition for all components with internal species
     #Does this for the species returned during compilation to prevent errors
@@ -246,10 +253,9 @@ class Mixture(object):
             if isinstance(s, Species):
                 self.set_initial_condition(s, component)
                 self.crn_species.append(s)
-            elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
-
-                for ss in s: self.set_initial_condition(ss, component)
-
+            elif isinstance(s, list) and(all(isinstance(ss, Species) for ss in s) or len(s) == 0):
+                for ss in s: 
+                    self.set_initial_condition(ss, component)
                 self.crn_species+=s
             elif s is not None:
                 raise ValueError(f"Invalid Species Returned in {component}.update_species(): {s}.")
@@ -306,8 +312,8 @@ class Mixture(object):
         if self.global_mechanisms:
             for mech in self.global_mechanisms:
                 # Update Global Mechanisms
-                global_mech_species += self.global_mechanisms[mech].update_species_global(self.crn_species, self.parameters)
-                global_mech_reactions += self.global_mechanisms[mech].update_reactions_global(self.crn_species, self.parameters)
+                global_mech_species += self.global_mechanisms[mech].update_species_global(self.crn_species, self)
+                global_mech_reactions += self.global_mechanisms[mech].update_reactions_global(self.crn_species, self)
 
         return global_mech_species, global_mech_reactions
 
@@ -317,6 +323,10 @@ class Mixture(object):
         :return: ChemicalReactionNetwork
         """
         resetwarnings()#Reset warnings - better to toggle them off manually.
+
+        #reset the Components' mixture to self - in case they have been added to other Mixtures
+        for c in self.components:
+            c.set_mixture(self)
 
         self.update_species() #updates species to self.crn_species and sets initial concentrations
         self.update_reactions() #updates reactions to self.crn_reactions
