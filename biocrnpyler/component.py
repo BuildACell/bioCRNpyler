@@ -55,10 +55,10 @@ class Component(object):
         self.custom_mechanisms = {}
         self.mechanisms = {}
         if mixture is not None:
-            self.mixture = mixture
+            self.set_mixture(mixture)
             mixture_mechanisms = mixture.mechanisms
         else:
-            self.mixture = None
+            self.set_mixture(None)
             mixture_mechanisms = {}
         self.update_mechanisms(mechanisms=mechanisms,
                                mixture_mechanisms=mixture_mechanisms)
@@ -92,6 +92,10 @@ class Component(object):
             raise ValueError("Initial concentration must be non-negative, "f"this was given: {initial_conc}")
         else:
             self._initial_conc = initial_conc
+
+    #Set the mixture the Component is in.
+    def set_mixture(self, mixture):
+        self.mixture = mixture
 
     # TODO implement as an abstractmethod
     def get_species(self) -> None:
@@ -218,10 +222,10 @@ class Component(object):
 
         #Try the Component ParameterDatabase
         param = self.parameter_database.find_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
-
         #Next try the Mixture ParameterDatabase
         if param is None and self.mixture is not None:
             param = self.mixture.find_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
+
         if param is None:
             raise ValueError("No parameters can be found that match the "
                  "(mechanism, part_id, "

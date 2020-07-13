@@ -40,7 +40,14 @@ class DNAassembly(DNA):
 
         self.set_parameter_warnings(parameter_warnings)
 
-            
+    
+    #Set the mixture the Component is in.
+    def set_mixture(self, mixture):
+        self.mixture = mixture
+        if self.promoter is not None:
+            self.promoter.set_mixture(mixture)
+        if self.rbs is not None:
+            self.rbs.set_mixture(mixture)
 
     def set_parameter_warnings(self, parameter_warnings):
         self.parameter_warnings = parameter_warnings
@@ -85,8 +92,7 @@ class DNAassembly(DNA):
 
         if isinstance(promoter, str):
             self.promoter = Promoter(assembly = self, name = promoter,
-                                     transcript = self.transcript,
-                                     parameters = self.parameters)
+                                     transcript = self.transcript)
         elif isinstance(promoter, Promoter):
             self.promoter = promoter
             self.promoter.assembly = self
@@ -97,6 +103,7 @@ class DNAassembly(DNA):
                              f"Recieved {repr(promoter)}.")
         if promoter is not None:
             self.promoter.update_parameters(parameter_database = self.parameter_database, overwrite_parameters = False)
+            self.promoter.set_mixture(self.mixture)
 
     def update_rbs(self, rbs, transcript = None, protein = None):
         if protein is not None:
@@ -107,8 +114,7 @@ class DNAassembly(DNA):
 
         if isinstance(rbs, str):
             self.rbs = RBS(assembly = self, name = rbs, protein = self._protein,
-                           transcript = self.transcript,
-                           parameters = self.parameters)
+                           transcript = self.transcript)
         elif isinstance(rbs, RBS):
             self.rbs = rbs
             self.rbs.assembly = self
@@ -121,6 +127,7 @@ class DNAassembly(DNA):
 
         if rbs is not None:
             self.rbs.update_parameters(parameter_database = self.parameter_database, overwrite_parameters = False)
+            self.rbs.set_mixture(self.mixture)
 
     @property
     def protein(self):

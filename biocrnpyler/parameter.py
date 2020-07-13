@@ -183,11 +183,11 @@ class ParameterDatabase():
 
 		if isinstance(key, str):
 			parameter_name = key
-			self.add_parameter(parameter_name, parameter_value, parameter_origin = "Set Manually", overwrite_parameters = True)
+			self.add_parameter(parameter_name, value, parameter_origin = "Set Manually", overwrite_parameters = True)
 		elif isinstance(key, tuple) and len(key) == 3:
 			parameter_name = key[2]
 			parameter_keys = {"mechanism":key[0], "part_id":key[1]}
-			self.add_parameter(parameter_name, parameter_value, parameter_keys = parameter_keys, parameter_origin = "Set Manually", overwrite_parameters = True)
+			self.add_parameter(parameter_name, value, parameter_keys = parameter_keys, parameter_origin = "Set Manually", overwrite_parameters = True)
 		else:
 			raise ValueError(f"Invalid parameter key {key}. Key must be be a tuple ('mechanism', 'part_id', 'parameter_name') or a string 'parameter_name'.")		
 

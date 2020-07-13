@@ -248,7 +248,7 @@ class Mixture(object):
                 self.crn_species.append(s)
             elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
 
-                for ss in s: self.set_initial_condition(ss, comp)
+                for ss in s: self.set_initial_condition(ss, component)
 
                 self.crn_species+=s
             elif s is not None:

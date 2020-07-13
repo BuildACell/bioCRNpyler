@@ -174,3 +174,62 @@ class TestParameter(TestCase):
 
         #The correct number of entries
         self.assertEqual(count, len(parameter_dict))
+
+    def test_contains(self):
+        parameter_dict = {
+        "k":1,
+        ("M", "pid", "k"):2.0,
+        (None, "pid", "k"):3.3,
+        ("M", None, "k"): 4,
+        }
+
+        PD = ParameterDatabase(parameter_dictionary = parameter_dict)
+
+        self.assertTrue("k" in PD)
+        self.assertTrue(("M", "pid", "k") in PD)
+        self.assertFalse("ktx" in PD)
+        self.assertFalse(("M", "k") in PD)
+
+    def test_indexing(self):
+        parameter_dict = {
+        "k":1,
+        ("M", "pid", "k"):2.0,
+        (None, "pid", "k"):3.3,
+        ("M", None, "k"): 4,
+        }
+
+        PD = ParameterDatabase(parameter_dictionary = parameter_dict)
+
+        #Test correct accessing
+        self.assertTrue(PD["k"].value == 1)
+        self.assertTrue(PD[("M", "pid", "k")].value == 2.0)
+        self.assertTrue(PD[(None, "pid", "k")].value == 3.3)
+        self.assertTrue(PD[("M", None, "k")].value == 4)
+
+        #test incorrect accessing
+        with self.assertRaisesRegexp(ValueError, f"Invalid parameter key"):
+            PD[("M", "k")]
+
+        #test accessing something not in the PD
+        with self.assertRaisesRegexp(ValueError, f"Parameter"):
+            PD["kb"]
+
+        #test inserting
+        PD["kb"] = 100
+        self.assertTrue(PD["kb"].value == 100)
+        PD[(None, None, "ku")] = 200
+        self.assertTrue(PD["ku"].value == 200)
+        PD[("M", "pid", "ktx")] = 300
+        self.assertTrue(PD[("M", "pid", "ktx")].value == 300)
+
+        #Invalid parameter key
+        with self.assertRaisesRegexp(ValueError, f"Invalid parameter"):
+            PD[("M", "k")] = 10
+
+        #Test overwriting
+        PD["k"] = .1
+        self.assertTrue(PD["k"].value == .1)
+        PD[("M", "pid", "ktx")] = .333
+        self.assertTrue(PD[("M", "pid", "ktx")].value == .333)
+
+
