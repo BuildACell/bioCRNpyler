@@ -58,17 +58,17 @@ class DNAassembly(DNA):
             if self.rbs is not None:
                 self.rbs.set_parameter_warnings(parameter_warnings)
 
-
     def update_dna(self, dna, attributes = None):
         if dna is None:
             self.dna = self.set_species(self.name, material_type = "dna", attributes = attributes)
         else:
             self.dna = self.set_species(dna, material_type = "dna", attributes = attributes)
         
-
     def update_transcript(self, transcript, attributes = None):
         if transcript is None:
             self.transcript = self.set_species(self.name, material_type = "rna", attributes = attributes)
+        elif transcript is False: #this is used for expression mixtures where there is no transcript!
+            self.transcript = None
         else:
             self.transcript = self.set_species(transcript, material_type = "rna", attributes = attributes)
 

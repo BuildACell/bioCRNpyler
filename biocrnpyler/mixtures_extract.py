@@ -40,36 +40,20 @@ class ExpressionExtract(Mixture):
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
                         components=components+default_components, **kwargs)
 
-    #Overwriting compile_crn to replace transcripts with proteins for all DNA_assemblies
+    #Overwriting compile_crn to turn off transcription in all DNAassemblies
     def compile_crn(self) -> ChemicalReactionNetwork:
-        """ Creates a chemical reaction network from the species and reactions associated with a mixture object
-        :return: ChemicalReactionNetwork
-        """
-        resetwarnings()#Reset warnings - better to toggle them off manually.
-        species = self.update_species()
-        reactions = self.update_reactions()
 
-        for comp in self.components:
-            if isinstance(comp, DNAassembly):
-                if comp.transcript is not None and comp.protein is not None:
-                    for i, s in enumerate(species):
-                        species[i] = s.replace_species(comp.transcript, comp.protein)
-                    for i, r in enumerate(reactions):
-                        reactions[i] = r.replace_species(comp.transcript, comp.protein)
+        for component in self.components:
+            if isinstance(component, DNAassembly):
+                #Only turn off transcription for an Assembly that makes a Protein. 
+                #Some assemblies might only make RNA!
+                if component.protein is not None:
+                     #This will turn off transcription and set Promoter.transcript = False
+                     #Mechanisms that recieve no transcript but a protein will use the protein instead.
+                    component.update_transcript(False)
 
-        self.crn_species = list(set(species))
-        self.crn_reactions = reactions
-        #global mechanisms are applied last and only to all the species 
-        global_mech_species, global_mech_reactions = self.apply_global_mechanisms()
-
-        species += global_mech_species
-        reactions += global_mech_reactions
-
-        species = self.set_initial_condition(species)
-        species.sort(key = lambda s:repr(s))
-        reactions.sort(key = lambda r:repr(r))
-        CRN = ChemicalReactionNetwork(species, reactions)
-        return CRN
+        #Call the superclass function
+        return Mixture.compile_crn(self)
 
 #A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.)
 #RNA is degraded via a global mechanism
