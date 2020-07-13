@@ -643,22 +643,20 @@ class Reaction(object):
 
     def pretty_print(self, show_rates=True, show_material=True, show_attributes=True, **kwargs):
 
-        txt = '+'.join([s.pretty_print(show_material=show_material,
-                                       show_attributes=show_attributes,
-                                       **kwargs)
-                        for s in self.inputs])
+        kwargs['show_rates'] = show_rates
+        kwargs['show_material'] = show_material
+        kwargs['show_attributes'] = show_attributes
+
+        txt = '+'.join([s.pretty_print(**kwargs) for s in self.inputs])
 
         if self.is_reversible:
             txt += " <--> "
         else:
             txt += " --> "
 
-        txt += '+'.join([s.pretty_print(show_material=show_material,
-                                        show_attributes=show_attributes,
-                                        **kwargs)
-                         for s in self.outputs])
+        txt += '+'.join([s.pretty_print(**kwargs) for s in self.outputs])
         if show_rates:
-            txt += f'{self.propensity_type.pretty_print(show_material=show_material, **kwargs)}'
+            txt += f'{self.propensity_type.pretty_print(**kwargs)}'
 
         return txt
 

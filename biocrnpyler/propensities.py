@@ -4,6 +4,7 @@
 from typing import Set, Union
 from numbers import Number
 from .parameter import Parameter
+import libsbml
 
 
 class Propensity(object):
@@ -149,7 +150,7 @@ class MassAction(Propensity):
         # Create a kinetic law for the reaction
         ratelaw = reaction.createKineticLaw()
 
-        annotation_dict = {"type": self}
+        # annotation_dict = {"type": self}
         if direction == 'forward':
             rate_coeff = self.k_forward
         else:
@@ -162,7 +163,7 @@ class MassAction(Propensity):
         param.setId(rate_coeff_name)
         param.setConstant(True)
         param.setValue(rate_coeff)
-        annotation_dict["k"] = rate_coeff
+        # annotation_dict["k"] = rate_coeff
 
         # Create Rate-strings for massaction propensities
         ratestring = rate_coeff_name
@@ -182,12 +183,12 @@ class MassAction(Propensity):
         math_ast = libsbml.parseL3Formula(ratestring)
         ratelaw.setMath(math_ast)
 
-        if propensity_annotation:
-            annotation_string = "<PropensityType>"
-            for k in annotation_dict:
-                annotation_string += " "+k + "=" + str(annotation_dict[k])
-            annotation_string += "</PropensityType>"
-            reaction.appendAnnotation(annotation_string)
+        # if propensity_annotation:
+        #     annotation_string = "<PropensityType>"
+        #     for k in annotation_dict:
+        #         annotation_string += " "+k + "=" + str(annotation_dict[k])
+        #     annotation_string += "</PropensityType>"
+        #     reaction.appendAnnotation(annotation_string)
 
         return ratelaw
 
@@ -226,52 +227,52 @@ class Hill(MassAction):
         param_K.setConstant(True)
         param_K.setValue(self.K)
 
-        annotation_dict["k"] = self.k_forward
-        annotation_dict["K"] = self.K
-        annotation_dict["n"] = self.n
+        # annotation_dict["k"] = self.k_forward
+        # annotation_dict["K"] = self.K
+        # annotation_dict["n"] = self.n
 
-
-        #Create ratestring for non-massaction propensities
-    if propensity_type == "hillpositive":
-
-        s = str(propensity_params['s1']).replace("'", "")
-        s_species_id = getSpeciesByName(model,s).getId()
-
-        ratestring+=f"*{s_species_id}^n/({s_species_id}^n+K)"
-
-        annotation_dict["s1"] = s_species_id
-
-    elif propensity_type == "hillnegative":
-        s = str(propensity_params['s1']).replace("'", "")
-        s_species_id = getSpeciesByName(model,s).getId()
-
-        ratestring+=f"/({s_species_id}^n+K)"
-
-        annotation_dict["s1"] = s_species_id
-
-    elif propensity_type == "proportionalhillpositive":
-
-        s = str(propensity_params['s1']).replace("'", "")
-        d = str(propensity_params['d']).replace("'", "")
-        s_species_id = getSpeciesByName(model,s).getId()
-        d_species_id = getSpeciesByName(model,d).getId()
-
-        ratestring+=f"*{d_species_id}*{s_species_id}^n/({s_species_id}^n + K)"
-
-        annotation_dict["s1"] = s_species_id
-        annotation_dict["d"] = d_species_id
-
-    elif propensity_type == "proportionalhillnegative":
-
-        s = str(propensity_params['s1']).replace("'", "")
-        d = str(propensity_params['d']).replace("'", "")
-        s_species_id = getSpeciesByName(model,s).getId()
-        d_species_id = getSpeciesByName(model,d).getId()
-
-        ratestring+=f"*{d_species_id}/({s_species_id}^n+K)"
-
-        annotation_dict["s1"] = s_species_id
-        annotation_dict["d"] = d_species_id
+        #
+        #     #Create ratestring for non-massaction propensities
+        # if propensity_type == "hillpositive":
+        #
+        #     s = str(propensity_params['s1']).replace("'", "")
+        #     s_species_id = getSpeciesByName(model,s).getId()
+        #
+        #     ratestring+=f"*{s_species_id}^n/({s_species_id}^n+K)"
+        #
+        #     annotation_dict["s1"] = s_species_id
+        #
+        # elif propensity_type == "hillnegative":
+        #     s = str(propensity_params['s1']).replace("'", "")
+        #     s_species_id = getSpeciesByName(model,s).getId()
+        #
+        #     ratestring+=f"/({s_species_id}^n+K)"
+        #
+        #     annotation_dict["s1"] = s_species_id
+        #
+        # elif propensity_type == "proportionalhillpositive":
+        #
+        #     s = str(propensity_params['s1']).replace("'", "")
+        #     d = str(propensity_params['d']).replace("'", "")
+        #     s_species_id = getSpeciesByName(model,s).getId()
+        #     d_species_id = getSpeciesByName(model,d).getId()
+        #
+        #     ratestring+=f"*{d_species_id}*{s_species_id}^n/({s_species_id}^n + K)"
+        #
+        #     annotation_dict["s1"] = s_species_id
+        #     annotation_dict["d"] = d_species_id
+        #
+        # elif propensity_type == "proportionalhillnegative":
+        #
+        #     s = str(propensity_params['s1']).replace("'", "")
+        #     d = str(propensity_params['d']).replace("'", "")
+        #     s_species_id = getSpeciesByName(model,s).getId()
+        #     d_species_id = getSpeciesByName(model,d).getId()
+        #
+        #     ratestring+=f"*{d_species_id}/({s_species_id}^n+K)"
+        #
+        #     annotation_dict["s1"] = s_species_id
+        #     annotation_dict["d"] = d_species_id
 
 
 class HillPositive(Hill):
