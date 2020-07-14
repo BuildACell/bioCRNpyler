@@ -77,10 +77,20 @@ class ParameterEntry(Parameter):
     def __init__(self, parameter_name, parameter_value, parameter_keys = None, parameter_info = None):
         Parameter.__init__(self, parameter_name, parameter_value)
 
+        
+        self.key_tuple = (None, None, parameter_name)
+
         if parameter_keys is None:
             self.keys = {}
         elif isinstance(parameter_keys, dict):
             self.keys = dict(parameter_keys)
+
+            if "mechanism" in self.keys and "part_id" in self.keys:
+                self.key_tuple = (self.keys["mechanism"], self.keys["part_id"], parameter_name)
+            elif "part_id" in self.keys:
+                self.key_tuple = (None, self.keys["part_id"], parameter_name)
+            elif "mechanism" in self.keys:
+                self.key_tuple = (self.keys["mechanism"], None, parameter_name)
         else:
             raise ValueError(f"parameter_keys must be a None or a dictionary: received {parameter_keys}.")
 
@@ -132,16 +142,25 @@ class ParameterDatabase():
         elif parameter_dictionary is not None:
             raise ValueError("parameter_dictionary must be None or a dictionary!")
 
-    #To check if a key is in a the ParameterDatabase
-    #TODO allow the key to be a ParameterEntry
-    def __contains__(self, key):
-        if isinstance(key, str):
-            key = (None, None, key)
-        
-        if key in self.parameters:
-            return True
+    #To check if a key or ParameterEntry is in a the ParameterDatabase
+    def __contains__(self, val):
+        if isinstance(val, ParameterEntry):
+            key = val.key_tuple
+            if key in self.parameters and self.parameters[key] == val:
+                return True
+            else:
+                return False
         else:
-            return False
+            if isinstance(val, str):
+                key = (None, None, val)
+            else:
+                key = val
+
+            if key in self.parameters:
+                return True
+            else:
+                return False
+
 
     #Ability to loop through parameters eg
     # for entry in ParameterDatabase: ...
@@ -181,14 +200,22 @@ class ParameterDatabase():
 
         if isinstance(key, str):
             parameter_name = key
-            self.add_parameter(parameter_name, value, parameter_origin = "Set Manually", overwrite_parameters = True)
+            parameter_keys = None
+            key = (None, None, parameter_name)
         elif isinstance(key, tuple) and len(key) == 3:
             parameter_name = key[2]
             parameter_keys = {"mechanism":key[0], "part_id":key[1]}
-            self.add_parameter(parameter_name, value, parameter_keys = parameter_keys, parameter_origin = "Set Manually", overwrite_parameters = True)
         else:
             raise ValueError(f"Invalid parameter key {key}. Key must be be a tuple ('mechanism', 'part_id', 'parameter_name') or a string 'parameter_name'.")        
-
+        
+        if isinstance(value, ParameterEntry):
+            if key != value.key_tuple:
+                raise ValueError(f"Parameter Key does not match: ParameterDatabase key {key} is not the same as ParameterEntry Key {value.key_tuple}.")
+            self.parameters[key] = value
+        else:
+            self.add_parameter(parameter_name, value, parameter_keys = parameter_keys, parameter_origin = "Set Manually", overwrite_parameters = True)
+            self.add_parameter(parameter_name, value, parameter_origin = "Set Manually", overwrite_parameters = True)
+    
     #Adds a parameter to the database with appropriate metadata
     def add_parameter(self, parameter_name, parameter_value, parameter_origin = None, parameter_keys = None, parameter_info = None, overwrite_parameters = False):
 
@@ -222,6 +249,7 @@ class ParameterDatabase():
         else:
             self.parameters[key] = param
 
+    #Loads Parameters from a dictionary
     def load_parameters_from_dictionary(self, parameter_dictionary, overwrite_parameters = False):
         for k in parameter_dictionary:
             if isinstance(k, str):
@@ -232,17 +260,15 @@ class ParameterDatabase():
             else:
                 raise ValueError(f"Invalid parameter key {k}. parameter_dictionary keys must be a 3-tuple or a single string: ('mechanism', 'part_id', 'param_name') OR 'param_name'. Note 'mechanism' and 'part_id' can be None.")
 
-
+    #Loads parameters from another ParameterDatabase
     def load_parameters_from_database(self, parameter_database, overwrite_parameters = False):
 
         if not isinstance(parameter_database, ParameterDatabase):
             raise TypeError(f"paramater_database must be a ParamaterDatabase: recievied {parameter_database}.")
 
         for k in parameter_database:
-            if k not in self.parameters:
-                self.parameters[k] = parameter_database[k]
-            elif k in self.parameters and overwrite_parameters:
-                self.parameters[k] = parameter_database[k]
+            if k not in self.parameters or overwrite_parameters:
+                self.parameters[k.key_tuple] = parameter_database[k.key_tuple]
             else:
                 raise ValueError(f"Duplicate parameter detected. Parameter with key = {key} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True.")
 

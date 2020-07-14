@@ -127,6 +127,16 @@ class TestParameter(TestCase):
             warn('version below 3.6 was detected! This test was skipped')
 
 
+        #Lets load an actual parameter files from the examples
+        import os
+        os.chdir('../')
+        os.chdir('examples')
+        PD = ParameterDatabase(parameter_file = "default_parameters.txt")
+        self.assertTrue("ktx" in PD)
+        self.assertTrue((None, "weak", "ktx") in PD)
+        self.assertTrue(("simple_transcript", "weak", "ktx") in PD)
+
+
     def load_parameters_from_dictionary(self):
 
         #bad parameter_dictionary keyword
@@ -187,6 +197,7 @@ class TestParameter(TestCase):
 
         self.assertTrue("k" in PD)
         self.assertTrue(("M", "pid", "k") in PD)
+        self.assertTrue(PD["k"] in PD)
         self.assertFalse("ktx" in PD)
         self.assertFalse(("M", "k") in PD)
 
@@ -214,13 +225,29 @@ class TestParameter(TestCase):
         with self.assertRaisesRegexp(ValueError, f"Parameter"):
             PD["kb"]
 
-        #test inserting
+        #test inserting values
         PD["kb"] = 100
         self.assertTrue(PD["kb"].value == 100)
         PD[(None, None, "ku")] = 200
         self.assertTrue(PD["ku"].value == 200)
         PD[("M", "pid", "ktx")] = 300
         self.assertTrue(PD[("M", "pid", "ktx")].value == 300)
+
+        #Test inserting ParameterEntry
+        PE = ParameterEntry("test", 1.0)
+        PD["test"] = PE
+        self.assertTrue(PE in PD)
+
+        #Test Correct Overwriting
+        PE = ParameterEntry("test", 2.0)
+        PD["test"] = PE
+        self.assertTrue(PD["test"].value == PE.value)
+
+        #Test incorrect Overwriting
+        PE = ParameterEntry("t", 1.0)
+        with self.assertRaisesRegexp(ValueError, f"Parameter Key does not match"):
+            PD["test"] = PE
+
 
         #Invalid parameter key
         with self.assertRaisesRegexp(ValueError, f"Invalid parameter"):

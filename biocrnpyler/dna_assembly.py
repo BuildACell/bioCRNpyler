@@ -35,12 +35,10 @@ class DNAassembly(DNA):
         self.update_transcript(transcript)
         self.update_protein(protein)
         self.update_promoter(promoter, transcript = self.transcript)
-        self.update_rbs(rbs, transcript = self.transcript,
-                        protein = self.protein)
+        self.update_rbs(rbs, transcript = self.transcript, protein = self.protein)
 
         self.set_parameter_warnings(parameter_warnings)
 
-    
     #Set the mixture the Component is in.
     def set_mixture(self, mixture):
         self.mixture = mixture
@@ -67,7 +65,7 @@ class DNAassembly(DNA):
     def update_transcript(self, transcript, attributes = None):
         if transcript is None:
             self.transcript = self.set_species(self.name, material_type = "rna", attributes = attributes)
-        elif transcript is False: #this is used for expression mixtures where there is no transcript!
+        elif transcript == False: #this is used for expression mixtures where there is no transcript!
             self.transcript = None
         else:
             self.transcript = self.set_species(transcript, material_type = "rna", attributes = attributes)
@@ -76,6 +74,7 @@ class DNAassembly(DNA):
             self.promoter.transcript = self.transcript
         if self.rbs is not None:
             self.rbs.transcript = self.transcript
+
 
     def update_protein(self, protein, attributes = None):
         if protein is None:

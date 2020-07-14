@@ -139,6 +139,7 @@ class Mixture(object):
             if self.parameter_warnings is not None:
                 component.set_parameter_warnings(self.parameter_warnings)
 
+
     def update_parameters(self, parameter_file = None, parameters = None, overwrite_parameters = True):
         if parameter_file is not None:
             self.load_parameters_from_file.load_parameters_from_dictionary(parameter_file, overwrite_parameters = overwrite_parameters)

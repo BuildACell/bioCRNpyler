@@ -220,13 +220,10 @@ class Component(object):
     # 2. tries to find the parameter in Component.mixture.parameter_database
     def get_parameter(self, param_name: str, part_id=None, mechanism=None):
         #Try the Component ParameterDatabase
-        print("find parameter in Component")
         param = self.parameter_database.find_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
 
         #Next try the Mixture ParameterDatabase
-        print("self.mixture", self.mixture)
         if param is None and self.mixture is not None:
-            print("find parameter in mixture")
             param = self.mixture.get_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
 
         if param is None:

@@ -123,9 +123,9 @@ class TxTlDilutionMixture(Mixture):
         dilution_mechanism = Dilution(filter_dict = {"dna":False, "machinery":False}, default_on = True)
         global_mechanisms = {"dilution":dilution_mechanism}
 
-        background_parameters = {("transcription", "ku"):50, ("transcription", "kb"):500, ("transcription", "ktx"):0.1, 
-              ("translation","ku"):5, ("translation","kb"):500, ("translation", "ktl"):.1,
-              ("rna_degredation","ku"):50, ("rna_degredation","kb"):500, ("rna_degredation", "kdeg"):0.1}
+        background_parameters = {("transcription", None, "ku"):50, ("transcription", None, "kb"):500, ("transcription", None, "ktx"):0.1, 
+              ("translation",None, "ku"):5, ("translation",None, "kb"):500, ("translation",None, "ktl"):.1,
+              ("rna_degredation",None, "ku"):50, ("rna_degredation",None, "kb"):500, ("rna_degredation",None, "kdeg"):0.1}
 
         BackgroundProcesses = DNAassembly(name = "cellular_processes", promoter = "average_promoter", rbs = "average_rbs", parameters = background_parameters)
 
