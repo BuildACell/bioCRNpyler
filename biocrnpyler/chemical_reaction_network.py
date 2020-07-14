@@ -222,13 +222,8 @@ class ComplexSpecies(Species):
 
         new_species_list = []
         for s in self.species:
-            if s == species:
-                new_species_list.append(new_species)
-            elif isinstance(s, ComplexSpecies):
-                new_s = s.replace_species(species, new_species)
-                new_species_list.append(new_s)
-            else:
-                new_species_list.append(s)
+            new_s = s.replace_species(species, new_species)
+            new_species_list.append(new_s)
 
         new_name = None
         if self.custom_name == True:
@@ -351,13 +346,8 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         new_species_list = []
         for s in self.species:
-            if s == species:
-                new_species_list.append(new_species)
-            elif isinstance(s, ComplexSpecies):
-                new_s = s.replace_species(species, new_species)
-                new_species_list.append(new_s)
-            else:
-                new_species_list.append(s)
+            new_s = s.replace_species(species, new_species)
+            new_species_list.append(new_s)
 
         new_name = None
         if self.custom_name == True:
@@ -572,38 +562,26 @@ class Reaction(object):
             raise ValueError('species argument must be an instance of Species!')
 
         new_inputs = []
-        for s in self.inputs:
-            if s == species:
-                new_inputs.append(new_species)
-            elif isinstance(s, ComplexSpecies):
-                new_s = s.replace_species(species, new_species)
-                new_inputs.append(new_s)
-            else:
-                new_inputs.append(s)
-        self.inputs = new_inputs
+        for i, s in enumerate(self.inputs):
+            new_s = s.replace_species(species, new_species)
+            new_inputs+=[new_s]*self.input_coefs[i]
 
         new_outputs = []
-        for s in self.outputs:
-            if s == species:
-                new_outputs.append(new_species)
-            elif isinstance(s, ComplexSpecies):
-                new_s = s.replace_species(species, new_species)
-                new_outputs.append(new_s)
-            else:
-                new_outputs.append(s)
-        self.outputs = new_outputs
+        for i, s in enumerate(self.outputs):
+            new_s = s.replace_species(species, new_species)
+            new_outputs+=[new_s]*self.output_coefs[i]
 
+        new_params = None
         if self.propensity_params is not None:
             new_params = {}
             for key in self.propensity_params:
-                if isinstance(self.propensity_params[key], ComplexSpecies):
-                    new_params[key] = self.propensity_params[key].replace_species(species, new_species)
-                elif isinstance(self.propensity_params[key], Species) and self.propensity_params[key] == species:
-                    new_params[key] = new_species
+                if isinstance(self.propensity_params[key], Species):
+                    new_s = self.propensity_params[key].replace_species(species, new_species)
+                    new_params[key] = new_s
                 else:
                     new_params[key] = self.propensity_params[key]
 
-        new_r = Reaction(inputs = self.inputs, outputs = self.outputs, input_coefs = self.input_coefs, output_coefs = self.output_coefs, propensity_type = self.propensity_type, propensity_params = self.propensity_params, k = self.k, k_rev = self.k_r)
+        new_r = Reaction(inputs = new_inputs, outputs = new_outputs, propensity_type = self.propensity_type, propensity_params = new_params, k = self.k, k_rev = self.k_r)
         return new_r
 
     #Helper function to print the text of a rate function
@@ -995,13 +973,8 @@ class ChemicalReactionNetwork(object):
 
         new_species_list = []
         for s in self.species:
-            if s == species:
-                new_species_list.append(new_species)
-            elif isinstance(s, ComplexSpecies):
-                new_s = s.replace_species(species, new_species)
-                new_species_list.append(new_s)
-            else:
-                new_species_list.append(s)
+            new_s = s.replace_species(species, new_species)
+            new_species_list.append(new_s)
 
         new_reaction_list = []
 
