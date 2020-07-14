@@ -140,6 +140,10 @@ class TestComponent(TestCase):
         # testing that one_param was registered
         self.assertEqual(self.component.get_parameter(param_name="kb"), one_param["kb"])
 
+        #testing a parameter which can't be found
+        with self.assertRaisesRegexp(ValueError, "No parameters can be found"):
+            self.component.get_parameter("not a parameter")
+
     def test_update_species(self):
         # warning if update_species on a component object
         with self.assertWarnsRegex(Warning, f'Unsubclassed update_species called for {self.component}'):

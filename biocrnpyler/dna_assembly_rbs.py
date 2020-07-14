@@ -21,13 +21,13 @@ class RBS(Component):
         else:
             self.transcript = self.set_species(transcript, material_type = "rna")
  
-        if protein is None:
+        if protein is None and assembly is not None:
             self.protein = Species(assembly.name, material_type = "protein")
+        elif protein is None and assembly is None:
+            self.protein = None
         else:
             self.protein = self.set_species(protein, material_type = "protein")
 
-        Component.__init__(self, name = name, mechanisms = mechanisms,
-                           parameters = parameters, **keywords)
 
     def update_species(self):
         mech_tl = self.mechanisms['translation']

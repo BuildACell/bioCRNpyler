@@ -16,7 +16,7 @@ from .dna_assembly import DNAassembly
 # Here transcription and Translation are lumped into one reaction: expression.
 #A global mechanism is used to dilute all non-dna species
 class ExpressionDilutionMixture(Mixture):
-    def __init__(self, name="", mechanisms=None, components=None, **kwargs):
+    def __init__(self, name="", mechanisms=None, **kwargs):
 
         dummy_translation = EmptyMechanism(name = "dummy_translation", mechanism_type = "translation")
         mech_expression = OneStepGeneExpression()
@@ -33,10 +33,7 @@ class ExpressionDilutionMixture(Mixture):
         dilution_mechanism= Dilution(name = "dilution", filter_dict = {"dna":False}, default_on = True)
         global_mechanisms = {"dilution":dilution_mechanism}
 
-        default_components = []
-
-        Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
-                        components=components+default_components, global_mechanisms = global_mechanisms, **kwargs)
+        Mixture.__init__(self, name=name, mechanisms=mechanisms, default_mechanisms = default_mechanisms, global_mechanisms = global_mechanisms, **kwargs)
 
     #Overwriting compile_crn to replace transcripts with proteins for all DNA_assemblies
     #Overwriting compile_crn to turn off transcription in all DNAassemblies
@@ -132,6 +129,9 @@ class TxTlDilutionMixture(Mixture):
         default_components = [
             self.rnap, self.ribosome, self.rnaase, BackgroundProcesses
         ]
+        
+        if components is None:
+            components = []
 
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
                         components=components+default_components, global_mechanisms = global_mechanisms, **kwargs)

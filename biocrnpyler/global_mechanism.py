@@ -123,6 +123,16 @@ class GlobalMechanism(Mechanism):
 
         return new_reactions
 
+    def get_parameter(self, species, param_name, mixture):
+        param = mixture.get_parameter(mechanism = self, part_id = repr(species), param_name = param_name)
+        if param is None:
+            raise ValueError("No parameters can be found that match the "
+                 "(mechanism, part_id, "
+                f"param_name)=({repr(self)}, {repr(species)}, "
+                f"{param_name}).")
+        else:
+            return param
+
     def update_species(self, s, mixture):
         """
         All global mechanisms must use update_species functions with these inputs
@@ -152,7 +162,7 @@ class Dilution(GlobalMechanism):
                                  recursive_species_filtering = recursive_species_filtering)
 
     def update_reactions(self, s: Species, mixture):
-        k_dil = mixture.get_parameter(mechanism = self, part_id = repr(s), param_name = "kdil")
+        k_dil = self.get_parameter(s, "kdil", mixture)
         rxn = Reaction([s], [], k_dil)
         return [rxn]
 
@@ -175,6 +185,6 @@ class AnitDilutionConstiutiveCreation(GlobalMechanism):
                                  recursive_species_filtering = recursive_species_filtering)
 
     def update_reactions(self, s, parameters):
-        k_dil = mixture.get_parameter(mechanism = self, part_id = repr(s), param_name = "kdil")
+        k_dil = self.get_parameter(s, "kdil", mixture)
         rxn = Reaction([], [s], k_dil)
         return [rxn]

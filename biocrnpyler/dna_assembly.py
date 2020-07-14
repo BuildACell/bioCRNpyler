@@ -142,7 +142,7 @@ class DNAassembly(DNA):
         elif self.promoter is not None and self.rbs is None:
             species += self.promoter.update_species()
 
-        if "rna_degredation" in self.mechanisms and self.promoter is not None:
+        if "rna_degredation" in self.mechanisms and self.promoter is not None and self.transcript is not None:
             deg_mech = self.mechanisms["rna_degredation"]
             species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
 
@@ -158,7 +158,7 @@ class DNAassembly(DNA):
             self.rbs.parameter_warnings = self.parameter_warnings
             reactions += self.rbs.update_reactions()
 
-        if "rna_degredation" in self.mechanisms and self.promoter is not None:
+        if "rna_degredation" in self.mechanisms and self.promoter is not None and self.transcript is not None:
             deg_mech = self.mechanisms["rna_degredation"]
 
 
