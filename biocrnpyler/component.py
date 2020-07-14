@@ -134,38 +134,6 @@ class Component(object):
         else:
             raise Warning(f"Component {self.name} has no internal species and therefore no attributes")
 
-    def update_parameters_old(self, mixture_parameters=None, parameters=None,
-                          overwrite_custom_parameters=True) -> None:
-        """
-        This function gives Components their own ParameterDatabase.
-
-        By default, components get all the parameters from Mixture
-        Parameters passed in from mixture are superseded by parameters passed
-        in the parameters keyword parameters already saved as custom parameters
-        also supersede parameters from the Mixture. In other words, the
-        component remembers custom changes to parameters and mixture parameters
-        will never overwrite those changes Mixture parameters are only ever
-        used by default when no other component-level parameter has ever been
-        given with the same key.
-
-        :param mixture_parameters:
-        :param parameters:
-        :param overwrite_custom_parameters: lets this function to overwrite the
-        existing custom Component-level parameters.
-        :return: None
-        """
-
-        if parameters:
-            for p in parameters:
-                if overwrite_custom_parameters or p not in self.custom_parameters:
-                    self.parameters[p] = parameters[p]
-                    if p in self.custom_parameters:
-                        self.custom_parameters[p] = parameters[p]
-
-        if mixture_parameters:
-            for p in mixture_parameters:
-                if p not in self.parameters:
-                    self.parameters[p] = mixture_parameters[p]
 
     def update_parameters(self, parameter_file = None, parameters = None, parameter_database = None, overwrite_parameters = True):
 
@@ -266,7 +234,7 @@ class Component(object):
     # 5. IF s == self.get_species(): self.name in initial_condition_dictionary
     # Repeat 1-2, 4-5 in self.parameter_database
     # Note: Mixture will also repeat this same order in it's own initial_condition_dictionary and ParameterDatabase after Component.
-    def find_initial_condition(self, s):
+    def get_initial_condition(self, s):
         #First try all conditions in initial_condition_dictionary
         if (self.mixture.name, repr(s)) in self.initial_condition_dictionary:
             return self.initial_condition_dictionary[(self.mixture.name, repr(s))]
@@ -282,14 +250,14 @@ class Component(object):
                 return self.initial_condition_dictionary[(self.mixture.name, self.name)]
         #Then try above in self.parameter_database
         elif self.parameter_database.find_parameter(None, self.mixture.name, repr(s)) is not None:
-            return self.parameter_database.find_parameter(None, self.mixture.name, repr(s))
+            return self.parameter_database.find_parameter(None, self.mixture.name, repr(s)).value
         elif self.parameter_database.find_parameter(None, None, repr(s)) is not None:
-            return self.parameter_database.find_parameter(None, None, repr(s))
+            return self.parameter_database.find_parameter(None, None, repr(s)).value
         elif s == self.get_species():
             if self.parameter_database.find_parameter(None, self.mixture.name, self.name) is not None:
-                return self.parameter_database.find_parameter(None, self.mixture.name, self.name)
+                return self.parameter_database.find_parameter(None, self.mixture.name, self.name).value
             elif self.parameter_database.find_parameter(None, None, self.name) is not None:
-                return self.parameter_database.find_parameter(None, None, self.name)
+                return self.parameter_database.find_parameter(None, None, self.name).value
         else:
             return None
 
