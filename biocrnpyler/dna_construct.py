@@ -402,15 +402,11 @@ class DNA_construct(DNA,OrderedPolymer):
         multivalent_self = self.get_species()
         if((rnas is None) or (proteins is None)):
             rnas,proteins = self.explore_txtl()
-        #print(rnas)
-        #print(proteins)
         active_components = []
         for part in self.parts_list:
             if(hasattr(part,"update_component")):
-                #print("we can update "+str(part))
                 updated_components = part.update_component(multivalent_self[part.position],\
                                                                                 rnas,proteins)
-                #print("we got "+str(updated_components))
                 if(updated_components is not None):
                     active_components += [updated_components]
         combinatorial_complexes = self.update_combinatorial_complexes(active_components)
@@ -436,17 +432,10 @@ class DNA_construct(DNA,OrderedPolymer):
             return False
     
     def update_species(self):
-        #TODO make a seperate function for RNA_construct
         species = [self.get_species()]
-        #print("me!")
-        #print(species)
         rnas = None
         proteins = None
         rnas,proteins = self.explore_txtl()
-        #print("rnas")
-        #print(rnas)
-        #print("proteins")
-        #print(proteins)
         
         #rnas:
         #this is a dictionary of the form:
@@ -456,44 +445,29 @@ class DNA_construct(DNA,OrderedPolymer):
         #{rna_construct:{RBS:[Product1,Product2],RBS2:[Product3]}}
         out_components = self.update_components(rnas,proteins)
         for part in out_components:
-            #print("going through components")
-            #print(part.name)
-            #if(hasattr(part,"dna_to_bind")):
-            #    print(type(part.dna_to_bind))
-            #    print(part.dna_to_bind)
-            #if(hasattr(part,"transcript")):
-            #    print(type(part.transcript))
-            #    print(part.transcript)
 
             sp_list =  part.update_species()
-            #print(type(self))
-            #print("species from")
-            #print(part)
-            #print(sp_list)
-            #for a in sp_list:
-            #    if(hasattr(a,"parent")):
-            #        print()
-            #        print(type(a))
-            #        print(a)
-            #        print(a.parent)
-            #        print()
-            #print([a for a in sp_list])
             species+=self.remove_bindloc(sp_list)
-        #print("final species")
-        #print(species)
         for rna in proteins:
             if(not rna == self):
                 #this part makes sure we don't do an infinite loop if we are in fact an RNA_construct
                 species += rna.update_species()
         return species
     def update_reactions(self,norna=False):
+        
         reactions = []
         rnas = None
         proteins = None
         rnas,proteins = self.explore_txtl()
         out_components = self.update_components(rnas,proteins)
+        
         for part in out_components:
             rx_list = []
+            _ = part.update_species()
+            #update_components creates new components which are copies of the parts_list components
+            #but the dna_to_bind attribute has been changed.
+            #thus we need to make sure they have update_species() run on them before
+            #doing update_reactions, in case any of these parts have memory
             for rxn in part.update_reactions():
                 new_rxn = copy.copy(rxn)
                 new_rxn.inputs = self.remove_bindloc(rxn.inputs)

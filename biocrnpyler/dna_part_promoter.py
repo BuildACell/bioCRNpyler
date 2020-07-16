@@ -116,8 +116,6 @@ class RegulatedPromoter(Promoter):
         return species
 
     def update_reactions(self):
-        self.update_species()
-        #TODO for some reason if you don't run update_species() here you get the wrong reactions
         reactions = []
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
@@ -125,7 +123,8 @@ class RegulatedPromoter(Promoter):
         if self.leak != False:
             reactions += mech_tx.update_reactions(dna = self.dna_to_bind, component = self, part_id = self.name+"_leak", \
                                                             transcript = self.transcript, protein = self.protein)
-        #if(len(self.complexes)<len(self.regulators)):
+        if(len(self.complexes)<len(self.regulators)):
+            self.update_species()
         #    print("*****rerunning update species*********")
             
 
@@ -328,7 +327,7 @@ class CombinatorialPromoter(Promoter):
         return species
 
     def update_reactions(self):
-        species = self.update_species()
+        
         reactions = []
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
@@ -341,6 +340,7 @@ class CombinatorialPromoter(Promoter):
         reactions += mech_b.update_reactions(self.regulators,self.dna_to_bind,component = self,\
                                                         part_id = self.name,cooperativity=self.cooperativity, protein = self.protein)
         if((self.tx_capable_complexes is None) or self.tx_capable_complexes == []):
+            species = self.update_species()
             #this could mean we haven't run update_species() yet
             
             if(self.tx_capable_complexes == []):
