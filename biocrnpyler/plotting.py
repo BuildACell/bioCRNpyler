@@ -316,7 +316,8 @@ def make_dpl_from_construct(construct,showlabels=[]):
         showlabel = False
         if(type(part) in showlabels):
             showlabel = True
-        outdesign+=make_dpl_from_part(part,color=cmap[pind][:-1],color2 = random.choice(cmap)[:-1],showlabel=showlabel)
+        outdesign+=make_dpl_from_part(part,direction = part.direction=="forward",\
+                        color=cmap[pind][:-1],color2 = random.choice(cmap)[:-1],showlabel=showlabel)
         pind+=1
     return outdesign
 def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabel=False):

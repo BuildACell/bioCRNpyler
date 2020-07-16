@@ -9,13 +9,14 @@
 import matplotlib.pyplot as plt
 import random
 
-from .chemical_reaction_network import ComplexSpecies, Species, OrderedComplexSpecies
+from .chemical_reaction_network import ComplexSpecies, Species, OrderedComplexSpecies, OrderedPolymer,\
+                        OrderedMonomer,OrderedPolymerSpecies
 from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
 from matplotlib import cm
 from .components_basic import DNA, Protein, RNA
 
 from .dna_part import DNA_part
-from .dna_part_misc import AttachmentSite
+from .dna_part_misc import DNABindingSite,AttachmentSite
 from .dna_part_rbs import RBS
 from .dna_part_cds import CDS
 from .dna_part_terminator import Terminator
@@ -39,22 +40,7 @@ def rev_dir(dir):
     reversedict = {"forward":"reverse","reverse":"forward"}
     return reversedict[dir]
 
-class dummyAssembly:
-    """this class exists because of how promoters work. Is it necessary? I don't know"""
-    def __init__(self,species):
-        self._dna = copy.deepcopy(species)
-    def get_dna(self):
-        return copy.deepcopy(self._dna)
-    def set_dna(self,species):
-        self._dna = copy.deepcopy(species)
-    def del_dna(self):
-        del self._dna
-    dna = property(get_dna,set_dna,del_dna)
-
-        
-        
-
-class DNA_construct(DNA):
+class DNA_construct(DNA,OrderedPolymer):
     def __init__(self,
                 parts_list,
                 name=None,
@@ -63,27 +49,31 @@ class DNA_construct(DNA):
                 parameters={},  # customized parameters
                 attributes=[],
                 initial_conc=None,
-                parameter_warnings = True,
+                parameter_warnings = True, copy_parts=True,
                 **keywords):
         """this represents a bunch of parts in a row.
         A parts list has [[part,direction],[part,direction],...]"""
         myparts = []
-        curpos = 0
-        
-        for part in parts_list:
-            if(isinstance(part,list)):
-                #if you give it a list, then that means the second element of the
-                #list is the direction
-                myparts += [copy.deepcopy(part[0]).clone(curpos,part[1],self)]
-            elif(isinstance(part,DNA_part)):
-                if(part.direction==None):
-                    #in this case the direction wasn't provided, but we assume it's forward!
-                    myparts += [copy.deepcopy(part).clone(curpos,"forward",self)]
-                else:
-                    #in this case the direction is provided in the part. This is a "recloned" part
-                    myparts += [copy.deepcopy(part).clone(curpos,part.direction,self)]
-            curpos += 1
-        self.parts_list = myparts
+        if(copy_parts):
+            parts_list = [[copy.deepcopy(a[0]).unclone(),a[1]] for a in parts_list]
+        OrderedPolymer.__init__(self,[[a[0],a[1]] for a in parts_list])
+        self.parts_list = self._polymer
+        #curpos = 0
+        #for part in parts_list:
+        #    if(isinstance(part,list)):
+        #        #if you give it a list, then that means the second element of the
+        #        #list is the direction
+        #        myparts += [part[0].clone(curpos,part[1],self)]
+        #    elif(isinstance(part,DNA_part)):
+        #        if(part.direction==None):
+        #            #in this case the direction wasn't provided, but we assume it's forward!
+        #            myparts += [part.clone(curpos,"forward",self)]
+        #        else:
+        #            #in this case the direction is provided in the part. This is a "recloned" part
+        #            myparts += [part.clone(curpos,part.direction,self)]
+        #    curpos += 1
+        #self.parts_list = myparts
+        #print(self.parts_list)
         cmap = cm.Set1(range(len(self.parts_list)+5))
         pind = 0
         for part in self.parts_list:
@@ -121,13 +111,14 @@ class DNA_construct(DNA):
         return output
     def reverse(self):
         """reverses everything, without actually changing the DNA"""
-        newlist = self.parts_list[::-1]
-        newpos = 0
-        for part in newlist:
-            part.pos = newpos
-            part.direction = rev_dir(part.direction)
-            newpos+=1
-        self.parts_list = newlist
+        self.parts_list = self.parts_list.reverse()
+        #newlist = self.parts_list[::-1]
+        #newpos = 0
+        #for part in newlist:
+        #    part.pos = newpos
+        #    part.direction = rev_dir(part.direction)
+        #    newpos+=1
+        #self.parts_list = newlist
         return self
     def update_dna(self, dna, attributes = None):
         if dna is None:
@@ -171,6 +162,7 @@ class DNA_construct(DNA):
                 #if we go backwards then also list the parts backwards
                 #deepcopy so we don't mangle the list
                 newlist = copy.deepcopy(self.parts_list)[::-1]
+                #TODO can we use the OrderedPolymer.reverse() function here?
             else:
                 newlist = copy.deepcopy(self.parts_list)
             part_index = 0
@@ -195,8 +187,8 @@ class DNA_construct(DNA):
             rnas.update(explorer.get_rnas())
         proteins = {}
         for promoter in rnas:
-            prots = rnas[promoter].explore_txtl()
-            proteins.update({rnas[promoter]:prots})
+            _,prots = rnas[promoter].explore_txtl()
+            proteins.update(prots)
         return rnas,proteins
     def __repr__(self):
         """this is just for display purposes"""
@@ -209,6 +201,10 @@ class DNA_construct(DNA):
                 if(rnas[promoter] in proteins):
                     for rbs in proteins[rnas[promoter]]:
                         txt += "\n\t"+repr(rbs)
+                        #print("promoter is "+str(promoter))
+                        #print("rbs is "+ str(rbs))
+                        #print("rnas is "+ str(rnas))
+                        #print("proteins is "+ str(proteins))
                         for protein in proteins[rnas[promoter]][rbs]:
                             txt += "\n\tprotein = "+repr(protein)
         return txt
@@ -221,10 +217,10 @@ class DNA_construct(DNA):
             #2 we want to know if a specific DNA part is in here
             #this is complicated by the fact that we want to have the same DNA part be reusable
             #in many locations
-            if(obj2.parent_dna==self):
+            if(obj2.parent==self):
                 #the object should already know if it's a part of me
                 return True
-            elif(obj2.parent_dna==None):
+            elif(obj2.parent==None):
                 #this object has been orphaned. 
                 #that means we are looking for matching objects in any position
                 new_obj2 = copy.deepcopy(obj2).unclone()
@@ -236,8 +232,14 @@ class DNA_construct(DNA):
             #if we get a string, that means we want to know if the name exists anywhere
             return obj2 in str(self)
     def get_species(self):
-        ocomplx = [Species(a.name,material_type="dna") for a in self.parts_list]+[Species(self.name,material_type="dna")]
-        return OrderedComplexSpecies(ocomplx,name=self.name,material_type="dna")
+        ocomplx = []
+        for part in self.parts_list:
+            partspec = copy.copy(part.dna_species)
+            ocomplx += [partspec.set_dir(part.direction)]
+        out_species = OrderedPolymerSpecies(ocomplx,base_species = self.dna,circular = self.circular,\
+                                                                    name = self.name,material_type="dna")
+        #OrderedComplexSpecies(ocomplx,name=self.name,material_type="dna")
+        return out_species
     def cut(self,position,keep_part=False):
         """cuts the construct and returns the resulting piece or pieces"""
         left = self.parts_list[:position]
@@ -254,83 +256,18 @@ class DNA_construct(DNA):
             #this means we return two linear pieces
             newDNA += [DNA_construct(left,circular=False),DNA_construct(right,circular=False)]
         return newDNA
-    def append(self,part,direction="forward"):
-        """stick a part on at the end"""
-        self.parts_list+=[part]
-        part.clone(len(self.parts_list)-1,direction,self)
-    def prepend(self,part,direction="forward"):
-        """stick a part on at the beginning"""
-        self.parts_list=[part]+self.parts_list
-        part.clone(0,direction,self)
-        for part_ind,part in zip(range(len(self.parts_list)),self.parts_list):
-            part.pos = part_ind
-    def update_attachment_sites(self,int_sites,combinatorial_species=None):
-        """this function updates integrase sites ONLY WITH integrase binding"""
-        if(combinatorial_species is None):
-            combinatorial_species = [self.get_species()]
-        sites = []
-        for comb_specie in combinatorial_species:
-                if(isinstance(comb_specie,OrderedComplexSpecies) and comb_specie.species[-1].name == self.name):
-                    for site in int_sites:
-                        if(isinstance(comb_specie.species[site.pos],ComplexSpecies)):
-                            #if we already made a complex, then don't do anything
-                            continue
-                        new_site = copy.deepcopy(site)
-                        new_mv_self = copy.copy(comb_specie)
-                        new_mv_self.attributes = ["bindloc_"+str(site.pos)]
-                        new_assy = dummyAssembly(new_mv_self)
-                        new_site.assembly = new_assy
-                        sites += [new_site]
-        return sites
-                        
-    def update_promoters(self,rnas,proteins,combinatorial_species=None):
-        """this function properly populates all promoters
-        returns a combinatorial list of transcribable states"""
-        if(combinatorial_species is None):
-            combinatorial_species = [self.get_species()]
-        promoters = []
-        for comb_specie in combinatorial_species:
-            if(isinstance(comb_specie,OrderedComplexSpecies) and comb_specie.species[-1].name == self.name):
-                for promoter in rnas:
-                    new_promoter = copy.deepcopy(promoter) #copy the promoter because we could have the same one many times
-                    if(isinstance(comb_specie.species[promoter.pos],ComplexSpecies)):
-                        #for each promoter, we generate all complexes which
-                        #result in binding at a specific site. If there's something already there, then
-                        #we skip those
-                        continue
-                    new_mv_self = copy.deepcopy(comb_specie)
-                    #TODO make this attribute thing better
-                    new_mv_self.attributes = ["bindloc_"+str(promoter.pos)]
-                    new_assy = dummyAssembly(new_mv_self) #this allows the promoter to get the right DNA
-                    #a promoter can make multiple RNAs, however...
-                    new_promoter.transcript = rnas[promoter].get_species() 
-                    rbslist = proteins[rnas[promoter]]
-                    new_promoter.protein = [rbslist[a] for a in rbslist]
-                    #currently, it's only possible for one promoter to make one RNA
-                    new_promoter.assembly = new_assy 
-                    promoters += [new_promoter]
-        
-        return promoters
-    def update_rbses(self,proteins,combinatorial_species=None):
-        my_rbses = []
-        for rna in proteins:
-            my_rbses += rna.update_rbses()
-        return my_rbses
+
     def remove_bindloc(self,spec_list):
         """go through every species on a list and remove any "bindloc" attributes"""
-        spec_list2 = copy.copy(spec_list)
+        #spec_list2 = copy.copy(spec_list)
         out_sp_list = []
-        for specie in spec_list2:
+        for specie in spec_list:
             #go through the species and remove the "bindloc" attribute
             #I don't care about the binding now that I am done generating species
-            new_attrib = []
-            for attrib in specie.attributes:
-                if("bindloc" in attrib):
-                    pass
-                else:
-                    new_attrib+=[attrib]
-            specie.attributes = new_attrib
-            out_sp_list += [specie]
+            if(hasattr(specie,"parent")):
+                out_sp_list += [specie.parent]
+            else:
+                out_sp_list+= [specie]
         return out_sp_list
     def located_allcomb(self,spec_list):
         """recursively trace all paths through a list
@@ -343,12 +280,12 @@ class DNA_construct(DNA):
         then, take the lists from comb_list and create all possible lists
         out of prototype_list that includes those elements"""
         #first we have to construct the list we are tracing paths through
-        spec_indexes = [a[1] for a in spec_list] #extract all indexes
+        spec_indexes = [a.position for a in spec_list] #extract all indexes
         compacted_indexes = sorted(list(set(spec_indexes)))
         prototype_list = [None]*len(compacted_indexes)
         for spec in spec_list:
             #go through every element and put it in the right place
-            proto_ind = compacted_indexes.index(spec[1]) #where to put it?
+            proto_ind = compacted_indexes.index(spec.position) #where to put it?
             if(prototype_list[proto_ind] is None):
                 #if nothing's been placed here, then create a list
                 prototype_list[proto_ind] = [spec]
@@ -361,7 +298,6 @@ class DNA_construct(DNA):
         # one of the second list (only [part2,3] is our option), one of the third list, etc
         # for all possible choices made this way
         comb_list = all_comb(compacted_indexes)
-        #print("comb_list is {}".format(str(comb_list)))
         def recursive_path(in_list):
             if(len(in_list)==1):
                 out_list = []
@@ -382,26 +318,56 @@ class DNA_construct(DNA):
                 combo_sublists += [prototype_list[compacted_indexes.index(combo_index)]]
             outlist+= recursive_path(combo_sublists)
         return outlist
+    def make_polymers(self,species_lists,backbone):
+        """makes polymers from lists of species
+        inputs:
+        species_lists: list of species which are to be assembled into a polymer
+        backbone: the base_species which all these polymers should have"""
+        polymers = []
+        for combo in species_lists:
+            #members of allcomb are now OrderedMonomers, which contain direction and position
+            #there could be multiple OrderedPolymerSpecies we are making combinatorial.
+            #for example, RNAs
+            new_backbone = copy.deepcopy(backbone)
+            new_material = backbone.material_type
+            for spec in combo:
+                new_material = "OPcomplex"
+                new_backbone.replace(spec.position,spec)
+            newname = None
+            self_species = self.get_species()
+            if(new_backbone==self_species):
+                #if we have just re-created ourselves, then make sure to call it that
+                newname = self_species.name
+                polymers += [copy.deepcopy(self_species)]
+            else:
+                new_backbone.material_type = new_material
+                polymers += [new_backbone] #we make a new OrderedComplexSpecies
+        return polymers
     def update_combinatorial_complexes(self,active_components):
+        """given an input list of components, we produce all complexes
+        yielded by those components, mixed and matched to make all possible combinatorial
+        complexes, where each component is assumed to only care about binding to one spot"""
         species = [self.get_species()]
         for part in active_components:
             #first we make binary complexes
-            sp_list =  self.remove_bindloc(part.update_species())
-            species+=sp_list
+            sp_list =  part.update_species()
+            species+=self.remove_bindloc(sp_list)
+        #print("initial species")
+        #print(species)
         unique_complexes = {}
-        possible_backbones = {self.name:self.get_species()}
+        possible_backbones = {self.dna:self.get_species()}
         #possible_backbones = {a.name:a.get_species() for a in [self]+[a for a in proteins]}
         #species need to be uniqueified
         unique_species = list(set(species)) 
         for specie in unique_species:
             #in this list we extract all the variants of the complexes from possible_backbones
             #that exist in our species list.
-            if(isinstance(specie,OrderedComplexSpecies) and specie.species[-1].name in possible_backbones):
-                #we only care about OrderedComplexSpecies made from this construct
-                if(specie.species[-1].name in unique_complexes):
-                    unique_complexes[specie.species[-1].name] += [specie]
+            if(isinstance(specie,OrderedPolymerSpecies) and specie.base_species in possible_backbones):
+                #we only care about OrderedPolymerSpecies made from this construct
+                if(specie.base_species in unique_complexes):
+                    unique_complexes[specie.base_species] += [specie]
                 else:
-                    unique_complexes[specie.species[-1].name] = [specie]
+                    unique_complexes[specie.base_species] = [specie]
         #unique_complexes now has a list of all the non-combinatorial complexes we can make
         combinatorial_complexes = []
         for bb_name in unique_complexes:
@@ -411,57 +377,51 @@ class DNA_construct(DNA):
                 #for each complex for this backbone, find out what is bound at which location
                 comp_bound = None
                 pos_i = 0
-                for pos in unit.species:
+                for pos in unit:
                     #find the position that has a ComplexSpecies in it
                     if(isinstance(pos,ComplexSpecies) and comp_bound is None):
-                        comp_bound = [copy.deepcopy(pos),pos_i] #this is how we record the location
+                        comp_bound = copy.deepcopy(pos) #this is how we record the location
                     elif(isinstance(pos,ComplexSpecies)):
                         raise ValueError("complex exists in two locations!")
+                        #in this case a mechanism has somehow yielded a DNA with items bound at two spots.
+                        #this really shouldn't happen because each component can only bind to one spot.
+                        #TODO perhaps the thing to do here is to assume that these two locations are
+                        #always bound together? For example if integrase binds in two seperate locations?
                     pos_i+=1
                 if(comp_bound is not None):
                     comp_binders += [comp_bound] #record what is bound, and at what position
             allcomb = self.located_allcomb(comp_binders) #all possible combinations of binders are made here
             allcomb += [[]] #unbound dna should also be used
-            for combo in allcomb:
-                backbone = possible_backbones[bb_name]
-                new_backbone_species = copy.deepcopy(backbone.species)
-                new_material = backbone.material_type
-                for spec in combo:
-                    new_material = "ordered_complex"
-                    new_backbone_species[spec[1]] = spec[0]
-                newname = None
-                if(new_backbone_species==self.get_species().species):
-                    newname = self.get_species().name
-                combinatorial_complexes += [OrderedComplexSpecies(new_backbone_species,\
-                    material_type=new_material,name=newname)] #we make a new OrderedComplexSpecies
+            #now, all possibilities have been enumerated.
+            #we construct the OrderedPolymerSpecies
+            combinatorial_complexes += self.make_polymers(allcomb,possible_backbones[bb_name])
+            
         return combinatorial_complexes
     def update_components(self,rnas=None,proteins=None):
+        #TODO figure out why we have duplicate reactions in the CRN sometimes
         multivalent_self = self.get_species()
-        species = [multivalent_self]
         if((rnas is None) or (proteins is None)):
             rnas,proteins = self.explore_txtl()
-        #problem is they reach beyond just this DNA_construct so we can't just run
-        #explore_integrases here
-        #above will be solved by Integrase_construct class in integrases.py
-        
-        active_attsites = []
-        for a in self.parts_list:
-            #TODO can we update all components in this loop? Why are promoters and RBSes special?
-            #pull out all integrase sites.
-            if(isinstance(a,AttachmentSite)):
-                active_attsites+=[a]
-        attsites = self.update_attachment_sites(active_attsites)
-        promoters = self.update_promoters(rnas,proteins)
-        #rbses = self.update_rbses(proteins)
-
-        active_components = promoters+attsites
+        active_components = []
+        for part in self.parts_list:
+            if(hasattr(part,"update_component")):
+                updated_components = part.update_component(multivalent_self[part.position],\
+                                                                                rnas,proteins)
+                if(updated_components is not None):
+                    active_components += [updated_components]
         combinatorial_complexes = self.update_combinatorial_complexes(active_components)
-        #print("combinatorial complexes are "+str(combinatorial_complexes))
-        attsites = self.update_attachment_sites(active_attsites,combinatorial_complexes)
-        promoters= self.update_promoters(rnas,proteins,combinatorial_complexes)
-        #rbses= self.update_rbses(proteins,combinatorial_complexes)
-        out_components = promoters+attsites
-        return out_components
+        combinatorial_components = []
+        for comb_specie in combinatorial_complexes:
+            if(isinstance(comb_specie,OrderedPolymerSpecies) and comb_specie.base_species == self.dna):
+                for part in active_components:
+                    part_pos = part.position
+                    if(isinstance(comb_specie[part_pos],ComplexSpecies)):
+                        #in this case the position of interest is already complexed. Skip!
+                        pass
+                    else:
+                        combinatorial_components += [part.update_component(comb_specie[part_pos],\
+                                                                                    rnas,proteins)]
+        return combinatorial_components
     def __hash__(self):
         return hash(self.__repr__())
     def __eq__(self,construct2):
@@ -471,46 +431,53 @@ class DNA_construct(DNA):
         else:
             return False
     
-    def update_species(self,norna=False):
-        #TODO make a seperate function for RNA_construct
+    def update_species(self):
         species = [self.get_species()]
         rnas = None
         proteins = None
-        if(norna):
-            proteins = self.explore_txtl()
-        else:
-            rnas,proteins = self.explore_txtl()
-            #TODO explain what rnas and proteins is
+        rnas,proteins = self.explore_txtl()
+        
+        #rnas:
+        #this is a dictionary of the form:
+        #{promoter:rna_construct,promoter2:rna_construct2}
+        #proteins:
+        #this is a dictionary of the form:
+        #{rna_construct:{RBS:[Product1,Product2],RBS2:[Product3]}}
         out_components = self.update_components(rnas,proteins)
         for part in out_components:
-            sp_list =  self.remove_bindloc(part.update_species())
-            species+=sp_list
-        if(not norna):
-            for rna in proteins:
-                species += rna.update_species(norna=True)
+
+            sp_list =  part.update_species()
+            species+=self.remove_bindloc(sp_list)
+        for rna in proteins:
+            if(not rna == self):
+                #this part makes sure we don't do an infinite loop if we are in fact an RNA_construct
+                species += rna.update_species()
         return species
     def update_reactions(self,norna=False):
+        
         reactions = []
         rnas = None
         proteins = None
-        if(norna):
-            proteins = self.explore_txtl()
-        else:
-            rnas,proteins = self.explore_txtl()
+        rnas,proteins = self.explore_txtl()
         out_components = self.update_components(rnas,proteins)
+        
         for part in out_components:
-            #print(part)
             rx_list = []
+            _ = part.update_species()
+            #update_components creates new components which are copies of the parts_list components
+            #but the dna_to_bind attribute has been changed.
+            #thus we need to make sure they have update_species() run on them before
+            #doing update_reactions, in case any of these parts have memory
             for rxn in part.update_reactions():
                 new_rxn = copy.copy(rxn)
                 new_rxn.inputs = self.remove_bindloc(rxn.inputs)
                 new_rxn.outputs = self.remove_bindloc(rxn.outputs)
                 rx_list+=[new_rxn]
             reactions+= rx_list
-        if(not norna):
-            for rna in proteins:
-                #TODO get rid of this "norna" thing
-                reactions += rna.update_reactions(norna=True)
+        for rna in proteins:
+            if(not rna == self):
+                #this part makes sure we don't do an infinite loop if we are in fact an RNA_construct
+                reactions += rna.update_reactions()
         return reactions
 
 class DNAassembly_inprog(DNA_construct):
@@ -679,7 +646,7 @@ class TxTl_Explorer():
         #print(self.current_rnas)
         #print(self.current_proteins)
         #TODO copy parts here and not in the constructor
-        rna_construct = RNA_construct(rna_partslist,parameter_warnings=self.parameter_warnings)
+        rna_construct = RNA_construct(copy.deepcopy(rna_partslist),made_by = promoter,parameter_warnings=self.parameter_warnings)
         
         #current_rna_name = str(promoter)+"-"+str(rna_construct)
         self.made_proteins[rna_construct]={}
@@ -697,6 +664,8 @@ class TxTl_Explorer():
             #print(rna_partslist)
             #print("currently we are translating from "+str(rbs)+ " which is located at " + str(rbs.pos))
             #TODO correct_rbs is possibly not needed
+            #print(rbs)
+            #print(rna_partslist)
             correct_rbs = rna_construct.parts_list[rna_partslist.index([rbs,"forward"])]
             self.made_proteins[rna_construct].update({correct_rbs:proteins_per_rbs})
 
@@ -724,38 +693,42 @@ class TxTl_Explorer():
 
 
 class RNA_construct(DNA_construct):
-    def __init__(self,parts_list,name=None,**keywords):
+    def __init__(self,parts_list,name=None,made_by="unknown",**keywords):
         """an RNA_construct is a lot like a DNA_construct except it can only translate, and
         can only be linear"""
         #TODO make sure we are subclassing RNA and not DNA. I am not sure how to do this,
         #since DNA_construct subclasses DNA
+        self.my_promoter = made_by
         DNA_construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,material_type="rna",**keywords)
         #if(name == None):
         #    name = self.make_name()
         #self.name = super().name
         #self.material_type = "rna"
     
-    def update_rbses(self,proteins,combinatorial_species=None):
+    def update_rbses(self,in_proteins,combinatorial_species=None):
         my_rbses = [] #output list of RBSes
+        #in_proteins looks like: {rna:{rbs1:[protein1,protein2],rbs2:[protein3]}}
         #print(proteins)
+        if(len(in_proteins)>1):
+            warn("expected one RNA, but we detected more! proteins looks like "+str(in_proteins))
+        proteins = in_proteins[self]
         rbses = list(proteins.keys())
         
         #proteins looks like this:
         # {RBS:[protein],RBS1:[protein1,protein2]}
         if(combinatorial_species is None):
             combinatorial_species = [self.get_species()] #list of RNAs
-        #print("update_rbs got: combinatorial_species is "+str(combinatorial_species))
         for comb_specie in combinatorial_species: #combinatorial_species will contain RNAs
             
             if(isinstance(comb_specie,OrderedComplexSpecies) and comb_specie.species[-1].name == self.name):
                 #TODO below is very similar to what happens in update_promoters. Can we consolidate?
                 for rbs in rbses:
                     new_rbs = copy.deepcopy(rbs)
-                    if(isinstance(comb_specie.species[rbs.pos],ComplexSpecies)):
+                    if(isinstance(comb_specie.species[rbs.position],ComplexSpecies)):
                         #if something is already bound then forget it
                         continue
                     new_mv_self = copy.deepcopy(comb_specie)
-                    new_mv_self.attributes = ["bindloc_"+str(rbs.pos)] #assign binding location
+                    new_mv_self.attributes = ["bindloc_"+str(rbs.position)] #assign binding location
                     made_proteins = proteins[rbs] #this is a list
                     new_rbs.protein = [a.get_species() for a in made_proteins]
                     new_rbs.transcript = new_mv_self
@@ -766,7 +739,7 @@ class RNA_construct(DNA_construct):
         """an RNA has no tx, only TL! central dogma exists, right?"""
         # lets try to make this more modular shall we?
         explorer = TxTl_Explorer(possible_rxns = ("translation",),parameter_warnings=self.parameter_warnings)
-        explorer.make_rna(self.name)
+        explorer.make_rna(self.my_promoter)
         part_index = 0
         keep_going = 1
         while keep_going:
@@ -782,18 +755,26 @@ class RNA_construct(DNA_construct):
                     explorer.end()
                     break
         proteins = explorer.get_proteins()
-        return proteins[list(proteins.keys())[0]]
+        rnadict = {self.my_promoter:self}
+        return rnadict, proteins
     def get_species(self):
-        return OrderedComplexSpecies([a.name for a in self.parts_list]+[self.name],material_type="rna")
-    def update_components(self,rnas=None,proteins=None):
-        if(proteins is None):
-            proteins = self.explore_txtl()
-        rbses = self.update_rbses(proteins)
-        active_components = rbses
-        combinatorial_complexes = self.update_combinatorial_complexes(active_components)
-        my_rbses = self.update_rbses(proteins,combinatorial_complexes)
-        out_components = my_rbses
-        return out_components
+        outspec = DNA_construct.get_species(self)
+        for spec in outspec:
+            spec.material_type = "rna"
+        outspec.material_type="rna"
+        #OrderedComplexSpecies(ocomplx,name=self.name,material_type="dna")
+        return outspec
+
+        #return OrderedComplexSpecies([a.name for a in self.parts_list]+[self.name],material_type="rna",name=self.name)
+#    def update_components(self,rnas=None,proteins=None):
+#        if(proteins is None):
+#            proteins = self.explore_txtl()
+#        rbses = self.update_rbses(proteins)
+#        active_components = rbses
+#        combinatorial_complexes = self.update_combinatorial_complexes(active_components)
+#        my_rbses = self.update_rbses(proteins,combinatorial_complexes)
+#        out_components = my_rbses
+#        return out_components
     def __repr__(self):
         """the name of an RNA should be different from DNA, right?"""
         output = "rna = "+self.name
