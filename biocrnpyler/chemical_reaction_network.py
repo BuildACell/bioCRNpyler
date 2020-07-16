@@ -22,7 +22,7 @@ class OrderedPolymer:
                 part = item
                 partdir = item.direction
             else:
-                ValueError("{} is not an OrderedMonomer or a list of the form [OrderedMonomer,direction]".format(str(part)))
+                raise ValueError("{} is not an OrderedMonomer or a list of the form [OrderedMonomer,direction]".format(str(part)))
             
             polymer += [part]
             position = len(polymer)-1
@@ -400,7 +400,7 @@ def make_species(speclist,flatten=False):
             warn("list {} encountered while making {} into species! I just ignored it").format(str(unit),str(speclist))
             outitem = item
         else:
-            TypeError(str(item) + " of unrecognized type")
+            raise TypeError(str(item) + " of unrecognized type")
         return outitem
         
     if(isinstance(speclist,list)):
@@ -443,7 +443,7 @@ class Complex:
                     #print(valent_complex.name)
                     bindloc = specie.position
                 else:
-                    ValueError("binding together two OrderedPolymers!")
+                    raise ValueError("binding together two OrderedPolymers!")
                 
             else:
                 other_species += [specie]
@@ -828,7 +828,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
         elif(isinstance(base_species,Species)):
             self.base_species = base_species
         else:
-            TypeError("base_species is of type "+type(base_species)+" which is not acceptable. Use Species or str")
+            raise TypeError("base_species is of type "+type(base_species)+" which is not acceptable. Use Species or str")
         
     @property
     def species_set(self):

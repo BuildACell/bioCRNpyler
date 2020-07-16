@@ -49,7 +49,7 @@ class RBS(DNA_part):
     def update_component(self,dna=None,rnas=None,proteins=None,mypos=None):
         """returns a copy of this component, except with the proper fields updated"""
         if(proteins is None):
-            ValueError("cannot update rbs {} when proteins is None".format(self))
+            raise ValueError("cannot update rbs {} when proteins is None".format(self))
         my_rna = None
         if(len(proteins)==1):
             my_rna = list(proteins.keys())[0]

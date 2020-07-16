@@ -87,7 +87,7 @@ class DNA_part(Component,OrderedMonomer):
         #self.assembly = None
         return self
     def reverse(self):
-        self.reverse()
+        OrderedMonomer.reverse(self)
         #if(self.direction=="forward"):
         #    self.direction = "reverse"
         #elif(self.direction=="reverse"):
