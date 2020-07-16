@@ -7,6 +7,7 @@ from warnings import warn as pywarn
 import itertools as it
 import numpy as np
 from .dna_part import DNA_part
+import copy
 
 class Promoter(DNA_part):
     def __init__(self, name, assembly=None,
@@ -55,6 +56,22 @@ class Promoter(DNA_part):
                         component = self, part_id = self.name, complex = None,
                         protein = self.protein, transcript = self.transcript)
         return reactions
+    def update_component(self,dna,rnas,proteins,mypos = None):
+        """returns a copy of this component, except with the proper fields updated"""
+        out_component = copy.deepcopy(self)
+        if(mypos is not None):
+            out_component.dna_to_bind = dna[mypos]
+        else:
+            out_component.dna_to_bind = dna
+        myrna = rnas[self]
+        out_component.transcript = myrna.get_species()
+        rbslist = proteins[myrna]
+        proteinlist = []
+        for a in rbslist:
+            proteinlist += rbslist[a]
+        out_component.protein = proteinlist
+        return out_component
+
 
 class RegulatedPromoter(Promoter):
     def __init__(self, name, regulators, leak = True, assembly = None,
@@ -84,23 +101,26 @@ class RegulatedPromoter(Promoter):
 
         self.complexes = []
         if self.leak is not False:
-            species += mech_tx.update_species(dna = self.dna_to_bind, component = self, part_id = self.name+"_leak",protein=self.protein)
+            species += mech_tx.update_species(dna = self.dna_to_bind,transcript = self.transcript, component = self, part_id = self.name+"_leak",protein=self.protein)
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
-
+            print(type(mech_b))
             species_b = mech_b.update_species(regulator, self.dna_to_bind, part_id = self.name+"_"+regulator.name, component = self,protein=self.protein)
             species += species_b
 
             #Find complexes containing DNA and the regulator
             for s in species_b:
-                if isinstance(s, ComplexSpecies) and self.dna_to_bind in s and regulator in s:
+                if self.dna_to_bind in s and regulator in s:
+                    #TODO these __contains__ statements do not work. Possibly because I need to make a
+                    #monomer Complex / monomer Species instead of forcing things to look inside the monomer data member
                     self.complexes += [s]
                     species += mech_tx.update_species(dna = s, transcript = self.transcript, \
                             part_id = self.name+"_"+regulator.name, component = self,protein=self.protein)
         return species
 
     def update_reactions(self):
+
         reactions = []
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
@@ -269,7 +289,7 @@ class CombinatorialPromoter(Promoter):
         #set the tx_capable_complexes to nothing because we havent updated species yet!
         self.tx_capable_complexes = []
         self.leak_complexes = []
-        species = [self.assembly.dna]+self.regulators
+        species = [self.dna_to_bind]+self.regulators
         self.complexes = []
         bound_species = mech_b.update_species(self.regulators,self.dna_to_bind,\
                         component = self,part_id = self.name,cooperativity=self.cooperativity,protein=self.protein)

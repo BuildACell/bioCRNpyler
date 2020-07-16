@@ -10,14 +10,12 @@ class CDS(DNA_part):
         #TODO make this contain a species and not a component
         #TODO use set_species()
         if(protein is None):
-            self.protein = Protein(name)
+            self.protein = Species(name,material_type="protein")
         
         elif(isinstance(protein,str)):
-            self.protein = Protein(name)
+            self.protein = Species(protein,material_type="protein")
         elif(isinstance(protein,Component)):
-            self.protein=protein
-        elif(isinstance(protein,Species)):
-            raise ValueError("CDS got Species as 'protein', but it should be a Component")
+            self.protein=protein.get_species()
     def update_species(self):
         return [self.protein]
     def update_reactions(self):

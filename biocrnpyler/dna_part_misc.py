@@ -2,6 +2,7 @@ from .chemical_reaction_network import Species, make_species
 from .mechanisms_binding import One_Step_Cooperative_Binding
 from .dna_part import DNA_part
 from warnings import warn
+import copy
 
 integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 class DNABindingSite(DNA_part):
@@ -33,6 +34,14 @@ class DNABindingSite(DNA_part):
             mech_b = self.mechanisms["binding"]
             rxns = mech_b.update_reactions(self.binders,self.dna_to_bind,component=self,part_id = self.name)
         return rxns
+    def update_component(self,dna,rnas=None,proteins=None,mypos = None):
+        """returns a copy of this component, except with the proper fields updated"""
+        out_component = copy.deepcopy(self)
+        if(mypos is not None):
+            out_component.dna_to_bind = dna[mypos]
+        else:
+            out_component.dna_to_bind = dna
+        return out_component
 class AttachmentSite(DNABindingSite):
     #TODO generalize to "DNA binding site"
     def __init__(self,name, site_type = "attB",integrase = "int1", dinucleotide = 1,no_stop_codons=[],**keywords):
