@@ -76,10 +76,15 @@ class OrderedPolymer:
             return True
         else:
             return False
-    def pretty_print(self,show_material=True,show_attributes=False):
+    def pretty_print(self,show_material=True,show_attributes=False,highlight=None):
         outtxt = "poly{"
-        for item in self._polymer:
+        for i, item in enumerate(self._polymer):
+            itemhi = False
+            if(highlight is not None and i==highlight):
+                outtxt+="("
             outtxt+=item.pretty_print(show_material=show_material,show_attributes=show_attributes)
+            if(highlight is not None and i==highlight):
+                outtxt+=")"
             outtxt+=","
         outtxt = outtxt[:-1]
         outtxt+="}"
@@ -147,8 +152,16 @@ class OrderedMonomer:
         if(hasattr(self,"parent")):
             hval += hash(str(self.parent))
         return hval
-    def pretty_print(self,show_material=True,show_attributes=False):
+    def show_bindloc(self):
+        if(hasattr(self,"parent") and self.parent is not None):
+            return self.parent.pretty_print(highlight = self.position)
+        else:
+            return None
+    def pretty_print(self,show_material=True,show_attributes=False,highlight = False):
+        
         outstr = ""
+        if(highlight):
+            outstr+="("
         datastr = ""
         if(hasattr(self,"data")):
             if(hasattr(self.data,"pretty_print")):
@@ -160,6 +173,8 @@ class OrderedMonomer:
             outstr += "-"+str(self.direction)
         if(outstr == ""):
             outstr = "<monomer>"
+        if(highlight):
+            outstr += ")"
         return outstr
     def __contains__(self,item):
         """an OrderedMonomer contains something if that thing is in its data"""
@@ -711,9 +726,16 @@ class OrderedComplexSpecies(ComplexSpecies):
             txt += self.material_type
         
         txt += "["
-
-        for s in self.species:
-            txt += s.pretty_print(show_material = show_material, show_attributes = False)+":"
+        hinum = None
+        if("highlight" in kwargs):
+            hinum = kwargs["highlight"]
+        for i, s in enumerate(self.species):
+            if(hinum == i):
+                txt+="("
+            txt += s.pretty_print(show_material = show_material, show_attributes = False)
+            if(hinum == i):
+                txt += ")"
+            txt+=":"
         txt = txt[:-1]
 
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:

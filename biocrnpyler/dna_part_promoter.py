@@ -102,25 +102,22 @@ class RegulatedPromoter(Promoter):
         self.complexes = []
         if self.leak is not False:
             species += mech_tx.update_species(dna = self.dna_to_bind,transcript = self.transcript, component = self, part_id = self.name+"_leak",protein=self.protein)
-
-        for i in range(len(self.regulators)):
-            regulator = self.regulators[i]
-            print(type(mech_b))
+        for regulator in self.regulators:
+            #regulator = self.regulators[i]
             species_b = mech_b.update_species(regulator, self.dna_to_bind, part_id = self.name+"_"+regulator.name, component = self,protein=self.protein)
             species += species_b
 
             #Find complexes containing DNA and the regulator
             for s in species_b:
                 if self.dna_to_bind in s and regulator in s:
-                    #TODO these __contains__ statements do not work. Possibly because I need to make a
-                    #monomer Complex / monomer Species instead of forcing things to look inside the monomer data member
                     self.complexes += [s]
                     species += mech_tx.update_species(dna = s, transcript = self.transcript, \
                             part_id = self.name+"_"+regulator.name, component = self,protein=self.protein)
         return species
 
     def update_reactions(self):
-
+        self.update_species()
+        #TODO for some reason if you don't run update_species() here you get the wrong reactions
         reactions = []
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
@@ -128,14 +125,17 @@ class RegulatedPromoter(Promoter):
         if self.leak != False:
             reactions += mech_tx.update_reactions(dna = self.dna_to_bind, component = self, part_id = self.name+"_leak", \
                                                             transcript = self.transcript, protein = self.protein)
-        if(len(self.complexes)<len(self.regulators)):
-            self.update_species()
+        #if(len(self.complexes)<len(self.regulators)):
+        #    print("*****rerunning update species*********")
+            
+
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
             complex_ = self.complexes[i]
 
             reactions += mech_b.update_reactions(regulator, self.dna_to_bind, component = self, \
                                                                     part_id = self.name+"_"+regulator.name,protein=self.protein)
+            
             reactions += mech_tx.update_reactions(dna = complex_, component = self, part_id = self.name+"_"+regulator.name, \
                                             transcript = self.transcript,protein=self.protein)
 
@@ -328,6 +328,7 @@ class CombinatorialPromoter(Promoter):
         return species
 
     def update_reactions(self):
+        species = self.update_species()
         reactions = []
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
@@ -341,7 +342,7 @@ class CombinatorialPromoter(Promoter):
                                                         part_id = self.name,cooperativity=self.cooperativity, protein = self.protein)
         if((self.tx_capable_complexes is None) or self.tx_capable_complexes == []):
             #this could mean we haven't run update_species() yet
-            species = self.update_species()
+            
             if(self.tx_capable_complexes == []):
                 if(self.leak_complexes is None or self.leak_complexes == []):
                     #if it's still zero after running update_species then we could be in trouble

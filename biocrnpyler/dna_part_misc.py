@@ -41,7 +41,11 @@ class DNABindingSite(DNA_part):
             out_component.dna_to_bind = dna[mypos]
         else:
             out_component.dna_to_bind = dna
-        return out_component
+        if(dna.material_type == "rna"):
+            #DNA binding sites only work with DNA
+            return None
+        elif(dna.material_type == "dna"):
+            return out_component
 class AttachmentSite(DNABindingSite):
     #TODO generalize to "DNA binding site"
     def __init__(self,name, site_type = "attB",integrase = "int1", dinucleotide = 1,no_stop_codons=[],**keywords):

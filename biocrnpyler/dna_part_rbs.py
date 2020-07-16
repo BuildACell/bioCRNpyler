@@ -64,7 +64,6 @@ class RBS(DNA_part):
             #        my_rna = rna
             #if(my_rna is None):
             #    raise KeyError(str(self) + " couldn't be found in "+str(list(proteins.keys())))
-        print("my rna is "+str(my_rna))
         out_component = None
         if(self in proteins[my_rna]):
             my_proteins = proteins[my_rna][self]

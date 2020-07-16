@@ -318,7 +318,35 @@ class DNA_construct(DNA,OrderedPolymer):
                 combo_sublists += [prototype_list[compacted_indexes.index(combo_index)]]
             outlist+= recursive_path(combo_sublists)
         return outlist
+    def make_polymers(self,species_lists,backbone):
+        """makes polymers from lists of species
+        inputs:
+        species_lists: list of species which are to be assembled into a polymer
+        backbone: the base_species which all these polymers should have"""
+        polymers = []
+        for combo in species_lists:
+            #members of allcomb are now OrderedMonomers, which contain direction and position
+            #there could be multiple OrderedPolymerSpecies we are making combinatorial.
+            #for example, RNAs
+            new_backbone = copy.deepcopy(backbone)
+            new_material = backbone.material_type
+            for spec in combo:
+                new_material = "OPcomplex"
+                new_backbone.replace(spec.position,spec)
+            newname = None
+            self_species = self.get_species()
+            if(new_backbone==self_species):
+                #if we have just re-created ourselves, then make sure to call it that
+                newname = self_species.name
+                polymers += [copy.deepcopy(self_species)]
+            else:
+                new_backbone.material_type = new_material
+                polymers += [new_backbone] #we make a new OrderedComplexSpecies
+        return polymers
     def update_combinatorial_complexes(self,active_components):
+        """given an input list of components, we produce all complexes
+        yielded by those components, mixed and matched to make all possible combinatorial
+        complexes, where each component is assumed to only care about binding to one spot"""
         species = [self.get_species()]
         for part in active_components:
             #first we make binary complexes
@@ -331,7 +359,6 @@ class DNA_construct(DNA,OrderedPolymer):
         #possible_backbones = {a.name:a.get_species() for a in [self]+[a for a in proteins]}
         #species need to be uniqueified
         unique_species = list(set(species)) 
-        print("my unique species are "+str(unique_species))
         for specie in unique_species:
             #in this list we extract all the variants of the complexes from possible_backbones
             #that exist in our species list.
@@ -350,14 +377,14 @@ class DNA_construct(DNA,OrderedPolymer):
                 #for each complex for this backbone, find out what is bound at which location
                 comp_bound = None
                 pos_i = 0
-                for pos in unit.species:
+                for pos in unit:
                     #find the position that has a ComplexSpecies in it
                     if(isinstance(pos,ComplexSpecies) and comp_bound is None):
                         comp_bound = copy.deepcopy(pos) #this is how we record the location
                     elif(isinstance(pos,ComplexSpecies)):
                         raise ValueError("complex exists in two locations!")
                         #in this case a mechanism has somehow yielded a DNA with items bound at two spots.
-                        #this really shouldn't happen because of the bindloc attribute.
+                        #this really shouldn't happen because each component can only bind to one spot.
                         #TODO perhaps the thing to do here is to assume that these two locations are
                         #always bound together? For example if integrase binds in two seperate locations?
                     pos_i+=1
@@ -367,24 +394,8 @@ class DNA_construct(DNA,OrderedPolymer):
             allcomb += [[]] #unbound dna should also be used
             #now, all possibilities have been enumerated.
             #we construct the OrderedPolymerSpecies
-            for combo in allcomb:
-                #members of allcomb are now OrderedMonomers, which contain direction and position
-                backbone = possible_backbones[bb_name]
-                #there could be multiple OrderedPolymerSpecies we are making combinatorial.
-                #for example, RNAs
-                new_backbone = copy.deepcopy(backbone)
-                new_material = backbone.material_type
-                for spec in combo:
-                    new_material = "OPcomplex"
-                    new_backbone.replace(spec.position,spec)
-                newname = None
-                if(new_backbone==self.get_species()):
-                    #if we have just re-created ourselves, then make sure to call it that
-                    newname = self.get_species().name
-                    combinatorial_complexes += [copy.deepcopy(self.get_species())]
-                else:
-                    new_backbone.material_type = new_material
-                    combinatorial_complexes += [new_backbone] #we make a new OrderedComplexSpecies
+            combinatorial_complexes += self.make_polymers(allcomb,possible_backbones[bb_name])
+            
         return combinatorial_complexes
     def update_components(self,rnas=None,proteins=None):
         #TODO figure out why we have duplicate reactions in the CRN sometimes
@@ -402,7 +413,6 @@ class DNA_construct(DNA,OrderedPolymer):
                 #print("we got "+str(updated_components))
                 if(updated_components is not None):
                     active_components += [updated_components]
-
         combinatorial_complexes = self.update_combinatorial_complexes(active_components)
         combinatorial_components = []
         for comb_specie in combinatorial_complexes:
@@ -445,7 +455,6 @@ class DNA_construct(DNA,OrderedPolymer):
         #this is a dictionary of the form:
         #{rna_construct:{RBS:[Product1,Product2],RBS2:[Product3]}}
         out_components = self.update_components(rnas,proteins)
-        print("my out_components is "+str(out_components))
         for part in out_components:
             #print("going through components")
             #print(part.name)
