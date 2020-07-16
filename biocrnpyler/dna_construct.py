@@ -264,7 +264,7 @@ class DNA_construct(DNA,OrderedPolymer):
         for specie in spec_list:
             #go through the species and remove the "bindloc" attribute
             #I don't care about the binding now that I am done generating species
-            if(hasattr(specie,"parent")):
+            if(hasattr(specie,"parent") and specie.parent is not None):
                 out_sp_list += [specie.parent]
             else:
                 out_sp_list+= [specie]
@@ -447,6 +447,7 @@ class DNA_construct(DNA,OrderedPolymer):
         for part in out_components:
 
             sp_list =  part.update_species()
+            
             species+=self.remove_bindloc(sp_list)
         for rna in proteins:
             if(not rna == self):

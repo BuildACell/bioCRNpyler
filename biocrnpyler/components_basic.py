@@ -1,5 +1,5 @@
 from .component import *
-from .chemical_reaction_network import Species, ComplexSpecies, OrderedComplexSpecies, make_complex
+from .chemical_reaction_network import Species, ComplexSpecies, OrderedComplexSpecies
 from .mechanism import *
 from .mechanisms_binding import *
 
