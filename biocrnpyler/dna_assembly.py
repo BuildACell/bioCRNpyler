@@ -135,14 +135,14 @@ class DNAassembly(DNA):
         if self.promoter is not None and self.rbs is not None:
             species += self.promoter.update_species()
             species += self.rbs.update_species()
-
+            
         elif self.promoter is not None and self.rbs is None:
             species += self.promoter.update_species()
-
+        
         if "rna_degredation" in self.mechanisms and self.promoter is not None:
             deg_mech = self.mechanisms["rna_degredation"]
             species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
-
+        print(species)
         # TODO raise a warning if there were duplicate species
         return list(set(species))
 

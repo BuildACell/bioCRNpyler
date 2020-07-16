@@ -1,5 +1,5 @@
 from .mechanism import *
-from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
+from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer, Complex
 from .mechanisms_enzyme import *
 
 
@@ -335,13 +335,13 @@ class multi_tx(Mechanism):
         cp_closed = []
         for n in range(1,max_occ + 1):
             name_open = self.pol.name + 'x' + dna.name + '_' + str(n)
-            cp_open.append(ComplexSpecies([dna]+[self.pol for i in range(n)],name=name_open))
+            cp_open.append(Complex([dna]+[self.pol for i in range(n)],name=name_open))
             if n > 1:
                 name_closed = self.pol.name + 'x' + dna.name + '_closed' + '_' + str(n-1)
-                cp_closed.append(ComplexSpecies([dna]+[self.pol for i in range(n-1)],name=name_closed))
+                cp_closed.append(Complex([dna]+[self.pol for i in range(n-1)],name=name_closed))
             else:
                 name_closed = self.pol.name + 'x' + dna.name + '_closed' + '_' + str(0)
-                cp_closed.append(ComplexSpecies([dna]+[self.pol for i in range(1)],name=name_closed))
+                cp_closed.append(Complex([dna]+[self.pol for i in range(1)],name=name_closed))
 
         cp_misc = [self.pol,dna,transcript]
 
@@ -372,13 +372,13 @@ class multi_tx(Mechanism):
         cp_closed = []
         for n in range(1,max_occ + 1):
             name_open = self.pol.name + 'x' + dna.name + '_' + str(n)
-            cp_open.append(ComplexSpecies([dna]+[self.pol for i in range(n)],name=name_open))
+            cp_open.append(Complex([dna]+[self.pol for i in range(n)],name=name_open))
             if n > 1:
                 name_closed = self.pol.name + 'x' + dna.name + '_closed' + '_' + str(n-1)
-                cp_closed.append(ComplexSpecies([dna]+[self.pol for i in range(n-1)],name=name_closed))
+                cp_closed.append(Complex([dna]+[self.pol for i in range(n-1)],name=name_closed))
             else:
                 name_closed = self.pol.name + 'x' + dna.name + '_closed' + '_' + str(0)
-                cp_closed.append(ComplexSpecies([dna]+[self.pol for i in range(1)],name=name_closed))
+                cp_closed.append(Complex([dna]+[self.pol for i in range(1)],name=name_closed))
 
 
         # Reactions
@@ -455,14 +455,14 @@ class multi_tl(Mechanism):
         cp_closed = []
         for n in range(1,max_occ + 1):
             name_open = self.ribosome.name + 'x' + transcript.name + '_' + str(n)
-            cp_open.append(ComplexSpecies([transcript]+[self.ribosome for i in range(n)],name=name_open))
+            cp_open.append(Complex([transcript]+[self.ribosome for i in range(n)],name=name_open))
 
             if n > 1:
                 name_closed = self.ribosome.name + 'x' + transcript.name + '_closed' + '_' + str(n-1)
-                cp_closed.append(ComplexSpecies([transcript]+[self.ribosome for i in range(n-1)],name=name_closed))
+                cp_closed.append(Complex([transcript]+[self.ribosome for i in range(n-1)],name=name_closed))
             else:
                 name_closed = self.ribosome.name + 'x' + transcript.name + '_closed' + '_' + str(0)
-                cp_closed.append(ComplexSpecies([transcript]+[self.ribosome for i in range(1)],name=name_closed))
+                cp_closed.append(Complex([transcript]+[self.ribosome for i in range(1)],name=name_closed))
 
 
         cp_misc = [self.ribosome,transcript,protein]
@@ -492,14 +492,14 @@ class multi_tl(Mechanism):
         cp_closed = []
         for n in range(1,max_occ + 1):
             name_open = self.ribosome.name + 'x' + transcript.name + '_' + str(n)
-            cp_open.append(ComplexSpecies([transcript]+[self.ribosome for i in range(n)],name=name_open))
+            cp_open.append(Complex([transcript]+[self.ribosome for i in range(n)],name=name_open))
 
             if n > 1:
                 name_closed = self.ribosome.name + 'x' + transcript.name + '_closed' + '_' + str(n-1)
-                cp_closed.append(ComplexSpecies([transcript]+[self.ribosome for i in range(n-1)],name=name_closed))
+                cp_closed.append(Complex([transcript]+[self.ribosome for i in range(n-1)],name=name_closed))
             else:
                 name_closed = self.ribosome.name + 'x' + transcript.name + '_closed' + '_' + str(0)
-                cp_closed.append(ComplexSpecies([transcript]+[self.ribosome for i in range(1)],name=name_closed))
+                cp_closed.append(Complex([transcript]+[self.ribosome for i in range(1)],name=name_closed))
 
         # Reactions
         # ribosome + complex(n) --> complex(n_closed)

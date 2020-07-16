@@ -1,6 +1,6 @@
 from warnings import warn
 from .mechanism import *
-from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
+from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer, Complex
 
 
 class BasicCatalysis(Mechanism):
@@ -72,7 +72,7 @@ class MichaelisMenten(Mechanism):
 
     def update_species(self, Enzyme, Sub, Prod = None, complex=None, **keywords):
         if complex is None:
-            complexS = ComplexSpecies([Sub, Enzyme])
+            complexS = Complex([Sub, Enzyme])
         else:
             complexS = complex
         if Prod is None:
@@ -97,7 +97,7 @@ class MichaelisMenten(Mechanism):
         
 
         if complex is None:
-            complexS = ComplexSpecies([Sub, Enzyme])
+            complexS = Complex([Sub, Enzyme])
         else:
             complexS = complex
 
@@ -126,11 +126,11 @@ class MichaelisMentenReversible(Mechanism):
 
     def update_species(self, Enzyme, Sub, Prod, complex=None, complex2 = None, **keywords):
         if complex is None:
-            complex1 = ComplexSpecies([Sub, Enzyme])
+            complex1 = Complex([Sub, Enzyme])
         else:
             complex1 = complex
         if complex2 is None:
-            complex2 = ComplexSpecies([Prod, Enzyme])
+            complex2 = Complex([Prod, Enzyme])
         else:
             complex2 = complex2
         return [Enzyme, Sub, Prod, complex1, complex2]
@@ -161,11 +161,11 @@ class MichaelisMentenReversible(Mechanism):
         
 
         if complex is None:
-            complex1 = ComplexSpecies([Sub, Enzyme])
+            complex1 = Complex([Sub, Enzyme])
         else:
             complex1 = complex
         if complex2 == None:
-            complex2 = ComplexSpecies([Prod, Enzyme])
+            complex2 = Complex([Prod, Enzyme])
 
         # Sub + Enz <--> Sub:Enz
         binding_rxn1 = Reaction(inputs=[Sub, Enzyme], outputs=[complex1],
@@ -189,7 +189,7 @@ class MichaelisMentenCopy(Mechanism):
 
     def update_species(self, Enzyme, Sub, complex=None, Prod = None, **keywords):
         if complex is None:
-            complexS = ComplexSpecies([Sub, Enzyme])
+            complexS = Complex([Sub, Enzyme])
         else:
             complexS = complex
 
@@ -201,7 +201,7 @@ class MichaelisMentenCopy(Mechanism):
     def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, complex=None, kb=None, ku=None,
                          kcat=None, **keywords):
         if complex is None:
-            complexS = ComplexSpecies([Sub, Enzyme])
+            complexS = Complex([Sub, Enzyme])
         else:
             complexS = complex
 
