@@ -146,7 +146,7 @@ class MassAction(Propensity):
     def species(self):
         return []
 
-    def create_kinetic_law(self, reaction, stochastic, direction='forward'):
+    def create_kinetic_law(self, reaction, stochastic, participating_species, direction='forward'):
         # Create a kinetic law for the reaction
         ratelaw = reaction.createKineticLaw()
 
@@ -168,16 +168,17 @@ class MassAction(Propensity):
         # Create Rate-strings for massaction propensities
         ratestring = rate_coeff_name
 
-        if stochastic:
-            for i in range(stoichiometry):
-                if i > 0:
-                    ratestring += f" * ( {species_id} - {i} )"
-                else:
-                    ratestring += f" * {species_id}"
+        for species_id, weighted_species in participating_species.items():
 
-        else:
-                ratestring += f" * {species_id}^{stoichiometry}"
+            if stochastic:
+                for i in range(weighted_species.stoichiometry):
+                    if i > 0:
+                        ratestring += f" * ( {species_id} - {i} )"
+                    else:
+                        ratestring += f" * {species_id}"
 
+            else:
+                    ratestring += f" * {species_id}^{weighted_species.stoichiometry}"
 
         # Set the ratelaw to the ratestring
         math_ast = libsbml.parseL3Formula(ratestring)
