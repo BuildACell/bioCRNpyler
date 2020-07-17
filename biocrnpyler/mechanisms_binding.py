@@ -293,7 +293,12 @@ class One_Step_Binding(Mechanism):
                  mechanism_type="binding"):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, species, component = None, complex_species = None, part_id = None, **keywords):
+    def update_species(self, binder,bindee, component = None, complex_species = None, part_id = None, **keywords):
+        if(not isinstance(binder,list)):
+            binder = [binder]
+        if(not isinstance(bindee,list)):
+            bindee = [bindee]
+        species = binder+bindee
         if part_id is None:
             part_id = ""
             for s in species:
@@ -306,7 +311,12 @@ class One_Step_Binding(Mechanism):
         return species + [complex_species]
 
 
-    def update_reactions(self, species, component = None, complex_species = None, part_id = None, kb = None, ku = None, **keywords):
+    def update_reactions(self, binder,bindee, component = None, complex_species = None, part_id = None, kb = None, ku = None, **keywords):
+        if(not isinstance(binder,list)):
+            binder = [binder]
+        if(not isinstance(bindee,list)):
+            bindee = [bindee]
+        species = binder+bindee
         if part_id is None:
             part_id = ""
             for s in species:

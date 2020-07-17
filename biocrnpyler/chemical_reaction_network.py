@@ -247,7 +247,7 @@ class Complex:
         if(valent_complex is None):
             #this is a normal ComplexSpecies
             #the madness below is telling python to skip to the __init__ function
-            return ComplexSpecies(*args,species=species,**keywords)
+            return ComplexSpecies(species,*args,**keywords)
         else:
             if(len(other_species)==0):
                 return valent_complex[bindloc]
