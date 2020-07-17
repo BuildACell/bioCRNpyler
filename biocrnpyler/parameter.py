@@ -50,24 +50,59 @@ The initial condition of any Species (or Component) will also be looked up as a 
 import csv
 from warnings import warn
 from typing import List, Dict, Union
+import numbers
+import re
 
-#A class for representing parameters in general. Only the below subclasses are ever used.
-# parameter_name is the name of the parameter
-# parameter_value is the value of the parameter
-class Parameter():
-    def __init__(self, parameter_name, parameter_value):
-        if not isinstance(parameter_name, str):
-            raise ValueError(f"parameter_name must be a string: received {parameter_name}.")
+
+class Parameter(object):
+    def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real]):
+        """A class for representing parameters in general. Only the below subclasses are ever used.
+
+        :param parameter_name: is the name of the parameter
+        :param parameter_value: is the value of the parameter
+        """
+        self.parameter_name = parameter_name
+        self.parameter_value = parameter_value
+
+    @property
+    def parameter_name(self):
+        return self._parameter_name
+
+    @parameter_name.setter
+    def parameter_name(self, new_parameter_name):
+        if not isinstance(new_parameter_name, str):
+            raise ValueError(f"parameter_name must be a string: received {type(new_parameter_name)}.")
+        if not re.search('^[a-z]+', new_parameter_name, re.IGNORECASE):
+            raise ValueError(f'parameter_name should be at least one character and cannot start with a number!')
+
+        self._parameter_name = new_parameter_name
+
+    @property
+    def parameter_value(self):
+        return self._parameter_value
+
+    @parameter_value.setter
+    def parameter_value(self, new_parameter_value):
+        if not (isinstance(new_parameter_value, numbers.Real) or isinstance(new_parameter_value, str)):
+            raise ValueError(f"parameter_value must be a float or int: received {type(new_parameter_value)}.")
+        if isinstance(new_parameter_value, str):
+            print(re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e[0-9]+)|(^[0-9])', new_parameter_value, re.I))
+            print(re.search('[a-d-f-z]', new_parameter_value, re.I))
+            if re.search('[a-d-f-z]', new_parameter_value, re.I) \
+                    or re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e[0-9]+)|(^[0-9])', new_parameter_value, re.I) is None:
+                raise ValueError('No valid parameter value! Accepted formats: 1.00 or 1e4 or 2/5 ')
+
+            self._parameter_value = Parameter._convert_rational(new_parameter_value)
         else:
-            self.parameter_name = parameter_name
+            self._parameter_value = new_parameter_value
 
-        if not (isinstance(parameter_value, int) or isinstance(parameter_value, float) or isinstance(parameter_value, str)): 
-            raise ValueError(f"parameter_value must be a float or int: received {parameter_value}.")
-        if isinstance(parameter_value, str):
-            self.value = float(parameter_value)
+    @staticmethod
+    def _convert_rational(p_value):
+        if '/' in p_value:
+            nom, denom = p_value.split('/')
+            return float(nom)/float(denom)
         else:
-            self.value = parameter_value
-
+            return float(p_value)
 
 #A class for representing parameters in a parameter stored the ParameterDatabase
 # parameter_keys is a dictionary {key:value} of keys for looking up the parameter
