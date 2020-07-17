@@ -31,9 +31,11 @@ class Transcription_MM(MichaelisMentenCopy):
 
         species += MichaelisMentenCopy.update_species(self, self.rnap, dna)
         if transcript is None:
-            transcript = Species(dna.name, material_type="rna")
-
-        species += [transcript]
+            transcript = [Species(dna.name, material_type="rna")]
+        elif isinstance(transcript,Species):
+            transcript=[transcript]
+        
+        species += transcript
 
         return species
 
@@ -50,8 +52,10 @@ class Transcription_MM(MichaelisMentenCopy):
 
         rxns = []
         if transcript is None:
-            transcript = Species(dna.name, material_type="rna")
-        rxns += MichaelisMentenCopy.update_reactions(self, self.rnap, dna, transcript,
+            transcript = [Species(dna.name, material_type="rna")]
+        elif isinstance(transcript,Species):
+            transcript = [transcript]
+        rxns += MichaelisMentenCopy.update_reactions(self,self.rnap, dna, transcript,
                                                        complex=complex, kb=kb,
                                                        ku=ku, kcat=ktx)
 
@@ -84,7 +88,10 @@ class Translation_MM(MichaelisMentenCopy):
             species += [self.ribosome]
         if protein is None:
             protein = Species(transcript.name, material_type="protein")
-        species += [protein]
+        if isinstance(protein,list):
+            species += protein
+        elif isinstance(protein,Species):
+            species += [protein]
 
         species += MichaelisMentenCopy.update_species(self, self.ribosome, transcript)
 
@@ -201,10 +208,13 @@ class OneStepGeneExpression(Mechanism):
 
     def update_species(self, dna, protein=None, transcript=None, **keywords):
         species = [dna]
-        if protein == None:
+        #TODO what if we want to express a transcript?
+        if protein is None:
             protein = Species(dna.name, material_type="protein")
-
-        species += [protein]
+        if(isinstance(protein,list)):
+            species += protein
+        else:
+            species += [protein]
         return species
 
     def update_reactions(self, dna, component = None, kexpress = None,

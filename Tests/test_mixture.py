@@ -98,6 +98,6 @@ class TestMixture(TestCase):
 
         crn_from_mixture = mixture.compile_crn()
         # test that the mixture has the same species as the manually build CRN object
-        self.assertEqual(CRN.species, crn_from_mixture.species)
+        self.assertEqual(set(CRN.species), set(crn_from_mixture.species))
         # test that the mixture has the same reactions as the manually build CRN object
         self.assertEqual(CRN.reactions, crn_from_mixture.reactions)

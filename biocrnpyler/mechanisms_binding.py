@@ -51,7 +51,7 @@ class One_Step_Cooperative_Binding(Mechanism):
         complexS = None
         if complex_species is None:
             complex_name = None
-            material_type = None
+            material_type = "complex"
         elif isinstance(complex_species, str):
             complex_name = complex_species
             material_type = None
@@ -172,8 +172,11 @@ class Two_Step_Cooperative_Binding(Mechanism):
         else:
             kb1, kb2 = kb
             ku1, ku2 = ku
-        n_mer_name = f"{cooperativity}x_{binder.material_type}_{binder.name}"
-        n_mer = Complex([binder], name = n_mer_name)
+        #n_mer_name = f"{cooperativity}x_{binder.material_type}_{binder.name}"
+        #n_mer = make_complex([binder], name = n_mer_name)
+        #complexFinal = None
+        #if(complexFinal is None):
+        #    complexFinal = make_complex([n_mer, bindee])
 
         binder, bindee, complexS, n_mer = self.update_species(binder, bindee, component = component, complex_species = complex_species, n_mer_species = n_mer_species, cooperativity=cooperativity, part_id = part_id, **keywords)
 
@@ -213,6 +216,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
     def update_species(self,binders,bindee,cooperativity=None,\
                             component = None, part_id = None, **kwords):
         cooperativity_dict = {}
+        out_species = []
         for binder in binders:
             binder_partid = part_id+"_"+binder.name
             if ((cooperativity is None) or (type(cooperativity)==dict and binder_partid not in cooperativity) \
@@ -225,7 +229,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
             if component is None and ( cooperativity is None):
                 raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
             cooperativity_dict[binder.name]=coop_val
-        out_species = []
+        
         for i in range(1, len(binders)+1):
             for combo in it.combinations(binders,i):
                 #go through every possible combination of reactants and dna and make
@@ -293,7 +297,17 @@ class One_Step_Binding(Mechanism):
                  mechanism_type="binding"):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, species, component = None, complex_species = None, part_id = None, **keywords):
+    def update_species(self, binders,bindee, component = None, complex_species = None,\
+                                                     part_id = None, **keywords):
+        species = []
+        if(type(binders)==list):
+            species += binders
+        else:
+            species += [binders]
+        if(type(bindee) == list):
+            species += bindee
+        else:
+            species += [bindee]
         if part_id is None:
             part_id = ""
             for s in species:
@@ -306,7 +320,17 @@ class One_Step_Binding(Mechanism):
         return species + [complex_species]
 
 
-    def update_reactions(self, species, component = None, complex_species = None, part_id = None, kb = None, ku = None, **keywords):
+    def update_reactions(self, binders,bindee, component = None, complex_species = None,\
+                                 part_id = None, kb = None, ku = None, **keywords):
+        species = []
+        if(type(binders)==list):
+            species += binders
+        else:
+            species += [binders]
+        if(type(bindee) == list):
+            species += bindee
+        else:
+            species += [bindee]
         if part_id is None:
             part_id = ""
             for s in species:

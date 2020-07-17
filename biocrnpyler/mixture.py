@@ -218,8 +218,8 @@ class Mixture(object):
         # TODO check if we can merge the two variables
         self.crn_species = self.added_species
         for component in self.components:
-            self.append_species(component.update_species(), component)
-
+            self.append_species(component.update_species(),component)
+        self.crn_species = list(set(self.crn_species)) #species should be unique!
         return self.crn_species
 
     def update_reactions(self) -> List[Reaction]:

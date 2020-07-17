@@ -17,7 +17,17 @@ from fa2 import ForceAtlas2
 import numpy as np
 from matplotlib import cm
 import matplotlib.pyplot as plt
-
+from .components_basic import Protein
+from .dna_part_promoter import Promoter
+from .dna_part_rbs import RBS
+from .dna_part_cds import CDS
+from .dna_part_terminator import Terminator
+from .dna_part_misc import AttachmentSite
+PLOT_DNA = True
+try:
+    import dnaplotlib as dpl
+except ModuleNotFoundError:
+    PLOT_DNA = False
 def updateLimits(limits,xvalues):
     for value in xvalues:
         if(value < limits[0]):
@@ -293,3 +303,129 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     CRNreactionsonly = CRNgraph.copy()
     CRNreactionsonly.remove_nodes_from(range(rxnlist[0]))
     return CRNgraph,CRNspeciesonly,CRNreactionsonly
+
+def make_dpl_from_construct(construct,showlabels=[]):
+    """ This function creats a dictionary suitable for
+    input into dnaplotlib for plotting constructs.
+    Inputs:
+    construct: a DNA_construct object
+    showlabels: list of part types to show labels for. For example, [AttachmentSite,Terminator]"""
+    #TODO make showlabels more general
+    outdesign = []
+    cmap = cm.Set1(range(len(construct.parts_list)))
+    pind = 0
+    for part in construct.parts_list:
+        showlabel = False
+        if(type(part) in showlabels):
+            showlabel = True
+        outdesign+=make_dpl_from_part(part,direction = part.direction=="forward",\
+                        color=cmap[pind][:-1],color2 = random.choice(cmap)[:-1],showlabel=showlabel)
+        pind+=1
+    return outdesign
+def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabel=False):
+    """ This function creats a dictionary suitable for
+    input into dnaplotlib for plotting constructs.
+    Inputs:
+    part: a DNA_part object
+    direction: True for forward, False for reverse. If you leave it as None, it will take from the DNA_part object
+    color: this is the color of the part. Tuple with relative rgb values. if the DNA_part has a defined color it will take that first before
+                looking at this variable
+    color2: this is the secondary color of the part. Only relevant for RecombinaseSite2 components. Basically the
+            same idea as color, above
+    showlabel: if True, the label of this part will be shown."""
+    regs = []
+    if(direction is None and part.direction is not None):
+        direction = part.direction=="forward"
+    elif(direction is None):
+        direction = True
+    if(part.color is not None):
+        color = part.color
+    if(part.color2 is not None):
+        color2 = part.color2
+    dpl_type = "UserDefined" #this is the default part type
+    try:
+        part_dpl = part.dpl_type
+    except AttributeError:
+        #this happens if part doesn't have the part_dpl variable
+        pass
+    if(isinstance(part,Promoter)):
+        dpl_type = "Promoter"
+        try:
+            #a constitutive promoter doesn't have regulators
+            regs = part.regulators
+        except AttributeError:
+            pass
+    elif(isinstance(part,RBS)):
+        dpl_type = "RBS"
+    elif(isinstance(part,CDS)):
+        dpl_type = "CDS"
+    elif(isinstance(part,Protein)):
+        dpl_type = "CDS"
+    elif(isinstance(part,Terminator)):
+        dpl_type = "Terminator"
+    elif(isinstance(part,AttachmentSite)):
+        if(part.site_type == "attP" or part.site_type == "attB"):
+            dpl_type = "RecombinaseSite"
+        elif(part.site_type == "attL" or part.site_type == "attR"):
+            dpl_type = "RecombinaseSite2"
+    outdesign = [{'type':dpl_type,"name":part.name,"fwd":direction,'opts':{'color':color,'color2':color2}}]
+    for reg in regs:
+        outdesign += [{"type":"Operator","name":str(reg),"fwd":direction,'opts':{'color':color,'color2':color2}}]
+    if(showlabel):
+        outdesign[0]["opts"].update({'label':str(part),'label_size':13,'label_y_offset':-8,})
+    if(not direction):
+        outdesign = outdesign[::-1]
+    return outdesign
+
+def plotDesign(design,renderer = None,part_renderers=None,\
+                circular=False,title=None):
+    """helper function for doing dnaplotlib plots. You need to set the size and min max of the
+    plot, and that's what this function does"""
+    if(PLOT_DNA):
+        if(renderer is None):
+            renderer = dpl.DNARenderer(scale = 5,linewidth=3)
+        if(part_renderers is None):
+            part_renderers = renderer.SBOL_part_renderers()
+        fig = plt.figure(figsize=(len(design)*.75,1.1))
+        ax = fig.add_axes([0,0,1,1])
+        start,end = renderer.renderDNA(ax,design,part_renderers,circular=circular)
+        ax.axis('off')
+        if title is not None:
+            ax.set_title(title)
+        addedsize=1
+        ax.set_xlim([start-addedsize,end+addedsize])
+        ax.set_ylim([-15,15])
+        plt.show()
+    else:
+        print("plotting DNA has been disabled because you don't have DNAplotlib")
+
+def plotConstruct(DNA_construct_obj,dna_renderer=None,\
+                                    rna_renderer=None,\
+                                    plot_rnas=False,debug=False,showlabels = [AttachmentSite]):
+    """helper function for making dnaplotlib plots of a DNA_construct object. Plots the
+    DNAs and the RNAs that come from that DNA, using DNA_construct.explore_txtl"""
+    #TODO: make the label showing more general
+    if(PLOT_DNA):
+        if(dna_renderer is None):
+            dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3)
+        if(rna_renderer is None):
+            rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0))
+
+
+    design = make_dpl_from_construct(DNA_construct_obj,showlabels=showlabels)
+    circular=DNA_construct_obj.circular
+    plotDesign(design,circular=circular,title=DNA_construct_obj.get_species())
+    if(plot_rnas):
+        rnas,proteins = DNA_construct_obj.explore_txtl()
+        if(debug):
+            print("rna:")
+            print(rnas)
+            print("protein")
+            print(proteins)
+        for promoter in rnas:
+            rnadesign = make_dpl_from_construct(rnas[promoter])
+            rnacolor = rna_renderer.linecolor
+            for part in rnadesign:
+                if("edgecolor" not in part['opts']):
+                    part['opts'].update({'edgecolor':rnacolor})
+            plotDesign(rnadesign,renderer=rna_renderer,title=rnas[promoter].get_species())

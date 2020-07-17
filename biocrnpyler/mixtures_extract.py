@@ -116,7 +116,7 @@ class TxTlExtract(Mixture):
 
         init = kwargs.get('init')
         if init:
-            self.rnap.get_species().initial_concentration = init[rep(rnap)]
+            self.rnap.get_species().initial_concentration = init[repr(rnap)]
             self.rnaase.get_species().initial_concentration = init[repr(rnaase)]
             self.ribosome.get_species().initial_concentration = init[repr(ribosome)]
 

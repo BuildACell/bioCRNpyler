@@ -3,6 +3,7 @@
 
 from warnings import warn
 from .sbmlutil import *
+#from .component import Component
 import warnings
 import numpy as np
 from typing import List, Union, Dict
@@ -182,6 +183,140 @@ class OrderedMonomer:
                 return True
         return False
 
+class Species(OrderedMonomer):
+    """ A formal species object for a CRN
+     A Species must have a name. They may also have a material_type (such as DNA,
+     RNA, Protein), and a list of attributes.
+    """
+
+    def __init__(self, name: str, material_type="", attributes: Union[List,None] = None,
+                 initial_concentration=0):
+        OrderedMonomer.__init__(self)
+        self.name = self.check_name(name)
+        self.material_type = self.check_material_type(material_type)
+        self.initial_concentration = initial_concentration
+        if material_type == "complex":
+            warn("species which are formed of two species or more should be "
+                 "called using the chemical_reaction_network.ComplexSpecies "
+                 "constructor for attribute inheritance purposes.")
+
+        self.attributes = []
+        if attributes is not None:
+            if not isinstance(attributes,list):
+                attributes = list(attributes)
+            for attribute in attributes:
+                self.add_attribute(attribute)
+
+     #Check that the string contains is alpha-numeric characters or "_" and that the first character is a letter. IF the name is a starts with a number, there must be a material type.
+    def check_material_type(self, material_type):
+
+        
+        if material_type in [None, ""] and self.name[0].isnumeric():
+            raise ValueError(f"species name: {self.name} contains a number as the first character and therefore requires a material_type.")
+        elif material_type == None:
+            return ""
+        elif (material_type.replace("_", "").isalnum() and material_type.replace("_", "")[0].isalpha()) or material_type == "":
+                return material_type
+        else:
+            raise ValueError(f"material_type {material_type} must be alpha-numeric and start with a letter.")
+
+    
+    #Check that the string contains only underscores and alpha-numeric characters
+    def check_name(self, name):
+        myname = str(name)
+        #print(myname)
+        no_underscore_string = myname.replace("_", "")
+        if no_underscore_string.isalnum():
+            return myname
+        else:
+            raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores.")
+
+    def __repr__(self):
+        txt = ""
+        if self.material_type not in ["", None]:
+            txt = self.material_type + "_"
+
+        txt += self.name
+
+        if len(self.attributes) > 0 and self.attributes != []:
+            for i in self.attributes:
+                if i is not None:
+                    txt += "_" + str(i)
+        txt.replace("'", "")
+        return txt
+
+    def replace_species(self, species, new_species):
+        if not isinstance(species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        if not isinstance(new_species, Species):
+            raise ValueError('species argument must be an instance of Species!')
+
+        if self == species:
+            return new_species
+        else:
+            return self
+
+    #Used in some recursive calls where ComplexSpecies returns a list and Species will return just themselves (in a list)
+    def get_species(self, **kwargs):
+        return [self]
+
+    #A more powerful printing function
+    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+        txt = ""
+        if self.material_type not in ["", None] and show_material:
+            txt = self.material_type + "["
+
+        txt += self.name
+
+        if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
+            txt += "("
+            for i in self.attributes:
+                if i is not None:
+                    txt += str(i)+", "
+            txt = txt[:-2]+")"
+
+        txt.replace("'", "")
+
+        if self.material_type not in ["", None] and show_material:
+            txt += "]"
+
+        return txt
+
+    def add_attribute(self, attribute: str):
+        assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(), "Attribute: %s must be an alpha-numeric string" % attribute
+        self.attributes.append(attribute)
+    def extract_attribute_containing(self,attrib):
+        retvals = []
+        for attr in self.attributes:
+            if(attrib in attr):
+                retvals += [attr]
+        return retvals
+    def __eq__(self, other):
+        """
+        Overrides the default implementation
+        Two species are equivalent if they have the same name, type, and attributes
+        :param other: Species instance
+        :return: boolean
+        """
+
+        if isinstance(other, Species) \
+                            and self.material_type == other.material_type \
+                            and self.name == other.name \
+                            and set(self.attributes) == set(other.attributes):
+            return True
+        else:
+            return False
+    def __contains__(self,other):
+        return self.__eq__(other)
+    def __gt__(self,Species2):
+        return self.name > Species2.name
+    def __lt__(self,Species2):
+        return self.name < Species2.name
+
+    def __hash__(self):
+        return str.__hash__(repr(self))
+
 
 def make_species(speclist,flatten=False):
     """this function turns a string or a list of strings into species or a list of species"""
@@ -247,7 +382,7 @@ class Complex:
         if(valent_complex is None):
             #this is a normal ComplexSpecies
             #the madness below is telling python to skip to the __init__ function
-            return ComplexSpecies(*args,species=species,**keywords)
+            return ComplexSpecies(species,*args,**keywords)
         else:
             if(len(other_species)==0):
                 return valent_complex[bindloc]
@@ -265,142 +400,20 @@ class Complex:
                 valent_complex.material_type = "OPcomplex"
                 return valent_complex[bindloc]
 
-class Species(OrderedMonomer,object):
-    """ A formal species object for a CRN
-     A Species must have a name. They may also have a material_type (such as DNA,
-     RNA, Protein), and a list of attributes.
-    """
-
-    def __init__(self, name: str, material_type="", attributes: Union[List,None] = None,
-                 initial_concentration=0):
-        OrderedMonomer.__init__(self)
-        self.name = self.check_name(name)
-        self.material_type = self.check_material_type(material_type)
-        self.initial_concentration = initial_concentration
-        if material_type == "complex":
-            warn("species which are formed of two species or more should be "
-                 "called using the chemical_reaction_network.ComplexSpecies "
-                 "constructor for attribute inheritance purposes.")
-
-        self.attributes = []
-
-        if attributes is not None:
-            if not isinstance(attributes,list):
-                attributes = list(attributes)
-            for attribute in attributes:
-                self.add_attribute(attribute)
-
-     #Check that the string contains is alpha-numeric characters or "_" and that the first character is a letter. IF the name is a starts with a number, there must be a material type.
-    def check_material_type(self, material_type):
-
-        
-        if material_type in [None, ""] and self.name[0].isnumeric():
-            raise ValueError(f"species name: {self.name} contains a number as the first character and therefore requires a material_type.")
-        elif material_type == None:
-            return ""
-        elif (material_type.replace("_", "").isalnum() and material_type.replace("_", "")[0].isalpha()) or material_type == "":
-                return material_type
-        else:
-            raise ValueError(f"material_type {material_type} must be alpha-numeric and start with a letter.")
-
-    
-    #Check that the string contains only underscores and alpha-numeric characters
-    def check_name(self, name):
-        no_underscore_string = name.replace("_", "")
-        if no_underscore_string.isalnum():
-            return name
-        else:
-            raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores.")
-
-    def __repr__(self):
-        txt = ""
-        if self.material_type not in ["", None]:
-            txt = self.material_type + "_"
-
-        txt += self.name
-
-        if len(self.attributes) > 0 and self.attributes != []:
-            for i in self.attributes:
-                if i is not None:
-                    txt += "_" + str(i)
-        txt.replace("'", "")
-        return txt
-
-    def replace_species(self, species, new_species):
-        if not isinstance(species, Species):
-            raise ValueError('species argument must be an instance of Species!')
-
-        if not isinstance(new_species, Species):
-            raise ValueError('species argument must be an instance of Species!')
-
-        if self == species:
-            return new_species
-        else:
-            return self
-
-    #Used in some recursive calls where ComplexSpecies returns a list and Species will return just themselves (in a list)
-    def get_species(self, **kwargs):
-        return [self]
-
-    #A more powerful printing function
-    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
-        txt = ""
-        if self.material_type not in ["", None] and show_material:
-            txt = self.material_type + "["
-
-        txt += self.name
-
-        if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
-            txt += "("
-            for i in self.attributes:
-                if i is not None:
-                    txt += str(i)+", "
-            txt = txt[:-2]+")"
-
-        txt.replace("'", "")
-
-        if self.material_type not in ["", None] and show_material:
-            txt += "]"
-
-        return txt
-
-    def add_attribute(self, attribute: str):
-        assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(), "Attribute: %s must be an alpha-numeric string" % attribute
-        self.attributes.append(attribute)
-
-    def __eq__(self, other):
-        """
-        Overrides the default implementation
-        Two species are equivalent if they have the same name, type, and attributes
-        :param other: Species instance
-        :return: boolean
-        """
-
-        if isinstance(other, Species) \
-                            and self.material_type == other.material_type \
-                            and self.name == other.name \
-                            and set(self.attributes) == set(other.attributes):
-            return True
-        else:
-            return False
-    def __gt__(self,Species2):
-        return self.name > Species2.name
-    def __lt__(self,Species2):
-        return self.name < Species2.name
-
-    def __hash__(self):
-        return str.__hash__(repr(self))
 
 
 class ComplexSpecies(Species):
     """ A special kind of species which is formed as a complex of two or more species.
         Used for attribute inheritance and storing groups of bounds Species. 
-        Note taht in a ComplexSpecies, the order of the species list does not matter.
+        Note that in a ComplexSpecies, the order of the species list does not matter.
         This means that ComplexSpecies([s1, s2]) = ComplexSpecies([s2, s1]). 
         This is good for modelling order-indpendent binding complexes.
         For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
     """
-    def __init__(self, species: List[Union[Species,str]], name: Union[str,None] = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
+    def __init__(self, species: List[Union[Species,str]], name = None,\
+         material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
+        #if(material_type is None):
+        #    print(species)
         if len(species) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
@@ -439,16 +452,14 @@ class ComplexSpecies(Species):
         self.name = self.check_name(name)
         self.material_type = self.check_material_type(material_type)
         self.initial_concentration = initial_concentration
-
         if attributes is None:
             attributes = []
         for s in self.species:
             attributes += s.attributes
+        
         attributes = list(set(attributes))
-
         while None in attributes:
             attributes.remove(None)
-
         self.attributes = attributes
 
 
@@ -543,7 +554,15 @@ class Multimer(ComplexSpecies):
         else:
             species = [species]
 
-        ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)   
+        ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, \
+                                                        attributes = attributes, initial_concentration = initial_concentration)   
+
+
+
+
+
+
+
 
 class OrderedComplexSpecies(ComplexSpecies):
     """ A special kind of species which is formed as a complex of two or more species.
@@ -597,6 +616,26 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         self.attributes = attributes
 
+    @property
+    def species_set(self):
+        bindval = self.extract_attribute_containing("bindloc")
+        if(len(bindval)==0):
+            #no binding location, so extract everything!
+            return list(set(self.species))
+        elif(len(bindval)==1):
+            bindloc = int(bindval[0].split("_")[1])
+            bindloc_species = self.species[bindloc]
+            if(isinstance(bindloc_species,ComplexSpecies)):
+                return self.species[bindloc].species_set
+            elif(isinstance(bindloc_species,Species)):
+                return [self.species[bindloc]]
+            else:
+                ValueError()
+            
+        elif(len(bindval)>1):
+            raise ValueError("{} has two bindloc attributes!".format(self))
+        
+
     #Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
     def replace_species(self, species: Species, new_species: Species):
         if not isinstance(species, Species):
@@ -622,14 +661,23 @@ class OrderedComplexSpecies(ComplexSpecies):
         return OrderedComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
 
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+        """a more powerful and informative print function which doesn't comply to
+        SBML naming conventions"""
         txt = ""
         if self.material_type not in ["", None] and show_material:
-            txt += self.material_type+"["
+            txt += self.material_type
         
         txt += "["
-
-        for s in self.species:
-            txt += s.pretty_print(show_material = show_material, show_attributes = False)+":"
+        hinum = None
+        if("highlight" in kwargs):
+            hinum = kwargs["highlight"]
+        for i, s in enumerate(self.species):
+            if(hinum == i):
+                txt+="("
+            txt += s.pretty_print(show_material = show_material, show_attributes = False)
+            if(hinum == i):
+                txt += ")"
+            txt+=":"
         txt = txt[:-1]
 
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
@@ -643,6 +691,38 @@ class OrderedComplexSpecies(ComplexSpecies):
         txt += "]"
 
         return txt
+    def __contains__(self,item):
+        """we want the orderedcomplexspecies to know if it is a superset of another OrderedComplexSpecies"""
+        if(isinstance(item,OrderedComplexSpecies)):
+            for myel,otherel in zip(self.species,item.species):
+                if(type(myel)==Species):
+                    if(myel == otherel):
+                        pass
+                    else:
+                        return False
+                else:
+                    if(otherel in myel):
+                        pass
+                    elif(otherel == myel):
+                        pass
+                    else:
+                        return False
+            return True
+        else:
+            super().__contains__(item)
+        #DEPRECATED, below
+        #     binding_site = None
+        #     if(len(self.attributes)>0):
+        #         for attrib in self.attributes:
+        #             #if we only care about a specific binding location, then only check there!
+        #             if("bindloc" in attrib):
+        #                 binding_site = int(attrib.split("_")[1])
+        #     if(binding_site is None):
+        #         #otherwise use the contains function from the super class
+        #         return super().__contains__(item)
+        #     else:
+        #         return (item in self.species[binding_site])
+
 
 class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
     def __init__(self,species, name=None, base_species = None, material_type = "ordered_polymer", \
@@ -740,7 +820,6 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
             if((part==item ) or (item == part.data) or (item in part)):
                 return True
         return False
-
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
     A reaction has the form:
@@ -756,7 +835,10 @@ class Reaction(object):
 
         if len(inputs) == 0 and len(outputs) == 0:
             warn("Reaction Inputs and Outputs both contain 0 Species.")
-
+        if(type(inputs)==list):
+            inputs = flatten_list(inputs)
+        if(type(outputs)==list):
+            outputs = flatten_list(outputs)
         if k != 0 and propensity_params is not None and "k" not in propensity_params:
             propensity_params["k"] = k
         elif k == 0 and propensity_params is not None and "k" in propensity_params:
@@ -838,7 +920,7 @@ class Reaction(object):
         #if inputs or outputs is a nested list, flatten that list
         new_inputs = []
         for s in flatten_list(inputs):
-            if isinstance(s, Species):
+            if isinstance(s, Species) or isinstance(s,OrderedMonomer):
                 new_inputs.append(s)
             else:
                 raise ValueError(f"A non-species object was used as a species: {s}!")
@@ -846,7 +928,7 @@ class Reaction(object):
 
         new_outputs = []
         for s in flatten_list(outputs):
-            if isinstance(s, Species):
+            if isinstance(s, Species) or isinstance(s,OrderedMonomer):
                 new_outputs.append(s)
             else:
                 raise ValueError(f"A non-species object was used as a species: {s}!")
@@ -1547,6 +1629,7 @@ class ChemicalReactionNetwork(object):
 
 #Helper function to flatten lists
 def flatten_list(in_list):
+    """Helper function to flatten lists"""
     out_list = []
     for element in in_list:
         if isinstance(element, list):

@@ -8,11 +8,12 @@ from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Coop
 from warnings import warn as pywarn
 import itertools as it
 import numpy as np
-from .dna_assembly_promoter import *
-from .dna_assembly_rbs import *
+from .dna_part_promoter import *
+from .dna_part_rbs import *
 
 def warn(txt):
     pywarn(txt)
+
 
 
 class DNAassembly(DNA):
@@ -34,7 +35,7 @@ class DNAassembly(DNA):
         self.update_dna(dna, attributes=attributes)
         self.update_transcript(transcript)
         self.update_protein(protein)
-        self.update_promoter(promoter, transcript = self.transcript)
+        self.update_promoter(promoter, transcript = self.transcript,protein = self.protein)
         self.update_rbs(rbs, transcript = self.transcript,
                         protein = self.protein)
 
@@ -79,18 +80,20 @@ class DNAassembly(DNA):
         if self.rbs is not None:
             self.rbs.transcript = self.protein
 
-    def update_promoter(self, promoter, transcript=None):
+    def update_promoter(self, promoter, transcript=None,protein = None):
         if transcript is not None:
             self.update_transcript(transcript)
 
         if isinstance(promoter, str):
             self.promoter = Promoter(assembly = self, name = promoter,
                                      transcript = self.transcript,
-                                     parameters = self.parameters)
+                                     parameters = self.parameters,
+                                     protein = protein)
         elif isinstance(promoter, Promoter):
             self.promoter = promoter
             self.promoter.assembly = self
             self.promoter.transcript = self.transcript
+            self.promoter.protein = protein
         elif promoter is not None:
             raise ValueError("Improper promoter type recieved by DNAassembly. "
                              "Expected string or promoter object. "
