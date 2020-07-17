@@ -62,7 +62,7 @@ class Parameter(object):
         :param parameter_value: is the value of the parameter
         """
         self.parameter_name = parameter_name
-        self.parameter_value = parameter_value
+        self.value = parameter_value
 
     @property
     def parameter_name(self):
@@ -78,11 +78,11 @@ class Parameter(object):
         self._parameter_name = new_parameter_name
 
     @property
-    def parameter_value(self):
-        return self._parameter_value
+    def value(self):
+        return self._value
 
-    @parameter_value.setter
-    def parameter_value(self, new_parameter_value):
+    @value.setter
+    def value(self, new_parameter_value):
         if not (isinstance(new_parameter_value, numbers.Real) or isinstance(new_parameter_value, str)):
             raise ValueError(f"parameter_value must be a float or int: received {type(new_parameter_value)}.")
         if isinstance(new_parameter_value, str):
@@ -92,9 +92,9 @@ class Parameter(object):
                     or re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e[0-9]+)|(^[0-9])', new_parameter_value, re.I) is None:
                 raise ValueError('No valid parameter value! Accepted formats: 1.00 or 1e4 or 2/5 ')
 
-            self._parameter_value = Parameter._convert_rational(new_parameter_value)
+            self._value = Parameter._convert_rational(new_parameter_value)
         else:
-            self._parameter_value = new_parameter_value
+            self._value = new_parameter_value
 
     @staticmethod
     def _convert_rational(p_value):

@@ -18,8 +18,20 @@ class TestParameter(TestCase):
         with self.assertRaisesRegexp(ValueError, f"parameter_value must be a float or int"):
             Parameter(parameter_name="None", parameter_value=None)
 
-        #Test string parameter values
+        # test invalid value string
+        with self.assertRaisesRegexp(ValueError, f"No valid parameter value! Accepted format"):
+            Parameter(parameter_name="None", parameter_value='2ba')
+
+        # test string parameter values
         self.assertTrue(Parameter(parameter_name="None", parameter_value="1.0").value == 1.0)
+
+        self.assertTrue(Parameter(parameter_name="None", parameter_value="1/2").value == 0.5)
+
+        self.assertTrue(Parameter(parameter_name="None", parameter_value="1e2").value == 100)
+
+        # testing invalid parameter name
+        with self.assertRaisesRegexp(ValueError, f"parameter_name should be at least one character and cannot start with a number!"):
+            Parameter(parameter_name="2", parameter_value=2)
 
     def test_parameter_entry(self):
         #Valid ParameterEntry Construction
