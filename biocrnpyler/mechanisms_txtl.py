@@ -5,6 +5,10 @@ from .mechanisms_enzyme import *
 
 
 class OneStepGeneExpression(Mechanism):
+    """
+    A mechanism to model gene expression without transcription or translation
+    G --> G + P
+    """
     def __init__(self, name="gene_expression",
                  mechanism_type="transcription"):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
@@ -27,6 +31,10 @@ class OneStepGeneExpression(Mechanism):
 
 
 class SimpleTranscription(Mechanism):
+    """
+    A Mechanism to model simple catalytic transcription.
+    G --> G + T
+    """
     def __init__(self, name = "simple_transcription", mechanism_type = "transcription"):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
@@ -57,6 +65,10 @@ class SimpleTranscription(Mechanism):
         return rxns
 
 class SimpleTranslation(Mechanism):
+    """
+    A mechanism to model simple catalytic translation.
+    T --> T + P
+    """
     def __init__(self, name = "simple_translation", mechanism_type = "translation"):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
@@ -83,6 +95,15 @@ class SimpleTranslation(Mechanism):
 
 
 class PositiveHillTranscription(Mechanism):
+    """
+    A mechanism to model transcription as a proprotional positive hill function:
+    G --> G + P 
+    rate = k*G*(R^n)/(K+R^n)
+    where R is a regulator (activator).
+    Optionally includes a leak reaction
+    G --> G + P @ rate kleak.
+    """
+
     #Set the name and mechanism_type
     def __init__(self, name="positivehill_transcription", mechanism_type="transcription"):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
@@ -128,7 +149,15 @@ class PositiveHillTranscription(Mechanism):
         return reactions
 
 class NegativeHillTranscription(Mechanism):
-    #Set the name and mechanism_type
+    """
+    A mechanism to model transcription as a proprotional negative hill function:
+    G --> G + P 
+    rate = k*G*(1)/(K+R^n)
+    where R is a regulator (repressor).
+    Optionally includes a leak reaction
+    G --> G + P @ rate kleak.
+    """
+
     def __init__(self, name="negativehill_transcription", mechanism_type="transcription"):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 

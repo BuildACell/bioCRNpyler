@@ -55,9 +55,13 @@ class ExpressionExtract(Mixture):
         #Call the superclass function
         return Mixture.compile_crn(self)
 
-#A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.)
-#RNA is degraded via a global mechanism
+
 class SimpleTxTlExtract(Mixture):
+    """
+    A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.)
+    RNA is degraded via a global mechanism.
+    """
+
     def __init__(self, name="", mechanisms=None, components=None, **kwargs):
 
         if components is None:

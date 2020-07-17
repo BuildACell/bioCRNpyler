@@ -2,6 +2,9 @@ from .mechanism import *
 from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
 
 class Reversible_Bimolecular_Binding(Mechanism):
+    """
+    A Mechanism to model s1 + s2 <--> s1:s2
+    """
     def __init__(self, name="reversible_bimolecular_binding",
                  mechanism_type="bimolecular_binding"):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
@@ -289,6 +292,10 @@ class Combinatorial_Cooperative_Binding(Mechanism):
 
         
 class One_Step_Binding(Mechanism):
+    """
+    A mechanism to model the binding of a list of species, eg
+    S1 + S2 ... SN <--> S1:S2:...:SN
+    """
     def __init__(self, name="one_step_binding",
                  mechanism_type="binding"):
         Mechanism.__init__(self, name, mechanism_type)

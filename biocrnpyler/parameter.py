@@ -51,10 +51,13 @@ import csv
 from warnings import warn
 from typing import List, Dict, Union
 
-#A class for representing parameters in general. Only the below subclasses are ever used.
-# parameter_name is the name of the parameter
-# parameter_value is the value of the parameter
+
 class Parameter():
+    """
+    A class for representing parameters in general. Only the below subclasses are ever used.
+     parameter_name is the name of the parameter
+     parameter_value is the value of the parameter
+    """
     def __init__(self, parameter_name, parameter_value):
         if not isinstance(parameter_name, str):
             raise ValueError(f"parameter_name must be a string: received {parameter_name}.")
@@ -69,11 +72,14 @@ class Parameter():
             self.value = parameter_value
 
 
-#A class for representing parameters in a parameter stored the ParameterDatabase
-# parameter_keys is a dictionary {key:value} of keys for looking up the parameter
-# parameter_info is a dictionary {key:value} of additional information about the parameter. 
-#     For example: additional columns in the parameter file or the parameter file name.
+
 class ParameterEntry(Parameter):
+    """
+    A class for representing parameters in a parameter stored the ParameterDatabase
+     parameter_keys is a dictionary {key:value} of keys for looking up the parameter
+     parameter_info is a dictionary {key:value} of additional information about the parameter. 
+         For example: additional columns in the parameter file or the parameter file name.
+    """
     def __init__(self, parameter_name, parameter_value, parameter_keys = None, parameter_info = None):
         Parameter.__init__(self, parameter_name, parameter_value)
 
@@ -101,10 +107,13 @@ class ParameterEntry(Parameter):
         else:
             raise ValueError(f"parameter_info must be None or a dictionary: received {parameter_info}.")
 
-#A class for representing parameters used in the Model
-#  search_key is a tuple searched for to find the parameter, eg (mech_id, part_id, param_name), :
-#  found_key is the tuple used after defaulting to find the parameter eg (param_name)
+
 class ModelParameter(ParameterEntry):
+    """
+    A class for representing parameters used in the Model
+      search_key is a tuple searched for to find the parameter, eg (mech_id, part_id, param_name), :
+      found_key is the tuple used after defaulting to find the parameter eg (param_name)
+    """
     def __init__(self, parameter_name, parameter_value, search_key, found_key, parameter_keys = None, parameter_info = None):
 
         ParameterEntry.__init__(self, parameter_name, parameter_value, parameter_keys = parameter_keys, parameter_info = parameter_info)
@@ -405,8 +414,20 @@ class ParameterDatabase():
 
         return return_field_names
 
-    #Searches the database for the best matching parameter.
+    
     def find_parameter(self, mechanism, part_id, param_name, parameter_warnings = False):
+        """Searches the database for the best matching parameter. 
+        
+        Parameter defaulting heirarchy:
+        (mechanism_name, part_id, param_name) --> param_val. If that particular parameter key cannot be found, 
+        the software will default to the following keys: 
+        (mechanism_type, part_id, param_name) >> (part_id, param_name) >> 
+        (mechanism_name, param_name) >> (mechanism_type, param_name) >>
+        (param_name) and give a warning. 
+        As a note, mechanism_name refers to the .name variable of a Mechanism. mechanism_type refers to the .type variable of a Mechanism. 
+        Either of these can be used as a mechanism_id. This allows for models to be constructed easily using default parameter values and 
+        for parameters to be shared between different Mechanisms and/or Components.
+        """
 
         found_entry = None
         warning_txt = None

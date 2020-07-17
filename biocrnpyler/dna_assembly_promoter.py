@@ -8,6 +8,9 @@ import itertools as it
 
 
 class Promoter(Component):
+    """
+    A basic Promoter class with no regulation. Needs to be included in a DNAassembly or DNAconstruct to function.
+    """
     def __init__(self, name, assembly=None,
                  transcript=None, length=0,
                  mechanisms=None, parameters=None, **keywords):
@@ -57,6 +60,11 @@ class Promoter(Component):
             return None
 
 class RegulatedPromoter(Promoter):
+    """
+    A Promoter class with simple regulation.
+    regulators = [list of species]
+    Each regulator binds independently to the Promoter to regulate it.
+    """
     def __init__(self, name: str, regulators, leak=True, assembly=None,
                  transcript=None, length=0, mechanisms=None,
                  parameters=None , **keywords):
@@ -121,8 +129,11 @@ class RegulatedPromoter(Promoter):
 
         return reactions
 
-#A class for a promoter which can be activated by a single species, modelled as a positive hill function
+
 class ActivatablePromoter(Promoter):
+    """
+    A class for a promoter which can be activated by a single species, modelled as a positive hill function
+    """
     def __init__(self, name, activator, transcript = None, leak = False, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
@@ -159,8 +170,10 @@ class ActivatablePromoter(Promoter):
         
         return reactions
 
-#A class for a promoter which can be repressed by a single species, modelled as a negative hill function
 class RepressiblePromoter(Promoter):
+    """
+    A class for a promoter which can be repressed by a single species, modelled as a negative hill function
+    """
     def __init__(self, name, repressor, transcript = None, leak = False, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)

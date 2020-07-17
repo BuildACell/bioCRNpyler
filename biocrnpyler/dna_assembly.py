@@ -16,6 +16,15 @@ def warn(txt):
 
 
 class DNAassembly(DNA):
+    """
+    A Component which contains a Promoter, RBS, transcript, and protein.
+    Used to model simple Transcription Translation systems.
+
+    Note:
+    If transcript is None and protein is not None, 
+    the DNAassembly will use its transcription mechanisms to produce the protein.
+    This is used by Expression Mixtures.
+    """
     def __init__(self, name: str, dna=None, promoter=None, transcript=None,
                  rbs=None, protein=None, length=None,
                  attributes=None, mechanisms=None, parameters=None, initial_conc=None,

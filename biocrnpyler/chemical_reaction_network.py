@@ -34,8 +34,11 @@ class Species(object):
             for attribute in attributes:
                 self.add_attribute(attribute)
 
-     #Check that the string contains is alpha-numeric characters or "_" and that the first character is a letter. IF the name is a starts with a number, there must be a material type.
     def check_material_type(self, material_type):
+        """ 
+        Check that the string contains is alpha-numeric characters or "_" and that the first character is a letter. 
+        If the name is a starts with a number, there must be a material type.
+        """
 
         
         if material_type in [None, ""] and self.name[0].isnumeric():
@@ -48,8 +51,10 @@ class Species(object):
             raise ValueError(f"material_type {material_type} must be alpha-numeric and start with a letter.")
 
     
-    #Check that the string contains only underscores and alpha-numeric characters
     def check_name(self, name):
+    """
+    Check that the string contains only underscores and alpha-numeric characters
+    """
         no_underscore_string = name.replace("_", "")
         if no_underscore_string.isalnum():
             return name
@@ -82,12 +87,20 @@ class Species(object):
         else:
             return self
 
-    #Used in some recursive calls where ComplexSpecies returns a list and Species will return just themselves (in a list)
     def get_species(self, **kwargs):
+    """
+    Used in some recursive calls where ComplexSpecies returns a list and Species will return just themselves (in a list)
+    """
         return [self]
 
-    #A more powerful printing function
+    
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+    """
+    #A more powerful printing function. 
+    Useful for understanding CRNs but does not return string identifiers.
+    show_material toggles whether species.material is printed.
+    show_attributes toggles whether species.attributes is printed
+    """
         txt = ""
         if self.material_type not in ["", None] and show_material:
             txt = self.material_type + "["
@@ -109,6 +122,9 @@ class Species(object):
         return txt
 
     def add_attribute(self, attribute: str):
+        """
+        Adds attributes to a Species
+        """
         assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(), "Attribute: %s must be an alpha-numeric string" % attribute
         self.attributes.append(attribute)
 
@@ -197,6 +213,9 @@ class ComplexSpecies(Species):
 
 
     def __contains__(self,item):
+        """
+        Returns a list of species inside the ComplexSpecies
+        """
         if not isinstance(item, Species):
             raise ValueError("Operator 'in' requires chemical_reaction_network.Species (or a subclass). Received: "+str(item))
         if item in self.species:
@@ -212,8 +231,12 @@ class ComplexSpecies(Species):
             #if we got here then we've failed to find it
             return False
 
-    #Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
+    
     def replace_species(self, species: Species, new_species: Species):
+        """
+        Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
+        Does not act in place - returns a new ComplexSpecies. 
+        """
         if not isinstance(species, Species):
             raise ValueError('species argument must be an instance of Species!')
 
@@ -231,8 +254,11 @@ class ComplexSpecies(Species):
         
         return ComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
 
-    #Returns all species in the ComplexSpecies. If recursive = True, returns species inside internal ComplexSpecies recursively as well.
+    
     def get_species(self, recursive = False):
+        """
+        Returns all species in the ComplexSpecies. If recursive = True, returns species inside internal ComplexSpecies recursively as well.
+        """
         if not recursive:
             species = [self]
         else:
@@ -244,6 +270,13 @@ class ComplexSpecies(Species):
 
 
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+    """
+    A more powerful printing function. 
+    Useful for understanding CRNs but does not return string identifiers.
+    show_material toggles whether species.material is printed.
+    show_attributes toggles whether species.attributes is printed
+    """
+
         txt = ""
         if self.material_type not in ["", None] and show_material:
             txt += self.material_type
@@ -285,11 +318,11 @@ class Multimer(ComplexSpecies):
         ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)   
 
 class OrderedComplexSpecies(ComplexSpecies):
-    """ A special kind of species which is formed as a complex of two or more species.
+        """ A special kind of species which is formed as a complex of two or more species.
         In OrderedComplexSpecies the order in which the complex subspecies are is defined
         denote different species, eg [s1, s2, s3] != [s1, s3, s2].
         Used for attribute inheritance and storing groups of bounds Species. 
-    """
+        """
 
     def __init__(self, species, name = None, material_type = "ordered_complex", attributes = None, initial_concentration = 0):
         if len(species) <= 1:
@@ -336,8 +369,11 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         self.attributes = attributes
 
-    #Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
+    
     def replace_species(self, species: Species, new_species: Species):
+        """
+        Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
+        """
         if not isinstance(species, Species):
             raise ValueError('species argument must be an instance of Species!')
 
@@ -356,6 +392,13 @@ class OrderedComplexSpecies(ComplexSpecies):
         return OrderedComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
 
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+        """
+        A more powerful printing function. 
+        Useful for understanding CRNs but does not return string identifiers.
+        show_material toggles whether species.material is printed.
+        show_attributes toggles whether species.attributes is printed
+        """
+
         txt = ""
         if self.material_type not in ["", None] and show_material:
             txt += self.material_type+"["
@@ -553,8 +596,12 @@ class Reaction(object):
                              f"match len(self.outputs) ({len(self.outputs)}).")
 
 
-    #Replaces species with new_species in the entire CRN
+    
     def replace_species(self, species: Species, new_species: Species):
+        """
+        Replaces species with new_species in the entire CRN.
+        Does not act in place: returns a new reaction.
+        """
         if not isinstance(species, Species):
             raise ValueError('species argument must be an instance of Species!')
 
@@ -584,8 +631,11 @@ class Reaction(object):
         new_r = Reaction(inputs = new_inputs, outputs = new_outputs, propensity_type = self.propensity_type, propensity_params = new_params, k = self.k, k_rev = self.k_r)
         return new_r
 
-    #Helper function to print the text of a rate function
+    
     def rate_func_text(self, pretty_print = False,  show_material = True, show_attributes = True, **kwargs):
+        """
+        Helper function to print the text of a rate function
+        """
         tab = (" " * 8)
         txt = ""
         if self.propensity_type == "massaction":
@@ -912,6 +962,14 @@ class ChemicalReactionNetwork(object):
         return txt
 
     def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, **kwargs):
+        """
+        A more powerful printing function. 
+        Useful for understanding CRNs but does not return string identifiers.
+        show_material toggles whether species.material is printed.
+        show_attributes toggles whether species.attributes is printed
+        show_rates toggles whether reaction rate functions are printed
+        """
+
         txt = f"Species ({len(self.species)}) = "+"{"
         for sind in range(len(self.species)):
             s = self.species[sind]
@@ -963,8 +1021,13 @@ class ChemicalReactionNetwork(object):
                     return_list.append(s)
         return return_list
 
-    #Replaces species with new_species in the entire CRN
+    
     def replace_species(self, species: Species, new_species: Species):
+        """
+        Replaces species with new_species in the entire CRN.
+        Does not act in place: returns a new CRN.
+        """
+
         if not isinstance(species, Species):
             raise ValueError('species argument must be an instance of Species!')
 
@@ -987,6 +1050,9 @@ class ChemicalReactionNetwork(object):
 
 
     def generate_sbml_model(self, stochastic_model=False, **keywords):
+        """
+        Produces an SBML model of the CRN.
+        """
         document, model = create_sbml_model(**keywords)
 
         for s in self.species:
@@ -1016,6 +1082,9 @@ class ChemicalReactionNetwork(object):
         return document, model
 
     def write_sbml_file(self, file_name=None, **keywords):
+        """
+        Writes CRN to SBML
+        """
         document, _ = self.generate_sbml_model(**keywords)
         sbml_string = libsbml.writeSBMLToString(document)
         with open(file_name, 'w') as f:
@@ -1023,6 +1092,9 @@ class ChemicalReactionNetwork(object):
         return True
 
     def create_bioscrape_model(self):
+        """
+        Creates a Bioscrape Model of the CRN directly.
+        """
         from bioscrape.types import Model
 
         species_list = []
@@ -1166,8 +1238,11 @@ class ChemicalReactionNetwork(object):
             warnings.warn('libroadrunner was not found, please install libroadrunner')
         return res_ar
 
-#Helper function to flatten lists
+
 def flatten_list(in_list):
+    """
+    Helper function to flatten lists
+    """
     out_list = []
     for element in in_list:
         if isinstance(element, list):

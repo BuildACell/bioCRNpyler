@@ -12,10 +12,13 @@ from .dna_assembly import DNAassembly
 
 
 
-#A Model for in-vivo Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.)
-# Here transcription and Translation are lumped into one reaction: expression.
-#A global mechanism is used to dilute all non-dna species
+
 class ExpressionDilutionMixture(Mixture):
+    """
+    A Model for in-vivo Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.)
+    Here transcription and Translation are lumped into one reaction: expression.
+    A global mechanism is used to dilute all non-dna species
+    """
     def __init__(self, name="", mechanisms=None, **kwargs):
 
         dummy_translation = EmptyMechanism(name = "dummy_translation", mechanism_type = "translation")
@@ -51,9 +54,13 @@ class ExpressionDilutionMixture(Mixture):
         #Call the superclass function
         return Mixture.compile_crn(self)
 
-#A Mixture with continious dilution for non-DNA species
-#mRNA is also degraded via a seperate reaction to represent endonucleases
+
 class SimpleTxTlDilutionMixture(Mixture):
+    """
+    Mixture with continious dilution for non-DNA species
+    Transcription and Translation are both modeled as catalytic with no cellular machinery.
+    mRNA is also degraded via a seperate reaction to represent endonucleases
+    """
     def __init__(self, name="", **keywords):
         
         simple_transcription = SimpleTranscription() #Transcription will not involve machinery
@@ -79,13 +86,16 @@ class SimpleTxTlDilutionMixture(Mixture):
         #Always call the superclass __init__ with **keywords
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, global_mechanisms = global_mechanisms, **keywords)
 
-#A Model for Transcription and Translation with Ribosomes, Polymerases, and Endonucleases labelled as Machinery. 
-#Unlike TxTlExtract, has global dilution for non-DNA and non-Machinery
-#This model does not include any energy
 
-#TODO:
-#Include some "internal" gene which provides background loading of all machinery
+
 class TxTlDilutionMixture(Mixture):
+    """
+    A Model for Transcription and Translation with Ribosomes, Polymerases, and Endonucleases labelled as Machinery.
+    This model includes a background load "cellular processes" which represents innate loading effects in the cell.
+    Effects of loading on cell growth are not modelled.
+    Unlike TxTlExtract, has global dilution for non-DNA and non-Machinery
+    This model does not include any energy
+    """
     def __init__(self, name="", mechanisms=None, components=None,
                  rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
         

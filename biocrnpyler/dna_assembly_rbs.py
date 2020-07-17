@@ -5,6 +5,9 @@ from .mechanisms_binding import *
 from .mechanisms_txtl import *
 
 class RBS(Component):
+    """
+    A simple RBS class with no regulation. Must be included in a DNAconstruct or DNAassembly to do anything.
+    """
     def __init__(self, name: str, assembly=None,
                  transcript=None, protein=None, length=0,
                  mechanisms=None, parameters=None, **keywords):

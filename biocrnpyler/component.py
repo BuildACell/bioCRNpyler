@@ -12,8 +12,12 @@ def warn(txt):
     pywarn(txt)
 
 
-# Component class for core components
+
 class Component(object):
+    """
+    Component class for core components
+    This class must be Subclassed to provide functionality with the functions get_species and get_reactions overwritten.
+    """
 
     def __init__(self, name: Union[str, Species],
                  mechanisms=None,  # custom mechanisms
@@ -226,15 +230,18 @@ class Component(object):
         warn("Unsubclassed update_reactions called for " + repr(self))
         return reactions
 
-    #Tries to find an initial condition of species s using the parameter heirarchy
-    # 1. mixture.name, repr(s) in self.initial_condition_dictionary
-    # 2. repr(s) in self.initial_condition_dictionary
-    # 3. If s == self.get_species and self.initial_con is not None: self.initial_conc
-    # 4. IF s == self.get_species(): mixture.name, self.name in initial_condition_dictionary
-    # 5. IF s == self.get_species(): self.name in initial_condition_dictionary
-    # Repeat 1-2, 4-5 in self.parameter_database
-    # Note: Mixture will also repeat this same order in it's own initial_condition_dictionary and ParameterDatabase after Component.
+    
     def get_initial_condition(self, s):
+        """
+        Tries to find an initial condition of species s using the parameter heirarchy
+        1. mixture.name, repr(s) in self.initial_condition_dictionary
+        2. repr(s) in self.initial_condition_dictionary
+        3. If s == self.get_species and self.initial_con is not None: self.initial_conc
+        4. IF s == self.get_species(): mixture.name, self.name in initial_condition_dictionary
+        5. IF s == self.get_species(): self.name in initial_condition_dictionary
+        Repeat 1-2, 4-5 in self.parameter_database
+        Note: Mixture will also repeat this same order in it's own initial_condition_dictionary and ParameterDatabase after Component.
+        """
         #First try all conditions in initial_condition_dictionary
         if (self.mixture.name, repr(s)) in self.initial_condition_dictionary:
             return self.initial_condition_dictionary[(self.mixture.name, repr(s))]
