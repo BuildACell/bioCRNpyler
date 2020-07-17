@@ -189,7 +189,7 @@ class Species(OrderedMonomer):
      RNA, Protein), and a list of attributes.
     """
 
-    def __init__(self, name: str, material_type="", attributes=[],
+    def __init__(self, name: str, material_type="", attributes: Union[List,None] = None,
                  initial_concentration=0):
         OrderedMonomer.__init__(self)
         self.name = self.check_name(name)
@@ -201,8 +201,9 @@ class Species(OrderedMonomer):
                  "constructor for attribute inheritance purposes.")
 
         self.attributes = []
-
         if attributes is not None:
+            if not isinstance(attributes,list):
+                attributes = list(attributes)
             for attribute in attributes:
                 self.add_attribute(attribute)
 
@@ -256,6 +257,10 @@ class Species(OrderedMonomer):
         else:
             return self
 
+    #Used in some recursive calls where ComplexSpecies returns a list and Species will return just themselves (in a list)
+    def get_species(self, **kwargs):
+        return [self]
+
     #A more powerful printing function
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         txt = ""
@@ -304,8 +309,6 @@ class Species(OrderedMonomer):
             return False
     def __contains__(self,other):
         return self.__eq__(other)
-    def get_species(self):
-        return self
     def __gt__(self,Species2):
         return self.name > Species2.name
     def __lt__(self,Species2):
@@ -379,7 +382,7 @@ class Complex:
         if(valent_complex is None):
             #this is a normal ComplexSpecies
             #the madness below is telling python to skip to the __init__ function
-            return ComplexSpecies.__new__(cls)
+            return ComplexSpecies(species,*args,**keywords)
         else:
             if(len(other_species)==0):
                 return valent_complex[bindloc]
@@ -449,16 +452,14 @@ class ComplexSpecies(Species):
         self.name = self.check_name(name)
         self.material_type = self.check_material_type(material_type)
         self.initial_concentration = initial_concentration
-
         if attributes is None:
             attributes = []
         for s in self.species:
             attributes += s.attributes
+        
         attributes = list(set(attributes))
-
         while None in attributes:
             attributes.remove(None)
-
         self.attributes = attributes
 
 
@@ -501,6 +502,18 @@ class ComplexSpecies(Species):
             new_name = self.name
         
         return ComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
+
+    #Returns all species in the ComplexSpecies. If recursive = True, returns species inside internal ComplexSpecies recursively as well.
+    def get_species(self, recursive = False):
+        if not recursive:
+            species = [self]
+        else:
+            species = []
+            for s in self.species:
+                species += s.get_species(recursive = True)
+
+        return species
+
 
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         txt = ""
@@ -1324,8 +1337,7 @@ class ChemicalReactionNetwork(object):
 
         for r in reactions:
             if reactions.count(r) > 1:
-                warn(f"Reaction {r} may be duplicated in CRN definitions. Duplicates "
-                     "have NOT been removed.")
+                pass
 
             checked_reactions.append(r)
             #if r not in checked_reactions:
@@ -1528,74 +1540,91 @@ class ChemicalReactionNetwork(object):
                       initial_condition_dict = initial_condition_dict)
         return model
 
-    def simulate_with_bioscrape(self, timepoints, initial_condition_dict = {},
+    def simulate_with_bioscrape(self, timepoints, initial_condition_dict=None,
                                 stochastic = False, return_dataframe = True,
                                 safe = False, **kwargs):
-        '''
-        Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
+
+        """Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
         Returns the data for all species as Pandas dataframe.
-        '''
-        
-        from bioscrape.simulator import py_simulate_model
-        m = self.create_bioscrape_model()
-        m.set_species(initial_condition_dict)
-        if not stochastic and safe:
-            safe = False
-        result = py_simulate_model(timepoints, Model = m,
-                                   stochastic = stochastic,
-                                   return_dataframe = return_dataframe,
-                                   safe = safe)
+        """
+        result = None
+        try:
+            from bioscrape.simulator import py_simulate_model
+            m = self.create_bioscrape_model()
+            if not initial_condition_dict:
+                initial_condition_dict = {}
+            m.set_species(initial_condition_dict)
+            if not stochastic and safe:
+                safe = False
+                
+            result = py_simulate_model(timepoints, Model = m,
+                                        stochastic = stochastic,
+                                        return_dataframe = return_dataframe,
+                                        safe = safe)
+        except ModuleNotFoundError:
+            warnings.warn('bioscrape was not found, please install bioscrape')
 
         return result
 
-
-
     def simulate_with_bioscrape_via_sbml(self, timepoints, file = None,
-                initial_condition_dict = {}, return_dataframe = True,
+                initial_condition_dict = None, return_dataframe = True,
                 stochastic = False, **kwargs):
-        '''
-        Simulate CRN model with bioscrape via writing a SBML file temporarily.(https://github.com/biocircuits/bioscrape).
+
+        """Simulate CRN model with bioscrape via writing a SBML file temporarily.
+        [Bioscrape on GitHub](https://github.com/biocircuits/bioscrape).
+
         Returns the data for all species as Pandas dataframe.
-        '''
-        if file is None:
-            self.write_sbml_file(file_name ="temp_sbml_file.xml")
-            file_name = "temp_sbml_file.xml"
-        elif isinstance(file, str):
-            file_name = file
-        else:
-            file_name = file.name
+        """
+        result = None
+        m = None
+        try:
+            from bioscrape.simulator import py_simulate_model
+            from bioscrape.types import Model
+            if file is None:
+                self.write_sbml_file(file_name ="temp_sbml_file.xml")
+                file_name = "temp_sbml_file.xml"
+            elif isinstance(file, str):
+                file_name = file
+            else:
+                file_name = file.name
 
-        if 'sbml_warnings' in kwargs:
-            sbml_warnings = kwargs.get('sbml_warnings')
-        else:
-            sbml_warnings = False
-        m = bioscrape.types.Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
-        # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
-        m.set_species(initial_condition_dict)
-        result = bioscrape.simulator.py_simulate_model(timepoints, Model = m,
-                                            stochastic = stochastic,
-                                            return_dataframe = return_dataframe)
+            if 'sbml_warnings' in kwargs:
+                sbml_warnings = kwargs.get('sbml_warnings')
+            else:
+                sbml_warnings = False
+            m = Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
+            # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
+            m.set_species(initial_condition_dict)
+            result = py_simulate_model(timepoints, Model = m,
+                                                stochastic = stochastic,
+                                                return_dataframe = return_dataframe)
+        except ModuleNotFoundError:
+            warnings.warn('bioscrape was not found, please install bioscrape')
+
         return result, m
-        
 
-    def runsim_roadrunner(self, timepoints, filename, species_to_plot = []):
-        '''
+    def runsim_roadrunner(self, timepoints, filename, species_to_plot = None):
+        """
         To simulate using roadrunner. 
         Arguments:
         timepoints: The array of time points to run the simulation for. 
         filename: Name of the SBML file to simulate
-        Returns the results array as returned by RoadRunner. 
+
+        Returns the results array as returned by RoadRunner.
+
         Refer to the libRoadRunner simulator library documentation 
-        for details on simulation results: http://libroadrunner.org/
+        for details on simulation results: (http://libroadrunner.org/)[http://libroadrunner.org/]
         NOTE : Needs roadrunner package installed to simulate.
-        '''
+        """
+        res_ar = None
         try:
             import roadrunner
-        except:
-            raise ModuleNotFoundError
-        rr = roadrunner.RoadRunner(filename)
-        result = rr.simulate(timepoints[0],timepoints[-1],len(timepoints))
-        res_ar = np.array(result)
+
+            rr = roadrunner.RoadRunner(filename)
+            result = rr.simulate(timepoints[0],timepoints[-1],len(timepoints))
+            res_ar = np.array(result)
+        except ModuleNotFoundError:
+            warnings.warn('libroadrunner was not found, please install libroadrunner')
         return res_ar
 
 #Helper function to flatten lists

@@ -59,10 +59,12 @@ class TestChemicalReactionNetwork(TestCase):
         with self.assertWarnsRegex(Warning, f'contains a species {self.s4.name} which is not in the CRN'):
             ChemicalReactionNetwork.check_crn_validity(reactions=[rxn3], species=self.species_list, warnings=True)
 
-        # test duplicate reactions
+        # test duplicate reactions are both added
         rxn_list = [self.rx1, self.rx1]
-        with self.assertWarnsRegex(Warning, 'may be duplicated in CRN definitions'):
-            ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list, species=self.species_list, warnings=True)
+        CRN = ChemicalReactionNetwork(species = [self.s1, self.s2], reactions = rxn_list)
+        self.assertTrue(CRN.reactions.count(self.rx1) == 2)
+        #with self.assertWarnsRegex(Warning, 'may be duplicated in CRN definitions'):
+        #    ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list, species=self.species_list, warnings=True)
 
     def test_species_index(self):
         # TODO add test if we actually use this function
@@ -125,12 +127,12 @@ class TestChemicalReactionNetwork(TestCase):
 
     def test_write_sbml_file(self):
 
-        document, _ = self.crn.generate_sbml_model()
+        document, _ = self.crn.generate_sbml_model(model_id = 'test_model')
         sbml_string = libsbml.writeSBMLToString(document)
 
         file_name = 'test_sbml.xml'
         with patch("builtins.open", new=mock_open()) as _file:
-            self.crn.write_sbml_file(file_name)
+            self.crn.write_sbml_file(file_name, model_id = 'test_model')
 
             _file.assert_called_once_with(file_name, 'w')
             _file().write.assert_called_once_with(sbml_string)

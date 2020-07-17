@@ -12,13 +12,9 @@ import copy
 class Promoter(DNA_part):
     def __init__(self, name, assembly=None,
                  transcript=None, length=0,
-                 mechanisms={}, parameters={}, dna_to_bind = None, protein = None,**keywords):
-        
-        #if((dna_to_bind is None) and (self.assembly is not None)):
-        #    self.dna_to_bind = self.assembly.dna
-        #else:
-        #    self.dna_to_bind = dna_to_bind
-        #self.assembly = assembly
+                 mechanisms=None, parameters=None, protein=None,dna_to_bind = None, **keywords):
+        self.assembly = assembly
+        self._dna_bind = dna_to_bind
         self.length = length
         if transcript is None and assembly is None:
             self.transcript = None
@@ -46,6 +42,15 @@ class Promoter(DNA_part):
             transcript = self.transcript, protein = self.protein, \
             component = self, part_id = self.name)
         return species
+    @property
+    def dna_to_bind(self):
+        if(self._dna_bind is None):
+            if(self.assembly.dna is not None):
+                self._dna_bind = self.assembly.dna
+        return self._dna_bind
+    @dna_to_bind.setter
+    def dna_to_bind(self,value):
+        self._dna_bind = value
     def get_species(self):
         return None
     def update_reactions(self):
@@ -73,11 +78,12 @@ class Promoter(DNA_part):
         return out_component
 
 
+
 class RegulatedPromoter(Promoter):
-    def __init__(self, name, regulators, leak = True, assembly = None,
-                 transcript = None, length = 0, mechanisms = {},
-                 parameters = {}, **keywords):
-        
+    def __init__(self, name: str, regulators, leak=True, assembly=None,
+                 transcript=None, length=0, mechanisms=None,
+                 parameters=None , **keywords):
+
         if not isinstance(regulators, list):
             regulators = [regulators]
 
@@ -141,12 +147,14 @@ class RegulatedPromoter(Promoter):
         return reactions
 
 #A class for a promoter which can be activated by a single species, modelled as a positive hill function
-class ActivatablePromotor(Promoter):
-    def __init__(self, name, activator, transcript = None, **keywords):
+class ActivatablePromoter(Promoter):
+    def __init__(self, name, activator, transcript = None, leak = False, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
         self.activator = self.set_species(activator) 
+
+        self.leak = leak #toggles whether or not there is a leak reaction
         
         #Mechanisms are inherited from the Mixture unless set specifically in self.default_mechanisms.
         custom_mechanisms = {"transcription": PositiveHillTranscription()}
@@ -162,7 +170,6 @@ class ActivatablePromotor(Promoter):
         species += mech_tx.update_species(dna = self.dna_to_bind, transcript = self.transcript, \
                                 regulator = self.activator, part_id = self.name+"_"+self.activator.name, \
                                 component = self,protein=self.protein, **keywords)
-        
         return species
 
     def update_reactions(self, **keywords):
@@ -174,12 +181,14 @@ class ActivatablePromotor(Promoter):
         return reactions
 
 #A class for a promoter which can be repressed by a single species, modelled as a negative hill function
-class RepressablePromotor(Promoter):
-    def __init__(self, name, repressor, transcript = None, **keywords):
+class RepressiblePromoter(Promoter):
+    def __init__(self, name, repressor, transcript = None, leak = False, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
         self.repressor = self.set_species(repressor) 
+
+        self.leak = leak #toggles whether or not there is a leak reaction
         
         #Mechanisms are inherited from the Mixture unless set specifically in self.default_mechanisms.
         custom_mechanisms = {"transcription": NegativeHillTranscription()}
@@ -204,6 +213,7 @@ class RepressablePromotor(Promoter):
         reactions += mech_tx.update_reactions(dna = self.dna_to_bind, transcript = self.transcript, regulator = self.repressor, 
                                              component = self, part_id = self.name+"_"+self.repressor.name,protein=self.protein, **keywords)
         return reactions
+
 
 class CombinatorialPromoter(Promoter):
     def __init__(self, name, regulators, leak = False, assembly = None,
@@ -249,14 +259,14 @@ class CombinatorialPromoter(Promoter):
         #after we've sanitized the inputs, then sort
         self.regulators = sorted(self.regulators)
         #now let's work out the tx_capable_list
-        if(tx_capable_list == None):
+        if tx_capable_list is None:
             #if nothing is passed, that means everything transcribes
             allcomb = []
             for r in range(1,len(self.regulators)+1):
                 #make all combinations of regulators
                 allcomb += [set(a) for a in it.combinations([a.name for a in self.regulators],r)]
             self.tx_capable_list = allcomb
-        elif(type(tx_capable_list)==list):
+        elif isinstance(tx_capable_list, list):
             #if the user passed a list then the user knows what they want
             newlist = []
             #this part converts any species in the tx_capable_list into a string
@@ -372,6 +382,5 @@ class CombinatorialPromoter(Promoter):
                 leak_partid = self.name+"_leak"
                 reactions += mech_tx.update_reactions(dna = specie, component = self, part_id = leak_partid, \
                                             transcript = self.transcript, protein = self.protein)
-
 
         return reactions

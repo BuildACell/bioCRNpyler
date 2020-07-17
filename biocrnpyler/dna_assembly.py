@@ -17,32 +17,22 @@ def warn(txt):
 
 
 class DNAassembly(DNA):
-    def __init__(self, 
-                name: str, 
-                dna = None, 
-                promoter = None, 
-                transcript = None,
-                rbs = None, 
-                protein = None, 
-                length = None,
-                attributes = [], 
-                mechanisms = {}, 
-                parameters = {}, 
-                initial_conc = None,
-                parameter_warnings = True, 
-                **keywords):
+    def __init__(self, name: str, dna=None, promoter=None, transcript=None,
+                 rbs=None, protein=None, length=None,
+                 attributes=None, mechanisms=None, parameters=None, initial_conc=None,
+                 parameter_warnings=True, **keywords):
         self.promoter = None
         self.rbs = None
         self.transcript = None
         self.initial_concentration = initial_conc
         self.name = name
 
-        DNA.__init__(self, name, length = length, mechanisms = mechanisms,
-                     parameters = parameters, initial_conc = initial_conc,
-                     parameter_warnings = parameter_warnings,
-                     attributes = list(attributes), **keywords)
+        DNA.__init__(self, name, length=length, mechanisms=mechanisms,
+                     parameters=parameters, initial_conc=initial_conc,
+                     parameter_warnings=parameter_warnings,
+                     attributes=attributes, **keywords)
 
-        self.update_dna(dna, attributes = list(attributes))
+        self.update_dna(dna, attributes=attributes)
         self.update_transcript(transcript)
         self.update_protein(protein)
         self.update_promoter(promoter, transcript = self.transcript,protein = self.protein)
@@ -148,14 +138,14 @@ class DNAassembly(DNA):
         if self.promoter is not None and self.rbs is not None:
             species += self.promoter.update_species()
             species += self.rbs.update_species()
-
+            
         elif self.promoter is not None and self.rbs is None:
             species += self.promoter.update_species()
-
+        
         if "rna_degredation" in self.mechanisms and self.promoter is not None:
             deg_mech = self.mechanisms["rna_degredation"]
             species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
-
+        print(species)
         # TODO raise a warning if there were duplicate species
         return list(set(species))
 
@@ -177,8 +167,8 @@ class DNAassembly(DNA):
         # TODO check that the reaction list is unique
         return reactions
 
-    def update_parameters(self, mixture_parameters = {}, parameters = {},
-                          overwrite_custom_parameters = True):
+    def update_parameters(self, mixture_parameters=None, parameters=None,
+                          overwrite_custom_parameters=True):
         DNA.update_parameters(self = self,
                               mixture_parameters = mixture_parameters,
                               parameters = parameters, 
@@ -194,8 +184,9 @@ class DNAassembly(DNA):
                                        parameters = parameters,
                                        overwrite_custom_parameters = overwrite_custom_parameters)
 
-    def update_mechanisms(self, mixture_mechanisms = {}, mechanisms = {},
+    def update_mechanisms(self, mixture_mechanisms=None, mechanisms=None,
                           overwrite_custom_mechanisms = False):
+
         DNA.update_mechanisms(self = self,
                               mixture_mechanisms = mixture_mechanisms,
                               mechanisms = mechanisms)
