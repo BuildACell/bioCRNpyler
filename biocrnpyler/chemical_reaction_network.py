@@ -39,8 +39,6 @@ class Species(object):
         Check that the string contains is alpha-numeric characters or "_" and that the first character is a letter. 
         If the name is a starts with a number, there must be a material type.
         """
-
-        
         if material_type in [None, ""] and self.name[0].isnumeric():
             raise ValueError(f"species name: {self.name} contains a number as the first character and therefore requires a material_type.")
         elif material_type == None:
@@ -52,9 +50,9 @@ class Species(object):
 
     
     def check_name(self, name):
-    """
-    Check that the string contains only underscores and alpha-numeric characters
-    """
+        """
+        Check that the string contains only underscores and alpha-numeric characters
+        """
         no_underscore_string = name.replace("_", "")
         if no_underscore_string.isalnum():
             return name
@@ -88,19 +86,19 @@ class Species(object):
             return self
 
     def get_species(self, **kwargs):
-    """
-    Used in some recursive calls where ComplexSpecies returns a list and Species will return just themselves (in a list)
-    """
+        """
+        Used in some recursive calls where ComplexSpecies returns a list and Species will return just themselves (in a list)
+        """
         return [self]
 
     
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
-    """
-    #A more powerful printing function. 
-    Useful for understanding CRNs but does not return string identifiers.
-    show_material toggles whether species.material is printed.
-    show_attributes toggles whether species.attributes is printed
-    """
+        """
+        #A more powerful printing function. 
+        Useful for understanding CRNs but does not return string identifiers.
+        show_material toggles whether species.material is printed.
+        show_attributes toggles whether species.attributes is printed
+        """
         txt = ""
         if self.material_type not in ["", None] and show_material:
             txt = self.material_type + "["
@@ -270,12 +268,12 @@ class ComplexSpecies(Species):
 
 
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
-    """
-    A more powerful printing function. 
-    Useful for understanding CRNs but does not return string identifiers.
-    show_material toggles whether species.material is printed.
-    show_attributes toggles whether species.attributes is printed
-    """
+        """
+        A more powerful printing function. 
+        Useful for understanding CRNs but does not return string identifiers.
+        show_material toggles whether species.material is printed.
+        show_attributes toggles whether species.attributes is printed
+        """
 
         txt = ""
         if self.material_type not in ["", None] and show_material:
@@ -318,11 +316,11 @@ class Multimer(ComplexSpecies):
         ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)   
 
 class OrderedComplexSpecies(ComplexSpecies):
-        """ A special kind of species which is formed as a complex of two or more species.
-        In OrderedComplexSpecies the order in which the complex subspecies are is defined
-        denote different species, eg [s1, s2, s3] != [s1, s3, s2].
-        Used for attribute inheritance and storing groups of bounds Species. 
-        """
+    """ A special kind of species which is formed as a complex of two or more species.
+    In OrderedComplexSpecies the order in which the complex subspecies are is defined
+    denote different species, eg [s1, s2, s3] != [s1, s3, s2].
+    Used for attribute inheritance and storing groups of bounds Species. 
+    """
 
     def __init__(self, species, name = None, material_type = "ordered_complex", attributes = None, initial_concentration = 0):
         if len(species) <= 1:
