@@ -11,12 +11,19 @@ import copy
 class OrderedPolymer:
     """a polymer that has a specific order"""
     def __init__(self,parts):
-        """parts must be a list of lists containing [[OrderedMonomer,direction],[OrderedMonomer,direction],...]"""
+        """parts can be a list of lists containing 
+        [[OrderedMonomer,direction],[OrderedMonomer,direction],...]
+        alternatively, you can have a regular list, and the direcitons
+        will end up being None"""
         polymer = []
+        assert(type(parts)==list or type(parts)==tuple), "OrderedPolymer must be instantiated with a list"
         for item in parts:
             if(isinstance(item,list)):
                 part = item[0]
-                partdir = item[1]
+                if(len(item)>1):
+                    partdir = item[1]
+                else:
+                    partdir = None
             elif(isinstance(item,OrderedMonomer)):
                 part = item
                 partdir = item.direction
@@ -102,11 +109,11 @@ class OrderedPolymer:
 
 class OrderedMonomer:
     """a unit that belongs to an OrderedPolymer. Each unit has a direction, a location, and a link back to its parent"""
-    def __init__(self,data=None,direction=None,position=None,parent=None):
+    def __init__(self,direction=None,position=None,parent=None):
         """the default is that the monomer is not part of a polymer"""
-        self.data = data
+        if(parent is not None):
+            assert(isinstance(parent,OrderedPolymer)),"parent of OrderedMonomer must be an OrderedPolymer"
         self.direction = direction
-        #TODO check for parent being an OrderedPolymer
         self.parent = parent
         self.position = position
         if self.parent is None:
@@ -133,52 +140,13 @@ class OrderedMonomer:
         self.parent = None
         self.direction = None
         self.position = None
-    def __hash__(self):
-        hval = hash("")
-        hval += hash(str(self.data))
-        hval += hash(self.direction)
-        hval += hash(self.position)
-        hval += hash(str(self.parent))
-        return hval
-    def show_bindloc(self):
-        if(self.parent is not None):
-            return self.parent.pretty_print(highlight = self.position)
-        else:
-            return None
-    def pretty_print(self,show_material=True,show_attributes=False,highlight = False):
-        outstr = ""
-        datastr = ""
-        if(self.data is not None):
-            if(hasattr(self.data,"pretty_print")):
-                datastr = self.data.pretty_print(show_material,show_attributes)
-            else:
-                datastr = str(self.data)
-            outstr += datastr
-        if(self.direction is not None):
-            outstr += "-"+str(self.direction)
-        if(outstr == ""):
-            outstr = "<monomer>"
-        if(highlight):
-            outstr ="("+outstr+")"
-        return outstr
-    def __contains__(self,item):
-        """an OrderedMonomer contains something if that thing is in its data"""
-        if(item == self.data):
-            return True
-        else:
-            try:
-                if(hasattr(item,"data") and item.data in self.data):
-                    return True
-                elif(item in self.data):
-                    return True
-            except TypeError:
-                return False
     def __repr__(self):
-        txt = "mer_"+str(self.data)+"_"+str(self.direction)[0]
+        txt = "OrderedMonomer(direction="+str(self.direction)+",position="+\
+                                str(self.position)+",parent="+str(self.parent)+")"
         return txt
     def __eq__(self,other):
         if(isinstance(other,OrderedMonomer)):
-            if(self.data == other.data and self.direction == other.direction and self.position == other.position and self.parent == other.parent):
+            if(self.direction == other.direction and self.position == other.position and self.parent == other.parent):
                 return True
         return False
 
@@ -219,10 +187,13 @@ class Complex:
         #print("running new")
         species = []
         #below is extracting the "species" keywords from the args
+        keywarg = None
         if("species" in keywords):
+            keywarg = True
             species = keywords["species"]
             del keywords["species"]
         elif(len(args)>=1):
+            keywarg = False
             species = args[0]
             args = args[1:]
         #print("species is")
@@ -248,6 +219,7 @@ class Complex:
             #this is a normal ComplexSpecies
             #the madness below is telling python to skip to the __init__ function
             return ComplexSpecies(species,*args,**keywords)
+
         else:
             if(len(other_species)==0):
                 return valent_complex[bindloc]
