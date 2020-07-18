@@ -92,8 +92,8 @@ class Parameter(object):
             #print(re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e[0-9]+)|(^[0-9])', new_parameter_value, re.I))
             #print(re.search('[a-d-f-z]', new_parameter_value, re.I))
             if re.search('[a-d-f-z]', new_parameter_value, re.I) \
-                    or re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e[0-9]+)|(^[0-9])', new_parameter_value, re.I) is None:
-                raise ValueError('No valid parameter value! Accepted formats: 1.00 or 1e4 or 2/5 ')
+                    or re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e-?[0-9]+)|(^.?[0-9])', new_parameter_value, re.I) is None:
+                raise ValueError(f'No valid parameter value! Accepted formats: 1.00 or 1e4 or 2/5, we got {new_parameter_value} ')
 
             self._value = Parameter._convert_rational(new_parameter_value)
         else:
@@ -340,8 +340,7 @@ class ParameterDatabase():
 
             #Load all parameters
             for row in csvreader:
-                # TODO what about integers? float might cause numerical drift in simulations, e.g. cooperativity=2.001
-                param_value = float(row[field_names['param_val']])
+                param_value = row[field_names['param_val']]
                 field_columns = [field_names['param_name'], field_names['part_id'], field_names['mechanism'], field_names['param_val']]
                 parameter_info = {k:row[k] for k in row if k not in field_columns}
                 # TODO test all these cases!
