@@ -103,40 +103,43 @@ class TestParameter(TestCase):
         with self.assertWarns(Warning):
             PD._get_field_names(valid_field_names, accepted_field_names)
 
-    def load_parameters_from_file(self):
+    def test_load_parameters_from_file(self):
 
-        #Bad parameter file keyword
-        with self.assertRaisesRegexp(ValueError, f"parameter_file must be a string representing a file name (and path)."):
-            PD = ParameterDatabase(parameter_file = {})
+        # Bad parameter file keyword
+        with self.assertRaisesRegexp(ValueError, f"parameter_file must be a string representing a file name and path."):
+            ParameterDatabase(parameter_file={})
 
         # TODO track down why this test fails in python 3.6!
         if sys.version_info[1] >= 7:
-            # do NOT reformat this string below
-            example_csv = """
-            mechanism_id	part_id	param_name	param_val	comments\n
-            transcription_mm	ptet_tetR	kb	10.	extra columns are okay!\n4
-            transcription_mm	ptet_tetR	ku	.1	These are the parameters for transcription\n
-                P kb    2.0 A parameter with no mechanism!\n
-            mechanism   ku  100.    A parameter with no part_id!\n
-                    kdefault    1.0   A default parameter!\n
-                        3.3 A useless row!\n
-
-            """
+            # !!! DO NOT reformat this string below !!!!
+            example_csv = """mechanism_id	part_id	param_name	param_val	comments\ntranscription_mm	ptet_tetR	kb	10.	extra columns are okay!\ntranscription_mm	ptet_tetR	ku	.1	These are the parameters for transcription"""
+            # !!! DO NOT reformat this string above !!!!
 
             with patch('builtins.open', mock_open(read_data=example_csv), create=True):
-                PD = ParameterDatabase(parameter_file = 'test_file')
+                PD = ParameterDatabase(parameter_file='test_file.tsv')
 
                 right_dict = {
-                ('transcription_mm', 'ptet_tetR', 'kb'): 10.0, 
+                ('transcription_mm', 'ptet_tetR', 'kb'): 10.0,
                 ('transcription_mm', 'ptet_tetR', 'ku'): 0.1,
-                (None, 'P', 'kb'): 2.0,
-                ("mechanism", None, "ku"): 100,
-                (None, None, "kdefault"): 1.0
+                # (None, 'P', 'kb'): 2.0,
+                # ("mechanism", None, "ku"): 100,
+                # (None, None, "kdefault"): 1.0
                 }
 
-
-                return_dict = {(k.mechanism, k.part_id, k.name):p.value for (k, p) in PD.parameters}
+                return_dict = {(k.mechanism, k.part_id, k.name): p.value for (k, p) in PD.parameters}
+                print(return_dict)
                 self.assertEqual(return_dict, right_dict)
+        else:
+            warn('version below 3.6 was detected! This test was skipped')
+
+        # TODO track down why this test fails in python 3.6!
+        if sys.version_info[1] >= 7:
+            example_csv = """mechanism_id"""
+
+            with patch('builtins.open', mock_open(read_data=example_csv), create=True):
+                with self.assertWarnsRegex(Warning, f"No param_name column was found, could not load parameter!"):
+                    ParameterDatabase(parameter_file='test_file.tsv')
+
         else:
             warn('version below 3.6 was detected! This test was skipped')
 
@@ -150,23 +153,22 @@ class TestParameter(TestCase):
         self.assertTrue((None, "weak", "ktx") in PD)
         self.assertTrue(("simple_transcript", "weak", "ktx") in PD)
 
+    def test_load_parameters_from_dictionary(self):
 
-    def load_parameters_from_dictionary(self):
-
-        #bad parameter_dictionary keyword
+        # bad parameter_dictionary keyword
         with self.assertRaisesRegexp(ValueError, f"parameter_dictionary must be None or a dictionary!"):
-            PD = ParameterDatabase(parameter_dictionary = 'test_file')
+            PD = ParameterDatabase(parameter_dictionary='test_file')
 
-        #proper parameter dictionary
+        # proper parameter dictionary
         parameter_dict = {
         "k":1,
         ("M", "pid", "k"):2.0,
         (None, "pid", "k"):3.3,
         ("M", None, "k"): 4,
         }
-        PD = ParameterDatabase(parameter_dictionary = parameter_dict)
+        PD = ParameterDatabase(parameter_dictionary=parameter_dict)
         return_dict = {k:PD.parameters[k] for k in PD.parameters}
-        self.assertEqual(return_dict, right_dict)
+        self.assertEqual(return_dict, parameter_dict)
 
         #improper parameter dictionary
         k = ("M", "k")

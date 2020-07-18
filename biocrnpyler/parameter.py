@@ -207,9 +207,9 @@ class ParameterDatabase():
                 if isinstance(p, str):
                     self.load_parameters_from_file(p, overwrite_parameters = overwrite_parameters)
                 else:
-                    raise ValueError("parameter_file must be a string or list of strings representing file names (and paths).")
+                    raise ValueError("parameter_file must be a string or list of strings representing file names and paths.")
         elif parameter_file is not None:
-            raise ValueError("parameter_file must be a string representing a file name (and path).")
+            raise ValueError("parameter_file must be a string representing a file name and path.")
             
         if isinstance(parameter_dictionary, dict):
             self.load_parameters_from_dictionary(parameter_dictionary, overwrite_parameters = overwrite_parameters)
@@ -327,8 +327,7 @@ class ParameterDatabase():
 
             #Determine which columns are in the CSV
             if field_names['param_name'] is None:
-                warn('No param name column was found, could not load parameter')
-                return param_dict
+                warn('No param_name column was found, could not load parameter!')
             if field_names['mechanism'] is None:
                 no_mechism_column = True
             else:
