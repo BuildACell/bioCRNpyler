@@ -45,7 +45,6 @@ class DNAassembly(DNA):
         self.update_protein(protein)
         self.update_promoter(promoter, transcript = self.transcript)
         self.update_rbs(rbs, transcript = self.transcript, protein = self.protein)
-
         self.set_parameter_warnings(parameter_warnings)
 
     #Set the mixture the Component is in.

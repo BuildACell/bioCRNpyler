@@ -52,7 +52,10 @@ from warnings import warn
 from typing import List, Dict, Union
 import numbers
 import re
+from collections import namedtuple #Used for the parameter keys
 
+
+ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name') #This could later be extended
 
 class Parameter(object):
     def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real]):
@@ -86,8 +89,8 @@ class Parameter(object):
         if not (isinstance(new_parameter_value, numbers.Real) or isinstance(new_parameter_value, str)):
             raise ValueError(f"parameter_value must be a float or int: received {type(new_parameter_value)}.")
         if isinstance(new_parameter_value, str):
-            print(re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e[0-9]+)|(^[0-9])', new_parameter_value, re.I))
-            print(re.search('[a-d-f-z]', new_parameter_value, re.I))
+            #print(re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e[0-9]+)|(^[0-9])', new_parameter_value, re.I))
+            #print(re.search('[a-d-f-z]', new_parameter_value, re.I))
             if re.search('[a-d-f-z]', new_parameter_value, re.I) \
                     or re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e[0-9]+)|(^[0-9])', new_parameter_value, re.I) is None:
                 raise ValueError('No valid parameter value! Accepted formats: 1.00 or 1e4 or 2/5 ')
@@ -108,34 +111,59 @@ class Parameter(object):
 class ParameterEntry(Parameter):
     """
     A class for representing parameters in a parameter stored the ParameterDatabase
-     parameter_keys is a dictionary {key:value} of keys for looking up the parameter
+     parameter_keys is a dictionary {key:value} or named_tuple (type ParameterKey) of keys for looking up the parameter
      parameter_info is a dictionary {key:value} of additional information about the parameter. 
          For example: additional columns in the parameter file or the parameter file name.
     """
-    def __init__(self, parameter_name, parameter_value, parameter_keys = None, parameter_info = None):
+    def __init__(self, parameter_name, parameter_value, parameter_key = None, parameter_info = None):
         Parameter.__init__(self, parameter_name, parameter_value)
 
-        
-        self.key_tuple = (None, None, parameter_name)
+        self.parameter_key = parameter_key
+        self.parameter_info = parameter_info
 
-        if parameter_keys is None:
-            self.keys = {}
-        elif isinstance(parameter_keys, dict):
-            self.keys = dict(parameter_keys)
-
-            if "mechanism" in self.keys and "part_id" in self.keys:
-                self.key_tuple = (self.keys["mechanism"], self.keys["part_id"], parameter_name)
-            elif "part_id" in self.keys:
-                self.key_tuple = (None, self.keys["part_id"], parameter_name)
-            elif "mechanism" in self.keys:
-                self.key_tuple = (self.keys["mechanism"], None, parameter_name)
+    #Helper function to create ParameterKeys
+    @staticmethod
+    def create_parameter_key(new_key, parameter_name = None):
+        #New Key can be a named_tuple
+        if isinstance(new_key, dict):
+            new_key = dict(new_key)
+            if parameter_name is not None:
+                new_key["name"] = parameter_name
+            for k in ParameterKey._fields:
+                if k not in new_key:
+                    new_key[k] = None
+            return ParameterKey(**new_key) #automatically unpack the keywords
+        elif isinstance(new_key, ParameterKey):
+            return new_key
+        elif isinstance(new_key, tuple) and len(list(new_key)) == len(ParameterKey._fields):
+            #make a dictionary assuming correct ordering
+            keywords = {ParameterKey._fields[i]:new_key[i] for i in range(len(ParameterKey._fields))}
+            return ParameterKey(**keywords) #automatically unpack the keywords
+        elif isinstance(new_key, str):
+            return ParameterKey(mechanism = None, part_id = None, name = new_key)
+        elif new_key is None and parameter_name is not None:
+            return ParameterKey(mechanism = None, part_id = None, name = parameter_name)
         else:
-            raise ValueError(f"parameter_keys must be a None or a dictionary: received {parameter_keys}.")
+            raise ValueError(f"parameter_key must be None, a dictionary, a ParameterKey, a {len(ParameterKey._fields)}-tuple, or a string (parameter name): received {new_key}.")
 
+    @property
+    def parameter_key(self):
+        return self._parameter_key
+
+    @parameter_key.setter
+    def parameter_key(self, parameter_key):
+        self._parameter_key = self.create_parameter_key(parameter_key, self.parameter_name)
+
+    @property
+    def parameter_info(self):
+        return self._parameter_info
+
+    @parameter_info.setter
+    def parameter_info(self, parameter_info):
         if parameter_info is None:
-            self.info = {}
+            self._parameter_info = {}
         elif isinstance(parameter_info, dict):
-            self.info = dict(parameter_info)
+            self._parameter_info = dict(parameter_info)
         else:
             raise ValueError(f"parameter_info must be None or a dictionary: received {parameter_info}.")
 
@@ -146,20 +174,25 @@ class ModelParameter(ParameterEntry):
       search_key is a tuple searched for to find the parameter, eg (mech_id, part_id, param_name), :
       found_key is the tuple used after defaulting to find the parameter eg (param_name)
     """
-    def __init__(self, parameter_name, parameter_value, search_key, found_key, parameter_keys = None, parameter_info = None):
+    def __init__(self, parameter_name, parameter_value, search_key, found_key, parameter_key = None, parameter_info = None):
 
-        ParameterEntry.__init__(self, parameter_name, parameter_value, parameter_keys = parameter_keys, parameter_info = parameter_info)
+        ParameterEntry.__init__(self, parameter_name, parameter_value, parameter_key = parameter_key, parameter_info = parameter_info)
+        self.search_key = search_key
+        self.found_key = found_key
 
-        if not isinstance(search_key, tuple):
-            raise ValueError(f"search_key must be a tuple: received {search_key}.")
-        else:
-            self.search_key = search_key
+    @property
+    def search_key(self):
+        return self._search_key
+    @search_key.setter
+    def search_key(self, search_key):
+        self._search_key = self.create_parameter_key(search_key, self.parameter_name)
 
-        if not isinstance(found_key, tuple):
-            raise ValueError(f"found_key must be a tuple: recieved {found_key}.")
-        else:
-            self.found_key = found_key
-
+    @property
+    def found_key(self):
+        return self._found_key
+    @search_key.setter
+    def found_key(self, found_key):
+        self._found_key = self.create_parameter_key(found_key, self.parameter_name)
 
 #A class for storing parameters in Components and Mixtures
 class ParameterDatabase():
@@ -186,22 +219,17 @@ class ParameterDatabase():
     #To check if a key or ParameterEntry is in a the ParameterDatabase
     def __contains__(self, val):
         if isinstance(val, ParameterEntry):
-            key = val.key_tuple
+            key = val.parameter_key
             if key in self.parameters and self.parameters[key] == val:
                 return True
             else:
                 return False
         else:
-            if isinstance(val, str):
-                key = (None, None, val)
-            else:
-                key = val
-
-            if key in self.parameters:
-                return True
-            else:
+            try:
+                key = ParameterEntry.create_parameter_key(val)
+                return key in self.parameters
+            except ValueError:
                 return False
-
 
     #Ability to loop through parameters eg
     # for entry in ParameterDatabase: ...
@@ -221,69 +249,34 @@ class ParameterDatabase():
     #Gets a parameter from the database
     #Only returns exact matches.
     def __getitem__(self, key):
-        param = None
-        if isinstance(key, str):
-            if (None, None, key) in self.parameters:
-                param = self.parameters[(None, None, key)]
-        elif isinstance(key, tuple) and len(key) == 3:
-            if key in self.parameters:
-                param = self.parameters[key]
-        else:
-            raise ValueError(f"Invalid parameter key {key}. Key must be be a tuple ('mechanism', 'part_id', 'parameter_name') or a string 'parameter_name'.")
-
-        if param == None:
-            raise ValueError(f"Parameter {key} not in ParameterDatabase.")
-        else:
-            return param
+        param_key = ParameterEntry.create_parameter_key(key)
+        return self.parameters[param_key]
 
     #Sets a parameter in the databases - useful for quickly changing parameters, but add_parameter is recommended.
-    def __setitem__(self, key, value):
+    def __setitem__(self, parameter_key, value):
 
-        if isinstance(key, str):
-            parameter_name = key
-            parameter_keys = None
-            key = (None, None, parameter_name)
-        elif isinstance(key, tuple) and len(key) == 3:
-            parameter_name = key[2]
-            parameter_keys = {"mechanism":key[0], "part_id":key[1]}
-        else:
-            raise ValueError(f"Invalid parameter key {key}. Key must be be a tuple ('mechanism', 'part_id', 'parameter_name') or a string 'parameter_name'.")        
+        key = ParameterEntry.create_parameter_key(parameter_key)
         
         if isinstance(value, ParameterEntry):
-            if key != value.key_tuple:
-                raise ValueError(f"Parameter Key does not match: ParameterDatabase key {key} is not the same as ParameterEntry Key {value.key_tuple}.")
+            if key != value.parameter_key:
+                raise ValueError(f"Parameter Key does not match: ParameterDatabase key {key} is not the same as ParameterEntry Key {value.parameter_key}.")
             self.parameters[key] = value
         else:
-            self.add_parameter(parameter_name, value, parameter_keys = parameter_keys, parameter_origin = "Set Manually", overwrite_parameters = True)
-            self.add_parameter(parameter_name, value, parameter_origin = "Set Manually", overwrite_parameters = True)
+            self.add_parameter(key.name, value, parameter_key = key, parameter_origin = "Set Manually", overwrite_parameters = True)
     
     #Adds a parameter to the database with appropriate metadata
-    def add_parameter(self, parameter_name, parameter_value, parameter_origin = None, parameter_keys = None, parameter_info = None, overwrite_parameters = False):
+    def add_parameter(self, parameter_name, parameter_value, parameter_origin = None, parameter_key = None, parameter_info = None, overwrite_parameters = False):
 
         #Put parameter origin into parameter_info
         if parameter_info is None:
             parameter_info = {}
-        elif not isinstance(parameter_info, dict):
-            raise ValueError("parameter_info must be None or a dictionary!")
-
-        if parameter_origin is not None:
+        if "parameter origin" not in parameter_info:
             parameter_info["parameter origin"] = parameter_origin
 
         #Create ParameterEntry
-        param = ParameterEntry(parameter_name, parameter_value, parameter_keys = parameter_keys, parameter_info = parameter_info)
-
-        #Determine correct parameter key
-        if parameter_keys is None or (isinstance(parameter_keys, dict) and len(parameter_keys) == 0):
-            key = (None, None, parameter_name)
-        elif "mechanism" in parameter_keys and "part_id" in parameter_keys:
-            key = (parameter_keys["mechanism"], parameter_keys["part_id"], parameter_name)
-        elif "mechanism" in parameter_keys:
-            key = (parameter_keys["mechanism"], None, parameter_name)
-        elif "part_id" in parameter_keys:
-            key = (None, parameter_keys["part_id"], parameter_name)
-        else:
-            raise ValueError(f"Invalid Parameter Keys {parameter_keys} for parameter ({parameter_name} = {parameter_value}): expected 'mechanism' and/or 'part_id'.")
-
+        param = ParameterEntry(parameter_name, parameter_value, parameter_key = parameter_key, parameter_info = parameter_info)
+        key = param.parameter_key
+        
         #Update parameter dictionary
         if key in self.parameters and not overwrite_parameters:
             raise ValueError(f"Duplicate parameter detected. Parameter with key = {key} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True.")
@@ -293,13 +286,8 @@ class ParameterDatabase():
     #Loads Parameters from a dictionary
     def load_parameters_from_dictionary(self, parameter_dictionary, overwrite_parameters = False):
         for k in parameter_dictionary:
-            if isinstance(k, str):
-                self.add_parameter(k, parameter_dictionary[k], parameter_origin = "parameter_dictionary", overwrite_parameters = overwrite_parameters)
-
-            elif isinstance(k ,tuple) and len(k) == 3:
-                self.add_parameter(k[2], parameter_dictionary[k], parameter_keys = {"part_id":k[1], "mechanism":k[0]}, parameter_origin = "parameter_dictionary", overwrite_parameters = overwrite_parameters)
-            else:
-                raise ValueError(f"Invalid parameter key {k}. parameter_dictionary keys must be a 3-tuple or a single string: ('mechanism', 'part_id', 'param_name') OR 'param_name'. Note 'mechanism' and 'part_id' can be None.")
+            key = ParameterEntry.create_parameter_key(k)
+            self.add_parameter(key.name, parameter_dictionary[k], parameter_key = {"part_id":key.part_id, "mechanism":key.mechanism}, parameter_origin = "parameter_dictionary", overwrite_parameters = overwrite_parameters)
 
     #Loads parameters from another ParameterDatabase
     def load_parameters_from_database(self, parameter_database, overwrite_parameters = False):
@@ -309,9 +297,9 @@ class ParameterDatabase():
 
         for k in parameter_database:
             if k not in self.parameters or overwrite_parameters:
-                self.parameters[k.key_tuple] = parameter_database[k.key_tuple]
+                self.parameters[k.parameter_key] = parameter_database[k.parameter_key]
             else:
-                raise ValueError(f"Duplicate parameter detected. Parameter with key = {key} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True.")
+                raise ValueError(f"Duplicate parameter detected. Parameter with key = {k} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True.")
 
 
     def load_parameters_from_file(self, filename, overwrite_parameters = False):
@@ -375,7 +363,7 @@ class ParameterDatabase():
                     part_id = row[field_names['part_id']]
 
                     if part_id is not None and len(part_id) > 0:
-                        self.add_parameter(param_name, param_value, parameter_keys = {"part_id":part_id}, parameter_origin = filename, 
+                        self.add_parameter(param_name, param_value, parameter_key = {"part_id":part_id}, parameter_origin = filename, 
                             parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
                     else:
                         self.add_parameter(param_name, param_value, parameter_origin = filename, 
@@ -386,7 +374,7 @@ class ParameterDatabase():
                     mech_name = row[field_names['mechanism']]
                     param_name = row[field_names['param_name']]
                     if mech_name is not None and len(mech_name) > 0:
-                        self.add_parameter(param_name, param_value, parameter_keys = {"mechanism":mech_name}, parameter_origin = filename, 
+                        self.add_parameter(param_name, param_value, parameter_key = {"mechanism":mech_name}, parameter_origin = filename, 
                         parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
                     else:
                         self.add_parameter(param_name, param_value, parameter_origin = filename, 
@@ -398,15 +386,15 @@ class ParameterDatabase():
                     mech_name = row[field_names['mechanism']]
                     param_name = row[field_names['param_name']]
                     if part_id is not None and len(part_id) > 0 and mech_name is not None and len(mech_name) >0:
-                        self.add_parameter(param_name, param_value, parameter_keys = {"part_id":part_id, "mechanism":mech_name}, parameter_origin = filename, 
+                        self.add_parameter(param_name, param_value, parameter_key = {"part_id":part_id, "mechanism":mech_name}, parameter_origin = filename, 
                             parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
                     
                     elif part_id is not None and len(part_id) > 0:    
-                        self.add_parameter(param_name, param_value, parameter_keys = {"part_id":part_id}, parameter_origin = filename, 
+                        self.add_parameter(param_name, param_value, parameter_key = {"part_id":part_id}, parameter_origin = filename, 
                             parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
 
                     elif mech_name is not None and len(mech_name) >0:
-                        self.add_parameter(param_name, param_value, parameter_keys = {"mechanism":mech_name}, parameter_origin = filename, 
+                        self.add_parameter(param_name, param_value, parameter_key = {"mechanism":mech_name}, parameter_origin = filename, 
                             parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
                     else:
                         self.add_parameter(param_name, param_value, parameter_origin = filename, 
@@ -472,54 +460,25 @@ class ParameterDatabase():
             mech_type = mechanism.mechanism_type
         elif mechanism is not None:
             raise ValueError(f"mechanism keyword must be or string or have name and mechanism_type attributes: recievied {mechanism}.")
-        # Ideally parameters can be found
-        # (mechanism.name/mechanism_type, part_id, param_name) --> val
-        if part_id is not None and mechanism is not None:
-            if mechanism is not None and (mechanism.name, part_id, param_name) in self.parameters:
-                found_entry = self.parameters[(mech_name, part_id, param_name)]
-                found_key = (mech_name, part_id, param_name)
-            elif mechanism is not None and (mech_type, part_id, param_name) in self.parameters:
-                found_entry = self.parameters[(mech_type, part_id, param_name)]
-                found_key = (mech_type, part_id, param_name)
+        else:
+            mech_name = None
+            mech_type = None
+        
+        parameter_key_list = [
+            ParameterKey(mechanism = mech_name, part_id = part_id, name = param_name), 
+            ParameterKey(mechanism = mech_type, part_id = part_id, name = param_name),
+            ParameterKey(mechanism = None, part_id = part_id, name = param_name),
+            ParameterKey(mechanism = mech_name, part_id = None, name = param_name),
+            ParameterKey(mechanism = mech_type, part_id = None, name = param_name),
+            ParameterKey(mechanism = None, part_id = None, name = param_name),
+            ]
 
-        # Next try (part_id, param_name) --> val
-        if part_id is not None and found_entry is None:
-            if (None, part_id, param_name) in self.parameters:
-                found_entry = self.parameters[(None, part_id, param_name)]
-                found_key = (None, part_id, param_name)
-
-                warning_txt = ("No Parameter found with "
-                    f"param_name={param_name} and part_id={part_id} and "
-                    f"mechanism={repr(mechanism)}. Parameter found under "
-                    f"the key (part_id, param_name)=({part_id}, "
-                    f"{param_name}).")
-        # Next try (Mechanism.name/mechanism_type, param_name) --> val
-        if mechanism is not None and found_entry is None:
-            if (mechanism.name, None, param_name) in self.parameters:
-                found_entry = self.parameters[(mech_name, None, param_name)]
-                found_key = (mech_name, None, param_name)
-                warning_txt = ("No Parameter found with "
-                    f"param_name={param_name} and part_id={part_id} and "
-                    f"mechanism={repr(mechanism)}. Parameter found under "
-                    f"the key (mechanism.name, "
-                    f"param_name)=({mech_name}, {param_name})")
-
-            elif (mech_type, None, param_name) in self.parameters:
-                found_entry = self.parameters[(mech_type, None, param_name)]
-                found_key = (mech_type, None, param_name)
-                warning_txt = ("No Parameter found with "
-                    f"param_name={param_name} and part_id={part_id} and "
-                    f"mechanism={repr(mechanism)}. Parameter found under "
-                    f"the key (mechanism.name, "
-                    f"param_name)=({mech_type}, {param_name})")
-        # Finally try (param_name) --> return val
-        if (None, None, param_name) in self.parameters and found_entry is None:
-            found_entry = self.parameters[None, None, param_name]
-            found_key = (None, None, param_name)
-            warning_txt = (f"No parameter found with "
-                f"param_name={param_name} and part_id={part_id} "
-                f"and mechanism={repr(mechanism)}. Parameter "
-                f"found under the key param_name={param_name}")
+        for key in parameter_key_list:
+            if key in self.parameters:
+                found_entry = self.parameters[key]
+                found_key = key
+                warning_txt = (f"No Parameter with {str(parameter_key_list[0])}. Parameter found using {str(key)}.")
+                break
 
         if warning_txt is not None and parameter_warnings and found_entry is not None:
             warn(warning_txt)
@@ -528,6 +487,6 @@ class ParameterDatabase():
             return None
         else:
             return_param = ModelParameter(found_entry.parameter_name,found_entry.value, (mechanism, part_id, param_name), found_key,
-                parameter_keys = found_entry.keys, parameter_info = found_entry.info)
+                parameter_key = found_entry.parameter_key, parameter_info = found_entry.parameter_info)
             return return_param
 

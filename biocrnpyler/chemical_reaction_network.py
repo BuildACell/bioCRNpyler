@@ -8,7 +8,6 @@ import numpy as np
 from typing import List, Union, Dict
 
 
-
 class Species(object):
     """ A formal species object for a CRN
      A Species must have a name. They may also have a material_type (such as DNA,

@@ -35,12 +35,12 @@ class TestParameter(TestCase):
 
     def test_parameter_entry(self):
         #Valid ParameterEntry Construction
-        ParameterEntry(parameter_name="None", parameter_value=1.0, parameter_keys = {"part_id":"id"}, parameter_info = {"comment":"comment"})
+        ParameterEntry(parameter_name="None", parameter_value=1.0, parameter_key = {"part_id":"id"}, parameter_info = {"comment":"comment"})
 
         #Invalid keys
-        param_keys = (1, 2, 3)
-        with self.assertRaisesRegexp(ValueError, "parameter_keys must be a None or a dictionary"):
-            ParameterEntry(parameter_name="None", parameter_value=1.0, parameter_keys = param_keys)
+        param_keys = Parameter(parameter_name="None", parameter_value=1.0)
+        with self.assertRaisesRegexp(ValueError, "parameter_key must be"):
+            ParameterEntry(parameter_name="None", parameter_value=1.0, parameter_key = param_keys)
 
         #Invalid info
         param_info = "blah blah"
@@ -52,11 +52,12 @@ class TestParameter(TestCase):
         ModelParameter(parameter_name="None", parameter_value=1.0, search_key = ("that", "this", "k"), found_key = ("this", None, "k"))
 
         #Invalid keys
-        with self.assertRaisesRegexp(ValueError,"search_key must be a tuple"):
-            ModelParameter(parameter_name="None", parameter_value=1.0, search_key = "k", found_key = ("this", None, "k"))
+        k = Parameter(parameter_name="None", parameter_value="1.0")
+        with self.assertRaisesRegexp(ValueError,"parameter_key must be None"):
+            ModelParameter(parameter_name="None", parameter_value=1.0, search_key = k, found_key = ("this", None, "k"))
 
-        with self.assertRaisesRegexp(ValueError,"found_key must be a tuple"):
-            ModelParameter(parameter_name="None", parameter_value=1.0, search_key = ("that", "this", "k"), found_key = "k")
+        with self.assertRaisesRegexp(ValueError,"parameter_key must be None"):
+            ModelParameter(parameter_name="None", parameter_value=1.0, search_key = ("that", "this", "k"), found_key = k)
 
 
     def test_get_field_names(self):
@@ -133,7 +134,8 @@ class TestParameter(TestCase):
                 (None, None, "kdefault"): 1.0
                 }
 
-                return_dict = {k:p.value for (k, p) in PD.parameters}
+
+                return_dict = {(k.mechanism, k.part_id, k.name):p.value for (k, p) in PD.parameters}
                 self.assertEqual(return_dict, right_dict)
         else:
             warn('version below 3.6 was detected! This test was skipped')
@@ -163,7 +165,7 @@ class TestParameter(TestCase):
         ("M", None, "k"): 4,
         }
         PD = ParameterDatabase(parameter_dictionary = parameter_dict)
-        return_dict = {k:p.value for (k, p) in PD.parameters}
+        return_dict = {k:PD.parameters[k] for k in PD.parameters}
         self.assertEqual(return_dict, right_dict)
 
         #improper parameter dictionary
@@ -230,11 +232,11 @@ class TestParameter(TestCase):
         self.assertTrue(PD[("M", None, "k")].value == 4)
 
         #test incorrect accessing
-        with self.assertRaisesRegexp(ValueError, f"Invalid parameter key"):
+        with self.assertRaisesRegexp(ValueError, f"parameter_key must be"):
             PD[("M", "k")]
 
         #test accessing something not in the PD
-        with self.assertRaisesRegexp(ValueError, f"Parameter"):
+        with self.assertRaisesRegexp(KeyError, f"ParameterKey"):
             PD["kb"]
 
         #test inserting values
@@ -262,7 +264,7 @@ class TestParameter(TestCase):
 
 
         #Invalid parameter key
-        with self.assertRaisesRegexp(ValueError, f"Invalid parameter"):
+        with self.assertRaisesRegexp(ValueError, f"parameter_key must be"):
             PD[("M", "k")] = 10
 
         #Test overwriting
