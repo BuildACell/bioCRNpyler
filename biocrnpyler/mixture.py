@@ -133,9 +133,8 @@ class Mixture(object):
 
             #Reset components Mixtures
             component.set_mixture(self)
-
             component.update_mechanisms(mixture_mechanisms=self.mechanisms, overwrite_custom_mechanisms = False)
-            #component.update_parameters(mixture_parameters=self.parameters)
+            
             if self.parameter_warnings is not None:
                 component.set_parameter_warnings(self.parameter_warnings)
 

@@ -191,7 +191,7 @@ class ModelParameter(ParameterEntry):
     def found_key(self):
         return self._found_key
 
-    @search_key.setter
+    @found_key.setter
     def found_key(self, found_key):
         self._found_key = self.create_parameter_key(found_key, self.parameter_name)
 
