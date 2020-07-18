@@ -3,7 +3,7 @@
 
 from unittest import TestCase
 from unittest.mock import patch, mock_open
-from biocrnpyler import Parameter, ParameterEntry, ModelParameter, ParameterDatabase
+from biocrnpyler import Parameter, ParameterEntry, ModelParameter, ParameterDatabase, ParameterKey
 import sys
 from warnings import warn
 
@@ -118,17 +118,14 @@ class TestParameter(TestCase):
             with patch('builtins.open', mock_open(read_data=example_csv), create=True):
                 PD = ParameterDatabase(parameter_file='test_file.tsv')
 
+                
                 right_dict = {
                 ('transcription_mm', 'ptet_tetR', 'kb'): 10.0,
-                ('transcription_mm', 'ptet_tetR', 'ku'): 0.1,
-                # (None, 'P', 'kb'): 2.0,
-                # ("mechanism", None, "ku"): 100,
-                # (None, None, "kdefault"): 1.0
+                ('transcription_mm', 'ptet_tetR', 'ku'): 0.1
                 }
-
-                return_dict = {(k.mechanism, k.part_id, k.name): p.value for (k, p) in PD.parameters}
-                print(return_dict)
-                self.assertEqual(return_dict, right_dict)
+                returned_dict = {(k.mechanism, k.part_id, k.name):PD.parameters[k].value for k in PD.parameters}
+                #raise ValueError(str(returned_dict))
+                self.assertEqual(right_dict, returned_dict)
         else:
             warn('version below 3.6 was detected! This test was skipped')
 
@@ -144,15 +141,6 @@ class TestParameter(TestCase):
             warn('version below 3.6 was detected! This test was skipped')
 
 
-        #Lets load an actual parameter files from the examples
-        import os
-        os.chdir('../')
-        os.chdir('examples')
-        PD = ParameterDatabase(parameter_file = "default_parameters.txt")
-        self.assertTrue("ktx" in PD)
-        self.assertTrue((None, "weak", "ktx") in PD)
-        self.assertTrue(("simple_transcript", "weak", "ktx") in PD)
-
     def test_load_parameters_from_dictionary(self):
 
         # bad parameter_dictionary keyword
@@ -161,26 +149,26 @@ class TestParameter(TestCase):
 
         # proper parameter dictionary
         parameter_dict = {
-        "k":1,
+        (None, None, "k"):1,
         ("M", "pid", "k"):2.0,
         (None, "pid", "k"):3.3,
         ("M", None, "k"): 4,
         }
         PD = ParameterDatabase(parameter_dictionary=parameter_dict)
-        return_dict = {k:PD.parameters[k] for k in PD.parameters}
+        return_dict = {(k.mechanism, k.part_id, k.name):PD.parameters[k].value for k in PD.parameters}
         self.assertEqual(return_dict, parameter_dict)
 
         #improper parameter dictionary
         k = ("M", "k")
         parameter_dict = {k:2.0}
-        with self.assertRaisesRegexp(ValueError, f"Invalid parameter key {k}. parameter_dictionary keys must be a 3-tuple or a single string: ('mechanism', 'part_id', 'param_name') OR 'param_name'. Note 'mechanism' and 'part_id' can be None."):
-            PD = ParameterDatabase(parameter_dictionary = 'test_file')
+        with self.assertRaisesRegexp(ValueError, f"parameter_key must be"):
+            PD = ParameterDatabase(parameter_dictionary = parameter_dict)
 
         #duplicate parameter dictionary
         key = (None, None, "k")
         parameter_dict = {"k":1, (None, None, "k"):1}
-        with self.assertRaisesRegexp(ValueError, f"Duplicate parameter detected. Parameter with key = {key} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True."):
-            PD = ParameterDatabase(parameter_dictionary = 'test_file')
+        with self.assertRaisesRegexp(ValueError, f"Duplicate parameter detected"):
+            PD = ParameterDatabase(parameter_dictionary = parameter_dict)
 
     def test_iterator(self):
         parameter_dict = {
