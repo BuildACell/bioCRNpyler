@@ -52,10 +52,11 @@ from warnings import warn
 from typing import List, Dict, Union
 import numbers
 import re
-from collections import namedtuple #Used for the parameter keys
+from collections import namedtuple  # Used for the parameter keys
 
 
 ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name') #This could later be extended
+
 
 class Parameter(object):
     def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real]):
@@ -68,11 +69,11 @@ class Parameter(object):
         self.value = parameter_value
 
     @property
-    def parameter_name(self):
+    def parameter_name(self) -> str:
         return self._parameter_name
 
     @parameter_name.setter
-    def parameter_name(self, new_parameter_name):
+    def parameter_name(self, new_parameter_name: str):
         if not isinstance(new_parameter_name, str):
             raise ValueError(f"parameter_name must be a string: received {type(new_parameter_name)}.")
         if not re.search('^[a-z]+', new_parameter_name, re.IGNORECASE):
@@ -81,16 +82,14 @@ class Parameter(object):
         self._parameter_name = new_parameter_name
 
     @property
-    def value(self):
+    def value(self) -> numbers.Real:
         return self._value
 
     @value.setter
-    def value(self, new_parameter_value):
+    def value(self, new_parameter_value: Union[str, numbers.Real]):
         if not (isinstance(new_parameter_value, numbers.Real) or isinstance(new_parameter_value, str)):
             raise ValueError(f"parameter_value must be a float or int: received {type(new_parameter_value)}.")
         if isinstance(new_parameter_value, str):
-            #print(re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e[0-9]+)|(^[0-9])', new_parameter_value, re.I))
-            #print(re.search('[a-d-f-z]', new_parameter_value, re.I))
             if re.search('[a-d-f-z]', new_parameter_value, re.I) \
                     or re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e-?[0-9]+)|(^.?[0-9])', new_parameter_value, re.I) is None:
                 raise ValueError(f'No valid parameter value! Accepted formats: 1.00 or 1e4 or 2/5, we got {new_parameter_value} ')
@@ -100,7 +99,7 @@ class Parameter(object):
             self._value = new_parameter_value
 
     @staticmethod
-    def _convert_rational(p_value):
+    def _convert_rational(p_value: str) -> numbers.Real:
         if '/' in p_value:
             nom, denom = p_value.split('/')
             return float(nom)/float(denom)
@@ -115,7 +114,7 @@ class ParameterEntry(Parameter):
      parameter_info is a dictionary {key:value} of additional information about the parameter. 
          For example: additional columns in the parameter file or the parameter file name.
     """
-    def __init__(self, parameter_name, parameter_value, parameter_key = None, parameter_info = None):
+    def __init__(self, parameter_name: str, parameter_value: Union[str,numbers.Real], parameter_key=None, parameter_info=None):
         Parameter.__init__(self, parameter_name, parameter_value)
 
         self.parameter_key = parameter_key
@@ -123,7 +122,7 @@ class ParameterEntry(Parameter):
 
     #Helper function to create ParameterKeys
     @staticmethod
-    def create_parameter_key(new_key, parameter_name = None):
+    def create_parameter_key(new_key: Union[Dict, ParameterKey, str], parameter_name=None) -> ParameterKey:
         #New Key can be a named_tuple
         if isinstance(new_key, dict):
             new_key = dict(new_key)
@@ -147,19 +146,19 @@ class ParameterEntry(Parameter):
             raise ValueError(f"parameter_key must be None, a dictionary, a ParameterKey, a {len(ParameterKey._fields)}-tuple, or a string (parameter name): received {new_key}.")
 
     @property
-    def parameter_key(self):
+    def parameter_key(self) -> ParameterKey:
         return self._parameter_key
 
     @parameter_key.setter
-    def parameter_key(self, parameter_key):
+    def parameter_key(self, parameter_key: Union[Dict, ParameterKey, str]):
         self._parameter_key = self.create_parameter_key(parameter_key, self.parameter_name)
 
     @property
-    def parameter_info(self):
+    def parameter_info(self) -> Dict:
         return self._parameter_info
 
     @parameter_info.setter
-    def parameter_info(self, parameter_info):
+    def parameter_info(self, parameter_info: Dict):
         if parameter_info is None:
             self._parameter_info = {}
         elif isinstance(parameter_info, dict):
@@ -174,15 +173,16 @@ class ModelParameter(ParameterEntry):
       search_key is a tuple searched for to find the parameter, eg (mech_id, part_id, param_name), :
       found_key is the tuple used after defaulting to find the parameter eg (param_name)
     """
-    def __init__(self, parameter_name, parameter_value, search_key, found_key, parameter_key = None, parameter_info = None):
+    def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real], search_key, found_key, parameter_key=None, parameter_info=None):
 
-        ParameterEntry.__init__(self, parameter_name, parameter_value, parameter_key = parameter_key, parameter_info = parameter_info)
+        ParameterEntry.__init__(self, parameter_name, parameter_value, parameter_key=parameter_key, parameter_info=parameter_info)
         self.search_key = search_key
         self.found_key = found_key
 
     @property
     def search_key(self):
         return self._search_key
+
     @search_key.setter
     def search_key(self, search_key):
         self._search_key = self.create_parameter_key(search_key, self.parameter_name)
@@ -190,13 +190,20 @@ class ModelParameter(ParameterEntry):
     @property
     def found_key(self):
         return self._found_key
+
     @search_key.setter
     def found_key(self, found_key):
         self._found_key = self.create_parameter_key(found_key, self.parameter_name)
 
-#A class for storing parameters in Components and Mixtures
-class ParameterDatabase():
+
+class ParameterDatabase(object):
     def __init__(self, parameter_dictionary = None, parameter_file = None, overwrite_parameters = False):
+        """A class for storing parameters in Components and Mixtures
+
+        :param parameter_dictionary:
+        :param parameter_file:
+        :param overwrite_parameters: whether to overwrite existing entries in the parameter database
+        """
 
         self.parameters = {} #create an emtpy dictionary to get parameters.
 
@@ -237,6 +244,7 @@ class ParameterDatabase():
         self.keys = list(self.parameters.keys())
         self.current_key_ind = 0
         return self
+
     def __next__(self):
         if self.current_key_ind < len(self.keys):
             key = self.keys[self.current_key_ind]
@@ -263,9 +271,18 @@ class ParameterDatabase():
             self.parameters[key] = value
         else:
             self.add_parameter(key.name, value, parameter_key = key, parameter_origin = "Set Manually", overwrite_parameters = True)
-    
-    #Adds a parameter to the database with appropriate metadata
-    def add_parameter(self, parameter_name, parameter_value, parameter_origin = None, parameter_key = None, parameter_info = None, overwrite_parameters = False):
+
+    def add_parameter(self, parameter_name: str, parameter_value: Union[str,numbers.Real], parameter_origin = None, parameter_key = None, parameter_info = None, overwrite_parameters = False):
+        """Adds a parameter to the database with appropriate metadata
+
+        :param parameter_name: the name of the parameter
+        :param parameter_value: the value of the parameter
+        :param parameter_origin:
+        :param parameter_key:
+        :param parameter_info:
+        :param overwrite_parameters: whether to overwrite existing entries in the parameter database
+        :return:
+        """
 
         #Put parameter origin into parameter_info
         if parameter_info is None:
@@ -283,14 +300,22 @@ class ParameterDatabase():
         else:
             self.parameters[key] = param
 
-    #Loads Parameters from a dictionary
-    def load_parameters_from_dictionary(self, parameter_dictionary, overwrite_parameters = False):
+    def load_parameters_from_dictionary(self, parameter_dictionary: Dict[ParameterKey, Union[str,numbers.Real]], overwrite_parameters=False) -> None:
+        """Loads Parameters from a parameter dictionary
+
+        :param parameter_dictionary: Dictionary with keys ParameterKey types and values with real numbers
+        :param overwrite_parameters: whether to overwrite existing entries in the parameter database
+        """
         for k in parameter_dictionary:
             key = ParameterEntry.create_parameter_key(k)
             self.add_parameter(key.name, parameter_dictionary[k], parameter_key = {"part_id":key.part_id, "mechanism":key.mechanism}, parameter_origin = "parameter_dictionary", overwrite_parameters = overwrite_parameters)
 
-    #Loads parameters from another ParameterDatabase
-    def load_parameters_from_database(self, parameter_database, overwrite_parameters = False):
+    def load_parameters_from_database(self, parameter_database, overwrite_parameters=False) -> None:
+        """Loads parameters from another ParameterDatabase
+
+        :param parameter_database: instance of another ParameterDatabase
+        :param overwrite_parameters:  whether to overwrite existing entries in the parameter database
+        """
 
         if not isinstance(parameter_database, ParameterDatabase):
             raise TypeError(f"paramater_database must be a ParamaterDatabase: recievied {parameter_database}.")
@@ -301,10 +326,15 @@ class ParameterDatabase():
             else:
                 raise ValueError(f"Duplicate parameter detected. Parameter with key = {k} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True.")
 
+    def load_parameters_from_file(self, filename: str, overwrite_parameters=False) -> None:
+        """Loads parameters from a file to the ParameterDatabase
 
-    def load_parameters_from_file(self, filename, overwrite_parameters = False):
+        Parameter files must be tab-separated (.tsv or .txt) or comma-separated (.csv) files!
+        :param filename: name of the file (with valid file path)
+        :param overwrite_parameters: whether to overwrite existing entries in the parameter database
+        """
 
-        #Figure out the format of the parameter file
+        # Figure out the format of the parameter file from the file extension
         with open(filename) as f:
             file_type = filename.split(".")[-1]
             if file_type in ["tsv", "txt"]:
@@ -398,7 +428,6 @@ class ParameterDatabase():
                         self.add_parameter(param_name, param_value, parameter_origin = filename, 
                             parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
 
-
     @staticmethod
     def _get_field_names(field_names: List[str], accepted_field_names: Dict[str, List[str]]) -> Dict[str, str]:
         """ Searches through valid field names and finds the currently used one. It builds a dictionary of currently
@@ -432,7 +461,6 @@ class ParameterDatabase():
 
         return return_field_names
 
-    
     def find_parameter(self, mechanism, part_id, param_name, parameter_warnings = False):
         """Searches the database for the best matching parameter. 
         
