@@ -69,6 +69,9 @@ class Mechanism(object):
 
 
 class EmptyMechanism(Mechanism):
+    """
+    For use when one needs a Mechanism to do nothing, such as translation in Expression Mixtures.
+    """
     def __init__(self, name, mechanism_type):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 

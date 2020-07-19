@@ -192,7 +192,7 @@ class MichaelisMentenCopy(Mechanism):
             complexS = ComplexSpecies([Sub, Enzyme])
         else:
             complexS = complex
-
+            
         if Prod is None:
             return [Enzyme, Sub, complexS]
         else:

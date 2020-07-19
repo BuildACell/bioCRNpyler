@@ -4,7 +4,7 @@
 
 from unittest import TestCase
 from unittest.mock import mock_open, patch
-from biocrnpyler import ChemicalReactionNetwork, Species, Reaction
+from biocrnpyler import ChemicalReactionNetwork, Species, Reaction, ComplexSpecies, OrderedComplexSpecies
 import libsbml
 
 
@@ -102,6 +102,63 @@ class TestChemicalReactionNetwork(TestCase):
         # test that s1 is returned only once as a string
         rtn_species_list = self.crn.get_all_species_containing(species=self.s1, return_as_strings=True)
         self.assertEqual(rtn_species_list, [repr(self.s1)])
+
+    def test_replace_species(self):
+
+        s_old = Species("s_old")
+        s_new = Species("s_new")
+
+        #Test replace species in a Species
+        self.assertTrue(self.s1.replace_species(self.s2, s_new) == self.s1)
+        self.assertTrue(s_old.replace_species(s_old, s_new) == s_new)
+
+        #test replace Species in a ComplexSpecies
+        c1 = ComplexSpecies([self.s1, s_old])
+        c2 = ComplexSpecies([self.s1, c1])
+        self.assertTrue(c1.replace_species(self.s2, s_new) == c1)
+        self.assertTrue(c1.replace_species(s_old, s_new) == ComplexSpecies([self.s1, s_new]))
+        self.assertTrue(c2 == ComplexSpecies([self.s1, c1]))
+        self.assertTrue(c2.replace_species(s_new, s_old) == ComplexSpecies([self.s1, ComplexSpecies([self.s1, s_old])]))
+
+        #test in OrderedComplexSpecies
+        oc1 = OrderedComplexSpecies([self.s1, s_old])
+        self.assertTrue(oc1.replace_species(s_old, s_new) == OrderedComplexSpecies([self.s1, s_new]))
+
+
+        #Test replace species in a reaction
+        c1 = ComplexSpecies([self.s1, s_old])
+        c2 = ComplexSpecies([self.s1, s_new])
+        r1 = Reaction([self.s1, s_old], [c1], k = 1)
+        self.assertTrue(r1.replace_species(s_old, s_new) == Reaction([self.s1, s_new], [c2], k = 1))
+
+        #test replace species with a non-massaction reaction
+        r1 = Reaction([self.s1, s_old], [c1], propensity_type = "proportionalhillpositive", propensity_params = {"k":1., "d":s_old, "s1":self.s1, "n":2, "K":10})
+        r1_new = Reaction([self.s1, s_new], [c1.replace_species(s_old, s_new)], propensity_type = "proportionalhillpositive", propensity_params = {"k":1., "d":s_new, "s1":self.s1, "n":2, "K":10})
+        self.assertTrue(r1.replace_species(s_old, s_new) == r1_new)
+
+        #test replace in a chemical reaction network
+        c1 = ComplexSpecies([self.s1, s_old])
+        c2 = ComplexSpecies([self.s1, c1])
+        r1 = Reaction([self.s1, s_old], [c1], k = 1)
+        species = [self.s1, s_old, c1, c2]
+        r1 = Reaction([self.s1, s_old], [c1], k = 1)
+        crn = ChemicalReactionNetwork(species = species, reactions = [r1])
+        new_crn = crn.replace_species(s_old, s_new)
+
+        self.assertTrue(self.s1 in new_crn.species)
+        self.assertFalse(s_old in new_crn.species)
+
+        self.assertTrue(s_new in new_crn.species)
+        self.assertFalse(c1 in new_crn.species)
+        self.assertFalse(c2 in new_crn.species)
+        c1_new = ComplexSpecies([self.s1, s_new])
+        c2_new = ComplexSpecies([self.s1, c1_new])
+        self.assertTrue(c1_new in new_crn.species)
+        self.assertTrue(c2_new in new_crn.species)
+        r1_new = Reaction([self.s1, s_new], [c1_new], k = 1)
+        self.assertFalse(r1 in new_crn.reactions)
+        self.assertTrue(r1_new in new_crn.reactions)
+
 
     def test_generate_sbml_model(self):
 
