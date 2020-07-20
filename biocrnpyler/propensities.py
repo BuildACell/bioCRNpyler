@@ -4,6 +4,7 @@
 from typing import Set, Union
 from numbers import Number
 from .parameter import Parameter
+from .sbmlutil import getSpeciesByName
 import libsbml
 
 
@@ -146,42 +147,53 @@ class MassAction(Propensity):
     def species(self):
         return []
 
-    def create_kinetic_law(self, reaction, stochastic, participating_species, direction='forward'):
-        # Create a kinetic law for the reaction
-        ratelaw = reaction.createKineticLaw()
+    def create_kinetic_law(self, model, sbml_reaction, stochastic, **kwargs):
+        # Create a kinetic law for the sbml_reaction
+        ratelaw = sbml_reaction.createKineticLaw()
 
         # annotation_dict = {"type": self}
-        if direction == 'forward':
-            rate_coeff = self.k_forward
+        if 'crn_reaction' in kwargs:
+            crn_reaction = kwargs['crn_reaction']
         else:
-            rate_coeff = self.k_reverse
+            raise ValueError('crn_reaction reference is needed for Massaction kinetics!')
+
+        # set up the forward sbml_reaction
+        reactant_species = {}
+        for w_species in crn_reaction.inputs:
+            species_id = getSpeciesByName(model, str(w_species.species)).getId()
+            reactant_species[species_id] = w_species
 
         # get the name of the kinetic rate coefficient
-        rate_coeff_name = Propensity._get_parameter_name(rate_coeff)
-
+        rate_coeff_name = Propensity._get_parameter_name(self.k_forward)
         param = ratelaw.createParameter()
         param.setId(rate_coeff_name)
         param.setConstant(True)
-        param.setValue(rate_coeff)
+        param.setValue(self.k_forward)
         # annotation_dict["k"] = rate_coeff
 
-        # Create Rate-strings for massaction propensities
-        ratestring = rate_coeff_name
+        rate_formula = self._get_rate_formula(rate_coeff_name, stochastic, reactant_species)
 
-        for species_id, weighted_species in participating_species.items():
+        # setup the reverse sbml_reaction
+        if crn_reaction.is_reversible:
+            sbml_reaction.setReversible(True)
+            rate_formula += '-'
+            reactant_species = {}
+            for w_species in crn_reaction.outputs:
+                species_id = getSpeciesByName(model, str(w_species.species)).getId()
+                reactant_species[species_id] = w_species
 
-            if stochastic:
-                for i in range(weighted_species.stoichiometry):
-                    if i > 0:
-                        ratestring += f" * ( {species_id} - {i} )"
-                    else:
-                        ratestring += f" * {species_id}"
+            rate_coeff_name = Propensity._get_parameter_name(self.k_reverse)
+            param = ratelaw.createParameter()
+            param.setId(rate_coeff_name)
+            param.setConstant(True)
+            param.setValue(self.k_reverse)
+            # annotation_dict["k"] = rate_coeff
+            rate_formula += self._get_rate_formula(rate_coeff_name, stochastic, reactant_species)
+        else:
+            sbml_reaction.setReversible(False)
 
-            else:
-                    ratestring += f" * {species_id}^{weighted_species.stoichiometry}"
-
-        # Set the ratelaw to the ratestring
-        math_ast = libsbml.parseL3Formula(ratestring)
+        # Set the ratelaw to the rateformula
+        math_ast = libsbml.parseL3Formula(rate_formula)
         ratelaw.setMath(math_ast)
 
         # if propensity_annotation:
@@ -189,9 +201,22 @@ class MassAction(Propensity):
         #     for k in annotation_dict:
         #         annotation_string += " "+k + "=" + str(annotation_dict[k])
         #     annotation_string += "</PropensityType>"
-        #     reaction.appendAnnotation(annotation_string)
+        #     sbml_reaction.appendAnnotation(annotation_string)
 
         return ratelaw
+
+    def _get_rate_formula(self, rate_coeff_name, stochastic, reactant_species) -> str:
+
+        # Create Rate-strings for massaction propensities
+        ratestring = rate_coeff_name
+
+        for species_id, weighted_species in reactant_species.items():
+            if stochastic:
+                ratestring += '*'.join(f" ( {species_id} - {i} )" for i in range(weighted_species.stoichiometry))
+            else:
+                ratestring += f" * {species_id}^{weighted_species.stoichiometry}"
+
+        return ratestring
 
 
 class Hill(MassAction):
@@ -212,11 +237,8 @@ class Hill(MassAction):
     def species(self):
         return [self.s1]
         
-    def create_kinetic_law(self, reaction, direction='forward'):
-        if direction != 'forward':
-            raise ValueError('Only MassAction can have reverse reaction!')
+    def create_kinetic_law(self, model, sbml_reaction, stochastic, **kwargs):
 
-        ratelaw = super(Hill, self).create_kinetic_law(reaction=reaction)
 
         param_n = ratelaw.createParameter()
         param_n.setId("n")

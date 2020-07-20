@@ -9,7 +9,6 @@ import numpy as np
 import logging
 from typing import List
 from warnings import warn
-from .propensities import MassAction
 
 
 # Reaction ID number (global)
@@ -160,7 +159,7 @@ def find_parameter(mixture, id):
     return model.getParameter(id)  # ! TODO: add error checking
 
 
-def add_all_reactions(model, reactions: List, stochastic=False):
+def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
     """adds a list of reactions to the SBML model
 
     :param model: an sbml model created by create_sbml_model()
@@ -168,73 +167,57 @@ def add_all_reactions(model, reactions: List, stochastic=False):
     :param stochastic: binary flag for stochastic models
     :return: None
     """
-    rxn_count = 0
-    for r in reactions:
+
+    for rxn_count, r in enumerate(reactions):
         rxn_id = f'r{rxn_count}'
-        add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic)
-        rxn_count += 1
-
-        # if a reaction is Massaction and reserviable, we need to set up the reverse reaction as well
-        if r.is_reversible and isinstance(r.propensity_type, MassAction):
-            add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, reverse_reaction=True)
-            rxn_count += 1
+        add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, **kwargs)
 
 
-def add_reaction(model, crn_reaction, reaction_id: str,
-                 stochastic: bool=False, reverse_reaction=False, propensity_annotation=True):
-    """adds a reaction to an sbml model
+def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, **kwargs):
+    """adds a sbml_reaction to an sbml model
 
     :param model: an sbml model created by create_sbml_model()
     :param crn_reaction: must be a chemical_reaction_network.reaction object
     :param reaction_id: unique id of the reaction
-    :param reverse_reaction: bool, only works for massaaction kinetic, it sets up the reverse reaction
-    :param stochastic: stochastic model
-    :param propensity_annotation:
-    :return:
+    :param stochastic: stochastic model flag
+    :return: SBML sbml_reaction object
     """
 
-    # Create the reaction in SBML
-    reaction = model.createReaction()
-    reaction.setReversible(False)
-    # reaction.setFast(False) # Deprecated in SBML
+    # Create the sbml_reaction in SBML
+    sbml_reaction = model.createReaction()
     all_ids = getAllIds(model.getSBMLDocument().getListOfAllElements())
     trans = SetIdFromNames(all_ids)
-    reaction.setId(trans.getValidIdForName(reaction_id))
-    reaction.setName(reaction.getId())
+    sbml_reaction.setId(trans.getValidIdForName(reaction_id))
+    sbml_reaction.setName(sbml_reaction.getId())
 
     # Create the kinetic law and corresponding local propensity parameters
-    crn_reaction.propensity_type.create_kinetic_law(reaction, reverse_reaction=reverse_reaction, stochastic=stochastic)
+    crn_reaction.propensity_type.create_kinetic_law(model=model,
+                                                    sbml_reaction=sbml_reaction,
+                                                    stochastic=stochastic,
+                                                    crn_reaction=crn_reaction,
+                                                    **kwargs)
 
-    # Creating both sides of a reaction
-    if reverse_reaction is False:
-        # forward reaction:  reactants: crn_inputs -> products: crn_outputs
-        _create_reactants(reactant_list=crn_reaction.inputs, reaction=reaction, model=model)
-        _create_products(product_list=crn_reaction.outputs, reaction=reaction, model=model)
-    else:
-        # reverse reaction: reactants: crn_outputs -> products: crn_inputs
-        _create_reactants(reactant_list=crn_reaction.outputs, reaction=reaction, model=model)
-        _create_products(product_list=crn_reaction.inputs, reaction=reaction, model=model)
+    # Create the reactants and products for the sbml_reaction
+    _create_reactants(reactant_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+    _create_products(product_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
 
-    return reaction
+    return sbml_reaction
 
 
-def _create_reactants(reactant_list, reaction, model):
+def _create_reactants(reactant_list, sbml_reaction, model):
     for input in reactant_list:
-        species = str(input.species).replace("'", "")
-
         # What to do when there are multiple species with same name?
-        species_id = getSpeciesByName(model, species).getId()
-        reactant = reaction.createReactant()
+        species_id = getSpeciesByName(model, str(input.species)).getId()
+        reactant = sbml_reaction.createReactant()
         reactant.setSpecies(species_id)  # ! TODO: add error checking
         reactant.setConstant(False)
         reactant.setStoichiometry(input.stoichiometry)
 
 
-def _create_products(product_list, reaction, model):
+def _create_products(product_list, sbml_reaction, model):
     for output in product_list:
-        species = str(output.species).replace("'", "")
-        product = reaction.createProduct()
-        species_id = getSpeciesByName(model, species).getId()
+        product = sbml_reaction.createProduct()
+        species_id = getSpeciesByName(model, str(output.species)).getId()
         product.setSpecies(species_id)
         product.setStoichiometry(output.stoichiometry)
         product.setConstant(False)
@@ -285,11 +268,6 @@ def _create_products(product_list, reaction, model):
 ## ------------------------------------------------------------------------ -->
 ##
 ##
-
-import sys
-import os.path
-import time
-
 
 # This class implements an identifier transformer, that means it can be used
 # to rename all sbase elements.

@@ -60,7 +60,7 @@ def test_species_merging():
     rxn = Reaction(inputs=[], outputs=chem_complexes, propensity_type=MassAction(k_forward=1))
 
     # same species with different stoichiometry gets merged into one species
-    assert len(rxn.inputs) == 1
+    assert len(rxn.outputs) == 1
 
 
 def test_reaction_equality():

@@ -1,7 +1,6 @@
-#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from warnings import warn
 from .sbmlutil import *
 from .propensities import Propensity, MassAction
 import warnings
@@ -12,6 +11,7 @@ import functools
 import operator
 import itertools
 import collections
+
 
 class Species(object):
     """ A formal species object for a CRN
@@ -39,8 +39,8 @@ class Species(object):
                 self.add_attribute(attribute)
 
     def check_material_type(self, material_type):
-        """
-        Check that the string contains is alpha-numeric characters or "_" and that the first character is a letter.
+        """Check that the string contains is alpha-numeric characters or "_" and that the first character is a letter.
+
         If the name is a starts with a number, there must be a material type.
         """
         if material_type in [None, ""] and self.name[0].isnumeric():
@@ -51,7 +51,6 @@ class Species(object):
                 return material_type
         else:
             raise ValueError(f"material_type {material_type} must be alpha-numeric and start with a letter.")
-
 
     def check_name(self, name):
         """
@@ -90,15 +89,13 @@ class Species(object):
             return self
 
     def get_species(self, **kwargs):
-        """
-        Used in some recursive calls where ComplexSpecies returns a list and Species will return just themselves (in a list)
+        """Used in some recursive calls where ComplexSpecies returns a list and Species will return just themselves (in a list)
         """
         return [self]
 
-
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
-        """
-        #A more powerful printing function.
+        """A more powerful printing function.
+
         Useful for understanding CRNs but does not return string identifiers.
         show_material toggles whether species.material is printed.
         show_attributes toggles whether species.attributes is printed
@@ -124,8 +121,7 @@ class Species(object):
         return txt
 
     def add_attribute(self, attribute: str):
-        """
-        Adds attributes to a Species
+        """Adds attributes to a Species
         """
         assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(), "Attribute: %s must be an alpha-numeric string" % attribute
         self.attributes.append(attribute)
@@ -159,7 +155,7 @@ class Species(object):
     def __rmul__(self, other):
         if isinstance(other, int):
             if other <= 0:
-                raise ValueError(f'Stochiometry must be nonnegative! We got {other}!')
+                raise ValueError(f'Stoichiometry must be positive! We got {other}!')
             return WeightedSpecies(species=self, stoichiometry=other)
         else:
             raise TypeError(f'Species can be multiplied by integer only! We got {type(other)}')
@@ -188,6 +184,8 @@ class Species(object):
 
 @dataclass(frozen=True)
 class WeightedSpecies:
+    """Container object for a species and its stoichiometry
+    """
     species: Species
     stoichiometry: int = 1
 
@@ -199,12 +197,28 @@ class WeightedSpecies:
             return True
         return False
 
-    # def __eq__(self, other):
-    #     return self.species == other.species
+    def __eq__(self, other):
+        return other.species == self.species
+
+    def __hash__(self):
+        return hash(self.species)
+
+    def replace_species(self, *args, **kwargs):
+        return self.species.replace_species(*args, **kwargs)
+
+    @staticmethod
+    def _count_weighted_species(weighted_species):
+        unique_species = set(weighted_species)
+        freq_dict = dict(zip(unique_species,[0]*len(unique_species)))
+        for w_species in weighted_species:
+            freq_dict[w_species] += w_species.stoichiometry
+
+        return freq_dict
 
 
 class ComplexSpecies(Species):
     """ A special kind of species which is formed as a complex of two or more species.
+
         Used for attribute inheritance and storing groups of bounds Species. 
         Note taht in a ComplexSpecies, the order of the species list does not matter.
         This means that ComplexSpecies([s1, s2]) = ComplexSpecies([s2, s1]). 
@@ -271,10 +285,10 @@ class ComplexSpecies(Species):
             #if we got here then we've failed to find it
             return False
 
-
     def replace_species(self, species: Species, new_species: Species):
-        """
-        Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
+        """Replaces species with new_species in the entire Complex Species.
+
+        Acts recursively on nested ComplexSpecies
         Does not act in place - returns a new ComplexSpecies.
         """
         if not isinstance(species, Species):
@@ -289,11 +303,10 @@ class ComplexSpecies(Species):
             new_species_list.append(new_s)
 
         new_name = None
-        if self.custom_name == True:
+        if self.custom_name is True:
             new_name = self.name
         
         return ComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
-
 
     def get_species(self, recursive = False):
         """
@@ -308,10 +321,9 @@ class ComplexSpecies(Species):
 
         return species
 
-
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
-        """
-        A more powerful printing function.
+        """A more powerful printing function.
+
         Useful for understanding CRNs but does not return string identifiers.
         show_material toggles whether species.material is printed.
         show_attributes toggles whether species.attributes is printed
@@ -569,14 +581,11 @@ class Reaction(object):
 
         # filter out duplicates and adjust stoichiometry
         out_list = []
-        # Create a dictionary of elements and their frequency count
-        frequency_count = dict(collections.Counter(complexes))
-        for one_complex, frequency in frequency_count.items():
-            if frequency == 1:
-                out_list.append(one_complex)
-            else:
-                new_complex = WeightedSpecies(species=one_complex.species, stoichiometry=frequency)
-                out_list.append(new_complex)
+        # Create a dictionary of unique species and their stoichiometry count
+        stoichiometry_count = WeightedSpecies._count_weighted_species(complexes)
+        for one_complex, stoichiometry in stoichiometry_count.items():
+            new_complex = WeightedSpecies(species=one_complex.species, stoichiometry=stoichiometry)
+            out_list.append(new_complex)
 
         return out_list
 
@@ -634,7 +643,7 @@ class Reaction(object):
                 else:
                     new_params[key] = self.propensity_params[key]
 
-        new_r = Reaction(inputs = new_inputs, outputs = new_outputs, propensity_type = self.propensity_type, propensity_params = new_params, k = self.k, k_rev = self.k_r)
+        new_r = Reaction(inputs=new_inputs, outputs=new_outputs, propensity_type=self.propensity_type)
         return new_r
 
     def __repr__(self):
@@ -671,7 +680,15 @@ class Reaction(object):
 
         return (set(self.inputs), set(self.outputs), self.propensity_type) == (set(other.inputs), set(other.outputs), other.propensity_type)
 
-    def __contains__(self, item):
+    def __contains__(self, item: Species):
+        """It checks whether a species is part of a reaction.
+
+         it checks the input and output lists as well as the propensity type for the species
+
+        :param item: a Species instance
+        :return: bool
+        :exception NotImplementedError for non-Species objects
+        """
         if isinstance(item, Species):
             if item in self.inputs \
                     or item in self.outputs \
@@ -770,8 +787,8 @@ class ChemicalReactionNetwork(object):
         return txt
 
     def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, **kwargs):
-        """
-        A more powerful printing function.
+        """A more powerful printing function.
+
         Useful for understanding CRNs but does not return string identifiers.
         show_material toggles whether species.material is printed.
         show_attributes toggles whether species.attributes is printed
@@ -822,10 +839,9 @@ class ChemicalReactionNetwork(object):
                     return_list.append(s)
         return return_list
 
-
     def replace_species(self, species: Species, new_species: Species):
-        """
-        Replaces species with new_species in the entire CRN.
+        """Replaces species with new_species in the entire CRN.
+
         Does not act in place: returns a new CRN.
         """
 
@@ -854,7 +870,7 @@ class ChemicalReactionNetwork(object):
 
         :param stochastic_model: whether the model is stochastic
         :param keywords: extra keywords pass onto create_sbml_model()
-        :return: None
+        :return: tuple: (document,model) SBML objects
         """
         document, model = create_sbml_model(**keywords)
 
@@ -868,8 +884,7 @@ class ChemicalReactionNetwork(object):
         return document, model
 
     def write_sbml_file(self, file_name=None, **keywords) -> bool:
-        """
-        Writes CRN to SBML
+        """Writes CRN to an SBML file
         """
         document, _ = self.generate_sbml_model(**keywords)
         sbml_string = libsbml.writeSBMLToString(document)
@@ -878,8 +893,7 @@ class ChemicalReactionNetwork(object):
         return True
 
     def create_bioscrape_model(self):
-        """
-        Creates a Bioscrape Model of the CRN directly.
+        """Creates a Bioscrape Model of the CRN directly.
         """
         from bioscrape.types import Model
 
@@ -1001,8 +1015,7 @@ class ChemicalReactionNetwork(object):
         return result, m
 
     def runsim_roadrunner(self, timepoints, filename, species_to_plot = None):
-        """
-        To simulate using roadrunner. 
+        """To simulate using roadrunner.
         Arguments:
         timepoints: The array of time points to run the simulation for. 
         filename: Name of the SBML file to simulate
@@ -1023,4 +1036,3 @@ class ChemicalReactionNetwork(object):
         except ModuleNotFoundError:
             warnings.warn('libroadrunner was not found, please install libroadrunner')
         return res_ar
-

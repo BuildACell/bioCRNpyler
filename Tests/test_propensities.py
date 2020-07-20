@@ -25,7 +25,6 @@ def test_massaction_reserve_rate():
         MassAction(k_forward=1, k_reverse=-1)
 
 
-
 def test_massaction_is_reverable():
     mak = MassAction(k_forward=1, k_reverse=0.1)
     assert mak.is_reversible

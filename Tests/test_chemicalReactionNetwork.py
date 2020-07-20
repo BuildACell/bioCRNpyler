@@ -5,6 +5,7 @@
 from unittest import TestCase
 from unittest.mock import mock_open, patch
 from biocrnpyler import ChemicalReactionNetwork, Species, Reaction, ComplexSpecies, OrderedComplexSpecies
+from biocrnpyler import ProportionalHillPositive
 import libsbml
 import warnings
 
@@ -139,20 +140,21 @@ class TestChemicalReactionNetwork(TestCase):
         #Test replace species in a reaction
         c1 = ComplexSpecies([self.s1, s_old])
         c2 = ComplexSpecies([self.s1, s_new])
-        r1 = Reaction([self.s1, s_old], [c1], k = 1)
-        self.assertTrue(r1.replace_species(s_old, s_new) == Reaction([self.s1, s_new], [c2], k = 1))
+        r1 = Reaction.from_mass_action([self.s1, s_old], [c1], k_forward=1)
+        self.assertTrue(r1.replace_species(s_old, s_new) == Reaction.from_mass_action([self.s1, s_new], [c2], k_forward=1))
 
-        #test replace species with a non-massaction reaction
-        r1 = Reaction([self.s1, s_old], [c1], propensity_type = "proportionalhillpositive", propensity_params = {"k":1., "d":s_old, "s1":self.s1, "n":2, "K":10})
-        r1_new = Reaction([self.s1, s_new], [c1.replace_species(s_old, s_new)], propensity_type = "proportionalhillpositive", propensity_params = {"k":1., "d":s_new, "s1":self.s1, "n":2, "K":10})
+        # test replace species with a non-massaction reaction
+        prop_hill_old = ProportionalHillPositive(k_forward=1., s1=self.s1, K=10, d=s_old, n=2)
+        r1 = Reaction([self.s1, s_old], [c1], propensity_type=prop_hill_old)
+        prop_hill_new = ProportionalHillPositive(k_forward=1., s1=self.s1, K=10, d=s_new, n=2)
+        r1_new = Reaction([self.s1, s_new], [c1.replace_species(s_old, s_new)], propensity_type=prop_hill_new)
         self.assertTrue(r1.replace_species(s_old, s_new) == r1_new)
 
         #test replace in a chemical reaction network
         c1 = ComplexSpecies([self.s1, s_old])
         c2 = ComplexSpecies([self.s1, c1])
-        r1 = Reaction([self.s1, s_old], [c1], k = 1)
         species = [self.s1, s_old, c1, c2]
-        r1 = Reaction([self.s1, s_old], [c1], k = 1)
+        r1 = Reaction.from_mass_action([self.s1, s_old], [c1], k_forward=1)
         crn = ChemicalReactionNetwork(species = species, reactions = [r1])
         new_crn = crn.replace_species(s_old, s_new)
 
@@ -166,10 +168,9 @@ class TestChemicalReactionNetwork(TestCase):
         c2_new = ComplexSpecies([self.s1, c1_new])
         self.assertTrue(c1_new in new_crn.species)
         self.assertTrue(c2_new in new_crn.species)
-        r1_new = Reaction([self.s1, s_new], [c1_new], k = 1)
+        r1_new = Reaction.from_mass_action([self.s1, s_new], [c1_new], k_forward=1)
         self.assertFalse(r1 in new_crn.reactions)
         self.assertTrue(r1_new in new_crn.reactions)
-
 
     def test_generate_sbml_model(self):
 
@@ -190,17 +191,19 @@ class TestChemicalReactionNetwork(TestCase):
         # all species from the CRN are accounted for
         self.assertEqual(len(model.getListOfSpecies()), len(crn.species))
         # all reactions from the CRN are accounted for
-        # the sbml represents a reverisble reaction with to separate reactions
-        self.assertEqual(len(model.getListOfReactions()), 2*len(crn.reactions))
+        self.assertEqual(len(model.getListOfReactions()), len(crn.reactions))
+        # the sbml represents a reverisble reaction with reversible flag
+        sbml_rxn = model.getListOfReactions()
+        self.assertTrue(sbml_rxn[0].isSetReversible())
 
     def test_write_sbml_file(self):
-
-        document, _ = self.crn.generate_sbml_model(model_id = 'test_model')
+        model_id = 'test_model'
+        document, _ = self.crn.generate_sbml_model(model_id=model_id)
         sbml_string = libsbml.writeSBMLToString(document)
 
         file_name = 'test_sbml.xml'
         with patch("builtins.open", new=mock_open()) as _file:
-            self.crn.write_sbml_file(file_name, model_id = 'test_model')
+            self.crn.write_sbml_file(file_name, model_id=model_id)
 
             _file.assert_called_once_with(file_name, 'w')
             _file().write.assert_called_once_with(sbml_string)
