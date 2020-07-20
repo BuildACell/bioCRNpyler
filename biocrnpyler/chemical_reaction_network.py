@@ -33,24 +33,31 @@ class OrderedPolymer:
             polymer += [part]
             position = len(polymer)-1
             direction = partdir
-            part.insert(self,position,direction)
+            part.monomer_insert(self,position,direction)
         self._polymer = tuple(polymer)
     def __hash__(self):
         return hash(self._polymer)
-    def insert(self,position,part,direction):
-        part.insert(self,position,direction)
+    def insert(self,position,part,direction=None):
+        part.monomer_insert(self,position,direction)
         for subsequent_part in self._polymer[position:]:
             subsequent_part.position += 1
         self._polymer = self._polymer[:position]+(part,)+self._polymer[position:]
+        if(hasattr(self,"name") and hasattr(self,"make_name")):
+            self.name = self.make_name()
     def replace(self,position,part,direction=None):
         if(direction is None):
             direction = part.direction
         self._polymer[position].remove()
-        part.insert(self,position,direction)
+        part.monomer_insert(self,position,direction)
         self._polymer = self._polymer[:position]+(part,)+self._polymer[position+1:]
+        if(hasattr(self,"name") and hasattr(self,"make_name")):
+            self.name = self.make_name()
     def append(self,part,direction=None):
         if(direction is None):
-            direction = part.direction
+            if(hasattr(part,"direction")):
+                direction = part.direction
+            else:
+                direction = None
         pos = len(self._polymer)
         self.insert(pos,part,direction)
     def __repr__(self):
@@ -68,6 +75,8 @@ class OrderedPolymer:
             return 1
         elif(dirname == 1):
             return 0
+        elif(dirname is None):
+            return None
         else:
             warn("didn't know how to invert {}".format(str(dirname)))
             return dirname
@@ -100,6 +109,8 @@ class OrderedPolymer:
         for subsequent_part in self._polymer[position+1:]:
             subsequent_part.position -= 1
         self._polymer = self._polymer[:position] + self._polymer[position+1:]
+        if(hasattr(self,"name") and hasattr(self,"make_name")):
+            self.name = self.make_name()
     def reverse(self):
         self._polymer = self._polymer[::-1]
         for ind,part in enumerate(self._polymer):
@@ -122,7 +133,7 @@ class OrderedMonomer:
         else:
             if(self.position is None):
                 raise ValueError("{} is part of a polymer with no position!".format(self))
-    def insert(self,parent:OrderedPolymer,position:int,direction=None):
+    def monomer_insert(self,parent:OrderedPolymer,position:int,direction=None):
         if(position is None):
             raise ValueError("{} has no position to be inserted at!".format(self))
         if(direction is None):
@@ -653,6 +664,9 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
                              attributes = [], initial_concentration = 0,circular = False):
 
         self.material_type = self.check_material_type(material_type)
+        self.position=None
+        self.direction=None
+        self.parent=None
         self.initial_concentration = initial_concentration
         self.circular = circular
         self.attributes = attributes
@@ -663,6 +677,8 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
             if isinstance(specie,Species):
                 monomers += [specie]
             elif( isinstance(specie,OrderedMonomer)):
+                monomers += [specie]
+            elif( isinstance(specie,list) and isinstance(specie[0],Species) or isinstance(specie[0],OrderedMonomer)):
                 monomers += [specie]
             else:
                 raise ValueError("{} should be a Species or OrderedMonomer".format(specie))
