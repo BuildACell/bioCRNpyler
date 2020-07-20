@@ -3,6 +3,203 @@ from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multim
 from .mechanisms_enzyme import *
 
 
+
+class OneStepGeneExpression(Mechanism):
+    """
+    A mechanism to model gene expression without transcription or translation
+    G --> G + P
+    """
+    def __init__(self, name="gene_expression",
+                 mechanism_type="transcription"):
+        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+
+    def update_species(self, dna, protein, transcript=None, **keywords):
+        species = [dna]
+        species += [protein]
+        return species
+
+    def update_reactions(self, dna, component = None, kexpress = None,
+                         protein=None, transcript = None, part_id = None, **keywords):
+
+        if kexpress is None and Component is not None:
+            kexpress = component.get_parameter("kexpress", part_id = part_id, mechanism = self)
+        elif component is None and kexpress is None:
+            raise ValueError("Must pass in component or a value for kexpress")
+
+        rxns = [Reaction(inputs=[dna], outputs=[dna, protein], k = kexpress)]
+        return rxns
+
+
+class SimpleTranscription(Mechanism):
+    """
+    A Mechanism to model simple catalytic transcription.
+    G --> G + T
+    """
+    def __init__(self, name = "simple_transcription", mechanism_type = "transcription"):
+        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+
+    def update_species(self, dna, transcript = None, protein = None, **keywords):
+
+        species = [dna]
+        if transcript is not None:
+            species += [transcript]
+        if protein is not None:
+            species += [protein]
+
+        return species
+
+    def update_reactions(self, dna, component = None, ktx = None, part_id = None, transcript = None, protein = None, **keywords):
+
+        if ktx == None and Component != None:
+            ktx = component.get_parameter("ktx", part_id = part_id, mechanism = self)
+        elif component == None and ktx == None:
+            raise ValueError("Must pass in component or a value for ktx")
+
+        #First case only true in Mixtures without transcription (eg Expression Mixtures)
+        if transcript is None and protein is not None:
+            ktl = component.get_parameter("ktl", part_id = part_id, mechanism = self)
+            rxns = [Reaction(inputs = [dna], outputs = [dna, protein], k = ktx*ktl)]
+        else:
+            rxns = [Reaction(inputs = [dna], outputs = [dna, transcript], k = ktx)]
+
+        return rxns
+
+class SimpleTranslation(Mechanism):
+    """
+    A mechanism to model simple catalytic translation.
+    T --> T + P
+    """
+    def __init__(self, name = "simple_translation", mechanism_type = "translation"):
+        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+
+    def update_species(self, transcript, protein = None,  **keywords):
+        if protein is None:
+            protein = Species(transcript.name, material_type="protein")
+
+        return [transcript, protein]
+
+    def update_reactions(self, transcript, component = None, ktl = None, part_id = None, protein = None, **keywords):
+
+        if ktl is None and Component is not None:
+            ktl = component.get_parameter("ktl", part_id = part_id, mechanism = self)
+        elif component is None and ktl is None:
+            raise ValueError("Must pass in component or a value for ktl")
+
+        #First case only true in Mixtures without transcription (eg Expression Mixtures)
+        if transcript is None and protein is not None:
+            rxns = []
+        else:
+            rxns = [Reaction(inputs = [transcript], outputs = [transcript, protein], k = ktl)]
+
+        return rxns
+
+
+class PositiveHillTranscription(Mechanism):
+    """
+    A mechanism to model transcription as a proprotional positive hill function:
+    G --> G + P 
+    rate = k*G*(R^n)/(K+R^n)
+    where R is a regulator (activator).
+    Optionally includes a leak reaction
+    G --> G + P @ rate kleak.
+    """
+
+    #Set the name and mechanism_type
+    def __init__(self, name="positivehill_transcription", mechanism_type="transcription"):
+        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+
+    #Overwrite update_species
+    def update_species(self, dna, regulator, transcript = None, leak = False, protein = None, **keywords):
+
+        species = [dna, regulator]
+        if transcript is not None:
+            species += [transcript]
+        if protein is not None:
+            species += [protein]
+
+        return species #it is best to return all species that will be involved in the reactions
+
+
+    #Overwrite update_reactions
+    #This always requires the inputs component and part_id to find the relevant parameters
+    def update_reactions(self, dna, regulator, component, part_id, transcript = None, leak = False, protein = None, **keywords):
+
+        ktx = component.get_parameter("k", part_id = part_id, mechanism = self)
+        n = component.get_parameter("n", part_id = part_id, mechanism = self)
+        K = component.get_parameter("K", part_id = part_id, mechanism = self)
+        kleak = component.get_parameter("kleak", part_id = part_id, mechanism = self)
+
+        params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
+
+
+        reactions = []
+
+        #First case only true in Mixtures without transcription (eg Expression Mixtures)
+        if transcript is None and protein is not None:
+            tx_output = protein
+        else:
+            tx_output = transcript
+
+        reactions.append(Reaction(inputs = [dna], outputs = [dna, tx_output], propensity_type = "proportionalhillpositive", propensity_params = params))
+
+        if leak:
+            reactions.append(Reaction(inputs = [dna], outputs = [dna, tx_output], k = kleak))
+
+        #In this case, we just return one reaction
+        return reactions
+
+class NegativeHillTranscription(Mechanism):
+    """
+    A mechanism to model transcription as a proprotional negative hill function:
+    G --> G + P 
+    rate = k*G*(1)/(K+R^n)
+    where R is a regulator (repressor).
+    Optionally includes a leak reaction
+    G --> G + P @ rate kleak.
+    """
+
+    def __init__(self, name="negativehill_transcription", mechanism_type="transcription"):
+        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+
+    #Overwrite update_species
+    def update_species(self, dna, regulator, transcript = None, leak = False, protein = None, **keywords):
+
+        species = [dna, regulator]
+        if transcript is not None:
+            species += [transcript]
+        if protein is not None:
+            species += [protein]
+
+        return species #it is best to return all species that will be involved in the reactions
+
+    #Overwrite update_reactions
+    #This always requires the inputs component and part_id to find the relevant parameters
+    def update_reactions(self, dna, regulator, component, part_id, transcript = None, leak = False, protein = None, **keywords):
+
+        ktx = component.get_parameter("k", part_id = part_id, mechanism = self)
+        n = component.get_parameter("n", part_id = part_id, mechanism = self)
+        K = component.get_parameter("K", part_id = part_id, mechanism = self)
+        kleak = component.get_parameter("kleak", part_id = part_id, mechanism = self)
+
+        params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
+
+        reactions = []
+
+        #First case only true in Mixtures without transcription (eg Expression Mixtures)
+        if transcript is None and protein is not None:
+            tx_output = protein
+        else:
+            tx_output = transcript
+
+        reactions.append(Reaction(inputs = [dna], outputs = [dna, tx_output], propensity_type = "proportionalhillnegative", propensity_params = params))
+
+        if leak:
+            reactions.append(Reaction(inputs = [dna], outputs = [dna, tx_output], k = kleak))
+
+        #In this case, we just return one reaction
+        return reactions
+
+
 class Transcription_MM(MichaelisMentenCopy):
     """Michaelis Menten Transcription
         G + RNAP <--> G:RNAP --> G+RNAP+mRNA
@@ -23,21 +220,19 @@ class Transcription_MM(MichaelisMentenCopy):
         MichaelisMentenCopy.__init__(self=self, name=name,
                                        mechanism_type="transcription")
 
-    def update_species(self, dna, transcript=None, return_rnap=True,
-                       **keywords):
+    def update_species(self, dna, transcript=None, protein = None, **keywords):
         species = [dna]
-        if return_rnap:
-            species += [self.rnap]
 
-        species += MichaelisMentenCopy.update_species(self, self.rnap, dna)
-        if transcript is None:
-            transcript = Species(dna.name, material_type="rna")
+        if transcript is None and protein is not None:
+            tx_output = protein
+        else:
+            tx_output = transcript
 
-        species += [transcript]
+        species += MichaelisMentenCopy.update_species(self, Enzyme = self.rnap, Sub = dna, Prod = tx_output)
 
         return species
 
-    def update_reactions(self, dna, component, part_id = None, complex=None, transcript=None,
+    def update_reactions(self, dna, component, part_id = None, complex=None, transcript=None, protein = None,
                          **keywords):
 
         #Get Parameters
@@ -49,11 +244,13 @@ class Transcription_MM(MichaelisMentenCopy):
         ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
 
         rxns = []
-        if transcript is None:
-            transcript = Species(dna.name, material_type="rna")
-        rxns += MichaelisMentenCopy.update_reactions(self, self.rnap, dna, transcript,
-                                                       complex=complex, kb=kb,
-                                                       ku=ku, kcat=ktx)
+
+        if transcript is None and protein is not None:
+            tx_output = protein
+        else:
+            tx_output = transcript
+
+        rxns += MichaelisMentenCopy.update_reactions(self, Enzyme = self.rnap, Sub = dna, Prod = tx_output, complex=complex, kb=kb, ku=ku, kcat=ktx)
 
         return rxns
 
@@ -77,21 +274,18 @@ class Translation_MM(MichaelisMentenCopy):
         MichaelisMentenCopy.__init__(self=self, name=name,
                                        mechanism_type="translation")
 
-    def update_species(self, transcript, protein=None,
-                       return_ribosome=True, **keywords):
-        species = [transcript]
-        if return_ribosome:
-            species += [self.ribosome]
-        if protein is None:
-            protein = Species(transcript.name, material_type="protein")
-        species += [protein]
-
-        species += MichaelisMentenCopy.update_species(self, self.ribosome, transcript)
+    def update_species(self, transcript, protein, **keywords):
+        species = []
+        
+        #This can only occur in expression mixtures
+        if transcript is None and protein is not None:
+            species += [protein]
+        else:
+            species += MichaelisMentenCopy.update_species(self, Enzyme = self.ribosome, Sub = transcript, Prod = protein)
 
         return species
 
-    def update_reactions(self, transcript, component, part_id = None, complex=None,
-                         protein=None, **keywords):
+    def update_reactions(self, transcript, protein, component, part_id = None, complex=None, **keywords):
         rxns = []
 
         #Get Parameters
@@ -102,12 +296,12 @@ class Translation_MM(MichaelisMentenCopy):
         kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
         ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
 
-        if protein is None:
-            protein = Species(transcript.name, material_type="protein")
-        rxns += MichaelisMentenCopy.update_reactions(self, self.ribosome, transcript,
-                                                       protein, complex=complex,
-                                                       kb=kb, ku=ku,
-                                                       kcat=ktl)
+
+        #This can only occur in expression mixtures
+        if transcript is None and protein is not None:
+            pass
+        else:
+            rxns += MichaelisMentenCopy.update_reactions(self, Enzyme = self.ribosome, Sub = transcript, Prod = protein, complex=complex, kb=kb, ku=ku, kcat=ktl)
         return rxns
 
 
@@ -131,7 +325,7 @@ class Degredation_mRNA_MM(MichaelisMenten):
         species = [rna]
         if return_nuclease:
             species += [self.nuclease]
-        species += MichaelisMenten.update_species(self, self.nuclease, rna)
+        species += MichaelisMenten.update_species(self, Enzyme = self.nuclease, Sub = rna, Prod = None)
         return species
 
     def update_reactions(self, rna, component, part_id = None, complex=None, **keywords):
@@ -145,154 +339,8 @@ class Degredation_mRNA_MM(MichaelisMenten):
         ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
 
         rxns = []
-        rxns += MichaelisMenten.update_reactions(self, self.nuclease, rna, Prod=None, complex=complex, kb=kb, ku=ku, kcat=kdeg)
+        rxns += MichaelisMenten.update_reactions(self, Enzyme = self.nuclease, Sub = rna, Prod=None, complex=complex, kb=kb, ku=ku, kcat=kdeg)
         return rxns
-
-class SimpleTranscription(Mechanism):
-    def __init__(self, name = "simple_transcription", mechanism_type = "transcription"):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
-
-    def update_species(self, dna, transcript = None, **keywords):
-        if transcript is None:
-            transcript = Species(dna.name, material_type="rna")
-
-        return [dna, transcript]
-
-    def update_reactions(self, dna, component = None, ktx = None, part_id = None, transcript = None, **keywords):
-
-        if ktx == None and Component != None:
-            ktx = component.get_parameter("ktx", part_id = part_id, mechanism = self)
-        elif component == None and ktx == None:
-            raise ValueError("Must pass in component or a value for ktx")
-
-        if transcript is None:
-            transcript = Species(dna.name, material_type="rna")
-
-        rxns = [Reaction(inputs = [dna], outputs = [dna, transcript], k = ktx)]
-        return rxns
-
-class SimpleTranslation(Mechanism):
-    def __init__(self, name = "simple_translation", mechanism_type = "translation"):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
-
-    def update_species(self, transcript, protein = None,  **keywords):
-        if protein is None:
-            protein = Species(transcript.name, material_type="protein")
-
-        return [transcript, protein]
-
-    def update_reactions(self, transcript, component = None, ktl = None, part_id = None, protein = None, **keywords):
-
-        if ktl is None and Component is not None:
-            ktl = component.get_parameter("ktl", part_id = part_id, mechanism = self)
-        elif component is None and ktl is None:
-            raise ValueError("Must pass in component or a value for ktl")
-
-        if protein is None:
-            protein = Species(transcript.name, material_type="protein")
-
-        rxns = [Reaction(inputs = [transcript], outputs = [transcript, protein], k = ktl)]
-        return rxns
-
-class OneStepGeneExpression(Mechanism):
-    def __init__(self, name="gene_expression",
-                 mechanism_type="transcription"):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
-
-    def update_species(self, dna, protein=None, transcript=None, **keywords):
-        species = [dna]
-        if protein == None:
-            protein = Species(dna.name, material_type="protein")
-
-        species += [protein]
-        return species
-
-    def update_reactions(self, dna, component = None, kexpress = None,
-                         protein=None, transcript = None, part_id = None, **keywords):
-
-        if kexpress is None and Component is not None:
-            kexpress = component.get_parameter("kexpress", part_id = part_id, mechanism = self)
-        elif component is None and kexpress is None:
-            raise ValueError("Must pass in component or a value for kexpress")
-
-        if protein is None:
-            protein = Species(dna.name, material_type="protein")
-        rxns = [Reaction(inputs=[dna], outputs=[dna, protein], k = kexpress)]
-        return rxns
-
-
-class PositiveHillTranscription(Mechanism):
-    #Set the name and mechanism_type
-    def __init__(self, name="positivehill_transcription", mechanism_type="transcription"):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
-
-    #Overwrite update_species
-    def update_species(self, dna, regulator, transcript = None, leak = False, **keywords):
-
-        if transcript is None: #Species names can be automatically created
-            transcript = Species(dna.name, material_type = "rna")
-
-        return [dna, transcript, regulator] #it is best to return all species that will be involved in the reactions
-
-
-    #Overwrite update_reactions
-    #This always requires the inputs component and part_id to find the relevant parameters
-    def update_reactions(self, dna, regulator, component, part_id, transcript = None, leak = False, **keywords):
-
-        if transcript is None: #Species names should be automatically created the same here as above
-            transcript = Species(dna.name, material_type = "rna")
-
-        ktx = component.get_parameter("k", part_id = part_id, mechanism = self)
-        n = component.get_parameter("n", part_id = part_id, mechanism = self)
-        K = component.get_parameter("K", part_id = part_id, mechanism = self)
-        kleak = component.get_parameter("kleak", part_id = part_id, mechanism = self)
-
-        params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
-
-        reactions = []
-        reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], propensity_type = "proportionalhillpositive", propensity_params = params))
-
-        if leak:
-            reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], k = kleak))
-
-        #In this case, we just return one reaction
-        return reactions
-
-class NegativeHillTranscription(Mechanism):
-    #Set the name and mechanism_type
-    def __init__(self, name="negativehill_transcription", mechanism_type="transcription"):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
-
-    #Overwrite update_species
-    def update_species(self, dna, regulator, transcript = None, leak = False, **keywords):
-
-        if transcript is None: #Species names can be automatically created
-            transcript = Species(dna.name, material_type = "rna")
-
-        return [dna, transcript, regulator] #it is best to return all species that will be involved in the reactions
-
-    #Overwrite update_reactions
-    #This always requires the inputs component and part_id to find the relevant parameters
-    def update_reactions(self, dna, regulator, component, part_id, transcript = None, leak = False, **keywords):
-
-        if transcript is None: #Species names should be automatically created the same here as above
-            transcript = Species(dna.name, material_type = "rna")
-
-        ktx = component.get_parameter("k", part_id = part_id, mechanism = self)
-        n = component.get_parameter("n", part_id = part_id, mechanism = self)
-        K = component.get_parameter("K", part_id = part_id, mechanism = self)
-        kleak = component.get_parameter("kleak", part_id = part_id, mechanism = self)
-
-        params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
-
-        reactions = []
-        reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], propensity_type = "proportionalhillnegative", propensity_params = params))
-
-        if leak:
-            reactions.append(Reaction(inputs = [dna], outputs = [dna, transcript], k = kleak))
-
-        #In this case, we just return one reaction
-        return reactions
 
 class multi_tx(Mechanism):
     """
@@ -329,7 +377,7 @@ class multi_tx(Mechanism):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type, **keywords)
 
     # species update
-    def update_species(self, dna, transcript, component, part_id, **keywords):
+    def update_species(self, dna, transcript, component, part_id, protein = None, **keywords):
         max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self))
         cp_open = []
         cp_closed = []
@@ -348,7 +396,7 @@ class multi_tx(Mechanism):
 
         return cp_open + cp_closed + cp_misc
 
-    def update_reactions(self, dna, transcript, component, part_id, **keywords):
+    def update_reactions(self, dna, transcript, component, part_id, protein = None, **keywords):
         """
         DNA:RNAp_n + RNAp <--> DNA:RNAp_n_c --> DNA:RNAp_n+1
         kf1 = k1, kr1 = k2, kf2 = k_iso

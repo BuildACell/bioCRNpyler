@@ -25,9 +25,6 @@ from .dna_assembly_rbs import *
 #CRNlab imports
 from .crnlab import *
 
-#specialized components - maybe these shouldn't be auto-imported?
-from .components_dcas9 import *
-
 
 # Additional functions
 from .sbmlutil import *

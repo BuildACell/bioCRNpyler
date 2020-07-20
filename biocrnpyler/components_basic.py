@@ -72,6 +72,9 @@ class DNA(Component):
 
 
 class RNA(Component):
+    """
+    A class to represent Components made of RNA. Produces no reactions.
+    """
     def __init__(
             self, name: str, length=0,  # positional arguments
             mechanisms=None,  # custom mechanisms
@@ -99,6 +102,9 @@ class RNA(Component):
 
 
 class Protein(Component):
+    """
+    A class to represent Components made of Protein. Produces no reactions.
+    """
     def __init__(
             self, name: str, length=0,  # positional arguments
             mechanisms=None,  # custom mechanisms
@@ -143,7 +149,7 @@ class ChemicalComplex(Component):
     ):
 
         if len(species) < 2 or not isinstance(species, list):
-            raise ValueError("Species must be a list of Species, strings, Component objects.")
+            raise ValueError(f"Invalid Species {species}. Species must be a list of Species, strings, Component objects.")
 
         self.internal_species = [] #a list of species inside the complex
 
@@ -182,6 +188,11 @@ class ChemicalComplex(Component):
         return reactions
 
 class Enzyme(Component):
+    """
+    A class to represent Enzymes. 
+    Assumes the enzyme converts a single substrate to a single product.
+    Uses a mechanism called "catalysis"
+    """
     def __init__(self, enzyme, substrate, product, **keywords):
       
         # ENZYME NAME
@@ -216,6 +227,13 @@ class Enzyme(Component):
 
 
 class MultiEnzyme(Component):
+    """
+    A class to represent Enzymes with multiple substrates and products. 
+    Assumes the enzyme converts all substrates to a all products at once.
+    For example: S1 + S2 + E --> P1 + P2 + E.
+    For enzymes with multiple enzymatic reactions, create multiple Enzyme Components with the same internal species.
+    Uses a mechanism called "catalysis"
+    """
     def __init__(self, enzyme, substrates, products, **keywords):
       
         # ENZYME NAME
