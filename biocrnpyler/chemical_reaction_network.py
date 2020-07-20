@@ -63,8 +63,10 @@ class OrderedPolymer:
     def __repr__(self):
         outstr = "polymer("
         for part in self._polymer:
-            outstr += str(part.data)+"_"+str(part.direction)[0]+","
-        outstr = outstr[:-1]+")"
+            outstr += str(part)+", direction = "+str(part.direction)+","
+        if(outstr[:-1]==","):
+            outstr = outstr[:-1]
+        outstr += ")"
         return outstr
     def direction_invert(self,dirname):
         if(dirname == "forward"):
@@ -86,6 +88,16 @@ class OrderedPolymer:
         return self._polymer[ii]
     def __setitem__(self,ii,val):
         self.replace(ii,val,val.direction)
+    def __eq__(self,other):
+        if(isinstance(other,OrderedPolymer)):
+            for item1,item2 in zip(self._polymer,other._polymer):
+                if(item1.direction==item2.direction and item1.position==item2.position and type(item1)==type(item2)):
+                    pass
+                else:
+                    return False
+            if(len(self._polymer)==len(other._polymer)):
+                return True
+        return False
     def __contains__(self,item):
         if(item in self._polymer):
             return True
@@ -153,7 +165,7 @@ class OrderedMonomer:
         self.position = None
     def __repr__(self):
         txt = "OrderedMonomer(direction="+str(self.direction)+",position="+\
-                                str(self.position)+",parent="+str(self.parent)+")"
+                                str(self.position)+")"
         return txt
     def __eq__(self,other):
         if(isinstance(other,OrderedMonomer)):
