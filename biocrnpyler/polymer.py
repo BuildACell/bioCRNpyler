@@ -131,18 +131,43 @@ class OrderedMonomer:
     """a unit that belongs to an OrderedPolymer. Each unit has a direction, a location, and a link back to its parent"""
     def __init__(self,direction=None,position=None,parent=None):
         """the default is that the monomer is not part of a polymer"""
-        if(parent is not None):
-            assert(isinstance(parent,OrderedPolymer)),"parent of OrderedMonomer must be an OrderedPolymer"
-        self.direction = direction
+
+        self.parent = None; self.direction = None; self.position = None #Prevents weird testing errors of not having attributes
+
+        #Set properties correctly
         self.parent = parent
+        self.direction = direction
         self.position = position
-        if self.parent is None:
-            if self.position is not None:
-                raise ValueError("{} cannot have a position if it has no parent".format(self))
+
+    @property
+    def parent(self):
+        return self._parent
+    @parent.setter
+    def parent(self, parent):
+        if parent is None or isinstance(parent, OrderedPolymer):
+            self._parent = parent
         else:
-            if(self.position is None):
-                raise ValueError("{} is part of a polymer with no position!".format(self))
-                
+            raise ValueError(f"parent must be an OrderedPolymer. Recieved {parent}")
+
+    @property
+    def direction(self):
+        return self._direction
+    @direction.setter
+    def direction(self, direction):
+        self._direction = direction
+
+    @property
+    def position(self):
+        return self._position
+    @position.setter
+    def position(self, position):
+        if self.parent is None and position is not None:
+            raise ValueError("{} cannot have a position if it has no parent".format(self))
+        elif self.parent is not None and position is None:
+            raise ValueError("{} is part of a polymer with no position!".format(self))
+        else:
+            self._position = position
+
     def monomer_insert(self,parent:OrderedPolymer,position:int,direction=None):
         if(position is None):
             raise ValueError("{} has no position to be inserted at!".format(self))

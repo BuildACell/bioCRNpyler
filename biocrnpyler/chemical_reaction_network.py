@@ -65,7 +65,7 @@ class Complex:
                 valent_complex.material_type = "OPcomplex"
                 return valent_complex[bindloc]
 
-class Species(OrderedMonomer,object):
+class Species(OrderedMonomer, object):
 
     """ A formal species object for a CRN
      A Species must have a name. They may also have a material_type (such as DNA,
@@ -75,6 +75,7 @@ class Species(OrderedMonomer,object):
     def __init__(self, name: str, material_type="", attributes: Union[List,None] = None,
                  initial_concentration=0):
         OrderedMonomer.__init__(self)
+
         self.name = name
         self.material_type = material_type
         self.initial_concentration = initial_concentration
@@ -104,6 +105,32 @@ class Species(OrderedMonomer,object):
             raise TypeError("Name must be a string.")
         else:
             self._name = self._check_name(name)
+
+    
+    #Use OrderedMonomers getter
+    direction = property(OrderedMonomer.direction.__get__)
+
+    @direction.setter
+    def direction(self, direction):
+        """
+        This is inheritted from OrderedMonomer.
+        A species with direction will use it as an attribute as well.
+        This is overwritten to make direction an attribute
+        """
+        if self.parent is None and direction is not None:
+            raise ValueError("{} cannot have a direction if it has no parent".format(self))
+        else:
+            self._direction = direction
+            if direction is not None:
+                self.add_attribute(direction)
+    
+    def remove(self):
+        """
+        Added functionality to remove direction as an attribute.
+        """
+        if self.direction is not None:
+            self.attributes.remove(self.direction)
+        OrderedMonomer.remove(self) #call the OrderedMonomer function
 
     #Note: this is used because properties can't be overwritten without setters being overwritten in subclasses.
     def _check_name(self, name):

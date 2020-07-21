@@ -118,7 +118,7 @@ class MichaelisMenten(Mechanism):
 class MichaelisMentenReversible(Mechanism):
     """Mechanism to automatically generate Michaelis-Menten Type Reactions with products that can bind to enzymes
        In the Copy RXN version, the Substrate is not Consumed
-       Sub+Enz <--> Sub:Enz --> Enz:Prod <--> Enz + Prod
+       Sub+Enz <--> Sub:Enz <--> Enz:Prod <--> Enz + Prod
     """
 
     def __init__(self, name = "michalis_menten_reverse_binding", mechanism_type = "catalysis", **keywords):

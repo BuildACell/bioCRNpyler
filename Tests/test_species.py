@@ -46,6 +46,11 @@ class TestSpecies(TestCase):
         species = Species(name='test_species', initial_concentration=initial_concentration)
         self.assertEqual(species.initial_concentration, initial_concentration)
 
+        #test OrderedMonomer subclass
+        self.assertTrue(species.parent is None)
+        self.assertTrue(species.position is None)
+        self.assertTrue(species.direction is None)
+
     def test_add_attribute(self):
         species = Species(name='test_species')
         # an attribute must be a string
