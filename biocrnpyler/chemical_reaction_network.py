@@ -10,7 +10,7 @@ from dataclasses import dataclass
 import functools
 import operator
 import itertools
-import collections
+import copy
 
 
 class Species(object):
@@ -174,15 +174,23 @@ class Species(object):
         raise NotImplementedError(f'Either Species or WeightedSpecies can be added together! We got {type(other)}')
 
     @staticmethod
-    def flatten_list(species) -> List:
-        if isinstance(species, list):
-            species = functools.reduce(operator.iconcat, species, [])
+    def flatten_list(in_list) -> List:
+        """
+        Helper function to flatten lists
+        """
+        out_list = []
+        if not isinstance(in_list,list):
+            out_list.append(in_list)
         else:
-            species = [species]
-        return species
+            for element in in_list:
+                if isinstance(element, list):
+                    out_list += Species.flatten_list(element)
+                else:
+                    out_list += [element]
+        return out_list
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=True)
 class WeightedSpecies:
     """Container object for a species and its stoichiometry
     """
@@ -192,26 +200,22 @@ class WeightedSpecies:
     def pretty_print(self, **kwargs):
         return f'{self.stoichiometry if self.stoichiometry > 1 else ""}{self.species.pretty_print(**kwargs)}'
 
-    def __contains__(self, item):
-        if item in self.species:
-            return True
-        return False
-
-    def __eq__(self, other):
-        return other.species == self.species
-
-    def __hash__(self):
-        return hash(self.species)
-
     def replace_species(self, *args, **kwargs):
         return self.species.replace_species(*args, **kwargs)
 
     @staticmethod
     def _count_weighted_species(weighted_species):
-        unique_species = set(weighted_species)
-        freq_dict = dict(zip(unique_species,[0]*len(unique_species)))
+        # convert to set doesn't work because we need only species equality
+        unique_species = []
         for w_species in weighted_species:
-            freq_dict[w_species] += w_species.stoichiometry
+            if not any(w_species.species == u_s.species for u_s in unique_species):
+                unique_species.append(w_species)
+
+        freq_dict = dict(zip(unique_species, [0]*len(unique_species)))
+        for w_species in weighted_species:
+            for key in freq_dict:
+                if key.species == w_species.species:
+                    freq_dict[key] += w_species.stoichiometry
 
         return freq_dict
 
@@ -230,8 +234,16 @@ class ComplexSpecies(Species):
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
 
+        self.species = []
+        for s in Species.flatten_list(species):
+            if isinstance(s, Species):
+                self.species.append(s)
+            elif isinstance(s, str):
+                self.species.append(Species(s))
+            else:
+                raise ValueError("ComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
+
         self.species_set = list(set(species))
-        self.species = species
 
         if name is not None:
             self.custom_name = True
@@ -353,20 +365,6 @@ class ComplexSpecies(Species):
 
         return txt
 
-    @classmethod
-    def from_nested_list(cls,  species, name=None,
-                         material_type="complex",
-                         attributes=None, initial_concentration=0):
-        """if species are nested lists, then they are flattened before
-        a Complex is initialized
-
-        """
-        species = Species.flatten_list(species)
-
-        return cls(species=species, name=name, material_type=material_type,
-                   attributes=attributes,
-                   initial_concentration=initial_concentration)
-
     def __hash__(self):
         return str.__hash__(repr(self))
 
@@ -399,7 +397,15 @@ class OrderedComplexSpecies(ComplexSpecies):
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
 
-        self.species = species
+        new_species = Species.flatten_list(species)
+        self.species = []
+        for s in new_species:
+            if isinstance(s, Species):
+                self.species.append(s)
+            elif isinstance(s, str):
+                self.species.append(Species(s))
+            else:
+                raise ValueError("OrderedComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
 
         if name is not None:
             self.custom_name = True
@@ -430,21 +436,6 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         self.attributes = attributes
 
-    @classmethod
-    def from_nested_list(cls,  species, name=None,
-                         material_type="ordered_complex",
-                         attributes=None, initial_concentration=0):
-        """if species are nested lists, then they are flattened before
-        an OrderedComplex is initialized
-
-        """
-        species = functools.reduce(operator.iconcat, species, [])
-
-        return cls(species=species, name=name, material_type=material_type,
-                   attributes=attributes,
-                   initial_concentration=initial_concentration)
-
-    #Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
     def replace_species(self, species: Species, new_species: Species):
         """
         Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
@@ -515,8 +506,8 @@ class Reaction(object):
         if len(inputs) == 0 and len(outputs) == 0:
             warn("Reaction Inputs and Outputs both contain 0 Species.")
 
-        self.inputs = inputs
-        self.outputs = outputs
+        self.inputs = Species.flatten_list(inputs)
+        self.outputs = Species.flatten_list(outputs)
         self.propensity_type = propensity_type
 
     @property
@@ -589,20 +580,6 @@ class Reaction(object):
 
         return out_list
 
-    @classmethod
-    def from_nested_list(cls, inputs: Union[List[Species], List[WeightedSpecies]],
-                         outputs: Union[List[Species], List[WeightedSpecies]],
-                         propensity_type: Propensity):
-        """if inputs or outputs are nested lists, then they are flattened before
-           a reaction is initialized
-
-        """
-
-        inputs = functools.reduce(operator.iconcat, inputs, [])
-        outputs = functools.reduce(operator.iconcat, outputs, [])
-
-        return cls(inputs=inputs, outputs=outputs, propensity_type=propensity_type)
-
     @property
     def k_forward(self):
         return self.propensity_type.k_forward
@@ -613,37 +590,32 @@ class Reaction(object):
 
     def replace_species(self, species: Species, new_species: Species):
         """Replaces species with new_species in the reaction
-        :param species:
-        :param new_species:
-        :return:
+        :param species: species to be replaced
+        :param new_species: the new species the old species is replaced with
+        :return: a new Reaction instance
         """
         if not isinstance(species, Species) or not isinstance(new_species, Species):
             raise ValueError('both species and new_species argument must be an instance of Species!')
 
-        if species in self.inputs:
-            self.inputs[species] = new_species
-
         new_inputs = []
-        for i, s in enumerate(self.inputs):
+        for s in self.inputs:
             new_s = s.replace_species(species, new_species)
-            new_inputs+=[new_s]*self.input_coefs[i]
+            new_inputs.append(new_s)
 
         new_outputs = []
-        for i, s in enumerate(self.outputs):
+        for s in self.outputs:
             new_s = s.replace_species(species, new_species)
-            new_outputs+=[new_s]*self.output_coefs[i]
+            new_outputs.append(new_s)
 
-        new_params = None
-        if self.propensity_params is not None:
-            new_params = {}
-            for key in self.propensity_params:
-                if isinstance(self.propensity_params[key], Species):
-                    new_s = self.propensity_params[key].replace_species(species, new_species)
-                    new_params[key] = new_s
-                else:
-                    new_params[key] = self.propensity_params[key]
+        # get a shallow copy of the parameters and species, so we can replace some of them
+        propensity_type_dict = copy.copy(self.propensity_type.propensity_dict)
+        for key, prop_species in propensity_type_dict['species'].items():
+            propensity_type_dict['species'][key] = prop_species.replace_species(species, new_species)
 
-        new_r = Reaction(inputs=new_inputs, outputs=new_outputs, propensity_type=self.propensity_type)
+        new_propensity_type = self.propensity_type.from_dict(propensity_type_dict)
+        print(new_propensity_type.propensity_dict)
+
+        new_r = Reaction(inputs=new_inputs, outputs=new_outputs, propensity_type=new_propensity_type)
         return new_r
 
     def __repr__(self):
@@ -808,14 +780,6 @@ class ChemicalReactionNetwork(object):
         txt += "]"
         return txt
 
-    # TODO check whether we need this method
-    def species_index(self, species: Species):
-        if len(self.species2index) != len(self.species):
-            self.species2index = {}
-            for i in range(len(self.species)):
-                self.species2index[str(self.species[i])] = i
-        return self.species2index[str(species)]
-
     def initial_condition_vector(self, init_cond_dict: Union[Dict[str, float], Dict[Species, float]]):
         x0 = [0.0] * len(self.species)
         for idx, s in enumerate(self.species):
@@ -857,7 +821,6 @@ class ChemicalReactionNetwork(object):
             new_species_list.append(new_s)
 
         new_reaction_list = []
-
         for r in self.reactions:
             new_r = r.replace_species(species, new_species)
             new_reaction_list.append(new_r)

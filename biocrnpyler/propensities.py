@@ -1,8 +1,8 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from typing import Set, Union
-from numbers import Number
+from typing import Set, Union, Dict, List
+from numbers import Number, Real
 from .parameter import Parameter
 from .sbmlutil import getSpeciesByName
 import libsbml
@@ -10,7 +10,7 @@ import libsbml
 
 class Propensity(object):
     def __init__(self):
-        pass
+        self.propensity_dict = {'species': {}, 'parameters': {}}
 
     @staticmethod
     def is_valid_propensity(propensity_type) -> bool:
@@ -44,13 +44,13 @@ class Propensity(object):
         return Propensity._all_subclasses(Propensity)
 
     @staticmethod
-    def _get_parameter_name(rate_coeff: Union[Number, Parameter]) -> str:
-        """checks whether a rate_coeff is a Number, if not this function calls for its string represention
+    def _get_parameter_name(rate_coeff: Union[Real, Parameter]) -> str:
+        """checks whether a rate_coeff is a Real number, if not this function calls for its string represention
 
         :param rate_coeff: a number of a parameter object
         :return: either None or the parameter's name
         """
-        if not isinstance(rate_coeff, Number):
+        if not isinstance(rate_coeff, Real):
             rate_coeff_name = str(rate_coeff)
         else:
             rate_coeff_name = 'k'
@@ -72,15 +72,22 @@ class Propensity(object):
         raise NotImplementedError
 
     def __eq__(self, other):
-        raise NotImplementedError
+        if other.__class__ == self.__class__:
+            return other.propensity_dict == self.propensity_dict
 
     @property
-    def species(self):
+    def species(self) -> List:
         """returns the instance variables that are species type"""
-        raise NotImplementedError
+        return self.propensity_dict['species'].values()
 
     def create_kinetic_law(self, reaction, reverse_reaction, stochastic):
         raise NotImplementedError
+
+    @classmethod
+    def from_dict(cls, propensity_dict):
+        merged = propensity_dict['parameters']
+        merged.update(propensity_dict['species'])
+        return cls(**merged)
 
 
 class GeneralPropensity(Propensity):
@@ -97,6 +104,10 @@ class MassAction(Propensity):
         super(MassAction, self).__init__()
         self.k_forward = k_forward
         self.k_reverse = k_reverse
+
+        self.propensity_dict['parameters']['k_forward'] = k_forward
+        if self.is_reversible:
+            self.propensity_dict['parameters']['k_reverse'] = k_reverse
 
     @property
     def k_forward(self):
@@ -139,13 +150,6 @@ class MassAction(Propensity):
                 return None
         else:
             return f''
-
-    def __eq__(self, other):
-        return self.k_forward == other.k_forward and self.k_reverse == other.k_reverse
-
-    @property
-    def species(self):
-        return []
 
     def create_kinetic_law(self, model, sbml_reaction, stochastic, **kwargs):
         # Create a kinetic law for the sbml_reaction
@@ -226,17 +230,10 @@ class Hill(MassAction):
         self.s1 = s1
         self.K = K
         self.n = n
+        self.propensity_dict['species']['s1'] = self.s1
+        self.propensity_dict['parameters']['K'] = self.K
+        self.propensity_dict['parameters']['n'] = self.n
 
-    def __eq__(self, other):
-        return super(Hill, self).__eq__(other) \
-               and self.s1 is other.s1 \
-               and self.K == other.K \
-               and self.n == other.n
-
-    @property
-    def species(self):
-        return [self.s1]
-        
     def create_kinetic_law(self, model, sbml_reaction, stochastic, **kwargs):
 
 
@@ -351,20 +348,13 @@ class ProportionalHillPositive(HillPositive):
         """
         super(ProportionalHillPositive, self).__init__(k_forward=k_forward, s1=s1, K=K, n=n)
         self.d = d
+        self.propensity_dict['species']['d'] = self.d
 
-    def pretty_print(self,**kwargs):
+    def pretty_print(self, **kwargs):
         if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
             return super().pretty_print(**kwargs)
 
         return '*'.join([self.d, super(ProportionalHillPositive, self).pretty_print(**kwargs)])
-
-    def __eq__(self, other):
-        return super(ProportionalHillPositive, self).__eq__(other) \
-               and self.d is other.d
-
-    @property
-    def species(self):
-        return [*super(ProportionalHillPositive, self).species, self.d]
 
 
 class ProportionalHillNegative(HillNegative):
@@ -381,6 +371,7 @@ class ProportionalHillNegative(HillNegative):
         """
         super(ProportionalHillNegative, self).__init__(k_forward=k_forward, s1=s1, K=K, n=n)
         self.d = d
+        self.propensity_dict['species']['d'] = self.d
 
     def pretty_print(self,**kwargs):
         # TODO no reverse for nonmassaction!!!
@@ -388,11 +379,3 @@ class ProportionalHillNegative(HillNegative):
             return super().pretty_print(**kwargs)
 
         return '*'.join([self.d, super(ProportionalHillNegative, self).pretty_print(**kwargs)])
-
-    def __eq__(self, other):
-        return super(ProportionalHillNegative, self).__eq__(other) \
-               and self.d is other.d
-
-    @property
-    def species(self):
-        return [*super(ProportionalHillNegative, self).species, self.d]
