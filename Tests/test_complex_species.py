@@ -39,10 +39,12 @@ class TestComplexSpecies(TestCase):
         m1 = Multimer(s1, 2)
         c3 = ComplexSpecies([s1, s1])
 
-        # Check validity of ComplexSpecies, Multimers and OrderedComplexSpecies with strings instead of species
-        self.assertEqual(OrderedComplexSpecies([s2, "s1"]), oc1)
-        self.assertEqual(ComplexSpecies([s2, "s1"]), c1)
-        self.assertEqual(Multimer("s1", 2), m1)
+        # Check invalidity of ComplexSpecies, Multimers and OrderedComplexSpecies with strings instead of species
+        with self.assertRaisesRegexp(TypeError, 'recieved a non-species as a member of the list species'):
+            self.assertEqual(OrderedComplexSpecies([s2, "s1"]), oc1)
+            self.assertEqual(ComplexSpecies([s2, "s1"]), c1)
+            self.assertEqual(Multimer("s1", 2), m1)
+            
         
         # ComplexSpecies should sort the species added alphabetically by representation
         self.assertEqual(repr(c1), "complex_"+repr(s2)+"_"+repr(s1))

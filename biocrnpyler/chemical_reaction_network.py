@@ -7,202 +7,7 @@ import warnings
 import numpy as np
 from typing import List, Union, Dict
 import copy
-
-class OrderedPolymer:
-    """a polymer that has a specific order"""
-    def __init__(self,parts):
-        """parts can be a list of lists containing 
-        [[OrderedMonomer,direction],[OrderedMonomer,direction],...]
-        alternatively, you can have a regular list, and the direcitons
-        will end up being None"""
-        polymer = []
-        assert(type(parts)==list or type(parts)==tuple), "OrderedPolymer must be instantiated with a list"
-        for item in parts:
-            if(isinstance(item,list)):
-                part = item[0]
-                if(len(item)>1):
-                    partdir = item[1]
-                else:
-                    partdir = None
-            elif(isinstance(item,OrderedMonomer)):
-                part = item
-                partdir = item.direction
-            else:
-                raise ValueError("{} is not an OrderedMonomer or a list of the form [OrderedMonomer,direction]".format(str(part)))
-            
-            polymer += [part]
-            position = len(polymer)-1
-            direction = partdir
-            part.monomer_insert(self,position,direction)
-        self._polymer = tuple(polymer)
-    def __hash__(self):
-        return hash(self._polymer)
-    def insert(self,position,part,direction=None):
-        part.monomer_insert(self,position,direction)
-        for subsequent_part in self._polymer[position:]:
-            subsequent_part.position += 1
-        self._polymer = self._polymer[:position]+(part,)+self._polymer[position:]
-        if(hasattr(self,"name") and hasattr(self,"make_name")):
-            self.name = self.make_name()
-    def replace(self,position,part,direction=None):
-        if(direction is None):
-            direction = part.direction
-        self._polymer[position].remove()
-        part.monomer_insert(self,position,direction)
-        self._polymer = self._polymer[:position]+(part,)+self._polymer[position+1:]
-        if(hasattr(self,"name") and hasattr(self,"make_name")):
-            self.name = self.make_name()
-    def append(self,part,direction=None):
-        if(direction is None):
-            if(hasattr(part,"direction")):
-                direction = part.direction
-            else:
-                direction = None
-        pos = len(self._polymer)
-        self.insert(pos,part,direction)
-    def __repr__(self):
-        outstr = "polymer("
-        for part in self._polymer:
-            outstr += str(part)+", direction = "+str(part.direction)+","
-        if(outstr[:-1]==","):
-            outstr = outstr[:-1]
-        outstr += ")"
-        return outstr
-    def direction_invert(self,dirname):
-        if(dirname == "forward"):
-            return "reverse"
-        elif(dirname == "reverse"):
-            return "forward"
-        elif(dirname == 0):
-            return 1
-        elif(dirname == 1):
-            return 0
-        elif(dirname is None):
-            return None
-        else:
-            warn("didn't know how to invert {}".format(str(dirname)))
-            return dirname
-    def __len__(self):
-        return len(self._polymer)
-    def __getitem__(self,ii):
-        return self._polymer[ii]
-    def __setitem__(self,ii,val):
-        self.replace(ii,val,val.direction)
-    def __eq__(self,other):
-        if(isinstance(other,OrderedPolymer)):
-            for item1,item2 in zip(self._polymer,other._polymer):
-                if(item1.direction==item2.direction and item1.position==item2.position and type(item1)==type(item2)):
-                    pass
-                else:
-                    return False
-            if(len(self._polymer)==len(other._polymer)):
-                return True
-        return False
-    def __contains__(self,item):
-        if(item in self._polymer):
-            return True
-        else:
-            return False
-    def pretty_print(self,show_material=True,show_attributes=False,highlight=None):
-        outtxt = "poly{"
-        for i, item in enumerate(self._polymer):
-            if(highlight is not None and i==highlight):
-                outtxt+="("
-            outtxt+=item.pretty_print(show_material=show_material,show_attributes=show_attributes)
-            if(highlight is not None and i==highlight):
-                outtxt+=")"
-            outtxt+=","
-        outtxt = outtxt[:-1]
-        outtxt+="}"
-        return outtxt
-    def delpart(self,position):
-        part = self._polymer[position]
-        part.remove()
-        for subsequent_part in self._polymer[position+1:]:
-            subsequent_part.position -= 1
-        self._polymer = self._polymer[:position] + self._polymer[position+1:]
-        if(hasattr(self,"name") and hasattr(self,"make_name")):
-            self.name = self.make_name()
-    def reverse(self):
-        self._polymer = self._polymer[::-1]
-        for ind,part in enumerate(self._polymer):
-            part.position = ind
-            part.direction = self.direction_invert(part.direction)
-
-
-class OrderedMonomer:
-    """a unit that belongs to an OrderedPolymer. Each unit has a direction, a location, and a link back to its parent"""
-    def __init__(self,direction=None,position=None,parent=None):
-        """the default is that the monomer is not part of a polymer"""
-        if(parent is not None):
-            assert(isinstance(parent,OrderedPolymer)),"parent of OrderedMonomer must be an OrderedPolymer"
-        self.direction = direction
-        self.parent = parent
-        self.position = position
-        if self.parent is None:
-            if self.position is not None:
-                raise ValueError("{} cannot have a position if it has no parent".format(self))
-        else:
-            if(self.position is None):
-                raise ValueError("{} is part of a polymer with no position!".format(self))
-    def monomer_insert(self,parent:OrderedPolymer,position:int,direction=None):
-        if(position is None):
-            raise ValueError("{} has no position to be inserted at!".format(self))
-        if(direction is None):
-            if(self.direction is not None):
-                direction  = self.direction
-        if(parent is None):
-            raise ValueError("{} is trying to be inserted into nothing!".format(self))
-        self.parent = parent
-        self.position = position
-        self.direction = direction
-    def set_dir(self,direction):
-        self.direction = direction
-        return(self)
-    def remove(self):
-        self.parent = None
-        self.direction = None
-        self.position = None
-    def __repr__(self):
-        txt = "OrderedMonomer(direction="+str(self.direction)+",position="+\
-                                str(self.position)+")"
-        return txt
-    def __eq__(self,other):
-        if(isinstance(other,OrderedMonomer)):
-            if(self.direction == other.direction and self.position == other.position and self.parent == other.parent):
-                return True
-        return False
-
-
-def make_species(speclist,flatten=False):
-    """this function turns a string or a list of strings into species or a list of species"""
-    def make_species_helper(item):
-        outitem = None
-        if(isinstance(item,str)):
-            outitem = Species(item)
-        elif(isinstance(item,Species)):
-            outitem = item
-        #elif(isinstance(unit,Component)):
-        #    outitem = unit.get_species()
-        elif(isinstance(item,list)):
-            warn("list {} encountered while making {} into species! I just ignored it").format(str(unit),str(speclist))
-            outitem = item
-        else:
-            raise TypeError(str(item) + " of unrecognized type")
-        return outitem
-        
-    if(isinstance(speclist,list)):
-        if(flatten):
-            inlist = flatten_list(speclist)
-        else:
-            inlist = speclist
-        outlist = []
-        for unit in inlist:
-            newspec = make_species_helper(unit)
-            outlist += [newspec]
-        return outlist
-    else:
-        return make_species_helper(speclist)
+from .polymer import OrderedPolymer, OrderedMonomer
             
 
 class Complex:
@@ -270,8 +75,8 @@ class Species(OrderedMonomer,object):
     def __init__(self, name: str, material_type="", attributes: Union[List,None] = None,
                  initial_concentration=0):
         OrderedMonomer.__init__(self)
-        self.name = self.check_name(name)
-        self.material_type = self.check_material_type(material_type)
+        self.name = name
+        self.material_type = material_type
         self.initial_concentration = initial_concentration
         if material_type == "complex":
             warn("species which are formed of two species or more should be "
@@ -286,7 +91,42 @@ class Species(OrderedMonomer,object):
             for attribute in attributes:
                 self.add_attribute(attribute)
 
-    def check_material_type(self, material_type):
+    @property
+    def name(self):
+        if self._name is None:
+            return ""
+        else:
+            return self._name
+
+    @name.setter
+    def name(self, name: str):
+        if name is None:
+            raise TypeError("Name must be a string.")
+        else:
+            self._name = self._check_name(name)
+
+    #Note: this is used because properties can't be overwritten without setters being overwritten in subclasses.
+    def _check_name(self, name):
+        """
+        Check that the string contains only underscores and alpha-numeric characters or is None
+        """
+        if name is None:
+            return name
+        elif isinstance(name, str):
+            no_underscore_string = name.replace("_", "")
+            if no_underscore_string.isalnum():
+                return name
+            else:
+                raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores.")
+        else:
+            raise TypeError("Name must be a string.")
+
+    @property
+    def material_type(self):
+        return self._material_type
+
+    @material_type.setter
+    def material_type(self, material_type: str):
         """ 
         Check that the string contains is alpha-numeric characters or "_" and that the first character is a letter. 
         If the name is a starts with a number, there must be a material type.
@@ -294,23 +134,12 @@ class Species(OrderedMonomer,object):
         if material_type in [None, ""] and self.name[0].isnumeric():
             raise ValueError(f"species name: {self.name} contains a number as the first character and therefore requires a material_type.")
         elif material_type == None:
-            return ""
+            self._material_type = None
         elif (material_type.replace("_", "").isalnum() and material_type.replace("_", "")[0].isalpha()) or material_type == "":
-                return material_type
+            self._material_type = material_type
         else:
             raise ValueError(f"material_type {material_type} must be alpha-numeric and start with a letter.")
-
     
-    def check_name(self, name):
-        """
-        Check that the string contains only underscores and alpha-numeric characters
-        """
-        no_underscore_string = name.replace("_", "")
-        if no_underscore_string.isalnum():
-            return name
-        else:
-            raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores.")
-
     def __repr__(self):
         txt = ""
         if self.material_type not in ["", None]:
@@ -415,39 +244,20 @@ class ComplexSpecies(Species):
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
 
-
-        self.species = []
-        for s in  flatten_list(species):
-            if isinstance(s, Species):
-                self.species.append(s)
-            elif isinstance(s, str):
-                self.species.append(Species(s))
-            else:
-                raise ValueError("ComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
+        self.species = species
+        #for s in  flatten_list(species):
+        #    if isinstance(s, Species):
+        #        self.species.append(s)
+        #    elif isinstance(s, str):
+        #        self.species.append(Species(s))
+        #    else:
+        #        raise ValueError("ComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
 
         
-        self.species_set = list(set(self.species))
+        #self.species_set = list(set(self.species))
 
-        if name is not None:
-            self.custom_name = True
-        elif name is None:
-            self.custom_name = False
-            name = ""
-            list.sort(self.species, key = lambda s:repr(s))
-            
-            list.sort(self.species_set, key = lambda s:repr(s))
-            for s in self.species_set:
-                count = self.species.count(s)
-                if count > 1:
-                    name+=f"{count}x_"
-                if not (isinstance(s, ComplexSpecies) or s.material_type == ""):
-                    name+=f"{s.material_type}_{s.name}_"
-                else:
-                    name+=f"{s.name}_"
-            name = name[:-1]
-
-        self.name = self.check_name(name)
-        self.material_type = self.check_material_type(material_type)
+        self.name = name
+        self.material_type = material_type
         self.initial_concentration = initial_concentration
 
         if attributes is None:
@@ -461,6 +271,26 @@ class ComplexSpecies(Species):
 
         self.attributes = attributes
 
+    @property
+    def name(self):
+        if self._name is None:
+            name = ""
+            for s in self.species_set:
+                count = self.species.count(s)
+                if count > 1:
+                    name+=f"{count}x_"
+                if not (isinstance(s, ComplexSpecies) or s.material_type == ""):
+                    name+=f"{s.material_type}_{s.name}_"
+                else:
+                    name+=f"{s.name}_"
+            name = name[:-1]
+            return name
+        else:
+            return self._name
+    
+    @name.setter
+    def name(self, name: str):
+        self._name = self._check_name(name)
 
     def __contains__(self,item):
         """
@@ -481,7 +311,25 @@ class ComplexSpecies(Species):
             #if we got here then we've failed to find it
             return False
 
-    
+    @property
+    def species_set(self):
+        species_set = list(set(self.species))
+        list.sort(species_set, key = lambda s:repr(s))
+        return species_set
+    @property
+    def species(self):
+        return self._species
+    @species.setter
+    def species(self, species):
+        if not isinstance(species, list):
+            raise TypeError(f"species must be a list: recieved {species}.")
+        species = flatten_list(species)
+        if not all(isinstance(s, Species) for s in species):
+             raise TypeError(f"recieved a non-species as a member of the list species: {species}.")
+        else:
+            list.sort(species, key = lambda s:repr(s))
+            self._species = species
+
     def replace_species(self, species: Species, new_species: Species):
         """
         Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
@@ -499,7 +347,7 @@ class ComplexSpecies(Species):
             new_species_list.append(new_s)
 
         new_name = None
-        if self.custom_name == True:
+        if self._name is not None:
             new_name = self.name
         
         return ComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
@@ -590,22 +438,8 @@ class OrderedComplexSpecies(ComplexSpecies):
             else:
                 raise ValueError("OrderedComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
 
-        if name is not None:
-            self.custom_name = True
-        elif name is None:
-            self.custom_name = False
-            name = ""
-            for s in self.species:
-                if isinstance(s, str):
-                    s = Species(name = s)
-                if s.material_type not in ["complex", "ordered_complex", ""]:
-                    name+=f"{s.material_type}_{s.name}_"
-                else:
-                    name+=f"{s.name}_"
-            name = name[:-1]
-
-        self.name = self.check_name(name)
-        self.material_type = self.check_material_type(material_type)
+        self.name = name
+        self.material_type = material_type
         self.initial_concentration = initial_concentration
 
         if attributes is None:
@@ -620,6 +454,26 @@ class OrderedComplexSpecies(ComplexSpecies):
         self.attributes = attributes
 
     
+    @property
+    def name(self):
+        if self._name is None:
+            name = ""
+            for s in self.species:
+                if isinstance(s, str):
+                    s = Species(name = s)
+                if s.material_type not in ["complex", "ordered_complex", ""]:
+                    name+=f"{s.material_type}_{s.name}_"
+                else:
+                    name+=f"{s.name}_"
+            name = name[:-1]
+            return name
+        else:
+            return self._name
+    
+    @name.setter
+    def name(self, name: str):
+        self._name = self._check_name(name)
+
     def replace_species(self, species: Species, new_species: Species):
         """
         Replaces species with new_species in the entire Complex Species. Acts recursively on nested ComplexSpecies
@@ -636,7 +490,7 @@ class OrderedComplexSpecies(ComplexSpecies):
             new_species_list.append(new_s)
 
         new_name = None
-        if self.custom_name == True:
+        if self._name is not None:
             new_name = self.name
         
         return OrderedComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
@@ -675,13 +529,18 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
     def __init__(self,species, name=None, base_species = None, material_type = "ordered_polymer", \
                              attributes = [], initial_concentration = 0,circular = False):
 
-        self.material_type = self.check_material_type(material_type)
+        self.material_type = material_type
         self.position=None
         self.direction=None
         self.parent=None
         self.initial_concentration = initial_concentration
         self.circular = circular
         self.attributes = attributes
+        self._name = OrderedComplexSpecies._check_name(name)
+
+        if circular:
+            self.add_attribute("circular")
+
         self.material_type = material_type
         #self.species = []
         monomers = []
@@ -697,11 +556,8 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
                 #only species are acceptable
         
         OrderedPolymer.__init__(self,monomers)
-        if(name is None):
-            self.name = self.make_name()
-        else:
-            self.name = name
-        self.name = self.check_name(self.name)
+        self.name = name
+        self.material_type = material_type
         
         if(base_species is None):
             self.base_species = Species(self.name,material_type = material_type)
@@ -716,15 +572,38 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
     @property
     def species(self):
         return self._polymer
+
     def get_species_list(self):
         return self._polymer
     def set_species_list(self,spec_tuple:tuple):
         OrderedPolymer.__init__(self,spec_tuple)
+
+    @property
+    def name(self):
+        if self._name is None:
+            name = ""
+        else:
+            name = self._name
+        outlst = []
+
+        for monomer in self._polymer:
+            assert(isinstance(monomer,Species))
+            pname = monomer.name
+            outlst += [pname]
+        name = '_'.join(outlst)
+
+        for attribute in self.attributes:
+            name += "_"+attribute
+
+        return name
+
     def __hash__(self):
         ophash = OrderedPolymer.__hash__(self)
         ophash += hash(self.circular)+hash(self.base_species)+hash(self.name)+hash(self.material_type)
         return ophash
     
+
+
     def getname(self):
         if(self.name is None and (self.species is None) or (self.species == [])):
             return ""
@@ -733,6 +612,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
             return self.name
         else:
             return self.name
+
     def replace(self,position,part,direction=None):
         #TODO only change the name if the part we are replacing is actually different
         mydir = direction
@@ -747,26 +627,10 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
             #print("replacing")
             #print([a.data for a in self._polymer])
             self.name = self.make_name()
+
     def setname(self,name):
         self.name = name
-    def make_name(self,part_list=None):
-        if(part_list is None):
-            part_list = self._polymer
-        output = ""
-        outlst = []
-        for monomer in part_list:
-            part = monomer
-            assert(isinstance(part,Species))
-            #print("naming "+str(part))
-            #print(part.name)
-            pname = part.name
-            #if(part.direction=="reverse"):
-            #    pname+="_r"
-            outlst += [pname]
-        output = '_'.join(outlst)
-        if(self.circular):
-            output+="_o"
-        return output
+
     def __contains__(self,item):
         for part in self.species:
             if((part==item ) or (item == part.data) or (item in part)):
