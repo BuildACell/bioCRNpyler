@@ -619,7 +619,7 @@ class Reaction(object):
 
     def __repr__(self):
         """Helper function to print the text of a rate function"""
-        return self.pretty_print(show_rates=False, show_material=False, show_attributes=False)
+        return self.pretty_print(show_rates=False, show_material=True, show_attributes=False)
 
     def pretty_print(self, show_rates=True, show_material=True, show_attributes=True, **kwargs):
 

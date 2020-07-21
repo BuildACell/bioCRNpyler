@@ -27,7 +27,7 @@ class OneStepGeneExpression(Mechanism):
         elif component is None and kexpress is None:
             raise ValueError("Must pass in component or a value for kexpress")
 
-        rxns = [Reaction(inputs=[dna], outputs=[dna, protein], k = kexpress)]
+        rxns = [Reaction.from_mass_action(inputs=[dna], outputs=[dna, protein], k_forward=kexpress)]
         return rxns
 
 

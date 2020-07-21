@@ -249,9 +249,9 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     #reactions follow, allnodenum is not reset between these two loops
     for rxn in CRN.reactions:
         CRNgraph.add_node(allnodenum)
-        CRNgraph.nodes[allnodenum]["type"]=rxn.propensity_type
-        CRNgraph.nodes[allnodenum]["k"] = rxn.k_forward
-        CRNgraph.nodes[allnodenum]["k_r"] = rxn.k_reverse
+        CRNgraph.nodes[allnodenum]["type"]= str(rxn.propensity_type)
+        CRNgraph.nodes[allnodenum]["k"] = str(rxn.k_forward)
+        CRNgraph.nodes[allnodenum]["k_r"] = str(rxn.k_reverse)
         default_color = "blue"
         #CRNgraph.nodes[allnodenum]
         kval = rxn.k_forward
