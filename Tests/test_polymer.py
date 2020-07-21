@@ -53,7 +53,14 @@ class TestOrderedPolymer(TestCase):
 
         x = OrderedMonomer(direction="forward")
         y = OrderedPolymer([x,[OrderedMonomer(),"reverse"],OrderedMonomer()])
-        self.assertEqual(y[0],x)
+
+        self.assertFalse(y[0]==x)#Parts should be copied, not inserted!
+
+        #Test faithful copying of a part
+        self.assertEqual(y[0].direction, x.direction)
+        self.assertEqual(y[0].parent, y)
+        self.assertEqual(y[0].position, 0)
+
         self.assertEqual(y[1].position,1)
         self.assertEqual(y[1].direction,"reverse")
         self.assertEqual(y[1].parent,y)

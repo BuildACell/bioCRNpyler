@@ -65,7 +65,7 @@ class Complex:
                 valent_complex.material_type = "OPcomplex"
                 return valent_complex[bindloc]
 
-class Species(OrderedMonomer, object):
+class Species(OrderedMonomer):
 
     """ A formal species object for a CRN
      A Species must have a name. They may also have a material_type (such as DNA,
@@ -79,18 +79,31 @@ class Species(OrderedMonomer, object):
         self.name = name
         self.material_type = material_type
         self.initial_concentration = initial_concentration
-        if material_type == "complex":
-            warn("species which are formed of two species or more should be "
-                 "called using the chemical_reaction_network.ComplexSpecies "
-                 "constructor for attribute inheritance purposes.")
+        self._attributes = [] #Set this to avoid errors
+        self.attributes = attributes
 
-        self.attributes = []
+    @property
+    def attributes(self):
+        return self._attributes
 
+    @attributes.setter
+    def attributes(self, attributes):
         if attributes is not None:
             if not isinstance(attributes,list):
                 attributes = list(attributes)
             for attribute in attributes:
                 self.add_attribute(attribute)
+        elif attributes is None:
+            self._attributes = []
+
+    def add_attribute(self, attribute: str):
+        """
+        Adds attributes to a Species
+        """
+        assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(), "Attribute: %s must be an alpha-numeric string" % attribute
+        if attribute not in self.attributes:
+            self._attributes.append(attribute)
+
 
     @property
     def name(self):
@@ -227,13 +240,7 @@ class Species(OrderedMonomer, object):
 
         return txt
 
-    def add_attribute(self, attribute: str):
-        """
-        Adds attributes to a Species
-        """
-        assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(), "Attribute: %s must be an alpha-numeric string" % attribute
-        self.attributes.append(attribute)
-
+    
     def __eq__(self, other):
         """
         Overrides the default implementation
@@ -267,37 +274,19 @@ class ComplexSpecies(Species):
         For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
     """
     def __init__(self, species: List[Union[Species,str]], name: Union[str,None] = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
-        if len(species) <= 1:
+        #Set species because it is used for default naming
+        if len(flatten_list(species)) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
+        self.species = species 
 
-        self.species = species
-        #for s in  flatten_list(species):
-        #    if isinstance(s, Species):
-        #        self.species.append(s)
-        #    elif isinstance(s, str):
-        #        self.species.append(Species(s))
-        #    else:
-        #        raise ValueError("ComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
+        #call super class
+        Species.__init__(self, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)
 
-        
-        #self.species_set = list(set(self.species))
-
-        self.name = name
-        self.material_type = material_type
-        self.initial_concentration = initial_concentration
-
-        if attributes is None:
-            attributes = []
+        #Add attributes from species
         for s in self.species:
-            attributes += s.attributes
-        attributes = list(set(attributes))
-
-        while None in attributes:
-            attributes.remove(None)
-
-        self.attributes = attributes
-
+            for a in s.attributes:
+                self.add_attribute(a)
     @property
     def name(self):
         if self._name is None:
@@ -450,36 +439,19 @@ class OrderedComplexSpecies(ComplexSpecies):
     """
 
     def __init__(self, species, name = None, material_type = "ordered_complex", attributes = None, initial_concentration = 0):
-        if len(species) <= 1:
+        #Set species because it is used for default naming
+        if len(flatten_list(species)) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
+        self.species = species
 
+        #Call the Species superclass constructor
+        Species.__init__(self, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)
 
-        new_species = flatten_list(species)
-        self.species = []
-        for s in new_species:
-            if isinstance(s, Species):
-                self.species.append(s)
-            elif isinstance(s, str):
-                self.species.append(Species(s))
-            else:
-                raise ValueError("OrderedComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
-
-        self.name = name
-        self.material_type = material_type
-        self.initial_concentration = initial_concentration
-
-        if attributes is None:
-            attributes = []
+        #Add attributes from species
         for s in self.species:
-            attributes += s.attributes
-        attributes = list(set(attributes))
-
-        while None in attributes:
-            attributes.remove(None)
-
-        self.attributes = attributes
-
+            for a in s.attributes:
+                self.add_attribute(a)
     
     @property
     def name(self):
@@ -500,6 +472,20 @@ class OrderedComplexSpecies(ComplexSpecies):
     @name.setter
     def name(self, name: str):
         self._name = self._check_name(name)
+
+    @property
+    def species(self):
+        return self._species
+
+    @species.setter
+    def species(self, species):
+        if not isinstance(species, list):
+            raise TypeError(f"species must be a list: recieved {species}.")
+        species = flatten_list(species)
+        if not all(isinstance(s, Species) for s in species):
+             raise TypeError(f"recieved a non-species as a member of the list species: {species}.")
+        else:
+            self._species = species
 
     def replace_species(self, species: Species, new_species: Species):
         """
@@ -553,8 +539,23 @@ class OrderedComplexSpecies(ComplexSpecies):
         return txt
 
 class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
+    """
+    A class to represent OrderedPolymers which can also participate in chemical reactions.
+    OrderedPolymerSpecies is made up of Species (which are also OrderedMonomers).
+
+    The Species inside an OrderedPolymerSpecies are meant to model multiple binding sites and/or
+    functional regions. ComplexSpecies can be formed inside an OrderedPolymer by passing
+    the internal Species at a specific location.
+
+    When used as an input to a reaction, OrderedPolymerSpecies can be passed 
+    or one if its internal Species (eg a Species with Species.parent = OrderedPolymerSpecies)
+    can also be used to produce the same reaction. This allows flexibility in the arguments to
+    different Mechanisms. Sometimes, it is convenient to pass in the OrderedPolymerSpecies,
+    sometimes it is convenient to pass an internal Species. Both will work from the point of view
+    of any Mechanism.
+    """
     def __init__(self,species, name=None, base_species = None, material_type = "ordered_polymer", \
-                             attributes = [], initial_concentration = 0,circular = False):
+                             attributes = None, initial_concentration = 0,circular = False):
 
         self.material_type = material_type
         self.position=None
@@ -562,7 +563,12 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
         self.parent=None
         self.initial_concentration = initial_concentration
         self.circular = circular
-        self.attributes = attributes
+
+        if attributes is None:
+            self.attributes = []
+        else:
+            self.attributes = attributes
+
         self._name = OrderedComplexSpecies._check_name(name)
 
         if circular:
@@ -572,22 +578,21 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
         #self.species = []
         monomers = []
         for specie in species:
-            if isinstance(specie,Species):
+            if isinstance(specie,Species) and isinstance(specie, OrderedMonomer):
                 monomers += [specie]
-            elif( isinstance(specie,OrderedMonomer)):
+            elif (isinstance(specie, tuple) or isinstance(specie, list)) and (isinstance(specie[0],Species) and isinstance(specie[0], OrderedMonomer)):
                 monomers += [specie]
-            elif( isinstance(specie,list) and isinstance(specie[0],Species) or isinstance(specie[0],OrderedMonomer)):
-                monomers += [specie]
+            elif isinstance(specie, OrderedPolymer):
+                raise NotImplementedError(f"OrderedPolymer cannot be used as a Monomer at this time.")
             else:
-                raise ValueError("{} should be a Species or OrderedMonomer".format(specie))
+                raise ValueError("{} should be a Species or list [Species, 'direction']".format(specie))
                 #only species are acceptable
         
-        OrderedPolymer.__init__(self,monomers)
-        self.name = name
+        OrderedPolymer.__init__(self, monomers)
         self.material_type = material_type
         
         if(base_species is None):
-            self.base_species = Species(self.name,material_type = material_type)
+            self.base_species = Species(self.name, material_type = material_type)
         elif(isinstance(base_species,Species)):
             self.base_species = base_species
         else:
@@ -602,6 +607,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
 
     def get_species_list(self):
         return self._polymer
+
     def set_species_list(self,spec_tuple:tuple):
         OrderedPolymer.__init__(self,spec_tuple)
 
@@ -630,16 +636,6 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
         return ophash
     
 
-
-    def getname(self):
-        if(self.name is None and (self.species is None) or (self.species == [])):
-            return ""
-        elif(self.name is None):
-            self.name = self.make_name(self)
-            return self.name
-        else:
-            return self.name
-
     def replace(self,position,part,direction=None):
         #TODO only change the name if the part we are replacing is actually different
         mydir = direction
@@ -654,9 +650,6 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
             #print("replacing")
             #print([a.data for a in self._polymer])
             self.name = self.make_name()
-
-    def setname(self,name):
-        self.name = name
 
     def __contains__(self,item):
         for part in self.species:

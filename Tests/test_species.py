@@ -8,10 +8,6 @@ from biocrnpyler import Species
 class TestSpecies(TestCase):
 
     def test_species_initialization(self):
-        # species should not have type 'complex' should use ComplexSpecies class
-        with self.assertWarnsRegex(Warning, f'species which are formed of two species or more should be called using'):
-            Species(name='test_species', material_type='complex')
-
         # tests naming convention repr without species type or attributes
         species = Species(name='test_species')
         self.assertEqual(repr(species), species.name)

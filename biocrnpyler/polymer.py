@@ -2,6 +2,8 @@
 The classes OrderedPolymer and OrderedMonomer are datastructures used to represent Polymers and their associatd components.
 These classes are used by Chemical Reaction Network Species as well as certain Components such as DNA_construct.
 """
+import copy
+
 class OrderedPolymer:
 
     """a polymer made up of OrderedMonomers that has a specific order"""
@@ -25,10 +27,11 @@ class OrderedPolymer:
             else:
                 raise ValueError("{} is not an OrderedMonomer or a list of the form [OrderedMonomer,direction]".format(str(part)))
             
-            polymer += [part]
+            part_copy = copy.copy(part) #OrderedMonomers are always copied when inserted into an OrderedPolymer
+            polymer += [part_copy]
             position = len(polymer)-1
             direction = partdir
-            part.monomer_insert(self,position,direction)
+            part_copy.monomer_insert(self,position,direction)
 
         self._polymer = tuple(polymer)
 
@@ -36,30 +39,33 @@ class OrderedPolymer:
         return hash(self._polymer)
 
     def insert(self,position,part,direction=None):
-        part.monomer_insert(self,position,direction)
+        part_copy = copy.copy(part) #OrderedMonomers are always copied when inserted into an OrderedPolymer
+
+        part_copy.monomer_insert(self,position,direction)
         for subsequent_part in self._polymer[position:]:
             subsequent_part.position += 1
-        self._polymer = self._polymer[:position]+(part,)+self._polymer[position:]
-        if(hasattr(self,"name") and hasattr(self,"make_name")):
-            self.name = self.make_name()
+        self._polymer = self._polymer[:position]+(part_copy,)+self._polymer[position:]
 
     def replace(self,position,part,direction=None):
+        part_copy = copy.copy(part) #OrderedMonomers are always copied when inserted into an OrderedPolymer
+
         if(direction is None):
             direction = part.direction
         self._polymer[position].remove()
-        part.monomer_insert(self,position,direction)
-        self._polymer = self._polymer[:position]+(part,)+self._polymer[position+1:]
-        if(hasattr(self,"name") and hasattr(self,"make_name")):
-            self.name = self.make_name()
+        part_copy.monomer_insert(self,position,direction)
+        self._polymer = self._polymer[:position]+(part_copy,)+self._polymer[position+1:]
+
 
     def append(self,part,direction=None):
+        part_copy = copy.copy(part) #OrderedMonomers are always copied when inserted into an OrderedPolymer
+
         if(direction is None):
             if(hasattr(part,"direction")):
-                direction = part.direction
+                direction = part_copy.direction
             else:
                 direction = None
         pos = len(self._polymer)
-        self.insert(pos,part,direction)
+        self.insert(pos,part_copy,direction)
 
     def __repr__(self):
         outstr = "polymer("
