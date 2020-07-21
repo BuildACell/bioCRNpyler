@@ -65,7 +65,7 @@ class TestMixture(TestCase):
 
         # creating a mock update function to decouple the update process from the rest of the code
         def mock_update_reactions():
-            rxn = Reaction.from_mass_action(inputs=[], outputs=[], k_forward=0.1)
+            rxn = Reaction.from_massaction(inputs=[], outputs=[], k_forward=0.1)
             return [rxn]
 
         component.update_reactions = mock_update_reactions
@@ -84,7 +84,7 @@ class TestMixture(TestCase):
 
         species_list = [a, b]
 
-        rxn = Reaction.from_mass_action(inputs=[a], outputs=[b], k_forward=0.1)
+        rxn = Reaction.from_massaction(inputs=[a], outputs=[b], k_forward=0.1)
 
         CRN = ChemicalReactionNetwork(species_list, [rxn])
 
@@ -93,7 +93,7 @@ class TestMixture(TestCase):
 
         # creating a mock update function to decouple the update process from the rest of the code
         def mock_update_reactions():
-            rxn = Reaction.from_mass_action(inputs=[a], outputs=[b], k_forward=0.1)
+            rxn = Reaction.from_massaction(inputs=[a], outputs=[b], k_forward=0.1)
             return [rxn]
 
         def mock_update_species():

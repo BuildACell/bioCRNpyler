@@ -24,7 +24,7 @@ class TestChemicalReactionNetwork(TestCase):
 
         self.species_list = [self.s1, self.s2]
         # creating a valid reaction two species
-        self.rx1 = Reaction.from_mass_action(inputs=[self.s1], outputs=[self.s2], k_forward=0.1)
+        self.rx1 = Reaction.from_massaction(inputs=[self.s1], outputs=[self.s2], k_forward=0.1)
         self.rxn_list = [self.rx1]
 
         self.crn = ChemicalReactionNetwork(species=self.species_list, reactions=self.rxn_list)
@@ -54,18 +54,18 @@ class TestChemicalReactionNetwork(TestCase):
         with self.assertRaisesRegexp(ValueError, 'A non-reaction object was used as a reaction!'):
             ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list_with_none, species=self.species_list)
 
-        rxn2 = Reaction.from_mass_action(inputs=[self.s1], outputs=[self.s3], k_forward=0.1)
+        rxn2 = Reaction.from_massaction(inputs=[self.s1], outputs=[self.s3], k_forward=0.1)
         # test warning raised if a species (in the reaction outputs) is detected which is not part of the species list
         with self.assertWarnsRegex(Warning, f'are not part of any reactions in the CRN'):
             ChemicalReactionNetwork.check_crn_validity(reactions=[rxn2], species=self.species_list, show_warnings=True)
 
-        rxn3 = Reaction.from_mass_action(inputs=[self.s4], outputs=[self.s2], k_forward=0.1)
+        rxn3 = Reaction.from_massaction(inputs=[self.s4], outputs=[self.s2], k_forward=0.1)
         # test warning raised if a species (in the reaction inputs) is detected which is not part of the species list
         with self.assertWarnsRegex(Warning, f'are not part of any reactions in the CRN'):
             ChemicalReactionNetwork.check_crn_validity(reactions=[rxn3], species=self.species_list, show_warnings=True)
 
         # test warning if reaction has unlisted species
-        rxn4 = Reaction.from_mass_action(inputs=[self.s4, self.s3], outputs=[self.s2], k_forward=0.1)
+        rxn4 = Reaction.from_massaction(inputs=[self.s4, self.s3], outputs=[self.s2], k_forward=0.1)
         with self.assertWarnsRegex(Warning, f'are not listed in the Species list, but part of the reactions'):
             ChemicalReactionNetwork.check_crn_validity(reactions=[rxn4], species=[self.s4, self.s2], show_warnings=True)
 
@@ -139,8 +139,8 @@ class TestChemicalReactionNetwork(TestCase):
     def test_replace_species_in_Reaction(self):
         c1 = ComplexSpecies([self.s1, self.s_old])
         c2 = ComplexSpecies([self.s1, self.s_new])
-        r1 = Reaction.from_mass_action([self.s1, self.s_old], [c1], k_forward=1)
-        self.assertTrue(r1.replace_species(self.s_old, self.s_new) == Reaction.from_mass_action([self.s1, self.s_new], [c2], k_forward=1))
+        r1 = Reaction.from_massaction([self.s1, self.s_old], [c1], k_forward=1)
+        self.assertTrue(r1.replace_species(self.s_old, self.s_new) == Reaction.from_massaction([self.s1, self.s_new], [c2], k_forward=1))
 
     def test_replace_species_with_a_non_massaction_reaction(self):
         c1 = ComplexSpecies([self.s1, self.s_old])
@@ -155,7 +155,7 @@ class TestChemicalReactionNetwork(TestCase):
         c1 = ComplexSpecies([self.s1, self.s_old])
         c2 = ComplexSpecies([self.s1, c1])
         species = [self.s1, self.s_old, c1, c2]
-        r1 = Reaction.from_mass_action([self.s1, self.s_old], [c1], k_forward=1)
+        r1 = Reaction.from_massaction([self.s1, self.s_old], [c1], k_forward=1)
         crn = ChemicalReactionNetwork(species = species, reactions = [r1])
         new_crn = crn.replace_species(self.s_old, self.s_new)
 
@@ -169,7 +169,7 @@ class TestChemicalReactionNetwork(TestCase):
         c2_new = ComplexSpecies([self.s1, c1_new])
         self.assertTrue(c1_new in new_crn.species)
         self.assertTrue(c2_new in new_crn.species)
-        r1_new = Reaction.from_mass_action([self.s1, self.s_new], [c1_new], k_forward=1)
+        r1_new = Reaction.from_massaction([self.s1, self.s_new], [c1_new], k_forward=1)
         self.assertFalse(r1 in new_crn.reactions)
         self.assertTrue(r1_new in new_crn.reactions)
 
@@ -183,7 +183,7 @@ class TestChemicalReactionNetwork(TestCase):
         self.assertEqual(len(model.getListOfReactions()), len(self.crn.reactions))
 
         # test a reversible reaction
-        rx1 = Reaction.from_mass_action(inputs=[self.s1], outputs=[self.s2], k_forward=0.1, k_reverse=0.1)
+        rx1 = Reaction.from_massaction(inputs=[self.s1], outputs=[self.s2], k_forward=0.1, k_reverse=0.1)
         rxn_list = [rx1]
         crn = ChemicalReactionNetwork(species=self.species_list, reactions=rxn_list)
 

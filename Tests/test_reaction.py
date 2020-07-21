@@ -25,7 +25,7 @@ class TestReaction(TestCase):
         with self.assertRaises(TypeError):
             Reaction(inputs=[], outputs=['b'], propensity_type=mak)
 
-        rxn = Reaction.from_mass_action(inputs=[], outputs=[], k_forward=0.1, k_reverse=1)
+        rxn = Reaction.from_massaction(inputs=[], outputs=[], k_forward=0.1, k_reverse=1)
         # test whether the reaction is registered as reversible
         self.assertTrue(rxn.is_reversible)
         # test whether the reaction is registered as massaction
