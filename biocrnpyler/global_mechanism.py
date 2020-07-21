@@ -142,11 +142,11 @@ class GlobalMechanism(Mechanism):
         """
         return []
 
-    def update_reactions(self, s, parameters):
+    def update_reactions(self, s, mixture):
         """
         All global mechanisms must use update_reactions functions with these inputs
         :param s:
-        :param parameters:
+        :param mixture:
         :return:
         """
         return []
