@@ -354,7 +354,7 @@ class ProportionalHillPositive(HillPositive):
         if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
             return super().pretty_print(**kwargs)
 
-        return '*'.join([self.d, super(ProportionalHillPositive, self).pretty_print(**kwargs)])
+        return '*'.join([str(self.d), super(ProportionalHillPositive, self).pretty_print(**kwargs)])
 
 
 class ProportionalHillNegative(HillNegative):
@@ -378,4 +378,4 @@ class ProportionalHillNegative(HillNegative):
         if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
             return super().pretty_print(**kwargs)
 
-        return '*'.join([self.d, super(ProportionalHillNegative, self).pretty_print(**kwargs)])
+        return '*'.join([str(self.d), super(ProportionalHillNegative, self).pretty_print(**kwargs)])

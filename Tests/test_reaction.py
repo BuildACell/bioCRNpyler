@@ -75,11 +75,12 @@ def test_reaction_equality():
     assert rxn1 != rxn3
     assert rxn1 != rxn4
 
-# def test_reaction_list_flattening():
-#     sp1 = Species(name='test_species_a')
-#     sp2 = Species(name='test_species_b')
-#     k_f = 1
-#     mak = MassAction(k_forward=k_f)
-#     rxn1 = Reaction.from_nested_list(inputs=[sp1, [sp1, sp2]], outputs=[[sp2, sp2], sp1], propensity_type=mak)
-#     rxn2 = Reaction(inputs=[sp1, sp1, sp2], outputs=[sp1, sp2, sp2], propensity_type=mak)
-#     assert rxn1 == rxn2
+
+def test_reaction_list_flattening():
+    sp1 = Species(name='test_species_a')
+    sp2 = Species(name='test_species_b')
+    k_f = 1
+    mak = MassAction(k_forward=k_f)
+    rxn1 = Reaction(inputs=[sp1, [sp1, sp2]], outputs=[[sp2, sp2], sp1], propensity_type=mak)
+    rxn2 = Reaction(inputs=[sp1, sp1, sp2], outputs=[sp1, sp2, sp2], propensity_type=mak)
+    assert rxn1 == rxn2

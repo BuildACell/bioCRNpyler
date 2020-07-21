@@ -19,6 +19,9 @@ class TestChemicalReactionNetwork(TestCase):
         self.s3 = Species(name='test_species3')
         self.s4 = Species(name='test_species4')
 
+        self.s_old = Species("s_old")
+        self.s_new = Species("s_new")
+
         self.species_list = [self.s1, self.s2]
         # creating a valid reaction two species
         self.rx1 = Reaction.from_mass_action(inputs=[self.s1], outputs=[self.s2], k_forward=0.1)
@@ -115,60 +118,58 @@ class TestChemicalReactionNetwork(TestCase):
         rtn_species_list = self.crn.get_all_species_containing(species=self.s1, return_as_strings=True)
         self.assertEqual(rtn_species_list, [repr(self.s1)])
 
-    def test_replace_species(self):
-
-        s_old = Species("s_old")
-        s_new = Species("s_new")
+    def test_replace_species_in_Species(self):
 
         #Test replace species in a Species
-        self.assertTrue(self.s1.replace_species(self.s2, s_new) == self.s1)
-        self.assertTrue(s_old.replace_species(s_old, s_new) == s_new)
+        self.assertTrue(self.s1.replace_species(self.s2, self.s_new) == self.s1)
+        self.assertTrue(self.s_old.replace_species(self.s_old, self.s_new) == self.s_new)
 
-        #test replace Species in a ComplexSpecies
-        c1 = ComplexSpecies([self.s1, s_old])
+    def test_replace_Species_in_ComplexSpecies(self):
+        c1 = ComplexSpecies([self.s1, self.s_old])
         c2 = ComplexSpecies([self.s1, c1])
-        self.assertTrue(c1.replace_species(self.s2, s_new) == c1)
-        self.assertTrue(c1.replace_species(s_old, s_new) == ComplexSpecies([self.s1, s_new]))
+        self.assertTrue(c1.replace_species(self.s2, self.s_new) == c1)
+        self.assertTrue(c1.replace_species(self.s_old, self.s_new) == ComplexSpecies([self.s1, self.s_new]))
         self.assertTrue(c2 == ComplexSpecies([self.s1, c1]))
-        self.assertTrue(c2.replace_species(s_new, s_old) == ComplexSpecies([self.s1, ComplexSpecies([self.s1, s_old])]))
+        self.assertTrue(c2.replace_species(self.s_new, self.s_old) == ComplexSpecies([self.s1, ComplexSpecies([self.s1, self.s_old])]))
 
-        #test in OrderedComplexSpecies
-        oc1 = OrderedComplexSpecies([self.s1, s_old])
-        self.assertTrue(oc1.replace_species(s_old, s_new) == OrderedComplexSpecies([self.s1, s_new]))
+    def test_replace_Species_in_OrderedComplexSpecies(self):
+        oc1 = OrderedComplexSpecies([self.s1, self.s_old])
+        self.assertTrue(oc1.replace_species(self.s_old, self.s_new) == OrderedComplexSpecies([self.s1, self.s_new]))
 
+    def test_replace_species_in_Reaction(self):
+        c1 = ComplexSpecies([self.s1, self.s_old])
+        c2 = ComplexSpecies([self.s1, self.s_new])
+        r1 = Reaction.from_mass_action([self.s1, self.s_old], [c1], k_forward=1)
+        self.assertTrue(r1.replace_species(self.s_old, self.s_new) == Reaction.from_mass_action([self.s1, self.s_new], [c2], k_forward=1))
 
-        #Test replace species in a reaction
-        c1 = ComplexSpecies([self.s1, s_old])
-        c2 = ComplexSpecies([self.s1, s_new])
-        r1 = Reaction.from_mass_action([self.s1, s_old], [c1], k_forward=1)
-        self.assertTrue(r1.replace_species(s_old, s_new) == Reaction.from_mass_action([self.s1, s_new], [c2], k_forward=1))
+    def test_replace_species_with_a_non_massaction_reaction(self):
+        c1 = ComplexSpecies([self.s1, self.s_old])
 
-        # test replace species with a non-massaction reaction
-        prop_hill_old = ProportionalHillPositive(k_forward=1., s1=self.s1, K=10, d=s_old, n=2)
-        r1 = Reaction([self.s1, s_old], [c1], propensity_type=prop_hill_old)
-        prop_hill_new = ProportionalHillPositive(k_forward=1., s1=self.s1, K=10, d=s_new, n=2)
-        r1_new = Reaction([self.s1, s_new], [c1.replace_species(s_old, s_new)], propensity_type=prop_hill_new)
-        self.assertTrue(r1.replace_species(s_old, s_new) == r1_new)
+        prop_hill_old = ProportionalHillPositive(k_forward=1., s1=self.s1, K=10, d=self.s_old, n=2)
+        r1 = Reaction([self.s1, self.s_old], [c1], propensity_type=prop_hill_old)
+        prop_hill_new = ProportionalHillPositive(k_forward=1., s1=self.s1, K=10, d=self.s_new, n=2)
+        r1_new = Reaction([self.s1, self.s_new], [c1.replace_species(self.s_old, self.s_new)], propensity_type=prop_hill_new)
+        self.assertTrue(r1.replace_species(self.s_old, self.s_new) == r1_new)
 
-        #test replace in a chemical reaction network
-        c1 = ComplexSpecies([self.s1, s_old])
+    def test_replace_in_a_chemical_reaction_network(self):
+        c1 = ComplexSpecies([self.s1, self.s_old])
         c2 = ComplexSpecies([self.s1, c1])
-        species = [self.s1, s_old, c1, c2]
-        r1 = Reaction.from_mass_action([self.s1, s_old], [c1], k_forward=1)
+        species = [self.s1, self.s_old, c1, c2]
+        r1 = Reaction.from_mass_action([self.s1, self.s_old], [c1], k_forward=1)
         crn = ChemicalReactionNetwork(species = species, reactions = [r1])
-        new_crn = crn.replace_species(s_old, s_new)
+        new_crn = crn.replace_species(self.s_old, self.s_new)
 
         self.assertTrue(self.s1 in new_crn.species)
-        self.assertFalse(s_old in new_crn.species)
+        self.assertFalse(self.s_old in new_crn.species)
 
-        self.assertTrue(s_new in new_crn.species)
+        self.assertTrue(self.s_new in new_crn.species)
         self.assertFalse(c1 in new_crn.species)
         self.assertFalse(c2 in new_crn.species)
-        c1_new = ComplexSpecies([self.s1, s_new])
+        c1_new = ComplexSpecies([self.s1, self.s_new])
         c2_new = ComplexSpecies([self.s1, c1_new])
         self.assertTrue(c1_new in new_crn.species)
         self.assertTrue(c2_new in new_crn.species)
-        r1_new = Reaction.from_mass_action([self.s1, s_new], [c1_new], k_forward=1)
+        r1_new = Reaction.from_mass_action([self.s1, self.s_new], [c1_new], k_forward=1)
         self.assertFalse(r1 in new_crn.reactions)
         self.assertTrue(r1_new in new_crn.reactions)
 

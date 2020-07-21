@@ -258,26 +258,26 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
         if(not useweights):
             kval = 1
         krev_val = rxn.k_reverse
-        if((krev_val > 0) and (not useweights)):
+        if((krev_val is not None) and (not useweights)):
             krev_val = 1
         for reactant in rxn.inputs:
-            CRNgraph.add_edge(nodedict[reactant],allnodenum,weight=kval)
-            if(krev_val>0):
+            CRNgraph.add_edge(nodedict[reactant.species],allnodenum,weight=kval)
+            if(krev_val is not None):
                 #if the k is 0 then the node does not exist, right?
-                CRNgraph.add_edge(allnodenum,nodedict[reactant],weight=krev_val)
+                CRNgraph.add_edge(allnodenum,nodedict[reactant.species],weight=krev_val)
         for product in rxn.outputs:
-            CRNgraph.add_edge(allnodenum,nodedict[product],weight=kval)
-            if(krev_val>0):
-                CRNgraph.add_edge(nodedict[product],allnodenum,weight=krev_val)
+            CRNgraph.add_edge(allnodenum,nodedict[product.species],weight=kval)
+            if(krev_val is not None):
+                CRNgraph.add_edge(nodedict[product.species],allnodenum,weight=krev_val)
         if(len(rxn.outputs)==0):
             #this adds an edge to the "nothing" node we made in the beginning
             CRNgraph.add_edge(allnodenum,0,weight=kval)
-            if(krev_val>0):
+            if(krev_val is not None):
                 CRNgraph.add_edge(0,allnodenum,weight=krev_val)
         elif(len(rxn.inputs)==0):
             #this adds an edge from the "nothing" node we made in the beginning
             CRNgraph.add_edge(0,allnodenum,weight=kval)
-            if(krev_val>0):
+            if(krev_val is not None):
                 CRNgraph.add_edge(allnodenum,0,weight=krev_val)
         CRNgraph.nodes[allnodenum]["color"]=default_color
         if(not use_pretty_print):

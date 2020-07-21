@@ -59,9 +59,9 @@ class SimpleTranscription(Mechanism):
         #First case only true in Mixtures without transcription (eg Expression Mixtures)
         if transcript is None and protein is not None:
             ktl = component.get_parameter("ktl", part_id = part_id, mechanism = self)
-            rxns = [Reaction(inputs = [dna], outputs = [dna, protein], k = ktx*ktl)]
+            rxns = [Reaction.from_mass_action(inputs = [dna], outputs = [dna, protein], k_forward=ktx*ktl)]
         else:
-            rxns = [Reaction(inputs = [dna], outputs = [dna, transcript], k = ktx)]
+            rxns = [Reaction.from_mass_action(inputs = [dna], outputs = [dna, transcript], k_forward=ktx)]
 
         return rxns
 
@@ -90,7 +90,7 @@ class SimpleTranslation(Mechanism):
         if transcript is None and protein is not None:
             rxns = []
         else:
-            rxns = [Reaction(inputs = [transcript], outputs = [transcript, protein], k = ktl)]
+            rxns = [Reaction.from_mass_action(inputs = [transcript], outputs = [transcript, protein], k_forward=ktl)]
 
         return rxns
 
@@ -130,8 +130,7 @@ class PositiveHillTranscription(Mechanism):
         K = component.get_parameter("K", part_id = part_id, mechanism = self)
         kleak = component.get_parameter("kleak", part_id = part_id, mechanism = self)
 
-        params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
-
+        prophill = ProportionalHillPositive(k_forward=ktx, K=K, s1=regulator, n=n, d=dna)
 
         reactions = []
 
@@ -141,10 +140,10 @@ class PositiveHillTranscription(Mechanism):
         else:
             tx_output = transcript
 
-        reactions.append(Reaction(inputs = [dna], outputs = [dna, tx_output], propensity_type = "proportionalhillpositive", propensity_params = params))
+        reactions.append(Reaction(inputs=[dna], outputs=[dna, tx_output], propensity_type=prophill))
 
         if leak:
-            reactions.append(Reaction(inputs = [dna], outputs = [dna, tx_output], k = kleak))
+            reactions.append(Reaction.from_mass_action(inputs=[dna], outputs=[dna, tx_output], k_forward=kleak))
 
         #In this case, we just return one reaction
         return reactions
@@ -182,7 +181,7 @@ class NegativeHillTranscription(Mechanism):
         K = component.get_parameter("K", part_id = part_id, mechanism = self)
         kleak = component.get_parameter("kleak", part_id = part_id, mechanism = self)
 
-        params = {"k":ktx, "n":n, "K":K, "s1":regulator, "d":dna}
+        prop_hill = ProportionalHillNegative(k_forward=ktx, K=K, n=n, s1=regulator, d=dna)
 
         reactions = []
 
@@ -192,10 +191,10 @@ class NegativeHillTranscription(Mechanism):
         else:
             tx_output = transcript
 
-        reactions.append(Reaction(inputs = [dna], outputs = [dna, tx_output], propensity_type = "proportionalhillnegative", propensity_params = params))
+        reactions.append(Reaction(inputs=[dna], outputs=[dna, tx_output], propensity_type=prop_hill))
 
         if leak:
-            reactions.append(Reaction(inputs = [dna], outputs = [dna, tx_output], k = kleak))
+            reactions.append(Reaction.from_mass_action(inputs = [dna], outputs = [dna, tx_output], k_forward=kleak))
 
         #In this case, we just return one reaction
         return reactions

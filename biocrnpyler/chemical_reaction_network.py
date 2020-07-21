@@ -175,8 +175,7 @@ class Species(object):
 
     @staticmethod
     def flatten_list(in_list) -> List:
-        """
-        Helper function to flatten lists
+        """Helper function to flatten lists
         """
         out_list = []
         if not isinstance(in_list,list):
@@ -243,7 +242,7 @@ class ComplexSpecies(Species):
             else:
                 raise ValueError("ComplexSpecies must be defined by (nested) list of Species (or subclasses thereof).")
 
-        self.species_set = list(set(species))
+        self.species_set = list(set(self.species))
 
         if name is not None:
             self.custom_name = True
@@ -365,8 +364,8 @@ class ComplexSpecies(Species):
 
         return txt
 
-    def __hash__(self):
-        return str.__hash__(repr(self))
+    # def __hash__(self):
+    #     return str.__hash__(repr(self))
 
 
 class Multimer(ComplexSpecies):
