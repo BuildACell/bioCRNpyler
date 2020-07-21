@@ -2,7 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from typing import Set, Union, Dict, List
-from numbers import Number, Real
+from numbers import Real
 from .parameter import Parameter
 from .sbmlutil import getSpeciesByName
 import libsbml
@@ -328,9 +328,6 @@ class HillNegative(Hill):
         super(HillNegative, self).__init__(k_forward=k_forward, s1=s1, K=K, n=n)
 
     def pretty_print(self,**kwargs):
-        if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
-            return super().pretty_print(**kwargs)
-
         return f'k_f({self.s1}) = {self.k_forward}/({self.s1}^{self.n} + {self.K})'
 
 
@@ -351,9 +348,6 @@ class ProportionalHillPositive(HillPositive):
         self.propensity_dict['species']['d'] = self.d
 
     def pretty_print(self, **kwargs):
-        if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
-            return super().pretty_print(**kwargs)
-
         return '*'.join([str(self.d), super(ProportionalHillPositive, self).pretty_print(**kwargs)])
 
 
@@ -374,8 +368,4 @@ class ProportionalHillNegative(HillNegative):
         self.propensity_dict['species']['d'] = self.d
 
     def pretty_print(self,**kwargs):
-        # TODO no reverse for nonmassaction!!!
-        if 'reaction_direction' in kwargs and kwargs['reaction_direction'] is 'reverse':
-            return super().pretty_print(**kwargs)
-
         return '*'.join([str(self.d), super(ProportionalHillNegative, self).pretty_print(**kwargs)])

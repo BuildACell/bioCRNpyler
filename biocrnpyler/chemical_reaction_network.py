@@ -526,9 +526,9 @@ class Reaction(object):
         self._propensity_type = new_propensity_type
 
     @classmethod
-    def from_mass_action(cls, inputs: Union[List[Species], List[WeightedSpecies]],
-                         outputs: Union[List[Species], List[WeightedSpecies]],
-                         k_forward: float, k_reverse: float = None):
+    def from_massaction(cls, inputs: Union[List[Species], List[WeightedSpecies]],
+                        outputs: Union[List[Species], List[WeightedSpecies]],
+                        k_forward: float, k_reverse: float = None):
         """ Initialize a Reaction object with mass action kinetics
         :param inputs:
         :param outputs:

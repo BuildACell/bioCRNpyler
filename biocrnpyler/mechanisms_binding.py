@@ -29,7 +29,7 @@ class Reversible_Bimolecular_Binding(Mechanism):
             complexS = ComplexSpecies([s1, s2])
         else:
             complexS = complex
-        rxns = [Reaction.from_mass_action([s1, s2], [complexS], k_forward=kb, k_reverse=ku)]
+        rxns = [Reaction.from_massaction([s1, s2], [complexS], k_forward=kb, k_reverse=ku)]
         return rxns
 
 
@@ -89,7 +89,7 @@ class One_Step_Cooperative_Binding(Mechanism):
         inputs = [WeightedSpecies(species=binder, stoichiometry=cooperativity),
                   WeightedSpecies(species=bindee, stoichiometry=1)]
 
-        rxns = [Reaction.from_mass_action(inputs=inputs, outputs=[complexS], k_forward=kb, k_reverse=ku)]
+        rxns = [Reaction.from_massaction(inputs=inputs, outputs=[complexS], k_forward=kb, k_reverse=ku)]
         return rxns
 
 
@@ -180,8 +180,8 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
         inputs_for_rxn1 = [WeightedSpecies(species=binder, stoichiometry=cooperativity)]
         rxns = [
-            Reaction.from_mass_action(inputs=inputs_for_rxn1, outputs=[n_mer], k_forward=kb1, k_reverse=ku1),
-            Reaction.from_mass_action(inputs=[n_mer, bindee], outputs=[complexS], k_forward=kb2, k_reverse=ku2)
+            Reaction.from_massaction(inputs=inputs_for_rxn1, outputs=[n_mer], k_forward=kb1, k_reverse=ku1),
+            Reaction.from_massaction(inputs=[n_mer, bindee], outputs=[complexS], k_forward=kb2, k_reverse=ku2)
         ]
 
         return rxns
@@ -285,9 +285,9 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                         inputs = [WeightedSpecies(species=binder, stoichiometry=binder_params[binder]["cooperativity"]),
                                   WeightedSpecies(species=reactant_complex, stoichiometry=1)]
 
-                        reaction = Reaction.from_mass_action(inputs=inputs, outputs=[product],
-                                                             k_forward=binder_params[binder]["kb"],
-                                                             k_reverse=binder_params[binder]["ku"])
+                        reaction = Reaction.from_massaction(inputs=inputs, outputs=[product],
+                                                            k_forward=binder_params[binder]["kb"],
+                                                            k_reverse=binder_params[binder]["ku"])
                         rxndict[rxn_prototype]=reaction
         return [rxndict[a] for a in rxndict]
 
@@ -330,4 +330,4 @@ class One_Step_Binding(Mechanism):
         if complex_species is None:
             complex_species = ComplexSpecies(species)
 
-        return [Reaction.from_mass_action(inputs=species, outputs=[complex_species], k_forward=kb, k_reverse=ku)]
+        return [Reaction.from_massaction(inputs=species, outputs=[complex_species], k_forward=kb, k_reverse=ku)]

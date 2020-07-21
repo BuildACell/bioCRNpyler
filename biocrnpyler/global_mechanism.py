@@ -166,7 +166,7 @@ class Dilution(GlobalMechanism):
 
     def update_reactions(self, s: Species, mixture):
         k_dil = self.get_parameter(s, "kdil", mixture)
-        rxn = Reaction.from_mass_action(inputs=[s], outputs=[], k_forward=k_dil)
+        rxn = Reaction.from_massaction(inputs=[s], outputs=[], k_forward=k_dil)
         return [rxn]
 
 
@@ -189,5 +189,5 @@ class AnitDilutionConstiutiveCreation(GlobalMechanism):
 
     def update_reactions(self, s, parameters):
         k_dil = self.get_parameter(s, "kdil", mixture)
-        rxn = Reaction.from_mass_action(inputs=[], outputs=[s], k_forward=k_dil)
+        rxn = Reaction.from_massaction(inputs=[], outputs=[s], k_forward=k_dil)
         return [rxn]

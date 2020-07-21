@@ -27,7 +27,7 @@ class OneStepGeneExpression(Mechanism):
         elif component is None and kexpress is None:
             raise ValueError("Must pass in component or a value for kexpress")
 
-        rxns = [Reaction.from_mass_action(inputs=[dna], outputs=[dna, protein], k_forward=kexpress)]
+        rxns = [Reaction.from_massaction(inputs=[dna], outputs=[dna, protein], k_forward=kexpress)]
         return rxns
 
 
@@ -59,9 +59,9 @@ class SimpleTranscription(Mechanism):
         #First case only true in Mixtures without transcription (eg Expression Mixtures)
         if transcript is None and protein is not None:
             ktl = component.get_parameter("ktl", part_id = part_id, mechanism = self)
-            rxns = [Reaction.from_mass_action(inputs = [dna], outputs = [dna, protein], k_forward=ktx*ktl)]
+            rxns = [Reaction.from_massaction(inputs = [dna], outputs = [dna, protein], k_forward=ktx * ktl)]
         else:
-            rxns = [Reaction.from_mass_action(inputs = [dna], outputs = [dna, transcript], k_forward=ktx)]
+            rxns = [Reaction.from_massaction(inputs = [dna], outputs = [dna, transcript], k_forward=ktx)]
 
         return rxns
 
@@ -90,7 +90,7 @@ class SimpleTranslation(Mechanism):
         if transcript is None and protein is not None:
             rxns = []
         else:
-            rxns = [Reaction.from_mass_action(inputs = [transcript], outputs = [transcript, protein], k_forward=ktl)]
+            rxns = [Reaction.from_massaction(inputs = [transcript], outputs = [transcript, protein], k_forward=ktl)]
 
         return rxns
 
@@ -143,7 +143,7 @@ class PositiveHillTranscription(Mechanism):
         reactions.append(Reaction(inputs=[dna], outputs=[dna, tx_output], propensity_type=prophill))
 
         if leak:
-            reactions.append(Reaction.from_mass_action(inputs=[dna], outputs=[dna, tx_output], k_forward=kleak))
+            reactions.append(Reaction.from_massaction(inputs=[dna], outputs=[dna, tx_output], k_forward=kleak))
 
         #In this case, we just return one reaction
         return reactions
@@ -194,7 +194,7 @@ class NegativeHillTranscription(Mechanism):
         reactions.append(Reaction(inputs=[dna], outputs=[dna, tx_output], propensity_type=prop_hill))
 
         if leak:
-            reactions.append(Reaction.from_mass_action(inputs = [dna], outputs = [dna, tx_output], k_forward=kleak))
+            reactions.append(Reaction.from_massaction(inputs = [dna], outputs = [dna, tx_output], k_forward=kleak))
 
         #In this case, we just return one reaction
         return reactions
@@ -367,7 +367,7 @@ class OneStepGeneExpression(Mechanism):
         if protein is None:
             protein = Species(dna.name, material_type="protein")
 
-        rxns = [Reaction.from_mass_action(inputs=[dna], outputs=[dna, protein], k_forward=kexpress)]
+        rxns = [Reaction.from_massaction(inputs=[dna], outputs=[dna, protein], k_forward=kexpress)]
         return rxns
 
 
@@ -403,7 +403,7 @@ class PositiveHillTranscription(Mechanism):
         reactions.append(Reaction(inputs=[dna], outputs=[dna, transcript], propensity_type=prop_hill_pos))
 
         if leak:
-            reactions.append(Reaction.from_mass_action(inputs=[dna], outputs=[dna, transcript], k_forward=kleak))
+            reactions.append(Reaction.from_massaction(inputs=[dna], outputs=[dna, transcript], k_forward=kleak))
 
         #In this case, we just return one reaction
         return reactions
@@ -440,7 +440,7 @@ class NegativeHillTranscription(Mechanism):
         reactions.append(Reaction(inputs=[dna], outputs=[dna, transcript], propensity_type=prop_hill_neg))
 
         if leak:
-            reactions.append(Reaction.from_mass_action(inputs=[dna], outputs=[dna, transcript], k_forward=kleak))
+            reactions.append(Reaction.from_massaction(inputs=[dna], outputs=[dna, transcript], k_forward=kleak))
 
         #In this case, we just return one reaction
         return reactions
@@ -535,28 +535,28 @@ class multi_tx(Mechanism):
 
         # Reactions
         # polymerase + complex(n) --> complex(n_closed)
-        rxn_open_pf = [Reaction.from_mass_action(inputs=[self.pol, cp_open[n]], outputs=[cp_closed[n+1]], k_forward=k1) for n in range(0,max_occ-1)]
-        rxn_open_pr = [Reaction.from_mass_action(inputs=[cp_closed[n+1]], outputs=[self.pol, cp_open[n],], k_forward=k2) for n in range(0,max_occ-1)]
+        rxn_open_pf = [Reaction.from_massaction(inputs=[self.pol, cp_open[n]], outputs=[cp_closed[n + 1]], k_forward=k1) for n in range(0, max_occ - 1)]
+        rxn_open_pr = [Reaction.from_massaction(inputs=[cp_closed[n + 1]], outputs=[self.pol, cp_open[n], ], k_forward=k2) for n in range(0, max_occ - 1)]
 
         # isomerization
-        rxn_iso = [Reaction.from_mass_action(inputs=[cp_closed[n]], outputs=[cp_open[n]], k_forward=k_iso) for n in range(0,max_occ)]
+        rxn_iso = [Reaction.from_massaction(inputs=[cp_closed[n]], outputs=[cp_open[n]], k_forward=k_iso) for n in range(0, max_occ)]
 
         # release/transcription from open and closed states
         rxn_release_open =  []
         rxn_release_closed = []
         for n in range(0,max_occ):
-            rxn_temp1 = Reaction.from_mass_action(inputs= [cp_open[n]], outputs=[self.pol for i in range(n+1)] +
-                                 [transcript for i in range(n+1)] + [dna], k_forward=ktx_solo)
+            rxn_temp1 = Reaction.from_massaction(inputs= [cp_open[n]], outputs=[self.pol for i in range(n + 1)] +
+                                                                               [transcript for i in range(n+1)] + [dna], k_forward=ktx_solo)
             rxn_release_open.append(rxn_temp1)
 
         for n in range(1,max_occ):
-            rxn_temp2 = Reaction.from_mass_action(inputs= [cp_closed[n]], outputs=[self.pol for i in range(n)] +
-                                 [transcript for i in range(n)] + [cp_closed[0]], k_forward=ktx_solo)
+            rxn_temp2 = Reaction.from_massaction(inputs= [cp_closed[n]], outputs=[self.pol for i in range(n)] +
+                                                                                 [transcript for i in range(n)] + [cp_closed[0]], k_forward=ktx_solo)
             rxn_release_closed.append(rxn_temp2)
 
         # missing reactions (0 --> 0_closed and v.v. 0_closed --> 0)
-        rxn_m1 = Reaction.from_mass_action(inputs=[dna,self.pol], outputs=[cp_closed[0]], k_forward=k1)
-        rxn_m2 = Reaction.from_mass_action(inputs=[cp_closed[0]], outputs=[dna,self.pol], k_forward=k2)
+        rxn_m1 = Reaction.from_massaction(inputs=[dna, self.pol], outputs=[cp_closed[0]], k_forward=k1)
+        rxn_m2 = Reaction.from_massaction(inputs=[cp_closed[0]], outputs=[dna, self.pol], k_forward=k2)
 
         rxn_all = rxn_open_pf + rxn_open_pr + rxn_iso + rxn_release_open + rxn_release_closed + [rxn_m1, rxn_m2]
 
@@ -656,28 +656,28 @@ class multi_tl(Mechanism):
 
         # Reactions
         # ribosome + complex(n) --> complex(n_closed)
-        rxn_open_pf = [Reaction.from_mass_action(inputs=[self.ribosome, cp_open[n]], outputs=[cp_closed[n+1]], k_forward=kbr) for n in range(0,max_occ-1)]
-        rxn_open_pr = [Reaction.from_mass_action(inputs=[cp_closed[n+1]], outputs=[self.ribosome, cp_open[n],], k_forward=kur) for n in range(0,max_occ-1)]
+        rxn_open_pf = [Reaction.from_massaction(inputs=[self.ribosome, cp_open[n]], outputs=[cp_closed[n + 1]], k_forward=kbr) for n in range(0, max_occ - 1)]
+        rxn_open_pr = [Reaction.from_massaction(inputs=[cp_closed[n + 1]], outputs=[self.ribosome, cp_open[n], ], k_forward=kur) for n in range(0, max_occ - 1)]
 
         # isomerization
-        rxn_iso = [Reaction.from_mass_action(inputs=[cp_closed[n]], outputs=[cp_open[n]], k_forward=k_iso_r) for n in range(0,max_occ)]
+        rxn_iso = [Reaction.from_massaction(inputs=[cp_closed[n]], outputs=[cp_open[n]], k_forward=k_iso_r) for n in range(0, max_occ)]
 
         # release/translation from open and closed states
         rxn_release_open =  []
         rxn_release_closed = []
         for n in range(0,max_occ):
-            rxn_temp1 = Reaction.from_mass_action(inputs= [cp_open[n]], outputs=[self.ribosome for i in range(n+1)] +
-                                 [protein for i in range(n+1)] + [transcript], k_forward=ktl_solo)
+            rxn_temp1 = Reaction.from_massaction(inputs= [cp_open[n]], outputs=[self.ribosome for i in range(n + 1)] +
+                                                                               [protein for i in range(n+1)] + [transcript], k_forward=ktl_solo)
             rxn_release_open.append(rxn_temp1)
 
         for n in range(1,max_occ):
-            rxn_temp2 = Reaction.from_mass_action(inputs= [cp_closed[n]], outputs=[self.ribosome for i in range(n)] +
-                                 [protein for i in range(n)] + [cp_closed[0]], k_forward=ktl_solo)
+            rxn_temp2 = Reaction.from_massaction(inputs= [cp_closed[n]], outputs=[self.ribosome for i in range(n)] +
+                                                                                 [protein for i in range(n)] + [cp_closed[0]], k_forward=ktl_solo)
             rxn_release_closed.append(rxn_temp2)
 
         # missing reactions (0 --> 0_closed and v.v. 0_closed --> 0)
-        rxn_m1 = Reaction.from_mass_action(inputs=[transcript,self.ribosome], outputs=[cp_closed[0]], k_forward=kbr)
-        rxn_m2 = Reaction.from_mass_action(inputs=[cp_closed[0]], outputs=[transcript,self.ribosome], k_forward=kur)
+        rxn_m1 = Reaction.from_massaction(inputs=[transcript, self.ribosome], outputs=[cp_closed[0]], k_forward=kbr)
+        rxn_m2 = Reaction.from_massaction(inputs=[cp_closed[0]], outputs=[transcript, self.ribosome], k_forward=kur)
 
         rxn_all = rxn_open_pf + rxn_open_pr + rxn_iso + rxn_release_open + rxn_release_closed + [rxn_m1, rxn_m2]
 

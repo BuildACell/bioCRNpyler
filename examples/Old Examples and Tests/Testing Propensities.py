@@ -17,14 +17,14 @@ A = Species(name = "A", material_type = "protein") #Activator
 GA = ComplexSpecies([G, A, A]) #Activated Gene
 X = Species(name = "X", material_type = "protein")
 
-rxnd = Reaction.from_mass_action(inputs=[X], outputs=[], k_forward=kd)
+rxnd = Reaction.from_massaction(inputs=[X], outputs=[], k_forward=kd)
 
 # Massaction Unregulated
 species1 = [G, A, GA, X]
 
 
-rxn0_1 = Reaction.from_mass_action(inputs=[G, A, A], outputs=[GA], k_forward=kb, k_reverse=ku)
-rxn0_2 = Reaction.from_mass_action(inputs=[GA], outputs=[GA, X], k_forward=kex)
+rxn0_1 = Reaction.from_massaction(inputs=[G, A, A], outputs=[GA], k_forward=kb, k_reverse=ku)
+rxn0_2 = Reaction.from_massaction(inputs=[GA], outputs=[GA, X], k_forward=kex)
 CRN0 = ChemicalReactionNetwork(species1, [rxn0_1, rxn0_2, rxnd])
 
 mak1 = MassAction(k_forward=kb, k_reverse=ku)
