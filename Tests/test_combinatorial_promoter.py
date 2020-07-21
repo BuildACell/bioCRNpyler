@@ -118,12 +118,12 @@ class TestCombinatorialPromoter(TestCase):
         #print('\n\n'.join([str(a) for a in newprom_rxns]))
         #now, we generate the reaction input outputs manually
         r0 = [set([sp_rnap,sp_dna]),set([sp_dna_rnap]),100,50] #RNAP binding to DNA
-        r1 = [set([sp_dna_rnap]),set([sp_dna,sp_rna,sp_rnap]),.01,0] #leaky transcription
+        r1 = [set([sp_dna_rnap]),set([sp_dna,sp_rna,sp_rnap]),.01,None] #leaky transcription
         r2 = [set([sp_dna,sp_treg1]),set([sp_dna_treg1]),100,10] #treg1 binding
         r3 = [set([sp_dna_treg1,sp_rnap]),set([sp_dna_treg1_rnap]),100,50] #rnap binding to treg1 bound dna
-        r4 = [set([sp_dna_treg1_rnap]),set([sp_dna_treg1,sp_rnap,sp_rna]),.01,0] #leaky tx from single regulator
-        r5 = [set([sp_dna_treg2_rnap]),set([sp_dna_treg2,sp_rnap,sp_rna]),.01,0] #leaky tx from single regulator
-        r6 = [set([sp_dna_treg1_treg2_rnap]),set([sp_dna_treg1_treg2,sp_rnap,sp_rna]),.05,0] #ktx for regular tx
+        r4 = [set([sp_dna_treg1_rnap]),set([sp_dna_treg1,sp_rnap,sp_rna]),.01,None] #leaky tx from single regulator
+        r5 = [set([sp_dna_treg2_rnap]),set([sp_dna_treg2,sp_rnap,sp_rna]),.01,None] #leaky tx from single regulator
+        r6 = [set([sp_dna_treg1_treg2_rnap]),set([sp_dna_treg1_treg2,sp_rnap,sp_rna]),.05,None] #ktx for regular tx
         r7 = [set([sp_dna_treg2,sp_rnap]),set([sp_dna_treg2_rnap]),100,50] #rnap binding to treg2 bound dna
         r8 = [set([sp_dna,sp_treg2]),set([sp_dna_treg2]),100,10] #treg2 binding
         r9 = [set([sp_dna_treg1,sp_treg2]),set([sp_dna_treg1_treg2]),100,10] #treg2 binding to dna that already has treg1
@@ -132,7 +132,7 @@ class TestCombinatorialPromoter(TestCase):
         truthlist = [r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11]
         #print('\n\n'.join([str(a) for a in newprom_rxns]))
         for rxn in newprom_rxns:
-            in_outs = [set(rxn.inputs),set(rxn.outputs)]
+            in_outs = [set([i.species for i in rxn.inputs]), set([o.species for o in rxn.outputs])]
             correctPick = False
             for rset in truthlist:
                 #go through all the reactions and make sure that
