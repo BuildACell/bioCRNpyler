@@ -4,7 +4,8 @@
 from warnings import warn
 
 from .mechanism import Mechanism
-from .chemical_reaction_network import Reaction, Species, ComplexSpecies
+from .species import Species, ComplexSpecies
+from .reaction import Reaction
 from typing import List, Union
 
 #Global mechanisms are a lot like mechanisms. They are called only by mixtures

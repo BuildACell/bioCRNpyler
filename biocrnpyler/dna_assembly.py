@@ -3,7 +3,7 @@
 
 from .component import Component
 from .components_basic import DNA, RNA, Protein
-from .chemical_reaction_network import ComplexSpecies, Species
+from .species import ComplexSpecies, Species
 from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
 from warnings import warn as pywarn
 import itertools as it

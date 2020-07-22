@@ -7,8 +7,11 @@ from .mechanism import *
 from .component import *
 from .parameter import *
 from .global_mechanism import *
-from .chemical_reaction_network import *
+from .species import *
 from .propensities import *
+from .reaction import *
+from .chemical_reaction_network import *
+
 
 #core mechanisms
 from .mechanisms_binding import *

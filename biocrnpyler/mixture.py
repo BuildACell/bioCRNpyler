@@ -6,7 +6,9 @@ from warnings import warn
 from warnings import resetwarnings
 
 from .component import Component
-from .chemical_reaction_network import ChemicalReactionNetwork, Species, Reaction
+from .chemical_reaction_network import ChemicalReactionNetwork
+from .species import Species
+from .reaction import Reaction
 from .parameter import ParameterDatabase, ParameterEntry
 from typing import List, Union
 

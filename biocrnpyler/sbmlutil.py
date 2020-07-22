@@ -222,6 +222,13 @@ def _create_products(product_list, sbml_reaction, model):
         product.setStoichiometry(output.stoichiometry)
         product.setConstant(False)
 
+def _create_ratelaw_parameter(ratelaw, name, value, constant = True):
+    param = ratelaw.createParameter()
+    param.setId(name)
+    param.setConstant(constant)
+    param.setValue(value)
+    return param
+
 
 # !/usr/bin/env python
 ##

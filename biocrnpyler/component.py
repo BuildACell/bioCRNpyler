@@ -2,7 +2,8 @@
 #  See LICENSE file in the project root directory for details.
 
 from warnings import warn as pywarn
-from .chemical_reaction_network import Species, ComplexSpecies, Reaction
+from .species import Species, ComplexSpecies
+from .reaction import Reaction
 from .parameter import ParameterDatabase, ParameterEntry
 from typing import List, Union
  

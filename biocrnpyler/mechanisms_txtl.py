@@ -1,5 +1,6 @@
 from .mechanism import *
-from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
+from .species import Species, ComplexSpecies, Multimer
+from .reaction import Reaction
 from .propensities import ProportionalHillPositive, ProportionalHillNegative
 from .mechanisms_enzyme import *
 

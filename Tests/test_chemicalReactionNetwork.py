@@ -145,9 +145,9 @@ class TestChemicalReactionNetwork(TestCase):
     def test_replace_species_with_a_non_massaction_reaction(self):
         c1 = ComplexSpecies([self.s1, self.s_old])
 
-        prop_hill_old = ProportionalHillPositive(k_forward=1., s1=self.s1, K=10, d=self.s_old, n=2)
+        prop_hill_old = ProportionalHillPositive(k=1., s1=self.s1, K=10, d=self.s_old, n=2)
         r1 = Reaction([self.s1, self.s_old], [c1], propensity_type=prop_hill_old)
-        prop_hill_new = ProportionalHillPositive(k_forward=1., s1=self.s1, K=10, d=self.s_new, n=2)
+        prop_hill_new = ProportionalHillPositive(k=1., s1=self.s1, K=10, d=self.s_new, n=2)
         r1_new = Reaction([self.s1, self.s_new], [c1.replace_species(self.s_old, self.s_new)], propensity_type=prop_hill_new)
         self.assertTrue(r1.replace_species(self.s_old, self.s_new) == r1_new)
 

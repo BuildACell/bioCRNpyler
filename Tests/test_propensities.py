@@ -7,10 +7,10 @@ import pytest
 
 def test_massaction_forward_rate():
 
-    with pytest.raises(ValueError, match=r"Forward reaction rate coefficient is negative! .*"):
+    with pytest.raises(ValueError, match=r"Propensity parameters must be Parameters or floats with positive values.*"):
         MassAction(k_forward=0)
 
-    with pytest.raises(ValueError, match=r"Forward reaction rate coefficient is negative! .*"):
+    with pytest.raises(ValueError, match=r"Propensity parameters must be Parameters or floats with positive values.*"):
         MassAction(k_forward=-1)
 
 
@@ -18,10 +18,10 @@ def test_massaction_reserve_rate():
     with pytest.raises(TypeError, match=r"missing 1 required positional argument: 'k_forward'"):
         MassAction(k_reverse=0.1)
 
-    with pytest.raises(ValueError, match=r"Reverse reaction rate coefficient is negative! .*"):
+    with pytest.raises(ValueError, match=r"Propensity parameters must be Parameters or floats with positive values.*"):
         MassAction(k_forward=1, k_reverse=0)
 
-    with pytest.raises(ValueError, match=r"Reverse reaction rate coefficient is negative! .*"):
+    with pytest.raises(ValueError, match=r"Propensity parameters must be Parameters or floats with positive values.*"):
         MassAction(k_forward=1, k_reverse=-1)
 
 

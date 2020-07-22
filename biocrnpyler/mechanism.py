@@ -27,7 +27,8 @@
 
 
 from warnings import warn
-from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
+from .species import Species, ComplexSpecies, Multimer
+from .reaction import Reaction
 from .component import Component
 import itertools as it
 
