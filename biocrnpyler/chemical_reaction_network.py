@@ -6,7 +6,6 @@ from .propensities import Propensity, MassAction
 import warnings
 import numpy as np
 from typing import List, Union, Dict
-from dataclasses import dataclass
 import itertools
 import copy
 
