@@ -88,7 +88,7 @@ class TestMixture(TestCase):
 
         CRN = ChemicalReactionNetwork(species_list, [rxn])
 
-        #create a component
+        # create a component
         component = Component("comp")
 
         # creating a mock update function to decouple the update process from the rest of the code
@@ -102,7 +102,7 @@ class TestMixture(TestCase):
         component.update_species = mock_update_species
         component.update_reactions = mock_update_reactions
 
-        mixture = Mixture(components = [component])
+        mixture = Mixture(components=[component])
 
         crn_from_mixture = mixture.compile_crn()
         # test that the mixture has the same species as the manually build CRN object
