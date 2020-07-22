@@ -7,8 +7,6 @@ import warnings
 import numpy as np
 from typing import List, Union, Dict
 from dataclasses import dataclass
-import functools
-import operator
 import itertools
 import copy
 
@@ -363,9 +361,6 @@ class ComplexSpecies(Species):
         txt += "]"
 
         return txt
-
-    # def __hash__(self):
-    #     return str.__hash__(repr(self))
 
 
 class Multimer(ComplexSpecies):

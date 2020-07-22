@@ -378,7 +378,7 @@ class multi_tx(Mechanism):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type, **keywords)
 
     # species update
-    def update_species(self, dna, transcript, component, part_id, **keywords):
+    def update_species(self, dna, transcript, component, part_id, protein = None, **keywords):
         max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self))
         cp_open = []
         cp_closed = []
@@ -397,7 +397,7 @@ class multi_tx(Mechanism):
 
         return cp_open + cp_closed + cp_misc
 
-    def update_reactions(self, dna, transcript, component, part_id, **keywords):
+    def update_reactions(self, dna, transcript, component, part_id, protein = None, **keywords):
         """
         DNA:RNAp_n + RNAp <--> DNA:RNAp_n_c --> DNA:RNAp_n+1
         kf1 = k1, kr1 = k2, kf2 = k_iso
