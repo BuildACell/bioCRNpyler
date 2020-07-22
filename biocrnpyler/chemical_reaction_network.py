@@ -187,12 +187,12 @@ class Species(object):
         return out_list
 
 
-@dataclass(frozen=True, eq=True)
 class WeightedSpecies:
-    """Container object for a species and its stoichiometry
-    """
-    species: Species
-    stoichiometry: int = 1
+    def __init__(self, species: Species, stoichiometry:int=1):
+        """Container object for a species and its stoichiometry
+        """
+        self.species: Species = species
+        self.stoichiometry: int = stoichiometry
 
     def pretty_print(self, **kwargs):
         return f'{self.stoichiometry if self.stoichiometry > 1 else ""}{self.species.pretty_print(**kwargs)}'
@@ -216,6 +216,13 @@ class WeightedSpecies:
 
         return freq_dict
 
+    def __eq__(self, other):
+        if other.__class__ is self.__class__:
+            return (other.species, other.stoichiometry) == (self.species, self.stoichiometry)
+        return False
+
+    def __hash__(self):
+        return hash(self.species)+hash(self.stoichiometry)
 
 class ComplexSpecies(Species):
     """ A special kind of species which is formed as a complex of two or more species.
