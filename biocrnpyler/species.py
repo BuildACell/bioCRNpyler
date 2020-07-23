@@ -191,10 +191,20 @@ class Species(object):
 
 class WeightedSpecies:
     def __init__(self, species: Species, stoichiometry:int=1):
-        """Container object for a species and its stoichiometry
+        """Container object for a all types of species and its stoichiometry
         """
         self.species: Species = species
         self.stoichiometry: int = stoichiometry
+
+    @property
+    def stoichiometry(self):
+        return self._stoichiometry
+
+    @stoichiometry.setter
+    def stoichiometry(self, new_stoichiometry):
+        if not isinstance(new_stoichiometry, int) or new_stoichiometry <= 0:
+            raise ValueError(f'Stoichiometry must be positive integer! We got {new_stoichiometry}!')
+        self._stoichiometry = new_stoichiometry
 
     def pretty_print(self, **kwargs):
         return f'{self.stoichiometry if self.stoichiometry > 1 else ""}{self.species.pretty_print(**kwargs)}'
@@ -203,7 +213,20 @@ class WeightedSpecies:
         return self.species.replace_species(*args, **kwargs)
 
     @staticmethod
-    def _count_weighted_species(weighted_species):
+    def _count_weighted_species(weighted_species: List):
+        """Helper function merge the same species in a list with different stoichiometry
+
+        >>> s1 = Species(name='a')
+        >>> ws1 = WeightedSpecies(species=s1, stoichiometry=2)
+        >>> ws2 = WeightedSpecies(species=s1, stoichiometry=5)
+        >>> ws_list = [ws1, ws2]
+        >>> freq_dict = WeightedSpecies._count_weighted_species(ws_list)
+        >>> len(freq_dict)
+        1
+
+        :param weighted_species: list of weighted_species
+        :return: unique list of weighted_species, i.e. set(weighted_species)
+        """
         # convert to set doesn't work because we need only species equality
         unique_species = []
         for w_species in weighted_species:
@@ -225,6 +248,7 @@ class WeightedSpecies:
 
     def __hash__(self):
         return hash(self.species)+hash(self.stoichiometry)
+
 
 class ComplexSpecies(Species):
     """ A special kind of species which is formed as a complex of two or more species.
