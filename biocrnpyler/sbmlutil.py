@@ -172,8 +172,13 @@ def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
         rxn_id = f'r{rxn_count}'
         add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, **kwargs)
 
+        #Reversible reactions are always seperated into two seperate reactions
+        if r.is_reversible:
+            rxn_id = f'r{rxn_count}rev'
+            add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, reverse_reaction = True, **kwargs)
 
-def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, **kwargs):
+
+def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction : bool=False, **kwargs):
     """adds a sbml_reaction to an sbml model
 
     :param model: an sbml model created by create_sbml_model()
@@ -195,11 +200,12 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
                                                     sbml_reaction=sbml_reaction,
                                                     stochastic=stochastic,
                                                     crn_reaction=crn_reaction,
+                                                    reverse_reaction=reverse_reaction,
                                                     **kwargs)
 
     # Create the reactants and products for the sbml_reaction
-    _create_reactants(reactant_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
-    _create_products(product_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
+    _create_reactants(reactant_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
+    _create_products(product_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
 
     return sbml_reaction
 
@@ -213,7 +219,6 @@ def _create_reactants(reactant_list, sbml_reaction, model):
         reactant.setConstant(False)
         reactant.setStoichiometry(input.stoichiometry)
 
-
 def _create_products(product_list, sbml_reaction, model):
     for output in product_list:
         product = sbml_reaction.createProduct()
@@ -222,13 +227,24 @@ def _create_products(product_list, sbml_reaction, model):
         product.setStoichiometry(output.stoichiometry)
         product.setConstant(False)
 
-def _create_ratelaw_parameter(ratelaw, name, value, constant = True):
+#Creates a local parameter SBML kinetic rate law
+def _create_local_parameter(ratelaw, name, value, constant = True):
     param = ratelaw.createParameter()
     param.setId(name)
     param.setConstant(constant)
     param.setValue(value)
     return param
 
+#Creates a global parameter SBML model
+def _create_global_parameter(model, name, value, constant = True):
+    if model.getParameter(name) is None:
+        param = model.createParameter()
+        param.setId(name)
+        param.setConstant(constant)
+        param.setValue(value)
+    else:
+        param = model.getParameter(name)
+    return param
 
 # !/usr/bin/env python
 ##

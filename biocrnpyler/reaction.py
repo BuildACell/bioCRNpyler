@@ -102,13 +102,13 @@ class Reaction(object):
 
         return out_list
 
-    @property
-    def k_forward(self):
-        return self.propensity_type.k_forward
+    #@property
+    #def k_forward(self):
+    #    return self.propensity_type.k_forward
 
-    @property
-    def k_reverse(self):
-        return self.propensity_type.k_reverse
+    #@property
+    #def k_reverse(self):
+    #    return self.propensity_type.k_reverse
 
     def replace_species(self, species: Species, new_species: Species):
         """Replaces species with new_species in the reaction

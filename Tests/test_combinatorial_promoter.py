@@ -138,8 +138,8 @@ class TestCombinatorialPromoter(TestCase):
                 #go through all the reactions and make sure that
                 #they have the correct inputs, outputs, and constants.
                 if(rset[0]==in_outs[0] and rset[1] == in_outs[1]):
-                    self.assertTrue(rxn.k_forward == rset[2])
-                    self.assertTrue(rxn.k_reverse == rset[3])
+                    self.assertTrue(rxn.propensity_type.k_forward == rset[2])
+                    self.assertTrue(rxn.propensity_type.k_reverse == rset[3])
                     correctPick = True
                     break
 

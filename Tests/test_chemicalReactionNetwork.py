@@ -5,7 +5,7 @@
 from unittest import TestCase
 from unittest.mock import mock_open, patch
 from biocrnpyler import ChemicalReactionNetwork, Species, Reaction, ComplexSpecies, OrderedComplexSpecies
-from biocrnpyler import ProportionalHillPositive
+from biocrnpyler import ProportionalHillPositive, ParameterEntry, ParameterKey
 import libsbml
 import warnings
 
@@ -192,10 +192,46 @@ class TestChemicalReactionNetwork(TestCase):
         # all species from the CRN are accounted for
         self.assertEqual(len(model.getListOfSpecies()), len(crn.species))
         # all reactions from the CRN are accounted for
-        self.assertEqual(len(model.getListOfReactions()), len(crn.reactions))
-        # the sbml represents a reverisble reaction with reversible flag
+        self.assertEqual(len(model.getListOfReactions()), 2)
+        # although  sbml represents a reverisble reaction with reversible flag
+        # BioCRNpyler always creates two reactions, because this is correct
+        # for stochastic simulation with SBML.
         sbml_rxn = model.getListOfReactions()
-        self.assertTrue(sbml_rxn[0].isSetReversible())
+        self.assertFalse(sbml_rxn[0].isSetReversible())
+        self.assertFalse(sbml_rxn[1].isSetReversible())
+
+    def test_generate_sbml_model_parameter_names(self):
+        
+        #The correct parameter formating should be: "name_partid_mechanism"
+        key0 = ParameterKey(mechanism = "m", part_id = "p", name = "n")
+        k0 = ParameterEntry("n", 1.0, parameter_key = key0)
+
+        #Tests 3 Parameter entries with seemingly redundant keys.
+        #In SBML parameter id, None will be kept blank, resulting in
+        #different numbers of underscores between the V's
+        k1 = ParameterEntry("v", 1.0, parameter_key = None)
+
+        key2 = ParameterKey(mechanism = None, part_id = "v", name = "v")
+        k2 = ParameterEntry("v", 2.0, parameter_key = key2)
+
+        key3 = ParameterKey(mechanism = "v", part_id = None, name = "v")
+        k3 = ParameterEntry("v", 2.0, parameter_key = key3)
+
+        key4 = ParameterKey(mechanism = "v", part_id = "v", name = "v")
+        k4 = ParameterEntry("v", 2.0, parameter_key = key4)
+
+        rx0 = Reaction.from_massaction(inputs = [], outputs = [self.s1], k_forward = k0, k_reverse = k1) #Throw a duplicate key for good measure!
+        rx1 = Reaction.from_massaction(inputs=[self.s1], outputs=[self.s2], k_forward=k1, k_reverse=k2)
+        rx2 = Reaction.from_massaction(inputs=2*[self.s1], outputs=2*[self.s2], k_forward=k3, k_reverse=k4)
+        rxn_list = [rx0, rx1, rx2]
+        crn = ChemicalReactionNetwork(species=self.species_list, reactions=rxn_list)
+
+        document, model = crn.generate_sbml_model()
+
+        correct_ids = set(["v_v_", "v__v", "v_v_v", "v__", "n_p_m"])
+        ids = set([p.getId() for p in model.getListOfParameters()])
+        self.assertTrue(ids == correct_ids)
+
 
     def test_write_sbml_file(self):
         model_id = 'test_model'

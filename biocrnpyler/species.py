@@ -36,6 +36,7 @@ class Species(object):
 
     def check_material_type(self, material_type):
         """Check that the string contains is alpha-numeric characters or "_" and that the first character is a letter.
+        Material types cannot contain double underscores "__" or end with an underscore
 
         If the name is a starts with a number, there must be a material type.
         """
@@ -43,20 +44,23 @@ class Species(object):
             raise ValueError(f"species name: {self.name} contains a number as the first character and therefore requires a material_type.")
         elif material_type is None:
             return ""
-        elif (material_type.replace("_", "").isalnum() and material_type.replace("_", "")[0].isalpha()) or material_type == "":
+        elif (material_type.replace("_", "").isalnum()  
+            and material_type.replace("_", "")[0].isalpha() and "__" not in material_type and material_type[len(material_type)-1] != "_") or material_type == "":
+
                 return material_type
         else:
-            raise ValueError(f"material_type {material_type} must be alpha-numeric and start with a letter.")
+            raise ValueError(f"material_type {material_type} must be alpha-numeric, start with a letter, cannot start or end with an underscore and cannot contain a double underscore.")
 
     def check_name(self, name):
         """
         Check that the string contains only underscores and alpha-numeric characters
+        names cannot contain double underscores "__" or end with an underscore
         """
         no_underscore_string = name.replace("_", "")
-        if no_underscore_string.isalnum():
+        if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_":
             return name
         else:
-            raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores.")
+            raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores, cannot start or end with an underscore or contain a double underscore.")
 
     def __repr__(self):
         txt = ""

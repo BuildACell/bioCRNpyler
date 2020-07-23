@@ -2,6 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from biocrnpyler import MassAction
+from biocrnpyler import ParameterEntry
 import pytest
 
 
@@ -28,6 +29,13 @@ def test_massaction_reserve_rate():
 def test_massaction_is_reverable():
     mak = MassAction(k_forward=1, k_reverse=0.1)
     assert mak.is_reversible
+
+def test_massaction_from_parameters():
+    mak = MassAction(k_forward = ParameterEntry("k", .1))
+    assert(mak.k_forward == .1)
+
+    mak = MassAction(k_forward = ParameterEntry("k", .1), k_reverse = ParameterEntry("k", .01))
+    assert(mak.k_reverse == .01)
 
 
 
