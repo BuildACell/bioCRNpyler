@@ -204,8 +204,13 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
                                                     **kwargs)
 
     # Create the reactants and products for the sbml_reaction
-    _create_reactants(reactant_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
-    _create_products(product_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+    _create_reactants(reactant_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+    _create_products(product_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
+
+    if reverse_reaction:
+        _create_reactants(reactant_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
+        _create_products(product_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+
 
     return sbml_reaction
 
