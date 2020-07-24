@@ -2,13 +2,14 @@
 #  See LICENSE file in the project root directory for details.
 
 from .sbmlutil import *
-from .propensities import Propensity, MassAction
+from .propensities import Propensity, MassAction, HillNegative
 from.species import *
 import warnings
 import numpy as np
 from typing import List, Union, Dict
 import itertools
 import copy
+
 
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
@@ -36,8 +37,11 @@ class Reaction(object):
                       rate_formula = None, propensity_params = None):
         warnings.warn('This way to initialize a reaction object is deprecated, please refactor your code!', DeprecationWarning)
 
-        if propensity_type != 'massaction':
-            raise NotImplementedError('Only massaction kinetic is supported with the old interface')
+        if propensity_type == 'hillpositve':
+            prop_dict = {}
+            prop_dict['parameters'] = propensity_params
+            prop_dict['species'] = {}
+            HillNegative.from_dict(prop_dict)
 
         if input_coefs:
             reactants = [WeightedSpecies(species=s, stoichiometry=v) for s,v in zip(inputs, input_coefs, strict=True)]
