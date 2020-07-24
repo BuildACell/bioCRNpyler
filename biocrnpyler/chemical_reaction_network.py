@@ -11,8 +11,18 @@ from .polymer import OrderedPolymer, OrderedMonomer
             
 
 class Complex:
+    """
+    Complex is not a class that gets instantiated - it creates ComplexSpecies and OrderedComplexSpecies.
+    The Logic encoded in the __new__ function is used to insert these classes into the binding sites of
+    OrderedPolymerSpecies.
+
+    arguments:
+    species: a list of species to put into ComplexSpecies or OrderedComplexSpecies
+
+    keywords:
+    ordered: whether to produce an OrderedComplexSpecies (default = False)
+    """
     def __new__(cls,*args,**keywords):
-        #print("running new")
         species = []
         #below is extracting the "species" keywords from the args
         keywarg = None
@@ -24,46 +34,74 @@ class Complex:
             keywarg = False
             species = args[0]
             args = args[1:]
-        #print("species is")
-        #print(species)
-        valent_complex = None
-        bindloc = None
-        other_species = []
+
+        #Check whether ot make a ComplexSpecies or OrderedComplexSpecies
+        if "ordered" in keywords:
+            ordered = keywords["ordered"]
+            del keywords["ordered"]
+        else:
+            ordered = False
+
+        valent_complex = None #valent_complex is an OrderedPolymer Species
+        bindloc = None #bindloc is the location a Species is bound to valent_complex
+        other_species = [] #Other species in the Complex
+
+        #Below cycle through species and see if one has a parent. If it does, that means the species is
+        #in an OrderedPolymerSpecies and the Complex should be formed around it.
         for specie in species:
             if(hasattr(specie,"parent") and (specie.parent is not None)):
                 if(valent_complex is None):
-
+                    #It is very important to deepcopy here because the underlying OrderedPolymerSpecies will be modified.
                     valent_complex = copy.deepcopy(specie.parent)
-                    #print("found a polymer! of type")
-                    #print(type(valent_complex))
-                    #print(valent_complex.name)
                     bindloc = specie.position
                 else:
-                    raise ValueError("binding together two OrderedPolymers!")
-                
+                    #If valent_complex has already been found - it means there are two OrderedPolymer
+                    #or two Species in the same OrderedPolymer. This kind of binding has not been implemented.
+                    raise NotImplementedError("binding together two OrderedPolymerSpecies or two species in the same OrderedPolymerSpecies!")
             else:
                 other_species += [specie]
-        if(valent_complex is None):
-            #this is a normal ComplexSpecies
-            #the madness below is telling python to skip to the __init__ function
-            return ComplexSpecies(species,*args,**keywords)
 
-        else:
-            if(len(other_species)==0):
-                return valent_complex[bindloc]
+        if len(other_species) == 0:
+            raise ValueError("Trying to create a Complex from a single species!")
+
+        #If no OrderedPolymerSpecies is found, just call the regular constructor.
+        if(valent_complex is None):
+            if ordered:
+                #this creates an OrderedComplexSpecies
+                #pass in all the args and keywords appropriately
+                return OrderedComplexSpecies(species,*args,**keywords)
             else:
-                prev_species = valent_complex[bindloc]
-                prev_direction = copy.deepcopy(valent_complex[bindloc].direction)
-                if(prev_species is None):
-                    if(len(other_species)==1):
-                        new_complex = other_species[0]
-                    else:
-                        new_complex = ComplexSpecies(other_species,*args,**keywords)
+                #this creates aComplexSpecies
+                #pass in all the args and keywords appropriately
+                return ComplexSpecies(species,*args,**keywords)
+
+        #This means the Complex is being formed inside an OrderedPolymerSpecies
+        else:
+            #this is the species around which the complex is being formed
+            prev_species = valent_complex[bindloc]
+            prev_direction = copy.deepcopy(valent_complex[bindloc].direction)
+
+            #Is the below condition even possible? Should it be?
+
+            if(prev_species is None):
+                if(len(other_species)==1): #this should no longer be possible, right?!?
+                    new_complex = other_species[0]
                 else:
-                    new_complex = ComplexSpecies(other_species+[prev_species],*args,**keywords)
-                valent_complex.replace(bindloc,new_complex,prev_direction)
-                valent_complex.material_type = "ordered_polymer"
-                return valent_complex[bindloc]
+                    new_species = other_species
+                    new_complex = ComplexSpecies(other_species,*args,**keywords)
+            else:
+                new_species = other_species+[prev_species]
+
+            #Create an OrderedcomplexSepcies
+            if ordered:
+                new_complex = OrderedComplexSpecies(new_species,*args,**keywords)
+            #Create a ComplexSpecies
+            else:
+                new_complex = ComplexSpecies(new_species,*args,**keywords)
+
+            valent_complex.replace(bindloc,new_complex,prev_direction)
+
+            return valent_complex[bindloc]
 
 class Species(OrderedMonomer):
 
