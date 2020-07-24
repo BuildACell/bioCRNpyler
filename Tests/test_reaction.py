@@ -4,6 +4,7 @@
 
 from unittest import TestCase
 from biocrnpyler import Reaction, Species, MassAction, WeightedSpecies
+import pytest
 
 
 class TestReaction(TestCase):
@@ -84,3 +85,19 @@ def test_reaction_list_flattening():
     rxn1 = Reaction(inputs=[sp1, [sp1, sp2]], outputs=[[sp2, sp2], sp1], propensity_type=mak)
     rxn2 = Reaction(inputs=[sp1, sp1, sp2], outputs=[sp1, sp2, sp2], propensity_type=mak)
     assert rxn1 == rxn2
+
+
+def test_old_reaction_interface_massaction():
+    A = Species(name="A")
+
+    with pytest.deprecated_call():
+        Reaction([], [A, A], k=100)
+
+    with pytest.deprecated_call():
+        Reaction([A, A], [], k=1, k_rev=0.1)
+
+
+def test_old_reaction_interface_non_massaction():
+    A = Species(name="A")
+    with pytest.raises(NotImplementedError, match='Only massaction kinetic is supported with the old interface'):
+        Reaction([], [A, A], k=100, propensity_type='hillpositive')
