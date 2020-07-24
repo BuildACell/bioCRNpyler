@@ -36,22 +36,22 @@ CRN1 = ChemicalReactionNetwork(species1, [rxn1_1, rxn1_2, rxnd])
 
 # Hill positive
 species2 = [G, A, X]
-hill_pos = HillPositive(k_forward=kex, s1=A, K=float(kb/ku), n=2)
+hill_pos = HillPositive(k=kex, s1=A, K=float(kb/ku), n=2)
 rxn2_1 = Reaction([G], [G, X], propensity_type=hill_pos)
 CRN2 = ChemicalReactionNetwork(species2, [rxn2_1, rxnd])
 
 # proportional Hill positive
-prop_hill_pos = ProportionalHillPositive(k_forward=kex, s1=A, K=float(kb/ku), n=2, d=G)
+prop_hill_pos = ProportionalHillPositive(k=kex, s1=A, K=float(kb/ku), n=2, d=G)
 rxn3_1 = Reaction([G], [G, X], propensity_type=prop_hill_pos)
 CRN3 = ChemicalReactionNetwork(species2, [rxn3_1, rxnd])
 
 # Hill Negative
-hill_negative = HillNegative(k_forward=kex, s1=A, K=float(kb/ku), n=2)
+hill_negative = HillNegative(k=kex, s1=A, K=float(kb/ku), n=2)
 rxn4_1 = Reaction([G], [G, X], propensity_type=hill_negative)
 CRN4 = ChemicalReactionNetwork(species2, [rxn4_1, rxnd])
 
 # proportional hill negative
-prop_hill_neg = ProportionalHillNegative(k_forward=kex, s1=A, K=float(kb / ku), n=2, d=G)
+prop_hill_neg = ProportionalHillNegative(k=kex, s1=A, K=float(kb / ku), n=2, d=G)
 rxn5_1 = Reaction([G], [G, X], propensity_type=prop_hill_neg)
 CRN5 = ChemicalReactionNetwork(species2, [rxn5_1, rxnd])
 

@@ -131,7 +131,7 @@ class PositiveHillTranscription(Mechanism):
         K = component.get_parameter("K", part_id = part_id, mechanism = self)
         kleak = component.get_parameter("kleak", part_id = part_id, mechanism = self)
 
-        prophill = ProportionalHillPositive(k_forward=ktx, K=K, s1=regulator, n=n, d=dna)
+        prophill = ProportionalHillPositive(k=ktx, K=K, s1=regulator, n=n, d=dna)
 
         reactions = []
 
@@ -182,7 +182,7 @@ class NegativeHillTranscription(Mechanism):
         K = component.get_parameter("K", part_id = part_id, mechanism = self)
         kleak = component.get_parameter("kleak", part_id = part_id, mechanism = self)
 
-        prop_hill = ProportionalHillNegative(k_forward=ktx, K=K, n=n, s1=regulator, d=dna)
+        prop_hill = ProportionalHillNegative(k=ktx, K=K, n=n, s1=regulator, d=dna)
 
         reactions = []
 

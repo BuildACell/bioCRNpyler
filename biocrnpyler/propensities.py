@@ -537,7 +537,7 @@ class ProportionalHillPositive(HillPositive):
         Hill.__init__(self = self, k=k, s1=s1, K=K, n=n, d=d)
 
     def pretty_print_rate(self, show_parameters = True,  **kwargs):
-        return f'k_f({self.s1.pretty_print(**kwargs)}, {self.d.pretty_print(**kwargs)}) = k {self.d.pretty_print(**kwarks)} {self.s1.pretty_print(**kwargs)}^n/({self.s1.pretty_print(**kwargs)}^n + K)'
+        return f'k_f({self.s1.pretty_print(**kwargs)}, {self.d.pretty_print(**kwargs)}) = k {self.d.pretty_print(**kwargs)} {self.s1.pretty_print(**kwargs)}^n/({self.s1.pretty_print(**kwargs)}^n + K)'
 
     def create_kinetic_law(self, model, sbml_reaction, stochastic, **kwargs):
         ratelaw, param_n, param_k, param_K, s_species_id, d_species_id = _set_up_hill_sbml(model, sbml_reaction, stochastic, annotate_propensity, "proportionalhillpositive", **kwargs)

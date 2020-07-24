@@ -15,6 +15,7 @@ from bokeh.palettes import Spectral4
 from bokeh.models.graphs import from_networkx
 from fa2 import ForceAtlas2
 import numpy as np
+from .propensities import MassAction, Hill
 from matplotlib import cm
 import matplotlib.pyplot as plt
 
@@ -249,15 +250,29 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     #reactions follow, allnodenum is not reset between these two loops
     for rxn in CRN.reactions:
         CRNgraph.add_node(allnodenum)
-        CRNgraph.nodes[allnodenum]["type"]= str(rxn.propensity_type)
-        CRNgraph.nodes[allnodenum]["k"] = str(rxn.k_forward)
-        CRNgraph.nodes[allnodenum]["k_r"] = str(rxn.k_reverse)
+        CRNgraph.nodes[allnodenum]["type"] = str(rxn.propensity_type)
+        if isinstance(rxn.propensity_type, MassAction):
+            CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k_forward)
+            CRNgraph.nodes[allnodenum]["k_r"] = str(rxn.propensity_type.k_reverse)
+        else:
+            CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
+            CRNgraph.nodes[allnodenum]["k_r"] = ''
+
         default_color = "blue"
         #CRNgraph.nodes[allnodenum]
-        kval = rxn.k_forward
+        if isinstance(rxn.propensity_type, MassAction):
+            kval = rxn.propensity_type.k_forward
+            CRNgraph.nodes[allnodenum]["k"] = str(kval)
+        else:
+            kval = rxn.k
+            CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
+
         if(not useweights):
             kval = 1
-        krev_val = rxn.k_reverse
+        if isinstance(rxn.propensity_type, MassAction):
+            krev_val = rxn.propensity_type.k_reverse
+        else:
+            krev_val = None
         if((krev_val is not None) and (not useweights)):
             krev_val = 1
         for reactant in rxn.inputs:
