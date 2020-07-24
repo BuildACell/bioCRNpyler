@@ -1,15 +1,12 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from .sbmlutil import *
-from .propensities import Propensity, MassAction
-from .species import *
 from .reaction import *
 import warnings
 import numpy as np
 from typing import List, Union, Dict
 import itertools
-import copy
+
 
 class ChemicalReactionNetwork(object):
     """ A chemical reaction network is a container of species and reactions
@@ -164,15 +161,17 @@ class ChemicalReactionNetwork(object):
         add_all_species(model=model, species=self.species)
 
         add_all_reactions(model=model, reactions=self.reactions,
-                          stochastic=stochastic_model)
+                          stochastic=stochastic_model, **keywords)
 
         if document.getNumErrors():
             warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
         return document, model
 
-    def write_sbml_file(self, file_name=None, **keywords) -> bool:
+    def write_sbml_file(self, file_name=None, for_bioscrape=False, **keywords) -> bool:
         """Writes CRN to an SBML file
         """
+        if for_bioscrape:
+            keywords['for_bioscrape'] = for_bioscrape
         document, _ = self.generate_sbml_model(**keywords)
         sbml_string = libsbml.writeSBMLToString(document)
         with open(file_name, 'w') as f:
