@@ -90,8 +90,8 @@ def test_weighted_species_init():
     with pytest.raises(ValueError, match='Stoichiometry must be positive integer!'):
         WeightedSpecies(species=s1, stoichiometry=-1)
 
-    with pytest.raises(ValueError, match='Stoichiometry must be positive integer!'):
-        WeightedSpecies(species=s1, stoichiometry=1.34)
+    ws2 = WeightedSpecies(species=s1, stoichiometry=1.34)
+    assert ws2.stoichiometry == 1
 
 
 def test_merging_weighted_species():

@@ -202,9 +202,9 @@ class WeightedSpecies:
 
     @stoichiometry.setter
     def stoichiometry(self, new_stoichiometry):
-        if not isinstance(new_stoichiometry, int) or new_stoichiometry <= 0:
+        if new_stoichiometry <= 0:
             raise ValueError(f'Stoichiometry must be positive integer! We got {new_stoichiometry}!')
-        self._stoichiometry = new_stoichiometry
+        self._stoichiometry = int(new_stoichiometry)
 
     def pretty_print(self, **kwargs):
         return f'{self.stoichiometry if self.stoichiometry > 1 else ""}{self.species.pretty_print(**kwargs)}'
