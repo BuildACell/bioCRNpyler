@@ -62,7 +62,7 @@ class Complex:
                 else:
                     new_complex = ComplexSpecies(other_species+[prev_species],*args,**keywords)
                 valent_complex.replace(bindloc,new_complex,prev_direction)
-                valent_complex.material_type = "OPcomplex"
+                valent_complex.material_type = "ordered_polymer"
                 return valent_complex[bindloc]
 
 class Species(OrderedMonomer):
@@ -84,10 +84,14 @@ class Species(OrderedMonomer):
 
     @property
     def attributes(self):
+        if(not hasattr(self,"_attributes")):
+            self._attributes = []
         return self._attributes
 
     @attributes.setter
     def attributes(self, attributes):
+        if(not hasattr(self,"_attributes")):
+            self._attributes = []
         if attributes is not None:
             if not isinstance(attributes,list):
                 attributes = list(attributes)
@@ -100,6 +104,8 @@ class Species(OrderedMonomer):
         """
         Adds attributes to a Species
         """
+        if(not hasattr(self,"_attributes")):
+            self._attributes = []
         assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(), "Attribute: %s must be an alpha-numeric string" % attribute
         if attribute not in self.attributes:
             self._attributes.append(attribute)
@@ -130,12 +136,10 @@ class Species(OrderedMonomer):
         A species with direction will use it as an attribute as well.
         This is overwritten to make direction an attribute
         """
-        if self.parent is None and direction is not None:
-            raise ValueError("{} cannot have a direction if it has no parent".format(self))
-        else:
-            self._direction = direction
-            if direction is not None:
-                self.add_attribute(direction)
+        
+        self._direction = direction
+        if direction is not None:
+            self.add_attribute(direction)
     
     def remove(self):
         """
@@ -234,7 +238,8 @@ class Species(OrderedMonomer):
             txt = txt[:-2]+")"
 
         txt.replace("'", "")
-
+        if(hasattr(self,"direction") and self.direction is not None):
+            txt += "-"+self.direction
         if self.material_type not in ["", None] and show_material:
             txt += "]"
 
@@ -518,7 +523,7 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         txt = ""
         if self.material_type not in ["", None] and show_material:
-            txt += self.material_type+"["
+            txt += self.material_type
         
         txt += "["
 
@@ -558,9 +563,10 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
                              attributes = None, initial_concentration = 0,circular = False):
 
         self.material_type = material_type
+        self.parent=None
         self.position=None
         self.direction=None
-        self.parent=None
+        
         self.initial_concentration = initial_concentration
         self.circular = circular
 
@@ -569,7 +575,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
         else:
             self.attributes = attributes
 
-        self._name = OrderedComplexSpecies._check_name(name)
+        self._name = OrderedComplexSpecies._check_name(self,name)
 
         if circular:
             self.add_attribute("circular")
@@ -622,12 +628,16 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
         for monomer in self._polymer:
             assert(isinstance(monomer,Species))
             pname = monomer.name
-            outlst += [pname]
+            pdir = None
+            if(hasattr(monomer,"direction")):
+                pdir =monomer.direction
+            if(pdir is not None):
+                outlst += [pname+"_"+str(pdir)[0]]
+            else:
+                outlst += [pname]
+        if(self.circular):
+            outlst += ["o"]
         name = '_'.join(outlst)
-
-        for attribute in self.attributes:
-            name += "_"+attribute
-
         return name
 
     def __hash__(self):
@@ -649,7 +659,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
             OrderedPolymer.replace(self,position=position,part=part,direction=mydir)
             #print("replacing")
             #print([a.data for a in self._polymer])
-            self.name = self.make_name()
+            #self.name = self.make_name()
 
     def __contains__(self,item):
         for part in self.species:
