@@ -106,9 +106,14 @@ class TestOrderedPolymerSpecies(TestCase):
         x = OrderedPolymerSpecies([Species("A"),[Species("B"),"forward"],\
                             Species("C").set_dir("reverse")],attributes=["ooga"])
         #repr
-        self.assertEqual(str(x),"ordered_polymer_A_B_f_C_r_ooga")
+        revtest = OrderedPolymerSpecies([Species("A",direction="forward"),Species("A")])
+        r1 = str(revtest)
+        revtest.reverse()
+        r2 = str(revtest)
+        self.assertEqual(type(r1),str)
+        self.assertNotEqual(r1,r2)
         #pretty_print
-        self.assertEqual(x.pretty_print(),"ordered_polymer[A:B-forward:C-reverse(ooga)]")
+        self.assertEqual(type(x.pretty_print()),str)
         #make sure we're copying
         self.assertEqual(a.parent,None)
         #make sure we're setting the properties of the components
@@ -125,6 +130,10 @@ class TestOrderedPolymerSpecies(TestCase):
         #circularity
         x.circular = True
         self.assertEqual(x.circular, True)
+        self.assertIn("circular",x.attributes)
+        x.circular = False
+        self.assertEqual(x.circular, False)
+        self.assertNotIn("circular",x.attributes)
         
     def test_ordered_polymer_species_manipulations(self):
         a = Species("A")

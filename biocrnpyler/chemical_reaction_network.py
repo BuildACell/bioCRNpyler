@@ -81,16 +81,8 @@ class Complex:
             prev_species = valent_complex[bindloc]
             prev_direction = copy.deepcopy(valent_complex[bindloc].direction)
 
-            #Is the below condition even possible? Should it be?
-
-            if(prev_species is None):
-                if(len(other_species)==1): #this should no longer be possible, right?!?
-                    new_complex = other_species[0]
-                else:
-                    new_species = other_species
-                    new_complex = ComplexSpecies(other_species,*args,**keywords)
-            else:
-                new_species = other_species+[prev_species]
+            #combine what was in the OrderedMonomer with the new stuff in the list
+            new_species = other_species+[prev_species]
 
             #Create an OrderedcomplexSepcies
             if ordered:
@@ -98,7 +90,7 @@ class Complex:
             #Create a ComplexSpecies
             else:
                 new_complex = ComplexSpecies(new_species,*args,**keywords)
-
+            #now we replace the monomer inside the parent polymer
             valent_complex.replace(bindloc,new_complex,prev_direction)
 
             return valent_complex[bindloc]
@@ -111,8 +103,8 @@ class Species(OrderedMonomer):
     """
 
     def __init__(self, name: str, material_type="", attributes: Union[List,None] = None,
-                 initial_concentration=0):
-        OrderedMonomer.__init__(self)
+                 initial_concentration=0, **keywords):
+        OrderedMonomer.__init__(self,**keywords)
 
         self.name = name
         self.material_type = material_type
@@ -137,6 +129,22 @@ class Species(OrderedMonomer):
                 self.add_attribute(attribute)
         elif attributes is None:
             self._attributes = []
+    def remove_attribute(self,attribute:str):
+        """
+        removes an attribute from a Species
+        """
+        if(not hasattr(self,"_attributes")):
+            self._attributes = []
+            return
+        assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(), "Attribute: %s must be an alpha-numeric string" % attribute
+        if attribute in self.attributes:
+            new_attrib = []
+            for attrib in self._attributes:
+                if(attrib==attribute):
+                    pass
+                else:
+                    new_attrib += [attrib]
+            self._attributes = new_attrib
 
     def add_attribute(self, attribute: str):
         """
@@ -326,10 +334,6 @@ class ComplexSpecies(Species):
         #call super class
         Species.__init__(self, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)
 
-        #Add attributes from species
-        for s in self.species:
-            for a in s.attributes:
-                self.add_attribute(a)
     @property
     def name(self):
         if self._name is None:
@@ -419,7 +423,7 @@ class ComplexSpecies(Species):
         if not recursive:
             species = [self]
         else:
-            species = []
+            species = [self]
             for s in self.species:
                 species += s.get_species(recursive = True)
 
@@ -491,10 +495,7 @@ class OrderedComplexSpecies(ComplexSpecies):
         #Call the Species superclass constructor
         Species.__init__(self, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)
 
-        #Add attributes from species
-        for s in self.species:
-            for a in s.attributes:
-                self.add_attribute(a)
+
     
     @property
     def name(self):
@@ -615,9 +616,6 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
 
         self._name = OrderedComplexSpecies._check_name(self,name)
 
-        if circular:
-            self.add_attribute("circular")
-
         self.material_type = material_type
         #self.species = []
         monomers = []
@@ -651,6 +649,20 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
 
     def get_species_list(self):
         return self._polymer
+    
+    @property
+    def circular(self):
+        if("circular" in self.attributes):
+            return True
+        else:
+            return False
+
+    @circular.setter
+    def circular(self,value:bool):
+        if(value):
+            self.add_attribute("circular")
+        else:
+            self.remove_attribute("circular")
 
     def set_species_list(self,spec_tuple:tuple):
         OrderedPolymer.__init__(self,spec_tuple)

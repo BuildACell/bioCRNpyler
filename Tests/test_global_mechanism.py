@@ -69,8 +69,8 @@ class TestGlobalMechanism(TestCase):
             default_on = True, filter_dict = fd, recursive_species_filtering = False)
         self.assertFalse(mech_default_on_fds1.apply_filter(s1))
         self.assertTrue(mech_default_on_fds1.apply_filter(s2))
-        self.assertFalse(mech_default_on_fds1.apply_filter(c1)) #attributes are inherited through ComplexSpecies
-        self.assertFalse(mech_default_on_fds1.apply_filter(c2))
+        self.assertTrue(mech_default_on_fds1.apply_filter(c1)) #attributes are NOT inherited through ComplexSpecies
+        self.assertTrue(mech_default_on_fds1.apply_filter(c2))
 
 
     def test_recursive_filtering(self):
@@ -102,7 +102,7 @@ class TestGlobalMechanism(TestCase):
             default_on = False, filter_dict = fd, recursive_species_filtering = True)
         self.assertTrue(mech_default_on_fds1.apply_filter(s1))
         self.assertFalse(mech_default_on_fds1.apply_filter(s2))
-        self.assertTrue(mech_default_on_fds1.apply_filter(c1)) #attributes are inherited through ComplexSpecies
+        self.assertTrue(mech_default_on_fds1.apply_filter(c1)) #attributes are not inherited through ComplexSpecies, but contained inside
         self.assertTrue(mech_default_on_fds1.apply_filter(c2))
 
 

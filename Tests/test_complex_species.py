@@ -80,3 +80,5 @@ class TestComplexSpecies(TestCase):
         oc1 = OrderedComplexSpecies([s2, s1])
         oc2 = OrderedComplexSpecies([s1, s2])
         self.assertFalse(oc1 == oc2)
+        #check of __contains__
+        self.assertTrue(s1 in c1)
