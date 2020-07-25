@@ -151,11 +151,7 @@ class Mixture(object):
     def get_parameter(self, mechanism, part_id, param_name, parameter_warnings = False):
         param = self.parameter_database.find_parameter(mechanism, part_id, param_name, parameter_warnings = parameter_warnings)
 
-        #TODO replace this with just returning the parameter, when reaction overhaul is complete
-        if isinstance(param, ParameterEntry):
-            return param.value
-        else:
-            return param
+        return param
     
     #Tries to find an initial condition of species s using the parameter heirarchy
     # 1. Tries to find the initial concentration in the Component initial_Concentration_dictionary and ParameterDatabase

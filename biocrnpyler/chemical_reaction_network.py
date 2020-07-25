@@ -23,14 +23,23 @@ class ChemicalReactionNetwork(object):
                where a_i is the spectrometric coefficient of species i
     """
     def __init__(self, species: List[Species], reactions: List[Reaction], show_warnings=False):
-        self.reactions, self.species = ChemicalReactionNetwork.check_crn_validity(reactions, species, show_warnings=show_warnings)
+        self.species = []
+        self.reactions = []
+        self.add_species(species)
+        self.add_reactions(reactions)
 
-    def add_species(self, species, show_warnings=False):
+    def add_species(self, species, show_warnings=True):
         if not isinstance(species, list):
             species = [species]
-        self.reactions, self.species = ChemicalReactionNetwork.check_crn_validity(self.reactions, list(itertools.chain(self.species, species)), show_warnings=show_warnings)
 
-    def add_reactions(self, reactions, show_warnings=False):
+        new_species = []
+        for s in species:
+            if s not in self.species and s not in new_species:
+                new_species.append(s)
+
+        self.reactions, self.species = ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species+new_species, show_warnings=show_warnings)
+
+    def add_reactions(self, reactions, show_warnings=True):
         if not isinstance(reactions, list):
             reactions = [reactions]
         self.reactions, self.species = ChemicalReactionNetwork.check_crn_validity(list(itertools.chain(self.reactions, reactions)), self.species, show_warnings=show_warnings)
@@ -148,7 +157,7 @@ class ChemicalReactionNetwork(object):
 
         return ChemicalReactionNetwork(new_species_list, new_reaction_list)
 
-    def generate_sbml_model(self, stochastic_model=False, **keywords):
+    def generate_sbml_model(self, stochastic_model=False, for_bioscrape=False, **keywords):
         """Creates an new SBML model and populates with the species and
         reactions in the ChemicalReactionNetwork object
 
@@ -156,31 +165,32 @@ class ChemicalReactionNetwork(object):
         :param keywords: extra keywords pass onto create_sbml_model()
         :return: tuple: (document,model) SBML objects
         """
-        document, model = create_sbml_model(**keywords)
+        document, model = create_sbml_model(for_bioscrape = for_bioscrape, **keywords)
 
         add_all_species(model=model, species=self.species)
 
-        add_all_reactions(model=model, reactions=self.reactions,
-                          stochastic=stochastic_model, **keywords)
+        add_all_reactions(model=model, reactions=self.reactions, stochastic_model=stochastic_model, for_bioscrape = for_bioscrape, **keywords)
 
         if document.getNumErrors():
             warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
         return document, model
 
-    def write_sbml_file(self, file_name=None, for_bioscrape=False, **keywords) -> bool:
+    def write_sbml_file(self, file_name=None, for_bioscrape=False, stochastic_model = False, **keywords) -> bool:
         """Writes CRN to an SBML file
         """
-        if for_bioscrape:
-            keywords['for_bioscrape'] = for_bioscrape
-        document, _ = self.generate_sbml_model(**keywords)
+        document, _ = self.generate_sbml_model(for_bioscrape = for_bioscrape, stochastic_model = stochastic_model, **keywords)
         sbml_string = libsbml.writeSBMLToString(document)
         with open(file_name, 'w') as f:
             f.write(sbml_string)
         return True
 
+
+    #Commenting this out for now - hopefully will remove fully soon
+    #
+    """
     def create_bioscrape_model(self):
-        """Creates a Bioscrape Model of the CRN directly.
-        """
+        #Creates a Bioscrape Model of the CRN directly.
+        
         from bioscrape.types import Model
 
         species_list = []
@@ -235,17 +245,27 @@ class ChemicalReactionNetwork(object):
                                  " Consider creating two seperate reactions.")
         model = Model(species = species_list, reactions = reaction_list,
                       initial_condition_dict = initial_condition_dict)
-        return model
+        return model"""
 
     def simulate_with_bioscrape(self, timepoints, initial_condition_dict=None,
                                 stochastic = False, return_dataframe = True,
-                                safe = False, **kwargs):
+                                safe = False):
 
         """Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
         Returns the data for all species as Pandas dataframe.
         """
         result = None
+        warnings.warn("simulate_with_bioscrape is depricated and will cease working in a future release. Instead, please use simulate_with_bioscrape_via_sbml.")
+        
+        result = self.simulate_with_bioscrape_via_sbml(timepoints, filename = None, 
+            initial_condition_dict = initial_condition_dict, return_dataframe = return_dataframe, 
+            safe = safe, stochastic = stochastic)
+
+        return result
+        """
+        OLD CODE BELOW
         try:
+
             from bioscrape.simulator import py_simulate_model
             m = self.create_bioscrape_model()
             if not initial_condition_dict:
@@ -261,11 +281,11 @@ class ChemicalReactionNetwork(object):
         except ModuleNotFoundError:
             warnings.warn('bioscrape was not found, please install bioscrape')
 
-        return result
+        return result"""
 
-    def simulate_with_bioscrape_via_sbml(self, timepoints, file = None,
+    def simulate_with_bioscrape_via_sbml(self, timepoints, filename = None,
                 initial_condition_dict = None, return_dataframe = True,
-                stochastic = False, **kwargs):
+                stochastic = False, safe = False, return_model = False, **kwargs):
 
         """Simulate CRN model with bioscrape via writing a SBML file temporarily.
         [Bioscrape on GitHub](https://github.com/biocircuits/bioscrape).
@@ -277,13 +297,14 @@ class ChemicalReactionNetwork(object):
         try:
             from bioscrape.simulator import py_simulate_model
             from bioscrape.types import Model
-            if file is None:
-                self.write_sbml_file(file_name ="temp_sbml_file.xml")
+
+            if filename is None:
+                self.write_sbml_file(file_name ="temp_sbml_file.xml", for_bioscrape = True, stochastic_model = stochastic)
                 file_name = "temp_sbml_file.xml"
-            elif isinstance(file, str):
-                file_name = file
+            elif isinstance(filename, str):
+                file_name = filename
             else:
-                file_name = file.name
+                raise ValueError(f"filename must be None or a string. Recievied: {filename}")
 
             if 'sbml_warnings' in kwargs:
                 sbml_warnings = kwargs.get('sbml_warnings')
@@ -292,13 +313,15 @@ class ChemicalReactionNetwork(object):
             m = Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
             # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
             m.set_species(initial_condition_dict)
-            result = py_simulate_model(timepoints, Model = m,
-                                                stochastic = stochastic,
+            result = py_simulate_model(timepoints, Model = m, stochastic = stochastic, safe = safe,
                                                 return_dataframe = return_dataframe)
         except ModuleNotFoundError:
             warnings.warn('bioscrape was not found, please install bioscrape')
 
-        return result, m
+        if return_model:
+            return result, m
+        else:
+            return result
 
     def runsim_roadrunner(self, timepoints, filename, species_to_plot = None):
         """To simulate using roadrunner.

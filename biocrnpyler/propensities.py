@@ -47,13 +47,14 @@ class Propensity(object):
     def get_available_propensities() -> Set:
         return Propensity._all_subclasses(Propensity)
 
-    def _create_sbml_parameter(self, parameter_name, smbl_model, ratelaw):
+    def _create_sbml_parameter(self, parameter_name, smbl_model, ratelaw, rename_dict = None):
         """Creates an sbml parameter for a parameter of the given name.
         if self.propensity_dict["parameter"]["parameter_name"] is a Parameter,
             creates a global parameter "Parameter.name_Parameter.part_id_Parameter.mechanism"
             where part_id and mechanism can be empty (but _ will always be incldued for uniqueness).
         if self.propensity_dict["parameter"]["parameter_name"] is a Number,
             creates a local parameter "parameter_name".
+        rname_dict allows for param.name to be changed to rename_dict[param.name]
         """
         p = self.propensity_dict["parameters"][parameter_name]
         if isinstance(p, ParameterEntry):
@@ -66,13 +67,19 @@ class Propensity(object):
             if pid is None:
                 pid = ""
 
-            sbml_name = p.parameter_name+"_"+pid+"_"+m
+            if rename_dict is None or p.parameter_name not in rename_dict:
+                sbml_name = p.parameter_name+"_"+pid+"_"+m
+            else:
+                sbml_name = rename_dict[p.parameter_name]+"_"+pid+"_"+m
 
             return _create_global_parameter(smbl_model, sbml_name, v)
             
         elif isinstance(p, int) or isinstance(p, float):
             v = p
-            sbml_name = parameter_name
+            if rename_dict is None or parameter_name not in rename_dict:
+                sbml_name = parameter_name
+            else:
+                sbml_name = rename_dict[parameter_name]
 
             return _create_local_parameter(ratelaw, sbml_name, v)
 
@@ -120,12 +127,12 @@ class Propensity(object):
         for k in self.propensity_dict["parameters"]:
             p = self.propensity_dict["parameters"][k]
             if isinstance(p, Parameter):
-                txt += f"\t{k}={p.value}"#p.pretty_print(**kwargs)+"\n"
+                txt += f"  {k}={p.value}"#p.pretty_print(**kwargs)+"\n"
                 if isinstance(p, ModelParameter) and show_keys:
-                    txt+=f"\n\t\tfound_key={p.found_key}. search_key={p.search_key}."
+                    txt+=f"\n  found_key=(mech={p.found_key.mechanism}, partid={p.found_key.part_id}, name={p.found_key.name}).\n  search_key=(mech={p.search_key.mechanism}, partid={p.search_key.part_id}, name={p.search_key.name}."
                 txt+="\n"
             else:
-                txt += f"\t{k}={p}\n"
+                txt += f"  {k}={p}\n"
         return txt
 
     @property
@@ -151,7 +158,7 @@ class Propensity(object):
         """returns the instance variables that are species type"""
         return list(self.propensity_dict['species'].values())
 
-    def create_kinetic_law(self, reaction, reverse_reaction, stochastic):
+    def create_kinetic_law(self, reaction, reverse_reaction, stochastic, for_bioscrape = False):
         raise NotImplementedError("class Propensity is meant to be subclassed!")
 
     @classmethod
@@ -160,17 +167,17 @@ class Propensity(object):
         merged.update(propensity_dict['species'])
         return cls(**merged)
 
-    def _create_bioscrape_annotation(self, model):
+    def _create_bioscrape_annotation(self, model, propensity_dict_in_sbml):
         """
         Propensity Annotations are Used to take advantage of Bioscrape Propensity types
         for faster simulation
         """
         annotation_dict = {}
         for param_name, param_value in self.propensity_dict['parameters'].items():
-            annotation_dict[param_name] = param_value.getId()
+            annotation_dict[param_name] = propensity_dict_in_sbml[param_name].getId()
 
         for species_name, species in self.propensity_dict['species'].items():
-            annotation_dict[species_name] = getSpeciesByName(model, species).getId()
+            annotation_dict[species_name] = propensity_dict_in_sbml[species_name]
 
         annotation_dict["type"] = self.bioscrape_name
 
@@ -234,15 +241,20 @@ class MassAction(Propensity):
             return True
 
     def pretty_print_rate(self, **kwargs):
-        if 'reaction_direction' in kwargs and kwargs['react_direction'] is 'reverse':
-            if self.is_reversible:
-                return f''
-            else:
-                return None
-        else:
-            return f''
+        crn_reaction = kwargs["reaction"]
+        reactant_species = {}
+        for w_species in crn_reaction.inputs:
+            reactant_species[str(w_species.species)] = w_species
+        txt = " Kf="+self._get_rate_formula("k_forward", kwargs["stochastic"], reactant_species)
+        if self.is_reversible:
+            reactant_species = {}
+            for w_species in crn_reaction.outputs:
+                reactant_species[str(w_species.species)] = w_species
+            txt += "\n Kr="+self._get_rate_formula("k_reverse", kwargs["stochastic"], reactant_species)
+        return txt
+        
 
-    def create_kinetic_law(self, model, sbml_reaction, stochastic, reverse_reaction=False, **kwargs):
+    def create_kinetic_law(self, model, sbml_reaction, stochastic, reverse_reaction=False, for_bioscrape = False, **kwargs):
 
         if 'crn_reaction' in kwargs:
             crn_reaction = kwargs['crn_reaction']
@@ -259,7 +271,7 @@ class MassAction(Propensity):
                 species_id = getSpeciesByName(model, str(w_species.species)).getId()
                 reactant_species[species_id] = w_species
 
-            param = self._create_sbml_parameter("k_forward", model, ratelaw)
+            param = self._create_sbml_parameter("k_forward", model, ratelaw, rename_dict = {"k_forward":"k"})
 
         # set up a reverse reaction
         elif reverse_reaction:
@@ -268,7 +280,7 @@ class MassAction(Propensity):
                 species_id = getSpeciesByName(model, str(w_species.species)).getId()
                 reactant_species[species_id] = w_species
 
-            param = self._create_sbml_parameter("k_reverse", model, ratelaw)
+            param = self._create_sbml_parameter("k_reverse", model, ratelaw, rename_dict = {"k_reverse":"k_rev"})
 
         rate_formula = self._get_rate_formula(param.getId(), stochastic, reactant_species)
         
@@ -278,8 +290,15 @@ class MassAction(Propensity):
 
         # Propensity Annotations are used to take advantage of Bioscrape Propensity types
         # for faster simulation
-        if 'for_bioscrape' in kwargs and kwargs['for_bioscrape']:
-            annotation_string = self._create_bioscrape_annotation(model)
+        propensity_dict_in_sbml = copy.copy(self.propensity_dict)
+        if for_bioscrape:
+            propensity_dict_in_sbml["k_forward"] = param
+            propensity_dict_in_sbml["k_reverse"] = param
+
+            for species_name, species in propensity_dict_in_sbml['species'].items():
+                propensity_dict_in_sbml[species_name] = getSpeciesByName(model, str(species)).getId()
+
+            annotation_string = self._create_bioscrape_annotation(model, propensity_dict_in_sbml)
             # replace strings to match with bioscrape naming convention
             annotation_string = annotation_string.replace('k_forward', 'k')
             annotation_string = annotation_string.replace('k_reverse', 'k')
@@ -296,7 +315,10 @@ class MassAction(Propensity):
             if stochastic:
                 ratestring += '*'.join(f" ( {species_id} - {i} )" for i in range(weighted_species.stoichiometry))
             else:
-                ratestring += f" * {species_id}^{weighted_species.stoichiometry}"
+                if weighted_species.stoichiometry > 1:
+                    ratestring += f" * {species_id}^{weighted_species.stoichiometry}"
+                else:
+                    ratestring += f" * {species_id}"
 
         return ratestring
 
@@ -367,7 +389,7 @@ class Hill(Propensity):
     def pretty_print_rate(self, show_parameters = True, **kwargs):
         raise NotImplementedError("Propensity class Hill is meant to be subclassed: try HillPositive, HillNegative, ProportionalHillPositive, or ProportionalHillNegative.")
 
-    def create_kinetic_law(self, model, sbml_reaction, stochastic, **kwargs):
+    def create_kinetic_law(self, model, sbml_reaction, stochastic, for_bioscrape = False, **kwargs):
         """This code is reused in all Hill Propensity subclasses
         """
         if 'reverse_reaction' in kwargs and kwargs['reverse_reaction'] is True:
@@ -381,13 +403,13 @@ class Hill(Propensity):
             propensity_dict_in_sbml[param_name] = self._create_sbml_parameter(param_name, model, ratelaw)
 
         for species_name, species in propensity_dict_in_sbml['species'].items():
-            propensity_dict_in_sbml[species_name] = getSpeciesByName(model, species).getId()
+            propensity_dict_in_sbml[species_name] = getSpeciesByName(model, str(species)).getId()
 
         rate_formula = self._get_rate_formula(propensity_dict=propensity_dict_in_sbml)
 
         # attach bioscrape propensity annotations to the SBML model, if needed
-        if 'for_bioscrape' in kwargs and kwargs['for_bioscrape']:
-            annotation_string = self._create_bioscrape_annotation(model)
+        if for_bioscrape:
+            annotation_string = self._create_bioscrape_annotation(model, propensity_dict_in_sbml)
             sbml_reaction.appendAnnotation(annotation_string)
 
         # Set the ratelaw to the rateformula
@@ -414,7 +436,7 @@ class HillPositive(Hill):
         self.bioscrape_name = 'hillpositive'
 
     def pretty_print_rate(self, show_parameters = True, **kwargs):
-        return f'k_f({self.s1.pretty_print(**kwargs)}) = k {self.s1.pretty_print(**kwargs)}^n / ({self.s1.pretty_print(**kwargs)}^n + K)'
+        return f' Kf = k {self.s1.pretty_print(**kwargs)}^n / ({self.s1.pretty_print(**kwargs)}^n + K)'
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']
@@ -441,7 +463,7 @@ class HillNegative(Hill):
         self.bioscrape_name = 'hillnegative'
 
     def pretty_print_rate(self, show_parameters = True, **kwargs):
-        return f'k_f({self.s1.pretty_print(**kwargs)}) = k / ({self.s1.pretty_print(**kwargs)}^n + K)'
+        return f' Kf = k / ({self.s1.pretty_print(**kwargs)}^n + K)'
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']
@@ -469,7 +491,7 @@ class ProportionalHillPositive(HillPositive):
         self.bioscrape_name = 'proportionalhillpositive'
 
     def pretty_print_rate(self, show_parameters = True,  **kwargs):
-        return f'k_f({self.s1.pretty_print(**kwargs)}, {self.d.pretty_print(**kwargs)}) = k {self.d.pretty_print(**kwargs)} {self.s1.pretty_print(**kwargs)}^n/({self.s1.pretty_print(**kwargs)}^n + K)'
+        return f' Kf = k {self.d.pretty_print(**kwargs)} {self.s1.pretty_print(**kwargs)}^n/({self.s1.pretty_print(**kwargs)}^n + K)'
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']
@@ -497,7 +519,7 @@ class ProportionalHillNegative(HillNegative):
         self.bioscrape_name = 'proportionalhillnegative'
 
     def pretty_print_rate(self, show_parameters=True, **kwargs):
-        return f'k_f({self.s1.pretty_print(**kwargs)}, {self.d.pretty_print(**kwargs)}) = k {self.d.pretty_print(**kwargs)} /({self.s1.pretty_print(**kwargs)}^{self.n} + K)'
+        return f' Kf = k {self.d.pretty_print(**kwargs)} /({self.s1.pretty_print(**kwargs)}^{self.n} + K)'
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']

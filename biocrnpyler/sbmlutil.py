@@ -17,8 +17,8 @@ reaction_id = 0
 logger = logging.getLogger(__name__)
 
 
-def create_sbml_model(compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
-                      length_units='metre', area_units='square_metre', volume_units='litre', volume=1e-6, model_id=None):
+def create_sbml_model(for_bioscrape = False, compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
+                      length_units='metre', area_units='square_metre', volume_units='litre', volume=1e-6, model_id=None, **kwargs):
     """Creates an SBML Level 3 Version 2 model with some fixed standard settings.
 
     Refer to python-libsbml for more information on SBML API.
@@ -34,6 +34,7 @@ def create_sbml_model(compartment_id="default", time_units='second', extent_unit
     :param model_id:
     :return:  the SBMLDocument and the Model object as a tuple
     """
+
     document = libsbml.SBMLDocument(3, 2)
     model = document.createModel()
     if model_id is None:
@@ -80,7 +81,7 @@ def species_sbml_id(species, document=None):
     return species_id
 
 
-def add_all_species(model, species: List, compartment=None):
+def add_all_species(model, species: List, compartment=None, **kwargs):
     """ adds a list of Species to the SBML model
 
     :param model: valid SBML model
@@ -97,7 +98,7 @@ def add_all_species(model, species: List, compartment=None):
                     species=s, initial_concentration=s.initial_concentration)
 
 
-def add_species(model, compartment, species, initial_concentration=None):
+def add_species(model, compartment, species, initial_concentration=None, **kwargs):
     """Helper function to add a species to the sbml model
 
     :param model:
@@ -159,7 +160,7 @@ def find_parameter(mixture, id):
     return model.getParameter(id)  # ! TODO: add error checking
 
 
-def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
+def add_all_reactions(model, reactions: List, stochastic=False, for_bioscrape = False, **kwargs):
     """adds a list of reactions to the SBML model
 
     :param model: an sbml model created by create_sbml_model()
@@ -170,15 +171,15 @@ def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
 
     for rxn_count, r in enumerate(reactions):
         rxn_id = f'r{rxn_count}'
-        add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, **kwargs)
+        add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic,  for_bioscrape = for_bioscrape, **kwargs)
 
         #Reversible reactions are always seperated into two seperate reactions
         if r.is_reversible:
             rxn_id = f'r{rxn_count}rev'
-            add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, reverse_reaction = True, **kwargs)
+            add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, reverse_reaction = True, for_bioscrape = for_bioscrape,**kwargs)
 
 
-def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction : bool=False, **kwargs):
+def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction : bool=False, for_bioscrape = False, **kwargs):
     """adds a sbml_reaction to an sbml model
 
     :param model: an sbml model created by create_sbml_model()
@@ -194,6 +195,8 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
     trans = SetIdFromNames(all_ids)
     sbml_reaction.setId(trans.getValidIdForName(reaction_id))
     sbml_reaction.setName(sbml_reaction.getId())
+    #all reactions are set to be non-reversible in BioCRNpyler because this is correct in deterministic and stochastic simulation.
+    sbml_reaction.setReversible(False)
 
     # Create the kinetic law and corresponding local propensity parameters
     crn_reaction.propensity_type.create_kinetic_law(model=model,
@@ -201,6 +204,7 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
                                                     stochastic=stochastic,
                                                     crn_reaction=crn_reaction,
                                                     reverse_reaction=reverse_reaction,
+                                                    for_bioscrape=for_bioscrape,
                                                     **kwargs)
 
     # Create the reactants and products for the sbml_reaction
@@ -238,6 +242,7 @@ def _create_local_parameter(ratelaw, name, value, constant = True):
     param.setId(name)
     param.setConstant(constant)
     param.setValue(value)
+
     return param
 
 #Creates a global parameter SBML model
@@ -249,6 +254,7 @@ def _create_global_parameter(model, name, value, constant = True):
         param.setValue(value)
     else:
         param = model.getParameter(name)
+
     return param
 
 # !/usr/bin/env python
@@ -391,7 +397,7 @@ def getSpeciesByName(model, name, compartment=''):
     to look for the species.
     '''
     if type(name) is not str:
-        raise ValueError('"name" must be a string.')
+        raise ValueError(f'"name" must be a string. Recievied {name} type={type(name)}.')
     species_found = []
     for species in model.getListOfSpecies():
         if species.getName() == name:

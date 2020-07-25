@@ -48,7 +48,7 @@ class One_Step_Cooperative_Binding(Mechanism):
             part_id = repr(binder)+"-"+repr(bindee)
 
         if cooperativity is None and component != None:
-            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
+            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self, return_numerical = True)
         elif component is None and cooperativity is None:
             raise ValueError("Must pass in a Component or values for cooperativity")
 
@@ -83,7 +83,7 @@ class One_Step_Cooperative_Binding(Mechanism):
         if ku is None and component is not None:
             ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
         if cooperativity is None and component is not None:
-            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
+            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self, return_numerical = True)
         if component is None and (kb is None or ku is None or cooperativity is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
 
@@ -109,7 +109,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
             part_id = repr(binder)+"-"+repr(bindee)
 
         if cooperativity is None and component != None:
-            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
+            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self, return_numerical = True)
         elif component is None and cooperativity is None:
             raise ValueError("Must pass in a Component or values for cooperativity")
 
@@ -165,7 +165,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
             kb2 = component.get_parameter("kb2", part_id = part_id, mechanism = self)
             ku1 = component.get_parameter("ku1", part_id = part_id, mechanism = self)
             ku2 = component.get_parameter("ku2", part_id = part_id, mechanism = self)
-            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self)
+            cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self, return_numerical = True)
         elif component is None and (kb is None or ku is None or cooperativity is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and cooperativity")
         elif len(kb) != len(ku) != 2:
@@ -220,7 +220,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                                                                                         and (component is not None)):
                 #here we are extracting the relevant cooperativity value from the dictionary which should be passed
                 #in as the cooperativity argument
-                coop_val = component.get_parameter("cooperativity", part_id = binder_partid, mechanism = self)
+                coop_val = component.get_parameter("cooperativity", part_id = binder_partid, mechanism = self, return_numerical = True)
             elif type(cooperativity)==dict and binder_partid in cooperativity:
                 coop_val = cooperativity[binder_partid]
             if component is None and ( cooperativity is None):
@@ -253,7 +253,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                 raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
             if ((cooperativity is None) or (type(cooperativity)==dict and binder.name not in cooperativity)  \
                                                                                         and component is not None):
-                coop_val = component.get_parameter("cooperativity", part_id = binder_partid, mechanism = self)
+                coop_val = component.get_parameter("cooperativity", part_id = binder_partid, mechanism = self, return_numerical = True)
             elif type(cooperativity)==dict and binder.name in cooperativity:
                 coop_val = cooperativity[binder.name]
             if component is None and (kb is None or ku is None or cooperativity is None):

@@ -130,15 +130,18 @@ class TestComponent(TestCase):
 
         tx = Transcription_MM()
         # testing the different parameter definitions
-        self.assertEqual(self.component.get_parameter(param_name='kb'), kb)
-        self.assertEqual(self.component.get_parameter(mechanism=tx, param_name='ktx'), ktx)
-        self.assertEqual(self.component.get_parameter(part_id=p_id, param_name='ktl'), ktl)
-        self.assertEqual(self.component.get_parameter(mechanism=tx, part_id=p_id, param_name='ku'), ku)
+        self.assertEqual(self.component.get_parameter(param_name='kb').value, kb)
+        self.assertEqual(self.component.get_parameter(mechanism=tx, param_name='ktx').value, ktx)
+        self.assertEqual(self.component.get_parameter(part_id=p_id, param_name='ktl').value, ktl)
+        self.assertEqual(self.component.get_parameter(mechanism=tx, part_id=p_id, param_name='ku').value, ku)
+
+        # testing parameter with return_numerical = True
+        self.assertEqual(self.component.get_parameter(param_name='kb', return_numerical = True), kb)
 
         one_param = {"kb": kb}
         self.component.update_parameters(parameters=one_param)
         # testing that one_param was registered
-        self.assertEqual(self.component.get_parameter(param_name="kb"), one_param["kb"])
+        self.assertEqual(self.component.get_parameter(param_name="kb").value, one_param["kb"])
 
         #testing a parameter which can't be found
         with self.assertRaisesRegexp(ValueError, "No parameters can be found"):

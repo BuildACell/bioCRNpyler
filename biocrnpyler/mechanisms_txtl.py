@@ -380,7 +380,7 @@ class multi_tx(Mechanism):
 
     # species update
     def update_species(self, dna, transcript, component, part_id, protein = None, **keywords):
-        max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self))
+        max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self, return_numerical = True))
         cp_open = []
         cp_closed = []
         for n in range(1,max_occ + 1):
@@ -415,7 +415,7 @@ class multi_tx(Mechanism):
         k2 = component.get_parameter("k2", part_id = part_id, mechanism = self)
         k_iso = component.get_parameter("k_iso", part_id = part_id, mechanism = self)
         ktx_solo = component.get_parameter("ktx_solo", part_id = part_id, mechanism = self)
-        max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self))
+        max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self, return_numerical = True))
 
         # complex species instantiation
         cp_open = []
@@ -501,7 +501,7 @@ class multi_tl(Mechanism):
 
     # species update
     def update_species(self, transcript, protein, component, part_id, **keywords):
-        max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self))
+        max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self, return_numerical = True))
         cp_open = []
         cp_closed = []
         for n in range(1,max_occ + 1):
@@ -535,7 +535,7 @@ class multi_tl(Mechanism):
         kur = component.get_parameter("kur", part_id = part_id, mechanism = self)
         k_iso_r = component.get_parameter("k_iso_r", part_id = part_id, mechanism = self)
         ktl_solo = component.get_parameter("ktl_solo", part_id = part_id, mechanism = self)
-        max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self))
+        max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self, return_numerical = True))
 
 
         # complex species instantiation

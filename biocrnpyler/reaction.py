@@ -198,7 +198,13 @@ class Reaction(object):
 
         txt += '+'.join([s.pretty_print(**kwargs) for s in self.outputs])
         if show_rates:
-            txt += f'{self.propensity_type.pretty_print(**kwargs)}'
+
+            #These kwargs are essential for massaction propensities
+            kwargs["reaction"] = self
+            if "stochastic" not in kwargs:
+                kwargs["stochastic"] = False
+
+            txt += "\n"+f'{self.propensity_type.pretty_print(**kwargs)}'
 
         return txt
 
