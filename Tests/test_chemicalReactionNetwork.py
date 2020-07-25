@@ -4,7 +4,7 @@
 
 from unittest import TestCase
 from unittest.mock import mock_open, patch
-from biocrnpyler import ChemicalReactionNetwork, Species, Reaction, ComplexSpecies, OrderedComplexSpecies
+from biocrnpyler import ChemicalReactionNetwork, Species, Reaction, Complex
 from biocrnpyler import ProportionalHillPositive, ParameterEntry, ParameterKey
 import libsbml
 import warnings
@@ -125,25 +125,25 @@ class TestChemicalReactionNetwork(TestCase):
         self.assertTrue(self.s_old.replace_species(self.s_old, self.s_new) == self.s_new)
 
     def test_replace_Species_in_ComplexSpecies(self):
-        c1 = ComplexSpecies([self.s1, self.s_old])
-        c2 = ComplexSpecies([self.s1, c1])
+        c1 = Complex([self.s1, self.s_old])
+        c2 = Complex([self.s1, c1])
         self.assertTrue(c1.replace_species(self.s2, self.s_new) == c1)
-        self.assertTrue(c1.replace_species(self.s_old, self.s_new) == ComplexSpecies([self.s1, self.s_new]))
-        self.assertTrue(c2 == ComplexSpecies([self.s1, c1]))
-        self.assertTrue(c2.replace_species(self.s_new, self.s_old) == ComplexSpecies([self.s1, ComplexSpecies([self.s1, self.s_old])]))
+        self.assertTrue(c1.replace_species(self.s_old, self.s_new) == Complex([self.s1, self.s_new]))
+        self.assertTrue(c2 == Complex([self.s1, c1]))
+        self.assertTrue(c2.replace_species(self.s_new, self.s_old) == Complex([self.s1, Complex([self.s1, self.s_old])]))
 
     def test_replace_Species_in_OrderedComplexSpecies(self):
-        oc1 = OrderedComplexSpecies([self.s1, self.s_old])
-        self.assertTrue(oc1.replace_species(self.s_old, self.s_new) == OrderedComplexSpecies([self.s1, self.s_new]))
+        oc1 = Complex([self.s1, self.s_old], ordered = True)
+        self.assertTrue(oc1.replace_species(self.s_old, self.s_new) == Complex([self.s1, self.s_new], ordered = True))
 
     def test_replace_species_in_Reaction(self):
-        c1 = ComplexSpecies([self.s1, self.s_old])
-        c2 = ComplexSpecies([self.s1, self.s_new])
+        c1 = Complex([self.s1, self.s_old])
+        c2 = Complex([self.s1, self.s_new])
         r1 = Reaction.from_massaction([self.s1, self.s_old], [c1], k_forward=1)
         self.assertTrue(r1.replace_species(self.s_old, self.s_new) == Reaction.from_massaction([self.s1, self.s_new], [c2], k_forward=1))
 
     def test_replace_species_with_a_non_massaction_reaction(self):
-        c1 = ComplexSpecies([self.s1, self.s_old])
+        c1 = Complex([self.s1, self.s_old])
 
         prop_hill_old = ProportionalHillPositive(k=1., s1=self.s1, K=10, d=self.s_old, n=2)
         r1 = Reaction([self.s1, self.s_old], [c1], propensity_type=prop_hill_old)
@@ -152,8 +152,8 @@ class TestChemicalReactionNetwork(TestCase):
         self.assertTrue(r1.replace_species(self.s_old, self.s_new) == r1_new)
 
     def test_replace_in_a_chemical_reaction_network(self):
-        c1 = ComplexSpecies([self.s1, self.s_old])
-        c2 = ComplexSpecies([self.s1, c1])
+        c1 = Complex([self.s1, self.s_old])
+        c2 = Complex([self.s1, c1])
         species = [self.s1, self.s_old, c1, c2]
         r1 = Reaction.from_massaction([self.s1, self.s_old], [c1], k_forward=1)
         crn = ChemicalReactionNetwork(species = species, reactions = [r1])
@@ -165,8 +165,8 @@ class TestChemicalReactionNetwork(TestCase):
         self.assertTrue(self.s_new in new_crn.species)
         self.assertFalse(c1 in new_crn.species)
         self.assertFalse(c2 in new_crn.species)
-        c1_new = ComplexSpecies([self.s1, self.s_new])
-        c2_new = ComplexSpecies([self.s1, c1_new])
+        c1_new = Complex([self.s1, self.s_new])
+        c2_new = Complex([self.s1, c1_new])
         self.assertTrue(c1_new in new_crn.species)
         self.assertTrue(c2_new in new_crn.species)
         r1_new = Reaction.from_massaction([self.s1, self.s_new], [c1_new], k_forward=1)

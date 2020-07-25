@@ -1,6 +1,6 @@
 import pytest
 from biocrnpyler.sbmlutil import *
-from biocrnpyler import Species, ComplexSpecies, MassAction, HillPositive, HillNegative, ProportionalHillPositive, ProportionalHillNegative
+from biocrnpyler import Species, Complex, MassAction, HillPositive, HillNegative, ProportionalHillPositive, ProportionalHillNegative
 from biocrnpyler import ParameterEntry, ParameterKey, Reaction, ChemicalReactionNetwork
 
 
@@ -19,8 +19,8 @@ def test_add_all_species():
     S1, S2, S3, S4 = Species("S1"), Species("S2"), Species("S3"), Species("S4")
 
     #These two Complexes push the naming convention to its limits
-    C1 = ComplexSpecies([ComplexSpecies([S1, S2, S3]), S4])
-    C2 = ComplexSpecies([ComplexSpecies([S1, S2]), S3, S4])
+    C1 = Complex([Complex([S1, S2, S3]), S4])
+    C2 = Complex([Complex([S1, S2]), S3, S4])
 
     species = [S1, S2, S3, S4, C1, C2]
     add_all_species(model, species)

@@ -146,7 +146,7 @@ class DNAassembly(DNA):
         if self.promoter is not None and self.rbs is not None:
             species += self.promoter.update_species()
             species += self.rbs.update_species()
-
+            
         elif self.promoter is not None and self.rbs is None:
             species += self.promoter.update_species()
 

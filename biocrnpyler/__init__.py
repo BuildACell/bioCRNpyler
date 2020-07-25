@@ -11,6 +11,7 @@ from .species import *
 from .propensities import *
 from .reaction import *
 from .chemical_reaction_network import *
+from .polymer import *
 
 
 #core mechanisms

@@ -155,8 +155,9 @@ class ChemicalComplex(Component):
 
         for s in species:
             self.internal_species.append(self.set_species(s))
-
-        self.species = ComplexSpecies(species = self.internal_species, name = name, material_type=material_type, attributes=attributes)
+        #bindee = self.internal_species[0]
+        #binder = self.internal_species[1:]
+        self.species = Complex(self.internal_species, name = name, material_type=material_type, attributes=attributes)
 
         if name is None:
             name = self.species.name
@@ -171,16 +172,18 @@ class ChemicalComplex(Component):
     def update_species(self) -> List[Species]:
 
         mech_b = self.mechanisms['binding']
-
-        species = mech_b.update_species(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
+        bindee = self.internal_species[0]
+        binder = self.internal_species[1:]
+        species = mech_b.update_species(binder,bindee, complex_species = self.get_species(), component = self, part_id = self.name)
 
         return species
 
     def update_reactions(self) -> List[Reaction]:
 
         mech_b = self.mechanisms['binding']
-
-        reactions = mech_b.update_reactions(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
+        bindee = self.internal_species[0]
+        binder = self.internal_species[1:]
+        reactions = mech_b.update_reactions(binder,bindee, complex_species = self.get_species(), component = self, part_id = self.name)
         
         return reactions
 

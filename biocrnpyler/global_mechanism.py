@@ -92,18 +92,15 @@ class GlobalMechanism(Mechanism):
         use_mechanism = None
 
         species_list = s.get_species(recursive = self.recursive_species_filtering)
-
         for subs in species_list:
-            for a in s.attributes+[subs.material_type, repr(subs), subs.name]:
+            for a in subs.attributes+[subs.material_type, repr(subs), subs.name]:
                 if a in fd:
                     if use_mechanism is None:
                         use_mechanism = fd[a]
                     elif use_mechanism != fd[a]:
                         raise AttributeError(f"species {repr(s)} has multiple attributes(or material type) which conflict with global mechanism filter {repr(self)}.")
-
         if use_mechanism is None:
             use_mechanism = self.default_on
-
         return use_mechanism
 
     def update_species_global(self, species_list: List[Species], mixture):

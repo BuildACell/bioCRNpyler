@@ -36,7 +36,7 @@ class TestCombinatorialPromoter(TestCase):
 
     def test_update_species(self):
         from biocrnpyler import CombinatorialPromoter, Protein, Species, Combinatorial_Cooperative_Binding, \
-                                    DNAassembly,Transcription_MM, Translation_MM, Multimer, ComplexSpecies
+                                    DNAassembly,Transcription_MM, Translation_MM, Multimer, Complex
         #make a complicated promoter
         newprom = CombinatorialPromoter("testprom",["treg1",Species("treg2",material_type="rna")],\
                                 tx_capable_list = [["treg1","treg2"]],cooperativity={"testprom_treg2":1},leak=True)
@@ -53,13 +53,13 @@ class TestCombinatorialPromoter(TestCase):
         sp_dna = Species("testDNA",material_type="dna")
         sp_rnap = Species("RNAP",material_type="protein")
         sp_rna = Species("testDNA",material_type="rna")
-        cp_dna_rnap = ComplexSpecies([sp_dna,sp_rnap])
-        cp_dna_treg1 = ComplexSpecies([sp_dna,sp_treg1,sp_treg1])
-        cp_dna_treg2 = ComplexSpecies([sp_dna,sp_treg2])
-        cp_dna_treg1_rnap = ComplexSpecies([cp_dna_treg1,sp_rnap])
-        cp_dna_treg2_rnap = ComplexSpecies([cp_dna_treg2,sp_rnap])
-        cp_dna_treg1_treg2 = ComplexSpecies([sp_dna,sp_treg1,sp_treg1,sp_treg2])
-        cp_dna_treg1_treg2_rnap = ComplexSpecies([cp_dna_treg1_treg2,sp_rnap])
+        cp_dna_rnap = Complex([sp_dna,sp_rnap])
+        cp_dna_treg1 = Complex([sp_dna,sp_treg1,sp_treg1])
+        cp_dna_treg2 = Complex([sp_dna,sp_treg2])
+        cp_dna_treg1_rnap = Complex([cp_dna_treg1,sp_rnap])
+        cp_dna_treg2_rnap = Complex([cp_dna_treg2,sp_rnap])
+        cp_dna_treg1_treg2 = Complex([sp_dna,sp_treg1,sp_treg1,sp_treg2])
+        cp_dna_treg1_treg2_rnap = Complex([cp_dna_treg1_treg2,sp_rnap])
 
         knownspecies = [sp_dna,sp_rnap,sp_rna,cp_dna_rnap,cp_dna_treg1,\
                             cp_dna_treg2,cp_dna_treg1_treg2,cp_dna_treg1_rnap, \
@@ -86,7 +86,7 @@ class TestCombinatorialPromoter(TestCase):
         """this function tests the CombinatorialPromoter for the ability to make
         reactions with the proper inputs and outputs."""
         from biocrnpyler import CombinatorialPromoter, Protein, Species, Combinatorial_Cooperative_Binding, \
-                                    DNAassembly,Transcription_MM, Translation_MM, ComplexSpecies, Multimer
+                                    DNAassembly,Transcription_MM, Translation_MM, Complex, Multimer
         
         #make a relatively simple combinatorial promoter
         newprom = CombinatorialPromoter("testprom",["treg1","treg2"],tx_capable_list=[["treg2","treg1"]], leak = True)
@@ -108,13 +108,13 @@ class TestCombinatorialPromoter(TestCase):
         sp_rnap = Species("RNAP",material_type="protein")
         #now the complexes
         
-        sp_dna_treg1 = ComplexSpecies([sp_dna,sp_treg1,sp_treg1])
-        sp_dna_treg2 = ComplexSpecies([sp_dna,sp_treg2,sp_treg2])
-        sp_dna_treg1_treg2 = ComplexSpecies([sp_dna,sp_treg2,sp_treg2,sp_treg1,sp_treg1])
-        sp_dna_rnap = ComplexSpecies([sp_dna,sp_rnap])
-        sp_dna_treg1_rnap = ComplexSpecies([sp_dna_treg1,sp_rnap])
-        sp_dna_treg2_rnap = ComplexSpecies([sp_dna_treg2,sp_rnap])
-        sp_dna_treg1_treg2_rnap = ComplexSpecies([sp_dna_treg1_treg2,sp_rnap])
+        sp_dna_treg1 = Complex([sp_dna,sp_treg1,sp_treg1])
+        sp_dna_treg2 = Complex([sp_dna,sp_treg2,sp_treg2])
+        sp_dna_treg1_treg2 = Complex([sp_dna,sp_treg2,sp_treg2,sp_treg1,sp_treg1])
+        sp_dna_rnap = Complex([sp_dna,sp_rnap])
+        sp_dna_treg1_rnap = Complex([sp_dna_treg1,sp_rnap])
+        sp_dna_treg2_rnap = Complex([sp_dna_treg2,sp_rnap])
+        sp_dna_treg1_treg2_rnap = Complex([sp_dna_treg1_treg2,sp_rnap])
         #print('\n\n'.join([str(a) for a in newprom_rxns]))
         #now, we generate the reaction input outputs manually
         r0 = [set([sp_rnap,sp_dna]),set([sp_dna_rnap]),100,50] #RNAP binding to DNA

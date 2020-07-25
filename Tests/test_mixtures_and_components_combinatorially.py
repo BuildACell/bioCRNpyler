@@ -46,7 +46,11 @@ class CombinatorialComponentMixtureTest(TestCase):
 			]
 
 		#Use default parameters
-		self.parameters = {"kb":1.0, "ku":1.0, "ktx":1.0, "ktl":1.0, "kdeg":1.0, "kdil":1.0, "kexpress":1.0,"kcat":1.0}
+		self.parameters = {"kb":1.0, "ku":1.0, "ktx":1.0, "ktl":1.0, "kdeg":1.0, "kdil":1.0, "kexpress":1.0,"kcat":1.0, "K":10, 
+		"cooperativity":2, "n":2, "k":1.0, "max_occ":10, "kleak":.01, "k1":1.0, "kbr":1.0, "k2":1.0, "kur":.1, "k_iso":.2, "ktx_solo":1.0, "k_iso_r":10, "ktl_solo":1.0}
+
+		self.transcription_mechs = {SimpleTranscription, Transcription_MM, multi_tx}
+		self.translation_mechs = {SimpleTranslation, Translation_MM, multi_tl}
 
 	#Instantiate every Component
 	def test_component_instantiation(self):
@@ -84,6 +88,16 @@ class CombinatorialComponentMixtureTest(TestCase):
 			error_txt = f"Instantiating Mixture {mixture} with args {args}. \n Unexpected Error: {str(e)}."
 			raise Exception(error_txt)
 
+	def test_mechanism_instantiation(self):
+		try:
+			for mech in self.transcription_mechs:
+				M = mech()
+			for mech in self.translation_mechs:
+				M = mech()
+		except Exception as e:
+			error_txt = f"Instatiating Mechanism {mech}. \n Unexpected Error: {str(e)}."
+			raise Exception(error_txt)
+
 	#Instantiate Each Component in each Mixture
 	def test_components_in_mixtures(self):
 		
@@ -104,7 +118,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 			raise Exception(error_txt)
 
 	#Instantiate Each set of Promoter-RBS in a DNAassembly in each Mixture
-	def dna_assemblies_in_mixtures(self):
+	def test_dna_assemblies_in_mixtures(self):
 		try:
 			for (prom, args) in self.promoter_classes:
 				P = prom(**args)
@@ -123,4 +137,22 @@ class CombinatorialComponentMixtureTest(TestCase):
 			error_txt = f"Instantiating Promoter {prom} & RBS {rbs} in a DNAassembly in Mixture {mixture} with args {args}. \n Unexpected Error: {str(e)}."
 			raise Exception(error_txt)
 
+	def test_dna_assemblies_with_combinations_of_mechanisms(self):
+		try:
+			for (prom, args) in self.promoter_classes:
+				P = prom(**args)
+				for (rbs, args) in self.rbs_classes:
+					R = rbs(**args)
+					for mech_tx in self.transcription_mechs:
+						for mech_tl in self.translation_mechs:
+							Mtx = mech_tx()
+							Mtl = mech_tl()
+							mechs = {Mtx.mechanism_type:Mtx, Mtl.mechanism_type:Mtl, "binding": One_Step_Cooperative_Binding()}
+							A = DNAassembly("assembly", promoter = P, rbs = R)
+							M = Mixture(default_mechanisms = mechs, components = [A], parameters = self.parameters)
+
+							CRN = M.compile_crn()
+		except Exception as e:
+			error_txt = f"Instantiating Promoter {prom} & RBS {rbs} in a DNAassembly in Mixure with mech_tx = {mech_tx} and mech_tl = {mech_tl}. \n Unexpected Error: {str(e)}."
+			raise Exception(error_txt)
 

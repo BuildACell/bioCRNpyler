@@ -35,13 +35,15 @@ class RBS(Component):
     def update_species(self):
         mech_tl = self.mechanisms['translation']
         species = []
-        species += mech_tl.update_species(transcript = self.transcript, protein = self.protein, component = self, part_id = self.name)
+        if self.protein is not None:
+            species += mech_tl.update_species(transcript = self.transcript, protein = self.protein, component = self, part_id = self.name)
         return species
 
     def update_reactions(self):
         mech_tl = self.mechanisms['translation']
         reactions = []
 
-        reactions += mech_tl.update_reactions(transcript = self.transcript,
+        if self.protein is not None:
+            reactions += mech_tl.update_reactions(transcript = self.transcript,
                                               protein = self.protein, component = self, part_id = self.name)
         return reactions

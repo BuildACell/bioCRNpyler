@@ -5,9 +5,8 @@ from .reaction import *
 import warnings
 import numpy as np
 from typing import List, Union, Dict
-import itertools
 import copy
-
+from .polymer import OrderedPolymer, OrderedMonomer
 
 class ChemicalReactionNetwork(object):
     """ A chemical reaction network is a container of species and reactions
