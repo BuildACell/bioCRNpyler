@@ -1,6 +1,6 @@
 from warnings import warn
 from .mechanism import *
-from .species import Species, ComplexSpecies, Multimer
+from .species import Species, Complex
 from .reaction import Reaction
 
 

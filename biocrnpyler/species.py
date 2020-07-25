@@ -218,7 +218,9 @@ class Species(OrderedMonomer):
         if isinstance(other, Species) \
                             and self.material_type == other.material_type \
                             and self.name == other.name \
-                            and set(self.attributes) == set(other.attributes):
+                            and set(self.attributes) == set(other.attributes)\
+                            and self.parent == other.parent\
+                            and self.position == other.position:
             return True
         else:
             return False
@@ -229,6 +231,83 @@ class Species(OrderedMonomer):
 
     def __hash__(self):
         return str.__hash__(repr(self))
+
+    @staticmethod
+    def flatten_list(in_list) -> List:
+        """Helper function to flatten lists
+        """
+        out_list = []
+        if not isinstance(in_list,list):
+            out_list.append(in_list)
+        else:
+            for element in in_list:
+                if isinstance(element, list):
+                    out_list += Species.flatten_list(element)
+                else:
+                    out_list += [element]
+        return out_list
+
+
+class WeightedSpecies:
+    def __init__(self, species: Species, stoichiometry:int=1):
+        """Container object for a all types of species and its stoichiometry
+        """
+        self.species: Species = species
+        self.stoichiometry: int = stoichiometry
+
+    @property
+    def stoichiometry(self):
+        return self._stoichiometry
+
+    @stoichiometry.setter
+    def stoichiometry(self, new_stoichiometry):
+        if new_stoichiometry <= 0:
+            raise ValueError(f'Stoichiometry must be positive integer! We got {new_stoichiometry}!')
+        self._stoichiometry = int(new_stoichiometry)
+
+    def pretty_print(self, **kwargs):
+        return f'{self.stoichiometry if self.stoichiometry > 1 else ""}{self.species.pretty_print(**kwargs)}'
+
+    def replace_species(self, *args, **kwargs):
+        return self.species.replace_species(*args, **kwargs)
+
+    @staticmethod
+    def _count_weighted_species(weighted_species: List):
+        """Helper function merge the same species in a list with different stoichiometry
+
+        >>> s1 = Species(name='a')
+        >>> ws1 = WeightedSpecies(species=s1, stoichiometry=2)
+        >>> ws2 = WeightedSpecies(species=s1, stoichiometry=5)
+        >>> ws_list = [ws1, ws2]
+        >>> freq_dict = WeightedSpecies._count_weighted_species(ws_list)
+        >>> len(freq_dict)
+        1
+
+        :param weighted_species: list of weighted_species
+        :return: unique list of weighted_species, i.e. set(weighted_species)
+        """
+        # convert to set doesn't work because we need only species equality
+        unique_species = []
+        for w_species in weighted_species:
+            if not any(w_species.species == u_s.species for u_s in unique_species):
+                unique_species.append(w_species)
+
+        freq_dict = dict(zip(unique_species, [0]*len(unique_species)))
+        for w_species in weighted_species:
+            for key in freq_dict:
+                if key.species == w_species.species:
+                    freq_dict[key] += w_species.stoichiometry
+
+        return freq_dict
+
+    def __eq__(self, other):
+        if other.__class__ is self.__class__:
+            return (other.species, other.stoichiometry) == (self.species, self.stoichiometry)
+        return False
+
+    def __hash__(self):
+        return hash(self.species)+hash(self.stoichiometry)
+
 
 class Complex:
     """
@@ -291,10 +370,12 @@ class Complex:
             if ordered:
                 #this creates an OrderedComplexSpecies
                 #pass in all the args and keywords appropriately
+                keywords["called_from_complex"] = True
                 return OrderedComplexSpecies(species,*args,**keywords)
             else:
                 #this creates aComplexSpecies
                 #pass in all the args and keywords appropriately
+                keywords["called_from_complex"] = True
                 return ComplexSpecies(species,*args,**keywords)
 
         #This means the Complex is being formed inside an OrderedPolymerSpecies
@@ -308,9 +389,11 @@ class Complex:
 
             #Create an OrderedcomplexSepcies
             if ordered:
+                keywords["called_from_complex"] = True
                 new_complex = OrderedComplexSpecies(new_species,*args,**keywords)
             #Create a ComplexSpecies
             else:
+                keywords["called_from_complex"] = True
                 new_complex = ComplexSpecies(new_species,*args,**keywords)
             #now we replace the monomer inside the parent polymer
             valent_complex.replace(bindloc,new_complex,prev_direction)
@@ -329,8 +412,13 @@ class ComplexSpecies(Species):
         For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
     """
     def __init__(self, species: List[Union[Species,str]], name: Union[str,None] = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
+        
+        #A little check to enforce use of Complex() to create ComplexSpecies
+        if "called_from_complex" not in keywords or not keywords["called_from_complex"]:
+            warnings.warn("ComplexSpecies should be created using the Complex([List of Species]) function, not directly!")
+
         #Set species because it is used for default naming
-        if len(flatten_list(species)) <= 1:
+        if len(Species.flatten_list(species)) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
         self.species = species 
@@ -390,7 +478,7 @@ class ComplexSpecies(Species):
     def species(self, species):
         if not isinstance(species, list):
             raise TypeError(f"species must be a list: recieved {species}.")
-        species = flatten_list(species)
+        species = Species.flatten_list(species)
         if not all(isinstance(s, Species) for s in species):
              raise TypeError(f"recieved a non-species as a member of the list species: {species}.")
         else:
@@ -417,7 +505,7 @@ class ComplexSpecies(Species):
         if self._name is not None:
             new_name = self.name
         
-        return ComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
+        return Complex(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
 
     
     def get_species(self, recursive = False):
@@ -471,7 +559,10 @@ class Multimer(ComplexSpecies):
     """A subclass of ComplexSpecies for Complexes made entirely of the same kind of species,
     eg dimers, tetramers, etc.
     """
-    def __init__(self, species, multiplicity, name = None, material_type = "complex", attributes = None, initial_concentration = 0):
+    def __init__(self, species, multiplicity, name = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
+
+        if "called_from_complex" not in keywords or not keywords["called_from_complex"]:
+            warnings.warn("OrderedComplexSpecies should be created from the Complex([List of Species], ordered = True) function, not directly!")
 
         if isinstance(species, str):
             species = [Species(name = species)]
@@ -480,7 +571,7 @@ class Multimer(ComplexSpecies):
         else:
             species = [species]
 
-        ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)   
+        ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration, **keywords)   
 
 class OrderedComplexSpecies(ComplexSpecies):
     """ 
@@ -492,9 +583,9 @@ class OrderedComplexSpecies(ComplexSpecies):
     Used for attribute inheritance and storing groups of bounds Species. 
     """
 
-    def __init__(self, species, name = None, material_type = "ordered_complex", attributes = None, initial_concentration = 0):
+    def __init__(self, species, name = None, material_type = "ordered_complex", attributes = None, initial_concentration = 0, **keywords):
         #Set species because it is used for default naming
-        if len(flatten_list(species)) <= 1:
+        if len(Species.flatten_list(species)) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
                              "or more species in its constructor.")
         self.species = species
@@ -532,7 +623,7 @@ class OrderedComplexSpecies(ComplexSpecies):
     def species(self, species):
         if not isinstance(species, list):
             raise TypeError(f"species must be a list: recieved {species}.")
-        species = flatten_list(species)
+        species = Species.flatten_list(species)
         if not all(isinstance(s, Species) for s in species):
              raise TypeError(f"recieved a non-species as a member of the list species: {species}.")
         else:
@@ -557,7 +648,7 @@ class OrderedComplexSpecies(ComplexSpecies):
         if self._name is not None:
             new_name = self.name
         
-        return OrderedComplexSpecies(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes)
+        return Complex(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes, ordered = True)
 
     def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
         """

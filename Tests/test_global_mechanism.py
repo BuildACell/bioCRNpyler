@@ -3,7 +3,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import GlobalMechanism,Species, ComplexSpecies
+from biocrnpyler import GlobalMechanism,Species, Complex
 
 class TestGlobalMechanism(TestCase):
 
@@ -27,8 +27,8 @@ class TestGlobalMechanism(TestCase):
         #No filter dictionary used in these tests
         s1 = Species("s1", material_type = "m1", attributes = ["a1"])
         s2 = Species("s2", material_type = "m2", attributes = ["a2"])
-        c1 = ComplexSpecies([s1, s2], name = "c1")
-        c2 = ComplexSpecies([c1, s2], name = "c2")
+        c1 = Complex([s1, s2], name = "c1")
+        c2 = Complex([c1, s2], name = "c2")
 
         #Always ON for all species
         mech_default_on = GlobalMechanism(name = self.mech_name, mechanism_type = "dummy", default_on = True)
@@ -44,8 +44,8 @@ class TestGlobalMechanism(TestCase):
 
         s1 = Species("s1", material_type = "m1", attributes = ["a1"])
         s2 = Species("s2", material_type = "m2", attributes = ["a2"])
-        c1 = ComplexSpecies([s1, s2], name = "c1")
-        c2 = ComplexSpecies([c1, s2], name = "c2")
+        c1 = Complex([s1, s2], name = "c1")
+        c2 = Complex([c1, s2], name = "c2")
 
 
         fd = {"s1":False} #Filter based on name
@@ -78,8 +78,8 @@ class TestGlobalMechanism(TestCase):
 
         s1 = Species("s1", material_type = "m1", attributes = ["a1"])
         s2 = Species("s2", material_type = "m2", attributes = ["a2"])
-        c1 = ComplexSpecies([s1, s2], name = "c1")
-        c2 = ComplexSpecies([c1, s2], name = "c2")
+        c1 = Complex([s1, s2], name = "c1")
+        c2 = Complex([c1, s2], name = "c2")
 
         fd = {"s1":True} #Filter based on name
         mech_default_on_fds1 = GlobalMechanism(name = self.mech_name, mechanism_type = "dummy", 

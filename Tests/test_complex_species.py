@@ -21,23 +21,23 @@ class TestComplexSpecies(TestCase):
         # Check invalidity of ComplexSpecies with fewer than 2 component
         with self.assertRaisesRegexp(ValueError,'chemical_reaction_network.complex requires '
                                                 '2 or more species in its constructor'):
-            ComplexSpecies([s1])
+            ComplexSpecies([s1], called_from_complex = True)
         
         # Check invalidity of OrderedComplexSpecies with fewer than 2 component
         with self.assertRaisesRegexp(ValueError, 'chemical_reaction_network.complex requires 2 '
                                                  'or more species in its constructor.'):
-            OrderedComplexSpecies([s1])
+            OrderedComplexSpecies([s1], called_from_complex = True)
         
         # Check invalidity of multimers with fewer than 2 component
         with self.assertRaisesRegexp(ValueError, 'chemical_reaction_network.complex requires 2 '
                                                  'or more species in its constructor'):
-            Multimer(s1, 1)
+            Multimer(s1, 1, called_from_complex = True)
 
         # Check the naming conventions
-        oc1 = OrderedComplexSpecies([s2, s1])
-        c1 = ComplexSpecies([s2, s1])
-        m1 = Multimer(s1, 2)
-        c3 = ComplexSpecies([s1, s1])
+        oc1 = OrderedComplexSpecies([s2, s1], called_from_complex = True)
+        c1 = ComplexSpecies([s2, s1], called_from_complex = True)
+        m1 = Multimer(s1, 2, called_from_complex = True)
+        c3 = ComplexSpecies([s1, s1], called_from_complex = True)
 
         # Check invalidity of ComplexSpecies, Multimers and OrderedComplexSpecies with strings instead of species
         with self.assertRaisesRegexp(TypeError, 'recieved a non-species as a member of the list species'):
@@ -57,13 +57,13 @@ class TestComplexSpecies(TestCase):
         self.assertEqual(repr(c3), repr(m1))
 
         # Nested list creation of ComplexSpecies
-        c1 = ComplexSpecies([s1, [s2, s1]])
-        c2 = ComplexSpecies([s1, s2, s1])
+        c1 = ComplexSpecies([s1, [s2, s1]], called_from_complex = True)
+        c2 = ComplexSpecies([s1, s2, s1], called_from_complex = True)
         self.assertEqual(c1, c2)
 
-        c1 = OrderedComplexSpecies([s1, [s2, s1]])
-        c2 = OrderedComplexSpecies([s1, s2, s1])
-        c3 = OrderedComplexSpecies([s1, [s1, s2]])
+        c1 = OrderedComplexSpecies([s1, [s2, s1]], called_from_complex = True)
+        c2 = OrderedComplexSpecies([s1, s2, s1], called_from_complex = True)
+        c3 = OrderedComplexSpecies([s1, [s1, s2]], called_from_complex = True)
         self.assertEqual(c1, c2)
         self.assertFalse(c1==c3)
 
@@ -72,13 +72,13 @@ class TestComplexSpecies(TestCase):
         s1 = Species(name='s1', material_type="m1")
         s2 = Species(name='s2', material_type="m2")
 
-        c1 = ComplexSpecies([s1, s2])
-        c2 = ComplexSpecies([s2, s1])
+        c1 = ComplexSpecies([s1, s2], called_from_complex = True)
+        c2 = ComplexSpecies([s2, s1], called_from_complex = True)
         # Check equality of differently ordered complexes
         self.assertEqual(c1, c2)
                          
-        oc1 = OrderedComplexSpecies([s2, s1])
-        oc2 = OrderedComplexSpecies([s1, s2])
+        oc1 = OrderedComplexSpecies([s2, s1], called_from_complex = True)
+        oc2 = OrderedComplexSpecies([s1, s2], called_from_complex = True)
         self.assertFalse(oc1 == oc2)
         #check of __contains__
         self.assertTrue(s1 in c1)

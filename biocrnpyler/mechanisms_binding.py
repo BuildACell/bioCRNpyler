@@ -1,5 +1,5 @@
 from .mechanism import *
-from .species import Species, ComplexSpecies, Multimer, WeightedSpecies
+from .species import Species, Complex, WeightedSpecies
 from .reaction import Reaction
 
 class Reversible_Bimolecular_Binding(Mechanism):
