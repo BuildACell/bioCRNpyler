@@ -129,7 +129,7 @@ class Reaction(object):
             complexes = [WeightedSpecies(species=species) for species in complexes]
         else:
             if not all([isinstance(one_complex, WeightedSpecies) for one_complex in complexes]):
-                raise TypeError(f'inputs must be list of Species or list of ChemicalComplexes!')
+                raise TypeError(f'inputs must be list of Species or list of ChemicalComplexes! Recieved {complexes}')
 
         # filter out duplicates and adjust stoichiometry
         out_list = []

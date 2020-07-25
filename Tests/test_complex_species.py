@@ -53,7 +53,7 @@ class TestComplexSpecies(TestCase):
         self.assertEqual(repr(oc1), "ordered_complex_"+repr(s2)+"_"+repr(s1))
         
         # Multimers are just complexes with multiplicity
-        self.assertEqual(repr(m1), "complex_2x_"+repr(s1))
+        self.assertEqual(repr(m1), "complex_"+repr(s1)+"_2x")
         self.assertEqual(repr(c3), repr(m1))
 
         # Nested list creation of ComplexSpecies

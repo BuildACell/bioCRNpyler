@@ -56,9 +56,6 @@ class One_Step_Cooperative_Binding(Mechanism):
         if complex_species is None:
             complex_name = None
             material_type = None
-        elif isinstance(complex_species, str):
-            complex_name = complex_species
-            material_type = None
         elif isinstance(complex_species, Species):
             complexS = complex_species
             material_type = complex_species.material_type
@@ -73,7 +70,6 @@ class One_Step_Cooperative_Binding(Mechanism):
 
     def update_reactions(self, binder, bindee, complex_species = None, component = None, kb = None, ku = None, part_id = None, cooperativity=None, **kwords):
 
-        complexS = self.update_species(binder, bindee, cooperativity = cooperativity, part_id = part_id, component = component, **kwords)[-1]
 
         #Get Parameters
         if part_id is None:
@@ -86,6 +82,21 @@ class One_Step_Cooperative_Binding(Mechanism):
             cooperativity = component.get_parameter("cooperativity", part_id = part_id, mechanism = self, return_numerical = True)
         if component is None and (kb is None or ku is None or cooperativity is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and coopertivity.")
+
+        complexS = None
+        if complex_species is None:
+            complex_name = None
+            material_type = None
+        elif isinstance(complex_species, Species):
+            complexS = complex_species
+            material_type = complex_species.material_type
+        else:
+            raise TypeError("complex_species keyword must be a str, Species, or None.")
+
+        if complexS is None:
+            complexS = Complex([binder]*int(cooperativity)+[bindee], name = complex_name, material_type = material_type)
+            
+
 
         inputs = [WeightedSpecies(species=binder, stoichiometry=cooperativity),
                   WeightedSpecies(species=bindee, stoichiometry=1)]

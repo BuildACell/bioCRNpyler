@@ -17,7 +17,9 @@ class OneStepGeneExpression(Mechanism):
 
     def update_species(self, dna, protein, transcript=None, **keywords):
         species = [dna]
-        species += [protein]
+        if protein is not None:
+            species += [protein]
+
         return species
 
     def update_reactions(self, dna, component = None, kexpress = None,
@@ -28,8 +30,10 @@ class OneStepGeneExpression(Mechanism):
         elif component is None and kexpress is None:
             raise ValueError("Must pass in component or a value for kexpress")
 
-        rxns = [Reaction.from_massaction(inputs=[dna], outputs=[dna, protein], k_forward=kexpress)]
-        return rxns
+        if protein is not None:
+            return [Reaction.from_massaction(inputs=[dna], outputs=[dna, protein], k_forward=kexpress)]
+        else:
+            return []
 
 
 class SimpleTranscription(Mechanism):
@@ -364,7 +368,7 @@ class multi_tx(Mechanism):
     """
 
     # initialize mechanism subclass
-    def __init__(self, pol, name='multi_tx', mechanism_type='transcription', **keywords):
+    def __init__(self, pol = None, name='multi_tx', mechanism_type='transcription', **keywords):
 
         if isinstance(pol,str):
             self.pol = Species(name=pol, material_type='protein')
@@ -372,6 +376,8 @@ class multi_tx(Mechanism):
         elif isinstance(pol,Species):
             self.pol = pol
 
+        elif pol is None:
+            self.pol = Species("RNAP", material_type='protein')
         else:
             raise ValueError("'pol' must be a string or Species")
 
@@ -482,13 +488,16 @@ class multi_tl(Mechanism):
     """
 
     # initialize mechanism subclass
-    def __init__(self, ribosome, name='multi_tl', mechanism_type='translation', **keywords):
+    def __init__(self, ribosome = None, name='multi_tl', mechanism_type='translation', **keywords):
 
         if isinstance(ribosome,str):
             self.ribosome = Species(name=ribosome, material_type='protein')
 
         elif isinstance(ribosome,Species):
             self.ribosome = ribosome
+
+        elif ribosome is None:
+            self.ribosome = Species("Ribo", material_type = "protein")
 
         else:
             raise ValueError("'ribosome' must be a string or Species")

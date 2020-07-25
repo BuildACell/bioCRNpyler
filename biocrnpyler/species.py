@@ -432,12 +432,9 @@ class ComplexSpecies(Species):
             name = ""
             for s in self.species_set:
                 count = self.species.count(s)
+                name+=str(s)+"_"
                 if count > 1:
                     name+=f"{count}x_"
-                if not (isinstance(s, ComplexSpecies) or s.material_type == ""):
-                    name+=f"{s.material_type}_{s.name}_"
-                else:
-                    name+=f"{s.name}_"
             name = name[:-1]
             return name
         else:
@@ -602,7 +599,7 @@ class OrderedComplexSpecies(ComplexSpecies):
             for s in self.species:
                 if isinstance(s, str):
                     s = Species(name = s)
-                if s.material_type not in ["complex", "ordered_complex", ""]:
+                if s.material_type not in [""]:
                     name+=f"{s.material_type}_{s.name}_"
                 else:
                     name+=f"{s.name}_"
