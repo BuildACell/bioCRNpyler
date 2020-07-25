@@ -6,7 +6,8 @@ from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
 from .mechanisms_binding import One_Step_Binding
 from .mechanisms_txtl import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
 from .mixture import Mixture
-from .chemical_reaction_network import Species, ChemicalReactionNetwork
+from .species import Species
+from .chemical_reaction_network import ChemicalReactionNetwork
 from .global_mechanism import Dilution
 from .dna_assembly import DNAassembly
 

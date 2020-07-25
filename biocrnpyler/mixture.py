@@ -6,7 +6,9 @@ from warnings import warn
 from warnings import resetwarnings
 
 from .component import Component
-from .chemical_reaction_network import ChemicalReactionNetwork, Species, Reaction
+from .chemical_reaction_network import ChemicalReactionNetwork
+from .species import Species
+from .reaction import Reaction
 from .parameter import ParameterDatabase, ParameterEntry
 from typing import List, Union
 
@@ -149,11 +151,7 @@ class Mixture(object):
     def get_parameter(self, mechanism, part_id, param_name, parameter_warnings = False):
         param = self.parameter_database.find_parameter(mechanism, part_id, param_name, parameter_warnings = parameter_warnings)
 
-        #TODO replace this with just returning the parameter, when reaction overhaul is complete
-        if isinstance(param, ParameterEntry):
-            return param.value
-        else:
-            return param
+        return param
     
     #Tries to find an initial condition of species s using the parameter heirarchy
     # 1. Tries to find the initial concentration in the Component initial_Concentration_dictionary and ParameterDatabase
@@ -274,7 +272,6 @@ class Mixture(object):
                 global_mech_reactions += self.global_mechanisms[mech].update_reactions_global(self.crn_species, self)
 
         return global_mech_species, global_mech_reactions
-
 
     def compile_crn(self) -> ChemicalReactionNetwork:
         """ Creates a chemical reaction network from the species and reactions associated with a mixture object

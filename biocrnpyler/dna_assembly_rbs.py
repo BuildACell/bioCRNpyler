@@ -1,6 +1,6 @@
 from .component import Component
 from .components_basic import DNA, RNA, Protein
-from .chemical_reaction_network import ComplexSpecies, Species
+from .species import ComplexSpecies, Species
 from .mechanisms_binding import *
 from .mechanisms_txtl import *
 

@@ -166,6 +166,15 @@ class ParameterEntry(Parameter):
         else:
             raise ValueError(f"parameter_info must be None or a dictionary: received {parameter_info}.")
 
+    def get_sbml_id(self):
+        sbml_id = self.paramter_key.name+"_"
+        if self.parameter_key.part_id is not None:
+            sbml_id += self.parameter_key.part_id
+        sbml_id += "_"
+        if self.parameter_key.mechanism is not None:
+            sbml_id += self.parameter_key.mechanism
+        return sbml_id
+
 
 class ModelParameter(ParameterEntry):
     """
