@@ -22,6 +22,7 @@ def test_bioscrape_import_simulate():
     else:
         assert str(X) in sim_result
 
+
 def test_bioscrape_import_simulate_via_sbml():
     from biocrnpyler import ChemicalReactionNetwork, Species
     import numpy as np
@@ -29,7 +30,7 @@ def test_bioscrape_import_simulate_via_sbml():
     X = Species("X")
     CRN = ChemicalReactionNetwork(species=[X],reactions=[])
     with pytest.warns(None) as record:
-        sim_result, bioscrape_model  = CRN.simulate_with_bioscrape_via_sbml(timepoints=np.linspace(0, 10, 100), initial_condition_dict={str(X):1})
+        sim_result, bioscrape_model = CRN.simulate_with_bioscrape_via_sbml(timepoints=np.linspace(0, 10, 100), initial_condition_dict={str(X):1}, return_model=True)
 
 
     #In the case bioscrape is not imported

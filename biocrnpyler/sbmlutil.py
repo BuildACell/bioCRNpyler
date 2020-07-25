@@ -179,13 +179,14 @@ def add_all_reactions(model, reactions: List, stochastic=False, for_bioscrape = 
             add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, reverse_reaction = True, for_bioscrape = for_bioscrape,**kwargs)
 
 
-def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction : bool=False, for_bioscrape = False, **kwargs):
+def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction: bool=False, for_bioscrape = False, **kwargs):
     """adds a sbml_reaction to an sbml model
 
     :param model: an sbml model created by create_sbml_model()
     :param crn_reaction: must be a chemical_reaction_network.reaction object
     :param reaction_id: unique id of the reaction
     :param stochastic: stochastic model flag
+    :param reverse_reaction:
     :return: SBML sbml_reaction object
     """
 
@@ -208,13 +209,13 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
                                                     **kwargs)
 
     # Create the reactants and products for the sbml_reaction
-    _create_reactants(reactant_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
-    _create_products(product_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
+    if not reverse_reaction:
+        _create_reactants(reactant_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+        _create_products(product_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
 
-    if reverse_reaction:
+    else:
         _create_reactants(reactant_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
         _create_products(product_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
-
 
     return sbml_reaction
 
