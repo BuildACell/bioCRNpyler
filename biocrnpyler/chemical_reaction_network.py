@@ -54,15 +54,15 @@ class ChemicalReactionNetwork(object):
         if not isinstance(reactions, list):
             reactions = [reactions]
 
-        for reaction in reactions:
+        for r in reactions:
             if not isinstance(r, Reaction): #check reactions and Reactions
                 raise ValueError("A non-reaction object was used as a reaction!")
 
             #add all the Species in the reaction to the CRN
-            reaction_species = list(set([w.species for w in reaction.inputs + reaction.outputs]))
+            reaction_species = list(set([w.species for w in r.inputs + r.outputs]))
             self.add_species(reaction_species, show_warnings=show_warnings)
 
-            self.reactions.append(copy.deepcopy(reaction)) #copy the Reaction and add it to the CRN
+            self.reactions.append(copy.deepcopy(r)) #copy the Reaction and add it to the CRN
 
             #TODO synchronize Species in the CRN
 
@@ -124,7 +124,7 @@ class ChemicalReactionNetwork(object):
             s = self.species[sind]
             txt += f"{sind}. "+s.pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs) + ", "
         txt = txt[:-2] + '}\n'
-        txt += f"Reactions ({len(self.reactions)}) = [\n"
+        txt += f"\nReactions ({len(self.reactions)}) = [\n"
 
         for rind in range(len(self.reactions)):
             r = self.reactions[rind]

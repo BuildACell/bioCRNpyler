@@ -129,9 +129,9 @@ class Propensity(object):
             if isinstance(p, Parameter):
                 txt += f"  {k}={p.value}"#p.pretty_print(**kwargs)+"\n"
                 if isinstance(p, ModelParameter) and show_keys:
-                    txt+=f"\n  found_key=(mech={p.found_key.mechanism}, partid={p.found_key.part_id}, name={p.found_key.name}).\n  search_key=(mech={p.search_key.mechanism}, partid={p.search_key.part_id}, name={p.search_key.name}."
+                    txt+=f"\n  found_key=(mech={p.found_key.mechanism}, partid={p.found_key.part_id}, name={p.found_key.name}).\n  search_key=(mech={p.search_key.mechanism}, partid={p.search_key.part_id}, name={p.search_key.name})."
                 txt+="\n"
-            else:
+            elif p is not None:
                 txt += f"  {k}={p}\n"
         return txt
 
