@@ -3,12 +3,12 @@ mechanism_id	part_id	param_name	param_val	comments
 	e coli	RNAP	15	uM assuming ~10000 RNAP molecules / e. coli with a volume 1 um^3
 	e coli	RNAase	45	uM assuming ~30000 RNAP molecules / e. coli with a volume 1 um^4
 	e coli	cellular_processes	5	somewhat arbitary concentration for ~3000 genes in e. coli assuming weak loading on all of them
-	e coli extract	Ribo	24	1/5 th the Ribosome concentration of E. Coli
-	e coli extract	RNAP	3	1/5 th the rnap concentration of E. Coli
-	e coli extract	RNAase	6	1/5 th the rnaase concentration of E. Coli
-	e coli extract 2	Ribo	12	
-	e coli extract 2	RNAP	6	
-	e coli extract 2	RNAase	3	
+	e coli extract	protein_Ribo	24	1/5 th the Ribosome concentration of E. Coli
+	e coli extract	protein_RNAP	3	1/5 th the rnap concentration of E. Coli
+	e coli extract	protein_RNAase	6	1/5 th the rnaase concentration of E. Coli
+	e coli extract 2	protein_Ribo	12	
+	e coli extract 2	protein_RNAP	6	
+	e coli extract 2	protein_RNAase	3	
 		ktx	0.05	transcripts / second per polymerase assuming 50nt/s and transcript length of 1000
 		ktl	0.05	proteins / second per ribosome assuming 15aa/s and protein length of 300
 		cooperativity	2	Seems like a good default

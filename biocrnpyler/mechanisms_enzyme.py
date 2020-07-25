@@ -1,6 +1,7 @@
 from warnings import warn
 from .mechanism import *
-from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
+from .species import Species, Complex
+from .reaction import Reaction
 
 
 class BasicCatalysis(Mechanism):
@@ -25,7 +26,8 @@ class BasicCatalysis(Mechanism):
         elif kcat is None:
             kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
 
-        return [Reaction([Enzyme, Sub], [Enzyme, Prod], kcat)]
+        return [Reaction.from_massaction(inputs=[Enzyme, Sub], outputs=[Enzyme, Prod], k_forward=kcat)]
+
 
 class BasicProduction(Mechanism):
     """
@@ -59,10 +61,11 @@ class BasicProduction(Mechanism):
         if Sub is not None:
             inputs += [Sub]
 
-        return [Reaction(inputs, outputs, kcat)]
+        return [Reaction.from_massaction(inputs=inputs, outputs=outputs, k_forward=kcat)]
 
-class MichalisMenten(Mechanism):
-    """Mechanism to automatically generate Michalis-Menten Type Reactions
+
+class MichaelisMenten(Mechanism):
+    """Mechanism to automatically generate Michaelis-Menten Type Reactions
        In the Copy RXN version, the Substrate is not Consumed
        Sub+Enz <--> Sub:Enz --> Enz+Prod
     """
@@ -72,7 +75,7 @@ class MichalisMenten(Mechanism):
 
     def update_species(self, Enzyme, Sub, Prod = None, complex=None, **keywords):
         if complex is None:
-            complexS = ComplexSpecies([Sub, Enzyme])
+            complexS = Complex([Sub, Enzyme])
         else:
             complexS = complex
         if Prod is None:
@@ -83,10 +86,10 @@ class MichalisMenten(Mechanism):
     def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, complex=None, kb=None, ku=None,
                          kcat=None, **keywords):
         #Get Parameters
-        if part_id == None and component != None:
+        if part_id is None and component is not None:
             part_id = component.name
 
-        if component == None and (kb == None or ku == None or kcat == None):
+        if component is None and (kb is None or ku is None or kcat is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
         if kb is None:
             kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
@@ -97,28 +100,32 @@ class MichalisMenten(Mechanism):
         
 
         if complex is None:
-            complexS = ComplexSpecies([Sub, Enzyme])
+            complexS = Complex([Sub, Enzyme])
         else:
             complexS = complex
 
         # Sub + Enz <--> Sub:Enz
-        binding_rxn = Reaction(inputs=[Sub, Enzyme], outputs=[complexS],
-                               k=kb, k_rev=ku)
+        binding_rxn = Reaction.from_massaction(inputs=[Sub, Enzyme],
+                                               outputs=[complexS],
+                                               k_forward=kb,
+                                               k_reverse=ku)
         if Prod is not None:
             # Sub:Enz --> Enz + Prod
-            cat_rxn = Reaction(inputs=[complexS],
-                               outputs=[Prod, Enzyme], k=kcat)
+            cat_rxn = Reaction.from_massaction(inputs=[complexS],
+                                               outputs=[Prod, Enzyme],
+                                               k_forward=kcat)
         else:  # Degradation Reaction
             # Sub:Enz --> Enz
-            cat_rxn = Reaction(inputs=[complexS], outputs=[Enzyme],
-                               k=kcat)
+            cat_rxn = Reaction.from_massaction(inputs=[complexS],
+                                               outputs=[Enzyme],
+                                               k_forward=kcat)
         return [binding_rxn, cat_rxn]
 
 
-class MichalisMentenReversible(Mechanism):
-    """Mechanism to automatically generate Michalis-Menten Type Reactions with products that can bind to enzymes
+class MichaelisMentenReversible(Mechanism):
+    """Mechanism to automatically generate Michaelis-Menten Type Reactions with products that can bind to enzymes
        In the Copy RXN version, the Substrate is not Consumed
-       Sub+Enz <--> Sub:Enz --> Enz:Prod <--> Enz + Prod
+       Sub+Enz <--> Sub:Enz <--> Enz:Prod <--> Enz + Prod
     """
 
     def __init__(self, name = "michalis_menten_reverse_binding", mechanism_type = "catalysis", **keywords):
@@ -126,11 +133,11 @@ class MichalisMentenReversible(Mechanism):
 
     def update_species(self, Enzyme, Sub, Prod, complex=None, complex2 = None, **keywords):
         if complex is None:
-            complex1 = ComplexSpecies([Sub, Enzyme])
+            complex1 = Complex([Sub, Enzyme])
         else:
             complex1 = complex
         if complex2 is None:
-            complex2 = ComplexSpecies([Prod, Enzyme])
+            complex2 = Complex([Prod, Enzyme])
         else:
             complex2 = complex2
         return [Enzyme, Sub, Prod, complex1, complex2]
@@ -138,10 +145,10 @@ class MichalisMentenReversible(Mechanism):
     def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, complex=None, complex2 = None, kb=None, ku=None,
                          kcat=None, **keywords):
         #Get Parameters
-        if part_id == None and component != None:
+        if part_id is None and component is not None:
             part_id = component.name
 
-        if component == None and (kb == None or ku == None or kcat == None):
+        if component is None and (kb is None or ku is None or kcat is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
         if kb is None:
             kb1 = component.get_parameter("kb1", part_id = part_id, mechanism = self)
@@ -161,26 +168,33 @@ class MichalisMentenReversible(Mechanism):
         
 
         if complex is None:
-            complex1 = ComplexSpecies([Sub, Enzyme])
+            complex1 = Complex([Sub, Enzyme])
         else:
             complex1 = complex
         if complex2 == None:
-            complex2 = ComplexSpecies([Prod, Enzyme])
+            complex2 = Complex([Prod, Enzyme])
 
         # Sub + Enz <--> Sub:Enz
-        binding_rxn1 = Reaction(inputs=[Sub, Enzyme], outputs=[complex1],
-                               k=kb1, k_rev=ku1)
+        binding_rxn1 = Reaction.from_massaction(inputs=[Sub, Enzyme],
+                                                outputs=[complex1],
+                                                k_forward=kb1,
+                                                k_reverse=ku1)
 
-        binding_rxn2 = Reaction(inputs=[Prod, Enzyme], outputs=[complex2],
-                               k=kb2, k_rev=ku2)
+        binding_rxn2 = Reaction.from_massaction(inputs=[Prod, Enzyme],
+                                                outputs=[complex2],
+                                                k_forward=kb2,
+                                                k_reverse=ku2)
 
         # Sub:Enz --> Enz:Prod
-        cat_rxn = Reaction(inputs=[complex1], outputs=[complex2], k=kcat, k_rev = kcat_rev)
+        cat_rxn = Reaction.from_massaction(inputs=[complex1],
+                                           outputs=[complex2],
+                                           k_forward=kcat,
+                                           k_reverse=kcat_rev)
         
         return [binding_rxn1, binding_rxn2, cat_rxn]
 
 
-class MichalisMentenCopy(Mechanism):
+class MichaelisMentenCopy(Mechanism):
     """In the Copy RXN version, the Substrate is not Consumed
        Sub+Enz <--> Sub:Enz --> Sub+Enz+Prod
     """
@@ -189,10 +203,10 @@ class MichalisMentenCopy(Mechanism):
 
     def update_species(self, Enzyme, Sub, complex=None, Prod = None, **keywords):
         if complex is None:
-            complexS = ComplexSpecies([Sub, Enzyme])
+            complexS = Complex([Sub, Enzyme])
         else:
             complexS = complex
-
+            
         if Prod is None:
             return [Enzyme, Sub, complexS]
         else:
@@ -201,30 +215,31 @@ class MichalisMentenCopy(Mechanism):
     def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, complex=None, kb=None, ku=None,
                          kcat=None, **keywords):
         if complex is None:
-            complexS = ComplexSpecies([Sub, Enzyme])
+            complexS = Complex([Sub, Enzyme])
         else:
             complexS = complex
-        
 
         #Get Parameters
-        if part_id == None and component != None:
+        if part_id is None and component is not None:
             part_id = component.name
 
-        if kb == None and component != None:
+        if kb is None and component is not None:
             kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
-        if ku == None and component != None:
+        if ku is None and component is not None:
             ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
-        if kcat == None and component != None:
+        if kcat is None and component is not None:
             kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
-        if component == None and (kb == None or ku == None or kcat == None):
+        if component is None and (kb is None or ku is None or kcat is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
         # Sub + Enz <--> Sub:Enz
-        binding_rxn = Reaction(inputs=[Sub, Enzyme], outputs=[complexS],
-                               k=kb, k_rev=ku)
+        binding_rxn = Reaction.from_massaction(inputs=[Sub, Enzyme],
+                                               outputs=[complexS],
+                                               k_forward=kb,
+                                               k_reverse=ku)
 
         # Sub:Enz --> Enz + Prod + Sub
-        cat_rxn = Reaction(inputs=[complexS], outputs=[Sub, Prod, Enzyme],
-                           k=kcat)
+        cat_rxn = Reaction.from_massaction(inputs=[complexS],
+                                           outputs=[Sub, Prod, Enzyme],
+                                           k_forward=kcat)
 
         return [binding_rxn, cat_rxn]
-

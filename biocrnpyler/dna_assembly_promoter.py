@@ -1,24 +1,34 @@
 from .component import Component
 from .components_basic import DNA, RNA, Protein, ChemicalComplex
-from .chemical_reaction_network import ComplexSpecies, Species
+from .species import ComplexSpecies, Species
 from .mechanisms_binding import *
 from .mechanisms_txtl import *
 from warnings import warn as pywarn
 import itertools as it
-import numpy as np
+
 
 class Promoter(Component):
+    """
+    A basic Promoter class with no regulation. Needs to be included in a DNAassembly or DNAconstruct to function.
+    """
     def __init__(self, name, assembly=None,
                  transcript=None, length=0,
-                 mechanisms={}, parameters={}, **keywords):
+                 mechanisms=None, parameters=None, **keywords):
         self.assembly = assembly
         self.length = length
+
         if transcript is None and assembly is None:
             self.transcript = None
         elif transcript is None:
             self.transcript = Species(assembly.name, material_type="rna")
         else:
             self.transcript = self.set_species(transcript, material_type = 'rna')
+
+        #Promoter should not have initial conditions. These need to be in DNAAssembly or DNAConstruct
+        if "initial_conc" in keywords.values() and keywords["initial_conc"] is not None:
+            raise AttributeError("Cannot set initial_conc of a Promoter. Must set initial_conc for the DNAassembly or DNAConstruct.")
+        if "initial_condition_dictionary" in keywords.values() and keywords["initial_condition_dictionary"] is not None:
+            raise AttributeError("Cannot set initial_condition_dictionary of a Promoter. Must set initial_condition_dictionary for the DNAassembly or DNAconstruct.")
 
         Component.__init__(self, name = name, mechanisms = mechanisms,
                            parameters = parameters, **keywords)
@@ -28,8 +38,9 @@ class Promoter(Component):
         species = []
 
         species += mech_tx.update_species(dna = self.assembly.dna, \
-            transcript = self.transcript, protein = self.assembly.protein,
+            transcript = self.transcript, protein = self.get_protein_for_expression(),
             component = self, part_id = self.name)
+
         return species
 
     def update_reactions(self):
@@ -38,13 +49,25 @@ class Promoter(Component):
 
         reactions += mech_tx.update_reactions(dna = self.assembly.dna, \
                         component = self, part_id = self.name, complex = None,
-                        transcript = self.transcript, protein = self.assembly.protein)
+                        transcript = self.transcript, protein = self.get_protein_for_expression())
         return reactions
 
+    #Used for expression mixtures where transcripts are replaced by proteins
+    def get_protein_for_expression(self):
+        if self.transcript is None:
+            return self.assembly.protein
+        else:
+            return None
+
 class RegulatedPromoter(Promoter):
-    def __init__(self, name, regulators, leak = True, assembly = None,
-                 transcript = None, length = 0, mechanisms = {},
-                 parameters = {}, **keywords):
+    """
+    A Promoter class with simple regulation.
+    regulators = [list of species]
+    Each regulator binds independently to the Promoter to regulate it.
+    """
+    def __init__(self, name: str, regulators, leak=True, assembly=None,
+                 transcript=None, length=0, mechanisms=None,
+                 parameters=None , **keywords):
 
         if not isinstance(regulators, list):
             regulators = [regulators]
@@ -67,14 +90,15 @@ class RegulatedPromoter(Promoter):
         mech_b = self.mechanisms['binding']
         species = []
 
+        
         self.complexes = []
         if self.leak is not False:
-            species += mech_tx.update_species(dna = self.assembly.dna, component = self, part_id = self.name+"_leak")
+            species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, component = self, part_id = self.name+"_leak", protein = self.get_protein_for_expression())
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
 
-            species_b = mech_b.update_species(regulator, self.assembly.dna, part_id = self.name+"_"+regulator.name, component = self)
+            species_b = mech_b.update_species(regulator, self.assembly.dna, part_id = self.name+"_"+regulator.name, component = self, protein = self.get_protein_for_expression())
             species += species_b
 
             #Find complexes containing DNA and the regulator
@@ -82,7 +106,7 @@ class RegulatedPromoter(Promoter):
                 if isinstance(s, ComplexSpecies) and self.assembly.dna in s.species and regulator in s.species:
                     self.complexes += [s]
 
-                    species += mech_tx.update_species(dna = s, transcript = self.transcript, protein = self.assembly.protein, part_id = self.name+"_"+regulator.name, component = self)
+                    species += mech_tx.update_species(dna = s, transcript = self.transcript, protein = self.get_protein_for_expression(), part_id = self.name+"_"+regulator.name, component = self)
         return species
 
     def update_reactions(self):
@@ -90,9 +114,9 @@ class RegulatedPromoter(Promoter):
         mech_tx = self.mechanisms["transcription"]
         mech_b = self.mechanisms['binding']
 
-        if self.leak != False:
+        if self.leak is not False:
             reactions += mech_tx.update_reactions(dna = self.assembly.dna, component = self, part_id = self.name+"_leak", \
-                                                            transcript = self.transcript, protein = self.assembly.protein)
+                                                            transcript = self.transcript, protein = self.get_protein_for_expression())
 
         for i in range(len(self.regulators)):
             regulator = self.regulators[i]
@@ -101,17 +125,22 @@ class RegulatedPromoter(Promoter):
             reactions += mech_b.update_reactions(regulator, self.assembly.dna, component = self, \
                                                                     part_id = self.name+"_"+regulator.name)
             reactions += mech_tx.update_reactions(dna = complex_, component = self, part_id = self.name+"_"+regulator.name, \
-                                            transcript = self.transcript, protein = self.assembly.protein)
+                                            transcript = self.transcript, protein = self.get_protein_for_expression())
 
         return reactions
 
-#A class for a promoter which can be activated by a single species, modelled as a positive hill function
-class ActivatablePromotor(Promoter):
-    def __init__(self, name, activator, transcript = None, **keywords):
+
+class ActivatablePromoter(Promoter):
+    """
+    A class for a promoter which can be activated by a single species, modelled as a positive hill function
+    """
+    def __init__(self, name, activator, transcript = None, leak = False, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
         self.activator = self.set_species(activator) 
+
+        self.leak = leak #toggles whether or not there is a leak reaction
         
         #Mechanisms are inherited from the Mixture unless set specifically in self.default_mechanisms.
         custom_mechanisms = {"transcription": PositiveHillTranscription()}
@@ -124,7 +153,8 @@ class ActivatablePromotor(Promoter):
         mech_tx = self.mechanisms["transcription"]
         
         species = [] #A list of species must be returned
-        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, regulator = self.activator, part_id = self.name+"_"+self.activator.name, component = self)
+        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, regulator = self.activator, 
+            part_id = self.name+"_"+self.activator.name, leak = self.leak, component = self, protein = self.get_protein_for_expression())
         
         return species
 
@@ -132,17 +162,25 @@ class ActivatablePromotor(Promoter):
         mech_tx = self.mechanisms["transcription"]
         
         reactions = [] #a list of reactions must be returned
+
+
         reactions += mech_tx.update_reactions(dna = self.assembly.dna, transcript = self.transcript, regulator = self.activator, 
-                                             component = self, part_id = self.name+"_"+self.activator.name, **keywords)
+                                             component = self, part_id = self.name+"_"+self.activator.name, leak = self.leak, protein = self.get_protein_for_expression())
+
+        
         return reactions
 
-#A class for a promoter which can be repressed by a single species, modelled as a negative hill function
-class RepressablePromotor(Promoter):
-    def __init__(self, name, repressor, transcript = None, **keywords):
+class RepressiblePromoter(Promoter):
+    """
+    A class for a promoter which can be repressed by a single species, modelled as a negative hill function
+    """
+    def __init__(self, name, repressor, transcript = None, leak = False, **keywords):
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
         self.repressor = self.set_species(repressor) 
+
+        self.leak = leak #toggles whether or not there is a leak reaction
         
         #Mechanisms are inherited from the Mixture unless set specifically in self.default_mechanisms.
         custom_mechanisms = {"transcription": NegativeHillTranscription()}
@@ -155,7 +193,8 @@ class RepressablePromotor(Promoter):
         mech_tx = self.mechanisms["transcription"]
         
         species = [] #A list of species must be returned
-        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, regulator = self.repressor, component = self, part_id = self.name+"_"+self.repressor.name)
+        species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, regulator = self.repressor, component = self, 
+            part_id = self.name+"_"+self.repressor.name, leak = self.leak, protein = self.get_protein_for_expression(), **keywords)
         
         return species
 
@@ -163,14 +202,16 @@ class RepressablePromotor(Promoter):
         mech_tx = self.mechanisms["transcription"]
         
         reactions = [] #a list of reactions must be returned
+
         reactions += mech_tx.update_reactions(dna = self.assembly.dna, transcript = self.transcript, regulator = self.repressor, 
-                                             component = self, part_id = self.name+"_"+self.repressor.name, **keywords)
+                                             component = self, part_id = self.name+"_"+self.repressor.name, leak = self.leak, protein = self.get_protein_for_expression(), **keywords)
         return reactions
 
+
 class CombinatorialPromoter(Promoter):
-    def __init__(self, name, regulators, leak = False, assembly = None,
-                 transcript = None, length = 0, mechanisms = {},
-                 parameters = {},tx_capable_list = None,cooperativity = None, **keywords):
+    def __init__(self, name, regulators, transcript = None, leak = False, assembly = None,
+                 length = 0, mechanisms = None,
+                 parameters = None,tx_capable_list = None,cooperativity = None, **keywords):
         """
         A combinatorial promoter is something where binding multiple regulators result in
         qualitatively different transcription behaviour. For example, maybe it's an AND
@@ -211,14 +252,14 @@ class CombinatorialPromoter(Promoter):
         #after we've sanitized the inputs, then sort
         self.regulators = sorted(self.regulators)
         #now let's work out the tx_capable_list
-        if(tx_capable_list == None):
+        if tx_capable_list is None:
             #if nothing is passed, that means everything transcribes
             allcomb = []
             for r in range(1,len(self.regulators)+1):
                 #make all combinations of regulators
                 allcomb += [set(a) for a in it.combinations([a.name for a in self.regulators],r)]
             self.tx_capable_list = allcomb
-        elif(type(tx_capable_list)==list):
+        elif isinstance(tx_capable_list, list):
             #if the user passed a list then the user knows what they want
             newlist = []
             #this part converts any species in the tx_capable_list into a string
@@ -259,7 +300,7 @@ class CombinatorialPromoter(Promoter):
 
         if self.leak is not False:
             #this part takes care of the promoter not bound to anything
-            species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, protein = self.assembly.protein, component = self, part_id = self.name+"_leak")
+            species += mech_tx.update_species(dna = self.assembly.dna, transcript = self.transcript, protein = self.get_protein_for_expression(), component = self, part_id = self.name+"_leak")
             #self.leak_complexes += []
 
         for bound_complex in bound_species: 
@@ -269,8 +310,8 @@ class CombinatorialPromoter(Promoter):
                     species_inside += [regulator.name] 
             if(set(species_inside) in [set(a) for a in self.tx_capable_list]):
                 #only the transcribable complexes in tx_capable_list get transcription reactions
-                tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, protein = self.assembly.protein, component = self, part_id = self.name)
-                species +=tx_capable_species[1:]
+                tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, protein = self.get_protein_for_expression(), component = self, part_id = self.name)
+                species +=tx_capable_species
                 self.tx_capable_complexes +=[bound_complex]
             else:
                 #in this case there's a combination of regulators which does not feature in tx_capable_list
@@ -279,8 +320,8 @@ class CombinatorialPromoter(Promoter):
                 # 2) we said we wanted leak, so then you should add this, but with the "_leak" parameters
                 #                                                         (that happens in update_reactions)
                 if(self.leak is not False):
-                    leak_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, protein = self.assembly.protein, component = self, part_id = self.name+"_leak")
-                    species += leak_species[1:]
+                    leak_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, protein = self.get_protein_for_expression(), component = self, part_id = self.name+"_leak")
+                    species += leak_species
                     self.leak_complexes += [bound_complex]
         species+=bound_species  
         return species
@@ -322,13 +363,12 @@ class CombinatorialPromoter(Promoter):
                 #if it's bound to RNAP then it transcribes, right?
                 tx_partid = tx_partid+"_RNAP"
                 reactions += mech_tx.update_reactions(dna = specie, component = self, part_id = tx_partid, \
-                                            transcript = self.transcript, protein = self.assembly.protein)
+                                            transcript = self.transcript, protein = self.get_protein_for_expression())
         if(len(self.leak_complexes)>0):
             for specie in self.leak_complexes:
                 #in this case every reaction uses the "promoter_leak" partid
                 leak_partid = self.name+"_leak"
                 reactions += mech_tx.update_reactions(dna = specie, component = self, part_id = leak_partid, \
-                                            transcript = self.transcript, protein = self.assembly.protein)
-
+                                            transcript = self.transcript, protein = self.get_protein_for_expression())
 
         return reactions

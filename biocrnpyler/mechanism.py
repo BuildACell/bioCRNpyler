@@ -27,7 +27,8 @@
 
 
 from warnings import warn
-from .chemical_reaction_network import Species, Reaction, ComplexSpecies, Multimer
+from .species import Species, ComplexSpecies, Multimer
+from .reaction import Reaction
 from .component import Component
 import itertools as it
 
@@ -69,6 +70,9 @@ class Mechanism(object):
 
 
 class EmptyMechanism(Mechanism):
+    """
+    For use when one needs a Mechanism to do nothing, such as translation in Expression Mixtures.
+    """
     def __init__(self, name, mechanism_type):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 

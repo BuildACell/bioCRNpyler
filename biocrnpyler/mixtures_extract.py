@@ -1,23 +1,30 @@
-# Copyright (c) 2018, Build-A-Cell. All rights reserved.
+
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
 from warnings import warn
 from warnings import resetwarnings
 from .components_basic import DNA, RNA, Protein, ChemicalComplex
 from .mechanism import EmptyMechanism
-from .mechanisms_enzyme import BasicCatalysis, MichalisMenten
+from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
 from .mechanisms_binding import One_Step_Binding
 from .mechanisms_txtl import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
 from .global_mechanism import Dilution
 from .mixture import Mixture
-from .chemical_reaction_network import Species, ChemicalReactionNetwork
+from .chemical_reaction_network import ChemicalReactionNetwork
+from .species import Species
 from .dna_assembly import DNAassembly
        
-#A Model for Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.)
-# Here transcription and Translation are lumped into one reaction: expression.
-class ExpressionExtract(Mixture):
-    def __init__(self, name="", mechanisms={}, components=[], **kwargs):
 
+class ExpressionExtract(Mixture):
+    """A Model for Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.)
+
+    Here transcription and Translation are lumped into one reaction: expression.
+    """
+    def __init__(self, name="", mechanisms=None, components=None, **kwargs):
+
+        if components is None:
+            components = []
         dummy_translation = EmptyMechanism(name = "dummy_translation", mechanism_type = "translation")
         mech_expression = OneStepGeneExpression()
         mech_cat = BasicCatalysis()
@@ -34,41 +41,32 @@ class ExpressionExtract(Mixture):
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
                         components=components+default_components, **kwargs)
 
-    #Overwriting compile_crn to replace transcripts with proteins for all DNA_assemblies
+    #Overwriting compile_crn to turn off transcription in all DNAassemblies
     def compile_crn(self) -> ChemicalReactionNetwork:
-        """ Creates a chemical reaction network from the species and reactions associated with a mixture object
-        :return: ChemicalReactionNetwork
-        """
-        resetwarnings()#Reset warnings - better to toggle them off manually.
-        species = self.update_species()
-        reactions = self.update_reactions()
 
-        for comp in self.components:
-            if isinstance(comp, DNAassembly):
-                if comp.transcript is not None and comp.protein is not None:
-                    for i, s in enumerate(species):
-                        species[i] = s.replace_species(comp.transcript, comp.protein)
-                    for i, r in enumerate(reactions):
-                        reactions[i] = r.replace_species(comp.transcript, comp.protein)
+        for component in self.components:
+            if isinstance(component, DNAassembly):
+                #Only turn off transcription for an Assembly that makes a Protein. 
+                #Some assemblies might only make RNA!
+                if component.protein is not None:
+                     #This will turn off transcription and set Promoter.transcript = False
+                     #Mechanisms that recieve no transcript but a protein will use the protein instead.
+                    component.update_transcript(False)
 
-        self.crn_species = list(set(species))
-        self.crn_reactions = reactions
-        #global mechanisms are applied last and only to all the species 
-        global_mech_species, global_mech_reactions = self.apply_global_mechanisms()
+        #Call the superclass function
+        return Mixture.compile_crn(self)
 
-        species += global_mech_species
-        reactions += global_mech_reactions
 
-        species = self.set_initial_condition(species)
-        species.sort(key = lambda s:repr(s))
-        reactions.sort(key = lambda r:repr(r))
-        CRN = ChemicalReactionNetwork(species, reactions)
-        return CRN
-
-#A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.)
-#RNA is degraded via a global mechanism
 class SimpleTxTlExtract(Mixture):
-    def __init__(self, name="", mechanisms={}, components=[], **kwargs):
+    """
+    A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.)
+    RNA is degraded via a global mechanism.
+    """
+
+    def __init__(self, name="", mechanisms=None, components=None, **kwargs):
+
+        if components is None:
+             components = []
 
         mech_tx = SimpleTranscription()
         mech_tl = SimpleTranslation()
@@ -89,15 +87,21 @@ class SimpleTxTlExtract(Mixture):
         Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
                         components=components+default_components, global_mechanisms= global_mechanisms, **kwargs)
 
-#A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
-#This model does not include any energy
+
 class TxTlExtract(Mixture):
-    def __init__(self, name="", mechanisms={}, components=[],
-                 rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
+    """A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
+
+    This model does not include any energy
+    """
+    def __init__(self, name="", mechanisms=None, components=None,
+                 rnap="RNAP", ribosome="Ribo", rnaase="RNAase", **kwargs):
         
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
         self.rnaase = Protein(rnaase)
+
+        if components is None:
+            components = []
 
         init = kwargs.get('init')
         if init:
@@ -108,7 +112,7 @@ class TxTlExtract(Mixture):
         mech_tx = Transcription_MM(rnap = self.rnap.get_species())
         mech_tl = Translation_MM(ribosome = self.ribosome.get_species())
         mech_rna_deg = Degredation_mRNA_MM(nuclease = self.rnaase.get_species()) 
-        mech_cat = MichalisMenten()
+        mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 
 
