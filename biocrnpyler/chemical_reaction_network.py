@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 from typing import List, Union, Dict
 import itertools
+import copy
 
 
 class ChemicalReactionNetwork(object):
@@ -28,21 +29,42 @@ class ChemicalReactionNetwork(object):
         self.add_species(species)
         self.add_reactions(reactions)
 
-    def add_species(self, species, show_warnings=True):
+        ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings=show_warnings)
+
+
+    def add_species(self, species, show_warnings=False):
         if not isinstance(species, list):
             species = [species]
 
-        new_species = []
-        for s in species:
-            if s not in self.species and s not in new_species:
-                new_species.append(s)
+        species = Species.flatten_list(species) #Flatten the list
 
-        self.reactions, self.species = ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species+new_species, show_warnings=show_warnings)
+        for s in species:
+            if not isinstance(s, Species): #check species are Species
+                raise ValueError("A non-species object was used as a species!")
+            if s not in self.species: #Do not add duplicate Species
+                self.species.append(copy.deepcopy(s)) #copy the species and add it to the CRN
+
+            #This case matters when Species are inside an OrderedPolymerSpecies, in which case there can be duplicates (in terms of name)   
+            if s in self.species:
+                s_duplicates = [S for S in self.species if s == S]
+                pass
+                #Code will go here for testing s.parent and s.position
 
     def add_reactions(self, reactions, show_warnings=True):
         if not isinstance(reactions, list):
             reactions = [reactions]
-        self.reactions, self.species = ChemicalReactionNetwork.check_crn_validity(list(itertools.chain(self.reactions, reactions)), self.species, show_warnings=show_warnings)
+
+        for reaction in reactions:
+            if not isinstance(r, Reaction): #check reactions and Reactions
+                raise ValueError("A non-reaction object was used as a reaction!")
+
+            #add all the Species in the reaction to the CRN
+            reaction_species = list(set([w.species for w in reaction.inputs + reaction.outputs]))
+            self.add_species(reaction_species, show_warnings=show_warnings)
+
+            self.reactions.append(copy.deepcopy(reaction)) #copy the Reaction and add it to the CRN
+
+            #TODO synchronize Species in the CRN
 
     @staticmethod
     def check_crn_validity(reactions: List[Reaction], species: List[Species], show_warnings=True):
@@ -157,7 +179,7 @@ class ChemicalReactionNetwork(object):
 
         return ChemicalReactionNetwork(new_species_list, new_reaction_list)
 
-    def generate_sbml_model(self, stochastic_model=False, for_bioscrape=False, **keywords):
+    def generate_sbml_model(self, stochastic_model=False, for_bioscrape=False, show_warnings = False, **keywords):
         """Creates an new SBML model and populates with the species and
         reactions in the ChemicalReactionNetwork object
 
@@ -165,6 +187,8 @@ class ChemicalReactionNetwork(object):
         :param keywords: extra keywords pass onto create_sbml_model()
         :return: tuple: (document,model) SBML objects
         """
+        ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings= show_warnings)
+
         document, model = create_sbml_model(for_bioscrape = for_bioscrape, **keywords)
 
         add_all_species(model=model, species=self.species)
