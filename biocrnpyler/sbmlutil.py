@@ -186,8 +186,8 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
     :param crn_reaction: must be a chemical_reaction_network.reaction object
     :param reaction_id: unique id of the reaction
     :param stochastic: stochastic model flag
-    :param reverse_reaction:
-    :return: SBML sbml_reaction object
+    :param reverse_reaction: 
+    :return: SBML Reaction object
     """
 
     # Create the sbml_reaction in SBML
@@ -199,6 +199,14 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
     #all reactions are set to be non-reversible in BioCRNpyler because this is correct in deterministic and stochastic simulation.
     sbml_reaction.setReversible(False)
 
+    # Create the reactants and products for the sbml_reaction
+    if not reverse_reaction:
+        _create_reactants(reactant_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+        _create_products(product_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
+    else:
+        _create_reactants(reactant_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
+        _create_products(product_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+
     # Create the kinetic law and corresponding local propensity parameters
     crn_reaction.propensity_type.create_kinetic_law(model=model,
                                                     sbml_reaction=sbml_reaction,
@@ -207,15 +215,10 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
                                                     reverse_reaction=reverse_reaction,
                                                     for_bioscrape=for_bioscrape,
                                                     **kwargs)
-
-    # Create the reactants and products for the sbml_reaction
-    if not reverse_reaction:
-        _create_reactants(reactant_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
-        _create_products(product_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
-
-    else:
-        _create_reactants(reactant_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
-        _create_products(product_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+    # Create SpeciesModifierReference in SBML for species that are referred by the 
+    # KineticLaw but not in reactants or products
+    _create_modifiers(crn_reaction = crn_reaction, revers_reaction = reverse_reaction, 
+                    sbml_reaction = sbml_reaction, model = model)
 
     return sbml_reaction
 
@@ -236,6 +239,9 @@ def _create_products(product_list, sbml_reaction, model):
         product.setSpecies(species_id)
         product.setStoichiometry(output.stoichiometry)
         product.setConstant(False)
+        
+def _create_modifiers(crn_reaction, reverse_reaction, sbml_reaction, model):
+    raise NotImplementedError
 
 #Creates a local parameter SBML kinetic rate law
 def _create_local_parameter(ratelaw, name, value, constant = True):
