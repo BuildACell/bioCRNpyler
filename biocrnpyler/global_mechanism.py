@@ -4,7 +4,8 @@
 from warnings import warn
 
 from .mechanism import Mechanism
-from .chemical_reaction_network import Reaction, Species, ComplexSpecies
+from .species import Species, ComplexSpecies
+from .reaction import Reaction
 from typing import List, Union
 
 #Global mechanisms are a lot like mechanisms. They are called only by mixtures
@@ -47,11 +48,11 @@ class GlobalMechanism(Mechanism):
     species. If False is returned, the the GlobalMechanism will not be called.
     If filter_dict[attribute] is different from filter_dict[material_type],
     filter_dict[attribute] takes precedent. If multiple filter_dict[attribute]
-    contradict for different attributes, an error is raised. 
+    contradict for different attributes, an error is raised.
 
     recursive_species_filtering keyword determines how the material_type and name of ComplexSpecies
     is defined. If True: the filter based upon all subspecies.type and name recursively going through
-    all ComplexSpecies. If False: the filter dict will act only on the 
+    all ComplexSpecies. If False: the filter dict will act only on the
     ComplexSpecies. By default, this is False.
 
     If the species's name, material type, and attributes are all not in the
@@ -146,7 +147,7 @@ class GlobalMechanism(Mechanism):
         """
         All global mechanisms must use update_reactions functions with these inputs
         :param s:
-        :param parameters:
+        :param mixture:
         :return:
         """
         return []
@@ -166,7 +167,7 @@ class Dilution(GlobalMechanism):
 
     def update_reactions(self, s: Species, mixture):
         k_dil = self.get_parameter(s, "kdil", mixture)
-        rxn = Reaction([s], [], k_dil)
+        rxn = Reaction.from_massaction(inputs=[s], outputs=[], k_forward=k_dil)
         return [rxn]
 
 
@@ -189,5 +190,5 @@ class AnitDilutionConstiutiveCreation(GlobalMechanism):
 
     def update_reactions(self, s, parameters):
         k_dil = self.get_parameter(s, "kdil", mixture)
-        rxn = Reaction([], [s], k_dil)
+        rxn = Reaction.from_massaction(inputs=[], outputs=[s], k_forward=k_dil)
         return [rxn]

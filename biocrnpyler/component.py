@@ -2,8 +2,9 @@
 #  See LICENSE file in the project root directory for details.
 
 from warnings import warn as pywarn
-from .chemical_reaction_network import Species, ComplexSpecies, Reaction
-from .parameter import ParameterDatabase, ParameterEntry
+from .species import Species, ComplexSpecies
+from .reaction import Reaction
+from .parameter import ParameterDatabase, ParameterEntry, Parameter
 from typing import List, Union
  
 
@@ -190,7 +191,7 @@ class Component(object):
     # Get Parameter Hierarchy:
     # 1. tries to find the Parameter in Component.parameter_database
     # 2. tries to find the parameter in Component.mixture.parameter_database
-    def get_parameter(self, param_name: str, part_id=None, mechanism=None):
+    def get_parameter(self, param_name: str, part_id=None, mechanism=None, return_numerical = False):
         #Try the Component ParameterDatabase
         param = self.parameter_database.find_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
 
@@ -203,9 +204,7 @@ class Component(object):
                  "(mechanism, part_id, "
                 f"param_name)=({repr(mechanism)}, {part_id}, "
                 f"{param_name})")
-
-        #TODO replace this with just returning the parameter, when reaction overhaul is complete
-        elif isinstance(param, ParameterEntry):
+        elif return_numerical and isinstance(param, Parameter):
             return param.value
         else:
             return param

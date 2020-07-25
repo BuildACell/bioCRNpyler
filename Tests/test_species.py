@@ -2,7 +2,8 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import Species
+from biocrnpyler import Species, WeightedSpecies
+import pytest
 
 
 class TestSpecies(TestCase):
@@ -74,3 +75,72 @@ class TestSpecies(TestCase):
         s5 = Species(name='a', material_type='mat1', attributes=['red', 'large'])
         # different attributes: not the same species
         self.assertFalse(s1 == s5)
+
+
+def test_weighted_species_init():
+    s1 = Species(name='a')
+    # normal operations
+    ws1 = WeightedSpecies(species=s1)
+    assert ws1.species == s1
+    assert ws1.stoichiometry == 1
+
+    with pytest.raises(ValueError, match='Stoichiometry must be positive integer!'):
+        WeightedSpecies(species=s1, stoichiometry=0)
+
+    with pytest.raises(ValueError, match='Stoichiometry must be positive integer!'):
+        WeightedSpecies(species=s1, stoichiometry=-1)
+
+    ws2 = WeightedSpecies(species=s1, stoichiometry=1.34)
+    assert ws2.stoichiometry == 1
+
+
+def test_merging_weighted_species():
+    s1 = Species(name='a')
+
+    ws1 = WeightedSpecies(species=s1, stoichiometry=2)
+    ws2 = WeightedSpecies(species=s1, stoichiometry=5)
+    ws_list = [ws1, ws2]
+
+    freq_dict = WeightedSpecies._count_weighted_species(ws_list)
+    assert len(freq_dict) == 1
+    ws_merged = list(freq_dict.values())
+    assert ws_merged[0] == 7
+
+    s2 = Species(name='b')
+
+    ws1 = WeightedSpecies(species=s1, stoichiometry=2)
+    ws2 = WeightedSpecies(species=s2, stoichiometry=5)
+    ws_list = [ws1, ws2]
+    freq_dict = WeightedSpecies._count_weighted_species(ws_list)
+    assert len(freq_dict) == 2
+
+    ws_merged = list(freq_dict.values())
+    assert ws_merged[0] == 2
+    assert ws_merged[1] == 5
+
+
+def test_weighted_species_equality():
+    s1 = Species(name='a')
+    ws1 = WeightedSpecies(species=s1, stoichiometry=1)
+
+    s2 = Species(name='a')
+    ws2 = WeightedSpecies(species=s2, stoichiometry=3)
+    assert ws1 != ws2
+
+    s2 = Species(name='b')
+    ws3 = WeightedSpecies(species=s2, stoichiometry=1)
+
+    assert ws1 != ws3
+
+
+
+
+
+
+
+
+
+
+
+
+
