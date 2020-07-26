@@ -179,7 +179,7 @@ def add_all_reactions(model, reactions: List, stochastic=False, for_bioscrape = 
             add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, reverse_reaction = True, for_bioscrape = for_bioscrape,**kwargs)
 
 
-def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction: bool=False, for_bioscrape = False, **kwargs):
+def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction: bool=False, **kwargs):
     """adds a sbml_reaction to an sbml model
 
     :param model: an sbml model created by create_sbml_model()
@@ -213,11 +213,10 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
                                                     stochastic=stochastic,
                                                     crn_reaction=crn_reaction,
                                                     reverse_reaction=reverse_reaction,
-                                                    for_bioscrape=for_bioscrape,
                                                     **kwargs)
     # Create SpeciesModifierReference in SBML for species that are referred by the 
     # KineticLaw but not in reactants or products
-    _create_modifiers(crn_reaction = crn_reaction, revers_reaction = reverse_reaction, 
+    _create_modifiers(crn_reaction = crn_reaction, reverse_reaction = reverse_reaction, 
                     sbml_reaction = sbml_reaction, model = model)
 
     return sbml_reaction
@@ -239,10 +238,16 @@ def _create_products(product_list, sbml_reaction, model):
         product.setSpecies(species_id)
         product.setStoichiometry(output.stoichiometry)
         product.setConstant(False)
-        
-def _create_modifiers(crn_reaction, reverse_reaction, sbml_reaction, model):
-    raise NotImplementedError
 
+def _create_modifiers(crn_reaction, reverse_reaction, sbml_reaction, model):
+    reactants_list = crn_reaction.inputs
+    products_list = crn_reaction.outputs
+    modifier_species = crn_reaction.propensity_dict
+    for modifier_id in modifier_species:
+        if modifier_id not in reactants_list and modifier_id not in products_list:
+            modifier = sbml_reaction.createModifier()
+            modifier.setSpecies(modifier_id)
+    
 #Creates a local parameter SBML kinetic rate law
 def _create_local_parameter(ratelaw, name, value, constant = True):
     param = ratelaw.createParameter()

@@ -158,7 +158,7 @@ class Propensity(object):
         """returns the instance variables that are species type"""
         return list(self.propensity_dict['species'].values())
 
-    def create_kinetic_law(self, reaction, reverse_reaction, stochastic, for_bioscrape = False):
+    def create_kinetic_law(self, reaction, reverse_reaction, stochastic, **kwargs):
         raise NotImplementedError("class Propensity is meant to be subclassed!")
 
     @classmethod
@@ -166,6 +166,33 @@ class Propensity(object):
         merged = propensity_dict['parameters']
         merged.update(propensity_dict['species'])
         return cls(**merged)
+
+    def _create_annotation(self, model, **kwargs):
+        '''
+        Create simulator specific annotations to write to Kinetic laws or any other 
+        part of the SBML model object. 
+        Annotations are used to take advantage of a simulator specific need/feature.
+        '''
+        # For the bioscrape simulator:
+        # Check if `for_bioscrape` keyword argument has been passed in **kwargs
+        if 'for_bioscrape' in kwargs:
+            for_bioscrape = kwargs.get('for_bioscrape')
+        else:
+            for_bioscrape = False
+            return None
+        if for_bioscrape:
+            propensity_dict_in_sbml = copy.copy(self.propensity_dict)
+            param = kwargs['param']
+            if param is not None:
+                propensity_dict_in_sbml["k_forward"] = param
+                propensity_dict_in_sbml["k_reverse"] = param
+            for species_name, species in propensity_dict_in_sbml['species'].items():
+                propensity_dict_in_sbml[species_name] = getSpeciesByName(model, str(species)).getId()
+            annotation_string = self._create_bioscrape_annotation(model, propensity_dict_in_sbml)
+            # replace strings to match with bioscrape naming convention
+            annotation_string = annotation_string.replace('k_forward', 'k')
+            annotation_string = annotation_string.replace('k_reverse', 'k')
+            return annotation_string
 
     def _create_bioscrape_annotation(self, model, propensity_dict_in_sbml):
         """
@@ -191,12 +218,18 @@ class Propensity(object):
 
 class GeneralPropensity(Propensity):
     def __init__(self, propensity_function: str):
+        '''
+        propensity_function: str
+        The general propensity rate formula as a string
+        '''
         super(GeneralPropensity, self).__init__()
         self.propensity_function = propensity_function
 
-    def create_kinetic_law(self, reaction):
-        raise NotImplementedError("SBML writing of general propensities not implemented")
-
+    def create_kinetic_law(self, sbml_reaction, **kwargs):
+        ratelaw = sbml_reaction.createKineticLaw() 
+        math_ast = libsbml.parseL3Formula(self.propensity_function)
+        ratelaw.setMath(math_ast)
+        return ratelaw 
 
 class MassAction(Propensity):
     def __init__(self, k_forward: Union[float, ParameterEntry], k_reverse: Union[float, ParameterEntry] = None):
@@ -254,7 +287,7 @@ class MassAction(Propensity):
         return txt
         
 
-    def create_kinetic_law(self, model, sbml_reaction, stochastic, reverse_reaction=False, for_bioscrape = False, **kwargs):
+    def create_kinetic_law(self, model, sbml_reaction, stochastic, reverse_reaction=False, **kwargs):
 
         if 'crn_reaction' in kwargs:
             crn_reaction = kwargs['crn_reaction']
@@ -272,38 +305,21 @@ class MassAction(Propensity):
                 reactant_species[species_id] = w_species
 
             param = self._create_sbml_parameter("k_forward", model, ratelaw, rename_dict = {"k_forward":"k"})
-
         # set up a reverse reaction
         elif reverse_reaction:
             reactant_species = {}
             for w_species in crn_reaction.outputs:
                 species_id = getSpeciesByName(model, str(w_species.species)).getId()
                 reactant_species[species_id] = w_species
-
             param = self._create_sbml_parameter("k_reverse", model, ratelaw, rename_dict = {"k_reverse":"k_rev"})
 
         rate_formula = self._get_rate_formula(param.getId(), stochastic, reactant_species)
-        
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
         ratelaw.setMath(math_ast)
-
-        # Propensity Annotations are used to take advantage of Bioscrape Propensity types
-        # for faster simulation
-        propensity_dict_in_sbml = copy.copy(self.propensity_dict)
-        if for_bioscrape:
-            propensity_dict_in_sbml["k_forward"] = param
-            propensity_dict_in_sbml["k_reverse"] = param
-
-            for species_name, species in propensity_dict_in_sbml['species'].items():
-                propensity_dict_in_sbml[species_name] = getSpeciesByName(model, str(species)).getId()
-
-            annotation_string = self._create_bioscrape_annotation(model, propensity_dict_in_sbml)
-            # replace strings to match with bioscrape naming convention
-            annotation_string = annotation_string.replace('k_forward', 'k')
-            annotation_string = annotation_string.replace('k_reverse', 'k')
-            sbml_reaction.appendAnnotation(annotation_string)
-
+        kwargs['param'] = param
+        annotation_string = self._create_annotation(model, **kwargs)
+        sbml_reaction.appendAnnotation(annotation_string)
         return ratelaw
 
     def _get_rate_formula(self, rate_coeff_name, stochastic, reactant_species) -> str:
@@ -319,9 +335,7 @@ class MassAction(Propensity):
                     ratestring += f" * {species_id}^{weighted_species.stoichiometry}"
                 else:
                     ratestring += f" * {species_id}"
-
         return ratestring
-
 
 class Hill(Propensity):
     def __init__(self, k: float, s1: Species, K: float, n: float, d: Species):
@@ -389,7 +403,7 @@ class Hill(Propensity):
     def pretty_print_rate(self, show_parameters = True, **kwargs):
         raise NotImplementedError("Propensity class Hill is meant to be subclassed: try HillPositive, HillNegative, ProportionalHillPositive, or ProportionalHillNegative.")
 
-    def create_kinetic_law(self, model, sbml_reaction, stochastic, for_bioscrape = False, **kwargs):
+    def create_kinetic_law(self, model, sbml_reaction, stochastic, **kwargs):
         """This code is reused in all Hill Propensity subclasses
         """
         if 'reverse_reaction' in kwargs and kwargs['reverse_reaction'] is True:
@@ -407,10 +421,9 @@ class Hill(Propensity):
 
         rate_formula = self._get_rate_formula(propensity_dict=propensity_dict_in_sbml)
 
-        # attach bioscrape propensity annotations to the SBML model, if needed
-        if for_bioscrape:
-            annotation_string = self._create_bioscrape_annotation(model, propensity_dict_in_sbml)
-            sbml_reaction.appendAnnotation(annotation_string)
+        # attach simulator specific annotations to the SBML model, if needed
+        annotation_string = self._create_annotation(model, **kwargs)
+        sbml_reaction.appendAnnotation(annotation_string)
 
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
@@ -444,7 +457,6 @@ class HillPositive(Hill):
         K = propensity_dict['parameters']['K']
         s1 = propensity_dict['species']['s1']
         rate_formula = f"{k}*{s1}^{n}/({s1}^{n}+{K})"
-
         return rate_formula
 
 
@@ -471,7 +483,6 @@ class HillNegative(Hill):
         K = propensity_dict['parameters']['K']
         s1 = propensity_dict['species']['s1']
         rate_formula = f"{k}/({s1}^{n}+{K})"
-
         return rate_formula
 
 
@@ -499,7 +510,6 @@ class ProportionalHillPositive(HillPositive):
         K = propensity_dict['parameters']['K']
         s1 = propensity_dict['species']['s1']
         d = propensity_dict['species']['d']
-
         return f"{k}*{d}*{s1}^{n}/({s1}^{n}+{K})"
 
 
@@ -527,5 +537,4 @@ class ProportionalHillNegative(HillNegative):
         K = propensity_dict['parameters']['K']
         s1 = propensity_dict['species']['s1']
         d = propensity_dict['species']['d']
-
         return f"{k}*{d}/({s1}^{n}+{K})"
