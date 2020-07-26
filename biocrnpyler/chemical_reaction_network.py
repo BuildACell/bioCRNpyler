@@ -273,7 +273,6 @@ class ChemicalReactionNetwork(object):
         model = Model(species = species_list, reactions = reaction_list,
                       initial_condition_dict = initial_condition_dict)
         return model"""
-    """
 
     def simulate_with_bioscrape(self, timepoints, initial_condition_dict=None,
                                 stochastic = False, return_dataframe = True,
