@@ -64,7 +64,7 @@ def create_sbml_model(compartment_id="default", time_units='second', extent_unit
     compartment.setConstant(True)  # keep compartment size constant
     compartment.setSpatialDimensions(3)  # 3 dimensional compartment
     compartment.setVolume(volume)  # 1 microliter
-    return document
+    return document, model
 
 
 # Creates an SBML id from a chemical_reaction_network.species object
@@ -238,11 +238,16 @@ def _create_products(product_list, sbml_reaction, model):
 def _create_modifiers(crn_reaction, sbml_reaction, model):
     reactants_list = crn_reaction.inputs
     products_list = crn_reaction.outputs
-    modifier_species = [crn_reaction.propensity_type.s1, crn_reaction.propensity_type.d]
-    for modifier_id in modifier_species:
-        if modifier_id not in reactants_list and modifier_id not in products_list:
-            modifier = sbml_reaction.createModifier()
-            modifier.setSpecies(modifier_id)
+    propensity = crn_reaction.propensity_type
+    if propensity.bioscrape_name == 'massaction':
+        # No modifier species reference needed
+        return
+    else:
+        modifier_species = [propensity.s1, propensity.d]
+        for modifier_id in modifier_species:
+            if modifier_id not in reactants_list and modifier_id not in products_list:
+                modifier = sbml_reaction.createModifier()
+                modifier.setSpecies(modifier_id)
     
 #Creates a local parameter SBML kinetic rate law
 def _create_local_parameter(ratelaw, name, value, constant = True):

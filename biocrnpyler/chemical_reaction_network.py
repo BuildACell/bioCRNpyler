@@ -188,9 +188,7 @@ class ChemicalReactionNetwork(object):
         """
         ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings= show_warnings)
 
-        document = create_sbml_model(**keywords)
-        
-        model = document.getModel()
+        document, model = create_sbml_model(**keywords)
         
         add_all_species(model=model, species=self.species)
 
