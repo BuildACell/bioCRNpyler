@@ -178,7 +178,7 @@ class ChemicalReactionNetwork(object):
 
         return ChemicalReactionNetwork(new_species_list, new_reaction_list)
 
-    def generate_sbml_model(self, stochastic_model=False, for_bioscrape=False, show_warnings = False, **keywords):
+    def generate_sbml_model(self, stochastic_model=False, show_warnings = False, **keywords):
         """Creates an new SBML model and populates with the species and
         reactions in the ChemicalReactionNetwork object
 
@@ -188,20 +188,23 @@ class ChemicalReactionNetwork(object):
         """
         ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings= show_warnings)
 
-        document, model = create_sbml_model(for_bioscrape = for_bioscrape, **keywords)
-
+        document = create_sbml_model(**keywords)
+        
+        model = document.getModel()
+        
         add_all_species(model=model, species=self.species)
 
-        add_all_reactions(model=model, reactions=self.reactions, stochastic_model=stochastic_model, for_bioscrape = for_bioscrape, **keywords)
+        add_all_reactions(model=model, reactions=self.reactions, stochastic_model=stochastic_model, **keywords)
 
         if document.getNumErrors():
             warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
         return document, model
 
-    def write_sbml_file(self, file_name=None, for_bioscrape=False, stochastic_model = False, **keywords) -> bool:
-        """Writes CRN to an SBML file
+    def write_sbml_file(self, file_name=None, stochastic_model = False, **keywords) -> bool:
+        """"
+        Writes CRN to an SBML file
         """
-        document, _ = self.generate_sbml_model(for_bioscrape = for_bioscrape, stochastic_model = stochastic_model, **keywords)
+        document, _ = self.generate_sbml_model(stochastic_model = stochastic_model, **keywords)
         sbml_string = libsbml.writeSBMLToString(document)
         with open(file_name, 'w') as f:
             f.write(sbml_string)
@@ -210,6 +213,7 @@ class ChemicalReactionNetwork(object):
 
     #Commenting this out for now - hopefully will remove fully soon
     #
+
     """
     def create_bioscrape_model(self):
         #Creates a Bioscrape Model of the CRN directly.
@@ -269,6 +273,7 @@ class ChemicalReactionNetwork(object):
         model = Model(species = species_list, reactions = reaction_list,
                       initial_condition_dict = initial_condition_dict)
         return model"""
+    """
 
     def simulate_with_bioscrape(self, timepoints, initial_condition_dict=None,
                                 stochastic = False, return_dataframe = True,
@@ -322,7 +327,7 @@ class ChemicalReactionNetwork(object):
             from bioscrape.types import Model
 
             if filename is None:
-                self.write_sbml_file(file_name ="temp_sbml_file.xml", for_bioscrape = True, stochastic_model = stochastic)
+                self.write_sbml_file(file_name ="temp_sbml_file.xml", stochastic_model = stochastic, for_bioscrape = True)
                 file_name = "temp_sbml_file.xml"
             elif isinstance(filename, str):
                 file_name = filename
