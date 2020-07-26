@@ -182,7 +182,10 @@ class Propensity(object):
             return None
         if for_bioscrape:
             propensity_dict_in_sbml = copy.copy(self.propensity_dict)
-            param = kwargs['param']
+            if 'param' in kwargs:
+                param = kwargs['param']
+            else:
+                param = None
             if param is not None:
                 propensity_dict_in_sbml["k_forward"] = param
                 propensity_dict_in_sbml["k_reverse"] = param
