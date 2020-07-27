@@ -2,7 +2,8 @@ import pytest
 from biocrnpyler.sbmlutil import *
 from biocrnpyler.species import Species, Complex
 from biocrnpyler.propensities import MassAction, HillPositive, HillNegative, ProportionalHillPositive, ProportionalHillNegative 
-from biocrnpyler.parameter import ParameterEntry, ParameterKey, Reaction, ChemicalReactionNetwork
+from biocrnpyler.parameter import ParameterEntry, ParameterKey
+from biocrnpyler.chemical_reaction_network import Reaction, ChemicalReactionNetwork
 
 
 def test_create_sbml_model():
