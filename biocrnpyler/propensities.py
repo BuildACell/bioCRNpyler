@@ -13,8 +13,7 @@ import copy
 class Propensity(object):
     def __init__(self):
         self.propensity_dict = {'species': {}, 'parameters': {}}
-        # this attribute is needed for exporting to bioscrape, has no effect on this package
-        self.bioscrape_name = None
+        self.name = None
 
     @staticmethod
     def is_valid_propensity(propensity_type) -> bool:
@@ -173,13 +172,16 @@ class Propensity(object):
         part of the SBML model object. 
         Annotations are used to take advantage of a simulator specific need/feature.
         '''
+        # Add your own simulator specific annotations here
+
         # For the bioscrape simulator:
         # Check if `for_bioscrape` keyword argument has been passed in **kwargs
         if 'for_bioscrape' in kwargs:
             for_bioscrape = kwargs.get('for_bioscrape')
         else:
             for_bioscrape = False
-            return None
+            annotation_string = ''
+            return annotation_string 
         if for_bioscrape:
             propensity_dict_in_sbml = copy.copy(self.propensity_dict)
             if 'param' in kwargs:
@@ -202,14 +204,14 @@ class Propensity(object):
         Propensity Annotations are Used to take advantage of Bioscrape Propensity types
         for faster simulation
         """
-        annotation_dict = {}
+        annotation_dict = copy.copy(self.propensity_dict)
         for param_name, param_value in self.propensity_dict['parameters'].items():
             annotation_dict[param_name] = propensity_dict_in_sbml[param_name].getId()
 
         for species_name, species in self.propensity_dict['species'].items():
             annotation_dict[species_name] = propensity_dict_in_sbml[species_name]
 
-        annotation_dict["type"] = self.bioscrape_name
+        annotation_dict["type"] = self.name
 
         annotation_string = "<PropensityType>"
         for k in annotation_dict:
@@ -239,7 +241,7 @@ class MassAction(Propensity):
         super(MassAction, self).__init__()
         self.k_forward = k_forward
         self.k_reverse = k_reverse
-        self.bioscrape_name = 'massaction'
+        self.name = 'massaction'
 
         self.propensity_dict['parameters']['k_forward'] = k_forward
         if self.is_reversible:
@@ -449,7 +451,7 @@ class HillPositive(Hill):
         :param K: dissociation constant (float)
         """
         Hill.__init__(self=self, k=k, s1=s1, K=K, n=n, d=None)
-        self.bioscrape_name = 'hillpositive'
+        self.name = 'hillpositive'
 
     def pretty_print_rate(self, show_parameters = True, **kwargs):
         return f' Kf = k {self.s1.pretty_print(**kwargs)}^n / ({self.s1.pretty_print(**kwargs)}^n + K)'
@@ -475,7 +477,7 @@ class HillNegative(Hill):
         :param n: cooperativity (float)
         """
         Hill.__init__(self = self, k=k, s1=s1, K=K, n=n, d=None)
-        self.bioscrape_name = 'hillnegative'
+        self.name = 'hillnegative'
 
     def pretty_print_rate(self, show_parameters = True, **kwargs):
         return f' Kf = k / ({self.s1.pretty_print(**kwargs)}^n + K)'
@@ -502,7 +504,7 @@ class ProportionalHillPositive(HillPositive):
         :param d: species (chemical_reaction_network.species)
         """
         Hill.__init__(self=self, k=k, s1=s1, K=K, n=n, d=d)
-        self.bioscrape_name = 'proportionalhillpositive'
+        self.name = 'proportionalhillpositive'
 
     def pretty_print_rate(self, show_parameters = True,  **kwargs):
         return f' Kf = k {self.d.pretty_print(**kwargs)} {self.s1.pretty_print(**kwargs)}^n/({self.s1.pretty_print(**kwargs)}^n + K)'
@@ -529,7 +531,7 @@ class ProportionalHillNegative(HillNegative):
         :param d: species (chemical_reaction_network.species)
         """
         Hill.__init__(self=self, k=k, s1=s1, K=K, n=n, d=d)
-        self.bioscrape_name = 'proportionalhillnegative'
+        self.name = 'proportionalhillnegative'
 
     def pretty_print_rate(self, show_parameters=True, **kwargs):
         return f' Kf = k {self.d.pretty_print(**kwargs)} /({self.s1.pretty_print(**kwargs)}^{self.n} + K)'

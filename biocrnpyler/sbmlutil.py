@@ -239,7 +239,7 @@ def _create_modifiers(crn_reaction, sbml_reaction, model):
     reactants_list = crn_reaction.inputs
     products_list = crn_reaction.outputs
     propensity = crn_reaction.propensity_type
-    if propensity.bioscrape_name == 'massaction':
+    if propensity.name == 'massaction':
         # No modifier species reference needed
         return
     else:

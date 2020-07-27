@@ -84,7 +84,7 @@ def test_add_reaction():
                         #test annotations
                         if for_bioscrape:
                             sbml_annotation = sbml_reaction.getAnnotation().toXMLString()
-                            assert f"type={prop.bioscrape_name}" in sbml_annotation
+                            assert f"type={prop.name}" in sbml_annotation
 
                             #Test that the sbml annotation has keys for all species and parameters
                             for k in prop.propensity_dict["parameters"]:
