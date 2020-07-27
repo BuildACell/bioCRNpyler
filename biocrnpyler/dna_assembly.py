@@ -3,7 +3,7 @@
 
 from .component import Component
 from .components_basic import DNA, RNA, Protein
-from .chemical_reaction_network import ComplexSpecies, Species
+from .species import ComplexSpecies, Species
 from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
 from warnings import warn as pywarn
 import itertools as it
@@ -16,6 +16,15 @@ def warn(txt):
 
 
 class DNAassembly(DNA):
+    """
+    A Component which contains a Promoter, RBS, transcript, and protein.
+    Used to model simple Transcription Translation systems.
+
+    Note:
+    If transcript is None and protein is not None, 
+    the DNAassembly will use its transcription mechanisms to produce the protein.
+    This is used by Expression Mixtures.
+    """
     def __init__(self, name: str, dna=None, promoter=None, transcript=None,
                  rbs=None, protein=None, length=None,
                  attributes=None, mechanisms=None, parameters=None, initial_conc=None,
@@ -35,12 +44,16 @@ class DNAassembly(DNA):
         self.update_transcript(transcript)
         self.update_protein(protein)
         self.update_promoter(promoter, transcript = self.transcript)
-        self.update_rbs(rbs, transcript = self.transcript,
-                        protein = self.protein)
-
+        self.update_rbs(rbs, transcript = self.transcript, protein = self.protein)
         self.set_parameter_warnings(parameter_warnings)
 
-            
+    #Set the mixture the Component is in.
+    def set_mixture(self, mixture):
+        self.mixture = mixture
+        if self.promoter is not None:
+            self.promoter.set_mixture(mixture)
+        if self.rbs is not None:
+            self.rbs.set_mixture(mixture)
 
     def set_parameter_warnings(self, parameter_warnings):
         self.parameter_warnings = parameter_warnings
@@ -51,17 +64,17 @@ class DNAassembly(DNA):
             if self.rbs is not None:
                 self.rbs.set_parameter_warnings(parameter_warnings)
 
-
     def update_dna(self, dna, attributes = None):
         if dna is None:
             self.dna = self.set_species(self.name, material_type = "dna", attributes = attributes)
         else:
             self.dna = self.set_species(dna, material_type = "dna", attributes = attributes)
         
-
     def update_transcript(self, transcript, attributes = None):
         if transcript is None:
             self.transcript = self.set_species(self.name, material_type = "rna", attributes = attributes)
+        elif transcript == False: #this is used for expression mixtures where there is no transcript!
+            self.transcript = None
         else:
             self.transcript = self.set_species(transcript, material_type = "rna", attributes = attributes)
 
@@ -69,6 +82,7 @@ class DNAassembly(DNA):
             self.promoter.transcript = self.transcript
         if self.rbs is not None:
             self.rbs.transcript = self.transcript
+
 
     def update_protein(self, protein, attributes = None):
         if protein is None:
@@ -85,8 +99,7 @@ class DNAassembly(DNA):
 
         if isinstance(promoter, str):
             self.promoter = Promoter(assembly = self, name = promoter,
-                                     transcript = self.transcript,
-                                     parameters = self.parameters)
+                                     transcript = self.transcript)
         elif isinstance(promoter, Promoter):
             self.promoter = promoter
             self.promoter.assembly = self
@@ -96,9 +109,8 @@ class DNAassembly(DNA):
                              "Expected string or promoter object. "
                              f"Recieved {repr(promoter)}.")
         if promoter is not None:
-            self.promoter.update_parameters(
-                                        mixture_parameters = self.parameters,
-                                        overwrite_custom_parameters = False)
+            self.promoter.update_parameters(parameter_database = self.parameter_database, overwrite_parameters = False)
+            self.promoter.set_mixture(self.mixture)
 
     def update_rbs(self, rbs, transcript = None, protein = None):
         if protein is not None:
@@ -109,8 +121,7 @@ class DNAassembly(DNA):
 
         if isinstance(rbs, str):
             self.rbs = RBS(assembly = self, name = rbs, protein = self._protein,
-                           transcript = self.transcript,
-                           parameters = self.parameters)
+                           transcript = self.transcript)
         elif isinstance(rbs, RBS):
             self.rbs = rbs
             self.rbs.assembly = self
@@ -122,8 +133,8 @@ class DNAassembly(DNA):
                             f"{repr(rbs)}.")
 
         if rbs is not None:
-            self.rbs.update_parameters(mixture_parameters = self.parameters,
-                                       overwrite_custom_parameters = False)
+            self.rbs.update_parameters(parameter_database = self.parameter_database, overwrite_parameters = False)
+            self.rbs.set_mixture(self.mixture)
 
     @property
     def protein(self):
@@ -135,15 +146,14 @@ class DNAassembly(DNA):
         if self.promoter is not None and self.rbs is not None:
             species += self.promoter.update_species()
             species += self.rbs.update_species()
-
+            
         elif self.promoter is not None and self.rbs is None:
             species += self.promoter.update_species()
 
-        if "rna_degredation" in self.mechanisms and self.promoter is not None:
+        if "rna_degredation" in self.mechanisms and self.promoter is not None and self.transcript is not None:
             deg_mech = self.mechanisms["rna_degredation"]
             species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
 
-        # TODO raise a warning if there were duplicate species
         return list(set(species))
 
     def update_reactions(self):
@@ -156,7 +166,7 @@ class DNAassembly(DNA):
             self.rbs.parameter_warnings = self.parameter_warnings
             reactions += self.rbs.update_reactions()
 
-        if "rna_degredation" in self.mechanisms and self.promoter is not None:
+        if "rna_degredation" in self.mechanisms and self.promoter is not None and self.transcript is not None:
             deg_mech = self.mechanisms["rna_degredation"]
 
 
@@ -164,22 +174,15 @@ class DNAassembly(DNA):
         # TODO check that the reaction list is unique
         return reactions
 
-    def update_parameters(self, mixture_parameters=None, parameters=None,
-                          overwrite_custom_parameters=True):
-        DNA.update_parameters(self = self,
-                              mixture_parameters = mixture_parameters,
-                              parameters = parameters, 
-                              overwrite_custom_parameters = overwrite_custom_parameters)
+    def update_parameters(self, parameter_file = None, parameters = None, overwrite_parameters = True):
+
+        DNA.update_parameters(self = self, parameter_file = parameter_file, parameters = parameters, overwrite_parameters = overwrite_parameters)
 
         if self.promoter is not None:
-            self.promoter.update_parameters(
-                                    mixture_parameters = mixture_parameters,
-                                    parameters = parameters,
-                                    overwrite_custom_parameters = overwrite_custom_parameters)
+            self.promoter.update_parameters(parameter_file = parameter_file, parameters = parameters, overwrite_parameters = overwrite_parameters)
+
         if self.rbs is not None:
-            self.rbs.update_parameters(mixture_parameters = mixture_parameters,
-                                       parameters = parameters,
-                                       overwrite_custom_parameters = overwrite_custom_parameters)
+            self.rbs.update_parameters(parameter_file = parameter_file, parameters = parameters, overwrite_parameters = overwrite_parameters)
 
     def update_mechanisms(self, mixture_mechanisms=None, mechanisms=None,
                           overwrite_custom_mechanisms = False):

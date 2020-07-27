@@ -6,15 +6,17 @@ from warnings import warn
 from warnings import resetwarnings
 
 from .component import Component
-from .chemical_reaction_network import ChemicalReactionNetwork, Species, Reaction
-from .parameter import Parameter
+from .chemical_reaction_network import ChemicalReactionNetwork
+from .species import Species
+from .reaction import Reaction
+from .parameter import ParameterDatabase, ParameterEntry
 from typing import List, Union
 
 
 class Mixture(object):
     def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
-                 default_mechanisms=None, global_mechanisms=None, species=None, custom_initial_condition=None,
-                 parameter_warnings=None, **kwargs):
+                 default_mechanisms=None, global_mechanisms=None, species=None, initial_condition_dictionary=None,
+                 parameter_warnings=None, overwrite_parameters = False,**kwargs):
         """
         A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
         and parameters related to the mixture itself (e.g. Transcription rate). Default components and mechanisms can be
@@ -39,15 +41,13 @@ class Mixture(object):
         else:
             parameter_warnings = False
             kwargs['parameter_warnings'] = parameter_warnings
-        if not init and parameter_warnings:
-            warn('Initial concentrations for extract species will all be set to zero.')
 
 
         # Initialize instance variables
         self.name = name  # Save the name of the mixture
 
-        self.parameters = Parameter.create_parameter_dictionary(parameters,
-                                                      parameter_file)
+        self.parameter_database = ParameterDatabase(parameter_file = parameter_file, parameter_dictionary = parameters, overwrite_parameters = overwrite_parameters)
+        
         # Toggles whether parameter warnings are raised. if None (default) this
         # can be toggled component by component.
         self.parameter_warnings = parameter_warnings
@@ -60,10 +60,10 @@ class Mixture(object):
         # Initial conditions are searched for by defauled in the parameter file
         # see Mixture.set_initial_condition(self)
         # These can be overloaded with custom_initial_condition dictionary: component.name --> initial amount
-        if custom_initial_condition is None:
-            self.custom_initial_condition = []
+        if initial_condition_dictionary is None:
+            self.initial_condition_dictionary = {}
         else:
-            self.custom_initial_condition = custom_initial_condition
+            self.initial_condition_dictionary = dict(initial_condition_dictionary)
 
         # Mechanisms stores the mechanisms used for compilation where defaults
         # are overwritten by custom mechanisms.
@@ -101,7 +101,7 @@ class Mixture(object):
         self.crn_reactions = None
 
     def add_species(self, species: Union[List[Species], Species]):
-        if species:
+        if species is not None:
             if not isinstance(species, list):
                 species_list = [species]
             else:
@@ -111,8 +111,6 @@ class Mixture(object):
 
             self.added_species += species_list
 
-
-    
 
     #Used to set internal species froms strings, Species or Components
     def set_species(self, species, material_type = None, attributes = None):
@@ -134,75 +132,88 @@ class Mixture(object):
             assert isinstance(component, Component), \
                 "the object: %s passed into mixture as component must be of the class Component" % str(component)
             self.components.append(component)
+
+            #Reset components Mixtures
+            component.set_mixture(self)
             component.update_mechanisms(mixture_mechanisms=self.mechanisms, overwrite_custom_mechanisms = False)
-            component.update_parameters(mixture_parameters=self.parameters)
+            
             if self.parameter_warnings is not None:
                 component.set_parameter_warnings(self.parameter_warnings)
 
-    #Sets the initial condition for all components with internal species
-    #Does this for the species returned during compilation to prevent errors
-    # First checks if (mixture.name, repr(species) is in the self.custom_initial_condition_dict
-    # Then checks if (repr(species) is in the self.custom_initial_condition_dict
-    # First checks if (mixture.name, component.name) is in the self.custom_initial_condition_dictionary
-    # Then checks if (component.name) is in the self.custom_initial_condition_dictionary
 
-    # First checks if (mixture.name, repr(species) is in the parameter dictionary
-    # Then checks if repr(species) is in the parameter dictionary
-    # Then checks if (mixture.name, component.name) is in the parameter dictionary
-    # Then checks if component.name is in the parameter dictionary
-    # Then defaults to 0
-    def set_initial_condition(self, species):
-        return_species = []
-        for s in species:
-            found = False
-            if not found and (self.name, repr(s)) in self.custom_initial_condition:
-                s.initial_concentration = self.custom_initial_condition[self.name, repr(s)]
-                found = True
-            elif not found and repr(s) in self.custom_initial_condition:
-                s.initial_concentration = self.custom_initial_condition[repr(s)]
-                found = True
-            elif not found:
-                for comp in self.components:
+    def update_parameters(self, parameter_file = None, parameters = None, overwrite_parameters = True):
+        if parameter_file is not None:
+            self.load_parameters_from_file.load_parameters_from_dictionary(parameter_file, overwrite_parameters = overwrite_parameters)
 
-                    s_comp = comp.get_species()
-                    if repr(s_comp) == repr(s):
-                        if not found and (self.name, comp.name) in self.custom_initial_condition:
-                            s.initial_concentration = self.custom_initial_condition[(self.name, comp.name)]
-                            s_comp.initial_concentration = self.custom_initial_condition[(self.name, comp.name)]
-                            found = True
-                        elif not found and comp.name in self.custom_initial_condition:
-                            s.initial_concentration = self.custom_initial_condition[comp.name]
-                            s_comp.initial_concentration = self.custom_initial_condition[comp.name]
-                            found = True
-
-            if not found and (self.name, repr(s)) in self.parameters:
-                s.initial_concentration = self.parameters[self.name, repr(s)]
-                s_comp.initial_concentration = self.parameters[self.name, repr(s)]
-                found = True
-            elif not found and repr(s) in self.parameters:
-                s.initial_concentration = self.parameters[repr(s)]
-                s_comp.initial_concentration = self.parameters[repr(s)]
-                found = True
-            elif not found:
-                for comp in self.components:
-                    s_comp = comp.get_species()
-                    if not found and repr(s_comp) == repr(s):
-                        if not found and (self.name, comp.name) in self.parameters:
-                            s.initial_concentration = self.parameters[(self.name, comp.name)]
-                            s_comp.initial_concentration = self.parameters[(self.name, comp.name)]
-                            found = True
-                        elif not found and comp.name in self.parameters:
-                            s.initial_concentration = self.parameters[comp.name]
-                            s_comp.initial_concentration = self.parameters[comp.name]
-                            found = True
-        return species
+        if parameters is not None:
+            self.parameter_database.load_parameters_from_dictionary(parameter_dictionary, overwrite_parameters = overwrite_parameters)
     
+    def get_parameter(self, mechanism, part_id, param_name, parameter_warnings = False):
+        param = self.parameter_database.find_parameter(mechanism, part_id, param_name, parameter_warnings = parameter_warnings)
+
+        return param
+    
+    #Tries to find an initial condition of species s using the parameter heirarchy
+    # 1. Tries to find the initial concentration in the Component initial_Concentration_dictionary and ParameterDatabase
+    # 2. Tries to find self.name, repr(s) in self.initial_condition_dictionary
+    # 3. Tries to find repr(s) in self.initial_condition_dictionary
+    # 4. if s == component.get_species(), tries to find (None, self.name, component.name) in self.initial_condition_dictionary
+    # 5. if s == component.get_species(), tries to find component.name in self.initial_condition_dictionary
+    # 6. tries to find (None, self.name, repr(s)) in self.parameter_database
+    # 7. tries to find repr(s) in self.parameter_database
+    # 8. if s == component.get_species(), tries to find (None, self.name, component.name) in self.parameter_database
+    # 9. if s == component.get_species(), tries to find component.name in self.parameter_database
+    # 10-. defaults to 0
+    def set_initial_condition(self, s, component = None):
+        if not isinstance(s, Species):
+            raise ValueError(f"{s} is not a Species! Can only set initial concentration of a Species.")
+
+        init_conc = None
+        #1
+        if component is not None:
+            init_conc = component.get_initial_condition(s)
+
+        if init_conc is None:
+            #2
+            if (self.name, repr(s)) in self.initial_condition_dictionary:
+                init_conc = self.initial_condition_dictionary[(self.name, repr(s))]
+            #3
+            elif repr(s) in self.initial_condition_dictionary:
+                init_conc = self.initial_condition_dictionary[repr(s)]
+            #4
+            elif component is not None and component.get_species() == s and (self.name, component.name) in self.initial_condition_dictionary:
+                return self.initial_condition_dictionary[(self.name, component.name)]
+            #5
+            elif component is not None and component.get_species() == s and component.name in self.initial_condition_dictionary:
+                return self.initial_condition_dictionary[component.name]
+            #6
+            elif self.parameter_database.find_parameter(None, self.name, repr(s)) is not None:
+                init_conc = self.parameter_database.find_parameter(None, self.name, repr(s)).value
+            #7
+            elif self.parameter_database.find_parameter(None, None, repr(s)) is not None:
+                init_conc = self.parameter_database.find_parameter(None, None, repr(s)).value
+            #8
+            elif component is not None and component.get_species() == s and (None, self.name, component.name) in self.parameter_database:
+                return self.parameter_database.find_parameter(None, self.name, component.name).value
+            #9
+            elif component is not None and component.get_species() == s and component.name in self.parameter_database:
+                return self.parameter_database.find_parameter(None, None, component.name).value
+            #10
+            else:
+                init_conc = 0
+
+        s.initial_concentration = init_conc
+
+
     #Allows mechanisms to return nested lists of species. These lists are flattened.
     def append_species(self, new_species, component):
         for s in new_species:
             if isinstance(s, Species):
+                self.set_initial_condition(s, component)
                 self.crn_species.append(s)
-            elif isinstance(s, list) and all(isinstance(ss, Species) for ss in s):
+            elif isinstance(s, list) and(all(isinstance(ss, Species) for ss in s) or len(s) == 0):
+                for ss in s: 
+                    self.set_initial_condition(ss, component)
                 self.crn_species+=s
             elif s is not None:
                 raise ValueError(f"Invalid Species Returned in {component}.update_species(): {s}.")
@@ -211,12 +222,14 @@ class Mixture(object):
 
 
     def update_species(self) -> List[Species]:
-        """ it generates the list of species based on all the mechanisms and global mechanisms
-
+        """ it generates the list of species based on all the mechanisms in each Component
         :return: list of species generated by all the mechanisms and global mechanisms
         """
-        # TODO check if we can merge the two variables
-        self.crn_species = self.added_species
+        self.crn_species = []
+        #Append Species added manually
+        self.append_species(self.added_species, None)
+
+        #Appendy species from each Component
         for component in self.components:
             self.append_species(component.update_species(), component)
 
@@ -243,7 +256,6 @@ class Mixture(object):
         return self.crn_reactions
 
         
-
     def apply_global_mechanisms(self) -> (List[Species], List[Reaction]):
         # update with global mechanisms
 
@@ -251,17 +263,15 @@ class Mixture(object):
             raise AttributeError("Mixture.crn_species not defined. "
                                  "mixture.update_species() must be called "
                                  "before mixture.apply_global_mechanisms()")
-
         global_mech_species = []
         global_mech_reactions = []
         if self.global_mechanisms:
             for mech in self.global_mechanisms:
                 # Update Global Mechanisms
-                global_mech_species += self.global_mechanisms[mech].update_species_global(self.crn_species, self.parameters)
-                global_mech_reactions += self.global_mechanisms[mech].update_reactions_global(self.crn_species, self.parameters)
+                global_mech_species += self.global_mechanisms[mech].update_species_global(self.crn_species, self)
+                global_mech_reactions += self.global_mechanisms[mech].update_reactions_global(self.crn_species, self)
 
         return global_mech_species, global_mech_reactions
-
 
     def compile_crn(self) -> ChemicalReactionNetwork:
         """ Creates a chemical reaction network from the species and reactions associated with a mixture object
@@ -269,18 +279,25 @@ class Mixture(object):
         """
         resetwarnings()#Reset warnings - better to toggle them off manually.
 
-        species = self.update_species()
-        reactions = self.update_reactions()
+        #reset the Components' mixture to self - in case they have been added to other Mixtures
+        for c in self.components:
+            c.set_mixture(self)
+
+        self.update_species() #updates species to self.crn_species and sets initial concentrations
+        self.update_reactions() #updates reactions to self.crn_reactions
 
         #global mechanisms are applied last and only to all the species 
         global_mech_species, global_mech_reactions = self.apply_global_mechanisms()
 
-        species += global_mech_species
-        reactions += global_mech_reactions
+        #append global species to self.crn_species and update initial concentrations
+        if isinstance(global_mech_species, list) and len(global_mech_species) > 0:
+            self.append_species(global_mech_species, component = None)
 
-        species = self.set_initial_condition(species)
+        #append global reactions
+        if isinstance(global_mech_reactions, list) and len(global_mech_reactions)>0:
+            self.crn_reactions += global_mech_reactions 
 
-        CRN = ChemicalReactionNetwork(species, reactions)
+        CRN = ChemicalReactionNetwork(list(self.crn_species), list(self.crn_reactions))
         return CRN
 
     def __str__(self):

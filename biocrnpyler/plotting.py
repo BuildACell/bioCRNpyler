@@ -15,6 +15,7 @@ from bokeh.palettes import Spectral4
 from bokeh.models.graphs import from_networkx
 from fa2 import ForceAtlas2
 import numpy as np
+from .propensities import MassAction, Hill
 from matplotlib import cm
 import matplotlib.pyplot as plt
 
@@ -249,35 +250,49 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     #reactions follow, allnodenum is not reset between these two loops
     for rxn in CRN.reactions:
         CRNgraph.add_node(allnodenum)
-        CRNgraph.nodes[allnodenum]["type"]=rxn.propensity_type
-        CRNgraph.nodes[allnodenum]["k"] = rxn.k
-        CRNgraph.nodes[allnodenum]["k_r"] = rxn.k_r
+        CRNgraph.nodes[allnodenum]["type"] = str(rxn.propensity_type)
+        if isinstance(rxn.propensity_type, MassAction):
+            CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k_forward)
+            CRNgraph.nodes[allnodenum]["k_r"] = str(rxn.propensity_type.k_reverse)
+        else:
+            CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
+            CRNgraph.nodes[allnodenum]["k_r"] = ''
+
         default_color = "blue"
         #CRNgraph.nodes[allnodenum]
-        kval = rxn.k
+        if isinstance(rxn.propensity_type, MassAction):
+            kval = rxn.propensity_type.k_forward
+            CRNgraph.nodes[allnodenum]["k"] = str(kval)
+        else:
+            kval = rxn.k
+            CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
+
         if(not useweights):
             kval = 1
-        krev_val = rxn.k_r
-        if((krev_val > 0) and (not useweights)):
+        if isinstance(rxn.propensity_type, MassAction):
+            krev_val = rxn.propensity_type.k_reverse
+        else:
+            krev_val = None
+        if((krev_val is not None) and (not useweights)):
             krev_val = 1
         for reactant in rxn.inputs:
-            CRNgraph.add_edge(nodedict[reactant],allnodenum,weight=kval)
-            if(krev_val>0):
+            CRNgraph.add_edge(nodedict[reactant.species],allnodenum,weight=kval)
+            if(krev_val is not None):
                 #if the k is 0 then the node does not exist, right?
-                CRNgraph.add_edge(allnodenum,nodedict[reactant],weight=krev_val)
+                CRNgraph.add_edge(allnodenum,nodedict[reactant.species],weight=krev_val)
         for product in rxn.outputs:
-            CRNgraph.add_edge(allnodenum,nodedict[product],weight=kval)
-            if(krev_val>0):
-                CRNgraph.add_edge(nodedict[product],allnodenum,weight=krev_val)
+            CRNgraph.add_edge(allnodenum,nodedict[product.species],weight=kval)
+            if(krev_val is not None):
+                CRNgraph.add_edge(nodedict[product.species],allnodenum,weight=krev_val)
         if(len(rxn.outputs)==0):
             #this adds an edge to the "nothing" node we made in the beginning
             CRNgraph.add_edge(allnodenum,0,weight=kval)
-            if(krev_val>0):
+            if(krev_val is not None):
                 CRNgraph.add_edge(0,allnodenum,weight=krev_val)
         elif(len(rxn.inputs)==0):
             #this adds an edge from the "nothing" node we made in the beginning
             CRNgraph.add_edge(0,allnodenum,weight=kval)
-            if(krev_val>0):
+            if(krev_val is not None):
                 CRNgraph.add_edge(allnodenum,0,weight=krev_val)
         CRNgraph.nodes[allnodenum]["color"]=default_color
         if(not use_pretty_print):

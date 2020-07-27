@@ -16,13 +16,12 @@ def test_bioscrape_import_simulate():
 
     #In the case bioscrape is not imported
     if sim_result is None:
-        # only one warning was triggered
-        assert len(record) == 1
         # check the warning message
-        assert str(record[0].message) == "bioscrape was not found, please install bioscrape"
+        assert "simulate_with_bioscrape is depricated and will cease working in a future release." in str(record[0].message)
     #In the case bioscrape is imported
     else:
         assert str(X) in sim_result
+
 
 def test_bioscrape_import_simulate_via_sbml():
     from biocrnpyler import ChemicalReactionNetwork, Species
@@ -31,7 +30,7 @@ def test_bioscrape_import_simulate_via_sbml():
     X = Species("X")
     CRN = ChemicalReactionNetwork(species=[X],reactions=[])
     with pytest.warns(None) as record:
-        sim_result, bioscrape_model  = CRN.simulate_with_bioscrape_via_sbml(timepoints=np.linspace(0, 10, 100), initial_condition_dict={str(X):1})
+        sim_result, bioscrape_model = CRN.simulate_with_bioscrape_via_sbml(timepoints=np.linspace(0, 10, 100), initial_condition_dict={str(X):1}, return_model=True)
 
 
     #In the case bioscrape is not imported
