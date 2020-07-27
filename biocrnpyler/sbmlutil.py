@@ -238,16 +238,12 @@ def _create_products(product_list, sbml_reaction, model):
 def _create_modifiers(crn_reaction, sbml_reaction, model):
     reactants_list = crn_reaction.inputs
     products_list = crn_reaction.outputs
-    propensity = crn_reaction.propensity_type
-    if propensity.name == 'massaction':
-        # No modifier species reference needed
-        return
-    else:
-        modifier_species = [propensity.s1, propensity.d]
-        for modifier_id in modifier_species:
-            if modifier_id not in reactants_list and modifier_id not in products_list:
-                modifier = sbml_reaction.createModifier()
-                modifier.setSpecies(modifier_id)
+    modifier_species = crn_reaction.propensity_type.propensity_dict['species']
+
+    for modifier_id in modifier_species:
+        if modifier_id not in reactants_list and modifier_id not in products_list:
+            modifier = sbml_reaction.createModifier()
+            modifier.setSpecies(modifier_id)
     
 #Creates a local parameter SBML kinetic rate law
 def _create_local_parameter(ratelaw, name, value, constant = True):
