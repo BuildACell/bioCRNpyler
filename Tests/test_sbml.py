@@ -190,13 +190,3 @@ def test_generate_sbml_model_parameter_names():
     correct_ids = set(["v_v_", "v__v", "v_v_v", "v__", "n_p_m"])
     ids = set([p.getId() for p in model.getListOfParameters()])
     assert ids == correct_ids
-
-def test_validate_sbml(sbml_document, enable_unit_check = False, print_results = True):
-    """
-    Validates the generated SBML model by using libSBML SBML validation code
-    """
-    validator = validateSBML(enable_unit_check)
-    validation_result = validator.validate(sbml_document, print_results = print_results)
-    if validation_result > 0:
-        warn('SBML model invalid. Run with print_results = False to hide print statements')
-    return validation_result

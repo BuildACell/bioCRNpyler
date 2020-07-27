@@ -523,3 +523,13 @@ class validateSBML(object):
                     print( errMsgCC)
         return numReadErr + numCCErr
         
+
+def test_validate_sbml(sbml_document, enable_unit_check = False, print_results = True):
+    """
+    Validates the generated SBML model by using libSBML SBML validation code
+    """
+    validator = validateSBML(enable_unit_check)
+    validation_result = validator.validate(sbml_document, print_results = print_results)
+    if validation_result > 0:
+        warn('SBML model invalid. Run with print_results = False to hide print statements')
+    return validation_result
