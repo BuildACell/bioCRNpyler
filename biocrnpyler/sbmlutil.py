@@ -522,7 +522,7 @@ class validateSBML(object):
         return numReadErr + numCCErr
         
 
-def test_validate_sbml(sbml_document, enable_unit_check = False, print_results = True):
+def validate_sbml(sbml_document, enable_unit_check = False, print_results = True):
     """
     Validates the generated SBML model by using libSBML SBML validation code
     """
