@@ -5,7 +5,6 @@
 # See LICENSE file in the project root directory for details.
 
 import libsbml
-import os
 import numpy as np
 import logging
 from typing import List
@@ -439,7 +438,7 @@ def getSpeciesByName(model, name, compartment=''):
 class validateSBML(object):
     '''
     libSBML class to validate the generated SBML models
-    ## @brief   Validates one or more SBML files
+    ## @brief   Validates SBMLDocument
     ## @author  Akiya Jouraku (translated from libSBML C++ examples)
     ## @author  Ben Bornstein
     ## @author  Michael Hucka
@@ -501,7 +500,6 @@ class validateSBML(object):
                     errMsgCC = sbmlDoc.getErrorLog().toString()
         # print results
         if print_results:
-            print("filename : %s" % file)
             print( "validation error(s) : %d" % (numReadErr  + numCCErr))
             print( "validation warning(s) : %d" % (numReadWarn + numCCWarn))
         if not skipCC :
