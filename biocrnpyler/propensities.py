@@ -8,6 +8,7 @@ from .sbmlutil import getSpeciesByName, _create_local_parameter, _create_global_
 from .species import Species
 import libsbml
 import copy
+from collections import defaultdict
 
 
 class Propensity(object):
@@ -166,12 +167,13 @@ class Propensity(object):
         merged.update(propensity_dict['species'])
         return cls(**merged)
 
-    def _create_annotation(self, model, **kwargs):
+    def _create_annotation(self, model, propensity_dict_in_sbml, **kwargs):
         '''
         Create simulator specific annotations to write to Kinetic laws or any other 
         part of the SBML model object. 
         Annotations are used to take advantage of a simulator specific need/feature.
         '''
+        annotation_string = ''
         # Add your own simulator specific annotations here
 
         # For the bioscrape simulator:
@@ -180,38 +182,23 @@ class Propensity(object):
             for_bioscrape = kwargs.get('for_bioscrape')
         else:
             for_bioscrape = False
-            annotation_string = ''
-            return annotation_string 
-        if for_bioscrape:
-            propensity_dict_in_sbml = copy.copy(self.propensity_dict)
-            if 'param' in kwargs:
-                param = kwargs['param']
-            else:
-                param = None
-            if param is not None:
-                # Massaction case
-                propensity_dict_in_sbml["k_forward"] = param
-                propensity_dict_in_sbml["k_reverse"] = param
-                # propensity_dict_in_sbml["k"] = param
-            for species_name, species in propensity_dict_in_sbml['species'].items():
-                propensity_dict_in_sbml[species_name] = getSpeciesByName(model, str(species)).getId()
-            annotation_string = self._create_bioscrape_annotation(model, propensity_dict_in_sbml)
-            # replace strings to match with bioscrape naming convention
-            annotation_string = annotation_string.replace('k_forward', 'k')
-            annotation_string = annotation_string.replace('k_reverse', 'k')
-            return annotation_string
 
-    def _create_bioscrape_annotation(self, model, propensity_dict_in_sbml):
+        if for_bioscrape:
+            annotation_string = self._create_bioscrape_annotation(propensity_dict_in_sbml)
+
+        return annotation_string
+
+    def _create_bioscrape_annotation(self, propensity_dict_in_sbml):
         """
         Propensity Annotations are Used to take advantage of Bioscrape Propensity types
         for faster simulation
         """
-        annotation_dict = {}
-        for param_name, param_value in self.propensity_dict['parameters'].items():
-            annotation_dict[param_name] = propensity_dict_in_sbml[param_name].getId()
+        annotation_dict = defaultdict()
+        for param_name, param_value in propensity_dict_in_sbml['parameters'].items():
+            annotation_dict[param_name] = param_value
 
-        for species_name, species in self.propensity_dict['species'].items():
-            annotation_dict[species_name] = propensity_dict_in_sbml[species_name]
+        for species_name, species in propensity_dict_in_sbml['species'].items():
+            annotation_dict[species_name] = species
 
         annotation_dict["type"] = self.name
 
@@ -220,7 +207,21 @@ class Propensity(object):
             annotation_string += " "+ str(k) + "=" + str(annotation_dict[k])
         annotation_string += "</PropensityType>"
 
+        # replace strings to match with bioscrape naming convention
+        annotation_string = annotation_string.replace('k_forward', 'k')
+        annotation_string = annotation_string.replace('k_reverse', 'k_rev')
         return annotation_string
+
+    def _translate_propensity_dict_to_sbml(self, model, ratelaw):
+        # get copy of the propensity_dict and fill with sbml names
+        propensity_dict_in_sbml = copy.deepcopy(self.propensity_dict)
+        for param_name in propensity_dict_in_sbml['parameters'].keys():
+            propensity_dict_in_sbml['parameters'][param_name] = self._create_sbml_parameter(param_name, model, ratelaw)
+
+        for species_name, species in propensity_dict_in_sbml['species'].items():
+            propensity_dict_in_sbml['species'][species_name] = getSpeciesByName(model, str(species)).getId()
+
+        return propensity_dict_in_sbml
 
 
 class GeneralPropensity(Propensity):
@@ -245,10 +246,6 @@ class MassAction(Propensity):
         self.k_reverse = k_reverse
         self.name = 'massaction'
 
-        self.propensity_dict['parameters']['k_forward'] = k_forward
-        if self.is_reversible:
-            self.propensity_dict['parameters']['k_reverse'] = k_reverse
-
     @property
     def k_forward(self):
         if isinstance(self._k_forward, Parameter):
@@ -259,7 +256,7 @@ class MassAction(Propensity):
     @k_forward.setter
     def k_forward(self, new_k_forward):
         self._k_forward = self._check_parameter(new_k_forward)
-        self.propensity_dict['parameters']['k_forward'] = self.k_forward
+        self.propensity_dict['parameters']['k_forward'] = self._k_forward
 
     @property
     def k_reverse(self):
@@ -271,7 +268,8 @@ class MassAction(Propensity):
     @k_reverse.setter
     def k_reverse(self, new_k_reverse):
         self._k_reverse = self._check_parameter(new_k_reverse, allow_None=True)
-        self.propensity_dict['parameters']['k_reverse'] = self.k_reverse
+        if self._k_reverse is not None:
+            self.propensity_dict['parameters']['k_reverse'] = self._k_reverse
 
     @property
     def is_reversible(self):
@@ -304,6 +302,9 @@ class MassAction(Propensity):
         # create a kinetic law for the sbml_reaction
         ratelaw = sbml_reaction.createKineticLaw()
 
+        # translate the internal representation of a propensity to SBML format
+        propensity_dict_in_sbml = self._translate_propensity_dict_to_sbml(model=model, ratelaw=ratelaw)
+
         # set up the forward sbml_reaction
         if not reverse_reaction:
             reactant_species = {}
@@ -311,21 +312,20 @@ class MassAction(Propensity):
                 species_id = getSpeciesByName(model, str(w_species.species)).getId()
                 reactant_species[species_id] = w_species
 
-            param = self._create_sbml_parameter("k_forward", model, ratelaw, rename_dict = {"k_forward":"k"})
+            param = propensity_dict_in_sbml['parameters']['k_forward']
         # set up a reverse reaction
         elif reverse_reaction:
             reactant_species = {}
             for w_species in crn_reaction.outputs:
                 species_id = getSpeciesByName(model, str(w_species.species)).getId()
                 reactant_species[species_id] = w_species
-            param = self._create_sbml_parameter("k_reverse", model, ratelaw, rename_dict = {"k_reverse":"k_rev"})
+            param = propensity_dict_in_sbml['parameters']['k_reverse']
 
         rate_formula = self._get_rate_formula(param.getId(), stochastic, reactant_species)
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
         ratelaw.setMath(math_ast)
-        kwargs['param'] = param
-        annotation_string = self._create_annotation(model, **kwargs)
+        annotation_string = self._create_annotation(model, propensity_dict_in_sbml=propensity_dict_in_sbml, **kwargs)
         sbml_reaction.appendAnnotation(annotation_string)
         return ratelaw
 
@@ -419,18 +419,13 @@ class Hill(Propensity):
 
         ratelaw = sbml_reaction.createKineticLaw()
 
-        # get copy of the propensity_dict and fill with sbml names
-        propensity_dict_in_sbml = copy.copy(self.propensity_dict)
-        for param_name in propensity_dict_in_sbml['parameters'].keys():
-            propensity_dict_in_sbml[param_name] = self._create_sbml_parameter(param_name, model, ratelaw)
-
-        for species_name, species in propensity_dict_in_sbml['species'].items():
-            propensity_dict_in_sbml[species_name] = getSpeciesByName(model, str(species)).getId()
+        # translate the internal representation of a propensity to SBML format
+        propensity_dict_in_sbml = self._translate_propensity_dict_to_sbml(model=model, ratelaw=ratelaw)
 
         rate_formula = self._get_rate_formula(propensity_dict=propensity_dict_in_sbml)
 
         # attach simulator specific annotations to the SBML model, if needed
-        annotation_string = self._create_annotation(model, **kwargs)
+        annotation_string = self._create_annotation(model, propensity_dict_in_sbml, **kwargs)
         sbml_reaction.appendAnnotation(annotation_string)
 
         # Set the ratelaw to the rateformula
