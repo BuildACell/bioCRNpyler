@@ -189,8 +189,10 @@ class Propensity(object):
             else:
                 param = None
             if param is not None:
+                # Massaction case
                 propensity_dict_in_sbml["k_forward"] = param
                 propensity_dict_in_sbml["k_reverse"] = param
+                # propensity_dict_in_sbml["k"] = param
             for species_name, species in propensity_dict_in_sbml['species'].items():
                 propensity_dict_in_sbml[species_name] = getSpeciesByName(model, str(species)).getId()
             annotation_string = self._create_bioscrape_annotation(model, propensity_dict_in_sbml)
@@ -204,7 +206,7 @@ class Propensity(object):
         Propensity Annotations are Used to take advantage of Bioscrape Propensity types
         for faster simulation
         """
-        annotation_dict = copy.copy(self.propensity_dict)
+        annotation_dict = {}
         for param_name, param_value in self.propensity_dict['parameters'].items():
             annotation_dict[param_name] = propensity_dict_in_sbml[param_name].getId()
 
@@ -215,7 +217,7 @@ class Propensity(object):
 
         annotation_string = "<PropensityType>"
         for k in annotation_dict:
-            annotation_string += " "+k + "=" + str(annotation_dict[k])
+            annotation_string += " "+ str(k) + "=" + str(annotation_dict[k])
         annotation_string += "</PropensityType>"
 
         return annotation_string
@@ -334,6 +336,7 @@ class MassAction(Propensity):
 
         for species_id, weighted_species in reactant_species.items():
             if stochastic:
+                ratestring += '*'
                 ratestring += '*'.join(f" ( {species_id} - {i} )" for i in range(weighted_species.stoichiometry))
             else:
                 if weighted_species.stoichiometry > 1:

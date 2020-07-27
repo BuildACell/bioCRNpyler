@@ -454,7 +454,8 @@ class validateSBML(object):
         """
         sbmlDoc  = sbml_document
         errors   = sbmlDoc.getNumErrors()
-        
+        if print_results:
+            print("Validating SBML model with ID: {0}".format(sbmlDoc.getModel().getId()))
         seriousErrors = False
 
         numReadErr  = 0
