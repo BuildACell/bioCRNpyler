@@ -5,6 +5,7 @@
 # See LICENSE file in the project root directory for details.
 
 import libsbml
+import os
 import numpy as np
 import logging
 from typing import List
@@ -270,7 +271,6 @@ def _create_global_parameter(model, name, value, constant = True):
 
     return param
 
-# !/usr/bin/env python
 ##
 ## @file    setIdFromNames.py
 ## @brief   Utility program, renaming all SIds that also has
@@ -431,3 +431,95 @@ def getSpeciesByName(model, name, compartment=''):
     else:
         warn('Multiple species with name ' + name + ' found. Returning a list')
         return species_found
+
+
+## Validate SBML
+
+
+class validateSBML(object):
+    '''
+    libSBML class to validate the generated SBML models
+    ## @brief   Validates one or more SBML files
+    ## @author  Akiya Jouraku (translated from libSBML C++ examples)
+    ## @author  Ben Bornstein
+    ## @author  Michael Hucka
+    '''
+    def __init__(self, ucheck):
+        self.reader    = libsbml.SBMLReader()
+        self.ucheck    = ucheck
+
+    def validate(self, sbml_document, print_results = False):
+        """
+        sbml_document: libSBML SBMLDocument object.
+        print_results: Print toggle for validation warnings.
+        """
+        sbmlDoc  = sbml_document
+        errors   = sbmlDoc.getNumErrors()
+        
+        seriousErrors = False
+
+        numReadErr  = 0
+        numReadWarn = 0
+        errMsgRead  = ""
+
+        if errors > 0:
+            for i in range(errors):
+                severity = sbmlDoc.getError(i).getSeverity()
+                if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
+                    seriousErrors = True
+                    numReadErr += 1
+                else:
+                    numReadWarn += 1
+            errMsgRead = sbmlDoc.getErrorLog().toString()
+
+        # If serious errors are encountered while reading an SBML document, it
+        # does not make sense to go on and do full consistency checking because
+        # the model may be nonsense in the first place.
+
+        numCCErr  = 0
+        numCCWarn = 0
+        errMsgCC  = ""
+        skipCC    = False
+
+        if seriousErrors:
+            skipCC = True
+            errMsgRead += "Further consistency checking and validation aborted."
+        else:
+            sbmlDoc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, self.ucheck)
+            failures = sbmlDoc.checkConsistency()
+            if failures > 0:
+                isinvalid = False
+                for i in range(failures):
+                    severity = sbmlDoc.getError(i).getSeverity()
+                    if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
+                        numCCErr += 1
+                        isinvalid = True
+                    else:
+                        numCCWarn += 1
+
+                if isinvalid:
+                    errMsgCC = sbmlDoc.getErrorLog().toString()
+        # print results
+        if print_results:
+            print("filename : %s" % file)
+            print( "validation error(s) : %d" % (numReadErr  + numCCErr))
+            print( "validation warning(s) : %d" % (numReadWarn + numCCWarn))
+        if not skipCC :
+            if print_results:
+                print("consistency warning(s): %d" % numCCWarn)
+        else:
+            if print_results:
+                print("unit consistency checking skipped")
+        if errMsgRead or errMsgCC: 
+            if print_results:
+                print()
+                print( "===== validation error/warning messages =====\n")
+            if errMsgRead : 
+                if print_results:
+                    print( errMsgRead)
+            if errMsgCC : 
+                if print_results:
+                    print( "*** consistency check ***\n")
+                    print( errMsgCC)
+        return numReadErr + numCCErr
+        

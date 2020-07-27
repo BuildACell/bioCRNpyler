@@ -26,6 +26,8 @@ def test_add_all_species():
     add_all_species(model, species)
 
     assert len(model.getListOfSpecies()) == len(species)
+    assert test_validate_sbml(document) == 0
+
 
 
 def test_add_reaction():
@@ -100,6 +102,7 @@ def test_add_reaction():
 
                         #Make sure this whole thing can be written by libsml, for good measure!
                         sbml_string = libsbml.writeSBMLToString(document)
+                        assert test_validate_sbml(document) == 0
                     except Exception as e: #collect errors to display with args
                         error_txt = f"Unexpected Error: in sbmlutil.add_reaction {rxn} with args {args}. \n {str(e)}."
                         raise Exception(error_txt)
@@ -145,12 +148,12 @@ def test_generate_sbml_model():
     document, model = crn.generate_sbml_model(for_bioscrape = True)
     for r in model.getListOfReactions():
         assert r.getAnnotation() is not None
-
+    assert test_validate_sbml(document) == 0
     # generate an sbml model with for_bioscrape = False
     document, model = crn.generate_sbml_model(for_bioscrape = False)
     for r in model.getListOfReactions():
         assert r.getAnnotation() is None
-
+    assert test_validate_sbml(document) == 0
 
 
 def test_generate_sbml_model_parameter_names():
@@ -183,7 +186,17 @@ def test_generate_sbml_model_parameter_names():
     crn = ChemicalReactionNetwork(species=[s1, s2], reactions=rxn_list)
 
     document, model = crn.generate_sbml_model()
-
+    assert test_validate_sbml(document) == 0
     correct_ids = set(["v_v_", "v__v", "v_v_v", "v__", "n_p_m"])
     ids = set([p.getId() for p in model.getListOfParameters()])
     assert ids == correct_ids
+
+def test_validate_sbml(sbml_document, enable_unit_check = False, print_results = True):
+    """
+    Validates the generated SBML model by using libSBML SBML validation code
+    """
+    validator = validateSBML(enable_unit_check)
+    validation_result = validator.validate(sbml_document, print_results = print_results)
+    if validation_result > 0:
+        warn('SBML model invalid. Run with print_results = False to hide print statements')
+    return validation_result
