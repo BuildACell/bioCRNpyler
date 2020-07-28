@@ -236,11 +236,11 @@ def _create_products(product_list, sbml_reaction, model):
         product.setConstant(False)
 
 def _create_modifiers(crn_reaction, sbml_reaction, model):
-    reactants_list = crn_reaction.inputs
-    products_list = crn_reaction.outputs
-    modifier_species = crn_reaction.propensity_type.propensity_dict['species']
-
+    reactants_list = [i.species.name for i in crn_reaction.inputs]
+    products_list = [i.species.name for i in crn_reaction.outputs]
+    modifier_species = [i.name for i in crn_reaction.propensity_type.propensity_dict['species'].values()]
     for modifier_id in modifier_species:
+        modifier_id = str(modifier_id)
         if modifier_id not in reactants_list and modifier_id not in products_list:
             modifier = sbml_reaction.createModifier()
             modifier.setSpecies(modifier_id)
@@ -451,7 +451,7 @@ class validateSBML(object):
         sbmlDoc  = sbml_document
         errors   = sbmlDoc.getNumErrors()
         if print_results:
-            print("Validating SBML model with ID: {0}".format(sbmlDoc.getModel().getId()))
+            print("Validating SBML model with ID: {0}...".format(sbmlDoc.getModel().getId()))
         seriousErrors = False
 
         numReadErr  = 0
@@ -475,10 +475,8 @@ class validateSBML(object):
         numCCErr  = 0
         numCCWarn = 0
         errMsgCC  = ""
-        skipCC    = False
 
         if seriousErrors:
-            skipCC = True
             errMsgRead += "Further consistency checking and validation aborted."
         else:
             sbmlDoc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, self.ucheck)
@@ -492,19 +490,8 @@ class validateSBML(object):
                         isinvalid = True
                     else:
                         numCCWarn += 1
-
                 if isinvalid:
                     errMsgCC = sbmlDoc.getErrorLog().toString()
-        # print results
-        if print_results:
-            print( "validation error(s) : %d" % (numReadErr  + numCCErr))
-            print( "validation warning(s) : %d" % (numReadWarn + numCCWarn))
-        if not skipCC :
-            if print_results:
-                print("consistency warning(s): %d" % numCCWarn)
-        else:
-            if print_results:
-                print("unit consistency checking skipped")
         if errMsgRead or errMsgCC: 
             if print_results:
                 print()
@@ -516,6 +503,8 @@ class validateSBML(object):
                 if print_results:
                     print( "*** consistency check ***\n")
                     print( errMsgCC)
+        if not (numReadErr + numCCErr):
+            print('Successful!')
         return numReadErr + numCCErr
         
 

@@ -195,7 +195,7 @@ class Propensity(object):
         """
         annotation_dict = defaultdict()
         for param_name, param_value in propensity_dict_in_sbml['parameters'].items():
-            annotation_dict[param_name] = param_value
+            annotation_dict[param_name] = param_value.value
 
         for species_name, species in propensity_dict_in_sbml['species'].items():
             annotation_dict[species_name] = species
@@ -329,7 +329,7 @@ class MassAction(Propensity):
         math_ast = libsbml.parseL3Formula(rate_formula)
         ratelaw.setMath(math_ast)
         annotation_string = self._create_annotation(model, propensity_dict_in_sbml=propensity_dict_in_sbml, **kwargs)
-        sbml_reaction.appendAnnotation(annotation_string)
+        val = sbml_reaction.appendAnnotation(annotation_string)
         return ratelaw
 
     def _get_rate_formula(self, rate_coeff_name, stochastic, reactant_species) -> str:
@@ -428,11 +428,9 @@ class Hill(Propensity):
         propensity_dict_in_sbml = self._translate_propensity_dict_to_sbml(model=model, ratelaw=ratelaw)
 
         rate_formula = self._get_rate_formula(propensity_dict=propensity_dict_in_sbml)
-
         # attach simulator specific annotations to the SBML model, if needed
         annotation_string = self._create_annotation(model, propensity_dict_in_sbml, **kwargs)
         sbml_reaction.appendAnnotation(annotation_string)
-
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
         ratelaw.setMath(math_ast)

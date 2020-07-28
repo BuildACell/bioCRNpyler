@@ -31,11 +31,10 @@ def test_add_all_species():
     assert validate_sbml(document) == 0
 
 
-
 def test_add_reaction():
-    #tests adding reactions of all types, with different stochiometries
-
-    
+    """
+    Test adding reaction to SBML for combinatorially created list of models
+    """
     #create species
     S1, S2, S3 = Species("S1"), Species("S2"), Species("S3")
     species = [S1, S2, S3]
@@ -52,15 +51,15 @@ def test_add_reaction():
                     ProportionalHillNegative(k = 1, n = 2, K = 3., s1 = S1, d = S2), ProportionalHillNegative(k = k1, n = 2, K = k2, s1 = S1, d = S2)
                     ]
 
-    rxn_num = 0
     for prop in propensities: #Cycle through different propensity types
         for inputs, outputs in stochiometries: #cycle through different stochiometries
             for stochastic in [True, False]: #Toggle Stochastic
                 for for_bioscrape in [True, False]: #Toggle for_bioscrape
-                    document, model = create_sbml_model()
+                    rxn_num = 0
+                    model_id = f"{prop.name}_model_with_stochastic_{stochastic}_for_bioscrape_{for_bioscrape}"
+                    document, model = create_sbml_model(model_id = model_id)
                     add_all_species(model, species)
                     rxn = Reaction(inputs, outputs, propensity_type = prop) #create a reaction
-                    args = {"propensity": prop.name, "stochastic":stochastic, "for_bioscrape":for_bioscrape} #args for printing
                     try:
                         sbml_reaction = add_reaction(model, rxn, f"r{rxn_num}", stochastic = stochastic, for_bioscrape = for_bioscrape) #add reaction to SBML Model
                         rxn_num += 1 #increment reaction id
@@ -79,39 +78,31 @@ def test_add_reaction():
                         if len(crn_products) > 0:
                             assert all(crn_products.count(s.getSpecies()) == int(s.getStoichiometry()) for s in sbml_reaction.getListOfProducts())
 
-                        # sbml_reaction.setReversible(False)
-                        # print(sbml_reaction.isSetReversible())
-                        # assert not sbml_reaction.isSetReversible()
+                        assert not sbml_reaction.getReversible()
 
                         #TODO is there a smart way to test that the rate formula is correct?
-
-                        #test annotations
+                        #test bioscrape annotations
                         if for_bioscrape:
-                            try:
-                                sbml_annotation = sbml_reaction.getAnnotationString()
-                                check_var = f"type={prop.name}" in str(sbml_annotation)
-                                assert check_var == True
-                            except:
-                                print(f"type={prop.name}")
-                                print(str(sbml_annotation))
-                                print(libsbml.writeSBMLToString(document))
-
+                            sbml_annotation = sbml_reaction.getAnnotationString()
+                            check_var = f"type={prop.name}" in str(sbml_annotation)
+                            assert check_var == True
                             #Test that the sbml annotation has keys for all species and parameters
-                            # for k in prop.propensity_dict["parameters"]:
-                            #     #convert k_reverse and k_forward to just k
-                            #     k = k.replace("_reverse", "").replace("_forward", "")
-                            #     check_var = f"{k}=" in sbml_annotation
-                            #     assert  check_var == True
+                            for k in prop.propensity_dict["parameters"]:
+                                #convert k_reverse and k_forward to just k
+                                k = k.replace("_reverse", "").replace("_forward", "")
+                                check_var = f"{k}=" in sbml_annotation
+                                assert  check_var == True
 
-                            # for s in prop.propensity_dict["species"]:
-                            #     check_var = f"{s}=" in sbml_annotation
-                            #     assert check_var == True 
+                            for s in prop.propensity_dict["species"]:
+                                check_var = f"{s}=" in sbml_annotation
+                                assert check_var == True 
 
                         # Validate the SBML model
                         assert validate_sbml(document) == 0
                     except Exception as e: #collect errors to display with args
-                        error_txt = f"Unexpected Error: in sbmlutil.add_reaction {rxn} with args {args}. \n {str(e)}."
+                        error_txt = f"Unexpected Error: in sbmlutil.add_reaction {rxn} for {model_id}. \n {str(e)}."
                         raise Exception(error_txt)
+
 
 def test_generate_sbml_model():
 
