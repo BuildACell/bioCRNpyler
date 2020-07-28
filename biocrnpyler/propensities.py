@@ -195,7 +195,7 @@ class Propensity(object):
         """
         annotation_dict = defaultdict()
         for param_name, param_value in propensity_dict_in_sbml['parameters'].items():
-            annotation_dict[param_name] = param_value.value
+            annotation_dict[param_name] = param_value
 
         for species_name, species in propensity_dict_in_sbml['species'].items():
             annotation_dict[species_name] = species
@@ -216,7 +216,8 @@ class Propensity(object):
         # get copy of the propensity_dict and fill with sbml names
         propensity_dict_in_sbml = copy.deepcopy(self.propensity_dict)
         for param_name in propensity_dict_in_sbml['parameters'].keys():
-            propensity_dict_in_sbml['parameters'][param_name] = self._create_sbml_parameter(param_name, model, ratelaw)
+            parameter_in_sbml  =self._create_sbml_parameter(param_name, model, ratelaw)
+            propensity_dict_in_sbml['parameters'][param_name] = parameter_in_sbml.getId()
 
         for species_name, species in propensity_dict_in_sbml['species'].items():
             propensity_dict_in_sbml['species'][species_name] = getSpeciesByName(model, str(species)).getId()
@@ -225,25 +226,56 @@ class Propensity(object):
 
 
 class GeneralPropensity(Propensity):
-    def __init__(self, propensity_function: str):
-        '''
-        propensity_function: str
-        The general propensity rate formula as a string
-        '''
+    def __init__(self, propensity_function: str, propensity_species: List[Species], propensity_parameters: List[ParameterEntry]):
+        """A class to define a general propensity
+
+        :param propensity_function: valid propensity formula defined as a string
+        :param propensity_species: list of species that are part of the propensity_function
+        :param propensity_parameters: list of parameters that are part of the propensity_function
+        """
         super(GeneralPropensity, self).__init__()
         self.propensity_function = propensity_function
-        self.propensity_dict = {'species':{}, 'parameters':{}}
+
+        if len(propensity_species) > 0 and not all(isinstance(s, Species) for s in propensity_species):
+            raise TypeError('propensity_species must be a list of Species!')
+
+        if len(propensity_parameters) > 0 and not all(isinstance(s, ParameterEntry) for s in propensity_parameters):
+            raise TypeError('propensity_parameter must be a list of ParameterEntry!')
+
+        for species in propensity_species:
+            if str(species) not in self.propensity_function:
+                raise ValueError(f'species: {species} must be part of the formula: {self.propensity_function}')
+
+            self.propensity_dict['species'].update({str(species): species})
+
+        for parameter in propensity_parameters:
+            if parameter.parameter_name not in self.propensity_function:
+                raise ValueError(f'species: {parameter.parameter_name} must be part of the formula: {self.propensity_function}')
+
+            self.propensity_dict['parameters'].update({parameter.parameter_name: parameter.value})
+
         self.name = 'general'
 
-    def create_kinetic_law(self, sbml_reaction, **kwargs):
+    def create_kinetic_law(self, model, sbml_reaction, **kwargs):
         '''
         Creates KineticLaw object for SBML using the propensity_function string
         '''
-        ratelaw = sbml_reaction.createKineticLaw() 
-        ratelaw.setFormula(self.propensity_function)
-        # To make sure modifiers are added correctly, populate the propensity_dict for General propensity.
-        # self.propensity_dict['species']
+        ratelaw = sbml_reaction.createKineticLaw()
+
+        propensity_dict_in_sbml = self._translate_propensity_dict_to_sbml(model=model, ratelaw=ratelaw)
+
+        # replacing the species defined in CRN with valid SBML names
+        for species_in_crn, species_in_sbml in propensity_dict_in_sbml['species'].items():
+            self.propensity_function.replace(species_in_crn, species_in_sbml)
+
+        # replacing the parameters defined in CRN with valid SBML names
+        for parameter_in_crn, parameter_in_sbml in propensity_dict_in_sbml['parameters'].items():
+            self.propensity_function.replace(parameter_in_crn, parameter_in_sbml)
+
+        math_ast = libsbml.parseL3Formula(self.propensity_function)
+        ratelaw.setMath(math_ast)
         return ratelaw 
+
 
 class MassAction(Propensity):
     def __init__(self, k_forward: Union[float, ParameterEntry], k_reverse: Union[float, ParameterEntry] = None):
@@ -327,7 +359,7 @@ class MassAction(Propensity):
                 reactant_species[species_id] = w_species
             param = propensity_dict_in_sbml['parameters']['k_reverse']
 
-        rate_formula = self._get_rate_formula(param.getId(), stochastic, reactant_species)
+        rate_formula = self._get_rate_formula(param, stochastic, reactant_species)
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
         ratelaw.setMath(math_ast)
