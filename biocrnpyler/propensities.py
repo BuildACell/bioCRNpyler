@@ -47,7 +47,7 @@ class Propensity(object):
     def get_available_propensities() -> Set:
         return Propensity._all_subclasses(Propensity)
 
-    def _create_sbml_parameter(self, parameter_name, smbl_model, ratelaw, rename_dict = None):
+    def _create_sbml_parameter(self, parameter_name, sbml_model, ratelaw, rename_dict = None):
         """Creates an sbml parameter for a parameter of the given name.
         if self.propensity_dict["parameter"]["parameter_name"] is a Parameter,
             creates a global parameter "Parameter.name_Parameter.part_id_Parameter.mechanism"
@@ -72,7 +72,7 @@ class Propensity(object):
             else:
                 sbml_name = rename_dict[p.parameter_name]+"_"+pid+"_"+m
 
-            return _create_global_parameter(smbl_model, sbml_name, v)
+            return _create_global_parameter(sbml_model, sbml_name, v)
             
         elif isinstance(p, int) or isinstance(p, float):
             v = p
@@ -232,14 +232,20 @@ class GeneralPropensity(Propensity):
         '''
         super(GeneralPropensity, self).__init__()
         self.propensity_function = propensity_function
+        self.propensity_dict = {'species':{}, 'parameters':{}}
+        self.name = 'general'
 
     def create_kinetic_law(self, sbml_reaction, **kwargs):
         '''
         Creates KineticLaw object for SBML using the propensity_function string
         '''
         ratelaw = sbml_reaction.createKineticLaw() 
-        math_ast = libsbml.parseL3Formula(self.propensity_function)
-        ratelaw.setMath(math_ast)
+        print(self.propensity_function)
+        ratelaw.setFormula(self.propensity_function)
+        # math_ast = libsbml.parseL3Formula(self.propensity_function)
+        # To make sure modifiers are added correctly, populate the propensity_dict for General propensity.
+        # self.propensity_dict['species']
+        # ratelaw.setMath(math_ast)
         return ratelaw 
 
 class MassAction(Propensity):
@@ -329,7 +335,7 @@ class MassAction(Propensity):
         math_ast = libsbml.parseL3Formula(rate_formula)
         ratelaw.setMath(math_ast)
         annotation_string = self._create_annotation(model, propensity_dict_in_sbml=propensity_dict_in_sbml, **kwargs)
-        val = sbml_reaction.appendAnnotation(annotation_string)
+        sbml_reaction.appendAnnotation(annotation_string)
         return ratelaw
 
     def _get_rate_formula(self, rate_coeff_name, stochastic, reactant_species) -> str:
@@ -428,6 +434,7 @@ class Hill(Propensity):
         propensity_dict_in_sbml = self._translate_propensity_dict_to_sbml(model=model, ratelaw=ratelaw)
 
         rate_formula = self._get_rate_formula(propensity_dict=propensity_dict_in_sbml)
+        print(rate_formula)
         # attach simulator specific annotations to the SBML model, if needed
         annotation_string = self._create_annotation(model, propensity_dict_in_sbml, **kwargs)
         sbml_reaction.appendAnnotation(annotation_string)
@@ -438,7 +445,7 @@ class Hill(Propensity):
         return ratelaw
 
     def _get_rate_formula(self, propensity_dict):
-        raise NotImplementedError('Hill is does not have a rate formula!')
+        raise NotImplementedError('Hill does not have a rate formula! Check out the subclasses.')
 
 
 class HillPositive(Hill):

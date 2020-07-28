@@ -1,7 +1,7 @@
 import pytest
 from biocrnpyler.sbmlutil import *
 from biocrnpyler.species import Species, Complex
-from biocrnpyler.propensities import MassAction, HillPositive, HillNegative, ProportionalHillPositive, ProportionalHillNegative 
+from biocrnpyler.propensities import MassAction, HillPositive, HillNegative, ProportionalHillPositive, ProportionalHillNegative, GeneralPropensity
 from biocrnpyler.parameter import ParameterEntry, ParameterKey
 from biocrnpyler.chemical_reaction_network import Reaction, ChemicalReactionNetwork
 
@@ -42,26 +42,25 @@ def test_add_reaction():
     key1 = ParameterKey(name = "k", mechanism = "m", part_id = "pid")
     k1 = ParameterEntry("k", 1.11, key1)
     k2 = ParameterEntry("k", 2.22)
-
     stochiometries = [([], [S1]), ([S1], []), ([S1], [S2]), (2*[S1], [S2, S3])]
     propensities = [MassAction(k_forward = 1.), MassAction(k_forward = 1, k_reverse = .1), MassAction(k_forward = k1), MassAction(k_forward = k1, k_reverse = k2),
                     HillPositive(k = 1, n = 2., K = 3., s1 = S1), HillPositive(k = k1, n = 2., K = k2, s1 = S1),
                     HillNegative(k = 1, n = 2., K = 3., s1 = S1), HillNegative(k = k1, n = k2, K = 3., s1 = S1),
                     ProportionalHillPositive(k = 1, n = 2, K = 3., s1 = S1, d = S2), ProportionalHillPositive(k = k1, n = 2, K = k2, s1 = S1, d = S2),
-                    ProportionalHillNegative(k = 1, n = 2, K = 3., s1 = S1, d = S2), ProportionalHillNegative(k = k1, n = 2, K = k2, s1 = S1, d = S2)
+                    ProportionalHillNegative(k = 1, n = 2, K = 3., s1 = S1, d = S2), ProportionalHillNegative(k = k1, n = 2, K = k2, s1 = S1, d = S2),
+                    GeneralPropensity('k1**2 - k2/S1**2'), GeneralPropensity('S1**2 + S2**2 + S3**2')
                     ]
 
     for prop in propensities: #Cycle through different propensity types
         for inputs, outputs in stochiometries: #cycle through different stochiometries
             for stochastic in [True, False]: #Toggle Stochastic
-                for for_bioscrape in [True, False]: #Toggle for_bioscrape
                     rxn_num = 0
-                    model_id = f"{prop.name}_model_with_stochastic_{stochastic}_for_bioscrape_{for_bioscrape}"
+                    model_id = f"{prop.name}_model_with_stochastic_{stochastic}"
                     document, model = create_sbml_model(model_id = model_id)
                     add_all_species(model, species)
                     rxn = Reaction(inputs, outputs, propensity_type = prop) #create a reaction
                     try:
-                        sbml_reaction = add_reaction(model, rxn, f"r{rxn_num}", stochastic = stochastic, for_bioscrape = for_bioscrape) #add reaction to SBML Model
+                        sbml_reaction = add_reaction(model, rxn, f"r{rxn_num}", stochastic = stochastic) #add reaction to SBML Model
                         rxn_num += 1 #increment reaction id
                         crn_reactants = [str(s) for s in inputs]
                         crn_products = [str(s) for s in outputs]
@@ -77,31 +76,67 @@ def test_add_reaction():
 
                         if len(crn_products) > 0:
                             assert all(crn_products.count(s.getSpecies()) == int(s.getStoichiometry()) for s in sbml_reaction.getListOfProducts())
-
                         assert not sbml_reaction.getReversible()
-
                         #TODO is there a smart way to test that the rate formula is correct?
-                        #test bioscrape annotations
-                        if for_bioscrape:
-                            sbml_annotation = sbml_reaction.getAnnotationString()
-                            check_var = f"type={prop.name}" in str(sbml_annotation)
-                            assert check_var == True
-                            #Test that the sbml annotation has keys for all species and parameters
-                            for k in prop.propensity_dict["parameters"]:
-                                #convert k_reverse and k_forward to just k
-                                k = k.replace("_reverse", "").replace("_forward", "")
-                                check_var = f"{k}=" in sbml_annotation
-                                assert  check_var == True
-
-                            for s in prop.propensity_dict["species"]:
-                                check_var = f"{s}=" in sbml_annotation
-                                assert check_var == True 
-
-                        # Validate the SBML model
-                        assert validate_sbml(document) == 0
-                    except Exception as e: #collect errors to display with args
+                        assert validate_sbml(document) == 0 # Validate the SBML model
+                    except Exception as e: #collect errors to display
                         error_txt = f"Unexpected Error: in sbmlutil.add_reaction {rxn} for {model_id}. \n {str(e)}."
                         raise Exception(error_txt)
+
+def test_add_reaction_for_bioscrape():
+    '''
+    Generates models for bioscrape including the particular annotations needed.
+    '''
+    S1, S2, S3 = Species("S1"), Species("S2"), Species("S3")
+    species = [S1, S2, S3]
+    for_bioscrape = True #Toggle for_bioscrape
+    propensities = [MassAction(k_forward = 1, k_reverse = .1), HillPositive(k = 1, n = 2., K = 3., s1 = S1),
+                    HillNegative(k = 1, n = 2., K = 3., s1 = S1), 
+                    ProportionalHillPositive(k = 1, n = 2, K = 3., s1 = S1, d = S2), 
+                    ProportionalHillNegative(k = 1, n = 2, K = 3., s1 = S1, d = S2)]
+    for prop in propensities:
+        rxn_num = 0
+        model_id = f"{prop.name}_model_with_for_bioscrape_{for_bioscrape}"
+        document, model = create_sbml_model(model_id = model_id)
+        add_all_species(model, species)
+        rxn = Reaction([S1], [S2, S3], propensity_type = prop) #create a reaction
+        try:
+            sbml_reaction = add_reaction(model, rxn, f"r{rxn_num}", for_bioscrape = for_bioscrape) #add reaction to SBML Model
+            rxn_num += 1 #increment reaction id
+            crn_reactants = [str(S1)]
+            crn_products = [str(S2), str(S3)]
+            sbml_products = [p.getSpecies() for p in sbml_reaction.getListOfProducts()]
+            sbml_reactants = [p.getSpecies() for p in sbml_reaction.getListOfReactants()]
+
+            #test that the reaction has the right inputs and outputs
+            assert set(crn_reactants) == set(sbml_reactants)
+            assert set(crn_products) == set(sbml_products)
+
+            if len(crn_reactants) > 0:
+                assert all(crn_reactants.count(s.getSpecies()) == int(s.getStoichiometry()) for s in sbml_reaction.getListOfReactants())
+
+            if len(crn_products) > 0:
+                assert all(crn_products.count(s.getSpecies()) == int(s.getStoichiometry()) for s in sbml_reaction.getListOfProducts())
+
+            assert not sbml_reaction.getReversible()
+            # Check annotations:
+            sbml_annotation = sbml_reaction.getAnnotationString()
+            check_var = f"type={prop.name}" in str(sbml_annotation)
+            assert check_var == True
+            #Test that the sbml annotation has keys for all species and parameters
+            for k in prop.propensity_dict["parameters"]:
+                #convert k_reverse and k_forward to just k
+                k = k.replace("_reverse", "").replace("_forward", "")
+                check_var = f"{k}=" in sbml_annotation
+                assert  check_var == True
+            for s in prop.propensity_dict["species"]:
+                check_var = f"{s}=" in sbml_annotation
+                assert check_var == True 
+            #TODO is there a smart way to test that the rate formula is correct?
+            assert validate_sbml(document) == 0 # Validate the SBML model
+        except Exception as e: #collect errors
+            error_txt = f"Unexpected Error: in sbmlutil.add_reaction {rxn} for {model_id}. \n {str(e)}."
+            raise Exception(error_txt)
 
 
 def test_generate_sbml_model():
