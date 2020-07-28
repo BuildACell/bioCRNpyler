@@ -341,6 +341,7 @@ class MassAction(Propensity):
             if stochastic:
                 ratestring += '*'
                 ratestring += f"{species_id}"
+                ratestring += '*'
                 ratestring += '*'.join(f" ( {species_id} - {i} )" for i in range(1, weighted_species.stoichiometry))
             else:
                 if weighted_species.stoichiometry > 1:
