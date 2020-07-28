@@ -168,11 +168,11 @@ class Propensity(object):
         return cls(**merged)
 
     def _create_annotation(self, model, propensity_dict_in_sbml, **kwargs):
-        '''
+        """
         Create simulator specific annotations to write to Kinetic laws or any other 
         part of the SBML model object. 
         Annotations are used to take advantage of a simulator specific need/feature.
-        '''
+        """
         annotation_string = ''
         # Add your own simulator specific annotations here
 
@@ -257,9 +257,9 @@ class GeneralPropensity(Propensity):
         self.name = 'general'
 
     def create_kinetic_law(self, model, sbml_reaction, **kwargs):
-        '''
+        """
         Creates KineticLaw object for SBML using the propensity_function string
-        '''
+        """
         ratelaw = sbml_reaction.createKineticLaw()
 
         propensity_dict_in_sbml = self._translate_propensity_dict_to_sbml(model=model, ratelaw=ratelaw)
