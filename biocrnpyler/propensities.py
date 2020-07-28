@@ -234,6 +234,9 @@ class GeneralPropensity(Propensity):
         self.propensity_function = propensity_function
 
     def create_kinetic_law(self, sbml_reaction, **kwargs):
+        '''
+        Creates KineticLaw object for SBML using the propensity_function string
+        '''
         ratelaw = sbml_reaction.createKineticLaw() 
         math_ast = libsbml.parseL3Formula(self.propensity_function)
         ratelaw.setMath(math_ast)
@@ -337,7 +340,8 @@ class MassAction(Propensity):
         for species_id, weighted_species in reactant_species.items():
             if stochastic:
                 ratestring += '*'
-                ratestring += '*'.join(f" ( {species_id} - {i} )" for i in range(weighted_species.stoichiometry))
+                ratestring += f"{species_id}"
+                ratestring += '*'.join(f" ( {species_id} - {i} )" for i in range(1, weighted_species.stoichiometry))
             else:
                 if weighted_species.stoichiometry > 1:
                     ratestring += f" * {species_id}^{weighted_species.stoichiometry}"
