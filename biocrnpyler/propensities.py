@@ -195,7 +195,7 @@ class Propensity(object):
         """
         annotation_dict = defaultdict()
         for param_name, param_value in propensity_dict_in_sbml['parameters'].items():
-            annotation_dict[param_name] = param_value.value
+            annotation_dict[param_name] = param_value
 
         for species_name, species in propensity_dict_in_sbml['species'].items():
             annotation_dict[species_name] = species
@@ -216,7 +216,8 @@ class Propensity(object):
         # get copy of the propensity_dict and fill with sbml names
         propensity_dict_in_sbml = copy.deepcopy(self.propensity_dict)
         for param_name in propensity_dict_in_sbml['parameters'].keys():
-            propensity_dict_in_sbml['parameters'][param_name] = self._create_sbml_parameter(param_name, model, ratelaw)
+            parameter_in_sbml  =self._create_sbml_parameter(param_name, model, ratelaw)
+            propensity_dict_in_sbml['parameters'][param_name] = parameter_in_sbml.getId()
 
         for species_name, species in propensity_dict_in_sbml['species'].items():
             propensity_dict_in_sbml['species'][species_name] = getSpeciesByName(model, str(species)).getId()
@@ -269,7 +270,7 @@ class GeneralPropensity(Propensity):
 
         # replacing the parameters defined in CRN with valid SBML names
         for parameter_in_crn, parameter_in_sbml in propensity_dict_in_sbml['parameters'].items():
-            self.propensity_function.replace(parameter_in_crn, str(parameter_in_sbml))
+            self.propensity_function.replace(parameter_in_crn, parameter_in_sbml)
 
         math_ast = libsbml.parseL3Formula(self.propensity_function)
         ratelaw.setMath(math_ast)
@@ -358,7 +359,7 @@ class MassAction(Propensity):
                 reactant_species[species_id] = w_species
             param = propensity_dict_in_sbml['parameters']['k_reverse']
 
-        rate_formula = self._get_rate_formula(param.getId(), stochastic, reactant_species)
+        rate_formula = self._get_rate_formula(param, stochastic, reactant_species)
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
         ratelaw.setMath(math_ast)
