@@ -138,11 +138,11 @@ class DNAassembly(DNA):
         elif self.promoter is not None and self.rbs is None:
             species += self.promoter.update_species()
 
-        if "rna_degredation" in self.mechanisms and self.promoter is not None and self.transcript is not None:
-            deg_mech = self.get_mechanism("rna_degredation")
+        deg_mech = self.get_mechanism("rna_degredation", optional_mechanism = True)
+        if deg_mech is not None and self.promoter is not None and self.transcript is not None:
             species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
 
-        return list(set(species))
+        return species
 
     def update_reactions(self):
         reactions = []
@@ -152,12 +152,10 @@ class DNAassembly(DNA):
         if self.rbs is not None:
             reactions += self.rbs.update_reactions()
 
-        if "rna_degredation" in self.mechanisms and self.promoter is not None and self.transcript is not None:
-            deg_mech = self.get_mechanism("rna_degredation")
-
+        deg_mech = self.get_mechanism("rna_degredation", optional_mechanism = True)
+        if deg_mech is not None and self.promoter is not None and self.transcript is not None:
             reactions += deg_mech.update_reactions(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
 
-        # TODO check that the reaction list is unique
         return reactions
 
     def update_parameters(self, parameter_file = None, parameters = None, overwrite_parameters = True):

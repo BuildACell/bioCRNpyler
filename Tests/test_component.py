@@ -3,7 +3,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import Component, DNA, ParameterDatabase
+from biocrnpyler import Component, DNA, ParameterDatabase, Mixture, Mechanism
 from biocrnpyler import SimpleTranscription, SimpleTranslation
 
 
@@ -14,7 +14,7 @@ class TestComponent(TestCase):
         self.comp_name = 'test_component'
         self.default_concentration = 0
         self.component = Component(name=self.comp_name, mechanisms={}, parameters={}, parameter_file=None,
-                                   mixture=None, attributes=[], initial_conc=self.default_concentration, parameter_warnings=True)
+                                   mixture=None, attributes=[], initial_conc=self.default_concentration)
 
     def test_initial_concentration(self):
 
@@ -149,3 +149,33 @@ class TestComponent(TestCase):
         # warning if update_reaction on a component object
         with self.assertWarnsRegex(Warning, f'Unsubclassed update_reactions called for {self.component}'):
             self.component.update_reactions()
+
+    def test_get_mechanism(self):
+        M1_comp = Mechanism(name = "m1_comp", mechanism_type = "shared")
+        M1_mix = Mechanism(name = "m1_mix", mechanism_type = "shared")
+        M2_comp = Mechanism(name = "m2_comp", mechanism_type = "comp")
+        M2_mix = Mechanism(name = "m2_mix", mechanism_type = "mixture")
+
+        #Create a Mixture and Component with the above mechanisms
+        C = Component(name = "comp", mechanisms = [M1_comp, M2_comp])
+        M = Mixture(mechanisms = [M1_mix, M2_mix], components = [C])
+
+        #Get the copy of C in M
+        C_copy = M.get_component(component = C)
+
+        self.assertTrue(C_copy.get_mechanism("shared").name == "m1_comp")
+        self.assertTrue(M.get_mechanism("shared").name == "m1_mix")
+        self.assertTrue(C_copy.get_mechanism("comp").name == "m2_comp")
+        self.assertTrue(C_copy.get_mechanism("mixture").name == "m2_mix")
+
+        #Make sure the Mixture get_mechanism works as well, just in case.
+        self.assertTrue(M.get_mechanism("comp") is None)
+
+        #test get Mechanism with no_key_error = False (Default)
+        with self.assertRaisesRegexp(KeyError, "Unable to find mechanism of type"):
+            C_copy.get_mechanism("DNE")
+
+        #test get_mechanism with no_key_error = True
+        self.assertTrue(C_copy.get_mechanism("DNE", optional_mechanism = True) is None)
+
+

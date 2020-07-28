@@ -2,7 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import Mixture, Species, DNA, Reaction, ChemicalReactionNetwork, Component, SimpleTranscription, SimpleTranslation
+from biocrnpyler import Mixture, Species, DNA, Reaction, ChemicalReactionNetwork, Component, SimpleTranscription, SimpleTranslation, GlobalMechanism
 
 
 class TestMixture(TestCase):
@@ -90,7 +90,7 @@ class TestMixture(TestCase):
             mixture.get_component(index = c1)
 
 
-    def test_update_mechanisms(self):
+    def test_add_mechanisms(self):
 
         mixture = Mixture()
 
@@ -124,6 +124,10 @@ class TestMixture(TestCase):
         test_mech_list = list(test_mech.values())
         mixture.add_mechanisms(test_mech_list)
         self.assertEqual(mixture.mechanisms.keys(), test_mech.keys())
+
+    def test_add_global_mechanism(self):
+        mixture = Mixture()
+        GM = GlobalMechanism(name = "gm", mechanism_type = "global")
 
 
     def test_update_species(self):
@@ -201,3 +205,22 @@ class TestMixture(TestCase):
         self.assertEqual(CRN.species, crn_from_mixture.species)
         # test that the mixture has the same reactions as the manually build CRN object
         self.assertEqual(CRN.reactions, crn_from_mixture.reactions)
+
+
+    def test_compoents_in_multiple_mixtures(self):
+        C = Component("comp")
+        M1 = Mixture(components = [C])
+
+        #M1 should have a copy of C, not C itself
+        self.assertTrue(type(M1.get_component(component = C)) == Component)
+        self.assertTrue(C not in M1._components)
+
+        #C.mixture should not be set, only it's copy
+        self.assertTrue(C.mixture is None)
+        self.assertTrue(M1.get_component(component = C).mixture is M1)
+
+        #Add C to another Mixture
+        M2 = Mixture(components = [C])
+        self.assertTrue(type(M2.get_component(component = C))  == Component)
+        self.assertTrue(M2.get_component(component = C).mixture is M2)
+        self.assertTrue(M1.get_component(component = C) != M2.get_component(component = C))

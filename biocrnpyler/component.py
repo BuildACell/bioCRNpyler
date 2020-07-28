@@ -146,11 +146,11 @@ class Component(object):
             self.parameter_database.load_parameters_from_database(parameter_database, overwrite_parameters = overwrite_parameters)
 
 
-    def get_mechanism(self, mechanism_type):
+    def get_mechanism(self, mechanism_type, optional_mechanism = False):
         """
         Searches the Component for a Mechanism of the correct type. 
         If the Component does not have the mechanism, searches the Components' Mixture for the Mechnaism.
-        If no Mechanism is found, an error is thrown.
+        no_key_error toggles whether an error is thrown if no mechanism is found
         """
         if not isinstance(mechanism_type, str):
             raise TypeError(f"mechanism_type must be a string. Recievied {mechanism_type}.")
@@ -159,8 +159,8 @@ class Component(object):
             return self.mechanisms[mechanism_type]
         else:
             mech = self.mixture.get_mechanism(mechanism_type)
-            if mech is None:
-                raise AttributeError(f"Unable to find mechanism of type {mechanism_type} in Component {self} or Mixture {self.mixture}.")
+            if mech is None and not optional_mechanism:
+                raise KeyError(f"Unable to find mechanism of type {mechanism_type} in Component {self} or Mixture {self.mixture}.")
             else:
                 return mech
 
