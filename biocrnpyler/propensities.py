@@ -240,12 +240,9 @@ class GeneralPropensity(Propensity):
         Creates KineticLaw object for SBML using the propensity_function string
         '''
         ratelaw = sbml_reaction.createKineticLaw() 
-        print(self.propensity_function)
         ratelaw.setFormula(self.propensity_function)
-        # math_ast = libsbml.parseL3Formula(self.propensity_function)
         # To make sure modifiers are added correctly, populate the propensity_dict for General propensity.
         # self.propensity_dict['species']
-        # ratelaw.setMath(math_ast)
         return ratelaw 
 
 class MassAction(Propensity):
