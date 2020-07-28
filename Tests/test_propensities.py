@@ -148,7 +148,7 @@ def test_proportional_hill_negative_rate_formula():
 
 def test_general_propensity():
     S1, S2, S3 = Species("S1"), Species("S2"), Species("S3")
-    #create some parameters
+    # create some parameters
     k1 = ParameterEntry("k1", 1.11)
     k2 = ParameterEntry("k2", 2.22)
 

@@ -48,7 +48,7 @@ def test_add_reaction():
                     HillNegative(k = 1, n = 2., K = 3., s1 = S1), HillNegative(k = k1, n = k2, K = 3., s1 = S1),
                     ProportionalHillPositive(k = 1, n = 2, K = 3., s1 = S1, d = S2), ProportionalHillPositive(k = k1, n = 2, K = k2, s1 = S1, d = S2),
                     ProportionalHillNegative(k = 1, n = 2, K = 3., s1 = S1, d = S2), ProportionalHillNegative(k = k1, n = 2, K = k2, s1 = S1, d = S2),
-                    GeneralPropensity('k1*2 - k2/S1^2', propensity_species=[S1], propensity_parameters=[k1,k2]), GeneralPropensity('S1^2 + S2^2 + S3^2', propensity_species=[S1,S2,S3], propensity_parameters=[])
+                    GeneralPropensity('k1*2 - k2/S1^2', propensity_species=[S1], propensity_parameters=[k1, k2]), GeneralPropensity('S1^2 + S2^2 + S3^2', propensity_species=[S1, S2, S3], propensity_parameters=[])
                     ]
 
     for prop in propensities: #Cycle through different propensity types
