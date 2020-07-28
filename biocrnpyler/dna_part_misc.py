@@ -1,4 +1,4 @@
-from .chemical_reaction_network import Species, make_species
+from .species import Species
 from .mechanisms_binding import One_Step_Cooperative_Binding
 from .dna_part import DNA_part
 from warnings import warn
@@ -8,9 +8,11 @@ integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 class DNABindingSite(DNA_part):
     def __init__(self,name,binders,no_stop_codons=[],assembly = None,**keywords):
         """an integrase attachment site binds to integrase"""
-        self.binders = make_species(binders)
-        if(not isinstance(self.binders,list)):
-            self.binders = [self.binders]
+
+        if(isinstance(binders,list)):
+            self.binders = [self.set_species(a) for a in binders]
+        else:
+            self.binders = [binders]
         self.mechanisms = {"binding":One_Step_Cooperative_Binding()}
         DNA_part.__init__(self,name,no_stop_codons=no_stop_codons,mechanisms = self.mechanisms,assembly = assembly,**keywords)
         self.name = name
@@ -32,7 +34,8 @@ class DNABindingSite(DNA_part):
         rxns = []
         if(self.dna_to_bind is not None):
             mech_b = self.mechanisms["binding"]
-            rxns = mech_b.update_reactions(self.binders,self.dna_to_bind,component=self,part_id = self.name)
+            for binder in self.binders:
+                rxns += mech_b.update_reactions(binder,self.dna_to_bind,component=self,part_id = self.name)
         return rxns
     def update_component(self,dna,rnas=None,proteins=None,mypos = None):
         """returns a copy of this component, except with the proper fields updated"""

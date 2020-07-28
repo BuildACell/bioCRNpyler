@@ -21,4 +21,4 @@ class CDS(DNA_part):
     def update_reactions(self):
         return []
     def get_species(self):
-        return self.protein.get_species()
+        return self.protein

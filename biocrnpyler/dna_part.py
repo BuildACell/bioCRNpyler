@@ -42,7 +42,7 @@ class DNA_part(Component,OrderedMonomer):
                 self.sequence = value
             elif(key=="no_stop_codons"):
                 self.no_stop_codons = value
-        OrderedMonomer.__init__(self,data=None,position=pos,parent=assembly,direction=direction)
+        OrderedMonomer.__init__(self,position=pos,parent=assembly,direction=direction)
     @property
     def dna_species(self):
         return Species(self.name, material_type="dna")

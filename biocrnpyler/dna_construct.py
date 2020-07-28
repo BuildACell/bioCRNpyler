@@ -14,7 +14,7 @@ from .chemical_reaction_network import ComplexSpecies, Species, OrderedComplexSp
 from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
 from matplotlib import cm
 from .components_basic import DNA, Protein, RNA
-
+from .species import WeightedSpecies
 from .dna_part import DNA_part
 from .dna_part_misc import DNABindingSite,AttachmentSite
 from .dna_part_rbs import RBS
@@ -95,6 +95,7 @@ class DNA_construct(DNA,OrderedPolymer):
                     mechanisms=mechanisms,parameters=parameters,
                     attributes=attributes,initial_conc = initial_conc,
                     parameter_warnings=parameter_warnings, **keywords)
+        self.update_parameters()
         self.transcripts = []
         self.set_parameter_warnings(parameter_warnings)
     def make_name(self):
@@ -120,6 +121,10 @@ class DNA_construct(DNA,OrderedPolymer):
         #    newpos+=1
         #self.parts_list = newlist
         return self
+    def set_mixture(self, mixture):
+        self.mixture = mixture
+        for part in self.parts_list:
+            part.set_mixture(mixture)
     def update_dna(self, dna, attributes = None):
         if dna is None:
             self.dna = self.set_species(self.name, material_type = "dna", attributes = attributes)
@@ -131,16 +136,14 @@ class DNA_construct(DNA,OrderedPolymer):
         if(self.parameter_warnings is not None):
             for part in self.parts_list:
                 part.set_parameter_warnings(parameter_warnings)
-    def update_parameters(self, mixture_parameters = {}, parameters = {},
-                          overwrite_custom_parameters = True):
+    def update_parameters(self, overwrite_parameters = True):
         """update parameters of all parts in the construct"""
-        DNA.update_parameters(self = self,
-                              mixture_parameters = mixture_parameters,
-                              parameters = parameters)
+
+        DNA.update_parameters(self = self,parameter_database=self.parameter_database)
         for part in self.parts_list:
-            part.update_parameters(mixture_parameters = mixture_parameters,
-                                    parameters = parameters,
-                                    overwrite_custom_parameters = False)
+            part.update_parameters(parameter_database = self.parameter_database,
+                                    overwrite_parameters = overwrite_parameters)
+
     def update_mechanisms(self, mixture_mechanisms = {}, mechanisms = {},
                           overwrite_custom_parameters = True,overwrite_custom_mechanisms = False):
         DNA.update_mechanisms(self = self,
@@ -264,7 +267,11 @@ class DNA_construct(DNA,OrderedPolymer):
         for specie in spec_list:
             #go through the species and remove the "bindloc" attribute
             #I don't care about the binding now that I am done generating species
-            if(hasattr(specie,"parent") and specie.parent is not None):
+            if(type(specie)==WeightedSpecies):
+                spec2 = specie.species
+                if(hasattr(spec2,"parent") and (spec2.parent is not None)):
+                    specie.species = spec2.parent
+            if(hasattr(specie,"parent") and (specie.parent is not None)):
                 out_sp_list += [specie.parent]
             else:
                 out_sp_list+= [specie]
@@ -358,6 +365,7 @@ class DNA_construct(DNA,OrderedPolymer):
         possible_backbones = {self.dna:self.get_species()}
         #possible_backbones = {a.name:a.get_species() for a in [self]+[a for a in proteins]}
         #species need to be uniqueified
+        print(species)
         unique_species = list(set(species)) 
         for specie in unique_species:
             #in this list we extract all the variants of the complexes from possible_backbones
@@ -398,8 +406,8 @@ class DNA_construct(DNA,OrderedPolymer):
             
         return combinatorial_complexes
     def update_components(self,rnas=None,proteins=None):
-        #TODO figure out why we have duplicate reactions in the CRN sometimes
         multivalent_self = self.get_species()
+        self.update_parameters()
         if((rnas is None) or (proteins is None)):
             rnas,proteins = self.explore_txtl()
         active_components = []
@@ -648,7 +656,7 @@ class TxTl_Explorer():
         #print(self.current_proteins)
         #TODO copy parts here and not in the constructor
         rna_construct = RNA_construct(copy.deepcopy(rna_partslist),made_by = promoter,parameter_warnings=self.parameter_warnings)
-        
+        rna_construct.set_mixture(promoter.mixture)
         #current_rna_name = str(promoter)+"-"+str(rna_construct)
         self.made_proteins[rna_construct]={}
         #compile the name, keeping track of which promoter made the rna and all the parts on it
@@ -701,40 +709,6 @@ class RNA_construct(DNA_construct):
         #since DNA_construct subclasses DNA
         self.my_promoter = made_by
         DNA_construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,material_type="rna",**keywords)
-        #if(name == None):
-        #    name = self.make_name()
-        #self.name = super().name
-        #self.material_type = "rna"
-    
-    def update_rbses(self,in_proteins,combinatorial_species=None):
-        my_rbses = [] #output list of RBSes
-        #in_proteins looks like: {rna:{rbs1:[protein1,protein2],rbs2:[protein3]}}
-        #print(proteins)
-        if(len(in_proteins)>1):
-            warn("expected one RNA, but we detected more! proteins looks like "+str(in_proteins))
-        proteins = in_proteins[self]
-        rbses = list(proteins.keys())
-        
-        #proteins looks like this:
-        # {RBS:[protein],RBS1:[protein1,protein2]}
-        if(combinatorial_species is None):
-            combinatorial_species = [self.get_species()] #list of RNAs
-        for comb_specie in combinatorial_species: #combinatorial_species will contain RNAs
-            
-            if(isinstance(comb_specie,OrderedComplexSpecies) and comb_specie.species[-1].name == self.name):
-                #TODO below is very similar to what happens in update_promoters. Can we consolidate?
-                for rbs in rbses:
-                    new_rbs = copy.deepcopy(rbs)
-                    if(isinstance(comb_specie.species[rbs.position],ComplexSpecies)):
-                        #if something is already bound then forget it
-                        continue
-                    new_mv_self = copy.deepcopy(comb_specie)
-                    new_mv_self.attributes = ["bindloc_"+str(rbs.position)] #assign binding location
-                    made_proteins = proteins[rbs] #this is a list
-                    new_rbs.protein = [a.get_species() for a in made_proteins]
-                    new_rbs.transcript = new_mv_self
-                    my_rbses+=[new_rbs]
-        return my_rbses
 
     def explore_txtl(self):
         """an RNA has no tx, only TL! central dogma exists, right?"""

@@ -7,7 +7,12 @@ from .mechanism import *
 from .component import *
 from .parameter import *
 from .global_mechanism import *
+from .species import *
+from .propensities import *
+from .reaction import *
 from .chemical_reaction_network import *
+from .polymer import *
+
 
 #core mechanisms
 from .mechanisms_binding import *
@@ -30,9 +35,6 @@ from .dna_construct import *
 
 #CRNlab imports
 from .crnlab import *
-
-#specialized components - maybe these shouldn't be auto-imported?
-from .components_dcas9 import *
 
 
 # Additional functions

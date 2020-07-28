@@ -2,17 +2,23 @@
 #  See LICENSE file in the project root directory for details.
 
 from warnings import warn as pywarn
-from .chemical_reaction_network import Species, ComplexSpecies, Reaction
-from .parameter import Parameter
+from .species import Species, ComplexSpecies
+from .reaction import Reaction
+from .parameter import ParameterDatabase, ParameterEntry, Parameter
 from typing import List, Union
+ 
 
 
 def warn(txt):
     pywarn(txt)
 
 
-# Component class for core components
+
 class Component(object):
+    """
+    Component class for core components
+    This class must be Subclassed to provide functionality with the functions get_species and get_reactions overwritten.
+    """
 
     def __init__(self, name: Union[str, Species],
                  mechanisms=None,  # custom mechanisms
@@ -20,8 +26,9 @@ class Component(object):
                  parameter_file=None, #custom parameter file
                  mixture=None,
                  attributes=None,
-                 initial_conc=0,
+                 initial_conc=None,
                  parameter_warnings = True,
+                 initial_condition_dictionary = None,
                  **keywords  # parameter keywords
                  ):
         if mechanisms is None:
@@ -36,7 +43,7 @@ class Component(object):
         # Toggles whether warnings will be sent when parameters aren't found by
         # the default name.
         self.set_parameter_warnings(parameter_warnings)
-        self._initial_conc = initial_conc
+        
 
         # Check to see if a subclass constructor has overwritten default
         # mechanisms.
@@ -53,21 +60,30 @@ class Component(object):
         self.custom_mechanisms = {}
         self.mechanisms = {}
         if mixture is not None:
+            self.set_mixture(mixture)
             mixture_mechanisms = mixture.mechanisms
         else:
+            self.set_mixture(None)
             mixture_mechanisms = {}
         self.update_mechanisms(mechanisms=mechanisms,
                                mixture_mechanisms=mixture_mechanisms)
 
-        self.custom_parameters = {}
-        self.parameters = {}
-        if mixture is not None:
-            mixture_parameters = mixture.parameters
-        else:
-            mixture_parameters = {}
+        #self.custom_parameters = {}
+        #self.parameters = {}
+        #if mixture is not None:
+        #    mixture_parameters = mixture.parameters
+        #else:
+        #    mixture_parameters = {}
 
-        parameters = Parameter.create_parameter_dictionary(parameters, parameter_file)
-        self.update_parameters(mixture_parameters=mixture_parameters, parameters=parameters)
+        self.parameter_database = ParameterDatabase(parameter_file = parameter_file, parameter_dictionary = parameters)
+
+        # A component can store an initial concentration used for self.get_species() species
+        self._initial_conc = initial_conc
+        #Components can also store initial conditions, just like Mixtures
+        if initial_condition_dictionary is None:
+            self.initial_condition_dictionary = {}
+        else:
+            self.initial_condition_dictionary = dict(initial_condition_dictionary)
 
     @property
     def initial_concentration(self) -> float:
@@ -81,6 +97,10 @@ class Component(object):
             raise ValueError("Initial concentration must be non-negative, "f"this was given: {initial_conc}")
         else:
             self._initial_conc = initial_conc
+
+    #Set the mixture the Component is in.
+    def set_mixture(self, mixture):
+        self.mixture = mixture
 
     # TODO implement as an abstractmethod
     def get_species(self) -> None:
@@ -119,38 +139,17 @@ class Component(object):
         else:
             raise Warning(f"Component {self.name} has no internal species and therefore no attributes")
 
-    def update_parameters(self, mixture_parameters=None, parameters=None,
-                          overwrite_custom_parameters=True) -> None:
-        """
-        This function gives Components their own parameter dictionary.
 
-        By default, components get all the parameters from Mixture
-        Parameters passed in from mixture are superseded by parameters passed
-        in the parameters keyword parameters already saved as custom parameters
-        also supersede parameters from the Mixture. In other words, the
-        component remembers custom changes to parameters and mixture parameters
-        will never overwrite those changes Mixture parameters are only ever
-        used by default when no other component-level parameter has ever been
-        given with the same key.
+    def update_parameters(self, parameter_file = None, parameters = None, parameter_database = None, overwrite_parameters = True):
 
-        :param mixture_parameters:
-        :param parameters:
-        :param overwrite_custom_parameters: lets this function to overwrite the
-        existing custom Component-level parameters.
-        :return: None
-        """
+        if parameter_file is not None:
+            self.parameter_database.load_parameters_from_file.load_parameters_from_dictionary(parameter_file, overwrite_parameters = overwrite_parameters)
+            
+        if parameters is not None:
+            self.parameter_database.load_parameters_from_dictionary(parameters, overwrite_parameters = overwrite_parameters)
 
-        if parameters:
-            for p in parameters:
-                if overwrite_custom_parameters or p not in self.custom_parameters:
-                    self.parameters[p] = parameters[p]
-                    if p in self.custom_parameters:
-                        self.custom_parameters[p] = parameters[p]
-
-        if mixture_parameters:
-            for p in mixture_parameters:
-                if p not in self.parameters:
-                    self.parameters[p] = mixture_parameters[p]
+        if parameter_database is not None:
+            self.parameter_database.load_parameters_from_database(parameter_database, overwrite_parameters = overwrite_parameters)
 
 
     def update_mechanisms(self, mixture_mechanisms=None, mechanisms=None, overwrite_custom_mechanisms=True):
@@ -190,71 +189,25 @@ class Component(object):
         self.parameter_warnings = parameter_warnings
 
     # Get Parameter Hierarchy:
-    def get_parameter(self, param_name: str, part_id=None, mechanism=None):
-        return_val = None
-        warning_txt = None
+    # 1. tries to find the Parameter in Component.parameter_database
+    # 2. tries to find the parameter in Component.mixture.parameter_database
+    def get_parameter(self, param_name: str, part_id=None, mechanism=None, return_numerical = False):
+        #Try the Component ParameterDatabase
+        param = self.parameter_database.find_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
 
-        # Ideally parameters can be found
-        # (mechanism.name/mechanism_type, part_id, param_name) --> val
-        if part_id is not None and mechanism is not None:
-            if mechanism is not None \
-               and (mechanism.name, part_id, param_name) in self.parameters:
-                return_val = self.parameters[(mechanism.name,
-                                              part_id, param_name)]
-            elif mechanism is not None \
-                 and (mechanism.mechanism_type, part_id, param_name) \
-                     in self.parameters:
-                return_val = self.parameters[(mechanism.mechanism_type, part_id,
-                                              param_name)]
+        #Next try the Mixture ParameterDatabase
+        if param is None and self.mixture is not None:
+            param = self.mixture.get_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
 
-        # Next try (part_id, param_name) --> val
-        if part_id is not None and return_val is None:
-            if (part_id, param_name) in self.parameters:
-                return_val = self.parameters[(part_id, param_name)]
-
-                if mechanism is not None:
-                    warning_txt = ("No Parameter found with "
-                        f"param_name={param_name} and part_id={part_id} and "
-                        f"mechanism={repr(mechanism)}. Parameter found under "
-                        f"the key (part_id, param_name)=({part_id}, "
-                        f"{param_name}).")
-        # Next try (Mechanism.name/mechanism_type, param_name) --> val
-        if mechanism is not None and return_val is None:
-            if (mechanism.name, param_name) in self.parameters:
-                return_val = self.parameters[((mechanism.name, param_name))]
-                if part_id is not None:
-                    warning_txt = ("No Parameter found with "
-                        f"param_name={param_name} and part_id={part_id} and "
-                        f"mechanism={repr(mechanism)}. Parameter found under "
-                        f"the key (mechanism.name, "
-                        f"param_name)=({mechanism.name}, {param_name})")
-            elif (mechanism.mechanism_type, param_name) in self.parameters:
-                return_val = self.parameters[(mechanism.mechanism_type,
-                                              param_name)]
-                if part_id is not None:
-                    warning_txt = ("No Parameter found with "
-                        f"param_name={param_name} and part_id={part_id} and "
-                        f"mechanism={repr(mechanism)}. Parameter found under "
-                        f"the key (mechanism.name, "
-                        f"param_name)=({mechanism.name}, {param_name})")
-        # Finally try (param_name) --> return val
-        if param_name in self.parameters and return_val is None:
-            return_val = self.parameters[param_name]
-            if mechanism is not None or part_id is not None:
-                warning_txt = (f"No parameter found with "
-                               f"param_name={param_name} and part_id={part_id} "
-                               f"and mechanism={repr(mechanism)}. Parameter "
-                               f"found under the key param_name={param_name}")
-        if return_val is None:
+        if param is None:
             raise ValueError("No parameters can be found that match the "
-                             "(mechanism, part_id, "
-                            f"param_name)=({repr(mechanism)}, {part_id}, "
-                            f"{param_name})")
-
+                 "(mechanism, part_id, "
+                f"param_name)=({repr(mechanism)}, {part_id}, "
+                f"{param_name})")
+        elif return_numerical and isinstance(param, Parameter):
+            return param.value
         else:
-            if (warning_txt is not None) and self.parameter_warnings:
-                warn(warning_txt)
-            return return_val
+            return param
 
     # TODO implement abstractmethod
     def update_species(self) -> List:
@@ -275,6 +228,44 @@ class Component(object):
         reactions = []
         warn("Unsubclassed update_reactions called for " + repr(self))
         return reactions
+
+    
+    def get_initial_condition(self, s):
+        """
+        Tries to find an initial condition of species s using the parameter heirarchy
+        1. mixture.name, repr(s) in self.initial_condition_dictionary
+        2. repr(s) in self.initial_condition_dictionary
+        3. If s == self.get_species and self.initial_con is not None: self.initial_conc
+        4. IF s == self.get_species(): mixture.name, self.name in initial_condition_dictionary
+        5. IF s == self.get_species(): self.name in initial_condition_dictionary
+        Repeat 1-2, 4-5 in self.parameter_database
+        Note: Mixture will also repeat this same order in it's own initial_condition_dictionary and ParameterDatabase after Component.
+        """
+        #First try all conditions in initial_condition_dictionary
+        if (self.mixture.name, repr(s)) in self.initial_condition_dictionary:
+            return self.initial_condition_dictionary[(self.mixture.name, repr(s))]
+        elif repr(s) in self.initial_condition_dictionary:
+            return self.initial_condition_dictionary[repr(s)]
+        #Then try all conditions using self.name (if s is self.get_species())
+        elif s == self.get_species():
+            if self.initial_concentration is not None:
+                return self.initial_concentration
+            elif (self.mixture.name, self.name) in self.initial_condition_dictionary:
+                return self.initial_condition_dictionary[(self.mixture.name, self.name)]
+            elif (self.mixture.name, self.name) in self.initial_condition_dictionary:
+                return self.initial_condition_dictionary[(self.mixture.name, self.name)]
+        #Then try above in self.parameter_database
+        elif self.parameter_database.find_parameter(None, self.mixture.name, repr(s)) is not None:
+            return self.parameter_database.find_parameter(None, self.mixture.name, repr(s)).value
+        elif self.parameter_database.find_parameter(None, None, repr(s)) is not None:
+            return self.parameter_database.find_parameter(None, None, repr(s)).value
+        elif s == self.get_species():
+            if self.parameter_database.find_parameter(None, self.mixture.name, self.name) is not None:
+                return self.parameter_database.find_parameter(None, self.mixture.name, self.name).value
+            elif self.parameter_database.find_parameter(None, None, self.name) is not None:
+                return self.parameter_database.find_parameter(None, None, self.name).value
+        else:
+            return None
 
     def __repr__(self):
         return type(self).__name__ + ": " + self.name
