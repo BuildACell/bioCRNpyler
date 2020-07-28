@@ -2,6 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from biocrnpyler import MassAction, ProportionalHillNegative, ProportionalHillPositive, HillPositive, HillNegative
+from biocrnpyler import GeneralPropensity
 from biocrnpyler import ParameterEntry
 from biocrnpyler import Species
 import pytest
@@ -145,16 +146,31 @@ def test_proportional_hill_negative_rate_formula():
     assert philneg._get_rate_formula(philneg.propensity_dict) == f"{in_k}*{in_d}/({in_s1}^{in_n}+{in_K})"
 
 
+def test_general_propensity():
+    S1, S2, S3 = Species("S1"), Species("S2"), Species("S3")
+    #create some parameters
+    k1 = ParameterEntry("k1", 1.11)
+    k2 = ParameterEntry("k2", 2.22)
 
+    gn1 = GeneralPropensity('k1*2 - k2/S1^2', propensity_species=[S1], propensity_parameters=[k1, k2])
+    assert str(S1) in gn1.propensity_dict['species']
+    assert k1.parameter_name in gn1.propensity_dict['parameters']
+    assert k2.parameter_name in gn1.propensity_dict['parameters']
 
-    # document, model = sbmlutil.create_sbml_model()
-    #
-    # # Create the sbml_reaction in SBML
-    # sbml_reaction = model.createReaction()
-    # all_ids = sbmlutil.getAllIds(model.getSBMLDocument().getListOfAllElements())
-    # trans = sbmlutil.SetIdFromNames(all_ids)
-    # sbml_reaction.setId(trans.getValidIdForName('r1'))
-    # sbml_reaction.setName(sbml_reaction.getId())
-    #
-    # philneg.create_kinetic_law(model=model, sbml_reaction=sbml_reaction, stochastic=False)
+    gn2 = GeneralPropensity('S1^2 + S2^2 + S3^2', propensity_species=[S1, S2, S3], propensity_parameters=[])
+    assert str(S1) in gn1.propensity_dict['species']
+    assert k1.parameter_name not in gn2.propensity_dict['parameters']
 
+    with pytest.raises(TypeError, match='propensity_species must be a list of Species!'):
+        GeneralPropensity('S1^2 + S2^2 + S3^2', propensity_species=[k1], propensity_parameters=[])
+
+    with pytest.raises(TypeError, match='propensity_parameter must be a list of ParameterEntry!'):
+        GeneralPropensity('S1^2 + S2^2 + S3^2', propensity_species=[], propensity_parameters=[S2])
+
+    test_formula = 'S3^2'
+    with pytest.raises(ValueError, match=f'must be part of the formula'):
+        GeneralPropensity(test_formula, propensity_species=[S1], propensity_parameters=[])
+
+    test_formula = 'k2*S3^2'
+    with pytest.raises(ValueError, match=f'must be part of the formula'):
+        GeneralPropensity(test_formula, propensity_species=[S3], propensity_parameters=[k1])

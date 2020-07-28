@@ -225,25 +225,56 @@ class Propensity(object):
 
 
 class GeneralPropensity(Propensity):
-    def __init__(self, propensity_function: str):
-        '''
-        propensity_function: str
-        The general propensity rate formula as a string
-        '''
+    def __init__(self, propensity_function: str, propensity_species: List[Species], propensity_parameters: List[ParameterEntry]):
+        """A class to define a general propensity
+
+        :param propensity_function: valid propensity formula defined as a string
+        :param propensity_species: list of species that are part of the propensity_function
+        :param propensity_parameters: list of parameters that are part of the propensity_function
+        """
         super(GeneralPropensity, self).__init__()
         self.propensity_function = propensity_function
-        self.propensity_dict = {'species':{}, 'parameters':{}}
+
+        if len(propensity_species) > 0 and not all(isinstance(s, Species) for s in propensity_species):
+            raise TypeError('propensity_species must be a list of Species!')
+
+        if len(propensity_parameters) > 0 and not all(isinstance(s, ParameterEntry) for s in propensity_parameters):
+            raise TypeError('propensity_parameter must be a list of ParameterEntry!')
+
+        for species in propensity_species:
+            if str(species) not in self.propensity_function:
+                raise ValueError(f'species: {species} must be part of the formula: {self.propensity_function}')
+
+            self.propensity_dict['species'].update({str(species): species})
+
+        for parameter in propensity_parameters:
+            if parameter.parameter_name not in self.propensity_function:
+                raise ValueError(f'species: {parameter.parameter_name} must be part of the formula: {self.propensity_function}')
+
+            self.propensity_dict['parameters'].update({parameter.parameter_name: parameter.value})
+
         self.name = 'general'
 
-    def create_kinetic_law(self, sbml_reaction, **kwargs):
+    def create_kinetic_law(self, model, sbml_reaction, **kwargs):
         '''
         Creates KineticLaw object for SBML using the propensity_function string
         '''
-        ratelaw = sbml_reaction.createKineticLaw() 
-        ratelaw.setFormula(self.propensity_function)
-        # To make sure modifiers are added correctly, populate the propensity_dict for General propensity.
-        # self.propensity_dict['species']
+        ratelaw = sbml_reaction.createKineticLaw()
+
+        propensity_dict_in_sbml = self._translate_propensity_dict_to_sbml(model=model, ratelaw=ratelaw)
+
+        # replacing the species defined in CRN with valid SBML names
+        for species_in_crn, species_in_sbml in propensity_dict_in_sbml['species'].items():
+            self.propensity_function.replace(species_in_crn, species_in_sbml)
+
+        # replacing the parameters defined in CRN with valid SBML names
+        for parameter_in_crn, parameter_in_sbml in propensity_dict_in_sbml['parameters'].items():
+            self.propensity_function.replace(parameter_in_crn, str(parameter_in_sbml))
+
+        math_ast = libsbml.parseL3Formula(self.propensity_function)
+        ratelaw.setMath(math_ast)
         return ratelaw 
+
 
 class MassAction(Propensity):
     def __init__(self, k_forward: Union[float, ParameterEntry], k_reverse: Union[float, ParameterEntry] = None):
