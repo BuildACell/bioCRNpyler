@@ -171,7 +171,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
         if part_id is None:
             repr(binder)+"-"+repr(bindee)
-        if (kb is None or ku is None or cooperativity is None) and Component != None:
+        if (kb is None or ku is None or cooperativity is None) and component != None:
             kb1 = component.get_parameter("kb1", part_id = part_id, mechanism = self)
             kb2 = component.get_parameter("kb2", part_id = part_id, mechanism = self)
             ku1 = component.get_parameter("ku1", part_id = part_id, mechanism = self)
@@ -343,7 +343,7 @@ class One_Step_Binding(Mechanism):
                 part_id += s.name+"_"
             part_id = part_id[:-1]
 
-        if (kb is None or ku is None) and Component != None:
+        if (kb is None or ku is None) and component != None:
             kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
             ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
         elif component is None and (kb is None or ku is None):

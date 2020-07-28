@@ -4,7 +4,7 @@
 
 from unittest import TestCase
 from biocrnpyler import Component, DNA, ParameterDatabase
-from biocrnpyler import Transcription_MM, Translation_MM, Degredation_mRNA_MM
+from biocrnpyler import SimpleTranscription, SimpleTranslation
 
 
 class TestComponent(TestCase):
@@ -73,43 +73,36 @@ class TestComponent(TestCase):
 
     def test_update_mechanisms(self):
 
-        tx = Transcription_MM()
-        tl = Translation_MM()
-        deg = Degredation_mRNA_MM()
+        tx = SimpleTranscription()
+        tl = SimpleTranslation()
 
         test_mech = {tx.mechanism_type: tx, tl.mechanism_type: tl}
 
-        default_test_mech = {deg.mechanism_type: deg}
-
         # test that component has no mechanism
         self.assertTrue(isinstance(self.component.mechanisms, dict) and len(self.component.mechanisms) == 0)
-        self.component.update_mechanisms(mixture_mechanisms=test_mech)
-        # test that the test_mech is registered as the only mechanism
-        self.assertEqual(self.component.mechanisms, test_mech)
 
-        self.component.default_mechanisms = default_test_mech
-        self.component.update_mechanisms(mixture_mechanisms=test_mech)
-        test_mech.update(default_test_mech)
-        self.assertEqual(self.component.mechanisms, test_mech)
+        #test mechanism setter
+        self.component.mechanisms = test_mech
+        self.assertEqual(self.component.mechanisms.keys(), test_mech.keys())
 
-        # testing that the custom mechanism gets updated
-        self.assertTrue(isinstance(self.component.custom_mechanisms, dict) and len(self.component.custom_mechanisms) == 0)
-        self.component.update_mechanisms(mechanisms=test_mech)
-        self.assertEqual(self.component.custom_mechanisms, test_mech)
+        #test mechanisms are copied
+        self.assertEqual(type(self.component.mechanisms[tx.mechanism_type]),  type(test_mech[tx.mechanism_type]))
+        self.assertFalse(self.component.mechanisms[tx.mechanism_type] == test_mech[tx.mechanism_type])
 
-        # testing that custom mechanism is protected by the overwrite_custom_mechanisms=False flag
-        self.component.update_mechanisms(mechanisms=default_test_mech, overwrite_custom_mechanisms=False)
-        self.assertEqual(self.component.custom_mechanisms, test_mech)
+        #remove all mechanisms
+        self.component.mechanisms = {}
+        self.assertEqual(self.component.mechanisms, {})
 
-        # multiple mechanisms can be supplied with a list
+        #test add_mechanism
+        self.component.add_mechanism(tx, tx.mechanism_type)
+        self.component.add_mechanism(tl)
+        self.assertEqual(self.component.mechanisms.keys(), test_mech.keys())
+
+        #test add_mechanisms with list
+        self.component.mechanisms = {}
         test_mech_list = list(test_mech.values())
-        self.component.update_mechanisms(mechanisms=test_mech_list)
-        self.assertEqual(self.component.custom_mechanisms, test_mech)
-
-        # testing an invalid mechanism format
-        with self.assertRaisesRegexp(ValueError, 'Mechanisms must be passed as a list of instantiated objects or a '
-                                                 'dictionary {mechanism_type:mechanism instance}'):
-            self.component.update_mechanisms(mechanisms=(tx, tl))
+        self.component.add_mechanisms(test_mech_list)
+        self.assertEqual(self.component.mechanisms.keys(), test_mech.keys())
 
     def test_get_parameter(self):
 
@@ -118,7 +111,7 @@ class TestComponent(TestCase):
             self.component.get_parameter(param_name='kb')
 
         # Create Param Dict
-        kb, ku, ktx, ktl, kdeg, cooperativity = 100, 10, 3, 2, 1, 1
+        kb, ku, ktx, ktl, kdeg, cooperativity = 100, 10, 3, 2, 1, 4
         p_id = 'p10'
 
         parameters = {"kb": kb, "kdeg":kdeg,
@@ -128,7 +121,7 @@ class TestComponent(TestCase):
         # update the component parameters
         self.component.update_parameters(parameters=parameters)
 
-        tx = Transcription_MM()
+        tx = SimpleTranscription()
         # testing the different parameter definitions
         self.assertEqual(self.component.get_parameter(param_name='kb').value, kb)
         self.assertEqual(self.component.get_parameter(mechanism=tx, param_name='ktx').value, ktx)

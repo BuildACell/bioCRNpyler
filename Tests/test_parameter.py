@@ -3,7 +3,7 @@
 
 from unittest import TestCase
 from unittest.mock import patch, mock_open
-from biocrnpyler import Parameter, ParameterEntry, ModelParameter, ParameterDatabase, ParameterKey
+from biocrnpyler import Parameter, ParameterEntry, ModelParameter, ParameterDatabase, ParameterKey, Mechanism
 import sys
 from warnings import warn
 
@@ -189,6 +189,17 @@ class TestParameter(TestCase):
         #The correct number of entries
         self.assertEqual(count, len(parameter_dict))
 
+    def test_len(self):
+        parameter_dict = {
+        "k":1,
+        ("M", "pid", "k"):2.0,
+        (None, "pid", "k"):3.3,
+        ("M", None, "k"): 4,
+        }
+
+        PD = ParameterDatabase(parameter_dictionary = parameter_dict)
+        self.assertTrue(len(PD) == len(parameter_dict))
+
     def test_contains(self):
         parameter_dict = {
         "k":1,
@@ -262,5 +273,39 @@ class TestParameter(TestCase):
         self.assertTrue(PD["k"].value == .1)
         PD[("M", "pid", "ktx")] = .333
         self.assertTrue(PD[("M", "pid", "ktx")].value == .333)
+
+    def test_find_parameter(self):
+
+        """Test the parameter defaulting heirarchy
+        Parameter defaulting heirarchy:
+        (mechanism_name, part_id, param_name) --> param_val. If that particular parameter key cannot be found, 
+        the software will default to the following keys: 
+        (mechanism_type, part_id, param_name) >> (part_id, param_name) >> 
+        (mechanism_name, param_name) >> (mechanism_type, param_name) >>
+        (param_name) and give a warning. """
+
+        parameter_dict = {
+            (None, None, "k"):1.0,
+            ("M", None, "k"): 2.1,
+            ("m", None, "k"): 2.2,
+            (None, "pid", "k"):3,
+            ("M", "pid", "k"):4.1,
+            ("m", "pid", "k"):4.2,
+        }
+
+        M1 = Mechanism(name = "m", mechanism_type = "M")
+        M2 = Mechanism(name = "m2", mechanism_type = "M")
+        M3 = Mechanism(name = "m3", mechanism_type = "M2")
+
+        PD = ParameterDatabase(parameter_dictionary = parameter_dict)
+
+        self.assertEqual(PD.find_parameter(mechanism = M3, part_id="id", param_name = "k").value, 1.0)
+        self.assertEqual(PD.find_parameter(mechanism = M2, part_id="id", param_name = "k").value, 2.1)
+        self.assertEqual(PD.find_parameter(mechanism = M1, part_id="id", param_name = "k").value, 2.2)
+        self.assertEqual(PD.find_parameter(mechanism = M3, part_id="pid", param_name = "k").value, 3.0)
+        self.assertEqual(PD.find_parameter(mechanism = M2, part_id="pid", param_name = "k").value, 4.1)
+        self.assertEqual(PD.find_parameter(mechanism = M1, part_id="pid", param_name = "k").value, 4.2)
+
+
 
 

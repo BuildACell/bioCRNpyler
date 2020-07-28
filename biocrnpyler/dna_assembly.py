@@ -27,8 +27,7 @@ class DNAassembly(DNA):
     """
     def __init__(self, name: str, dna=None, promoter=None, transcript=None,
                  rbs=None, protein=None, length=None,
-                 attributes=None, mechanisms=None, parameters=None, initial_conc=None,
-                 parameter_warnings=True, **keywords):
+                 attributes=None, mechanisms=None, parameters=None, initial_conc=None, **keywords):
         self.promoter = None
         self.rbs = None
         self.transcript = None
@@ -37,7 +36,6 @@ class DNAassembly(DNA):
 
         DNA.__init__(self, name, length=length, mechanisms=mechanisms,
                      parameters=parameters, initial_conc=initial_conc,
-                     parameter_warnings=parameter_warnings,
                      attributes=attributes, **keywords)
 
         self.update_dna(dna, attributes=attributes)
@@ -45,7 +43,6 @@ class DNAassembly(DNA):
         self.update_protein(protein)
         self.update_promoter(promoter, transcript = self.transcript)
         self.update_rbs(rbs, transcript = self.transcript, protein = self.protein)
-        self.set_parameter_warnings(parameter_warnings)
 
     #Set the mixture the Component is in.
     def set_mixture(self, mixture):
@@ -54,15 +51,6 @@ class DNAassembly(DNA):
             self.promoter.set_mixture(mixture)
         if self.rbs is not None:
             self.rbs.set_mixture(mixture)
-
-    def set_parameter_warnings(self, parameter_warnings):
-        self.parameter_warnings = parameter_warnings
-
-        if self.parameter_warnings is not None:
-            if self.promoter is not None:
-                self.promoter.set_parameter_warnings(parameter_warnings)
-            if self.rbs is not None:
-                self.rbs.set_parameter_warnings(parameter_warnings)
 
     def update_dna(self, dna, attributes = None):
         if dna is None:
@@ -73,7 +61,9 @@ class DNAassembly(DNA):
     def update_transcript(self, transcript, attributes = None):
         if transcript is None:
             self.transcript = self.set_species(self.name, material_type = "rna", attributes = attributes)
-        elif transcript == False: #this is used for expression mixtures where there is no transcript!
+
+        #this is used for expression mixtures where there is no transcript!
+        elif transcript == False:
             self.transcript = None
         else:
             self.transcript = self.set_species(transcript, material_type = "rna", attributes = attributes)
@@ -128,9 +118,7 @@ class DNAassembly(DNA):
             self.rbs.transcript = self.transcript
             self.rbs.protein = self._protein
         elif rbs is not None:
-            raise ValueError("Improper rbs type recieved by DNAassembly. "
-                             "Expected string or RBS object. Recieved "
-                            f"{repr(rbs)}.")
+            raise ValueError(f"Improper rbs type recieved by DNAassemby. Expected string or RBS object. Recieved {repr(rbs)}.")
 
         if rbs is not None:
             self.rbs.update_parameters(parameter_database = self.parameter_database, overwrite_parameters = False)
@@ -151,7 +139,7 @@ class DNAassembly(DNA):
             species += self.promoter.update_species()
 
         if "rna_degredation" in self.mechanisms and self.promoter is not None and self.transcript is not None:
-            deg_mech = self.mechanisms["rna_degredation"]
+            deg_mech = self.get_mechanism("rna_degredation")
             species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
 
         return list(set(species))
@@ -159,18 +147,16 @@ class DNAassembly(DNA):
     def update_reactions(self):
         reactions = []
         if self.promoter is not None:
-            self.promoter.parameter_warnings = self.parameter_warnings
             reactions += self.promoter.update_reactions()
 
         if self.rbs is not None:
-            self.rbs.parameter_warnings = self.parameter_warnings
             reactions += self.rbs.update_reactions()
 
         if "rna_degredation" in self.mechanisms and self.promoter is not None and self.transcript is not None:
-            deg_mech = self.mechanisms["rna_degredation"]
-
+            deg_mech = self.get_mechanism("rna_degredation")
 
             reactions += deg_mech.update_reactions(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
+
         # TODO check that the reaction list is unique
         return reactions
 
@@ -184,23 +170,22 @@ class DNAassembly(DNA):
         if self.rbs is not None:
             self.rbs.update_parameters(parameter_file = parameter_file, parameters = parameters, overwrite_parameters = overwrite_parameters)
 
-    def update_mechanisms(self, mixture_mechanisms=None, mechanisms=None,
-                          overwrite_custom_mechanisms = False):
+    
+    def add_mechanism(self, mechanism, mech_type = None, overwrite = False):
+        """
+        adds a mechanism of type mech_type to the Component Mechanism dictonary.
 
-        DNA.update_mechanisms(self = self,
-                              mixture_mechanisms = mixture_mechanisms,
-                              mechanisms = mechanisms)
+        DNA_assembly also adds the mechanisms to its promoter and rbs
+        """
 
-        if self.promoter is not None and "transcription" in self.mechanisms:
-            mech_tx = self.mechanisms["transcription"]
-            mechs = {"transcription": mech_tx}
-            self.promoter.update_mechanisms(mechanisms = mechs,
-                                            overwrite_custom_mechanisms = overwrite_custom_mechanisms)
-        if self.rbs is not None and "translation" in self.mechanisms:
-            mech_tl = self.mechanisms["translation"]
-            mechs = {"translation": mech_tl}
-            self.rbs.update_mechanisms(mechanisms = mechs,
-                                       overwrite_custom_mechanisms = overwrite_custom_mechanisms)
+        Component.add_mechanism(self, mechanism, mech_type = mech_type, overwrite = overwrite)
+
+        if self.promoter is not None:
+            self.promoter.add_mechanism(mechanism, mech_type = mech_type, overwrite = overwrite)
+
+        if self.rbs is not None:
+            self.rbs.add_mechanism(mechanism, mech_type = mech_type, overwrite = overwrite)
+
 
     def __str__(self):
         return type(self).__name__ + ": " + self.name

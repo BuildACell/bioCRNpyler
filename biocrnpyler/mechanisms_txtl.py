@@ -5,7 +5,6 @@ from .propensities import ProportionalHillPositive, ProportionalHillNegative
 from .mechanisms_enzyme import *
 
 
-
 class OneStepGeneExpression(Mechanism):
     """
     A mechanism to model gene expression without transcription or translation
@@ -25,7 +24,7 @@ class OneStepGeneExpression(Mechanism):
     def update_reactions(self, dna, component = None, kexpress = None,
                          protein=None, transcript = None, part_id = None, **keywords):
 
-        if kexpress is None and Component is not None:
+        if kexpress is None and component is not None:
             kexpress = component.get_parameter("kexpress", part_id = part_id, mechanism = self)
         elif component is None and kexpress is None:
             raise ValueError("Must pass in component or a value for kexpress")
@@ -56,7 +55,7 @@ class SimpleTranscription(Mechanism):
 
     def update_reactions(self, dna, component = None, ktx = None, part_id = None, transcript = None, protein = None, **keywords):
 
-        if ktx == None and Component != None:
+        if ktx == None and component != None:
             ktx = component.get_parameter("ktx", part_id = part_id, mechanism = self)
         elif component == None and ktx == None:
             raise ValueError("Must pass in component or a value for ktx")
@@ -86,7 +85,7 @@ class SimpleTranslation(Mechanism):
 
     def update_reactions(self, transcript, component = None, ktl = None, part_id = None, protein = None, **keywords):
 
-        if ktl is None and Component is not None:
+        if ktl is None and component is not None:
             ktl = component.get_parameter("ktl", part_id = part_id, mechanism = self)
         elif component is None and ktl is None:
             raise ValueError("Must pass in component or a value for ktl")
@@ -210,17 +209,11 @@ class Transcription_MM(MichaelisMentenCopy):
         G + RNAP <--> G:RNAP --> G+RNAP+mRNA
     """
 
-    def __init__(self, name="transcription_mm", rnap="RNAP", **keywords):
+    def __init__(self, rnap, name="transcription_mm", **keywords):
         if isinstance(rnap, Species):
             self.rnap = rnap
-        elif isinstance(rnap, str):
-            self.rnap = Species(name=rnap, material_type="protein")
-        elif isinstance(rnap, Component) and rnap.get_species() != None:
-            self.rnap = rnap.get_species()
         else:
-            raise ValueError(
-                "'rnap' parameter must be a string or a Component with defined "
-                "get_species(), or a chemical_reaction_network.Species object")
+            raise ValueError("'rnap' parameter must be a Species.")
 
         MichaelisMentenCopy.__init__(self=self, name=name,
                                        mechanism_type="transcription")
@@ -265,17 +258,11 @@ class Translation_MM(MichaelisMentenCopy):
         mRNA + Rib <--> mRNA:Rib --> mRNA + Rib + Protein
     """
 
-    def __init__(self, name="translation_mm", ribosome="Ribo", **keywords):
+    def __init__(self, ribosome, name="translation_mm", **keywords):
         if isinstance(ribosome, Species):
             self.ribosome = ribosome
-        elif isinstance(ribosome, str):
-            self.ribosome = Species(name=ribosome, material_type="ribosome")
-        elif isinstance(ribosome, Component) and ribosome.get_species() != None:
-            self.ribosome = ribosome.get_species()
         else:
-            raise ValueError(
-                "'ribosome' parameter must be a string, a Component with defined "
-                "get_species, or a chemical_reaction_network.species")
+            raise ValueError("ribosome must be a Species!")
         MichaelisMentenCopy.__init__(self=self, name=name,
                                        mechanism_type="translation")
 
@@ -314,15 +301,11 @@ class Degredation_mRNA_MM(MichaelisMenten):
     """Michaelis Menten mRNA Degredation by Endonucleases
        mRNA + Endo <--> mRNA:Endo --> Endo
     """
-    def __init__(self, name="rna_degredation_mm", nuclease="RNAase",
-                 **keywords):
+    def __init__(self, nuclease, name="rna_degredation_mm", **keywords):
         if isinstance(nuclease, Species):
             self.nuclease = nuclease
-        elif isinstance(nuclease, str):
-            self.nuclease = Species(name=nuclease, material_type="protein")
         else:
-            raise ValueError("'nuclease' parameter requires a "
-                             "chemical_reaction_network.species or a string")
+            raise ValueError("'nuclease' must be a Species.")
         MichaelisMenten.__init__(self=self, name=name,
                                  mechanism_type="rna_degredation")
 
@@ -368,19 +351,12 @@ class multi_tx(Mechanism):
     """
 
     # initialize mechanism subclass
-    def __init__(self, pol = None, name='multi_tx', mechanism_type='transcription', **keywords):
+    def __init__(self, pol, name='multi_tx', mechanism_type='transcription', **keywords):
 
-        if isinstance(pol,str):
-            self.pol = Species(name=pol, material_type='protein')
-
-        elif isinstance(pol,Species):
+        if isinstance(pol,Species):
             self.pol = pol
-
-        elif pol is None:
-            self.pol = Species("RNAP", material_type='protein')
         else:
-            raise ValueError("'pol' must be a string or Species")
-
+            raise ValueError("'pol' must be a Species")
 
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type, **keywords)
 
@@ -488,19 +464,12 @@ class multi_tl(Mechanism):
     """
 
     # initialize mechanism subclass
-    def __init__(self, ribosome = None, name='multi_tl', mechanism_type='translation', **keywords):
+    def __init__(self, ribosome, name='multi_tl', mechanism_type='translation', **keywords):
 
-        if isinstance(ribosome,str):
-            self.ribosome = Species(name=ribosome, material_type='protein')
-
-        elif isinstance(ribosome,Species):
+        if isinstance(ribosome,Species):
             self.ribosome = ribosome
-
-        elif ribosome is None:
-            self.ribosome = Species("Ribo", material_type = "protein")
-
         else:
-            raise ValueError("'ribosome' must be a string or Species")
+            raise ValueError("'ribosome' must be a Species.")
 
         warn('This mechanism still needs some extra validation, use at your own peril and read the warnings!')
         warn("To properly use this mechanism, set dilution for mRNA-RBZ complexes!")

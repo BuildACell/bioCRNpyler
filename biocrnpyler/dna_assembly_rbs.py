@@ -1,8 +1,5 @@
 from .component import Component
-from .components_basic import DNA, RNA, Protein
-from .species import ComplexSpecies, Species
-from .mechanisms_binding import *
-from .mechanisms_txtl import *
+from .species import Species
 
 class RBS(Component):
     """
@@ -23,7 +20,7 @@ class RBS(Component):
             self.transcript = Species(assembly.name, material_type = "rna")
         else:
             self.transcript = self.set_species(transcript, material_type = "rna")
- 
+        
         if protein is None and assembly is not None:
             self.protein = Species(assembly.name, material_type = "protein")
         elif protein is None and assembly is None:
@@ -31,19 +28,17 @@ class RBS(Component):
         else:
             self.protein = self.set_species(protein, material_type = "protein")
 
-
     def update_species(self):
-        mech_tl = self.mechanisms['translation']
+        mech_tl = self.get_mechanism('translation')
         species = []
         if self.protein is not None:
             species += mech_tl.update_species(transcript = self.transcript, protein = self.protein, component = self, part_id = self.name)
         return species
 
     def update_reactions(self):
-        mech_tl = self.mechanisms['translation']
+        mech_tl = self.get_mechanism('translation')
         reactions = []
 
         if self.protein is not None:
-            reactions += mech_tl.update_reactions(transcript = self.transcript,
-                                              protein = self.protein, component = self, part_id = self.name)
+            reactions += mech_tl.update_reactions(transcript = self.transcript, protein = self.protein, component = self, part_id = self.name)
         return reactions

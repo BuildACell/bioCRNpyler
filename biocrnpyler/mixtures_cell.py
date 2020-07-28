@@ -20,12 +20,15 @@ class ExpressionDilutionMixture(Mixture):
     Here transcription and Translation are lumped into one reaction: expression.
     A global mechanism is used to dilute all non-dna species
     """
-    def __init__(self, name="", mechanisms=None, **kwargs):
+    def __init__(self, name="", **kwargs):
+        Mixture.__init__(self, name=name, **kwargs)
 
+        #Create default mechanisms for Gene Expression
         dummy_translation = EmptyMechanism(name = "dummy_translation", mechanism_type = "translation")
         mech_expression = OneStepGeneExpression()
         mech_cat = BasicCatalysis()
         mech_bind = One_Step_Binding()
+
 
         default_mechanisms = {
             mech_expression.mechanism_type: mech_expression,
@@ -33,11 +36,12 @@ class ExpressionDilutionMixture(Mixture):
             mech_cat.mechanism_type:mech_cat,
             mech_bind.mechanism_type:mech_bind
         }
+        self.add_mechanisms(default_mechanisms)
 
+        #Create global mechanism for dilution
         dilution_mechanism= Dilution(name = "dilution", filter_dict = {"dna":False}, default_on = True)
         global_mechanisms = {"dilution":dilution_mechanism}
-
-        Mixture.__init__(self, name=name, mechanisms=mechanisms, default_mechanisms = default_mechanisms, global_mechanisms = global_mechanisms, **kwargs)
+        self.add_mechanisms(global_mechanisms)
 
     #Overwriting compile_crn to replace transcripts with proteins for all DNA_assemblies
     #Overwriting compile_crn to turn off transcription in all DNAassemblies
@@ -63,7 +67,10 @@ class SimpleTxTlDilutionMixture(Mixture):
     mRNA is also degraded via a seperate reaction to represent endonucleases
     """
     def __init__(self, name="", **keywords):
-        
+        #Always call the superclass __init__ with **keywords
+        Mixture.__init__(self, name=name, **keywords)
+
+        #Create TxTl Mechanisms
         simple_transcription = SimpleTranscription() #Transcription will not involve machinery
         simple_translation = SimpleTranslation()
         mech_cat = BasicCatalysis()
@@ -75,7 +82,9 @@ class SimpleTxTlDilutionMixture(Mixture):
             mech_cat.mechanism_type:mech_cat,
             mech_bind.mechanism_type:mech_bind
         }
-    
+        self.add_mechanisms(default_mechanisms)
+        
+        #Global Dilution Mechanisms
         #By Default Species are diluted S-->0 Unless:
         # They are of type 'dna'
         # They have the attribute 'machinery'
@@ -83,9 +92,7 @@ class SimpleTxTlDilutionMixture(Mixture):
         deg_mrna = Dilution(name = "rna_degredation", filter_dict = {"rna":True}, default_on = False)
 
         global_mechanisms = {"dilution":dilution_mechanism, "rna_degredation":deg_mrna}
-        
-        #Always call the superclass __init__ with **keywords
-        Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, global_mechanisms = global_mechanisms, **keywords)
+        self.add_mechanisms(global_mechanisms)
 
 
 
@@ -97,9 +104,10 @@ class TxTlDilutionMixture(Mixture):
     Unlike TxTlExtract, has global dilution for non-DNA and non-Machinery
     This model does not include any energy
     """
-    def __init__(self, name="", mechanisms=None, components=None,
-                 rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
-        
+    def __init__(self, name="", rnap = "RNAP", ribosome = "Ribo", rnaase = "RNAase", **kwargs):
+        Mixture.__init__(self, name=name, **kwargs)
+
+        #Create Components for TxTl machinery
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
         self.rnaase = Protein(rnaase)
@@ -114,6 +122,18 @@ class TxTlDilutionMixture(Mixture):
             self.rnaase.get_species().initial_concentration = init[repr(rnaase)]
             self.ribosome.get_species().initial_concentration = init[repr(ribosome)]
 
+        #DNAassmbly represents background processes / loading in a cell
+        background_parameters = {("transcription", None, "ku"):50, ("transcription", None, "kb"):500, ("transcription", None, "ktx"):0.1, 
+              ("translation",None, "ku"):5, ("translation",None, "kb"):500, ("translation",None, "ktl"):.1,
+              ("rna_degredation",None, "ku"):50, ("rna_degredation",None, "kb"):500, ("rna_degredation",None, "kdeg"):0.1}
+        BackgroundProcesses = DNAassembly(name = "cellular_processes", promoter = "average_promoter", rbs = "average_rbs", parameters = background_parameters)
+
+        default_components = [
+            self.rnap, self.ribosome, self.rnaase, BackgroundProcesses
+        ]
+        self.add_components(default_components)
+
+        #Create TxTl Mechansisms
         mech_tx = Transcription_MM(rnap = self.rnap.get_species())
         mech_tl = Translation_MM(ribosome = self.ribosome.get_species())
         mech_rna_deg = Degredation_mRNA_MM(nuclease = self.rnaase.get_species())
@@ -128,21 +148,12 @@ class TxTlDilutionMixture(Mixture):
             mech_bind.mechanism_type:mech_bind
         }
 
+        self.add_mechanisms(default_mechanisms)
+
+        #Create Global Dilution Mechanisms
         dilution_mechanism = Dilution(filter_dict = {"dna":False, "machinery":False}, default_on = True)
         global_mechanisms = {"dilution":dilution_mechanism}
 
-        background_parameters = {("transcription", None, "ku"):50, ("transcription", None, "kb"):500, ("transcription", None, "ktx"):0.1, 
-              ("translation",None, "ku"):5, ("translation",None, "kb"):500, ("translation",None, "ktl"):.1,
-              ("rna_degredation",None, "ku"):50, ("rna_degredation",None, "kb"):500, ("rna_degredation",None, "kdeg"):0.1}
+        self.add_mechanisms(global_mechanisms)
 
-        BackgroundProcesses = DNAassembly(name = "cellular_processes", promoter = "average_promoter", rbs = "average_rbs", parameters = background_parameters)
-
-        default_components = [
-            self.rnap, self.ribosome, self.rnaase, BackgroundProcesses
-        ]
         
-        if components is None:
-            components = []
-
-        Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
-                        components=components+default_components, global_mechanisms = global_mechanisms, **kwargs)
