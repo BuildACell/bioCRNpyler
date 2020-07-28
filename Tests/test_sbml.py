@@ -40,15 +40,15 @@ def test_add_reaction():
     species = [S1, S2, S3]
     #create some parameters
     key1 = ParameterKey(name = "k", mechanism = "m", part_id = "pid")
-    k1 = ParameterEntry("k", 1.11, key1)
-    k2 = ParameterEntry("k", 2.22)
+    k1 = ParameterEntry("k1", 1.11, key1)
+    k2 = ParameterEntry("k2", 2.22)
     stochiometries = [([], [S1]), ([S1], []), ([S1], [S2]), (2*[S1], [S2, S3])]
     propensities = [MassAction(k_forward = 1.), MassAction(k_forward = 1, k_reverse = .1), MassAction(k_forward = k1), MassAction(k_forward = k1, k_reverse = k2),
                     HillPositive(k = 1, n = 2., K = 3., s1 = S1), HillPositive(k = k1, n = 2., K = k2, s1 = S1),
                     HillNegative(k = 1, n = 2., K = 3., s1 = S1), HillNegative(k = k1, n = k2, K = 3., s1 = S1),
                     ProportionalHillPositive(k = 1, n = 2, K = 3., s1 = S1, d = S2), ProportionalHillPositive(k = k1, n = 2, K = k2, s1 = S1, d = S2),
                     ProportionalHillNegative(k = 1, n = 2, K = 3., s1 = S1, d = S2), ProportionalHillNegative(k = k1, n = 2, K = k2, s1 = S1, d = S2),
-                    GeneralPropensity('k1*2 - k2/S1^2'), GeneralPropensity('S1^2 + S2^2 + S3^2')
+                    GeneralPropensity('k1*2 - k2/S1^2', propensity_species=[S1], propensity_parameters=[k1, k2]), GeneralPropensity('S1^2 + S2^2 + S3^2', propensity_species=[S1, S2, S3], propensity_parameters=[])
                     ]
 
     for prop in propensities: #Cycle through different propensity types
