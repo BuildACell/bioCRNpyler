@@ -337,7 +337,8 @@ class ChemicalReactionNetwork(object):
                 sbml_warnings = False
             m = Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
             # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
-            m.set_species(initial_condition_dict)
+            if initial_condition_dict is not None:
+                m.set_species(initial_condition_dict)
             result = py_simulate_model(timepoints, Model = m, stochastic = stochastic, safe = safe,
                                                 return_dataframe = return_dataframe)
         except ModuleNotFoundError:

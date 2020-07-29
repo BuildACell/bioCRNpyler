@@ -185,7 +185,7 @@ class AnitDilutionConstiutiveCreation(GlobalMechanism):
                                  filter_dict = filter_dict, 
                                  recursive_species_filtering = recursive_species_filtering)
 
-    def update_reactions(self, s, parameters):
+    def update_reactions(self, s, parameters, mixture):
         k_dil = self.get_parameter(s, "kdil", mixture)
         rxn = Reaction.from_massaction(inputs=[], outputs=[s], k_forward=k_dil)
         return [rxn]
