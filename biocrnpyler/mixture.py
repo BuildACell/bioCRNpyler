@@ -299,7 +299,7 @@ class Mixture(object):
 
     def update_parameters(self, parameter_file = None, parameters = None, overwrite_parameters = True):
         if parameter_file is not None:
-            self.load_parameters_from_file.load_parameters_from_dictionary(parameter_file, overwrite_parameters = overwrite_parameters)
+            self.parameter_database.load_parameters_from_file(parameter_file, overwrite_parameters = overwrite_parameters)
 
         if parameters is not None:
             self.parameter_database.load_parameters_from_dictionary(parameters, overwrite_parameters = overwrite_parameters)

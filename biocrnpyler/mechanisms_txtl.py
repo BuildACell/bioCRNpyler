@@ -358,7 +358,7 @@ class multi_tx(Mechanism):
         else:
             raise ValueError("'pol' must be a Species")
 
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type, **keywords)
+        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     # species update
     def update_species(self, dna, transcript, component, part_id, protein = None, **keywords):
@@ -475,7 +475,7 @@ class multi_tl(Mechanism):
         warn("To properly use this mechanism, set dilution for mRNA-RBZ complexes!")
         warn("I've set RBZ and mRNA-RBZ complexes as protein Species to apply dilution to them, edit if you want something else!")
 
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type, **keywords)
+        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     # species update
     def update_species(self, transcript, protein, component, part_id, **keywords):
