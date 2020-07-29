@@ -208,8 +208,10 @@ class Propensity(object):
         annotation_string += "</PropensityType>"
 
         # replace strings to match with bioscrape naming convention
-        annotation_string = annotation_string.replace('k_forward', 'k')
-        annotation_string = annotation_string.replace('k_reverse', 'k_rev')
+        annotation_string = annotation_string.replace('k_forward', 'k', 1)
+        # Bioscrape doesn't have the concept of a reversible reaction - so for both the reverse and forward cases
+        # we just make the annotation parameter be called 'k'
+        annotation_string = annotation_string.replace('k_reverse', 'k', 1)
         return annotation_string
 
     def _translate_propensity_dict_to_sbml(self, model, ratelaw):
@@ -463,7 +465,6 @@ class Hill(Propensity):
         propensity_dict_in_sbml = self._translate_propensity_dict_to_sbml(model=model, ratelaw=ratelaw)
 
         rate_formula = self._get_rate_formula(propensity_dict=propensity_dict_in_sbml)
-        print(rate_formula)
         # attach simulator specific annotations to the SBML model, if needed
         annotation_string = self._create_annotation(model, propensity_dict_in_sbml, **kwargs)
         sbml_reaction.appendAnnotation(annotation_string)
