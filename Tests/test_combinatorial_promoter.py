@@ -45,9 +45,12 @@ class TestCombinatorialPromoter(TestCase):
         ribosome = Species("Ribo", material_type = "protein")
 
         newdna = DNAassembly("testDNA",promoter=newprom)
-        newdna.mechanisms = {"transcription":Transcription_MM(rnap = sp_rnap), "translation":Translation_MM(ribosome = ribosome)}
+        newdna.add_mechanisms({"transcription":Transcription_MM(rnap = sp_rnap), "translation":Translation_MM(ribosome = ribosome)})
         newdna.update_parameters(parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2})
-        newprom_spec = newprom.update_species()
+
+        #Promoters are copied when added to DNAassemblies
+        newprom_copy = newdna.promoter
+        newprom_spec = newprom_copy.update_species()
 
         sp_treg1 = Species("treg1",material_type="protein")
         sp_treg2 = Species("treg2",material_type="rna")
@@ -104,11 +107,12 @@ class TestCombinatorialPromoter(TestCase):
         sp_rnap = Species("RNAP",material_type="protein")
         ribosome = Species("Ribo", material_type = "protein")
 
-        newdna.mechanisms={"transcription":Transcription_MM(rnap = sp_rnap), "translation":Translation_MM(ribosome = ribosome)}
+        newdna.add_mechanisms({"transcription":Transcription_MM(rnap = sp_rnap), "translation":Translation_MM(ribosome = ribosome)})
         #you have to do update_species first
-        newprom_spec = newprom.update_species()
+        newprom_copy = newdna.promoter #Promoters are copied when added to DNAassemblies
+        newprom_spec = newprom_copy.update_species()
         #now the test... does it produce the right reactions??
-        newprom_rxns = newprom.update_reactions()
+        newprom_rxns = newprom_copy.update_reactions()
         #here i am generating the species manually
         sp_dna = Species("testDNA",material_type="dna")
         sp_rna = Species("testDNA",material_type="rna")

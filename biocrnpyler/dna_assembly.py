@@ -10,6 +10,7 @@ import itertools as it
 import numpy as np
 from .dna_assembly_promoter import *
 from .dna_assembly_rbs import *
+import copy
 
 def warn(txt):
     pywarn(txt)
@@ -33,7 +34,8 @@ class DNAassembly(DNA):
         self.transcript = None
         self.initial_concentration = initial_conc
         self.name = name
-
+        
+        #This has to be called at the end so mechanisms are set for the promoter, RBS, etc.
         DNA.__init__(self, name, length=length, mechanisms=mechanisms,
                      parameters=parameters, initial_conc=initial_conc,
                      attributes=attributes, **keywords)
@@ -44,6 +46,8 @@ class DNAassembly(DNA):
         self.update_promoter(promoter, transcript = self.transcript)
         self.update_rbs(rbs, transcript = self.transcript, protein = self.protein)
 
+    
+    
     #Set the mixture the Component is in.
     def set_mixture(self, mixture):
         self.mixture = mixture
@@ -57,6 +61,11 @@ class DNAassembly(DNA):
             self.dna = self.set_species(self.name, material_type = "dna", attributes = attributes)
         else:
             self.dna = self.set_species(dna, material_type = "dna", attributes = attributes)
+
+        if self.promoter is not None:
+            self.promoter.dna = self.dna
+        if self.rbs is not None:
+            self.rbs.dna = self.dna
         
     def update_transcript(self, transcript, attributes = None):
         if transcript is None:
@@ -76,12 +85,14 @@ class DNAassembly(DNA):
 
     def update_protein(self, protein, attributes = None):
         if protein is None:
-            self._protein = self.set_species(self.name, material_type = "protein", attributes = attributes)
+            self.protein = self.set_species(self.name, material_type = "protein", attributes = attributes)
         else:
-            self._protein = self.set_species(protein, material_type = "protein", attributes = attributes)
+            self.protein = self.set_species(protein, material_type = "protein", attributes = attributes)
 
         if self.rbs is not None:
-            self.rbs.transcript = self.protein
+            self.rbs.protein = self.protein
+        if self.promoter is not None:
+            self.promoter.protein = self.protein
 
     def update_promoter(self, promoter, transcript=None):
         if transcript is not None:
@@ -91,16 +102,20 @@ class DNAassembly(DNA):
             self.promoter = Promoter(assembly = self, name = promoter,
                                      transcript = self.transcript)
         elif isinstance(promoter, Promoter):
-            self.promoter = promoter
+            self.promoter = copy.deepcopy(promoter)
             self.promoter.assembly = self
             self.promoter.transcript = self.transcript
         elif promoter is not None:
             raise ValueError("Improper promoter type recieved by DNAassembly. "
                              "Expected string or promoter object. "
                              f"Recieved {repr(promoter)}.")
-        if promoter is not None:
+        else:
+            self.promoter = None
+
+        if self.promoter is not None:
             self.promoter.update_parameters(parameter_database = self.parameter_database, overwrite_parameters = False)
             self.promoter.set_mixture(self.mixture)
+            self.promoter.add_mechanisms(self.mechanisms, optional_mechanism = True)
 
     def update_rbs(self, rbs, transcript = None, protein = None):
         if protein is not None:
@@ -110,33 +125,32 @@ class DNAassembly(DNA):
             self.update_transcript(transcript)
 
         if isinstance(rbs, str):
-            self.rbs = RBS(assembly = self, name = rbs, protein = self._protein,
+            self.rbs = RBS(assembly = self, name = rbs, protein = self.protein,
                            transcript = self.transcript)
         elif isinstance(rbs, RBS):
-            self.rbs = rbs
+            self.rbs = copy.deepcopy(rbs)
             self.rbs.assembly = self
             self.rbs.transcript = self.transcript
-            self.rbs.protein = self._protein
+            self.rbs.protein = self.protein
         elif rbs is not None:
             raise ValueError(f"Improper rbs type recieved by DNAassemby. Expected string or RBS object. Recieved {repr(rbs)}.")
+        else:
+            self.rbs = None
 
-        if rbs is not None:
+        if self.rbs is not None:
             self.rbs.update_parameters(parameter_database = self.parameter_database, overwrite_parameters = False)
             self.rbs.set_mixture(self.mixture)
-
-    @property
-    def protein(self):
-        return self._protein
+            self.rbs.add_mechanisms(self.mechanisms, optional_mechanism = True)
 
     def update_species(self):
         species = []
         species.append(self.dna)
-        if self.promoter is not None and self.rbs is not None:
+        if self.promoter is not None:
             species += self.promoter.update_species()
+
+        if self.rbs is not None:
             species += self.rbs.update_species()
             
-        elif self.promoter is not None and self.rbs is None:
-            species += self.promoter.update_species()
 
         deg_mech = self.get_mechanism("rna_degredation", optional_mechanism = True)
         if deg_mech is not None and self.promoter is not None and self.transcript is not None:
@@ -169,20 +183,20 @@ class DNAassembly(DNA):
             self.rbs.update_parameters(parameter_file = parameter_file, parameters = parameters, overwrite_parameters = overwrite_parameters)
 
     
-    def add_mechanism(self, mechanism, mech_type = None, overwrite = False):
+    def add_mechanism(self, mechanism, mech_type = None, overwrite = False, optional_mechanism = False):
         """
         adds a mechanism of type mech_type to the Component Mechanism dictonary.
 
-        DNA_assembly also adds the mechanisms to its promoter and rbs
+        DNA_assembly also adds the mechanisms to its promoter and rbs (but never overwrites them!)
         """
 
-        Component.add_mechanism(self, mechanism, mech_type = mech_type, overwrite = overwrite)
+        Component.add_mechanism(self, mechanism, mech_type = mech_type, overwrite = overwrite, optional_mechanism = optional_mechanism)
 
         if self.promoter is not None:
-            self.promoter.add_mechanism(mechanism, mech_type = mech_type, overwrite = overwrite)
+            self.promoter.add_mechanism(mechanism, mech_type = mech_type, optional_mechanism = True) 
 
         if self.rbs is not None:
-            self.rbs.add_mechanism(mechanism, mech_type = mech_type, overwrite = overwrite)
+            self.rbs.add_mechanism(mechanism, mech_type = mech_type, optional_mechanism = True)
 
 
     def __str__(self):
@@ -195,5 +209,5 @@ class DNAassembly(DNA):
             txt += "\n\ttranscript = " + repr(self.transcript)
         if self.rbs is not None:
             txt += "\n\t" + repr(self.rbs)
-            txt += "\n\tprotein = " + repr(self._protein)
+            txt += "\n\tprotein = " + repr(self.protein)
         return txt

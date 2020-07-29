@@ -129,6 +129,18 @@ class TestMixture(TestCase):
         mixture = Mixture()
         GM = GlobalMechanism(name = "gm", mechanism_type = "global")
 
+        mixture.add_global_mechanism(GM)
+        #Global Mechanisms should be copied!
+        self.assertTrue(mixture.global_mechanisms["global"] != GM)
+        self.assertTrue(mixture.global_mechanisms["global"].name == GM.name)
+
+        #test setter to clear
+        mixture.global_mechanisms = {}
+        self.assertTrue("global" not in mixture.global_mechanisms)
+        #test add via add_mechanisms with different key
+        mixture.add_mechanisms({"key2":GM})
+        self.assertTrue("global" not in mixture.global_mechanisms)
+        self.assertTrue("key2" in mixture.global_mechanisms)
 
     def test_update_species(self):
         species = Species(name='H2O')

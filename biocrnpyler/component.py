@@ -40,17 +40,10 @@ class Component(object):
         else:
             raise ValueError("name must be a Species or string")
 
-        # Check to see if a subclass constructor has overwritten default
-        # mechanisms.
         # Attributes can be used to store key words like protein deg-tags for
         # components that mimic CRN species.
         self.attributes = []
         self.set_attributes(attributes)
-
-        # Check to see if a subclass constructor has overwritten default
-        # mechanisms.
-        if not hasattr(self, 'default_mechanisms'):
-            self.default_mechanisms = {}
 
 
         if mixture is not None:
@@ -155,14 +148,15 @@ class Component(object):
         if not isinstance(mechanism_type, str):
             raise TypeError(f"mechanism_type must be a string. Recievied {mechanism_type}.")
 
+        mech = None
         if mechanism_type in self.mechanisms:
             return self.mechanisms[mechanism_type]
-        else:
+        elif self.mixture is not None:
             mech = self.mixture.get_mechanism(mechanism_type)
-            if mech is None and not optional_mechanism:
-                raise KeyError(f"Unable to find mechanism of type {mechanism_type} in Component {self} or Mixture {self.mixture}.")
-            else:
-                return mech
+        if mech is None and not optional_mechanism:
+            raise KeyError(f"Unable to find mechanism of type {mechanism_type} in Component {self} or Mixture {self.mixture}.")
+        else:
+            return mech
 
     @property
     def mechanisms(self):
@@ -179,9 +173,11 @@ class Component(object):
                 self.add_mechanism(mech, overwrite = True)
                 
 
-    def add_mechanism(self, mechanism, mech_type = None, overwrite = False):
+    def add_mechanism(self, mechanism, mech_type = None, overwrite = False, optional_mechanism = False):
         """
         adds a mechanism of type mech_type to the Component Mechanism dictonary.
+        overwrite: toggles whether the mechanism is added overwriting any mechanism with the same key.
+        optional_mechanism: toggles whether an error is thrown if a Mechanism is added that conflicts with an exising Mechanism
         """
         if not hasattr(self, "_mechanisms"):
             self._mechanisms = {}
@@ -193,24 +189,25 @@ class Component(object):
             mech_type = mechanism.mechanism_type
         if not isinstance(mech_type, str):
             raise TypeError(f"mechanism keys must be strings. Recieved {mech_type}")
-
-        if mech_type in self._mechanisms and not overwrite:
-            raise ValueError(f"mech_type {mech_type} already in component {self}. To overwrite, use keyword overwrite = True.")
-        else:
+            
+        if mech_type not in self._mechanisms or overwrite:
             self._mechanisms[mech_type] = copy.deepcopy(mechanism)
+        elif not optional_mechanism:
+            raise ValueError(f"mech_type {mech_type} already in component {self}. To overwrite, use keyword overwrite = True.")
 
-    def add_mechanisms(self, mechanisms, overwrite = False):
+
+    def add_mechanisms(self, mechanisms, overwrite = False, optional_mechanism = False):
         """
         This function adds a list or dictionary of mechanisms to the mixture. Can take both GlobalMechanisms and Mechanisms
         """
         if isinstance(mechanisms, Mechanism):
-            self.add_mechanism(mechanisms, overwrite = overwrite)
+            self.add_mechanism(mechanisms, overwrite = overwrite, optional_mechanism = optional_mechanism)
         elif isinstance(mechanisms, dict):
             for mech_type in mechanisms:
-                self.add_mechanism(mechanisms[mech_type], mech_type, overwrite = overwrite)
+                self.add_mechanism(mechanisms[mech_type], mech_type, overwrite = overwrite, optional_mechanism = optional_mechanism)
         elif isinstance(mechanisms, list):
             for mech in mechanisms:
-                self.add_mechanism(mech, overwrite = overwrite)
+                self.add_mechanism(mech, overwrite = overwrite, optional_mechanism = optional_mechanism)
         else:
             raise ValueError(f"add_mechanisms expected a list of Mechanisms. Recieved {mechanisms}")
 
