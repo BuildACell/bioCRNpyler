@@ -142,19 +142,20 @@ class TestMixture(TestCase):
         self.assertTrue("global" not in mixture.global_mechanisms)
         self.assertTrue("key2" in mixture.global_mechanisms)
 
-    def test_update_species(self):
+    def test_add_species_to_crn(self):
         species = Species(name='H2O')
         mixture = Mixture(species=[species])
+        mixture.add_species_to_crn(species, None)
 
-        self.assertTrue(species in mixture.update_species())
+        self.assertTrue(species in mixture.crn.species)
 
         dna = DNA(name='test_DNA')
         mixture.add_components(dna)
 
-        crn_list = mixture.update_species()
+        mixture.add_species_to_crn(dna.update_species(), dna)
 
         for s_dna in dna.update_species():
-            self.assertTrue(s_dna in crn_list)
+            self.assertTrue(s_dna in mixture.crn.species)
 
         # Currently, there is no global mechanism that creates new species
 
@@ -164,6 +165,8 @@ class TestMixture(TestCase):
         # mixture = Mixture(global_mechanisms=global_mechanisms)
         # mixture.update_species()
 
+    """
+    update mechanisms has been removed - keeping here just in case it comes back
     def test_update_reactions(self):
         mixture = Mixture()
         with self.assertRaisesRegexp(AttributeError, 'Mixture.crn_species not defined.'):
@@ -182,7 +185,7 @@ class TestMixture(TestCase):
         mixture.update_species()
         crn_rxn = mixture.update_reactions()
         crn_rxn_mock = mock_update_reactions()
-        self.assertEqual(crn_rxn, crn_rxn_mock)
+        self.assertEqual(crn_rxn, crn_rxn_mock)"""
 
         # TODO add test for reactions added by global mechanisms
 
