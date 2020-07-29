@@ -400,7 +400,7 @@ class Complex:
                 new_complex = ComplexSpecies(new_species,*args,**keywords)
             #now we replace the monomer inside the parent polymer
             valent_complex.replace(bindloc,new_complex,prev_direction)
-            valent_complex.material_type = "OPcomplex" #this is saying that we are now a complex
+            valent_complex.material_type = OrderedPolymerSpecies.default_material #this is saying that we are now a complex
             return valent_complex[bindloc]
 
 class ComplexSpecies(Species):
@@ -549,7 +549,8 @@ class ComplexSpecies(Species):
             txt = txt[:-2]+")"
 
         txt.replace("'", "")
-
+        if(hasattr(self,"direction") and self.direction is not None):
+            txt += "-"+self.direction
         txt += "]"
 
         return txt
@@ -696,7 +697,8 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
     sometimes it is convenient to pass an internal Species. Both will work from the point of view
     of any Mechanism.
     """
-    def __init__(self,species, name=None, base_species = None, material_type = "ordered_polymer", \
+    default_material="ordered_polymer"
+    def __init__(self,species, name=None, base_species = None, material_type = default_material, \
                              attributes = None, initial_concentration = 0,circular = False):
 
         self.material_type = material_type

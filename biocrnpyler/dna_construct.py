@@ -13,6 +13,7 @@ from .chemical_reaction_network import ComplexSpecies, Species, OrderedComplexSp
                         OrderedMonomer,OrderedPolymerSpecies
 from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
 from matplotlib import cm
+from .component import Component
 from .components_basic import DNA, Protein, RNA
 from .species import WeightedSpecies
 from .dna_part import DNA_part
@@ -40,7 +41,7 @@ def rev_dir(dir):
     reversedict = {"forward":"reverse","reverse":"forward"}
     return reversedict[dir]
 
-class DNA_construct(DNA,OrderedPolymer):
+class Construct(Component,OrderedPolymer):
     def __init__(self,
                 parts_list,
                 name=None,
@@ -52,52 +53,44 @@ class DNA_construct(DNA,OrderedPolymer):
                 parameter_warnings = True, copy_parts=True,
                 **keywords):
         """this represents a bunch of parts in a row.
-        A parts list has [[part,direction],[part,direction],...]"""
+        A parts list has [[part,direction],[part,direction],...]
+        Each part must be an OrderedMonomer"""
         myparts = []
-        if(copy_parts):
-            parts_list = [[copy.deepcopy(a[0]).unclone(),a[1]] for a in parts_list]
-        OrderedPolymer.__init__(self,[[a[0],a[1]] for a in parts_list])
+        for part in parts_list:
+            newpart = []
+            if(type(part)==list or type(part)==tuple):
+                if(copy_parts):
+                    newpart = [copy.deepcopy(part[0]).remove(),part[1]]
+                else:
+                    newpart = [part[0].remove(),part[1]]
+            elif(isinstance(part,OrderedMonomer)):
+                npartd = None
+                npart = None
+                if(part.direction is not None):
+                    npartd = copy.deepcopy(part.direction)
+                if(copy_parts):
+                    npart = copy.deepcopy(part)
+                else:
+                    npart = part
+                npart.remove()
+                newpart = [npart,npartd]
+            myparts += [newpart]
+        OrderedPolymer.__init__(self,myparts)
         self.parts_list = self._polymer
-        #curpos = 0
-        #for part in parts_list:
-        #    if(isinstance(part,list)):
-        #        #if you give it a list, then that means the second element of the
-        #        #list is the direction
-        #        myparts += [part[0].clone(curpos,part[1],self)]
-        #    elif(isinstance(part,DNA_part)):
-        #        if(part.direction==None):
-        #            #in this case the direction wasn't provided, but we assume it's forward!
-        #            myparts += [part.clone(curpos,"forward",self)]
-        #        else:
-        #            #in this case the direction is provided in the part. This is a "recloned" part
-        #            myparts += [part.clone(curpos,part.direction,self)]
-        #    curpos += 1
-        #self.parts_list = myparts
-        #print(self.parts_list)
-        cmap = cm.Set1(range(len(self.parts_list)+5))
-        pind = 0
-        for part in self.parts_list:
-            if(type(part.color)==type(None)):
-                #if the color isn't set, let's set it now!
-                part.color = cmap[pind][:-1]
-            if(type(part.color2)==type(None)):
-                if(isinstance(part,AttachmentSite) and part.site_type in ["attL","attR"]):
-                    #this is the only scenario in which we need a color2
-                    #TODO make this more general
-                    pind+=1
-                    part.color2 = cmap[pind][:-1]
-            pind+=1
         self.circular=circular
         if(name is None):
             name = self.make_name() #automatic naming
-        self.update_dna(name) #this creates the dna Species object
-        DNA.__init__(self=self,name=name,length = len(parts_list),
+        self.name = name
+        Component.__init__(self=self,name=name,length = len(parts_list),
                     mechanisms=mechanisms,parameters=parameters,
                     attributes=attributes,initial_conc = initial_conc,
                     parameter_warnings=parameter_warnings, **keywords)
         self.update_parameters()
         self.transcripts = []
         self.set_parameter_warnings(parameter_warnings)
+        if(not hasattr(self,"material_type")):
+            self.material_type=None #set this when you inherit this class
+        self.update_base_species(self.name)
     def make_name(self):
         output = ""
         outlst = []
@@ -125,11 +118,11 @@ class DNA_construct(DNA,OrderedPolymer):
         self.mixture = mixture
         for part in self.parts_list:
             part.set_mixture(mixture)
-    def update_dna(self, dna, attributes = None):
-        if dna is None:
-            self.dna = self.set_species(self.name, material_type = "dna", attributes = attributes)
+    def update_base_species(self, base_name=None, attributes = None):
+        if base_name is None:
+            self.base_species = self.set_species(self.name, material_type = self.material_type, attributes = attributes)
         else:
-            self.dna = self.set_species(dna, material_type = "dna", attributes = attributes)
+            self.base_species = self.set_species(base_name, material_type = self.material_type, attributes = attributes)
     def set_parameter_warnings(self, parameter_warnings):
         """updates all components with the proper parameter warnings"""
         self.parameter_warnings = parameter_warnings
@@ -138,15 +131,14 @@ class DNA_construct(DNA,OrderedPolymer):
                 part.set_parameter_warnings(parameter_warnings)
     def update_parameters(self, overwrite_parameters = True):
         """update parameters of all parts in the construct"""
-
-        DNA.update_parameters(self = self,parameter_database=self.parameter_database)
+        Component.update_parameters(self = self,parameter_database=self.parameter_database)
         for part in self.parts_list:
             part.update_parameters(parameter_database = self.parameter_database,
                                     overwrite_parameters = overwrite_parameters)
 
     def update_mechanisms(self, mixture_mechanisms = {}, mechanisms = {},
                           overwrite_custom_parameters = True,overwrite_custom_mechanisms = False):
-        DNA.update_mechanisms(self = self,
+        Component.update_mechanisms(self = self,
                               mixture_mechanisms = mixture_mechanisms,
                               mechanisms = mechanisms,overwrite_custom_mechanisms = overwrite_custom_mechanisms)
         for part in self.parts_list:
@@ -155,7 +147,6 @@ class DNA_construct(DNA,OrderedPolymer):
                                     overwrite_custom_mechanisms = overwrite_custom_mechanisms)
     def explore_txtl(self):
         """this function finds promoters and terminators and stuff in the construct"""
-        # lets try to make this more modular shall we?\
         proteins = {}
         rnas = {}
         for direction in ["forward","reverse"]:
@@ -174,7 +165,6 @@ class DNA_construct(DNA,OrderedPolymer):
             while keep_going: #we may have to loop through the parts twice because the construct is circular.
                                 #this does not account for infinite loops, RCA, etc.
                 part = newlist[part_index] #pull out the part
-                #print("part is " + str(part))
                 keep_going = explorer.see(part) #the explorer keeps track of everything
                 part_index+=1 #keep going+
                 if(part_index==len(self.parts_list)):
@@ -195,7 +185,7 @@ class DNA_construct(DNA,OrderedPolymer):
         return rnas,proteins
     def __repr__(self):
         """this is just for display purposes"""
-        txt = "dna = "+ self.name
+        txt = self.name
         rnas,proteins = self.explore_txtl()
         if(len(rnas)>0):
             for promoter in rnas:
@@ -204,10 +194,6 @@ class DNA_construct(DNA,OrderedPolymer):
                 if(rnas[promoter] in proteins):
                     for rbs in proteins[rnas[promoter]]:
                         txt += "\n\t"+repr(rbs)
-                        #print("promoter is "+str(promoter))
-                        #print("rbs is "+ str(rbs))
-                        #print("rnas is "+ str(rnas))
-                        #print("proteins is "+ str(proteins))
                         for protein in proteins[rnas[promoter]][rbs]:
                             txt += "\n\tprotein = "+repr(protein)
         return txt
@@ -238,10 +224,11 @@ class DNA_construct(DNA,OrderedPolymer):
         ocomplx = []
         for part in self.parts_list:
             partspec = copy.copy(part.dna_species)
+            partspec.material_type = self.material_type
             ocomplx += [partspec.set_dir(part.direction)]
-        out_species = OrderedPolymerSpecies(ocomplx,base_species = self.dna,circular = self.circular,\
-                                                                    name = self.name,material_type="dna")
-        #OrderedComplexSpecies(ocomplx,name=self.name,material_type="dna")
+        out_species = OrderedPolymerSpecies(ocomplx,base_species = self.base_species,circular = self.circular,\
+                                                    name = self.name,material_type=self.material_type)
+        
         return out_species
     def cut(self,position,keep_part=False):
         """cuts the construct and returns the resulting piece or pieces"""
@@ -259,8 +246,8 @@ class DNA_construct(DNA,OrderedPolymer):
             #this means we return two linear pieces
             newDNA += [DNA_construct(left,circular=False),DNA_construct(right,circular=False)]
         return newDNA
-
-    def remove_bindloc(self,spec_list):
+    @classmethod
+    def remove_bindloc(cls,spec_list):
         """go through every species on a list and remove any "bindloc" attributes"""
         #spec_list2 = copy.copy(spec_list)
         out_sp_list = []
@@ -338,7 +325,7 @@ class DNA_construct(DNA,OrderedPolymer):
             new_backbone = copy.deepcopy(backbone)
             new_material = backbone.material_type
             for spec in combo:
-                new_material = "OPcomplex"
+                new_material = OrderedPolymerSpecies.default_material
                 new_backbone.replace(spec.position,spec)
             newname = None
             self_species = self.get_species()
@@ -362,10 +349,10 @@ class DNA_construct(DNA,OrderedPolymer):
         #print("initial species")
         #print(species)
         unique_complexes = {}
-        possible_backbones = {self.dna:self.get_species()}
+        possible_backbones = {self.base_species:self.get_species()}
         #possible_backbones = {a.name:a.get_species() for a in [self]+[a for a in proteins]}
         #species need to be uniqueified
-        print(species)
+        #print(species)
         unique_species = list(set(species)) 
         for specie in unique_species:
             #in this list we extract all the variants of the complexes from possible_backbones
@@ -420,7 +407,7 @@ class DNA_construct(DNA,OrderedPolymer):
         combinatorial_complexes = self.update_combinatorial_complexes(active_components)
         combinatorial_components = []
         for comb_specie in combinatorial_complexes:
-            if(isinstance(comb_specie,OrderedPolymerSpecies) and comb_specie.base_species == self.dna):
+            if(isinstance(comb_specie,OrderedPolymerSpecies) and comb_specie.base_species == self.base_species):
                 for part in active_components:
                     part_pos = part.position
                     if(isinstance(comb_specie[part_pos],ComplexSpecies)):
@@ -489,6 +476,42 @@ class DNA_construct(DNA,OrderedPolymer):
                 reactions += rna.update_reactions()
         return reactions
 
+class DNA_construct(Construct,DNA):
+    def __init__(self,
+                parts_list,
+                name=None,
+                circular=False,
+                mechanisms={},  # custom mechanisms
+                parameters={},  # customized parameters
+                attributes=[],
+                initial_conc=None,
+                parameter_warnings = True, copy_parts=True,
+                **keywords):
+
+
+        self.material_type = "dna"
+        Construct.__init__(self=self, parts_list =parts_list, name = name, \
+                            circular=circular, mechanisms=mechanisms, \
+                            parameters=parameters, attributes=attributes, \
+                            initial_conc=initial_conc, parameter_warnings=parameter_warnings, \
+                            copy_parts=copy_parts, **keywords)
+
+        cmap = cm.Set1(range(len(self.parts_list)+5))
+        pind = 0
+        for part in self.parts_list:
+            if(type(part.color)==type(None)):
+                #if the color isn't set, let's set it now!
+                part.color = cmap[pind][:-1]
+            if(type(part.color2)==type(None)):
+                if(isinstance(part,AttachmentSite) and part.site_type in ["attL","attR"]):
+                    #this is the only scenario in which we need a color2
+                    #TODO make this more general
+                    pind+=1
+                    part.color2 = cmap[pind][:-1]
+            pind+=1
+        
+        
+
 class DNAassembly_inprog(DNA_construct):
     def __init__(self, 
                 name: str, 
@@ -541,7 +564,7 @@ class DNAassembly_inprog(DNA_construct):
                     )
 
 
-class TxTl_Explorer():
+class TxTl_Explorer:
     def __init__(self,possible_rxns=("transcription","translation"),direction="forward",parameter_warnings=True):
         """this class goes through a parts_list of a DNA_construct and decides what RNAs are made
         and what proteins are made based on orientation and location of parts"""
@@ -701,14 +724,15 @@ class TxTl_Explorer():
         return self.all_rnas
 
 
-class RNA_construct(DNA_construct):
+class RNA_construct(Construct,RNA):
     def __init__(self,parts_list,name=None,made_by="unknown",**keywords):
         """an RNA_construct is a lot like a DNA_construct except it can only translate, and
         can only be linear"""
+        self.material_type = "rna"
         #TODO make sure we are subclassing RNA and not DNA. I am not sure how to do this,
         #since DNA_construct subclasses DNA
         self.my_promoter = made_by
-        DNA_construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,material_type="rna",**keywords)
+        Construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,**keywords)
 
     def explore_txtl(self):
         """an RNA has no tx, only TL! central dogma exists, right?"""
@@ -732,24 +756,12 @@ class RNA_construct(DNA_construct):
         proteins = explorer.get_proteins()
         rnadict = {self.my_promoter:self}
         return rnadict, proteins
-    def get_species(self):
-        outspec = DNA_construct.get_species(self)
-        for spec in outspec:
-            spec.material_type = "rna"
-        outspec.material_type="rna"
-        #OrderedComplexSpecies(ocomplx,name=self.name,material_type="dna")
-        return outspec
-
-        #return OrderedComplexSpecies([a.name for a in self.parts_list]+[self.name],material_type="rna",name=self.name)
-#    def update_components(self,rnas=None,proteins=None):
-#        if(proteins is None):
-#            proteins = self.explore_txtl()
-#        rbses = self.update_rbses(proteins)
-#        active_components = rbses
-#        combinatorial_complexes = self.update_combinatorial_complexes(active_components)
-#        my_rbses = self.update_rbses(proteins,combinatorial_complexes)
-#        out_components = my_rbses
-#        return out_components
+    #def get_species(self):
+    #    outspec = Construct.get_species(self)
+        #for spec in outspec:
+        #    spec.material_type = "rna"
+        #outspec.material_type="rna"
+    #    return outspec
     def __repr__(self):
         """the name of an RNA should be different from DNA, right?"""
         output = "rna = "+self.name

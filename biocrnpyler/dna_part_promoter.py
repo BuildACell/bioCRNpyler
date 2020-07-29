@@ -76,6 +76,9 @@ class Promoter(DNA_part):
         return reactions
     def update_component(self,dna,rnas,proteins,mypos = None):
         """returns a copy of this component, except with the proper fields updated"""
+        if(dna.material_type == "rna"):
+            #Promoters only work with DNA
+            return None
         out_component = copy.deepcopy(self)
         if(mypos is not None):
             out_component.dna_to_bind = dna[mypos]

@@ -58,12 +58,6 @@ class RBS(DNA_part):
             if(self.parent.get_species().material_type is not "dna"):
                 raise ValueError("something went wrong")
             return None
-            
-            #for rna in proteins.keys():
-            #    if(self in rna):
-            #        my_rna = rna
-            #if(my_rna is None):
-            #    raise KeyError(str(self) + " couldn't be found in "+str(list(proteins.keys())))
         out_component = None
         if(self in proteins[my_rna]):
             my_proteins = proteins[my_rna][self]

@@ -11,7 +11,6 @@ class CDS(DNA_part):
         #TODO use set_species()
         if(protein is None):
             self.protein = Species(name,material_type="protein")
-        
         elif(isinstance(protein,str)):
             self.protein = Species(protein,material_type="protein")
         elif(isinstance(protein,Component)):

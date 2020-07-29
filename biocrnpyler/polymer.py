@@ -194,6 +194,7 @@ class OrderedMonomer:
         self.parent = None
         self.direction = None
         self.position = None
+        return(self)
 
     def __repr__(self):
         txt = "OrderedMonomer(direction="+str(self.direction)+",position="+\
