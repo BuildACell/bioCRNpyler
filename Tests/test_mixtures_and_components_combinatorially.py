@@ -112,6 +112,8 @@ class CombinatorialComponentMixtureTest(TestCase):
 						raise AttributeError(f"{C} not found in {M}.components")
 
 					CRN = M.compile_crn()
+					document, _ = CRN.generate_sbml_model()
+					assert validate_sbml(document) == 0
 
 		except Exception as e:
 			error_txt = f"Instantiating Component {comp} in Mixture {mixture} with args {args}. \n Unexpected Error: {str(e)}."
@@ -133,6 +135,8 @@ class CombinatorialComponentMixtureTest(TestCase):
 							raise AttributeError(f"{A} not found in {M}.components")
 
 						CRN = M.compile_crn()
+						document, _ = CRN.generate_sbml_model()
+						assert validate_sbml(document) == 0
 		except Exception as e:
 			error_txt = f"Instantiating Promoter {prom} & RBS {rbs} in a DNAassembly in Mixture {mixture} with args {args}. \n Unexpected Error: {str(e)}."
 			raise Exception(error_txt)
@@ -152,6 +156,8 @@ class CombinatorialComponentMixtureTest(TestCase):
 							M = Mixture(default_mechanisms = mechs, components = [A], parameters = self.parameters)
 
 							CRN = M.compile_crn()
+							document, _ = CRN.generate_sbml_model()
+							assert validate_sbml(document) == 0
 		except Exception as e:
 			error_txt = f"Instantiating Promoter {prom} & RBS {rbs} in a DNAassembly in Mixure with mech_tx = {mech_tx} and mech_tl = {mech_tl}. \n Unexpected Error: {str(e)}."
 			raise Exception(error_txt)
