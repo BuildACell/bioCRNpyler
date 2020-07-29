@@ -84,9 +84,9 @@ def test_add_reaction():
                         raise Exception(error_txt)
 
 def test_add_reaction_for_bioscrape():
-    '''
+    """
     Generates models for bioscrape including the particular annotations needed.
-    '''
+    """
     S1, S2, S3 = Species("S1"), Species("S2"), Species("S3")
     species = [S1, S2, S3]
     for_bioscrape = True #Toggle for_bioscrape
@@ -222,3 +222,77 @@ def test_generate_sbml_model_parameter_names():
     correct_ids = set(["v_v_", "v__v", "v_v_v", "v__", "n_p_m"])
     ids = set([p.getId() for p in model.getListOfParameters()])
     assert ids == correct_ids
+
+def test_sbml_basics():
+    """
+    This test aims to test all Python libSBML functions and their return values. 
+    It will catch errors if certain libSBML functions are not working as expected. 
+    For example: At times, if the reaction rate law string is mis-formatted, it is 
+    ignored by the SBML writing code and not caught by any other tests. Similarly, this 
+    test will catch modifier reference, parameter values etc. 
+    """
+    def check(value, message):
+        """If 'value' is None, prints an error message constructed using
+        'message' and then exits with status code 1 (for libsbml). If 'value' is an integer,
+        it assumes it is a libSBML return status code.  If the code value is
+        LIBSBML_OPERATION_SUCCESS, returns without further action; if it is not,
+        prints an error message constructed using 'message' along with text from
+        libSBML explaining the meaning of the code, and exits with status code 1.
+        """
+        if value == None:
+                raise SystemExit(
+                    'LibSBML returned a null value trying to ' + message + '.')
+        elif type(value) is int:
+            if value == libsbml.LIBSBML_OPERATION_SUCCESS:
+                return
+            else:
+                err_msg = 'Error encountered trying to ' + message + '.' \
+                    + 'LibSBML returned error code ' + str(value) + ': "' \
+                    + libsbml.OperationReturnValue_toString(value).strip() + '"'
+                raise SystemExit(err_msg)
+        else:
+            return
+
+    from biocrnpyler.sbmlutil import _create_global_parameter, _create_local_parameter 
+    from biocrnpyler.sbmlutil import _create_modifiers, _create_products, _create_reactants
+    # generate an sbml model
+    document, model = create_sbml_model()
+    
+    # If the document/model creation failed the following two lines 
+    # will catch it:
+    check(document, 'create SBMLDocument object')
+    check(model, 'create SBML Model object')
+    S1 = Species("S1")
+    S2 = Species("S2")
+    compartment = model.getCompartment(0)
+    check(compartment, 'get compartment in SBML model')
+    sbml_species = add_species(model, compartment, S1, initial_concentration= 10)
+    sbml_species2 = add_species(model, compartment, S2, initial_concentration= 10)
+    check(sbml_species.getId(), 'get ID for SBML species')
+    check(sbml_species.getInitialConcentration(), 'get concentration for SBML species')
+
+    prop_hill = HillPositive(k = 1, s1 = S2, K = 10, n = 2)
+    crn_rxn = Reaction([S1],[], propensity_type = prop_hill)
+    check(model.createReaction(), 'create a new SBML reaction')
+    rx1 = model.getReaction(0)
+    check(rx1, 'get the created reaction')
+    check(rx1.setId('r1'), 'set ID for reaction')
+    check(rx1.setReversible(False), 'set reversible attribute for reaction')
+    _create_reactants(crn_rxn.inputs, rx1, model)
+    _create_products(crn_rxn.outputs, rx1, model)
+    _create_modifiers(crn_rxn, rx1, model)
+
+    check(rx1.getModifier(0), 'create species modifier')
+    modifier = rx1.getModifier(0)
+    check(modifier.getSpecies(), 'get the species id for the modifier reference')
+    rateLaw = rx1.createKineticLaw()
+    check(rateLaw, 'create kineticLaw for reaction')
+    local_param = _create_local_parameter(rateLaw, 'k_local', 10)
+    check(local_param, 'create local parameter in SBML model')
+    global_param = _create_global_parameter(model, 'k_global', 10)
+    check(global_param, 'create global parameter in SBML model')
+    check(rateLaw.setFormula('k_local*10 - k_global/2'), 'set rate formula for reaction')
+    validator = validateSBML(ucheck = False)
+    validation_result = validator.validate(document, print_results = True)
+    if validation_result > 0:
+        raise Exception('Invalid SBML model.')
