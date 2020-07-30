@@ -147,7 +147,7 @@ class ChemicalReactionNetwork(object):
             raise ValueError('species argument must be an instance of Species!')
 
         for s in self.species:
-            if species == s or (isinstance(s, ComplexSpecies) and species in s.species):
+            if species in s.get_species(recursive = True):
                 if return_as_strings:
                     return_list.append(repr(s))
                 else:
