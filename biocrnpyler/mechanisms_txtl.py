@@ -297,40 +297,6 @@ class Translation_MM(MichaelisMentenCopy):
         return rxns
 
 
-class Degredation_mRNA_MM(MichaelisMenten):
-    """Michaelis Menten mRNA Degredation by Endonucleases
-       mRNA + Endo <--> mRNA:Endo --> Endo
-    """
-    def __init__(self, nuclease, name="rna_degredation_mm", **keywords):
-        if isinstance(nuclease, Species):
-            self.nuclease = nuclease
-        else:
-            raise ValueError("'nuclease' must be a Species.")
-        MichaelisMenten.__init__(self=self, name=name,
-                                 mechanism_type="rna_degredation")
-
-    def update_species(self, rna, return_nuclease=True, **keywords):
-        species = [rna]
-        if return_nuclease:
-            species += [self.nuclease]
-        species += MichaelisMenten.update_species(self, Enzyme = self.nuclease, Sub = rna, Prod = None)
-        return species
-
-    def update_reactions(self, rna, component, part_id = None, complex=None, **keywords):
-
-        #Get Parameters
-        if part_id == None and component != None:
-            part_id = component.name
-
-        kdeg = component.get_parameter("kdeg", part_id = part_id, mechanism = self)
-        kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
-        ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
-
-        rxns = []
-        rxns += MichaelisMenten.update_reactions(self, Enzyme = self.nuclease, Sub = rna, Prod=None, complex=complex, kb=kb, ku=ku, kcat=kdeg)
-        return rxns
-
-
 class multi_tx(Mechanism):
     """
     Multi-RNAp Transcription w/ Isomerization:
@@ -387,10 +353,10 @@ class multi_tx(Mechanism):
         """
 
         # parameter loading
-        k1 = component.get_parameter("k1", part_id = part_id, mechanism = self)
-        k2 = component.get_parameter("k2", part_id = part_id, mechanism = self)
+        kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+        ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
         k_iso = component.get_parameter("k_iso", part_id = part_id, mechanism = self)
-        ktx_solo = component.get_parameter("ktx_solo", part_id = part_id, mechanism = self)
+        ktx = component.get_parameter("ktx", part_id = part_id, mechanism = self)
         max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self, return_numerical = True))
 
         # complex species instantiation
@@ -403,8 +369,8 @@ class multi_tx(Mechanism):
 
         # Reactions
         # polymerase + complex(n) --> complex(n_closed)
-        rxn_open_pf = [Reaction.from_massaction(inputs=[self.pol, cp_open[n]], outputs=[cp_closed[n + 1]], k_forward=k1) for n in range(0, max_occ - 1)]
-        rxn_open_pr = [Reaction.from_massaction(inputs=[cp_closed[n + 1]], outputs=[self.pol, cp_open[n], ], k_forward=k2) for n in range(0, max_occ - 1)]
+        rxn_open_p = [Reaction.from_massaction(inputs=[self.pol, cp_open[n]], outputs=[cp_closed[n + 1]], k_forward=kb, k_reverse = ku) for n in range(0, max_occ - 1)]
+        #rxn_open_pr = [Reaction.from_massaction(inputs=[cp_closed[n + 1]], outputs=[self.pol, cp_open[n], ], k_forward=k2) for n in range(0, max_occ - 1)]
 
         # isomerization
         rxn_iso = [Reaction.from_massaction(inputs=[cp_closed[n]], outputs=[cp_open[n]], k_forward=k_iso) for n in range(0, max_occ)]
@@ -414,19 +380,19 @@ class multi_tx(Mechanism):
         rxn_release_closed = []
         for n in range(0,max_occ):
             rxn_temp1 = Reaction.from_massaction(inputs= [cp_open[n]], outputs=[self.pol for i in range(n + 1)] +
-                                                                               [transcript for i in range(n+1)] + [dna], k_forward=ktx_solo)
+                                                                               [transcript for i in range(n+1)] + [dna], k_forward=ktx)
             rxn_release_open.append(rxn_temp1)
 
         for n in range(1,max_occ):
             rxn_temp2 = Reaction.from_massaction(inputs= [cp_closed[n]], outputs=[self.pol for i in range(n)] +
-                                                                                 [transcript for i in range(n)] + [cp_closed[0]], k_forward=ktx_solo)
+                                                                                 [transcript for i in range(n)] + [cp_closed[0]], k_forward=ktx)
             rxn_release_closed.append(rxn_temp2)
 
         # missing reactions (0 --> 0_closed and v.v. 0_closed --> 0)
-        rxn_m1 = Reaction.from_massaction(inputs=[dna, self.pol], outputs=[cp_closed[0]], k_forward=k1)
-        rxn_m2 = Reaction.from_massaction(inputs=[cp_closed[0]], outputs=[dna, self.pol], k_forward=k2)
+        rxn_m1 = Reaction.from_massaction(inputs=[dna, self.pol], outputs=[cp_closed[0]], k_forward=kb, k_reverse = ku)
+        #rxn_m2 = Reaction.from_massaction(inputs=[cp_closed[0]], outputs=[dna, self.pol], k_forward=k2)
 
-        rxn_all = rxn_open_pf + rxn_open_pr + rxn_iso + rxn_release_open + rxn_release_closed + [rxn_m1, rxn_m2]
+        rxn_all = rxn_open_p + rxn_iso + rxn_release_open + rxn_release_closed + [rxn_m1]
 
         return rxn_all
 
@@ -459,10 +425,6 @@ class multi_tl(Mechanism):
         else:
             raise ValueError("'ribosome' must be a Species.")
 
-        warn('This mechanism still needs some extra validation, use at your own peril and read the warnings!')
-        warn("To properly use this mechanism, set dilution for mRNA-RBZ complexes!")
-        warn("I've set RBZ and mRNA-RBZ complexes as protein Species to apply dilution to them, edit if you want something else!")
-
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     # species update
@@ -489,10 +451,10 @@ class multi_tl(Mechanism):
         """
 
         # parameter loading
-        kbr = component.get_parameter("kbr", part_id = part_id, mechanism = self)
-        kur = component.get_parameter("kur", part_id = part_id, mechanism = self)
-        k_iso_r = component.get_parameter("k_iso_r", part_id = part_id, mechanism = self)
-        ktl_solo = component.get_parameter("ktl_solo", part_id = part_id, mechanism = self)
+        kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+        ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+        k_iso = component.get_parameter("k_iso", part_id = part_id, mechanism = self)
+        ktl = component.get_parameter("ktl", part_id = part_id, mechanism = self)
         max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self, return_numerical = True))
 
 
@@ -505,29 +467,29 @@ class multi_tl(Mechanism):
 
         # Reactions
         # ribosome + complex(n) --> complex(n_closed)
-        rxn_open_pf = [Reaction.from_massaction(inputs=[self.ribosome, cp_open[n]], outputs=[cp_closed[n + 1]], k_forward=kbr) for n in range(0, max_occ - 1)]
-        rxn_open_pr = [Reaction.from_massaction(inputs=[cp_closed[n + 1]], outputs=[self.ribosome, cp_open[n], ], k_forward=kur) for n in range(0, max_occ - 1)]
+        rxn_open_p = [Reaction.from_massaction(inputs=[self.ribosome, cp_open[n]], outputs=[cp_closed[n + 1]], k_forward=kb, k_reverse = ku) for n in range(0, max_occ - 1)]
+        #rxn_open_pr = [Reaction.from_massaction(inputs=[cp_closed[n + 1]], outputs=[self.ribosome, cp_open[n], ], k_forward=kur) for n in range(0, max_occ - 1)]
 
         # isomerization
-        rxn_iso = [Reaction.from_massaction(inputs=[cp_closed[n]], outputs=[cp_open[n]], k_forward=k_iso_r) for n in range(0, max_occ)]
+        rxn_iso = [Reaction.from_massaction(inputs=[cp_closed[n]], outputs=[cp_open[n]], k_forward=k_iso) for n in range(0, max_occ)]
 
         # release/translation from open and closed states
         rxn_release_open =  []
         rxn_release_closed = []
         for n in range(0,max_occ):
             rxn_temp1 = Reaction.from_massaction(inputs= [cp_open[n]], outputs=[self.ribosome for i in range(n + 1)] +
-                                                                               [protein for i in range(n+1)] + [transcript], k_forward=ktl_solo)
+                                                                               [protein for i in range(n+1)] + [transcript], k_forward=ktl)
             rxn_release_open.append(rxn_temp1)
 
         for n in range(1,max_occ):
             rxn_temp2 = Reaction.from_massaction(inputs= [cp_closed[n]], outputs=[self.ribosome for i in range(n)] +
-                                                                                 [protein for i in range(n)] + [cp_closed[0]], k_forward=ktl_solo)
+                                                                                 [protein for i in range(n)] + [cp_closed[0]], k_forward=ktl)
             rxn_release_closed.append(rxn_temp2)
 
         # missing reactions (0 --> 0_closed and v.v. 0_closed --> 0)
-        rxn_m1 = Reaction.from_massaction(inputs=[transcript, self.ribosome], outputs=[cp_closed[0]], k_forward=kbr)
-        rxn_m2 = Reaction.from_massaction(inputs=[cp_closed[0]], outputs=[transcript, self.ribosome], k_forward=kur)
+        rxn_m1 = Reaction.from_massaction(inputs=[transcript, self.ribosome], outputs=[cp_closed[0]], k_forward=kb, k_reverse = ku)
+        #rxn_m2 = Reaction.from_massaction(inputs=[cp_closed[0]], outputs=[transcript, self.ribosome], k_forward=kur)
 
-        rxn_all = rxn_open_pf + rxn_open_pr + rxn_iso + rxn_release_open + rxn_release_closed + [rxn_m1, rxn_m2]
+        rxn_all = rxn_open_p + rxn_iso + rxn_release_open + rxn_release_closed + [rxn_m1]
 
         return rxn_all
