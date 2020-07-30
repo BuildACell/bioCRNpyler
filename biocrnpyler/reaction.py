@@ -2,7 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from .sbmlutil import *
-from .propensities import Propensity, MassAction, HillNegative
+from .propensities import Propensity, MassAction, HillNegative, HillPositive, ProportionalHillPositive, ProportionalHillNegative
 from.species import *
 import warnings
 import numpy as np
@@ -27,7 +27,7 @@ class Reaction(object):
         if args:
             kwargs['inputs'] = args[0]
             kwargs['outputs'] = args[1]
-        if 'k' in kwargs:
+        if 'k' in kwargs or 'propensity_params' in kwargs:
             self.old_interface(**kwargs)
         else:
             self.new_interface(**kwargs)
@@ -37,11 +37,21 @@ class Reaction(object):
                       rate_formula = None, propensity_params = None):
         warnings.warn('This way to initialize a reaction object is deprecated, please refactor your code!', DeprecationWarning)
 
-        if propensity_type == 'hillpositve':
-            prop_dict = {}
-            prop_dict['parameters'] = propensity_params
-            prop_dict['species'] = {}
-            HillNegative.from_dict(prop_dict)
+        if propensity_type == 'hillpositive':
+            propensity_type = HillPositive(**propensity_params)
+        elif propensity_type == 'hillnegative':
+            propensity_type = HillNegative(**propensity_params)
+        elif propensity_type == 'proportionalhillpositive':
+            propensity_type = ProportionalHillPositive(**propensity_params)
+        elif propensity_type == 'proportionalhillnegative':
+            propensity_type = ProportionalHillNegative(**propensity_params)
+        elif k_rev:
+            propensity_type = MassAction(k_forward=k, k_reverse=k_rev)
+        else:
+            propensity_type = MassAction(k_forward=k)
+
+        if rate_formula is not None:
+            NotImplementedError('General propensity is not supported this way!')
 
         if input_coefs:
             reactants = [WeightedSpecies(species=s, stoichiometry=v) for s,v in zip(inputs, input_coefs, strict=True)]
@@ -53,12 +63,7 @@ class Reaction(object):
         else:
             products = [WeightedSpecies(species=s) for s in outputs]
 
-        if k_rev:
-            mak = MassAction(k_forward=k, k_reverse=k_rev)
-        else:
-            mak = MassAction(k_forward=k)
-
-        self.new_interface(inputs=reactants, outputs=products, propensity_type=mak)
+        self.new_interface(inputs=reactants, outputs=products, propensity_type=propensity_type)
 
     def new_interface(self, inputs: Union[List[Species], List[WeightedSpecies]],
                  outputs: Union[List[Species], List[WeightedSpecies]],
