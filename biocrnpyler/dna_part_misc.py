@@ -6,7 +6,7 @@ import copy
 
 integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 class DNABindingSite(DNA_part):
-    def __init__(self,name,binders,no_stop_codons=[],assembly = None,**keywords):
+    def __init__(self,name,binders,no_stop_codons=None,assembly = None,**keywords):
         """an integrase attachment site binds to integrase"""
 
         if(isinstance(binders,list)):
@@ -51,7 +51,7 @@ class DNABindingSite(DNA_part):
             return out_component
 class AttachmentSite(DNABindingSite):
     #TODO generalize to "DNA binding site"
-    def __init__(self,name, site_type = "attB",integrase = "int1", dinucleotide = 1,no_stop_codons=[],**keywords):
+    def __init__(self,name, site_type = "attB",integrase = "int1", dinucleotide = 1,no_stop_codons=None,**keywords):
         if(isinstance(integrase,Species)):
             self.integrase_species = integrase
             self.integrase = integrase.name

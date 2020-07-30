@@ -416,10 +416,12 @@ def plotDesign(design,renderer = None,part_renderers=None,\
 
 def plotConstruct(DNA_construct_obj,dna_renderer=None,\
                                     rna_renderer=None,\
-                                    plot_rnas=False,debug=False,showlabels = [AttachmentSite]):
+                                    plot_rnas=False,debug=False,showlabels = None):
     """helper function for making dnaplotlib plots of a DNA_construct object. Plots the
     DNAs and the RNAs that come from that DNA, using DNA_construct.explore_txtl"""
     #TODO: make the label showing more general
+    if(showlabels is None):
+        showlabels = []
     if(PLOT_DNA):
         if(dna_renderer is None):
             dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3)

@@ -12,7 +12,7 @@ from .species import Species
 from warnings import warn
 
 class DNA_part(Component,OrderedMonomer):
-    def __init__(self,name,mechanisms={},parameters={},**keywords):
+    def __init__(self,name,mechanisms=None,parameters=None,**keywords):
         """this represents a modular component sequence. These get compiled into working components"""
         Component.__init__(self=self, name = name, mechanisms = mechanisms,
                            parameters = parameters, **keywords)
@@ -42,7 +42,8 @@ class DNA_part(Component,OrderedMonomer):
             elif(key=="sequence"):
                 self.sequence = value
             elif(key=="no_stop_codons"):
-                self.no_stop_codons = value
+                if(value is not None):
+                    self.no_stop_codons = value
         if(isinstance(assembly,OrderedPolymer)):
             OrderedMonomer.__init__(self,position=pos,parent=assembly,direction=direction)
         else:

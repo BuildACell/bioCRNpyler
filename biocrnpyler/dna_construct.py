@@ -46,9 +46,9 @@ class Construct(Component,OrderedPolymer):
                 parts_list,
                 name=None,
                 circular=False,
-                mechanisms={},  # custom mechanisms
-                parameters={},  # customized parameters
-                attributes=[],
+                mechanisms=None,  # custom mechanisms
+                parameters=None,  # customized parameters
+                attributes=None,
                 initial_conc=None, 
                 copy_parts=True,
                 **keywords):
@@ -455,9 +455,9 @@ class DNA_construct(Construct,DNA):
                 parts_list,
                 name=None,
                 circular=False,
-                mechanisms={},  # custom mechanisms
-                parameters={},  # customized parameters
-                attributes=[],
+                mechanisms=None,  # custom mechanisms
+                parameters=None,  # customized parameters
+                attributes=None,
                 initial_conc=None,
                 copy_parts=True,
                 **keywords):
