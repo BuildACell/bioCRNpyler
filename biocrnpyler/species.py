@@ -178,7 +178,7 @@ class Species(OrderedMonomer):
         return [self]
 
     
-    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+    def pretty_print(self, show_material = True, show_attributes = True, show_initial_condition = False, **kwargs):
         """
         #A more powerful printing function. 
         Useful for understanding CRNs but does not return string identifiers.
@@ -203,6 +203,9 @@ class Species(OrderedMonomer):
             txt += "-"+self.direction
         if self.material_type not in ["", None] and show_material:
             txt += "]"
+
+        if show_initial_condition:
+            txt+=f" init_conc = {self.initial_concentration}"
 
         return txt
 
@@ -519,7 +522,7 @@ class ComplexSpecies(Species):
         return species
 
 
-    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+    def pretty_print(self, show_material = True, show_attributes = True, show_initial_condition = False, **kwargs):
         """
         A more powerful printing function. 
         Useful for understanding CRNs but does not return string identifiers.
@@ -548,6 +551,9 @@ class ComplexSpecies(Species):
         txt.replace("'", "")
 
         txt += "]"
+
+        if show_initial_condition:
+            txt+=f" init_conc = {self.initial_concentration}"
 
         return txt
 
@@ -647,7 +653,7 @@ class OrderedComplexSpecies(ComplexSpecies):
         
         return Complex(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes, ordered = True)
 
-    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+    def pretty_print(self, show_material = True, show_attributes = True, show_initial_condition = False, **kwargs):
         """
         A more powerful printing function. 
         Useful for understanding CRNs but does not return string identifiers.
@@ -674,6 +680,9 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         txt.replace("'", "")
         txt += "]"
+
+        if show_initial_condition:
+            txt+=f" init_conc = {self.initial_concentration}"
 
         return txt
 

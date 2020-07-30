@@ -1,4 +1,7 @@
 mechanism_id	part_id	param_name	param_val	comments
+		Ribo	120	uM assuming similar to e coli
+		RNAP	15	uM assuming similar to e coli
+		RNAase	30	uM assuming similar to e coli
 	e coli	Ribo	120	uM assuming ~72000 Ribosomes / e. coli with a volume 1 um^3
 	e coli	RNAP	15	uM assuming ~10000 RNAP molecules / e. coli with a volume 1 um^3
 	e coli	RNAase	30	uM assuming ~20000 RNAP molecules / e. coli with a volume 1 um^4
