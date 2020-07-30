@@ -17,7 +17,7 @@ reaction_id = 0
 logger = logging.getLogger(__name__)
 
 
-def create_sbml_model(for_bioscrape = False, compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
+def create_sbml_model(compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
                       length_units='metre', area_units='square_metre', volume_units='litre', volume=1e-6, model_id=None, **kwargs):
     """Creates an SBML Level 3 Version 2 model with some fixed standard settings.
 
@@ -34,7 +34,6 @@ def create_sbml_model(for_bioscrape = False, compartment_id="default", time_unit
     :param model_id:
     :return:  the SBMLDocument and the Model object as a tuple
     """
-
     document = libsbml.SBMLDocument(3, 2)
     model = document.createModel()
     if model_id is None:
@@ -65,8 +64,6 @@ def create_sbml_model(for_bioscrape = False, compartment_id="default", time_unit
     compartment.setConstant(True)  # keep compartment size constant
     compartment.setSpatialDimensions(3)  # 3 dimensional compartment
     compartment.setVolume(volume)  # 1 microliter
-
-    # Returning document is enough. document.getModel() gives the model, and model.getCompartment(0) gives the compartment.
     return document, model
 
 
@@ -160,7 +157,7 @@ def find_parameter(mixture, id):
     return model.getParameter(id)  # ! TODO: add error checking
 
 
-def add_all_reactions(model, reactions: List, stochastic=False, for_bioscrape = False, **kwargs):
+def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
     """adds a list of reactions to the SBML model
 
     :param model: an sbml model created by create_sbml_model()
@@ -171,23 +168,23 @@ def add_all_reactions(model, reactions: List, stochastic=False, for_bioscrape = 
 
     for rxn_count, r in enumerate(reactions):
         rxn_id = f'r{rxn_count}'
-        add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic,  for_bioscrape = for_bioscrape, **kwargs)
+        add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, **kwargs)
 
         #Reversible reactions are always seperated into two seperate reactions
         if r.is_reversible:
             rxn_id = f'r{rxn_count}rev'
-            add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, reverse_reaction = True, for_bioscrape = for_bioscrape,**kwargs)
+            add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, reverse_reaction = True, **kwargs)
 
 
-def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction: bool=False, for_bioscrape = False, **kwargs):
+def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction: bool=False, **kwargs):
     """adds a sbml_reaction to an sbml model
 
     :param model: an sbml model created by create_sbml_model()
     :param crn_reaction: must be a chemical_reaction_network.reaction object
     :param reaction_id: unique id of the reaction
     :param stochastic: stochastic model flag
-    :param reverse_reaction:
-    :return: SBML sbml_reaction object
+    :param reverse_reaction: 
+    :return: SBML Reaction object
     """
 
     # Create the sbml_reaction in SBML
@@ -199,23 +196,24 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
     #all reactions are set to be non-reversible in BioCRNpyler because this is correct in deterministic and stochastic simulation.
     sbml_reaction.setReversible(False)
 
+    # Create the reactants and products for the sbml_reaction
+    if not reverse_reaction:
+        _create_reactants(reactant_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+        _create_products(product_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
+    else:
+        _create_reactants(reactant_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
+        _create_products(product_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+
     # Create the kinetic law and corresponding local propensity parameters
     crn_reaction.propensity_type.create_kinetic_law(model=model,
                                                     sbml_reaction=sbml_reaction,
                                                     stochastic=stochastic,
                                                     crn_reaction=crn_reaction,
                                                     reverse_reaction=reverse_reaction,
-                                                    for_bioscrape=for_bioscrape,
                                                     **kwargs)
-
-    # Create the reactants and products for the sbml_reaction
-    if not reverse_reaction:
-        _create_reactants(reactant_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
-        _create_products(product_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
-
-    else:
-        _create_reactants(reactant_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
-        _create_products(product_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+    # Create SpeciesModifierReference in SBML for species that are referred by the 
+    # KineticLaw but not in reactants or products
+    _create_modifiers(crn_reaction = crn_reaction, sbml_reaction = sbml_reaction, model = model)
 
     return sbml_reaction
 
@@ -225,18 +223,28 @@ def _create_reactants(reactant_list, sbml_reaction, model):
         # What to do when there are multiple species with same name?
         species_id = getSpeciesByName(model, str(input.species)).getId()
         reactant = sbml_reaction.createReactant()
-        reactant.setSpecies(species_id)  # ! TODO: add error checking
+        reactant.setSpecies(species_id)  
         reactant.setConstant(False)
         reactant.setStoichiometry(input.stoichiometry)
 
 def _create_products(product_list, sbml_reaction, model):
     for output in product_list:
-        product = sbml_reaction.createProduct()
         species_id = getSpeciesByName(model, str(output.species)).getId()
+        product = sbml_reaction.createProduct()
         product.setSpecies(species_id)
         product.setStoichiometry(output.stoichiometry)
         product.setConstant(False)
 
+def _create_modifiers(crn_reaction, sbml_reaction, model):
+    reactants_list = [i.species.name for i in crn_reaction.inputs]
+    products_list = [i.species.name for i in crn_reaction.outputs]
+    modifier_species = [i.name for i in crn_reaction.propensity_type.propensity_dict['species'].values()]
+    for modifier_id in modifier_species:
+        modifier_id = str(modifier_id)
+        if modifier_id not in reactants_list and modifier_id not in products_list:
+            modifier = sbml_reaction.createModifier()
+            modifier.setSpecies(modifier_id)
+    
 #Creates a local parameter SBML kinetic rate law
 def _create_local_parameter(ratelaw, name, value, constant = True):
     param = ratelaw.createParameter()
@@ -258,7 +266,6 @@ def _create_global_parameter(model, name, value, constant = True):
 
     return param
 
-# !/usr/bin/env python
 ##
 ## @file    setIdFromNames.py
 ## @brief   Utility program, renaming all SIds that also has
@@ -419,3 +426,94 @@ def getSpeciesByName(model, name, compartment=''):
     else:
         warn('Multiple species with name ' + name + ' found. Returning a list')
         return species_found
+
+
+## Validate SBML
+
+
+class validateSBML(object):
+    '''
+    libSBML class to validate the generated SBML models
+    ## @brief   Validates SBMLDocument
+    ## @author  Akiya Jouraku (translated from libSBML C++ examples)
+    ## @author  Ben Bornstein
+    ## @author  Michael Hucka
+    '''
+    def __init__(self, ucheck):
+        self.reader    = libsbml.SBMLReader()
+        self.ucheck    = ucheck
+
+    def validate(self, sbml_document, print_results = False):
+        """
+        sbml_document: libSBML SBMLDocument object.
+        print_results: Print toggle for validation warnings.
+        """
+        sbmlDoc  = sbml_document
+        errors   = sbmlDoc.getNumErrors()
+        if print_results:
+            print("Validating SBML model with ID: {0}...".format(sbmlDoc.getModel().getId()))
+        seriousErrors = False
+
+        numReadErr  = 0
+        numReadWarn = 0
+        errMsgRead  = ""
+
+        if errors > 0:
+            for i in range(errors):
+                severity = sbmlDoc.getError(i).getSeverity()
+                if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
+                    seriousErrors = True
+                    numReadErr += 1
+                else:
+                    numReadWarn += 1
+            errMsgRead = sbmlDoc.getErrorLog().toString()
+
+        # If serious errors are encountered while reading an SBML document, it
+        # does not make sense to go on and do full consistency checking because
+        # the model may be nonsense in the first place.
+
+        numCCErr  = 0
+        numCCWarn = 0
+        errMsgCC  = ""
+
+        if seriousErrors:
+            errMsgRead += "Further consistency checking and validation aborted."
+        else:
+            sbmlDoc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, self.ucheck)
+            failures = sbmlDoc.checkConsistency()
+            if failures > 0:
+                isinvalid = False
+                for i in range(failures):
+                    severity = sbmlDoc.getError(i).getSeverity()
+                    if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
+                        numCCErr += 1
+                        isinvalid = True
+                    else:
+                        numCCWarn += 1
+                if isinvalid:
+                    errMsgCC = sbmlDoc.getErrorLog().toString()
+        if errMsgRead or errMsgCC: 
+            if print_results:
+                print()
+                print( "===== validation error/warning messages =====\n")
+            if errMsgRead : 
+                if print_results:
+                    print( errMsgRead)
+            if errMsgCC : 
+                if print_results:
+                    print( "*** consistency check ***\n")
+                    print( errMsgCC)
+        if not (numReadErr + numCCErr):
+            print('Successful!')
+        return numReadErr + numCCErr
+        
+
+def validate_sbml(sbml_document, enable_unit_check = False, print_results = True):
+    """
+    Validates the generated SBML model by using libSBML SBML validation code
+    """
+    validator = validateSBML(enable_unit_check)
+    validation_result = validator.validate(sbml_document, print_results = print_results)
+    if validation_result > 0:
+        warn('SBML model invalid. Run with print_results = False to hide print statements')
+    return validation_result

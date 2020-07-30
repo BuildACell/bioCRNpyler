@@ -36,8 +36,7 @@ class DNA(Component):
             self, name: str, length=0, attributes = None,  # positional arguments
             **keywords
     ):
-        self.species = self.set_species(name, material_type="dna",
-                               attributes=attributes)
+        self.species = self.set_species(name, material_type="dna", attributes=attributes)
         self._length = length
         Component.__init__(self=self, name=name, **keywords)
 
