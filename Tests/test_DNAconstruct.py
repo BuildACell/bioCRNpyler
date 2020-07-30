@@ -28,6 +28,7 @@ class TestDNAConstruct(TestCase):
         self.assertTrue(myrbs in myconst)
         self.assertTrue(mycds in myconst)
         self.assertTrue(myt in myconst)
+        self.assertTrue("prom" in myconst)
 
         spec = myconst.get_species()
         p = copy.deepcopy(spec[0])
@@ -44,14 +45,19 @@ class TestDNAConstruct(TestCase):
         self.assertTrue(t == Species(myt.name,material_type="dna"))
         for a in spec:
             self.assertTrue(a.direction=="forward")
-        myconst2 = DNA_construct([[myprom,"reverse"],\
-                                 [myrbs,"reverse"],\
+        myconst2 = DNA_construct([[myt,"reverse"],\
                                  [mycds,"reverse"],\
-                                 [myt,"reverse"]],circular=True)
+                                 [myrbs,"reverse"],\
+                                 [myprom,"reverse"]],circular=True)
         self.assertTrue(myconst2.parts_list[0].direction=="reverse")
         self.assertTrue(myconst2.parts_list[1].direction=="reverse")
         self.assertTrue(myconst2.parts_list[2].direction=="reverse")
         self.assertTrue(myconst2.parts_list[3].direction=="reverse")
+        myconst3 = copy.deepcopy(myconst)
+        myconst3.circular = True
+        myconst3.reverse()
+        self.assertTrue(myconst3==myconst2)
+
         #testing automatic name creation where we insert _r for reverse and _o for circular
         self.assertTrue("_r_" in myconst2.name)
         self.assertTrue("_o" in myconst2.name)
@@ -104,7 +110,7 @@ class TestDNAConstruct(TestCase):
                                  circular=True)
         parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
         myMixture = TxTlExtract(name = "txtl", parameters = parameters, \
-                            components = [myconst], parameter_warnings = False)
+                            components = [myconst])
         myCRN = myMixture.compile_crn()
         myspec = myCRN.species
         myrxn = myCRN.reactions
@@ -117,7 +123,7 @@ class TestDNAConstruct(TestCase):
         newplist = list(myconst.parts_list[:3])+[[myprom,"reverse"]]+list(myconst.parts_list[3:])
         myconst2 = DNA_construct(newplist,circular=True)
         myMixture2 = TxTlExtract(name = "txtl", parameters = parameters, \
-                            components = [myconst2], parameter_warnings = False)
+                            components = [myconst2])
         myCRN2 = myMixture2.compile_crn()
         #we add a promoter and more reactions and species are made
         self.assertTrue(len(myCRN2.species)==14)

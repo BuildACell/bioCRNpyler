@@ -51,7 +51,7 @@ class TestSpecies(TestCase):
     def test_add_attribute(self):
         species = Species(name='test_species')
         # an attribute must be a string
-        with self.assertRaisesRegexp(AssertionError,f'must be an alpha-numeric string'):
+        with self.assertRaisesRegex(AssertionError,f'must be an alpha-numeric string'):
             species.add_attribute({'k': 'v'})
 
         species.add_attribute('attribute')

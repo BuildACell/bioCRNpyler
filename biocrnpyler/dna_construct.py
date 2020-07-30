@@ -49,8 +49,8 @@ class Construct(Component,OrderedPolymer):
                 mechanisms={},  # custom mechanisms
                 parameters={},  # customized parameters
                 attributes=[],
-                initial_conc=None,
-                parameter_warnings = True, copy_parts=True,
+                initial_conc=None, 
+                copy_parts=True,
                 **keywords):
         """this represents a bunch of parts in a row.
         A parts list has [[part,direction],[part,direction],...]
@@ -76,7 +76,7 @@ class Construct(Component,OrderedPolymer):
                 newpart = [npart,npartd]
             myparts += [newpart]
         OrderedPolymer.__init__(self,myparts)
-        self.parts_list = self._polymer
+        #self.parts_list = self._polymer
         self.circular=circular
         if(name is None):
             name = self.make_name() #automatic naming
@@ -84,13 +84,15 @@ class Construct(Component,OrderedPolymer):
         Component.__init__(self=self,name=name,length = len(parts_list),
                     mechanisms=mechanisms,parameters=parameters,
                     attributes=attributes,initial_conc = initial_conc,
-                    parameter_warnings=parameter_warnings, **keywords)
+                     **keywords)
         self.update_parameters()
         self.transcripts = []
-        self.set_parameter_warnings(parameter_warnings)
         if(not hasattr(self,"material_type")):
             self.material_type=None #set this when you inherit this class
         self.update_base_species(self.name)
+    @property
+    def parts_list(self):
+        return self._polymer
     def make_name(self):
         output = ""
         outlst = []
@@ -104,15 +106,11 @@ class Construct(Component,OrderedPolymer):
             output+="_o"
         return output
     def reverse(self):
-        """reverses everything, without actually changing the DNA"""
-        self.parts_list = self.parts_list.reverse()
-        #newlist = self.parts_list[::-1]
-        #newpos = 0
-        #for part in newlist:
-        #    part.pos = newpos
-        #    part.direction = rev_dir(part.direction)
-        #    newpos+=1
-        #self.parts_list = newlist
+        """reverses everything, without actually changing the DNA.
+        also updates the name and stuff, since this is now a different Construct"""
+        OrderedPolymer.reverse(self)
+        self.name = self.make_name()
+        self.update_base_species()
         return self
     def set_mixture(self, mixture):
         self.mixture = mixture
@@ -123,12 +121,6 @@ class Construct(Component,OrderedPolymer):
             self.base_species = self.set_species(self.name, material_type = self.material_type, attributes = attributes)
         else:
             self.base_species = self.set_species(base_name, material_type = self.material_type, attributes = attributes)
-    def set_parameter_warnings(self, parameter_warnings):
-        """updates all components with the proper parameter warnings"""
-        self.parameter_warnings = parameter_warnings
-        if(self.parameter_warnings is not None):
-            for part in self.parts_list:
-                part.set_parameter_warnings(parameter_warnings)
     def update_parameters(self, overwrite_parameters = True):
         """update parameters of all parts in the construct"""
         Component.update_parameters(self = self,parameter_database=self.parameter_database)
@@ -136,21 +128,18 @@ class Construct(Component,OrderedPolymer):
             part.update_parameters(parameter_database = self.parameter_database,
                                     overwrite_parameters = overwrite_parameters)
 
-    def update_mechanisms(self, mixture_mechanisms = {}, mechanisms = {},
-                          overwrite_custom_parameters = True,overwrite_custom_mechanisms = False):
-        Component.update_mechanisms(self = self,
-                              mixture_mechanisms = mixture_mechanisms,
-                              mechanisms = mechanisms,overwrite_custom_mechanisms = overwrite_custom_mechanisms)
+    def add_mechanism(self, mechanism, mech_type = None, overwrite = False, optional_mechanism = False):
+        Component.add_mechanism(self, mechanism, mech_type = mech_type, \
+                                overwrite = overwrite, optional_mechanism = optional_mechanism)
         for part in self.parts_list:
-            part.update_mechanisms(mechanisms = mechanisms,
-                                    mixture_mechanisms = mixture_mechanisms,
-                                    overwrite_custom_mechanisms = overwrite_custom_mechanisms)
+            part.add_mechanism( mechanism, mech_type = mech_type, \
+                                overwrite = overwrite, optional_mechanism = optional_mechanism)
     def explore_txtl(self):
         """this function finds promoters and terminators and stuff in the construct"""
         proteins = {}
         rnas = {}
         for direction in ["forward","reverse"]:
-            explorer = TxTl_Explorer(parameter_warnings=self.parameter_warnings)
+            explorer = TxTl_Explorer()
             explorer.direction=direction
             if(direction == "reverse"):
                 #if we go backwards then also list the parts backwards
@@ -185,6 +174,8 @@ class Construct(Component,OrderedPolymer):
         return rnas,proteins
     def __repr__(self):
         """this is just for display purposes"""
+        return "DNA_construct = "+ self.make_name()
+    def show(self):
         txt = self.name
         rnas,proteins = self.explore_txtl()
         if(len(rnas)>0):
@@ -197,7 +188,6 @@ class Construct(Component,OrderedPolymer):
                         for protein in proteins[rnas[promoter]][rbs]:
                             txt += "\n\tprotein = "+repr(protein)
         return txt
-    
     def __contains__(self,obj2):
         """checks if this construct contains a certain part, or a copy of a certain part"""
         if(isinstance(obj2,DNA_part)):
@@ -230,22 +220,6 @@ class Construct(Component,OrderedPolymer):
                                                     name = self.name,material_type=self.material_type)
         
         return out_species
-    def cut(self,position,keep_part=False):
-        """cuts the construct and returns the resulting piece or pieces"""
-        left = self.parts_list[:position]
-        if(keep_part):
-            rightpos = position
-        else:
-            rightpos = position+1
-        right = self.parts_list[rightpos:]
-        newDNA = []
-        if(self.circular):
-            #this means we return one linear piece
-            newDNA += [DNA_construct(right+left,circular=False)]
-        else:
-            #this means we return two linear pieces
-            newDNA += [DNA_construct(left,circular=False),DNA_construct(right,circular=False)]
-        return newDNA
     @classmethod
     def remove_bindloc(cls,spec_list):
         """go through every species on a list and remove any "bindloc" attributes"""
@@ -485,7 +459,7 @@ class DNA_construct(Construct,DNA):
                 parameters={},  # customized parameters
                 attributes=[],
                 initial_conc=None,
-                parameter_warnings = True, copy_parts=True,
+                copy_parts=True,
                 **keywords):
 
 
@@ -493,7 +467,7 @@ class DNA_construct(Construct,DNA):
         Construct.__init__(self=self, parts_list =parts_list, name = name, \
                             circular=circular, mechanisms=mechanisms, \
                             parameters=parameters, attributes=attributes, \
-                            initial_conc=initial_conc, parameter_warnings=parameter_warnings, \
+                            initial_conc=initial_conc, \
                             copy_parts=copy_parts, **keywords)
 
         cmap = cm.Set1(range(len(self.parts_list)+5))
@@ -512,60 +486,9 @@ class DNA_construct(Construct,DNA):
         
         
 
-class DNAassembly_inprog(DNA_construct):
-    def __init__(self, 
-                name: str, 
-                promoter = None, 
-                transcript = None,
-                rbs = None, 
-                protein = None, 
-                length = None,
-                attributes = [], 
-                mechanisms = {}, 
-                parameters = {}, 
-                initial_conc = None,
-                parameter_warnings = True, 
-                **keywords):
-        if(isinstance(promoter,str)):
-            #if the promoter is a string that means make
-            #a default constitutitve promoter
-            part_promoter = Promoter(promoter)
-        elif(promoter is None):
-            part_promoter = Promoter(name)
-        if(isinstance(transcript,str)):
-            #the name of the transcript must be settable but currently it is not
-            self.transcriptName = transcript
-        elif(isinstance(transcript,RNA)):
-            self.transcriptName = transcript.name
-        elif(transcript is None):
-            self.transcriptName = name
-        
-        if(isinstance(rbs,str)):
-            part_rbs = RBS(rbs)
-        elif(rbs is None):
-            part_rbs = RBS(name)
-        
-        if(isinstance(protein,Protein)):
-            part_cds = CDS(protein.name,protein = protein)
-        elif(isinstance(protein,str)):
-            part_cds = CDS(protein,protein = Protein(protein))
-        
-        parts_list = [[part_promoter,"forward"],[part_rbs,"forward"],[part_cds,"forward"]]
-        DNA_construct(self=self,
-                    parts_list=parts_list,
-                    name=name,
-                    circular=False,
-                    mechanisms=mechanisms,  # custom mechanisms
-                    parameters=parameters,  # customized parameters
-                    attributes=attributes,
-                    initial_conc=initial_conc,
-                    parameter_warnings = parameter_warnings,
-                    **keywords
-                    )
-
 
 class TxTl_Explorer:
-    def __init__(self,possible_rxns=("transcription","translation"),direction="forward",parameter_warnings=True):
+    def __init__(self,possible_rxns=("transcription","translation"),direction="forward"):
         """this class goes through a parts_list of a DNA_construct and decides what RNAs are made
         and what proteins are made based on orientation and location of parts"""
         self.current_rnas = {}
@@ -577,7 +500,6 @@ class TxTl_Explorer:
         self.possible_rxns = possible_rxns
         self.direction=direction
         self.second_looping = False
-        self.parameter_warnings =parameter_warnings
     def see(self,part):
         """the explorer sees a part. This does different stuff depending on
         1) if there is a current rna or current rbs
@@ -678,7 +600,7 @@ class TxTl_Explorer:
         #print(self.current_rnas)
         #print(self.current_proteins)
         #TODO copy parts here and not in the constructor
-        rna_construct = RNA_construct(copy.deepcopy(rna_partslist),made_by = promoter,parameter_warnings=self.parameter_warnings)
+        rna_construct = RNA_construct(copy.deepcopy(rna_partslist),made_by = promoter)
         rna_construct.set_mixture(promoter.mixture)
         #current_rna_name = str(promoter)+"-"+str(rna_construct)
         self.made_proteins[rna_construct]={}
@@ -729,15 +651,13 @@ class RNA_construct(Construct,RNA):
         """an RNA_construct is a lot like a DNA_construct except it can only translate, and
         can only be linear"""
         self.material_type = "rna"
-        #TODO make sure we are subclassing RNA and not DNA. I am not sure how to do this,
-        #since DNA_construct subclasses DNA
         self.my_promoter = made_by
         Construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,**keywords)
 
     def explore_txtl(self):
         """an RNA has no tx, only TL! central dogma exists, right?"""
         # lets try to make this more modular shall we?
-        explorer = TxTl_Explorer(possible_rxns = ("translation",),parameter_warnings=self.parameter_warnings)
+        explorer = TxTl_Explorer(possible_rxns = ("translation",))
         explorer.make_rna(self.my_promoter)
         part_index = 0
         keep_going = 1
@@ -769,7 +689,7 @@ class RNA_construct(Construct,RNA):
 
 
 
-#DEPRECATED circular matching code below
+#NOT IMPLEMENTED circular matching code below
 #apparently below won't work because you can't hash the parts_list
     #this means the equality won't work for circular constructs. oops!
     '''

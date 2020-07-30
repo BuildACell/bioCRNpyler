@@ -47,7 +47,7 @@ class Promoter(DNA_part):
         DNA_part.__init__(self, name = name, mechanisms = mechanisms,
                            parameters = parameters, assembly=assembly, **keywords)
     def update_species(self):
-        mech_tx = self.mechanisms["transcription"]
+        mech_tx = self.get_mechanism("transcription")
         species = []
 
         species += mech_tx.update_species(dna = self.dna_to_bind, \
@@ -58,7 +58,9 @@ class Promoter(DNA_part):
     @property
     def dna_to_bind(self):
         if(self._dna_bind is None):
-            if(self.assembly.dna is not None):
+            if(self.assembly is None):
+                return None
+            else:
                 self._dna_bind = self.assembly.dna
         return self._dna_bind
     @dna_to_bind.setter
@@ -67,7 +69,7 @@ class Promoter(DNA_part):
     def get_species(self):
         return None
     def update_reactions(self):
-        mech_tx = self.mechanisms["transcription"]
+        mech_tx = self.get_mechanism("transcription")
         reactions = []
 
         reactions += mech_tx.update_reactions(dna = self.dna_to_bind, \
@@ -97,7 +99,7 @@ class Promoter(DNA_part):
     #Used for expression mixtures where transcripts are replaced by proteins
     def get_protein_for_expression(self):
         if self.transcript is None:
-            return self.assembly.protein
+            return self.protein
         else:
             return None
 
@@ -111,6 +113,11 @@ class RegulatedPromoter(Promoter):
                  transcript=None, length=0, mechanisms=None,
                  parameters=None , **keywords):
 
+        Promoter.__init__(self, name = name, assembly = assembly,
+                          transcript = transcript, length = length,
+                          mechanisms = mechanisms, parameters = parameters,
+                          **keywords)
+
         if not isinstance(regulators, list):
             regulators = [regulators]
 
@@ -120,16 +127,12 @@ class RegulatedPromoter(Promoter):
 
         self.leak = leak
 
-        self.default_mechanisms = {"binding": One_Step_Cooperative_Binding()}
+        self.add_mechanism(One_Step_Cooperative_Binding(), "binding")
         self.complexes = []
-        Promoter.__init__(self, name = name, assembly = assembly,
-                          transcript = transcript, length = length,
-                          mechanisms = mechanisms, parameters = parameters,
-                          **keywords)
         
     def update_species(self):
-        mech_tx = self.mechanisms["transcription"]
-        mech_b = self.mechanisms['binding']
+        mech_tx = self.get_mechanism("transcription")
+        mech_b = self.get_mechanism('binding')
         species = []
 
         
@@ -159,8 +162,8 @@ class RegulatedPromoter(Promoter):
 
     def update_reactions(self):
         reactions = []
-        mech_tx = self.mechanisms["transcription"]
-        mech_b = self.mechanisms['binding']
+        mech_tx = self.get_mechanism("transcription")
+        mech_b = self.get_mechanism('binding')
 
         if self.leak is not False:
             reactions += mech_tx.update_reactions(dna = self.dna_to_bind, component = self, part_id = self.name+"_leak", \
@@ -184,6 +187,9 @@ class ActivatablePromoter(Promoter):
     A class for a promoter which can be activated by a single species, modelled as a positive hill function
     """
     def __init__(self, name, activator, transcript = None, leak = False, **keywords):
+        #Always call the superclass __init__() with **keywords passed through
+        Promoter.__init__(self, name = name, transcript = transcript, **keywords)
+
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
@@ -191,15 +197,13 @@ class ActivatablePromoter(Promoter):
 
         self.leak = leak #toggles whether or not there is a leak reaction
         
-        #Mechanisms are inherited from the Mixture unless set specifically in self.default_mechanisms.
-        custom_mechanisms = {"transcription": PositiveHillTranscription()}
+        #Non-default Mechanisms are added to the Component with .add_mechanism
+        self.add_mechanism(PositiveHillTranscription(), "transcription", overwrite = True)
         
-        #Always call the superclass __init__() with **keywords passed through
-        Promoter.__init__(self, name = name, transcript = transcript, mechanisms = custom_mechanisms,**keywords)
 
     def update_species(self, **keywords):
         #Mechanisms are stored in an automatically created dictionary: mechanism_type --> Mechanism Instance.
-        mech_tx = self.mechanisms["transcription"]
+        mech_tx = self.get_mechanism("transcription")
         
         species = [] #A list of species must be returned
         species += mech_tx.update_species(dna = self.dna_to_bind, transcript = self.transcript, regulator = self.activator, 
@@ -208,7 +212,7 @@ class ActivatablePromoter(Promoter):
         return species
 
     def update_reactions(self, **keywords):
-        mech_tx = self.mechanisms["transcription"]
+        mech_tx = self.get_mechanism("transcription")
         
         reactions = [] #a list of reactions must be returned
 
@@ -224,6 +228,9 @@ class RepressiblePromoter(Promoter):
     A class for a promoter which can be repressed by a single species, modelled as a negative hill function
     """
     def __init__(self, name, repressor, transcript = None, leak = False, **keywords):
+        #Always call the superclass __init__() with **keywords passed through
+        Promoter.__init__(self, name = name, transcript = transcript, **keywords)
+
         #Set the Regulator
         #Component.set_species(species, material_type = None, attributes = None)
         # is a helper function that allows the input to be a Species, string, or Component.
@@ -232,14 +239,13 @@ class RepressiblePromoter(Promoter):
         self.leak = leak #toggles whether or not there is a leak reaction
         
         #Mechanisms are inherited from the Mixture unless set specifically in self.default_mechanisms.
-        custom_mechanisms = {"transcription": NegativeHillTranscription()}
+        self.add_mechanism(NegativeHillTranscription(), "transcription", overwrite = True)
         
-        #Always call the superclass __init__() with **keywords passed through
-        Promoter.__init__(self, name = name, transcript = transcript, mechanisms = custom_mechanisms,**keywords)
+        
 
     def update_species(self, **keywords):
         #Mechanisms are stored in an automatically created dictionary: mechanism_type --> Mechanism Instance.
-        mech_tx = self.mechanisms["transcription"]
+        mech_tx = self.get_mechanism("transcription")
         
         species = [] #A list of species must be returned
         species += mech_tx.update_species(dna = self.dna_to_bind, transcript = self.transcript, regulator = self.repressor, component = self, 
@@ -248,7 +254,7 @@ class RepressiblePromoter(Promoter):
         return species
 
     def update_reactions(self, **keywords):
-        mech_tx = self.mechanisms["transcription"]
+        mech_tx = self.get_mechanism("transcription")
         
         reactions = [] #a list of reactions must be returned
 
@@ -290,6 +296,7 @@ class CombinatorialPromoter(Promoter):
                         can be strings or Species
         cooperativity: a dictionary of cooperativity values. For example, {"regulator":2,"regulator2":1,....}
         """
+
         if not isinstance(regulators, list):
             #you could give one string as a regulator
             regulators = [regulators]
@@ -323,9 +330,6 @@ class CombinatorialPromoter(Promoter):
             self.tx_capable_list = [set(a) for a in newlist]
 
         self.leak = leak
-        
-        mechanisms = {"binding": Combinatorial_Cooperative_Binding()}
-
         Promoter.__init__(self, name = name, assembly = assembly,
                           transcript = transcript, length = length,
                           mechanisms = mechanisms, parameters = parameters,protein=protein,
@@ -333,10 +337,14 @@ class CombinatorialPromoter(Promoter):
         self.complex_combinations = {}
         self.tx_capable_complexes = []
         self.leak_complexes = []
+        self.add_mechanism(Combinatorial_Cooperative_Binding(), "binding", overwrite = True)
+        
+        
+
     def update_species(self):
 
-        mech_tx = self.mechanisms["transcription"]
-        mech_b = self.mechanisms['binding']
+        mech_tx = self.get_mechanism("transcription")
+        mech_b = self.get_mechanism('binding')
         #set the tx_capable_complexes to nothing because we havent updated species yet!
         self.tx_capable_complexes = []
         self.leak_complexes = []
@@ -380,8 +388,8 @@ class CombinatorialPromoter(Promoter):
     def update_reactions(self):
         
         reactions = []
-        mech_tx = self.mechanisms["transcription"]
-        mech_b = self.mechanisms['binding']
+        mech_tx = self.get_mechanism("transcription")
+        mech_b = self.get_mechanism('binding')
 
         if self.leak is not False:
             #once again the DNA not bound to anything gets special treatment

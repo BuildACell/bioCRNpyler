@@ -33,21 +33,13 @@ class DNA(Component):
     """
 
     def __init__(
-            self, name: str, length=0,  # positional arguments
-            mechanisms=None,  # custom mechanisms
-            parameters=None,  # customized parameters
-            attributes=None,
-            initial_conc=None,
-            parameter_warnings = True,
+            self, name: str, length=0, attributes = None,  # positional arguments
             **keywords
     ):
-        self.species = Species(name, material_type="dna",
+        self.species = self.set_species(name, material_type="dna",
                                attributes=attributes)
         self._length = length
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc,
-                           parameter_warnings = parameter_warnings, **keywords)
+        Component.__init__(self=self, name=name, **keywords)
 
     def get_species(self):
         return self.species
@@ -76,19 +68,13 @@ class RNA(Component):
     A class to represent Components made of RNA. Produces no reactions.
     """
     def __init__(
-            self, name: str, length=0,  # positional arguments
-            mechanisms=None,  # custom mechanisms
-            parameters=None,  # customized parameters
-            attributes=None,
-            initial_conc=None,
+            self, name: str, length=0, attributes = None,  # positional arguments,
             **keywords
     ):
         self.length = length
-        self.species = Species(name, material_type="rna",
+        self.species = self.set_species(name, material_type="rna",
                                attributes=attributes)
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc, **keywords)
+        Component.__init__(self=self, name=name, **keywords)
 
     def get_species(self):
         return self.species
@@ -106,20 +92,14 @@ class Protein(Component):
     A class to represent Components made of Protein. Produces no reactions.
     """
     def __init__(
-            self, name: str, length=0,  # positional arguments
-            mechanisms=None,  # custom mechanisms
-            parameters=None,  # customized parameters
-            attributes=None,
-            initial_conc=None,
+            self, name: str, length=0, attributes = None,  # positional arguments
             **keywords
     ):
         self.length = length
-        self.species = Species(name, material_type="protein",
+        self.species = self.set_species(name, material_type="protein",
                                attributes=attributes)
 
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc, **keywords)
+        Component.__init__(self=self, name=name, **keywords)
 
     def get_species(self):
         return self.species
@@ -140,11 +120,8 @@ class ChemicalComplex(Component):
     def __init__(
             self, species: List[Species],  # positional arguments
             name=None,  # Override the default naming convention for a complex
-            mechanisms=None,  # custom mechanisms
-            parameters=None,  # customized parameters,
-            attributes=None,
-            initial_conc=None,
             material_type="complex",
+            attributes = None,
             **keywords
     ):
 
@@ -163,16 +140,14 @@ class ChemicalComplex(Component):
         if name is None:
             name = self.species.name
 
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc, **keywords)
+        Component.__init__(self=self, name=name, **keywords)
 
     def get_species(self):
         return self.species
 
     def update_species(self) -> List[Species]:
 
-        mech_b = self.mechanisms['binding']
+        mech_b = self.get_mechanism('binding')
         bindee = self.internal_species[0]
         binder = self.internal_species[1:]
         species = mech_b.update_species(binder,bindee, complex_species = self.get_species(), component = self, part_id = self.name)
@@ -181,7 +156,7 @@ class ChemicalComplex(Component):
 
     def update_reactions(self) -> List[Reaction]:
 
-        mech_b = self.mechanisms['binding']
+        mech_b = self.get_mechanism('binding')
         bindee = self.internal_species[0]
         binder = self.internal_species[1:]
         reactions = mech_b.update_reactions(binder,bindee, complex_species = self.get_species(), component = self, part_id = self.name)
@@ -194,10 +169,10 @@ class Enzyme(Component):
     Assumes the enzyme converts a single substrate to a single product.
     Uses a mechanism called "catalysis"
     """
-    def __init__(self, enzyme, substrate, product, **keywords):
+    def __init__(self, enzyme, substrate, product, attributes = None, **keywords):
       
         # ENZYME NAME
-        self.enzyme = self.set_species(enzyme, material_type = 'protein')
+        self.enzyme = self.set_species(enzyme, material_type = 'protein', attributes = attributes)
     
         # SUBSTRATE
         if substrate is None:
@@ -216,13 +191,13 @@ class Enzyme(Component):
         return self.enzyme
 
     def update_species(self):
-        mech_cat = self.mechanisms['catalysis']
+        mech_cat = self.get_mechanism('catalysis')
 
         return mech_cat.update_species(self.enzyme, self.substrate, self.product) 
                                                                                            
     
     def update_reactions(self):
-        mech_cat = self.mechanisms['catalysis']
+        mech_cat = self.get_mechanism('catalysis')
 
         return mech_cat.update_reactions(self.enzyme, self.substrate, self.product, component = self,  part_id = self.name)
 
@@ -235,10 +210,10 @@ class MultiEnzyme(Component):
     For enzymes with multiple enzymatic reactions, create multiple Enzyme Components with the same internal species.
     Uses a mechanism called "catalysis"
     """
-    def __init__(self, enzyme, substrates, products, **keywords):
+    def __init__(self, enzyme, substrates, products, attributes = None, **keywords):
       
         # ENZYME NAME
-        self.enzyme = self.set_species(enzyme, material_type = 'protein')
+        self.enzyme = self.set_species(enzyme, material_type = 'protein', attributes = attributes)
     
         # SUBSTRATE
         self.substrates = []
@@ -255,12 +230,12 @@ class MultiEnzyme(Component):
         return self.enzyme
 
     def update_species(self):
-        mech_cat = self.mechanisms['catalysis']
+        mech_cat = self.get_mechanism('catalysis')
 
         return mech_cat.update_species(self.enzyme, self.substrates, self.products) 
                                                                                            
     
     def update_reactions(self):
-        mech_cat = self.mechanisms['catalysis']
+        mech_cat = self.get_mechanism('catalysis')
 
         return mech_cat.update_reactions(self.enzyme, self.substrates, self.products, component = self,  part_id = self.name)

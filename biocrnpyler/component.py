@@ -6,13 +6,12 @@ from .species import Species, ComplexSpecies
 from .reaction import Reaction
 from .parameter import ParameterDatabase, ParameterEntry, Parameter
 from typing import List, Union
- 
+from .mechanism import Mechanism
+import copy
 
 
 def warn(txt):
     pywarn(txt)
-
-
 
 class Component(object):
     """
@@ -27,12 +26,13 @@ class Component(object):
                  mixture=None,
                  attributes=None,
                  initial_conc=None,
-                 parameter_warnings = True,
                  initial_condition_dictionary = None,
                  **keywords  # parameter keywords
                  ):
         if mechanisms is None:
-            mechanisms = {}
+            self.mechanisms = {}
+        else:
+            self.mechanisms = mechanisms
         if isinstance(name, Species):
             self.name = name.name
         elif isinstance(name, str):
@@ -40,40 +40,16 @@ class Component(object):
         else:
             raise ValueError("name must be a Species or string")
 
-        # Toggles whether warnings will be sent when parameters aren't found by
-        # the default name.
-        self.set_parameter_warnings(parameter_warnings)
-        
-
-        # Check to see if a subclass constructor has overwritten default
-        # mechanisms.
         # Attributes can be used to store key words like protein deg-tags for
         # components that mimic CRN species.
         self.attributes = []
         self.set_attributes(attributes)
 
-        # Check to see if a subclass constructor has overwritten default
-        # mechanisms.
-        if not hasattr(self, 'default_mechanisms'):
-            self.default_mechanisms = {}
 
-        self.custom_mechanisms = {}
-        self.mechanisms = {}
         if mixture is not None:
             self.set_mixture(mixture)
-            mixture_mechanisms = mixture.mechanisms
         else:
             self.set_mixture(None)
-            mixture_mechanisms = {}
-        self.update_mechanisms(mechanisms=mechanisms,
-                               mixture_mechanisms=mixture_mechanisms)
-
-        #self.custom_parameters = {}
-        #self.parameters = {}
-        #if mixture is not None:
-        #    mixture_parameters = mixture.parameters
-        #else:
-        #    mixture_parameters = {}
 
         self.parameter_database = ParameterDatabase(parameter_file = parameter_file, parameter_dictionary = parameters)
 
@@ -111,8 +87,12 @@ class Component(object):
         #warn(f"get_species is not defined for component {self.name}, None returned.")
         return None
 
-    #If allows species to be set from strings, species, or Components
+    
     def set_species(self, species: Union[Species, str], material_type = None, attributes = None):
+        """
+        Helper function that allows species to be set from strings, species, or Components
+        """
+
         if isinstance(species, Species):
                 return species
         elif isinstance(species, str):
@@ -141,6 +121,13 @@ class Component(object):
 
 
     def update_parameters(self, parameter_file = None, parameters = None, parameter_database = None, overwrite_parameters = True):
+        """Updates the ParameterDatabase inside a Component
+
+        Possible inputs:
+            parameter_file (string)
+            parameters (dict)
+            parameter_database (ParameterDatabase)        
+        """
 
         if parameter_file is not None:
             self.parameter_database.load_parameters_from_file.load_parameters_from_dictionary(parameter_file, overwrite_parameters = overwrite_parameters)
@@ -152,52 +139,89 @@ class Component(object):
             self.parameter_database.load_parameters_from_database(parameter_database, overwrite_parameters = overwrite_parameters)
 
 
-    def update_mechanisms(self, mixture_mechanisms=None, mechanisms=None, overwrite_custom_mechanisms=True):
+    def get_mechanism(self, mechanism_type, optional_mechanism = False):
+        """
+        Searches the Component for a Mechanism of the correct type. 
+        If the Component does not have the mechanism, searches the Components' Mixture for the Mechnaism.
+        no_key_error toggles whether an error is thrown if no mechanism is found
+        """
+        if not isinstance(mechanism_type, str):
+            raise TypeError(f"mechanism_type must be a string. Recievied {mechanism_type}.")
 
-        if mechanisms:
-            if isinstance(mechanisms, dict):
-                for mech_type in mechanisms:
-                    if overwrite_custom_mechanisms \
-                       or mech_type not in self.custom_mechanisms:
-                        self.mechanisms[mech_type] = mechanisms[mech_type]
-                        self.custom_mechanisms[mech_type] = mechanisms[mech_type]
-            elif isinstance(mechanisms, list):
-                for mech in mechanisms:
-                    if overwrite_custom_mechanisms \
-                       or mech not in self.custom_mechanisms:
-                        self.mechanisms[mech.mechanism_type] = mech
-                        self.custom_mechanisms[mech.mechanism_type] = mech
-            else:
-                raise ValueError("Mechanisms must be passed as a list of "
-                                 "instantiated objects or a dictionary "
-                                 "{mechanism_type:mechanism instance}")
+        mech = None
+        if mechanism_type in self.mechanisms:
+            return self.mechanisms[mechanism_type]
+        elif self.mixture is not None:
+            mech = self.mixture.get_mechanism(mechanism_type)
+        if mech is None and not optional_mechanism:
+            raise KeyError(f"Unable to find mechanism of type {mechanism_type} in Component {self} or Mixture {self.mixture}.")
+        else:
+            return mech
 
-        # The mechanisms used during compilation are stored as their own
-        # dictionary
-        for mech_type in self.default_mechanisms:
-            if mech_type not in self.custom_mechanisms:
-                self.mechanisms[mech_type] = self.default_mechanisms[mech_type]
+    @property
+    def mechanisms(self):
+        return self._mechanisms
 
-        if mixture_mechanisms:
-            for mech_type in mixture_mechanisms:
-                if mech_type not in self.custom_mechanisms:
-                    self.mechanisms[mech_type] = mixture_mechanisms[mech_type]
+    @mechanisms.setter
+    def mechanisms(self, mechanisms):
+        self._mechanisms = {}
+        if isinstance(mechanisms, dict):
+            for mech_type in mechanisms:
+                self.add_mechanism(mechanisms[mech_type], mech_type, overwrite = True)
+        elif isinstance(mechanisms, list):
+            for mech in mechanisms:
+                self.add_mechanism(mech, overwrite = True)
+                
+
+    def add_mechanism(self, mechanism, mech_type = None, overwrite = False, optional_mechanism = False):
+        """
+        adds a mechanism of type mech_type to the Component Mechanism dictonary.
+        overwrite: toggles whether the mechanism is added overwriting any mechanism with the same key.
+        optional_mechanism: toggles whether an error is thrown if a Mechanism is added that conflicts with an exising Mechanism
+        """
+        if not hasattr(self, "_mechanisms"):
+            self._mechanisms = {}
+            
+        if not isinstance(mechanism, Mechanism):
+            raise TypeError(f"mechanism must be a Mechanism. Recieved {mechanism}.")
+
+        if mech_type is None:
+            mech_type = mechanism.mechanism_type
+        if not isinstance(mech_type, str):
+            raise TypeError(f"mechanism keys must be strings. Recieved {mech_type}")
+            
+        if mech_type not in self._mechanisms or overwrite:
+            self._mechanisms[mech_type] = copy.deepcopy(mechanism)
+        elif not optional_mechanism:
+            raise ValueError(f"mech_type {mech_type} already in component {self}. To overwrite, use keyword overwrite = True.")
 
 
-    #Set get_parameter property
-    def set_parameter_warnings(self, parameter_warnings):
-        self.parameter_warnings = parameter_warnings
+    def add_mechanisms(self, mechanisms, overwrite = False, optional_mechanism = False):
+        """
+        This function adds a list or dictionary of mechanisms to the mixture. Can take both GlobalMechanisms and Mechanisms
+        """
+        if isinstance(mechanisms, Mechanism):
+            self.add_mechanism(mechanisms, overwrite = overwrite, optional_mechanism = optional_mechanism)
+        elif isinstance(mechanisms, dict):
+            for mech_type in mechanisms:
+                self.add_mechanism(mechanisms[mech_type], mech_type, overwrite = overwrite, optional_mechanism = optional_mechanism)
+        elif isinstance(mechanisms, list):
+            for mech in mechanisms:
+                self.add_mechanism(mech, overwrite = overwrite, optional_mechanism = optional_mechanism)
+        else:
+            raise ValueError(f"add_mechanisms expected a list of Mechanisms. Recieved {mechanisms}")
+
 
     # Get Parameter Hierarchy:
     # 1. tries to find the Parameter in Component.parameter_database
     # 2. tries to find the parameter in Component.mixture.parameter_database
     def get_parameter(self, param_name: str, part_id=None, mechanism=None, return_numerical = False):
         #Try the Component ParameterDatabase
-        param = self.parameter_database.find_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
+        param = self.parameter_database.find_parameter(mechanism, part_id, param_name)
 
         #Next try the Mixture ParameterDatabase
         if param is None and self.mixture is not None:
-            param = self.mixture.get_parameter(mechanism, part_id, param_name, parameter_warnings = self.parameter_warnings)
+            param = self.mixture.get_parameter(mechanism, part_id, param_name)
 
         if param is None:
             raise ValueError("No parameters can be found that match the "
