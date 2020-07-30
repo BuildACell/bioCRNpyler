@@ -297,6 +297,11 @@ class CombinatorialPromoter(Promoter):
         cooperativity: a dictionary of cooperativity values. For example, {"regulator":2,"regulator2":1,....}
         """
 
+        Promoter.__init__(self, name = name, assembly = assembly,
+                          transcript = transcript, length = length,
+                          mechanisms = mechanisms, parameters = parameters, protein=protein,
+                          **keywords)
+
         if not isinstance(regulators, list):
             #you could give one string as a regulator
             regulators = [regulators]
@@ -330,10 +335,6 @@ class CombinatorialPromoter(Promoter):
             self.tx_capable_list = [set(a) for a in newlist]
 
         self.leak = leak
-        Promoter.__init__(self, name = name, assembly = assembly,
-                          transcript = transcript, length = length,
-                          mechanisms = mechanisms, parameters = parameters,protein=protein,
-                          **keywords)
         self.complex_combinations = {}
         self.tx_capable_complexes = []
         self.leak_complexes = []
