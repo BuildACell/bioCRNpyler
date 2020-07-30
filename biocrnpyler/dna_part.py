@@ -7,7 +7,8 @@
 ################################################################
 
 from .component import Component
-from .chemical_reaction_network import OrderedMonomer, Species
+from .polymer import OrderedPolymer,OrderedMonomer
+from .species import Species
 from warnings import warn
 
 class DNA_part(Component,OrderedMonomer):
@@ -42,7 +43,11 @@ class DNA_part(Component,OrderedMonomer):
                 self.sequence = value
             elif(key=="no_stop_codons"):
                 self.no_stop_codons = value
-        OrderedMonomer.__init__(self,position=pos,parent=assembly,direction=direction)
+        if(isinstance(assembly,OrderedPolymer)):
+            OrderedMonomer.__init__(self,position=pos,parent=assembly,direction=direction)
+        else:
+            self.assembly = assembly
+            OrderedMonomer.__init__(self)
     @property
     def dna_species(self):
         return Species(self.name, material_type="dna")
@@ -53,6 +58,35 @@ class DNA_part(Component,OrderedMonomer):
         if(self.direction =="reverse"):
             myname += "_r"
         return myname
+    def __hash__(self):
+        hval = 0
+        if(hasattr(self,"assembly")):
+            if(self.assembly is None):
+                hval += hash(None)
+            else:
+                hval += hash(str(self.assembly))
+        hval += hash(self.name)
+        if(self.parent is not None):
+            hval+= hash(str(self.parent))
+        hval+= hash(self.position)
+        hval += hash(self.direction)
+        return hval
+    def __eq__(self,other):
+        if(type(other)==type(self)):
+            if(self.name==other.name):
+                if(self.assembly is not None and other.assembly is not None):
+                    if(str(self.assembly)==str(other.assembly)):
+                        return True
+                elif((self.assembly is not None) or (other.assembly is not None)):
+                    #if one has an assembly and the other doesn't, then they aren't the same!!
+                    return False
+                elif(((self.parent is None) and (other.parent is None)) or \
+                    ((self.parent is not None) and (other.parent is not None) and (str(self.parent)==str(other.parent)))):
+                    #this is for when we are using the OrderedMonomer for its intended function
+                    if(self.direction==other.direction and self.position==other.position):
+                        return True
+        return False
+
     def clone(self,position,direction,parent_dna):
         """this defines where the part is in what piece of DNA"""
         #TODO add warning if DNA_part is not cloned
@@ -65,15 +99,6 @@ class DNA_part(Component,OrderedMonomer):
         #self.direction = direction
         #self.assembly = parent_dna
         return self
-    def _set_assembly(self,assembly):
-        """set the "assembly" variable"""
-        self.parent = assembly
-        if(assembly is None):
-            self.dna_to_bind = None
-        else:
-            self.dna_to_bind = assembly.dna
-    def _get_assembly(self):
-        return self.parent
     def unclone(self):
         """removes the current part from anything"""
         self.remove()

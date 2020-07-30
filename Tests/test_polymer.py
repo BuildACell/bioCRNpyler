@@ -17,16 +17,16 @@ class TestOrderedMonomer(TestCase):
         self.assertEqual(OrderedMonomer(direction="reverse"),x.set_dir("reverse"))
 
         #Position with no parent
-        with self.assertRaisesRegexp(ValueError, f"OrderedMonomer"):
+        with self.assertRaisesRegex(ValueError, f"OrderedMonomer"):
             m = OrderedMonomer(position = 1)
 
         #Bad parent
-        with self.assertRaisesRegexp(ValueError, f"parent must be an OrderedPolymer"):
+        with self.assertRaisesRegex(ValueError, f"parent must be an OrderedPolymer"):
             m = OrderedMonomer(parent = 1)
         
         p = OrderedPolymer(parts = [])
         #Parent with no position
-        with self.assertRaisesRegexp(ValueError, f"OrderedMonomer"):
+        with self.assertRaisesRegex(ValueError, f"OrderedMonomer"):
             m = OrderedMonomer(parent = p)
 
         #Correct instantiation with parent and position
