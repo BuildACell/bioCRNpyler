@@ -319,13 +319,15 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     CRNreactionsonly.remove_nodes_from(range(rxnlist[0]))
     return CRNgraph,CRNspeciesonly,CRNreactionsonly
 
-def make_dpl_from_construct(construct,showlabels=[]):
+def make_dpl_from_construct(construct,showlabels=None):
     """ This function creats a dictionary suitable for
     input into dnaplotlib for plotting constructs.
     Inputs:
     construct: a DNA_construct object
     showlabels: list of part types to show labels for. For example, [AttachmentSite,Terminator]"""
     #TODO make showlabels more general
+    if(showlabels is None):
+        showlabels = []
     outdesign = []
     cmap = cm.Set1(range(len(construct.parts_list)))
     pind = 0

@@ -265,8 +265,8 @@ class RepressiblePromoter(Promoter):
 
 class CombinatorialPromoter(Promoter):
     def __init__(self, name, regulators, leak = False, assembly = None,
-                 transcript = None, length = 0, mechanisms = {},
-                 parameters = {},protein=None,tx_capable_list = None,cooperativity = None, **keywords):
+                 transcript = None, length = 0, mechanisms = None,
+                 parameters = None,protein=None,tx_capable_list = None,cooperativity = None, **keywords):
         """
         A combinatorial promoter is something where binding multiple regulators result in
         qualitatively different transcription behaviour. For example, maybe it's an AND
