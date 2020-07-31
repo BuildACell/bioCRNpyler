@@ -14,6 +14,8 @@ class TestDNAConstruct(TestCase):
         myrbs = RBS("rbs")
         mycds = CDS("mycds","GFP")
         myt = Terminator("t1")
+        myz = AttachmentSite("attB","attB",direction="forward",color="blue",color2="skyblue",sequence="agcgcga")
+        self.assertTrue("attB" in str(myz))
 
         myconst = DNA_construct([[myprom,"forward"],\
                                  [myrbs,"forward"],\
@@ -68,7 +70,11 @@ class TestDNAConstruct(TestCase):
         mycds = CDS("mycds","GFP")
         mycds2 = CDS("mycds2","RFP")
         myt = Terminator("t1")
+        mycdsNOSTOP = CDS("mycds3","CFP",no_stop_codons=["forward"])
+
         myconst = DNA_construct([[myrbs,"forward"],\
+                                 [myrbs,"forward"],\
+                                 [mycdsNOSTOP, "forward"],\
                                  [mycds,"forward"],\
                                  [myt,"forward"], \
                                  [myprom,"forward"],\
@@ -76,24 +82,29 @@ class TestDNAConstruct(TestCase):
                                  [mycds2,"forward"]],circular=True)
         rnas,proteins = myconst.explore_txtl()
         #circular construct properly makes RNA
-        self.assertTrue(myconst[3] in rnas)
+        self.assertTrue(myconst[5] in rnas)
 
-        myTranscript = rnas[myconst[3]]
+        myTranscript = rnas[myconst[5]]
         myRBS = myTranscript[0]
-        myRBS2 = myTranscript[2]
+        myRBSnotl = myTranscript[2]
+        myRBS2 = myTranscript[3]
         myCDS = myTranscript[1]
-        myCDS2 = myTranscript[3]
+        myCDS2 = myTranscript[4]
+        myCDS3 = myTranscript[5]
         #transcript is made
         self.assertTrue(myTranscript in proteins)
         #two RBSes found in the transcript
         self.assertTrue(myRBS in proteins[myTranscript])
+        self.assertTrue(myRBSnotl in proteins[myTranscript])
         self.assertTrue(myRBS2 in proteins[myTranscript])
         #proper protein is made by the right RBS
         self.assertTrue(myCDS in proteins[myTranscript][myRBS])
         self.assertTrue(myCDS2 in proteins[myTranscript][myRBS2])
+        self.assertTrue(myCDS3 in proteins[myTranscript][myRBS2])
+        self.assertTrue(proteins[myTranscript][myRBSnotl]==[])
         #CDSes have the right name
         self.assertTrue(proteins[myTranscript][myRBS][0].name==mycds2.name)
-        self.assertTrue(proteins[myTranscript][myRBS2][0].name==mycds.name)
+        self.assertTrue(proteins[myTranscript][myRBS2][1].name==mycds.name)
     def test_dna_construct_species(self):
         myprom = Promoter("prom")
         myrbs = RBS("rbs")
