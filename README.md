@@ -14,7 +14,7 @@ of complex networks.
 - **Mailing list:** TBA
 - **Source:** https://github.com/BuildACell/BioCRNPyler
 - **Bug reports:** https://github.com/BuildACell/BioCRNPyler/issues
-- **Documentation** biocrnpyler.readthedocs.io
+- **Documentation** [biocrnpyler.readthedocs.io](biocrnpyler.readthedocs.io)
 
 # Simple example
 
@@ -22,7 +22,7 @@ Building a simple reaction network
 
 ```python
 from biocrnpyler import *
-# let build the following CRN
+# let's build the following CRN
 # A -->[k1] 2B
 # B -->[k2] B+D
 # Species
@@ -43,7 +43,7 @@ R2 = Reaction.from_massaction([B], [C, D], k_forward = k2)
 CRN = ChemicalReactionNetwork(species = [A, B, C, D], reactions = [R1, R2])
 print(CRN)
 ```
-More advanced examples can be found in the example folder, 
+More advanced examples can be found in the [example](https://github.com/BuildACell/BioCRNPyler/tree/master/examples) folder, 
 here's the first file in the Tutorial series: [Building CRNs](https://github.com/BuildACell/BioCRNPyler/blob/master/examples/1.%20Building%20CRNs%20Directly.ipynb)
 
 # Installation
@@ -66,7 +66,7 @@ will help you make the PR if you are new to `git` (just ask on the issue and/or
 see `docs/CONTRIBUTING.md`).
 
 # License
-Released under the BSD 3-Clause License (see `LICENSE`)::
+Released under the BSD 3-Clause License (see `LICENSE`)
 
 Copyright (c) 2020, Build-A-Cell. All rights reserved.
 
