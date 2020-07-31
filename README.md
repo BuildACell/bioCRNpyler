@@ -57,7 +57,7 @@ Install with all optional dependencies::
 
     $ pip install biocrnpyler[all]
 
-
+Further details about the installation process can be found in the [BioCRNPyler wiki](https://github.com/BuildACell/BioCRNPyler/wiki#installation).
 # Bugs
 Please report any bugs that you find [here](https://github.com/BuildACell/BioCRNPyler/issues).
 Or, even better, fork the repository on [GitHub](https://github.com/BuildACell/BioCRNPyler),
