@@ -331,9 +331,9 @@ class multi_tx(Mechanism):
         max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self, return_numerical = True))
         cp_open = []
         cp_closed = []
-        for n in range(1,max_occ + 1):
-            cp_open.append(Complex([dna]+[self.pol for i in range(n)]))
-            cp_closed.append(Complex([dna]+[self.pol for i in range(n)], attributes = ["closed"]))
+        for n in range(0,max_occ):
+            cp_open.append(Complex([dna]+[self.pol for i in range(n+1)], attributes = ["open"]))
+            cp_closed.append(Complex([dna]+[self.pol for i in range(n+1)], attributes = ["closed"]))
 
         cp_misc = [self.pol,dna,transcript]
 
@@ -363,7 +363,7 @@ class multi_tx(Mechanism):
         cp_open = []
         cp_closed = []
         for n in range(0,max_occ):
-            cp_open.append(Complex([dna]+[self.pol for i in range(n+1)])) #has n polymerases all open
+            cp_open.append(Complex([dna]+[self.pol for i in range(n+1)], attributes = ["open"])) #has n polymerases all open
             cp_closed.append(Complex([dna]+[self.pol for i in range(n+1)], attributes = ["closed"])) #has n-1 open polymerases and 1 closed polymerase
 
 
@@ -385,8 +385,8 @@ class multi_tx(Mechanism):
             rxn_release_open.append(rxn_temp1)
 
         for n in range(1,max_occ):
-            rxn_temp2 = Reaction.from_massaction(inputs= [cp_closed[n]], outputs=[self.pol for i in range(n-1)] +
-                                                                                 [transcript for i in range(n-1)] + [cp_closed[0]], k_forward=ktx)
+            rxn_temp2 = Reaction.from_massaction(inputs= [cp_closed[n]], outputs=[self.pol for i in range(n)] +
+                                                                                 [transcript for i in range(n)] + [cp_closed[0]], k_forward=ktx)
             rxn_release_closed.append(rxn_temp2)
 
         # base case pol + dna <--> complex(n=1)_open
@@ -432,9 +432,9 @@ class multi_tl(Mechanism):
         max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self, return_numerical = True))
         cp_open = []
         cp_closed = []
-        for n in range(1,max_occ + 1):
-            cp_open.append(Complex([transcript]+[self.ribosome for i in range(n)]))
-            cp_closed.append(Complex([transcript]+[self.ribosome for i in range(n)], attributes = ["closed"]))
+        for n in range(0, max_occ):
+            cp_open.append(Complex([transcript]+[self.ribosome for i in range(n+1)], attributes = ["open"]))
+            cp_closed.append(Complex([transcript]+[self.ribosome for i in range(n+1)], attributes = ["closed"]))
 
         cp_misc = [self.ribosome, transcript, protein]
 
@@ -461,9 +461,9 @@ class multi_tl(Mechanism):
         # complex species instantiation
         cp_open = []
         cp_closed = []
-        for n in range(1,max_occ + 1):
-            cp_open.append(Complex([transcript]+[self.ribosome for i in range(n)]))
-            cp_closed.append(Complex([transcript]+[self.ribosome for i in range(n)], attributes = ["closed"]))
+        for n in range(0,max_occ):
+            cp_open.append(Complex([transcript]+[self.ribosome for i in range(n+1)], attributes = ["open"]))
+            cp_closed.append(Complex([transcript]+[self.ribosome for i in range(n+1)], attributes = ["closed"]))
 
         # Reactions
         # ribosome + complex(n) <--> complex(n+1)_closed
@@ -482,14 +482,14 @@ class multi_tl(Mechanism):
             rxn_release_open.append(rxn_temp1)
 
         for n in range(1,max_occ):
-            rxn_temp2 = Reaction.from_massaction(inputs= [cp_closed[n]], outputs=[self.ribosome for i in range(n-1)] +
-                                                                                 [protein for i in range(n-1)] + [cp_closed[0]], k_forward=ktl)
+            rxn_temp2 = Reaction.from_massaction(inputs= [cp_closed[n]], outputs=[self.ribosome for i in range(n)] +
+                                                                                 [protein for i in range(n)] + [cp_closed[0]], k_forward=ktl)
             rxn_release_closed.append(rxn_temp2)
 
         # missing reactions (0 --> 0_closed and v.v. 0_closed --> 0)
         rxn_m1 = Reaction.from_massaction(inputs=[transcript, self.ribosome], outputs=[cp_closed[0]], k_forward=kb, k_reverse = ku)
         #rxn_m2 = Reaction.from_massaction(inputs=[cp_closed[0]], outputs=[transcript, self.ribosome], k_forward=kur)
 
-        rxn_all = rxn_open_p + rxn_iso + rxn_release_open + rxn_release_closed + [rxn_m1]
+        rxn_all = [rxn_m1] + rxn_iso + rxn_open_p + rxn_release_open + rxn_release_closed
 
         return rxn_all

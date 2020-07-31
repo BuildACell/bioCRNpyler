@@ -113,16 +113,17 @@ class Species(OrderedMonomer):
     #Note: this is used because properties can't be overwritten without setters being overwritten in subclasses.
     def _check_name(self, name):
         """
-        Check that the string contains only underscores and alpha-numeric characters or is None
+        Check that the string contains only underscores and alpha-numeric characters or is None. 
+        Additionally cannot end in "_" or contain double "__"
         """
         if name is None:
             return name
         elif isinstance(name, str):
             no_underscore_string = name.replace("_", "")
-            if no_underscore_string.isalnum():
+            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_":
                 return name
             else:
-                raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores.")
+                raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or end in an underscore.")
         else:
             raise TypeError("Name must be a string.")
 
@@ -140,7 +141,7 @@ class Species(OrderedMonomer):
             raise ValueError(f"species name: {self.name} contains a number as the first character and therefore requires a material_type.")
         elif material_type == None:
             self._material_type = None
-        elif (material_type.replace("_", "").isalnum() and material_type.replace("_", "")[0].isalpha()) or material_type == "":
+        elif (material_type.replace("_", "").isalnum() and material_type.replace("_", "")[0].isalpha() and "__" not in material_type and material_type[len(material_type)-1] != "_") or material_type == "":
             self._material_type = material_type
         else:
             raise ValueError(f"material_type {material_type} must be alpha-numeric and start with a letter.")
@@ -429,6 +430,14 @@ class ComplexSpecies(Species):
         #call super class
         Species.__init__(self, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)
 
+    def __repr__(self):
+        """
+        ComplexSpecies add an additional "_" onto the end of their string representation
+        This ensures that some edge cases are differentiated.
+        """
+        txt = Species.__repr__(self)
+        txt += "_"
+        return txt
     @property
     def name(self):
         if self._name is None:

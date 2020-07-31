@@ -47,13 +47,14 @@ class TestComplexSpecies(TestCase):
             
         
         # ComplexSpecies should sort the species added alphabetically by representation
-        self.assertEqual(repr(c1), "complex_"+repr(s2)+"_"+repr(s1))
+        #an extra underscore is added at the end of the representation to deal with embedded complexes.
+        self.assertEqual(repr(c1), "complex_"+repr(s2)+"_"+repr(s1)+"_")
         
         # OrderedComplexSpecies do not sort their internal species
-        self.assertEqual(repr(oc1), "ordered_complex_"+repr(s2)+"_"+repr(s1))
+        self.assertEqual(repr(oc1), "ordered_complex_"+repr(s2)+"_"+repr(s1)+"_")
         
         # Multimers are just complexes with multiplicity
-        self.assertEqual(repr(m1), "complex_"+repr(s1)+"_2x")
+        self.assertEqual(repr(m1), "complex_"+repr(s1)+"_2x_")
         self.assertEqual(repr(c3), repr(m1))
 
         # Nested list creation of ComplexSpecies
