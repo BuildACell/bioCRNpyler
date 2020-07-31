@@ -16,7 +16,6 @@ def warn(txt):
     pywarn(txt)
 
 
-
 class DNAassembly(DNA):
     """
     A Component which contains a Promoter, RBS, transcript, and protein.

@@ -5,7 +5,6 @@ from .sbmlutil import *
 from .propensities import Propensity, MassAction, HillNegative, HillPositive, ProportionalHillPositive, ProportionalHillNegative
 from.species import *
 import warnings
-import numpy as np
 from typing import List, Union, Dict
 import itertools
 import copy
