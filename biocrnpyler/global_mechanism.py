@@ -202,14 +202,14 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
        ComplexSpecies are seperated by this process, including embedded ComplexSpecies. 
        OrderedPolymerSpecies are ignored.
     """
-    def __init__(self, nuclease, name="rna_degredation_mm", **keywords):
+    def __init__(self, nuclease, name="rna_degredation_mm", mechanism_type = "rna_degredation", **keywords):
         if isinstance(nuclease, Species):
             self.nuclease = nuclease
         else:
             raise ValueError("'nuclease' must be a Species.")
-        MichaelisMenten.__init__(self=self, name=name, mechanism_type="rna_degredation")
+        MichaelisMenten.__init__(self=self, name=name, mechanism_type = mechanism_type)
 
-        GlobalMechanism.__init__(self, name = name, mechanism_type = "rna_degredation", default_on = False,
+        GlobalMechanism.__init__(self, name = name, mechanism_type = mechanism_type, default_on = False,
                                  filter_dict = {"rna":True, "notdegradable":False}, recursive_species_filtering = True)
 
     def update_species(self, s, mixture):
@@ -234,6 +234,40 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
             species = []
 
         return species
+
+    def update_reactions(self, s, mixture):
+        reactions = []
+
+        #Check if rna species are inside a ComplexSpecies. 
+        #If so, break up the ComplexSpecies and degrade the RNA
+
+        
+
+        if isinstance(s, ComplexSpecies) and s.material_type != "rna" and not isinstance(s, OrderedPolymerSpecies):
+            kdeg = self.get_parameter(s, "kdeg", mixture)
+            kb = self.get_parameter(s, "kb", mixture)
+            ku = self.get_parameter(s, "ku", mixture)
+
+            internal_species = s.get_species(recursive = True)
+            non_rna_species = [sp for sp in internal_species if sp.material_type != "rna" and sp != s]
+            if len(non_rna_species)>0:
+                prod = non_rna_species
+            else:
+                prod = None
+            reactions += MichaelisMenten.update_reactions(self, Enzyme = self.nuclease, Sub = s, Prod = prod, kb=kb, ku=ku, kcat=kdeg)
+
+        #If the material type is simply RNA, break it up.
+        elif s.material_type == "rna":
+            kdeg = self.get_parameter(s, "kdeg", mixture)
+            kb = self.get_parameter(s, "kb", mixture)
+            ku = self.get_parameter(s, "ku", mixture)
+            
+            reactions += MichaelisMenten.update_reactions(self, Enzyme = self.nuclease, Sub = s, Prod = None, kb=kb, ku=ku, kcat=kdeg)
+        else:
+            #This case includes OrderedPolymerSpecies with RNA inside them and species with RNA in their name (but not mateiral type)
+            reactions = []
+
+        return reactions
 
 
 class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
