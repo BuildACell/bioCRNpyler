@@ -74,7 +74,7 @@ def makeArrows2(graph_renderer,graph,positions,headsize=3,headangle=np.pi/6):
     graph_renderer.edge_renderer.data_source.data['ys'] = ys
     return xbounds,ybounds
 
-def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,posscale = 1.0,layoutfunc=None):
+def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,posscale = 1.0,layoutfunc=None,iterations=2000,rseed=30):
     """given a directed graph, plot it!
     Inputs:
     DG: a directed graph of type DiGraph
@@ -89,6 +89,7 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,possca
 
     positions: a dictionary of node names and x,y positions. this gets passed into the layout function
     posscale: multiply the scaling of the plot. This only affects the arrows because the arrows are a hack :("""
+    random.seed(rseed)
     if(layout=="force"):
         #below are parameters for the force directed graph visualization
         forceatlas2 = ForceAtlas2(
@@ -112,7 +113,7 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,possca
                             # Log
                             verbose=False)
 
-        positions = forceatlas2.forceatlas2_networkx_layout(DG, pos=positions, iterations=2000) 
+        positions = forceatlas2.forceatlas2_networkx_layout(DG, pos=positions, iterations=iterations) 
     elif(layout == "circle"):
         positions = nx.circular_layout(DGspecies,scale=50*posscale)
         positions.update(nx.circular_layout(DGreactions,scale=35*posscale))
@@ -389,7 +390,7 @@ def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabe
     for reg in regs:
         outdesign += [{"type":"Operator","name":str(reg),"fwd":direction,'opts':{'color':color,'color2':color2}}]
     if(showlabel):
-        outdesign[0]["opts"].update({'label':str(part),'label_size':13,'label_y_offset':-8,})
+        outdesign[0]["opts"].update({'label':str(part.name),'label_size':13,'label_y_offset':-8,})
     if(not direction):
         outdesign = outdesign[::-1]
     return outdesign
@@ -442,7 +443,7 @@ def plotConstruct(DNA_construct_obj,dna_renderer=None,\
             print("protein")
             print(proteins)
         for promoter in rnas:
-            rnadesign = make_dpl_from_construct(rnas[promoter])
+            rnadesign = make_dpl_from_construct(rnas[promoter],showlabels=showlabels)
             rnacolor = rna_renderer.linecolor
             for part in rnadesign:
                 if("edgecolor" not in part['opts']):
