@@ -236,12 +236,12 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
         return species
 
 
-class Deg_Tagged_Protein_Degredation(GlobalMechanism, MichaelisMenten):
+class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
     """Michaelis Menten Degredation of deg-tagged proteins by Proteases
-       protein_degtagged + protease <--> protein_degtagged:protease --> protease
+       Species_degtagged + protease <--> Species_degtagged:protease --> protease
        All species with the attribute degtagged and material_type protein are degraded. The method is not recursive.
     """
-    def __init__(self, protease, deg_tag = "degtagged", name="deg_tagged_protein_degredation", mechanism_type="protein_degredation", **keywords):
+    def __init__(self, protease, deg_tag = "degtagged", name="deg_tagged_degredation", mechanism_type="degredation", **keywords):
         if isinstance(protease, Species):
             self.protease = protease
         else:
