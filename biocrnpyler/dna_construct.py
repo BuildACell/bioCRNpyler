@@ -13,7 +13,6 @@ import random
 from .chemical_reaction_network import ComplexSpecies, Species, OrderedComplexSpecies, OrderedPolymer,\
                         OrderedMonomer,OrderedPolymerSpecies
 from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
-from matplotlib import cm
 from .component import Component
 from .components_basic import DNA, Protein, RNA
 from .species import WeightedSpecies
@@ -521,18 +520,18 @@ class DNA_construct(Construct,DNA):
                             initial_conc=initial_conc, \
                             copy_parts=copy_parts, **keywords)
 
-        cmap = cm.Set1(range(len(self.parts_list)+5))
+
         pind = 0
         for part in self.parts_list:
             if(type(part.color)==type(None)):
                 #if the color isn't set, let's set it now!
-                part.color = cmap[pind][:-1]
+                part.color = pind
             if(type(part.color2)==type(None)):
                 if(isinstance(part,AttachmentSite) and part.site_type in ["attL","attR"]):
                     #this is the only scenario in which we need a color2
                     #TODO make this more general
                     pind+=1
-                    part.color2 = cmap[pind][:-1]
+                    part.color2 = pind
             pind+=1
         
         
