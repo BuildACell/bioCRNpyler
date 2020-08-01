@@ -3,7 +3,7 @@
 
 from .reaction import *
 import warnings
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Tuple
 import copy
 from .polymer import OrderedPolymer, OrderedMonomer
 
