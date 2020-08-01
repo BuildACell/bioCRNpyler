@@ -7,7 +7,6 @@ from .species import ComplexSpecies, Species
 from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
 from warnings import warn as pywarn
 import itertools as it
-import numpy as np
 from .dna_part_promoter import *
 from .dna_part_rbs import *
 import copy

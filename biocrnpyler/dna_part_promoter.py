@@ -5,7 +5,6 @@ from .mechanisms_binding import *
 from .mechanisms_txtl import *
 from warnings import warn as pywarn
 import itertools as it
-import numpy as np
 from .dna_part import DNA_part
 import copy
 
