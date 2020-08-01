@@ -24,8 +24,8 @@ from warnings import warn
 
 HAVE_MATPLOTLIB = False
 try:
-    from matplotlib import cm
     import matplotlib.pyplot as plt
+    from matplotlib import cm
     HAVE_MATPLOTLIB = True
 except ModuleNotFoundError:
     pass
