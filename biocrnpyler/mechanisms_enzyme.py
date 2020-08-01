@@ -209,6 +209,8 @@ class MichaelisMentenCopy(Mechanism):
             
         if Prod is None:
             return [Enzyme, Sub, complexS]
+        elif(type(Prod)==list):
+            return [Enzyme,Sub,complexS]+Prod
         else:
             return [Enzyme, Sub, Prod, complexS]
 

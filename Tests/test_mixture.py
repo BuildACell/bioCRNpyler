@@ -16,7 +16,7 @@ class TestMixture(TestCase):
         self.assertEqual([species], mixture.added_species)
 
         # adding invalid species
-        with self.assertRaisesRegexp(AssertionError,'only Species type is accepted!'):
+        with self.assertRaisesRegex(AssertionError,'only Species type is accepted!'):
             mixture.add_species(['ok', 'ok'])
 
     def test_add_components(self):
@@ -32,7 +32,7 @@ class TestMixture(TestCase):
         #test that it was added by copying
         self.assertTrue(component not in mixture._components)
         #test that the same component cannot be added again
-        with self.assertRaisesRegexp(ValueError,f'{component} of the same type and name already in Mixture!'):
+        with self.assertRaisesRegex(ValueError,f'{component} of the same type and name already in Mixture!'):
             mixture.add_component(component)
 
 
@@ -46,7 +46,7 @@ class TestMixture(TestCase):
 
         species = Species('test_species')
         # species are invalid components
-        with self.assertRaisesRegexp(ValueError,f'add_components expected a list of Components.'):
+        with self.assertRaisesRegex(ValueError,f'add_components expected a list of Components.'):
             mixture.add_components(species)
 
     def test_get_component(self):
@@ -74,19 +74,19 @@ class TestMixture(TestCase):
         #Test with index
         self.assertTrue(type(mixture.get_component(index = 1)) is Component)
         self.assertTrue(type(mixture.get_component(index = 2)) is DNA)
-        with self.assertRaisesRegexp(IndexError,""):
+        with self.assertRaisesRegex(IndexError,""):
             mixture.get_component(index = 3)
 
-        with self.assertRaisesRegexp(ValueError,""):
+        with self.assertRaisesRegex(ValueError,""):
             mixture.get_component(index = 3, component = c1)
 
-        with self.assertRaisesRegexp(ValueError,""):
+        with self.assertRaisesRegex(ValueError,""):
             mixture.get_component(component = "c1")
 
-        with self.assertRaisesRegexp(ValueError,""):
+        with self.assertRaisesRegex(ValueError,""):
             mixture.get_component(name = c1)
 
-        with self.assertRaisesRegexp(ValueError,""):
+        with self.assertRaisesRegex(ValueError,""):
             mixture.get_component(index = c1)
 
 
@@ -169,7 +169,7 @@ class TestMixture(TestCase):
     update mechanisms has been removed - keeping here just in case it comes back
     def test_update_reactions(self):
         mixture = Mixture()
-        with self.assertRaisesRegexp(AttributeError, 'Mixture.crn_species not defined.'):
+        with self.assertRaisesRegex(AttributeError, 'Mixture.crn_species not defined.'):
             mixture.update_reactions()
 
         component = Component(name='test_component')
@@ -217,7 +217,7 @@ class TestMixture(TestCase):
 
         crn_from_mixture = mixture.compile_crn()
         # test that the mixture has the same species as the manually build CRN object
-        self.assertEqual(CRN.species, crn_from_mixture.species)
+        self.assertEqual(set(CRN.species), set(crn_from_mixture.species))
         # test that the mixture has the same reactions as the manually build CRN object
         self.assertEqual(CRN.reactions, crn_from_mixture.reactions)
 

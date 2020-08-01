@@ -91,7 +91,6 @@ class GlobalMechanism(Mechanism):
         """
         fd = self.filter_dict
         use_mechanism = None
-
         species_list = s.get_species(recursive = self.recursive_species_filtering)
         for subs in species_list:
             for a in subs.attributes+[subs.material_type, subs.name]:

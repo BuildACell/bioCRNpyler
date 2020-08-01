@@ -80,8 +80,12 @@ class SimpleTranslation(Mechanism):
     def update_species(self, transcript, protein = None,  **keywords):
         if protein is None:
             protein = Species(transcript.name, material_type="protein")
-
-        return [transcript, protein]
+        outlst = [transcript]
+        if(type(protein)==list):
+            outlst+=protein
+        else:
+            outlst+=[protein]
+        return outlst
 
     def update_reactions(self, transcript, component = None, ktl = None, part_id = None, protein = None, **keywords):
 
@@ -271,7 +275,7 @@ class Translation_MM(MichaelisMentenCopy):
 
         #This can only occur in expression mixtures
         if transcript is None and protein is not None:
-            species += [protein]
+            species += Species.flatten_list([protein])
         else:
             species += MichaelisMentenCopy.update_species(self, Enzyme = self.ribosome, Sub = transcript, Prod = protein)
 

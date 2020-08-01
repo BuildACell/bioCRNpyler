@@ -235,7 +235,8 @@ class Species(OrderedMonomer):
 
     def __hash__(self):
         return str.__hash__(repr(self))
-
+    def __contains__(self,item):
+        return item in self.get_species()
     @staticmethod
     def flatten_list(in_list) -> List:
         """Helper function to flatten lists
@@ -377,7 +378,7 @@ class Complex:
                 keywords["called_from_complex"] = True
                 return OrderedComplexSpecies(species,*args,**keywords)
             else:
-                #this creates aComplexSpecies
+                #this creates a ComplexSpecies
                 #pass in all the args and keywords appropriately
                 keywords["called_from_complex"] = True
                 return ComplexSpecies(species,*args,**keywords)
@@ -385,7 +386,9 @@ class Complex:
         #This means the Complex is being formed inside an OrderedPolymerSpecies
         else:
             #this is the species around which the complex is being formed
-            prev_species = valent_complex[bindloc]
+            #basically we want to "unclone" this and then "clone the new ComplexSpecies we will have created"
+            prev_species = copy.deepcopy(valent_complex[bindloc])
+            prev_species.remove()
             prev_direction = copy.deepcopy(valent_complex[bindloc].direction)
 
             #combine what was in the OrderedMonomer with the new stuff in the list
@@ -401,7 +404,7 @@ class Complex:
                 new_complex = ComplexSpecies(new_species,*args,**keywords)
             #now we replace the monomer inside the parent polymer
             valent_complex.replace(bindloc,new_complex,prev_direction)
-
+            valent_complex.material_type = OrderedPolymerSpecies.default_material #this is saying that we are now a complex
             return valent_complex[bindloc]
 
 class ComplexSpecies(Species):
@@ -558,7 +561,8 @@ class ComplexSpecies(Species):
             txt = txt[:-2]+")"
 
         txt.replace("'", "")
-
+        if(hasattr(self,"direction") and self.direction is not None):
+            txt += "-"+self.direction
         txt += "]"
 
         if show_initial_condition:
@@ -711,7 +715,8 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
     sometimes it is convenient to pass an internal Species. Both will work from the point of view
     of any Mechanism.
     """
-    def __init__(self,species, name=None, base_species = None, material_type = "ordered_polymer", \
+    default_material="ordered_polymer"
+    def __init__(self,species, name=None, base_species = None, material_type = default_material, \
                              attributes = None, initial_concentration = 0,circular = False):
 
         self.material_type = material_type
