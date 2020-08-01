@@ -26,6 +26,7 @@ HAVE_MATPLOTLIB = False
 try:
     import matplotlib.pyplot as plt
     from matplotlib import cm
+
     HAVE_MATPLOTLIB = True
 except ModuleNotFoundError:
     pass
