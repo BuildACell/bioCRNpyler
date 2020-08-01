@@ -109,7 +109,7 @@ class ChemicalReactionNetwork(object):
         txt += "]"
         return txt
 
-    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, **kwargs):
+    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, show_initial_condition = True, **kwargs):
         """A more powerful printing function.
 
         Useful for understanding CRNs but does not return string identifiers.
@@ -121,7 +121,7 @@ class ChemicalReactionNetwork(object):
         txt = f"Species ({len(self.species)}) = "+"{"
         for sind in range(len(self.species)):
             s = self.species[sind]
-            txt += f"{sind}. "+s.pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs) + ", "
+            txt += f"{sind}. "+s.pretty_print(show_material = show_material, show_attributes = show_attributes, show_initial_condition = show_initial_condition, **kwargs) + ", "
         txt = txt[:-2] + '}\n'
         txt += f"\nReactions ({len(self.reactions)}) = [\n"
 
@@ -147,7 +147,7 @@ class ChemicalReactionNetwork(object):
             raise ValueError('species argument must be an instance of Species!')
 
         for s in self.species:
-            if species == s or (isinstance(s, ComplexSpecies) and species in s.species):
+            if species in s.get_species(recursive = True):
                 if return_as_strings:
                     return_list.append(repr(s))
                 else:
@@ -335,7 +335,8 @@ class ChemicalReactionNetwork(object):
                 sbml_warnings = kwargs.get('sbml_warnings')
             else:
                 sbml_warnings = False
-            m = Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
+            m = Model(sbml_filename = file_name)
+            #, sbml_warnings = sbml_warnings)
             # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
             if initial_condition_dict is not None:
                 m.set_species(initial_condition_dict)

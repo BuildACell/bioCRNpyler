@@ -44,14 +44,14 @@ class TestChemicalReactionNetwork(TestCase):
         # test whether a non-species object is detected and Value error has been raised
         #                                         A non-species object was used as a species: [test_species1, test_species2, None]!"'
         #                                         A non-species object was used as a species: [test_species1, test_species2, None]!"
-        with self.assertRaisesRegexp(ValueError, "A non-species object was used as a species!"):
+        with self.assertRaisesRegex(ValueError, "A non-species object was used as a species!"):
             ChemicalReactionNetwork.check_crn_validity(reactions=self.rxn_list, species=species_list_with_none)
 
         rxn_list_with_none = self.rxn_list.copy()
         # injecting a None to the reaction list
         rxn_list_with_none.append(None)
         # test whether a non-reaction object is detected and Value Error has been raised
-        with self.assertRaisesRegexp(ValueError, 'A non-reaction object was used as a reaction!'):
+        with self.assertRaisesRegex(ValueError, 'A non-reaction object was used as a reaction!'):
             ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list_with_none, species=self.species_list)
 
         rxn2 = Reaction.from_massaction(inputs=[self.s1], outputs=[self.s3], k_forward=0.1)
@@ -102,7 +102,7 @@ class TestChemicalReactionNetwork(TestCase):
     def test_get_all_species_containing(self):
 
         # test that the species arument must be Species object
-        with self.assertRaisesRegexp(ValueError, 'species argument must be an instance of Species!'):
+        with self.assertRaisesRegex(ValueError, 'species argument must be an instance of Species!'):
             self.crn.get_all_species_containing(species=self.species_list)
 
         # s3 is not part of the CRN

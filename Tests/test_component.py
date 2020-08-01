@@ -26,7 +26,7 @@ class TestComponent(TestCase):
         self.assertEqual(self.component.initial_concentration, new_value)
 
         not_valid_value = -1
-        with self.assertRaisesRegexp(ValueError, f'Initial concentration must be non-negative, this was given: {not_valid_value}'):
+        with self.assertRaisesRegex(ValueError, f'Initial concentration must be non-negative, this was given: {not_valid_value}'):
             self.component.initial_concentration = not_valid_value
 
     def test_get_species(self):
@@ -38,7 +38,7 @@ class TestComponent(TestCase):
 
         attr_list = ['attr1', 'attr2']
         
-        with self.assertRaisesRegexp(Warning,f'Component {self.component.name} has no internal species and therefore no attributes'):
+        with self.assertRaisesRegex(Warning,f'Component {self.component.name} has no internal species and therefore no attributes'):
             self.component.set_attributes(attr_list)
 
         # DNA is inherited from component and has valid internal species
@@ -107,7 +107,7 @@ class TestComponent(TestCase):
     def test_get_parameter(self):
 
         # testing an invalid parameter
-        with self.assertRaisesRegexp(ValueError, 'No parameters can be found that match the'):
+        with self.assertRaisesRegex(ValueError, 'No parameters can be found that match the'):
             self.component.get_parameter(param_name='kb')
 
         # Create Param Dict
@@ -137,7 +137,7 @@ class TestComponent(TestCase):
         self.assertEqual(self.component.get_parameter(param_name="kb").value, one_param["kb"])
 
         #testing a parameter which can't be found
-        with self.assertRaisesRegexp(ValueError, "No parameters can be found"):
+        with self.assertRaisesRegex(ValueError, "No parameters can be found"):
             self.component.get_parameter("not a parameter")
 
     def test_update_species(self):
@@ -172,7 +172,7 @@ class TestComponent(TestCase):
         self.assertTrue(M.get_mechanism("comp") is None)
 
         #test get Mechanism with no_key_error = False (Default)
-        with self.assertRaisesRegexp(KeyError, "Unable to find mechanism of type"):
+        with self.assertRaisesRegex(KeyError, "Unable to find mechanism of type"):
             C_copy.get_mechanism("DNE")
 
         #test get_mechanism with no_key_error = True

@@ -131,10 +131,10 @@ class ChemicalComplex(Component):
 
         for s in species:
             self.internal_species.append(self.set_species(s))
-        #bindee = self.internal_species[0]
-        #binder = self.internal_species[1:]
-        self.species = Complex(self.internal_species, name = name, material_type=material_type, attributes=attributes)
-
+        if(attributes is None):
+            attributes = []
+        self.species = Complex(species = self.internal_species, name = name, material_type=material_type, attributes=attributes)
+        
         if name is None:
             name = self.species.name
 

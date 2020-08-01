@@ -8,12 +8,13 @@ from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Coop
 from warnings import warn as pywarn
 import itertools as it
 import numpy as np
-from .dna_assembly_promoter import *
-from .dna_assembly_rbs import *
+from .dna_part_promoter import *
+from .dna_part_rbs import *
 import copy
 
 def warn(txt):
     pywarn(txt)
+
 
 
 class DNAassembly(DNA):
@@ -43,7 +44,7 @@ class DNAassembly(DNA):
         self.update_dna(dna, attributes=attributes)
         self.update_transcript(transcript)
         self.update_protein(protein)
-        self.update_promoter(promoter, transcript = self.transcript)
+        self.update_promoter(promoter, transcript = self.transcript, protein = self.protein)
         self.update_rbs(rbs, transcript = self.transcript, protein = self.protein)
 
     
@@ -94,17 +95,19 @@ class DNAassembly(DNA):
         if self.promoter is not None:
             self.promoter.protein = self.protein
 
-    def update_promoter(self, promoter, transcript=None):
+    def update_promoter(self, promoter, transcript=None,protein = None):
         if transcript is not None:
             self.update_transcript(transcript)
 
         if isinstance(promoter, str):
             self.promoter = Promoter(assembly = self, name = promoter,
-                                     transcript = self.transcript)
+                                     transcript = self.transcript,
+                                     protein = protein)
         elif isinstance(promoter, Promoter):
             self.promoter = copy.deepcopy(promoter)
             self.promoter.assembly = self
             self.promoter.transcript = self.transcript
+            self.promoter.protein = protein
         elif promoter is not None:
             raise ValueError("Improper promoter type recieved by DNAassembly. "
                              "Expected string or promoter object. "
@@ -152,9 +155,9 @@ class DNAassembly(DNA):
             species += self.rbs.update_species()
             
 
-        deg_mech = self.get_mechanism("rna_degredation", optional_mechanism = True)
-        if deg_mech is not None and self.promoter is not None and self.transcript is not None:
-            species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
+        #deg_mech = self.get_mechanism("rna_degredation", optional_mechanism = True)
+        #if deg_mech is not None and self.promoter is not None and self.transcript is not None:
+        #    species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
 
         return species
 
@@ -166,9 +169,9 @@ class DNAassembly(DNA):
         if self.rbs is not None:
             reactions += self.rbs.update_reactions()
 
-        deg_mech = self.get_mechanism("rna_degredation", optional_mechanism = True)
-        if deg_mech is not None and self.promoter is not None and self.transcript is not None:
-            reactions += deg_mech.update_reactions(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
+        #deg_mech = self.get_mechanism("rna_degredation", optional_mechanism = True)
+        #if deg_mech is not None and self.promoter is not None and self.transcript is not None:
+        #    reactions += deg_mech.update_reactions(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
 
         return reactions
 
