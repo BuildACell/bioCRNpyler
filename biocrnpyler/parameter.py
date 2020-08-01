@@ -5,7 +5,7 @@
 # parameters, as well as utility functions for manipulating
 # parameters.
 #
-# Copyright (c) 2018, Build-A-Cell. All rights reserved.
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
 
@@ -52,11 +52,9 @@ from warnings import warn
 from typing import List, Dict, Union
 import numbers
 import re
-from collections import namedtuple # Used for the parameter keys
+from collections import namedtuple  # Used for the parameter keys
 
-
-
-ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name') #This could later be extended
+ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')  # This could later be extended
 
 
 class Parameter(object):
@@ -112,8 +110,8 @@ class Parameter(object):
 
 
 class ParameterEntry(Parameter):
-    """
-    A class for representing parameters in a parameter stored the ParameterDatabase
+    """A class for representing parameters in a parameter stored the ParameterDatabase.
+
      parameter_keys is a dictionary {key:value} or named_tuple (type ParameterKey) of keys for looking up the parameter
      parameter_info is a dictionary {key:value} of additional information about the parameter. 
          For example: additional columns in the parameter file or the parameter file name.
@@ -124,10 +122,10 @@ class ParameterEntry(Parameter):
         self.parameter_key = parameter_key
         self.parameter_info = parameter_info
 
-    #Helper function to create ParameterKeys
+    # Helper function to create ParameterKeys
     @staticmethod
     def create_parameter_key(new_key: Union[Dict, ParameterKey, str], parameter_name=None) -> ParameterKey:
-        #New Key can be a named_tuple
+        # New Key can be a named_tuple
         if isinstance(new_key, dict):
             new_key = dict(new_key)
             if parameter_name is not None:
@@ -139,7 +137,7 @@ class ParameterEntry(Parameter):
         elif isinstance(new_key, ParameterKey):
             return new_key
         elif isinstance(new_key, tuple) and len(list(new_key)) == len(ParameterKey._fields):
-            #make a dictionary assuming correct ordering
+            # make a dictionary assuming correct ordering
             keywords = {ParameterKey._fields[i]:new_key[i] for i in range(len(ParameterKey._fields))}
             return ParameterKey(**keywords) #automatically unpack the keywords
         elif isinstance(new_key, str):
@@ -184,8 +182,8 @@ class ParameterEntry(Parameter):
 
 
 class ModelParameter(ParameterEntry):
-    """
-    A class for representing parameters used in the Model
+    """A class for representing parameters used in the Model.
+
       search_key is a tuple searched for to find the parameter, eg (mech_id, part_id, param_name), :
       found_key is the tuple used after defaulting to find the parameter eg (param_name)
     """
@@ -216,8 +214,8 @@ class ModelParameter(ParameterEntry):
 
 
 class ParameterDatabase(object):
-    def __init__(self, parameter_dictionary = None, parameter_file = None, overwrite_parameters = False):
-        """A class for storing parameters in Components and Mixtures
+    def __init__(self, parameter_dictionary=None, parameter_file=None, overwrite_parameters=False):
+        """A class for storing parameters in Components and Mixtures.
 
         :param parameter_dictionary:
         :param parameter_file:
@@ -242,7 +240,7 @@ class ParameterDatabase(object):
         elif parameter_dictionary is not None:
             raise ValueError("parameter_dictionary must be None or a dictionary!")
 
-    #To check if a key or ParameterEntry is in a the ParameterDatabase
+    # To check if a key or ParameterEntry is in a the ParameterDatabase
     def __contains__(self, val):
         if isinstance(val, ParameterEntry):
             key = val.parameter_key
@@ -257,7 +255,7 @@ class ParameterDatabase(object):
             except ValueError:
                 return False
 
-    #Ability to loop through parameters eg
+    # Ability to loop through parameters eg
     # for entry in ParameterDatabase: ...
     def __iter__(self):
         self.keys = list(self.parameters.keys())
@@ -273,17 +271,17 @@ class ParameterDatabase(object):
         else:
             raise StopIteration
 
-    #Length method
+    # Length method
     def __len__(self):
         return len(self.parameters)
 
-    #Gets a parameter from the database
-    #Only returns exact matches.
+    # Gets a parameter from the database
+    # Only returns exact matches.
     def __getitem__(self, key):
         param_key = ParameterEntry.create_parameter_key(key)
         return self.parameters[param_key]
 
-    #Sets a parameter in the databases - useful for quickly changing parameters, but add_parameter is recommended.
+    # Sets a parameter in the databases - useful for quickly changing parameters, but add_parameter is recommended.
     def __setitem__(self, parameter_key, value):
 
         key = ParameterEntry.create_parameter_key(parameter_key)
@@ -311,24 +309,24 @@ class ParameterDatabase(object):
         :return:
         """
 
-        #Put parameter origin into parameter_info
+        # Put parameter origin into parameter_info
         if parameter_info is None:
             parameter_info = {}
         if "parameter origin" not in parameter_info:
             parameter_info["parameter origin"] = parameter_origin
 
-        #Create ParameterEntry
+        # Create ParameterEntry
         param = ParameterEntry(parameter_name, parameter_value, parameter_key = parameter_key, parameter_info = parameter_info)
         key = param.parameter_key
         
-        #Update parameter dictionary
+        # Update parameter dictionary
         if key in self.parameters and not overwrite_parameters:
             raise ValueError(f"Duplicate parameter detected. Parameter with key = {key} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True.")
         else:
             self.parameters[key] = param
 
     def load_parameters_from_dictionary(self, parameter_dictionary: Dict[ParameterKey, Union[str,numbers.Real]], overwrite_parameters=False) -> None:
-        """Loads Parameters from a parameter dictionary
+        """Loads Parameters from a parameter dictionary.
 
         :param parameter_dictionary: Dictionary with keys ParameterKey types and values with real numbers
         :param overwrite_parameters: whether to overwrite existing entries in the parameter database
@@ -338,7 +336,7 @@ class ParameterDatabase(object):
             self.add_parameter(key.name, parameter_dictionary[k], parameter_key = {"part_id":key.part_id, "mechanism":key.mechanism}, parameter_origin = "parameter_dictionary", overwrite_parameters = overwrite_parameters)
 
     def load_parameters_from_database(self, parameter_database, overwrite_parameters=False) -> None:
-        """Loads parameters from another ParameterDatabase
+        """Loads parameters from another ParameterDatabase.
 
         :param parameter_database: instance of another ParameterDatabase
         :param overwrite_parameters:  whether to overwrite existing entries in the parameter database
@@ -354,7 +352,7 @@ class ParameterDatabase(object):
                 raise ValueError(f"Duplicate parameter detected. Parameter with key = {k} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True.")
 
     def load_parameters_from_file(self, filename: str, overwrite_parameters=False) -> None:
-        """Loads parameters from a file to the ParameterDatabase
+        """Loads parameters from a file to the ParameterDatabase.
 
         Parameter files must be tab-separated (.tsv or .txt) or comma-separated (.csv) files!
         :param filename: name of the file (with valid file path)
@@ -372,7 +370,7 @@ class ParameterDatabase(object):
                 raise ValueError("Parameter files must be tab-seperated (.tsv or .txt) or comma-seperated (.csv) files.")
 
             csvreader = csv.DictReader(f, delimiter=delimiter)
-            #Used for flexible column headings
+            # Used for flexible column headings
             accepted_field_names = {
                 'mechanism': ['mechanism', 'mechanism_id'],
                 'param_name': ["parameter_name", "parameter", "param", "param_name"],
@@ -382,7 +380,7 @@ class ParameterDatabase(object):
 
             field_names = self._get_field_names(csvreader.fieldnames, accepted_field_names)
 
-            #Determine which columns are in the CSV
+            # Determine which columns are in the CSV
             if field_names['param_name'] is None:
                 warn('No param_name column was found, could not load parameter!')
             if field_names['mechanism'] is None:
@@ -402,17 +400,17 @@ class ParameterDatabase(object):
                 parameter_info = {k:row[k] for k in row if k not in field_columns}
                 # TODO test all these cases!
 
-                #Case 1: No Param Name so skip the row
+                # Case 1: No Param Name so skip the row
                 if row[field_names['param_name']] is None or len(row[field_names['param_name']]) == 0:
                     pass
 
-                #Case 2: Just a Param Name
+                # Case 2: Just a Param Name
                 elif no_mechism_column and no_part_id_column:
                     param_name = row[field_names['param_name']]
                     self.add_parameter(param_name, param_value, parameter_origin = filename, 
                         parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
 
-                #Case 3: Part_id and Param Name
+                # Case 3: Part_id and Param Name
                 elif no_mechism_column and no_part_id_column is False:
                     param_name = row[field_names['param_name']]
                     part_id = row[field_names['part_id']]
@@ -424,7 +422,7 @@ class ParameterDatabase(object):
                         self.add_parameter(param_name, param_value, parameter_origin = filename, 
                             parameter_info = parameter_info , overwrite_parameters = overwrite_parameters)
 
-                #Case 4: mechanism and param name
+                # Case 4: mechanism and param name
                 elif no_part_id_column and no_mechism_column is False:
                     mech_name = row[field_names['mechanism']]
                     param_name = row[field_names['param_name']]
@@ -435,7 +433,7 @@ class ParameterDatabase(object):
                         self.add_parameter(param_name, param_value, parameter_origin = filename, 
                             parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
 
-                #Case 5: mechanism, part_id, and param name
+                # Case 5: mechanism, part_id, and param name
                 else:
                     part_id = row[field_names['part_id']]
                     mech_name = row[field_names['mechanism']]
@@ -457,8 +455,9 @@ class ParameterDatabase(object):
 
     @staticmethod
     def _get_field_names(field_names: List[str], accepted_field_names: Dict[str, List[str]]) -> Dict[str, str]:
-        """ Searches through valid field names and finds the currently used one. It builds a dictionary of currently
-            used field names
+        """Searches through valid field names and finds the currently used one. It builds a dictionary of currently
+            used field names.
+
         :param field_names: list of field names (columns) found in the csv file
         :param accepted_field_names: dictionary of possible field names and their valid aliases
         :return: dictionary of currently used field names (aliases)
@@ -482,7 +481,7 @@ class ParameterDatabase(object):
                 # we have reached the end of the possible names
                 return_field_names[accepted_name] = None
                 warn(f"parameter file contains no {accepted_name} column! Please add a "
-                    f"column named {accepted_field_names[accepted_name]}.")
+                     f"column named {accepted_field_names[accepted_name]}.")
             else:
                 return_field_names[accepted_name] = accepted_field_names[accepted_name][loc_idx]
 
@@ -491,7 +490,7 @@ class ParameterDatabase(object):
     def find_parameter(self, mechanism, part_id, param_name):
         """Searches the database for the best matching parameter. 
         
-        Parameter defaulting heirarchy:
+        Parameter defaulting hierarchy:
         (mechanism_name, part_id, param_name) --> param_val. If that particular parameter key cannot be found, 
         the software will default to the following keys: 
         (mechanism_type, part_id, param_name) >> (part_id, param_name) >> 
@@ -504,7 +503,6 @@ class ParameterDatabase(object):
 
         #this is imported here because otherwise there are import loops
         from .mechanism import Mechanism
-
 
         found_entry = None
 
@@ -541,4 +539,3 @@ class ParameterDatabase(object):
             return_param = ModelParameter(found_entry.parameter_name,found_entry.value, (mechanism, part_id, param_name), found_key,
                 parameter_key = found_entry.parameter_key, parameter_info = found_entry.parameter_info)
             return return_param
-

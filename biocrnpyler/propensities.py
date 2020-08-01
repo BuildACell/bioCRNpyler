@@ -18,7 +18,7 @@ class Propensity(object):
 
     @staticmethod
     def is_valid_propensity(propensity_type) -> bool:
-        """checks whether the given propensity_type is valid propensity
+        """checks whether the given propensity_type is valid propensity.
 
         It recursively checks all subclasses of Propensity until it finds the
         propensity type. Otherwise raise a Type error
@@ -33,7 +33,7 @@ class Propensity(object):
 
     @staticmethod
     def _all_subclasses(cls):
-        """Returns a set of all subclasses of cls (recursively calculated)
+        """Returns a set of all subclasses of cls (recursively calculated).
 
         Source:
         https://stackoverflow.com/questions/3862310/how-to-find-all-the-subclasses-of-a-class-given-its-name
@@ -49,6 +49,7 @@ class Propensity(object):
 
     def _create_sbml_parameter(self, parameter_name, sbml_model, ratelaw, rename_dict = None):
         """Creates an sbml parameter for a parameter of the given name.
+
         if self.propensity_dict["parameter"]["parameter_name"] is a Parameter,
             creates a global parameter "Parameter.name_Parameter.part_id_Parameter.mechanism"
             where part_id and mechanism can be empty (but _ will always be incldued for uniqueness).
@@ -87,9 +88,7 @@ class Propensity(object):
             raise TypeError(f"Invalid item in propensity_diction['parameter']: {p}. Only numbers of ParameterEntries accepted.")
 
     def _check_parameter(self, parameter, allow_None = False, positive = True):
-        """
-        A helper function used in setters to set parameters and do type checking
-        """
+        """A helper function used in setters to set parameters and do type checking."""
         if isinstance(parameter, Parameter) and (parameter.value > 0 or not positive):
             return parameter
         elif isinstance(parameter, numbers.Real) and (parameter > 0 or not positive):
@@ -103,9 +102,7 @@ class Propensity(object):
                 raise ValueError(f"Propensity parameters must be Parameters or floats. Recieved {type(parameter)}.")
 
     def _check_species(self, species, allow_None=False):
-        """
-        A helper function used in setters to set species and do type checking
-        """
+        """A helper function used in setters to set species and do type checking."""
         if isinstance(species, Species):
             return species
         elif species is None and allow_None:
@@ -137,8 +134,7 @@ class Propensity(object):
 
     @property
     def is_reversible(self):
-        """By default, Propensities are assumed to NOT be reversible.
-        """
+        """By default, Propensities are assumed to NOT be reversible."""
         return False
 
     @property
@@ -155,7 +151,7 @@ class Propensity(object):
 
     @property
     def species(self) -> List:
-        """returns the instance variables that are species type"""
+        """returns the instance variables that are species type."""
         return list(self.propensity_dict['species'].values())
 
     def create_kinetic_law(self, reaction, reverse_reaction, stochastic, **kwargs):
@@ -168,9 +164,9 @@ class Propensity(object):
         return cls(**merged)
 
     def _create_annotation(self, model, propensity_dict_in_sbml, **kwargs):
-        """
-        Create simulator specific annotations to write to Kinetic laws or any other 
-        part of the SBML model object. 
+        """Create simulator specific annotations to write to Kinetic laws or any other
+        part of the SBML model object.
+
         Annotations are used to take advantage of a simulator specific need/feature.
         """
         annotation_string = ''
@@ -189,10 +185,8 @@ class Propensity(object):
         return annotation_string
 
     def _create_bioscrape_annotation(self, propensity_dict_in_sbml):
-        """
-        Propensity Annotations are Used to take advantage of Bioscrape Propensity types
-        for faster simulation
-        """
+        """Propensity Annotations are Used to take advantage of Bioscrape Propensity types
+        for faster simulation."""
         annotation_dict = defaultdict()
         for param_name, param_value in propensity_dict_in_sbml['parameters'].items():
             annotation_dict[param_name] = param_value
@@ -229,7 +223,7 @@ class Propensity(object):
 
 class GeneralPropensity(Propensity):
     def __init__(self, propensity_function: str, propensity_species: List[Species], propensity_parameters: List[ParameterEntry]):
-        """A class to define a general propensity
+        """A class to define a general propensity.
 
         :param propensity_function: valid propensity formula defined as a string
         :param propensity_species: list of species that are part of the propensity_function
@@ -259,9 +253,7 @@ class GeneralPropensity(Propensity):
         self.name = 'general'
 
     def create_kinetic_law(self, model, sbml_reaction, **kwargs):
-        """
-        Creates KineticLaw object for SBML using the propensity_function string
-        """
+        """Creates KineticLaw object for SBML using the propensity_function string."""
         ratelaw = sbml_reaction.createKineticLaw()
 
         propensity_dict_in_sbml = self._translate_propensity_dict_to_sbml(model=model, ratelaw=ratelaw)
@@ -330,7 +322,6 @@ class MassAction(Propensity):
                 reactant_species[str(w_species.species)] = w_species
             txt += "\n Kr="+self._get_rate_formula("k_reverse", kwargs["stochastic"], reactant_species)
         return txt
-        
 
     def create_kinetic_law(self, model, sbml_reaction, stochastic, reverse_reaction=False, **kwargs):
 
@@ -386,6 +377,7 @@ class MassAction(Propensity):
                 else:
                     ratestring += f" * {species_id}"
         return ratestring
+
 
 class Hill(Propensity):
     def __init__(self, k: float, s1: Species, K: float, n: float, d: Species):
@@ -454,8 +446,7 @@ class Hill(Propensity):
         raise NotImplementedError("Propensity class Hill is meant to be subclassed: try HillPositive, HillNegative, ProportionalHillPositive, or ProportionalHillNegative.")
 
     def create_kinetic_law(self, model, sbml_reaction, stochastic, **kwargs):
-        """This code is reused in all Hill Propensity subclasses
-        """
+        """This code is reused in all Hill Propensity subclasses."""
         if 'reverse_reaction' in kwargs and kwargs['reverse_reaction'] is True:
             raise ValueError('reverse reactions cannot exist for Hill type Propensities!')
 
@@ -480,7 +471,7 @@ class Hill(Propensity):
 
 class HillPositive(Hill):
     def __init__(self, k: float, s1: Species, K: float, n: float):
-        """ Hill positive propensity is a nonlinear propensity with the following formula
+        """ Hill positive propensity is a nonlinear propensity with the following formula.
 
             p(s1; k, K, n) = k*s1^n/(s1^n + K)
 
@@ -505,7 +496,7 @@ class HillPositive(Hill):
 
 class HillNegative(Hill):
     def __init__(self, k: float, s1: Species, K: float, n: float):
-        """ Hill negative propensity is a nonlinear propensity with the following formula
+        """ Hill negative propensity is a nonlinear propensity with the following formula.
 
             p(s1; k, K, n) = k*1/(s1^n + K)
 
@@ -531,7 +522,7 @@ class HillNegative(Hill):
 
 class ProportionalHillPositive(HillPositive):
     def __init__(self, k: float, s1:Species, K: float, n: float, d:Species):
-        """ proportional Hill positive propensity with the following formula
+        """ proportional Hill positive propensity with the following formula.
 
             p(s1, d; k, K, n) = k*d*s1^n/(s1^n + K)
 
@@ -558,7 +549,7 @@ class ProportionalHillPositive(HillPositive):
 
 class ProportionalHillNegative(HillNegative):
     def __init__(self, k: float, s1: Species, K: float, n: float, d: Species):
-        """ proportional Hill negative propensity with the following formula
+        """ proportional Hill negative propensity with the following formula.
 
             p(s1, d; k, K, n) = k*d/(s1^n + K)
 

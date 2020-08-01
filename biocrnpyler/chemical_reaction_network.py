@@ -4,23 +4,23 @@
 from .reaction import *
 import warnings
 import numpy as np
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Tuple
 import copy
 from .polymer import OrderedPolymer, OrderedMonomer
 
 class ChemicalReactionNetwork(object):
-    """ A chemical reaction network is a container of species and reactions
-    chemical reaction networks can be compiled into SBML or represented
-    conveniently as python tuple objects.
+    """A chemical reaction network is a container of species and reactions
+    chemical reaction networks can be compiled into SBML.
+
     reaction types:
-       mass action: standard mass action semantics where the propensity of a
-                reaction is given by deterministic propensity =
-       .. math::
-                k \Prod_{inputs i} [S_i]^a_i
-               stochastic propensity =
-        .. math::
-                k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
-               where a_i is the spectrometric coefficient of species i
+    mass action: standard mass action semantics where the propensity of a
+    reaction is given by deterministic propensity =
+    .. math::
+    k \Prod_{inputs i} [S_i]^a_i
+    stochastic propensity =
+    .. math::
+    k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
+    where a_i is the spectrometric coefficient of species i
     """
     def __init__(self, species: List[Species], reactions: List[Reaction], show_warnings=False):
         self.species = []
@@ -29,7 +29,6 @@ class ChemicalReactionNetwork(object):
         self.add_reactions(reactions)
 
         ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings=show_warnings)
-
 
     def add_species(self, species, show_warnings=False):
         if not isinstance(species, list):
@@ -49,15 +48,21 @@ class ChemicalReactionNetwork(object):
                 pass
                 #Code will go here for testing s.parent and s.position
 
-    def add_reactions(self, reactions, show_warnings=True):
+    def add_reactions(self, reactions: Union[Reaction,List[Reaction]], show_warnings=True) -> None:
+        """Adds a reaction or a list of reactions to the CRN object
+
+        :param reactions: Reaction instance or list of Reaction instances
+        :param show_warnings: whether to show warning when duplicated reactions/species was found
+        :return: None
+        """
         if not isinstance(reactions, list):
             reactions = [reactions]
 
         for r in reactions:
-            if not isinstance(r, Reaction): #check reactions and Reactions
+            if not isinstance(r, Reaction): # check reactions and Reactions
                 raise ValueError("A non-reaction object was used as a reaction!")
 
-            #add all the Species in the reaction to the CRN
+            # add all the Species in the reaction to the CRN
             reaction_species = list(set([w.species for w in r.inputs + r.outputs]))
             self.add_species(reaction_species, show_warnings=show_warnings)
 
@@ -66,7 +71,14 @@ class ChemicalReactionNetwork(object):
             #TODO synchronize Species in the CRN
 
     @staticmethod
-    def check_crn_validity(reactions: List[Reaction], species: List[Species], show_warnings=True):
+    def check_crn_validity(reactions: List[Reaction], species: List[Species], show_warnings=True) -> Tuple[List[Reaction],List[Species]]:
+        """Checks that the given list of reactions and list of species can form a valid CRN.
+
+        :param reactions: list of reaction
+        :param species: list of species
+        :param show_warnings: whether to show warning when duplicated reactions/species was found
+        :return: tuple(reaction,species)
+        """
 
         if not all(isinstance(r, Reaction) for r in reactions):
             raise ValueError("A non-reaction object was used as a reaction!")
@@ -183,10 +195,11 @@ class ChemicalReactionNetwork(object):
         reactions in the ChemicalReactionNetwork object
 
         :param stochastic_model: whether the model is stochastic
-        :param keywords: extra keywords pass onto create_sbml_model()
+        :param show_warnings: of from check crn validity
+        :param keywords: extra keywords pass onto create_sbml_model() and add_all_reactions()
         :return: tuple: (document,model) SBML objects
         """
-        ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings= show_warnings)
+        ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings=show_warnings)
 
         document, model = create_sbml_model(**keywords)
         
@@ -199,9 +212,14 @@ class ChemicalReactionNetwork(object):
         return document, model
 
     def write_sbml_file(self, file_name=None, stochastic_model = False, **keywords) -> bool:
-        """"
-        Writes CRN to an SBML file
+        """"Writes CRN object to a SBML file
+
+        :param file_name: name of the file where the SBML model gets written
+        :param stochastic_model: export an SBML file which ready for stochastic simulations
+        :param keywords: keywords that passed into generate_sbml_model()
+        :return: bool, show whether the writing process was successful
         """
+
         document, _ = self.generate_sbml_model(stochastic_model = stochastic_model, **keywords)
         sbml_string = libsbml.writeSBMLToString(document)
         with open(file_name, 'w') as f:

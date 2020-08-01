@@ -6,12 +6,18 @@ from .mechanisms_enzyme import *
 
 
 class OneStepGeneExpression(Mechanism):
-    """
-    A mechanism to model gene expression without transcription or translation
+    """A mechanism to model gene expression without transcription or translation.
+
     G --> G + P
     """
     def __init__(self, name="gene_expression",
                  mechanism_type="transcription"):
+        """Initializes a OneStepGeneExpression instance.
+
+        :param name: name of the Mechanism, default: gene_expression
+        :param mechanism_type: type of the Mechanism, default: transcription
+
+        """
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     def update_species(self, dna, protein, transcript=None, **keywords):
@@ -36,11 +42,17 @@ class OneStepGeneExpression(Mechanism):
 
 
 class SimpleTranscription(Mechanism):
-    """
-    A Mechanism to model simple catalytic transcription.
+    """A Mechanism to model simple catalytic transcription.
+
     G --> G + T
     """
-    def __init__(self, name = "simple_transcription", mechanism_type = "transcription"):
+    def __init__(self, name="simple_transcription", mechanism_type="transcription"):
+        """Initializes a SimpleTranscription instance.
+
+        :param name: name of the Mechanism, default: simple_transcription
+        :param mechanism_type: type of the Mechanism, default: transcription
+
+        """
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     def update_species(self, dna, transcript = None, protein = None, **keywords):
@@ -69,12 +81,19 @@ class SimpleTranscription(Mechanism):
 
         return rxns
 
+
 class SimpleTranslation(Mechanism):
-    """
-    A mechanism to model simple catalytic translation.
+    """A mechanism to model simple catalytic translation.
+
     T --> T + P
     """
-    def __init__(self, name = "simple_translation", mechanism_type = "translation"):
+    def __init__(self, name="simple_translation", mechanism_type="translation"):
+        """Initializes a SimpleTranslation instance.
+
+        :param name: name of the Mechanism, default: simple_translation
+        :param mechanism_type: type of the Mechanism, default: translation
+
+        """
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     def update_species(self, transcript, protein = None,  **keywords):
@@ -94,7 +113,7 @@ class SimpleTranslation(Mechanism):
         elif component is None and ktl is None:
             raise ValueError("Must pass in component or a value for ktl")
 
-        #First case only true in Mixtures without transcription (eg Expression Mixtures)
+        # First case only true in Mixtures without transcription (eg Expression Mixtures)
         if transcript is None and protein is not None:
             rxns = []
         else:
@@ -104,8 +123,7 @@ class SimpleTranslation(Mechanism):
 
 
 class PositiveHillTranscription(Mechanism):
-    """
-    A mechanism to model transcription as a proprotional positive hill function:
+    """A mechanism to model transcription as a proprotional positive hill function:
     G --> G + P
     rate = k*G*(R^n)/(K+R^n)
     where R is a regulator (activator).
@@ -113,11 +131,15 @@ class PositiveHillTranscription(Mechanism):
     G --> G + P @ rate kleak.
     """
 
-    #Set the name and mechanism_type
     def __init__(self, name="positivehill_transcription", mechanism_type="transcription"):
+        """Initializes a PositiveHillTranscription instance.
+
+        :param name: name of the Mechanism, default: positivehill_transcription
+        :param mechanism_type: type of the Mechanism, default: transcription
+
+        """
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
-    #Overwrite update_species
     def update_species(self, dna, regulator, transcript = None, leak = False, protein = None, **keywords):
 
         species = [dna, regulator]
@@ -126,12 +148,21 @@ class PositiveHillTranscription(Mechanism):
         if protein is not None:
             species += [protein]
 
-        return species #it is best to return all species that will be involved in the reactions
+        return species  # it is best to return all species that will be involved in the reactions
 
-
-    #Overwrite update_reactions
-    #This always requires the inputs component and part_id to find the relevant parameters
     def update_reactions(self, dna, regulator, component, part_id, transcript = None, leak = False, protein = None, **keywords):
+        """This always requires the inputs component and part_id to find the relevant parameters
+
+        :param dna:
+        :param regulator:
+        :param component:
+        :param part_id:
+        :param transcript:
+        :param leak:
+        :param protein:
+        :param keywords:
+        :return:
+        """
 
         ktx = component.get_parameter("k", part_id = part_id, mechanism = self)
         n = component.get_parameter("n", part_id = part_id, mechanism = self)
@@ -156,9 +187,9 @@ class PositiveHillTranscription(Mechanism):
         #In this case, we just return one reaction
         return reactions
 
+
 class NegativeHillTranscription(Mechanism):
-    """
-    A mechanism to model transcription as a proprotional negative hill function:
+    """A mechanism to model transcription as a proprotional negative hill function:
     G --> G + P
     rate = k*G*(1)/(K+R^n)
     where R is a regulator (repressor).
@@ -167,9 +198,14 @@ class NegativeHillTranscription(Mechanism):
     """
 
     def __init__(self, name="negativehill_transcription", mechanism_type="transcription"):
+        """Initializes a NegativeHillTranscription instance.
+
+        :param name: name of the Mechanism, default: negativehill_transcription
+        :param mechanism_type: type of the Mechanism, default: transcription
+
+        """
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
-    #Overwrite update_species
     def update_species(self, dna, regulator, transcript = None, leak = False, protein = None, **keywords):
 
         species = [dna, regulator]
@@ -178,11 +214,21 @@ class NegativeHillTranscription(Mechanism):
         if protein is not None:
             species += [protein]
 
-        return species #it is best to return all species that will be involved in the reactions
+        return species  # it is best to return all species that will be involved in the reactions
 
-    #Overwrite update_reactions
-    #This always requires the inputs component and part_id to find the relevant parameters
     def update_reactions(self, dna, regulator, component, part_id, transcript = None, leak = False, protein = None, **keywords):
+        """This always requires the inputs component and part_id to find the relevant parameters
+
+        :param dna:
+        :param regulator:
+        :param component:
+        :param part_id:
+        :param transcript:
+        :param leak:
+        :param protein:
+        :param keywords:
+        :return:
+        """
 
         ktx = component.get_parameter("k", part_id = part_id, mechanism = self)
         n = component.get_parameter("n", part_id = part_id, mechanism = self)
@@ -209,18 +255,24 @@ class NegativeHillTranscription(Mechanism):
 
 
 class Transcription_MM(MichaelisMentenCopy):
-    """Michaelis Menten Transcription
+    """Michaelis Menten Transcription.
+
         G + RNAP <--> G:RNAP --> G+RNAP+mRNA
     """
 
-    def __init__(self, rnap, name="transcription_mm", **keywords):
+    def __init__(self, rnap: Species, name="transcription_mm", **keywords):
+        """Initializes a Transcription_MM instance.
+
+        :param rnap: Species instance that is representing an RNA polymerase
+        :param name: name of the Mechanism, default: transcription_mm
+        """
         if isinstance(rnap, Species):
             self.rnap = rnap
         else:
             raise ValueError("'rnap' parameter must be a Species.")
 
         MichaelisMentenCopy.__init__(self=self, name=name,
-                                       mechanism_type="transcription")
+                                     mechanism_type="transcription")
 
     def update_species(self, dna, transcript=None, protein = None, **keywords):
         species = [dna]
@@ -258,17 +310,23 @@ class Transcription_MM(MichaelisMentenCopy):
 
 
 class Translation_MM(MichaelisMentenCopy):
-    """ Michaelis Menten Translation
+    """Michaelis Menten Translation.
+
         mRNA + Rib <--> mRNA:Rib --> mRNA + Rib + Protein
     """
 
-    def __init__(self, ribosome, name="translation_mm", **keywords):
+    def __init__(self, ribosome: Species, name="translation_mm", **keywords):
+        """Initializes a Translation_MM instance.
+
+        :param rnap: Species instance that is representing a ribosome
+        :param name: name of the Mechanism, default: translation_mm
+        """
         if isinstance(ribosome, Species):
             self.ribosome = ribosome
         else:
             raise ValueError("ribosome must be a Species!")
         MichaelisMentenCopy.__init__(self=self, name=name,
-                                       mechanism_type="translation")
+                                     mechanism_type="translation")
 
     def update_species(self, transcript, protein, **keywords):
         species = []
@@ -302,10 +360,16 @@ class Translation_MM(MichaelisMentenCopy):
 
 
 class Degredation_mRNA_MM(MichaelisMenten):
-    """Michaelis Menten mRNA Degredation by Endonucleases
+    """Michaelis Menten mRNA Degredation by Endonucleases.
+
        mRNA + Endo <--> mRNA:Endo --> Endo
     """
-    def __init__(self, nuclease, name="rna_degredation_mm", **keywords):
+    def __init__(self, nuclease: Species, name="rna_degredation_mm", **keywords):
+        """Initializes a Degredation_mRNA_MM instance.
+
+        :param nuclease: Species instance that is representing a nuclease
+        :param name: name of the Mechanism, default: rna_degredation_mm
+        """
         if isinstance(nuclease, Species):
             self.nuclease = nuclease
         else:
@@ -336,8 +400,8 @@ class Degredation_mRNA_MM(MichaelisMenten):
 
 
 class multi_tx(Mechanism):
-    """
-    Multi-RNAp Transcription w/ Isomerization:
+    """Multi-RNAp Transcription w/ Isomerization.
+
     Detailed transcription mechanism accounting for each individual
     RNAp occupancy states of gene.
 
@@ -354,10 +418,15 @@ class multi_tx(Mechanism):
     For more details, see examples/MultiTX_Demo.ipynb
     """
 
-    # initialize mechanism subclass
-    def __init__(self, pol, name='multi_tx', mechanism_type='transcription', **keywords):
+    def __init__(self, pol: Species, name: str='multi_tx', mechanism_type: str='transcription', **keywords):
+        """Initializes a multi_tx instance.
 
-        if isinstance(pol,Species):
+        :param pol: reference to a species instance that represents a polymerase
+        :param name: name of the Mechanism, default: multi_tx
+        :param mechanism_type: type of the mechanism, default: transcription
+        :param keywords:
+        """
+        if isinstance(pol, Species):
             self.pol = pol
         else:
             raise ValueError("'pol' must be a Species")
@@ -381,11 +450,11 @@ class multi_tx(Mechanism):
 
         cp_misc = [self.pol,dna,transcript]
 
-
         return cp_open + cp_closed + cp_misc
 
     def update_reactions(self, dna, transcript, component, part_id, protein = None, **keywords):
-        """
+        """It sets up the following reactions.
+
         DNA:RNAp_n + RNAp <--> DNA:RNAp_n_c --> DNA:RNAp_n+1
         kf1 = k1, kr1 = k2, kf2 = k_iso
         DNA:RNAp_n --> DNA:RNAp_0 + n RNAp + n mRNA
@@ -448,8 +517,8 @@ class multi_tx(Mechanism):
 
 
 class multi_tl(Mechanism):
-    """
-    Multi-RBZ Translation w/ Isomerization:
+    """Multi-RBZ Translation w/ Isomerization.
+
     Detailed translation mechanism accounting for each individual
     RBZ occupancy states of mRNA. Still needs some work, so use with caution,
     read all warnings and consult the example notebook.
@@ -467,10 +536,15 @@ class multi_tl(Mechanism):
     For more details, see examples/MultiTX_Demo.ipynb
     """
 
-    # initialize mechanism subclass
-    def __init__(self, ribosome, name='multi_tl', mechanism_type='translation', **keywords):
+    def __init__(self, ribosome: Species, name: str='multi_tl', mechanism_type: str='translation', **keywords):
+        """Initializes a multi_tl instance.
 
-        if isinstance(ribosome,Species):
+        :param ribosome: a Species instance that represents a ribosome
+        :param name: name of the Mechanism, default: multi_tl
+        :param mechanism_type: type of the Mechanism, default: translation
+
+        """
+        if isinstance(ribosome, Species):
             self.ribosome = ribosome
         else:
             raise ValueError("'ribosome' must be a Species.")
@@ -497,13 +571,13 @@ class multi_tl(Mechanism):
                 name_closed = self.ribosome.name + 'x' + transcript.name + '_closed' + '_' + str(0)
                 cp_closed.append(Complex([transcript]+[self.ribosome for i in range(1)],name=name_closed))
 
-
         cp_misc = [self.ribosome,transcript,protein]
 
         return cp_open + cp_closed + cp_misc
 
     def update_reactions(self, transcript, protein, component, part_id, **keywords):
-        """
+        """It sets up the following reactions.
+
         mRNA:RBZ_n + RBZ <--> mRNA:RBZ_n_c --> mRNA:RBZ_n+1
         kf1 = kbr, kr1 = kur, kf2 = k_iso_r
         mRNA:RBZ_n --> mRNA:RBZ_0 + n RBZ + n Protein
@@ -518,7 +592,6 @@ class multi_tl(Mechanism):
         k_iso_r = component.get_parameter("k_iso_r", part_id = part_id, mechanism = self)
         ktl_solo = component.get_parameter("ktl_solo", part_id = part_id, mechanism = self)
         max_occ = int(component.get_parameter("max_occ", part_id = part_id, mechanism = self, return_numerical = True))
-
 
         # complex species instantiation
         cp_open = []
