@@ -296,8 +296,9 @@ class ParameterDatabase(object):
             self.add_parameter(key.name, value, parameter_key = key, parameter_origin = "Set Manually", overwrite_parameters = True)
 
     def __str__(self):
-        txt = "ParameterDatabase:\n".join([repr(p)+"\n" for p in self.parameters])
-        return txt
+        txt = "ParameterDatabase:"
+        param_txt = "\n".join([repr(p) for p in self.parameters])
+        return txt+param_txt
 
     def add_parameter(self, parameter_name: str, parameter_value: Union[str,numbers.Real], parameter_origin = None, parameter_key = None, parameter_info = None, overwrite_parameters = False):
         """Adds a parameter to the database with appropriate metadata
@@ -538,7 +539,7 @@ class ParameterDatabase(object):
         if found_entry is None:
             return None
         else:
-            return_param = ModelParameter(found_entry.parameter_name,found_entry.value, (mechanism, part_id, param_name), found_key,
+            return_param = ModelParameter(found_entry.parameter_name,found_entry.value, (mech_name, part_id, param_name), found_key,
                 parameter_key = found_entry.parameter_key, parameter_info = found_entry.parameter_info)
             return return_param
 

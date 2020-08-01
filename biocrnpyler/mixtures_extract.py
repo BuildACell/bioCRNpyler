@@ -8,8 +8,8 @@ from .components_basic import DNA, RNA, Protein, ChemicalComplex
 from .mechanism import EmptyMechanism
 from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
 from .mechanisms_binding import One_Step_Binding
-from .mechanisms_txtl import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
-from .global_mechanism import Dilution
+from .mechanisms_txtl import Transcription_MM, Translation_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
+from .global_mechanism import Dilution, Degredation_mRNA_MM
 from .mixture import Mixture
 from .chemical_reaction_network import ChemicalReactionNetwork
 from .species import Species

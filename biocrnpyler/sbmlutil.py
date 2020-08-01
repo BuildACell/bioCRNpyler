@@ -365,7 +365,8 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
         if (Id[len(Id) - 1] != '_'):
             return Id
 
-        return Id[:-1]
+        return Id
+        #return Id[:-1] #this code was removing underscores at the end of ComplexSpecies needed for imbedded ComplexSpecies.
 
     #
     # Generates the id out of the name, and ensures it is unique.

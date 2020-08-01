@@ -153,9 +153,9 @@ class DNAassembly(DNA):
             species += self.rbs.update_species()
             
 
-        deg_mech = self.get_mechanism("rna_degredation", optional_mechanism = True)
-        if deg_mech is not None and self.promoter is not None and self.transcript is not None:
-            species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
+        #deg_mech = self.get_mechanism("rna_degredation", optional_mechanism = True)
+        #if deg_mech is not None and self.promoter is not None and self.transcript is not None:
+        #    species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
 
         return species
 
@@ -167,9 +167,9 @@ class DNAassembly(DNA):
         if self.rbs is not None:
             reactions += self.rbs.update_reactions()
 
-        deg_mech = self.get_mechanism("rna_degredation", optional_mechanism = True)
-        if deg_mech is not None and self.promoter is not None and self.transcript is not None:
-            reactions += deg_mech.update_reactions(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
+        #deg_mech = self.get_mechanism("rna_degredation", optional_mechanism = True)
+        #if deg_mech is not None and self.promoter is not None and self.transcript is not None:
+        #    reactions += deg_mech.update_reactions(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
 
         return reactions
 

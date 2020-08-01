@@ -12,8 +12,7 @@ import statistics
 import math
 
 from .propensities import MassAction, Hill
-from matplotlib import cm
-import matplotlib.pyplot as plt
+
 from .components_basic import Protein
 from .dna_part_promoter import Promoter
 from .dna_part_rbs import RBS
@@ -21,16 +20,27 @@ from .dna_part_cds import CDS
 from .dna_part_terminator import Terminator
 from .dna_part_misc import AttachmentSite
 from warnings import warn
-PLOT_DNA = True
 
 
+HAVE_MATPLOTLIB = False
+try:
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
 
+    HAVE_MATPLOTLIB = True
+except ModuleNotFoundError:
+    pass
+PLOT_DNA = False
 try:
     import dnaplotlib as dpl
+    PLOT_DNA = True
 except ModuleNotFoundError:
+    pass
+
+if(PLOT_DNA and not HAVE_MATPLOTLIB):
     PLOT_DNA = False
 
-PLOT_NETWORK = True
+PLOT_NETWORK = False
 try:
     import networkx as nx
     from bokeh.models import (BoxSelectTool, Circle,Square, EdgesAndLinkedNodes, HoverTool,
@@ -38,8 +48,9 @@ try:
     from bokeh.palettes import Spectral4
     from bokeh.models.graphs import from_networkx
     from fa2 import ForceAtlas2
+    PLOT_NETWORK = True
 except ModuleNotFoundError:
-    PLOT_NETWORK = False
+    pass
 
 
 def updateLimits(limits,xvalues):
@@ -349,17 +360,29 @@ def make_dpl_from_construct(construct,showlabels=None):
     if(showlabels is None):
         showlabels = []
     outdesign = []
-    cmap = cm.Set1(range(len(construct.parts_list)))
+    if(HAVE_MATPLOTLIB):
+        cmap = cm.Set1(range(len(construct.parts_list)*2))
     pind = 0
     for part in construct.parts_list:
+        pcolor = part.color
+        pcolor2 = part.color2
+        if(HAVE_MATPLOTLIB):
+            if(type(pcolor)==int):
+                c1 = cmap[pcolor][:-1]
+            else:
+                c1 = cmap[pind][:-1]
+            if(type(pcolor2)==int):
+                c2 = cmap[pcolor2][:-1]
+            else:
+                c2 = cmap[random.choice(list(range(len(construct.parts_list))))][:-1]
         showlabel = False
         if(type(part) in showlabels):
             showlabel = True
         outdesign+=make_dpl_from_part(part,direction = part.direction=="forward",\
-                        color=cmap[pind][:-1],color2 = random.choice(cmap)[:-1],showlabel=showlabel)
+                        color=c1,color2 =c2 ,showlabel=showlabel)
         pind+=1
     return outdesign
-def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabel=False):
+def make_dpl_from_part(part,direction=None,color=None,color2=None,showlabel=False):
     """ This function creats a dictionary suitable for
     input into dnaplotlib for plotting constructs.
     Inputs:
@@ -375,10 +398,14 @@ def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabe
         direction = part.direction=="forward"
     elif(direction is None):
         direction = True
-    if(part.color is not None):
+    if(type(part.color) is not int):
         color = part.color
-    if(part.color2 is not None):
+    elif(color is not None):
+        part.color = color
+    if(type(part.color2) is not int):
         color2 = part.color2
+    elif(color2 is not None):
+        part.color2 = color2
     dpl_type = "UserDefined" #this is the default part type
     if(hasattr(part,"dpl_type")):
         part_dpl = part.dpl_type
