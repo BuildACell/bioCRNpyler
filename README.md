@@ -65,6 +65,13 @@ and create a pull request (PR). We welcome all changes, big or small, and we
 will help you make the PR if you are new to `git` (just ask on the issue and/or
 see `docs/CONTRIBUTING.md`).
 
+# Versions
+
+BioCRNpyler versions:
+
+* 1.0.0 (latest stable release): To install run `pip install biocrnpyler` 
+* 0.2.1 (alpha release): To install run `pip install biocrnpyler==0.2.1`
+
 # License
 Released under the BSD 3-Clause License (see `LICENSE`)
 
