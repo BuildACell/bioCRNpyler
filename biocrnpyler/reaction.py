@@ -9,7 +9,7 @@ import numpy as np
 from typing import List, Union, Dict
 import itertools
 import copy
-
+from .utils import remove_bindloc
 
 class Reaction(object):
     """ An abstract representation of a chemical reaction in a CRN
@@ -72,8 +72,8 @@ class Reaction(object):
         if len(inputs) == 0 and len(outputs) == 0:
             warn("Reaction Inputs and Outputs both contain 0 Species.")
 
-        self.inputs = Species.flatten_list(inputs)
-        self.outputs = Species.flatten_list(outputs)
+        self.inputs = remove_bindloc(Species.flatten_list(inputs))
+        self.outputs = remove_bindloc(Species.flatten_list(outputs))
         self.propensity_type = propensity_type
 
     @property

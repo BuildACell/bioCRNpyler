@@ -69,7 +69,7 @@ class TestCombinatorialPromoter(TestCase):
 
         knownspecies = [sp_dna,sp_rnap,sp_rna,cp_dna_rnap,cp_dna_treg1,\
                             cp_dna_treg2,cp_dna_treg1_treg2,cp_dna_treg1_rnap, \
-                                cp_dna_treg2_rnap,cp_dna_treg1_treg2_rnap]
+                                cp_dna_treg2_rnap,cp_dna_treg1_treg2_rnap,sp_treg1,sp_treg2]
 
         #these are the species that should come out
         test_set = set([str(a) for a in newprom_spec])
@@ -158,15 +158,11 @@ class TestCombinatorialPromoter(TestCase):
             self.assertTrue(correctPick)
         #12 reactions must be generated
         self.assertTrue(len(newprom_rxns)==len(truthlist))
-        #TODO: tests below this are questionable
         #then we should also test what happens if you say that nothing can transcribe:
-        newprom2 = CombinatorialPromoter("testprom",["treg1"], parameters = parameters)#,tx_capable_list = [])
+        newprom2 = CombinatorialPromoter("testprom",["treg1"], parameters = parameters,tx_capable_list = [],leak=False,\
+                        mechanisms={"transcription":Transcription_MM(rnap = sp_rnap), "translation":Translation_MM(ribosome = ribosome)})
         newdna2 = DNAassembly("testDNA",promoter=newprom2)
         #adding mechanisms because there is no mixture. I believe this is what the mixture does
         sp_rnap = Species("RNAP",material_type="protein")
         ribosome = Species("Ribo", material_type = "protein")
-        newdna2.mechanisms={"transcription":Transcription_MM(rnap = sp_rnap), "translation":Translation_MM(ribosome = ribosome)}
-        
-        #with self.assertWarns(UserWarning):
-            #TODO fix this with a warning detection system that actually checks for the proper warning
-        #    newprom_rxns = newprom2.update_reactions()
+        self.assertWarnsRegex(UserWarning, 'nothing can transcribe',newdna2.update_reactions)
