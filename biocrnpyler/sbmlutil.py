@@ -79,7 +79,7 @@ def species_sbml_id(species, document=None):
 
 
 def add_all_species(model, species: List, compartment=None, **kwargs):
-    """ adds a list of Species to the SBML model
+    """adds a list of Species to the SBML model.
 
     :param model: valid SBML model
     :param species: list of species to be added to the SBML model
@@ -96,7 +96,7 @@ def add_all_species(model, species: List, compartment=None, **kwargs):
 
 
 def add_species(model, compartment, species, initial_concentration=None, **kwargs):
-    """Helper function to add a species to the sbml model
+    """Helper function to add a species to the sbml model.
 
     :param model:
     :param compartment: a compartment in the SBML model
@@ -158,7 +158,7 @@ def find_parameter(mixture, id):
 
 
 def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
-    """adds a list of reactions to the SBML model
+    """adds a list of reactions to the SBML model.
 
     :param model: an sbml model created by create_sbml_model()
     :param reactions: list of Reactions
@@ -177,7 +177,7 @@ def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
 
 
 def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction: bool=False, **kwargs):
-    """adds a sbml_reaction to an sbml model
+    """adds a sbml_reaction to an sbml model.
 
     :param model: an sbml model created by create_sbml_model()
     :param crn_reaction: must be a chemical_reaction_network.reaction object
@@ -445,8 +445,8 @@ class validateSBML(object):
         self.ucheck    = ucheck
 
     def validate(self, sbml_document, print_results = False):
-        """
-        sbml_document: libSBML SBMLDocument object.
+        """sbml_document: libSBML SBMLDocument object.
+
         print_results: Print toggle for validation warnings.
         """
         sbmlDoc  = sbml_document
@@ -510,9 +510,7 @@ class validateSBML(object):
         
 
 def validate_sbml(sbml_document, enable_unit_check = False, print_results = True):
-    """
-    Validates the generated SBML model by using libSBML SBML validation code
-    """
+    """Validates the generated SBML model by using libSBML SBML validation code."""
     validator = validateSBML(enable_unit_check)
     validation_result = validator.validate(sbml_document, print_results = print_results)
     if validation_result > 0:
