@@ -297,7 +297,7 @@ class Component(object):
         Note: Mixture will also repeat this same order in it's own initial_condition_dictionary and ParameterDatabase after Component.
         """
         # First try all conditions in initial_condition_dictionary
-        if (self.mixture.name, repr(s)) in self.initial_condition_dictionary:
+        if (self.mixture is not None and (self.mixture.name, repr(s)) in self.initial_condition_dictionary):
             return self.initial_condition_dictionary[(self.mixture.name, repr(s))]
         elif repr(s) in self.initial_condition_dictionary:
             return self.initial_condition_dictionary[repr(s)]
@@ -305,17 +305,17 @@ class Component(object):
         elif s == self.get_species():
             if self.initial_concentration is not None:
                 return self.initial_concentration
-            elif (self.mixture.name, self.name) in self.initial_condition_dictionary:
+            elif self.mixture is not None and (self.mixture.name, self.name) in self.initial_condition_dictionary:
                 return self.initial_condition_dictionary[(self.mixture.name, self.name)]
-            elif (self.mixture.name, self.name) in self.initial_condition_dictionary:
+            elif self.name in self.initial_condition_dictionary:
                 return self.initial_condition_dictionary[(self.mixture.name, self.name)]
         # Then try above in self.parameter_database
-        elif self.parameter_database.find_parameter(None, self.mixture.name, repr(s)) is not None:
+        elif self.mixture is not None and self.parameter_database.find_parameter(None, self.mixture.name, repr(s)) is not None:
             return self.parameter_database.find_parameter(None, self.mixture.name, repr(s)).value
         elif self.parameter_database.find_parameter(None, None, repr(s)) is not None:
             return self.parameter_database.find_parameter(None, None, repr(s)).value
         elif s == self.get_species():
-            if self.parameter_database.find_parameter(None, self.mixture.name, self.name) is not None:
+            if self.mixture is not None and self.parameter_database.find_parameter(None, self.mixture.name, self.name) is not None:
                 return self.parameter_database.find_parameter(None, self.mixture.name, self.name).value
             elif self.parameter_database.find_parameter(None, None, self.name) is not None:
                 return self.parameter_database.find_parameter(None, None, self.name).value

@@ -126,7 +126,6 @@ class ChemicalComplex(Component):
         if attributes is None:
             attributes = []
         self.species = Complex(species=self.internal_species, name=name, material_type=material_type, attributes=attributes)
-        print(self.species)
         
         if name is None:
             name = self.species.name

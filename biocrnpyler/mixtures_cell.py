@@ -4,11 +4,11 @@ from .components_basic import DNA, RNA, Protein, ChemicalComplex
 from .mechanism import EmptyMechanism
 from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
 from .mechanisms_binding import One_Step_Binding
-from .mechanisms_txtl import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
+from .mechanisms_txtl import Transcription_MM, Translation_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
 from .mixture import Mixture
 from .species import Species
 from .chemical_reaction_network import ChemicalReactionNetwork
-from .global_mechanism import Dilution
+from .global_mechanism import Dilution, Degredation_mRNA_MM
 from .dna_assembly import DNAassembly
 
 
@@ -150,25 +150,24 @@ class TxTlDilutionMixture(Mixture):
         ]
         self.add_components(default_components)
 
-        # Create TxTl Mechansisms
-        mech_tx = Transcription_MM(rnap=self.rnap.get_species())
-        mech_tl = Translation_MM(ribosome=self.ribosome.get_species())
-        mech_rna_deg = Degredation_mRNA_MM(nuclease=self.rnaase.get_species())
+        #Create TxTl Mechansisms
+        mech_tx = Transcription_MM(rnap = self.rnap.get_species())
+        mech_tl = Translation_MM(ribosome = self.ribosome.get_species())
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
+
+        #Create Global Dilution Mechanisms
+        dilution_mechanism = Dilution(filter_dict = {"dna":False, "machinery":False}, default_on = True)
+        mech_rna_deg = Degredation_mRNA_MM(nuclease = self.rnaase.get_species())
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
             mech_tl.mechanism_type: mech_tl,
-            mech_rna_deg.mechanism_type: mech_rna_deg,
             mech_cat.mechanism_type: mech_cat,
-            mech_bind.mechanism_type: mech_bind
+            mech_bind.mechanism_type:mech_bind,
+            mech_rna_deg.mechanism_type:mech_rna_deg,
+            "dilution":dilution_mechanism,
         }
 
         self.add_mechanisms(default_mechanisms)
 
-        # Create Global Dilution Mechanisms
-        dilution_mechanism = Dilution(filter_dict={"dna": False, "machinery": False}, default_on=True)
-        global_mechanisms = {"dilution": dilution_mechanism}
-
-        self.add_mechanisms(global_mechanisms)
