@@ -1,5 +1,5 @@
-"""
-The classes OrderedPolymer and OrderedMonomer are datastructures used to represent Polymers and their associatd components.
+"""The classes OrderedPolymer and OrderedMonomer are datastructures used to represent Polymers and their associatd components.
+
 These classes are used by Chemical Reaction Network Species as well as certain Components such as DNA_construct.
 """
 import copy
