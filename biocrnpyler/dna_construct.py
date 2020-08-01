@@ -1,8 +1,9 @@
 ################################################################
 #       DNA_construct: a higher level for construct compilation
 #       Author: Andrey Shur
-#       Latest update: 6/4/2020
-#
+#       Latest update: 7/31/2020
+#       Copyright (c) 2020, Build-A-Cell. All rights reserved.
+#       See LICENSE file in the project root directory for details.
 #
 ################################################################
 
@@ -22,6 +23,7 @@ from .dna_part_rbs import RBS
 from .dna_part_cds import CDS
 from .dna_part_terminator import Terminator
 from .dna_part_promoter import Promoter
+from .utils import *
 #from .dna_part_promoter import 
 import itertools as it
 import copy
@@ -30,16 +32,6 @@ from warnings import warn
 
 #integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 
-def all_comb(input_list):
-    out_list = []
-    for i in range(1,len(input_list)+1):
-        out_list += it.combinations(input_list,i)
-    return out_list
-
-
-def rev_dir(dir):
-    reversedict = {"forward":"reverse","reverse":"forward"}
-    return reversedict[dir]
 
 class Construct(Component,OrderedPolymer):
     def __init__(self,
@@ -55,6 +47,7 @@ class Construct(Component,OrderedPolymer):
         """this represents a bunch of parts in a row.
         A parts list has [[part,direction],[part,direction],...]
         Each part must be an OrderedMonomer"""
+        #TODO get_part, dna_part search engine like get_component from mixture
         myparts = []
         for part in parts_list:
             newpart = []
@@ -67,12 +60,19 @@ class Construct(Component,OrderedPolymer):
                 npartd = None
                 npart = None
                 if(part.direction is not None):
+                    #remember the direction that is in the part
                     npartd = copy.deepcopy(part.direction)
+                else:
+                    #if no direction is specified, forward is default
+                    npartd = "forward"
                 if(copy_parts):
+                    #we have to copy the part
                     npart = copy.deepcopy(part)
                 else:
                     npart = part
+                #forget everything about being part of a polymer
                 npart.remove()
+                #for the purposes of OrderedPolymer, you still need [part,direction]
                 newpart = [npart,npartd]
             myparts += [newpart]
         OrderedPolymer.__init__(self,myparts)
@@ -90,6 +90,9 @@ class Construct(Component,OrderedPolymer):
         if(not hasattr(self,"material_type")):
             self.material_type=None #set this when you inherit this class
         self.update_base_species(self.name)
+        self.out_components = None
+        self.predicted_rnas = None
+        self.predicted_proteins = None
     @property
     def parts_list(self):
         return self._polymer
@@ -105,10 +108,59 @@ class Construct(Component,OrderedPolymer):
         if(self.circular):
             output+="_o"
         return output
+    def get_part(self,part = None, part_type=None, name = None, index = None):
+        """
+        Function to get parts from Construct.parts_list.
+
+        One of the 3 keywords must not be None.
+
+        part: an instance of a DNA_part. Searches Construct.parts_list for a DNA_part with the same type and name.
+        part_type: a class of DNA_part. For example, Promoter. Searches Construct.parts_list for a DNA_part with the same type.
+        name: str. Searches Construct.parts_list for a DNA_part with the same name
+        index: int. returns Construct.parts_list[index]
+
+        if nothing is found, returns None.
+        """
+
+        if [part, name, index,part_type].count(None) != 3:
+            raise ValueError(f"get_component requires a single keyword. Recieved component={part}, name={name}, index={index}.")
+        if not (isinstance(part, DNA_part) or part is None):
+            raise ValueError(f"component must be of type DNA_part. Recieved {part}.")
+        if not (type(part_type) == type or part_type is None):
+            raise ValueError(f"part_type must be a type. Recieved {part_type}.")
+        if not (isinstance(name, str) or name is None):
+            raise ValueError(f"name must be of type str. Recieved {name}.")
+        if not (isinstance(index, int) or index is None):
+            raise ValueError(f"index must be of type int. Recieved {index}.")
+
+        matches = []
+        if index is not None:
+            matches.append(self.parts_list[index])
+        else:
+            for comp in self.parts_list:
+                if part is not None:
+                    if type(part) == type(comp) and comp.name == part.name:
+                        matches.append(comp)
+                elif name is not None:
+                    if comp.name == name:
+                        matches.append(comp)
+                elif part_type is not None:
+                    if(isinstance(comp,part_type)):
+                        matches.append(comp)
+        if len(matches) == 0:
+            return None
+        elif len(matches) == 1:
+            return matches[0]
+        else:
+            warn("get_part found multiple matching components. A list has been returned.")
+            return matches 
+
+
     def reverse(self):
         """reverses everything, without actually changing the DNA.
         also updates the name and stuff, since this is now a different Construct"""
         OrderedPolymer.reverse(self)
+        self.reset_stored_data()
         self.name = self.make_name()
         self.update_base_species()
         return self
@@ -220,23 +272,7 @@ class Construct(Component,OrderedPolymer):
                                                     name = self.name,material_type=self.material_type)
         
         return out_species
-    @classmethod
-    def remove_bindloc(cls,spec_list):
-        """go through every species on a list and remove any "bindloc" attributes"""
-        #spec_list2 = copy.copy(spec_list)
-        out_sp_list = []
-        for specie in spec_list:
-            #go through the species and remove the "bindloc" attribute
-            #I don't care about the binding now that I am done generating species
-            if(type(specie)==WeightedSpecies):
-                spec2 = specie.species
-                if(hasattr(spec2,"parent") and (spec2.parent is not None)):
-                    specie.species = spec2.parent
-            if(hasattr(specie,"parent") and (specie.parent is not None)):
-                out_sp_list += [specie.parent]
-            else:
-                out_sp_list+= [specie]
-        return out_sp_list
+    
     def located_allcomb(self,spec_list):
         """recursively trace all paths through a list
         [[[part1,1],[part2,5]],[[part3,1]],[[part4,5],[part5,12]]]
@@ -319,7 +355,7 @@ class Construct(Component,OrderedPolymer):
         for part in active_components:
             #first we make binary complexes
             sp_list =  part.update_species()
-            species+=self.remove_bindloc(sp_list)
+            species+=remove_bindloc(sp_list)
         #print("initial species")
         #print(species)
         unique_complexes = {}
@@ -370,7 +406,11 @@ class Construct(Component,OrderedPolymer):
         multivalent_self = self.get_species()
         self.update_parameters()
         if((rnas is None) or (proteins is None)):
-            rnas,proteins = self.explore_txtl()
+            rnas = self.predicted_rnas
+            proteins = self.predicted_proteins
+            if(rnas is None or proteins is None):
+                warn("{} is running explore_txtl possibly more than once".format(str(self)))
+                rnas,proteins = self.explore_txtl()
         active_components = []
         for part in self.parts_list:
             if(hasattr(part,"update_component")):
@@ -405,7 +445,8 @@ class Construct(Component,OrderedPolymer):
         rnas = None
         proteins = None
         rnas,proteins = self.explore_txtl()
-        
+        self.predicted_rnas = rnas
+        self.predicted_proteins = proteins
         #rnas:
         #this is a dictionary of the form:
         #{promoter:rna_construct,promoter2:rna_construct2}
@@ -413,37 +454,47 @@ class Construct(Component,OrderedPolymer):
         #this is a dictionary of the form:
         #{rna_construct:{RBS:[Product1,Product2],RBS2:[Product3]}}
         out_components = self.update_components(rnas,proteins)
+        #TODO save out_components
         for part in out_components:
 
             sp_list =  part.update_species()
             
-            species+=self.remove_bindloc(sp_list)
+            species+=remove_bindloc(sp_list)
+        self.out_components = out_components
         for rna in proteins:
             if(not rna == self):
                 #this part makes sure we don't do an infinite loop if we are in fact an RNA_construct
                 species += rna.update_species()
         return species
+    def reset_stored_data(self):
+        self.out_components = None
+        self.predicted_rnas = None
+        self.predicted_proteins = None
+    def changed(self):
+        self.reset_stored_data()
+        self.name = self.make_name()
     def update_reactions(self,norna=False):
         
         reactions = []
         rnas = None
         proteins = None
-        rnas,proteins = self.explore_txtl()
-        out_components = self.update_components(rnas,proteins)
-        
-        for part in out_components:
+        rnas = self.predicted_rnas
+        proteins = self.predicted_proteins
+        if((rnas is None) or (proteins is None)):
+            warn("{} is running explore_txtl possibly more than once".format(str(self)))
+            rnas,proteins = self.explore_txtl()
+        #rnas,proteins = self.explore_txtl()
+
+        if(self.out_components is None):
+            raise AttributeError("construct "+str(self) +" has no components! This happens because update_reactions has been run before update_species")
+        for part in self.out_components:
             rx_list = []
-            _ = part.update_species()
+            #_ = part.update_species()
             #update_components creates new components which are copies of the parts_list components
             #but the dna_to_bind attribute has been changed.
             #thus we need to make sure they have update_species() run on them before
             #doing update_reactions, in case any of these parts have memory
-            for rxn in part.update_reactions():
-                new_rxn = copy.copy(rxn)
-                new_rxn.inputs = self.remove_bindloc(rxn.inputs)
-                new_rxn.outputs = self.remove_bindloc(rxn.outputs)
-                rx_list+=[new_rxn]
-            reactions+= rx_list
+            reactions+= part.update_reactions()
         for rna in proteins:
             if(not rna == self):
                 #this part makes sure we don't do an infinite loop if we are in fact an RNA_construct

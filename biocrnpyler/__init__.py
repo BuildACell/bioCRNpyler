@@ -12,7 +12,7 @@ from .propensities import *
 from .reaction import *
 from .chemical_reaction_network import *
 from .polymer import *
-
+from .utils import *
 
 #core mechanisms
 from .mechanisms_binding import *
@@ -39,8 +39,5 @@ from .crnlab import *
 
 # Additional functions
 from .sbmlutil import *
-try:
-    from .plotting import *
-except ModuleNotFoundError as e:
-    warn(str(e))
-    warn("plotting is disabled because you are missing some libraries")
+from .plotting import *
+#checking for nonexistant plotting-related modules now happens in plotting.py

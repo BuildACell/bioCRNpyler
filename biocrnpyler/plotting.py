@@ -7,14 +7,10 @@
 # See LICENSE file in the project root directory for details.
 
 import random
-import networkx as nx
 import statistics
-from bokeh.models import (BoxSelectTool, Circle,Square, EdgesAndLinkedNodes, HoverTool,
-                          MultiLine, NodesAndLinkedEdges, Plot, Range1d, TapTool,PanTool,WheelZoomTool)
-from bokeh.palettes import Spectral4
-from bokeh.models.graphs import from_networkx
-from fa2 import ForceAtlas2
-import numpy as np
+
+import math
+
 from .propensities import MassAction, Hill
 from matplotlib import cm
 import matplotlib.pyplot as plt
@@ -24,11 +20,28 @@ from .dna_part_rbs import RBS
 from .dna_part_cds import CDS
 from .dna_part_terminator import Terminator
 from .dna_part_misc import AttachmentSite
+from warnings import warn
 PLOT_DNA = True
+
+
+
 try:
     import dnaplotlib as dpl
 except ModuleNotFoundError:
     PLOT_DNA = False
+
+PLOT_NETWORK = True
+try:
+    import networkx as nx
+    from bokeh.models import (BoxSelectTool, Circle,Square, EdgesAndLinkedNodes, HoverTool,
+                            MultiLine, NodesAndLinkedEdges, Plot, Range1d, TapTool,PanTool,WheelZoomTool)
+    from bokeh.palettes import Spectral4
+    from bokeh.models.graphs import from_networkx
+    from fa2 import ForceAtlas2
+except ModuleNotFoundError:
+    PLOT_NETWORK = False
+
+
 def updateLimits(limits,xvalues):
     for value in xvalues:
         if(value < limits[0]):
@@ -37,7 +50,7 @@ def updateLimits(limits,xvalues):
             limits[1] = value
     return limits
 
-def makeArrows2(graph_renderer,graph,positions,headsize=3,headangle=np.pi/6):
+def makeArrows2(graph_renderer,graph,positions,headsize=3,headangle=math.pi/6):
     """this function draws an arrow shape at the end of graph lines"""
     xs,ys = [],[]
     xbounds = [0,0]
@@ -59,15 +72,15 @@ def makeArrows2(graph_renderer,graph,positions,headsize=3,headangle=np.pi/6):
         xdif = from_x-to_x
         #next we calculate the angle from the destination node 
         #to the source node
-        angl = np.arctan2(ydif,xdif)
+        angl = math.atan2(ydif,xdif)
         #the arrow consists of three added points, one on either side 
         #of the line and one in the middle
-        p1x = to_x+headsize*np.cos(angl+headangle) #left side of the arrow
-        p1y = to_y+headsize*np.sin(angl+headangle) #left side of the arrow
-        p2x = to_x+headsize*np.cos(angl-headangle) #right side of the arrow
-        p2y = to_y+headsize*np.sin(angl-headangle) #right side of the arrow
-        p3x = to_x+headsize*.7*np.cos(angl) #middle of the arrow
-        p3y = to_y+headsize*.7*np.sin(angl) #middle of the arrow
+        p1x = to_x+headsize*math.cos(angl+headangle) #left side of the arrow
+        p1y = to_y+headsize*math.sin(angl+headangle) #left side of the arrow
+        p2x = to_x+headsize*math.cos(angl-headangle) #right side of the arrow
+        p2y = to_y+headsize*math.sin(angl-headangle) #right side of the arrow
+        p3x = to_x+headsize*.7*math.cos(angl) #middle of the arrow
+        p3y = to_y+headsize*.7*math.sin(angl) #middle of the arrow
         xs.append([from_x,p3x,p1x,to_x,p2x,p3x]) #'xs' is a list of lists which represent each line from node to node
         ys.append([from_y,p3y,p1y,to_y,p2y,p3y]) #'ys' is the same thing except the y positions
     graph_renderer.edge_renderer.data_source.data['xs'] = xs #this part replaces the lines with the ones made by this function
@@ -90,6 +103,9 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,possca
     positions: a dictionary of node names and x,y positions. this gets passed into the layout function
     posscale: multiply the scaling of the plot. This only affects the arrows because the arrows are a hack :("""
     random.seed(rseed)
+    if(not PLOT_NETWORK):
+        warn("network plotting disabled because some libraries are not found")
+        return
     if(layout=="force"):
         #below are parameters for the force directed graph visualization
         forceatlas2 = ForceAtlas2(
@@ -125,9 +141,9 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,possca
 
     #edges
     edges_renderer.node_renderer.glyph = Circle(size=12,line_alpha=0,fill_alpha=0, fill_color="color")
-    edges_renderer.edge_renderer.glyph = MultiLine( line_alpha=0.2, line_width=4)
-    edges_renderer.edge_renderer.selection_glyph = MultiLine(line_color=Spectral4[2], line_width=5)
-    edges_renderer.edge_renderer.hover_glyph = MultiLine(line_color=Spectral4[1], line_width=5)
+    edges_renderer.edge_renderer.glyph = MultiLine( line_alpha=0.2, line_width=4,line_join="round")
+    edges_renderer.edge_renderer.selection_glyph = MultiLine(line_color=Spectral4[2], line_width=5,line_join="round")
+    edges_renderer.edge_renderer.hover_glyph = MultiLine(line_color=Spectral4[1], line_width=5,line_join="round")
     xbounds,ybounds = makeArrows2(edges_renderer,DG,positions,headsize=5) #make the arrows!
     
     #we want to find the middle of the graph and plot a square that is 1:1 aspect ratio
@@ -210,6 +226,9 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     CRNspeciesonly: a DiGraph object with only species
     CRNreactionsonly: a DiGraph object with only reactions
     """
+    if(not PLOT_NETWORK):
+        warn("network plotting disabled because some libraries are not found")
+        return None,None,None
     if not colordict:
         colordict = {"complex":"cyan","protein":"green",
                      "dna":"grey","rna":"orange",
@@ -361,18 +380,15 @@ def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabe
     if(part.color2 is not None):
         color2 = part.color2
     dpl_type = "UserDefined" #this is the default part type
-    try:
+    if(hasattr(part,"dpl_type")):
         part_dpl = part.dpl_type
-    except AttributeError:
-        #this happens if part doesn't have the part_dpl variable
-        pass
+    else:
+        part_dpl = None
+
     if(isinstance(part,Promoter)):
         dpl_type = "Promoter"
-        try:
-            #a constitutive promoter doesn't have regulators
+        if(hasattr(part,"regulators")):
             regs = part.regulators
-        except AttributeError:
-            pass
     elif(isinstance(part,RBS)):
         dpl_type = "RBS"
     elif(isinstance(part,CDS)):
@@ -386,8 +402,12 @@ def make_dpl_from_part(part,direction=None,color=(1,4,2),color2=(3,2,4),showlabe
             dpl_type = "RecombinaseSite"
         elif(part.site_type == "attL" or part.site_type == "attR"):
             dpl_type = "RecombinaseSite2"
+    if(part_dpl is not None):
+        #parts can have their own pre-set dnaplotlib types
+        dpl_type = part_dpl
     outdesign = [{'type':dpl_type,"name":part.name,"fwd":direction,'opts':{'color':color,'color2':color2}}]
     for reg in regs:
+        #promoters with regulators have a number of "operator" symbols on them
         outdesign += [{"type":"Operator","name":str(reg),"fwd":direction,'opts':{'color':color,'color2':color2}}]
     if(showlabel):
         outdesign[0]["opts"].update({'label':str(part.name),'label_size':13,'label_y_offset':-8,})
@@ -415,37 +435,34 @@ def plotDesign(design,renderer = None,part_renderers=None,\
         ax.set_ylim([-15,15])
         plt.show()
     else:
-        print("plotting DNA has been disabled because you don't have DNAplotlib")
+        warn("plotting DNA has been disabled because you don't have DNAplotlib")
 
 def plotConstruct(DNA_construct_obj,dna_renderer=None,\
                                     rna_renderer=None,\
-                                    plot_rnas=False,debug=False,showlabels = None):
+                                    plot_rnas=False,debug=False,showlabels = None,plot_dna_test=True):
     """helper function for making dnaplotlib plots of a DNA_construct object. Plots the
     DNAs and the RNAs that come from that DNA, using DNA_construct.explore_txtl"""
     #TODO: make the label showing more general
     if(showlabels is None):
         showlabels = []
-    if(PLOT_DNA):
+    if(PLOT_DNA and plot_dna_test):
         if(dna_renderer is None):
             dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3)
         if(rna_renderer is None):
             rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0))
 
-
     design = make_dpl_from_construct(DNA_construct_obj,showlabels=showlabels)
     circular=DNA_construct_obj.circular
-    plotDesign(design,circular=circular,title=DNA_construct_obj.get_species())
-    if(plot_rnas):
-        rnas,proteins = DNA_construct_obj.explore_txtl()
-        if(debug):
-            print("rna:")
-            print(rnas)
-            print("protein")
-            print(proteins)
-        for promoter in rnas:
-            rnadesign = make_dpl_from_construct(rnas[promoter],showlabels=showlabels)
-            rnacolor = rna_renderer.linecolor
-            for part in rnadesign:
-                if("edgecolor" not in part['opts']):
-                    part['opts'].update({'edgecolor':rnacolor})
-            plotDesign(rnadesign,renderer=rna_renderer,title=rnas[promoter].get_species())
+    if(PLOT_DNA and plot_dna_test):
+        plotDesign(design,circular=circular,title=DNA_construct_obj.get_species())
+        if(plot_rnas):
+            rnas,proteins = DNA_construct_obj.explore_txtl()
+            for promoter in rnas:
+                rnadesign = make_dpl_from_construct(rnas[promoter],showlabels=showlabels)
+                rnacolor = rna_renderer.linecolor
+                for part in rnadesign:
+                    if("edgecolor" not in part['opts']):
+                        part['opts'].update({'edgecolor':rnacolor})
+                plotDesign(rnadesign,renderer=rna_renderer,title=rnas[promoter].get_species())
+    else:
+        print(DNA_construct_obj.show())

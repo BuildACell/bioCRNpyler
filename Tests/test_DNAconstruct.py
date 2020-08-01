@@ -17,8 +17,8 @@ class TestDNAConstruct(TestCase):
         myz = AttachmentSite("attB","attB",direction="forward",color="blue",color2="skyblue",sequence="agcgcga")
         self.assertTrue("attB" in str(myz))
 
-        myconst = DNA_construct([[myprom,"forward"],\
-                                 [myrbs,"forward"],\
+        myconst = DNA_construct([myprom,\
+                                 myrbs,\
                                  [mycds,"forward"],\
                                  [myt,"forward"]])
 
@@ -63,6 +63,47 @@ class TestDNAConstruct(TestCase):
         #testing automatic name creation where we insert _r for reverse and _o for circular
         self.assertTrue("_r_" in myconst2.name)
         self.assertTrue("_o" in myconst2.name)
+
+        #testing get_part
+        self.assertTrue(myconst.get_part(part=CDS("mycds","GFP")) == myconst[2])
+        self.assertTrue(myconst.get_part(part_type=CDS) == myconst[2])
+        self.assertTrue(myconst.get_part(name="mycds") == myconst[2])
+        self.assertTrue(myconst.get_part(index=2) == myconst[2])
+
+        myt2 = Terminator("myt2")
+        myconst.insert(4,myt2.set_dir("forward"))
+        with self.assertWarnsRegex(Warning, 'multiple matching components'):
+            x = myconst.get_part(part_type=Terminator)
+        self.assertTrue(len(x)==2)
+
+    def test_changes(self):
+        myprom = Promoter("prom")
+        myrbs = RBS("rbs")
+        mycds = CDS("mycds","GFP")
+        myt = Terminator("t1")
+        myt2 = Terminator("t2")
+        myconst = DNA_construct([myprom,\
+                                 myrbs,\
+                                 [mycds,"forward"],\
+                                 [myt,"forward"]])
+        self.assertTrue(myprom.name in myconst.name)
+        self.assertTrue(myrbs.name in myconst.name)
+        self.assertTrue(mycds.name in myconst.name)
+        self.assertTrue(myt.name in myconst.name)
+        #above, making sure that everything initialized right
+        myconst[3] = myt2
+        #if you replace a part, the name should be different
+        self.assertTrue(myt2.name in myconst.name)
+        myconst.reverse()
+        #if you reverse, the name should change
+        self.assertTrue("_r" in myconst.name)
+        self.assertTrue(myconst[-1].name == myprom.name)
+        myconst = DNA_construct([myprom,\
+                                 myrbs,\
+                                 [mycds,"forward"],\
+                                 [myt,"forward"]])
+        myconst.insert(4,myt2)
+        self.assertTrue(myt2.name in myconst.name)
     def test_txtl(self):
         myprom = Promoter("prom")
         myrbs = RBS("rbs")
@@ -70,6 +111,8 @@ class TestDNAConstruct(TestCase):
         mycds = CDS("mycds","GFP")
         mycds2 = CDS("mycds2","RFP")
         myt = Terminator("t1")
+
+        
         mycdsNOSTOP = CDS("mycds3","CFP",no_stop_codons=["forward"])
 
         myconst = DNA_construct([[myrbs,"forward"],\
@@ -81,6 +124,7 @@ class TestDNAConstruct(TestCase):
                                  [myrbs2,"forward"],\
                                  [mycds2,"forward"]],circular=True)
         rnas,proteins = myconst.explore_txtl()
+        
         #circular construct properly makes RNA
         self.assertTrue(myconst[5] in rnas)
 
@@ -105,6 +149,8 @@ class TestDNAConstruct(TestCase):
         #CDSes have the right name
         self.assertTrue(proteins[myTranscript][myRBS][0].name==mycds2.name)
         self.assertTrue(proteins[myTranscript][myRBS2][1].name==mycds.name)
+        
+
     def test_dna_construct_species(self):
         myprom = Promoter("prom")
         myrbs = RBS("rbs")
@@ -112,6 +158,7 @@ class TestDNAConstruct(TestCase):
         mycds = CDS("mycds","GFP")
         mycds2 = CDS("mycds2","RFP")
         myt = Terminator("t1")
+        myt2 = Terminator("t2")
         myconst = DNA_construct([[myrbs,"forward"],\
                                  [mycds,"forward"],\
                                  [myt,"forward"], \
@@ -141,6 +188,15 @@ class TestDNAConstruct(TestCase):
         self.assertTrue(len(myCRN2.reactions)==16)
         #now there are two promoters
         self.assertTrue(sum([spec.material_type=="rna" for spec in myCRN2.species])==2)
+
+        #make sure we saved the predicted values
+        mc2_from_mix = myMixture2.get_component(name=myconst2.name)
+        self.assertTrue(mc2_from_mix.predicted_rnas is not None)
+        self.assertTrue(mc2_from_mix.predicted_proteins is not None)
+        mc2_from_mix[4]=myt2.set_dir("forward")
+        #now, when we change the cosntruct, the previous values are not valid any more
+        self.assertTrue(mc2_from_mix.predicted_rnas is None)
+        self.assertTrue(mc2_from_mix.predicted_proteins is None)
         
 
 
