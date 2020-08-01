@@ -7,7 +7,6 @@
 #
 ################################################################
 
-import matplotlib.pyplot as plt
 import random
 
 from .chemical_reaction_network import ComplexSpecies, Species, OrderedComplexSpecies, OrderedPolymer,\
