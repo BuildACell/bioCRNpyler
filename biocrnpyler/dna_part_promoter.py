@@ -17,7 +17,6 @@ class Promoter(DNA_part):
     def __init__(self, name, assembly=None,
                  transcript=None, length=0,
                  mechanisms=None, parameters=None, protein=None,dna_to_bind = None, **keywords):
-        #self.assembly = assembly
         self._dna_bind = dna_to_bind
         self.length = length
 
