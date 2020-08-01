@@ -90,7 +90,6 @@ class GlobalMechanism(Mechanism):
         """
         fd = self.filter_dict
         use_mechanism = None
-
         species_list = s.get_species(recursive = self.recursive_species_filtering)
         for subs in species_list:
             for a in subs.attributes+[subs.material_type, repr(subs), subs.name]:
@@ -185,7 +184,7 @@ class AnitDilutionConstiutiveCreation(GlobalMechanism):
                                  filter_dict = filter_dict, 
                                  recursive_species_filtering = recursive_species_filtering)
 
-    def update_reactions(self, s, parameters):
+    def update_reactions(self, s, parameters, mixture):
         k_dil = self.get_parameter(s, "kdil", mixture)
         rxn = Reaction.from_massaction(inputs=[], outputs=[s], k_forward=k_dil)
         return [rxn]

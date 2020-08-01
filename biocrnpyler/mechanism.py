@@ -29,7 +29,6 @@
 from warnings import warn
 from .species import Species, ComplexSpecies, Multimer
 from .reaction import Reaction
-from .component import Component
 import itertools as it
 
 class Mechanism(object):

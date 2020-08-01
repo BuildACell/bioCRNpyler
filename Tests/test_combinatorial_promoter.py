@@ -32,7 +32,7 @@ class TestCombinatorialPromoter(TestCase):
         self.assertTrue(newprom4.regulators == [Species("treg1",material_type="protein"),
                                                 Species("treg2",material_type="rna")])
         #make sure the default mechanism is the correct one
-        self.assertTrue(isinstance(newprom4.default_mechanisms["binding"],Combinatorial_Cooperative_Binding))
+        self.assertTrue(isinstance(newprom4.mechanisms["binding"],Combinatorial_Cooperative_Binding))
 
     def test_update_species(self):
         from biocrnpyler import CombinatorialPromoter, Protein, Species, Combinatorial_Cooperative_Binding, \
@@ -41,17 +41,23 @@ class TestCombinatorialPromoter(TestCase):
         newprom = CombinatorialPromoter("testprom",["treg1",Species("treg2",material_type="rna")],\
                                 tx_capable_list = [["treg1","treg2"]],cooperativity={"testprom_treg2":1},leak=True)
 
+        sp_rnap = Species("RNAP",material_type="protein")
+        ribosome = Species("Ribo", material_type = "protein")
+
         newdna = DNAassembly("testDNA",promoter=newprom)
-        newdna.update_mechanisms(mechanisms={"transcription":Transcription_MM(), "translation":Translation_MM()})
+        newdna.add_mechanisms({"transcription":Transcription_MM(rnap = sp_rnap), "translation":Translation_MM(ribosome = ribosome)})
         newdna.update_parameters(parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2})
-        newprom_spec = newprom.update_species()
+
+        #Promoters are copied when added to DNAassemblies
+        newprom_copy = newdna.promoter
+        newprom_spec = newprom_copy.update_species()
 
         sp_treg1 = Species("treg1",material_type="protein")
         sp_treg2 = Species("treg2",material_type="rna")
         #mu_treg2 = Multimer(sp_treg2,2)
 
         sp_dna = Species("testDNA",material_type="dna")
-        sp_rnap = Species("RNAP",material_type="protein")
+        
         sp_rna = Species("testDNA",material_type="rna")
         cp_dna_rnap = Complex([sp_dna,sp_rnap])
         cp_dna_treg1 = Complex([sp_dna,sp_treg1,sp_treg1])
@@ -63,7 +69,7 @@ class TestCombinatorialPromoter(TestCase):
 
         knownspecies = [sp_dna,sp_rnap,sp_rna,cp_dna_rnap,cp_dna_treg1,\
                             cp_dna_treg2,cp_dna_treg1_treg2,cp_dna_treg1_rnap, \
-                                cp_dna_treg2_rnap,cp_dna_treg1_treg2_rnap]
+                                cp_dna_treg2_rnap,cp_dna_treg1_treg2_rnap,sp_treg1,sp_treg2]
 
         #these are the species that should come out
         test_set = set([str(a) for a in newprom_spec])
@@ -86,26 +92,32 @@ class TestCombinatorialPromoter(TestCase):
         """this function tests the CombinatorialPromoter for the ability to make
         reactions with the proper inputs and outputs."""
         from biocrnpyler import CombinatorialPromoter, Protein, Species, Combinatorial_Cooperative_Binding, \
-                                    DNAassembly,Transcription_MM, Translation_MM, Complex, Multimer
+                                    DNAassembly,Transcription_MM, Translation_MM, Complex, Multimer, ParameterKey
         
         #make a relatively simple combinatorial promoter
-        newprom = CombinatorialPromoter("testprom",["treg1","treg2"],tx_capable_list=[["treg2","treg1"]], leak = True)
+        parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, 
+        ParameterKey(mechanism = None, part_id = "testprom_leak", name = "ktx"):.01, 
+        ParameterKey(mechanism = None, part_id = "testprom_leak", name = "ku"):50,
+        ParameterKey(mechanism = None, part_id = "testprom_treg1_treg2_RNAP", name = "ku"):5}
+
+        newprom = CombinatorialPromoter("testprom",["treg1","treg2"],tx_capable_list=[["treg2","treg1"]], leak = True, parameters = parameters)
         #you have to put it into an assembly
         newdna = DNAassembly("testDNA",promoter=newprom)
         #adding mechanisms because there is no mixture. I believe this is what the mixture does
-        newdna.update_mechanisms(mechanisms={"transcription":Transcription_MM(), "translation":Translation_MM()})
-        newdna.update_parameters(parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, (None, "testprom_leak","ktx"):.01,\
-                                                                (None, "testprom_leak","ku"):50,(None, "testprom_treg1_treg2_RNAP","ku"):5})
+        sp_rnap = Species("RNAP",material_type="protein")
+        ribosome = Species("Ribo", material_type = "protein")
+
+        newdna.add_mechanisms({"transcription":Transcription_MM(rnap = sp_rnap), "translation":Translation_MM(ribosome = ribosome)})
         #you have to do update_species first
-        newprom_spec = newprom.update_species()
+        newprom_copy = newdna.promoter #Promoters are copied when added to DNAassemblies
+        newprom_spec = newprom_copy.update_species()
         #now the test... does it produce the right reactions??
-        newprom_rxns = newprom.update_reactions()
+        newprom_rxns = newprom_copy.update_reactions()
         #here i am generating the species manually
         sp_dna = Species("testDNA",material_type="dna")
         sp_rna = Species("testDNA",material_type="rna")
         sp_treg1 = Species("treg1",material_type="protein")
         sp_treg2 = Species("treg2",material_type="protein")
-        sp_rnap = Species("RNAP",material_type="protein")
         #now the complexes
         
         sp_dna_treg1 = Complex([sp_dna,sp_treg1,sp_treg1])
@@ -146,13 +158,11 @@ class TestCombinatorialPromoter(TestCase):
             self.assertTrue(correctPick)
         #12 reactions must be generated
         self.assertTrue(len(newprom_rxns)==len(truthlist))
-        #TODO: tests below this are questionable
         #then we should also test what happens if you say that nothing can transcribe:
-        newprom2 = CombinatorialPromoter("testprom",["treg1"])#,tx_capable_list = [])
+        newprom2 = CombinatorialPromoter("testprom",["treg1"], parameters = parameters,tx_capable_list = [],leak=False,\
+                        mechanisms={"transcription":Transcription_MM(rnap = sp_rnap), "translation":Translation_MM(ribosome = ribosome)})
         newdna2 = DNAassembly("testDNA",promoter=newprom2)
         #adding mechanisms because there is no mixture. I believe this is what the mixture does
-        newdna2.update_mechanisms(mechanisms={"transcription":Transcription_MM(), "translation":Translation_MM()})
-        newdna2.update_parameters(parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05})
-        with self.assertWarns(UserWarning):
-            #TODO fix this with a warning detection system that actually checks for the proper warning
-            newprom_rxns = newprom2.update_reactions()
+        sp_rnap = Species("RNAP",material_type="protein")
+        ribosome = Species("Ribo", material_type = "protein")
+        self.assertWarnsRegex(UserWarning, 'nothing can transcribe',newdna2.update_reactions)

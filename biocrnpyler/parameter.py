@@ -52,7 +52,8 @@ from warnings import warn
 from typing import List, Dict, Union
 import numbers
 import re
-from collections import namedtuple  # Used for the parameter keys
+from collections import namedtuple # Used for the parameter keys
+
 
 
 ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name') #This could later be extended
@@ -105,6 +106,9 @@ class Parameter(object):
             return float(nom)/float(denom)
         else:
             return float(p_value)
+
+    def __str__(self):
+        return f"Parameter {self.parameter_name} = {self.value}"
 
 
 class ParameterEntry(Parameter):
@@ -167,13 +171,16 @@ class ParameterEntry(Parameter):
             raise ValueError(f"parameter_info must be None or a dictionary: received {parameter_info}.")
 
     def get_sbml_id(self):
-        sbml_id = self.paramter_key.name+"_"
+        sbml_id = self.parameter_key.name+"_"
         if self.parameter_key.part_id is not None:
             sbml_id += self.parameter_key.part_id
         sbml_id += "_"
         if self.parameter_key.mechanism is not None:
             sbml_id += self.parameter_key.mechanism
         return sbml_id
+
+    def __str__(self):
+        return f"ParameterEntry({self.parameter_key}) = {self.value}"
 
 
 class ModelParameter(ParameterEntry):
@@ -203,6 +210,9 @@ class ModelParameter(ParameterEntry):
     @found_key.setter
     def found_key(self, found_key):
         self._found_key = self.create_parameter_key(found_key, self.parameter_name)
+
+    def __str__(self):
+        return f"ModelParameter({self.parameter_key}) = {self.value}\tsearch_key={self.search_key}"
 
 
 class ParameterDatabase(object):
@@ -263,6 +273,10 @@ class ParameterDatabase(object):
         else:
             raise StopIteration
 
+    #Length method
+    def __len__(self):
+        return len(self.parameters)
+
     #Gets a parameter from the database
     #Only returns exact matches.
     def __getitem__(self, key):
@@ -280,6 +294,10 @@ class ParameterDatabase(object):
             self.parameters[key] = value
         else:
             self.add_parameter(key.name, value, parameter_key = key, parameter_origin = "Set Manually", overwrite_parameters = True)
+
+    def __str__(self):
+        txt = "ParameterDatabase:\n".join([repr(p)+"\n" for p in self.parameters])
+        return txt
 
     def add_parameter(self, parameter_name: str, parameter_value: Union[str,numbers.Real], parameter_origin = None, parameter_key = None, parameter_info = None, overwrite_parameters = False):
         """Adds a parameter to the database with appropriate metadata
@@ -470,7 +488,7 @@ class ParameterDatabase(object):
 
         return return_field_names
 
-    def find_parameter(self, mechanism, part_id, param_name, parameter_warnings = False):
+    def find_parameter(self, mechanism, part_id, param_name):
         """Searches the database for the best matching parameter. 
         
         Parameter defaulting heirarchy:
@@ -484,13 +502,16 @@ class ParameterDatabase(object):
         for parameters to be shared between different Mechanisms and/or Components.
         """
 
+        #this is imported here because otherwise there are import loops
+        from .mechanism import Mechanism
+
+
         found_entry = None
-        warning_txt = None
 
         if isinstance(mechanism, str):
             mech_name = mechanism
             mech_type = mechanism
-        elif hasattr(mechanism, "name") and hasattr(mechanism, "mechanism_type"):
+        elif isinstance(mechanism, Mechanism):
             mech_name = mechanism.name
             mech_type = mechanism.mechanism_type
         elif mechanism is not None:
@@ -509,14 +530,10 @@ class ParameterDatabase(object):
             ]
 
         for key in parameter_key_list:
-            if key in self.parameters:
+            if key in self.parameters and found_entry is None:
                 found_entry = self.parameters[key]
                 found_key = key
-                warning_txt = (f"No Parameter with {str(parameter_key_list[0])}. Parameter found using {str(key)}.")
                 break
-
-        if warning_txt is not None and parameter_warnings and found_entry is not None:
-            warn(warning_txt)
 
         if found_entry is None:
             return None

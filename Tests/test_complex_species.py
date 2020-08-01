@@ -19,17 +19,17 @@ class TestComplexSpecies(TestCase):
         s2 = Species(name='s2', material_type="m2")
 
         # Check invalidity of ComplexSpecies with fewer than 2 component
-        with self.assertRaisesRegexp(ValueError,'chemical_reaction_network.complex requires '
+        with self.assertRaisesRegex(ValueError,'chemical_reaction_network.complex requires '
                                                 '2 or more species in its constructor'):
             ComplexSpecies([s1], called_from_complex = True)
         
         # Check invalidity of OrderedComplexSpecies with fewer than 2 component
-        with self.assertRaisesRegexp(ValueError, 'chemical_reaction_network.complex requires 2 '
+        with self.assertRaisesRegex(ValueError, 'chemical_reaction_network.complex requires 2 '
                                                  'or more species in its constructor.'):
             OrderedComplexSpecies([s1], called_from_complex = True)
         
         # Check invalidity of multimers with fewer than 2 component
-        with self.assertRaisesRegexp(ValueError, 'chemical_reaction_network.complex requires 2 '
+        with self.assertRaisesRegex(ValueError, 'chemical_reaction_network.complex requires 2 '
                                                  'or more species in its constructor'):
             Multimer(s1, 1, called_from_complex = True)
 
@@ -40,7 +40,7 @@ class TestComplexSpecies(TestCase):
         c3 = ComplexSpecies([s1, s1], called_from_complex = True)
 
         # Check invalidity of ComplexSpecies, Multimers and OrderedComplexSpecies with strings instead of species
-        with self.assertRaisesRegexp(TypeError, 'recieved a non-species as a member of the list species'):
+        with self.assertRaisesRegex(TypeError, 'recieved a non-species as a member of the list species'):
             self.assertEqual(OrderedComplexSpecies([s2, "s1"]), oc1)
             self.assertEqual(ComplexSpecies([s2, "s1"]), c1)
             self.assertEqual(Multimer("s1", 2), m1)
