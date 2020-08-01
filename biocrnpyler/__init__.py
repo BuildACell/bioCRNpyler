@@ -31,10 +31,6 @@ from .dna_assembly_rbs import *
 from .crnlab import *
 
 
-# Additional functions
+# SBML functions
 from .sbmlutil import *
-try:
-    from .plotting import *
-except ModuleNotFoundError as e:
-    warn(str(e))
-    warn("plotting is disabled because you are missing some libraries")
+

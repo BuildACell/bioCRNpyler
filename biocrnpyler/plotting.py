@@ -6,18 +6,22 @@
 # Copyright (c) 2018, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
+try:
+    import networkx as nx
+    from bokeh.models import (BoxSelectTool, Circle,Square, EdgesAndLinkedNodes, HoverTool,
+                            MultiLine, NodesAndLinkedEdges, Plot, Range1d, TapTool,PanTool,WheelZoomTool)
+    from bokeh.palettes import Spectral4
+    from bokeh.models.graphs import from_networkx
+    from fa2 import ForceAtlas2
+except ModuleNotFoundError as e:
+    warn(str(e))
+    warn("Plotting is disabled because you are missing some libraries: Try pip install biocrnpyler[all] to get all dependencies.")
 import random
-import networkx as nx
 import statistics
-from bokeh.models import (BoxSelectTool, Circle,Square, EdgesAndLinkedNodes, HoverTool,
-                          MultiLine, NodesAndLinkedEdges, Plot, Range1d, TapTool,PanTool,WheelZoomTool)
-from bokeh.palettes import Spectral4
-from bokeh.models.graphs import from_networkx
-from fa2 import ForceAtlas2
 import numpy as np
 from .propensities import MassAction, Hill
 from matplotlib import cm
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plthttps://test.pypi.org/project/biocrnpyler/1.0.2/
 
 def updateLimits(limits,xvalues):
     for value in xvalues:
