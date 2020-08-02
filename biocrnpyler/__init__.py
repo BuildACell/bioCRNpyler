@@ -15,6 +15,7 @@ from .dna_part_misc import *
 from .dna_part_promoter import *
 from .dna_part_rbs import *
 from .dna_part_terminator import *
+
 from .global_mechanism import *
 from .mechanism import *
 #core mechanisms
@@ -30,7 +31,7 @@ from .plotting import *
 from .polymer import *
 from .propensities import *
 from .reaction import *
-# Additional functions
+
 from .sbmlutil import *
 from .species import *
 from .utils import *

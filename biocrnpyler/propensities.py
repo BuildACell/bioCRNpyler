@@ -381,7 +381,6 @@ class MassAction(Propensity):
                     ratestring += f" * {species_id}"
         return ratestring
 
-
 class Hill(Propensity):
     def __init__(self, k: float, s1: Species, K: float, n: float, d: Species):
         Propensity.__init__(self)
