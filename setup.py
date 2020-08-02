@@ -24,14 +24,14 @@ setup(
     install_requires=[
           "python-libsbml",
           ],
-    extras_require = { 
-        "all": [
+    extras_require={
+        'all': [
             "numpy",
             "matplotlib",
             "networkx",
             "bokeh",
             "fa2"
-            ]
+            ],
             },
     setup_requires=["pytest-runner"],
     python_requires='>=3.6',
