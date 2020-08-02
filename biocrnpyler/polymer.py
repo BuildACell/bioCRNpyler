@@ -1,5 +1,5 @@
-"""
-The classes OrderedPolymer and OrderedMonomer are datastructures used to represent Polymers and their associatd components.
+"""The classes OrderedPolymer and OrderedMonomer are datastructures used to represent Polymers and their associatd components.
+
 These classes are used by Chemical Reaction Network Species as well as certain Components such as DNA_construct.
 """
 import copy
@@ -37,7 +37,9 @@ class OrderedPolymer:
 
     def __hash__(self):
         return hash(self._polymer)
-
+    def changed(self):
+        #runs whenever anything changed
+        pass
     def insert(self,position,part,direction=None):
         part_copy = copy.copy(part) #OrderedMonomers are always copied when inserted into an OrderedPolymer
 
@@ -45,6 +47,7 @@ class OrderedPolymer:
         for subsequent_part in self._polymer[position:]:
             subsequent_part.position += 1
         self._polymer = self._polymer[:position]+(part_copy,)+self._polymer[position:]
+        self.changed()
 
     def replace(self,position,part,direction=None):
         part_copy = copy.copy(part) #OrderedMonomers are always copied when inserted into an OrderedPolymer
@@ -54,6 +57,7 @@ class OrderedPolymer:
         self._polymer[position].remove()
         part_copy.monomer_insert(self,position,direction)
         self._polymer = self._polymer[:position]+(part_copy,)+self._polymer[position+1:]
+        self.changed()
 
 
     def append(self,part,direction=None):
@@ -123,6 +127,7 @@ class OrderedPolymer:
         for subsequent_part in self._polymer[position+1:]:
             subsequent_part.position -= 1
         self._polymer = self._polymer[:position] + self._polymer[position+1:]
+        self.changed()
         if(hasattr(self,"name") and hasattr(self,"make_name")):
             self.name = self.make_name()
 
@@ -131,6 +136,7 @@ class OrderedPolymer:
         for ind,part in enumerate(self._polymer):
             part.position = ind
             part.direction = self.direction_invert(part.direction)
+        self.changed()
 
 
 class OrderedMonomer:
@@ -194,6 +200,7 @@ class OrderedMonomer:
         self.parent = None
         self.direction = None
         self.position = None
+        return(self)
 
     def __repr__(self):
         txt = "OrderedMonomer(direction="+str(self.direction)+",position="+\

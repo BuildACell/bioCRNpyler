@@ -3,7 +3,6 @@
 
 from .sbmlutil import *
 import warnings
-import numpy as np
 from typing import List, Union, Dict
 import itertools
 import copy
@@ -113,16 +112,17 @@ class Species(OrderedMonomer):
     #Note: this is used because properties can't be overwritten without setters being overwritten in subclasses.
     def _check_name(self, name):
         """
-        Check that the string contains only underscores and alpha-numeric characters or is None
+        Check that the string contains only underscores and alpha-numeric characters or is None. 
+        Additionally cannot end in "_" or contain double "__"
         """
         if name is None:
             return name
         elif isinstance(name, str):
             no_underscore_string = name.replace("_", "")
-            if no_underscore_string.isalnum():
+            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_":
                 return name
             else:
-                raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores.")
+                raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or end in an underscore.")
         else:
             raise TypeError("Name must be a string.")
 
@@ -140,7 +140,7 @@ class Species(OrderedMonomer):
             raise ValueError(f"species name: {self.name} contains a number as the first character and therefore requires a material_type.")
         elif material_type == None:
             self._material_type = None
-        elif (material_type.replace("_", "").isalnum() and material_type.replace("_", "")[0].isalpha()) or material_type == "":
+        elif (material_type.replace("_", "").isalnum() and material_type.replace("_", "")[0].isalpha() and "__" not in material_type and material_type[len(material_type)-1] != "_") or material_type == "":
             self._material_type = material_type
         else:
             raise ValueError(f"material_type {material_type} must be alpha-numeric and start with a letter.")
@@ -178,7 +178,7 @@ class Species(OrderedMonomer):
         return [self]
 
     
-    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+    def pretty_print(self, show_material = True, show_attributes = True, show_initial_condition = False, **kwargs):
         """
         #A more powerful printing function. 
         Useful for understanding CRNs but does not return string identifiers.
@@ -203,6 +203,9 @@ class Species(OrderedMonomer):
             txt += "-"+self.direction
         if self.material_type not in ["", None] and show_material:
             txt += "]"
+
+        if show_initial_condition:
+            txt+=f" init_conc = {self.initial_concentration}"
 
         return txt
 
@@ -231,7 +234,8 @@ class Species(OrderedMonomer):
 
     def __hash__(self):
         return str.__hash__(repr(self))
-
+    def __contains__(self,item):
+        return item in self.get_species()
     @staticmethod
     def flatten_list(in_list) -> List:
         """Helper function to flatten lists
@@ -373,7 +377,7 @@ class Complex:
                 keywords["called_from_complex"] = True
                 return OrderedComplexSpecies(species,*args,**keywords)
             else:
-                #this creates aComplexSpecies
+                #this creates a ComplexSpecies
                 #pass in all the args and keywords appropriately
                 keywords["called_from_complex"] = True
                 return ComplexSpecies(species,*args,**keywords)
@@ -381,7 +385,9 @@ class Complex:
         #This means the Complex is being formed inside an OrderedPolymerSpecies
         else:
             #this is the species around which the complex is being formed
-            prev_species = valent_complex[bindloc]
+            #basically we want to "unclone" this and then "clone the new ComplexSpecies we will have created"
+            prev_species = copy.deepcopy(valent_complex[bindloc])
+            prev_species.remove()
             prev_direction = copy.deepcopy(valent_complex[bindloc].direction)
 
             #combine what was in the OrderedMonomer with the new stuff in the list
@@ -397,7 +403,7 @@ class Complex:
                 new_complex = ComplexSpecies(new_species,*args,**keywords)
             #now we replace the monomer inside the parent polymer
             valent_complex.replace(bindloc,new_complex,prev_direction)
-
+            valent_complex.material_type = OrderedPolymerSpecies.default_material #this is saying that we are now a complex
             return valent_complex[bindloc]
 
 class ComplexSpecies(Species):
@@ -426,6 +432,14 @@ class ComplexSpecies(Species):
         #call super class
         Species.__init__(self, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)
 
+    def __repr__(self):
+        """
+        ComplexSpecies add an additional "_" onto the end of their string representation
+        This ensures that some edge cases are differentiated.
+        """
+        txt = Species.__repr__(self)
+        txt += "_"
+        return txt
     @property
     def name(self):
         if self._name is None:
@@ -519,7 +533,7 @@ class ComplexSpecies(Species):
         return species
 
 
-    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+    def pretty_print(self, show_material = True, show_attributes = True, show_initial_condition = False, **kwargs):
         """
         A more powerful printing function. 
         Useful for understanding CRNs but does not return string identifiers.
@@ -546,8 +560,12 @@ class ComplexSpecies(Species):
             txt = txt[:-2]+")"
 
         txt.replace("'", "")
-
+        if(hasattr(self,"direction") and self.direction is not None):
+            txt += "-"+self.direction
         txt += "]"
+
+        if show_initial_condition:
+            txt+=f" init_conc = {self.initial_concentration}"
 
         return txt
 
@@ -647,7 +665,7 @@ class OrderedComplexSpecies(ComplexSpecies):
         
         return Complex(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes, ordered = True)
 
-    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+    def pretty_print(self, show_material = True, show_attributes = True, show_initial_condition = False, **kwargs):
         """
         A more powerful printing function. 
         Useful for understanding CRNs but does not return string identifiers.
@@ -675,6 +693,9 @@ class OrderedComplexSpecies(ComplexSpecies):
         txt.replace("'", "")
         txt += "]"
 
+        if show_initial_condition:
+            txt+=f" init_conc = {self.initial_concentration}"
+
         return txt
 
 class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
@@ -693,7 +714,8 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
     sometimes it is convenient to pass an internal Species. Both will work from the point of view
     of any Mechanism.
     """
-    def __init__(self,species, name=None, base_species = None, material_type = "ordered_polymer", \
+    default_material="ordered_polymer"
+    def __init__(self,species, name=None, base_species = None, material_type = default_material, \
                              attributes = None, initial_concentration = 0,circular = False):
 
         self.material_type = material_type

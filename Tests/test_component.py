@@ -3,8 +3,8 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import Component, DNA, ParameterDatabase
-from biocrnpyler import Transcription_MM, Translation_MM, Degredation_mRNA_MM
+from biocrnpyler import Component, DNA, ParameterDatabase, Mixture, Mechanism
+from biocrnpyler import SimpleTranscription, SimpleTranslation
 
 
 class TestComponent(TestCase):
@@ -14,7 +14,7 @@ class TestComponent(TestCase):
         self.comp_name = 'test_component'
         self.default_concentration = 0
         self.component = Component(name=self.comp_name, mechanisms={}, parameters={}, parameter_file=None,
-                                   mixture=None, attributes=[], initial_conc=self.default_concentration, parameter_warnings=True)
+                                   mixture=None, attributes=[], initial_conc=self.default_concentration)
 
     def test_initial_concentration(self):
 
@@ -26,7 +26,7 @@ class TestComponent(TestCase):
         self.assertEqual(self.component.initial_concentration, new_value)
 
         not_valid_value = -1
-        with self.assertRaisesRegexp(ValueError, f'Initial concentration must be non-negative, this was given: {not_valid_value}'):
+        with self.assertRaisesRegex(ValueError, f'Initial concentration must be non-negative, this was given: {not_valid_value}'):
             self.component.initial_concentration = not_valid_value
 
     def test_get_species(self):
@@ -38,7 +38,7 @@ class TestComponent(TestCase):
 
         attr_list = ['attr1', 'attr2']
         
-        with self.assertRaisesRegexp(Warning,f'Component {self.component.name} has no internal species and therefore no attributes'):
+        with self.assertRaisesRegex(Warning,f'Component {self.component.name} has no internal species and therefore no attributes'):
             self.component.set_attributes(attr_list)
 
         # DNA is inherited from component and has valid internal species
@@ -73,52 +73,45 @@ class TestComponent(TestCase):
 
     def test_update_mechanisms(self):
 
-        tx = Transcription_MM()
-        tl = Translation_MM()
-        deg = Degredation_mRNA_MM()
+        tx = SimpleTranscription()
+        tl = SimpleTranslation()
 
         test_mech = {tx.mechanism_type: tx, tl.mechanism_type: tl}
 
-        default_test_mech = {deg.mechanism_type: deg}
-
         # test that component has no mechanism
         self.assertTrue(isinstance(self.component.mechanisms, dict) and len(self.component.mechanisms) == 0)
-        self.component.update_mechanisms(mixture_mechanisms=test_mech)
-        # test that the test_mech is registered as the only mechanism
-        self.assertEqual(self.component.mechanisms, test_mech)
 
-        self.component.default_mechanisms = default_test_mech
-        self.component.update_mechanisms(mixture_mechanisms=test_mech)
-        test_mech.update(default_test_mech)
-        self.assertEqual(self.component.mechanisms, test_mech)
+        #test mechanism setter
+        self.component.mechanisms = test_mech
+        self.assertEqual(self.component.mechanisms.keys(), test_mech.keys())
 
-        # testing that the custom mechanism gets updated
-        self.assertTrue(isinstance(self.component.custom_mechanisms, dict) and len(self.component.custom_mechanisms) == 0)
-        self.component.update_mechanisms(mechanisms=test_mech)
-        self.assertEqual(self.component.custom_mechanisms, test_mech)
+        #test mechanisms are copied
+        self.assertEqual(type(self.component.mechanisms[tx.mechanism_type]),  type(test_mech[tx.mechanism_type]))
+        self.assertFalse(self.component.mechanisms[tx.mechanism_type] == test_mech[tx.mechanism_type])
 
-        # testing that custom mechanism is protected by the overwrite_custom_mechanisms=False flag
-        self.component.update_mechanisms(mechanisms=default_test_mech, overwrite_custom_mechanisms=False)
-        self.assertEqual(self.component.custom_mechanisms, test_mech)
+        #remove all mechanisms
+        self.component.mechanisms = {}
+        self.assertEqual(self.component.mechanisms, {})
 
-        # multiple mechanisms can be supplied with a list
+        #test add_mechanism
+        self.component.add_mechanism(tx, tx.mechanism_type)
+        self.component.add_mechanism(tl)
+        self.assertEqual(self.component.mechanisms.keys(), test_mech.keys())
+
+        #test add_mechanisms with list
+        self.component.mechanisms = {}
         test_mech_list = list(test_mech.values())
-        self.component.update_mechanisms(mechanisms=test_mech_list)
-        self.assertEqual(self.component.custom_mechanisms, test_mech)
-
-        # testing an invalid mechanism format
-        with self.assertRaisesRegexp(ValueError, 'Mechanisms must be passed as a list of instantiated objects or a '
-                                                 'dictionary {mechanism_type:mechanism instance}'):
-            self.component.update_mechanisms(mechanisms=(tx, tl))
+        self.component.add_mechanisms(test_mech_list)
+        self.assertEqual(self.component.mechanisms.keys(), test_mech.keys())
 
     def test_get_parameter(self):
 
         # testing an invalid parameter
-        with self.assertRaisesRegexp(ValueError, 'No parameters can be found that match the'):
+        with self.assertRaisesRegex(ValueError, 'No parameters can be found that match the'):
             self.component.get_parameter(param_name='kb')
 
         # Create Param Dict
-        kb, ku, ktx, ktl, kdeg, cooperativity = 100, 10, 3, 2, 1, 1
+        kb, ku, ktx, ktl, kdeg, cooperativity = 100, 10, 3, 2, 1, 4
         p_id = 'p10'
 
         parameters = {"kb": kb, "kdeg":kdeg,
@@ -128,7 +121,7 @@ class TestComponent(TestCase):
         # update the component parameters
         self.component.update_parameters(parameters=parameters)
 
-        tx = Transcription_MM()
+        tx = SimpleTranscription()
         # testing the different parameter definitions
         self.assertEqual(self.component.get_parameter(param_name='kb').value, kb)
         self.assertEqual(self.component.get_parameter(mechanism=tx, param_name='ktx').value, ktx)
@@ -144,7 +137,7 @@ class TestComponent(TestCase):
         self.assertEqual(self.component.get_parameter(param_name="kb").value, one_param["kb"])
 
         #testing a parameter which can't be found
-        with self.assertRaisesRegexp(ValueError, "No parameters can be found"):
+        with self.assertRaisesRegex(ValueError, "No parameters can be found"):
             self.component.get_parameter("not a parameter")
 
     def test_update_species(self):
@@ -156,3 +149,33 @@ class TestComponent(TestCase):
         # warning if update_reaction on a component object
         with self.assertWarnsRegex(Warning, f'Unsubclassed update_reactions called for {self.component}'):
             self.component.update_reactions()
+
+    def test_get_mechanism(self):
+        M1_comp = Mechanism(name = "m1_comp", mechanism_type = "shared")
+        M1_mix = Mechanism(name = "m1_mix", mechanism_type = "shared")
+        M2_comp = Mechanism(name = "m2_comp", mechanism_type = "comp")
+        M2_mix = Mechanism(name = "m2_mix", mechanism_type = "mixture")
+
+        #Create a Mixture and Component with the above mechanisms
+        C = Component(name = "comp", mechanisms = [M1_comp, M2_comp])
+        M = Mixture(mechanisms = [M1_mix, M2_mix], components = [C])
+
+        #Get the copy of C in M
+        C_copy = M.get_component(component = C)
+
+        self.assertTrue(C_copy.get_mechanism("shared").name == "m1_comp")
+        self.assertTrue(M.get_mechanism("shared").name == "m1_mix")
+        self.assertTrue(C_copy.get_mechanism("comp").name == "m2_comp")
+        self.assertTrue(C_copy.get_mechanism("mixture").name == "m2_mix")
+
+        #Make sure the Mixture get_mechanism works as well, just in case.
+        self.assertTrue(M.get_mechanism("comp") is None)
+
+        #test get Mechanism with no_key_error = False (Default)
+        with self.assertRaisesRegex(KeyError, "Unable to find mechanism of type"):
+            C_copy.get_mechanism("DNE")
+
+        #test get_mechanism with no_key_error = True
+        self.assertTrue(C_copy.get_mechanism("DNE", optional_mechanism = True) is None)
+
+

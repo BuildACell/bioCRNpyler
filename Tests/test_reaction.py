@@ -98,7 +98,30 @@ def test_old_reaction_interface_massaction():
 
 
 def test_old_reaction_interface_non_massaction():
-    pass
-    A = Species(name="A")
-    #with pytest.raises(NotImplementedError, match='Only massaction kinetic is supported with the old interface'):
-    #    Reaction([], [A, A], k=100, propensity_type='hillpositive')
+    kb = 100
+    ku = 10
+    kex = 1.
+
+    G = Species(name="G", material_type="dna") #DNA
+    A = Species(name="A", material_type="protein") #Activator
+    X = Species(name="X", material_type="protein")
+
+    # hill positive
+    with pytest.deprecated_call():
+        Reaction([G], [G, X], propensity_type="hillpositive",
+                 propensity_params={"k": kex, "n": 2.0, "K": float(kb/ku), "s1": A})
+
+    # proportional hill positive
+    with pytest.deprecated_call():
+        Reaction([G], [G, X], propensity_type="proportionalhillpositive",
+                 propensity_params={"k": kex, "n": 2.0, "K": float(kb/ku), "s1": A, "d": G})
+
+    # hill Negative
+    with pytest.deprecated_call():
+        Reaction([G], [G, X], propensity_type="hillnegative",
+                 propensity_params={"k": kex, "n": 2.0, "K": float(kb/ku), "s1": A})
+
+    # proportional hill negative
+    with pytest.deprecated_call():
+        Reaction([G], [G, X], propensity_type="proportionalhillnegative",
+                 propensity_params={"k": kex, "n": 2.0, "K": float(kb/ku), "s1": A, "d": G})

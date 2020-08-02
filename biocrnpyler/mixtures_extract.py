@@ -8,8 +8,8 @@ from .components_basic import DNA, RNA, Protein, ChemicalComplex
 from .mechanism import EmptyMechanism
 from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
 from .mechanisms_binding import One_Step_Binding
-from .mechanisms_txtl import Transcription_MM, Translation_MM, Degredation_mRNA_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
-from .global_mechanism import Dilution
+from .mechanisms_txtl import Transcription_MM, Translation_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
+from .global_mechanism import Dilution, Degredation_mRNA_MM
 from .mixture import Mixture
 from .chemical_reaction_network import ChemicalReactionNetwork
 from .species import Species
@@ -17,15 +17,21 @@ from .dna_assembly import DNAassembly
        
 
 class ExpressionExtract(Mixture):
-    """A Model for Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.)
+    """A Model for Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.).
 
     Here transcription and Translation are lumped into one reaction: expression.
     """
-    def __init__(self, name="", mechanisms=None, components=None, **kwargs):
+    def __init__(self, name="", **kwargs):
+        """Initializes an ExpressionExtract instance.
 
-        if components is None:
-            components = []
-        dummy_translation = EmptyMechanism(name = "dummy_translation", mechanism_type = "translation")
+        :param name: name of the mixture
+        :param kwargs: keywords passed into the parent Class (Mixture)
+        """
+        # always call the superlcass Mixture.__init__(...)
+        Mixture.__init__(self, name=name, **kwargs)
+
+        # Create default Expression Mechanisms
+        dummy_translation = EmptyMechanism(name="dummy_translation", mechanism_type="translation")
         mech_expression = OneStepGeneExpression()
         mech_cat = BasicCatalysis()
         mech_bind = One_Step_Binding()
@@ -37,23 +43,23 @@ class ExpressionExtract(Mixture):
             mech_bind.mechanism_type: mech_bind
         }
 
-        default_components = []
-        Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
-                        components=components+default_components, **kwargs)
+        self.add_mechanisms(default_mechanisms)
 
-    #Overwriting compile_crn to turn off transcription in all DNAassemblies
     def compile_crn(self) -> ChemicalReactionNetwork:
+        """Overwriting compile_crn to turn off transcription in all DNAassemblies
 
+        :return: compiled CRN instance
+        """
         for component in self.components:
             if isinstance(component, DNAassembly):
-                #Only turn off transcription for an Assembly that makes a Protein. 
-                #Some assemblies might only make RNA!
+                # Only turn off transcription for an Assembly that makes a Protein.
+                # Some assemblies might only make RNA!
                 if component.protein is not None:
-                     #This will turn off transcription and set Promoter.transcript = False
-                     #Mechanisms that recieve no transcript but a protein will use the protein instead.
+                    # This will turn off transcription and set Promoter.transcript = False
+                    # Mechanisms that recieve no transcript but a protein will use the protein instead.
                     component.update_transcript(False)
 
-        #Call the superclass function
+        # Call the superclass function
         return Mixture.compile_crn(self)
 
 
@@ -63,11 +69,16 @@ class SimpleTxTlExtract(Mixture):
     RNA is degraded via a global mechanism.
     """
 
-    def __init__(self, name="", mechanisms=None, components=None, **kwargs):
+    def __init__(self, name="", **kwargs):
+        """Initializes a SimpleTxTlExtract instance.
 
-        if components is None:
-             components = []
+        :param name: name of the mixture
+        :param kwargs: keywords passed into the parent Class (Mixture)
+        """
+        # Always call the superlcass Mixture.__init__(...)
+        Mixture.__init__(self, name=name, **kwargs)
 
+        # TxTl Mechanisms
         mech_tx = SimpleTranscription()
         mech_tl = SimpleTranslation()
         mech_cat = BasicCatalysis()
@@ -79,13 +90,12 @@ class SimpleTxTlExtract(Mixture):
             mech_cat.mechanism_type: mech_cat,
             mech_bind.mechanism_type: mech_bind
         }
+        self.add_mechanisms(default_mechanisms)
 
-        mech_rna_deg_global = Dilution(name = "rna_degredation", filter_dict = {"rna":True}, default_on = False)
-        global_mechanisms = {"rna_degredation":mech_rna_deg_global}
-
-        default_components = []
-        Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
-                        components=components+default_components, global_mechanisms= global_mechanisms, **kwargs)
+        # global mechanisms for dilution and rna degredation
+        mech_rna_deg_global = Dilution(name="rna_degredation", filter_dict={"rna": True}, default_on=False)
+        global_mechanisms = {"rna_degredation": mech_rna_deg_global}
+        self.add_mechanisms(global_mechanisms)        
 
 
 class TxTlExtract(Mixture):
@@ -93,28 +103,38 @@ class TxTlExtract(Mixture):
 
     This model does not include any energy
     """
-    def __init__(self, name="", mechanisms=None, components=None,
-                 rnap="RNAP", ribosome="Ribo", rnaase="RNAase", **kwargs):
+    def __init__(self, name="", rnap="RNAP", ribosome="Ribo", rnaase="RNAase", **kwargs):
+        """Initializes a TxTlExtract instance.
+
+        :param name: name of the mixture
+        :param rnap: name of the RNA polymerase, default: RNAP
+        :param ribosome: name of the ribosome, default: Ribo
+        :param rnaase: name of the Ribonuclease, default: RNAase
+        :param kwargs: keywords passed into the parent Class (Mixture)
+        """
+        # Always call the superlcass Mixture.__init__(...)
+        Mixture.__init__(self, name=name, **kwargs)
         
+        # create default Components to represent cellular machinery
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
         self.rnaase = Protein(rnaase)
 
-        if components is None:
-            components = []
-
         init = kwargs.get('init')
         if init:
-            self.rnap.get_species().initial_concentration = init[rep(rnap)]
+            self.rnap.get_species().initial_concentration = init[repr(rnap)]
             self.rnaase.get_species().initial_concentration = init[repr(rnaase)]
             self.ribosome.get_species().initial_concentration = init[repr(ribosome)]
 
-        mech_tx = Transcription_MM(rnap = self.rnap.get_species())
-        mech_tl = Translation_MM(ribosome = self.ribosome.get_species())
-        mech_rna_deg = Degredation_mRNA_MM(nuclease = self.rnaase.get_species()) 
+        default_components = [self.rnap, self.ribosome, self.rnaase]
+        self.add_components(default_components)
+
+        # Create default TxTl Mechanisms
+        mech_tx = Transcription_MM(rnap=self.rnap.get_species())
+        mech_tl = Translation_MM(ribosome=self.ribosome.get_species())
+        mech_rna_deg = Degredation_mRNA_MM(nuclease=self.rnaase.get_species())
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
-
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
@@ -123,7 +143,4 @@ class TxTlExtract(Mixture):
             mech_cat.mechanism_type: mech_cat,
             mech_bind.mechanism_type: mech_bind
         }
-
-        default_components = [self.rnap, self.ribosome, self.rnaase]
-        Mixture.__init__(self, name=name, default_mechanisms=default_mechanisms, mechanisms=mechanisms, 
-                        components=components+default_components, **kwargs)
+        self.add_mechanisms(default_mechanisms)
