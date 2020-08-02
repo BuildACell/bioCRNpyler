@@ -1,5 +1,5 @@
 # BioCRNPyler -- Biomolecular Chemical Reaction Network Compiler
-## Python toolbox to create CRN models in SBML for biomolecular mechanisms 
+## Python toolbox to create CRN models in SBML for biomolecular mechanisms
 
 [![Build Status](https://travis-ci.com/BuildACell/BioCRNPyler.svg?branch=master)](https://travis-ci.com/BuildACell/BioCRNPyler)
 [![codecov](https://codecov.io/gh/BuildACell/BioCRNPyler/branch/master/graph/badge.svg)](https://codecov.io/gh/BuildACell/BioCRNPyler)
@@ -64,6 +64,13 @@ Or, even better, fork the repository on [GitHub](https://github.com/BuildACell/B
 and create a pull request (PR). We welcome all changes, big or small, and we
 will help you make the PR if you are new to `git` (just ask on the issue and/or
 see `docs/CONTRIBUTING.md`).
+
+# Versions
+
+BioCRNpyler versions:
+
+* 1.0.0 (latest stable release): To install run `pip install biocrnpyler` 
+* 0.2.1 (alpha release): To install run `pip install biocrnpyler==0.2.1`
 
 # License
 Released under the BSD 3-Clause License (see `LICENSE`)

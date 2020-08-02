@@ -37,7 +37,7 @@ from .dna_construct import *
 from .crnlab import *
 
 
-# Additional functions
+# SBML functions
 from .sbmlutil import *
 from .plotting import *
 #checking for nonexistant plotting-related modules now happens in plotting.py

@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'BioCRNPyler'
-copyright = '2019, William Poole, Ayush Pandey, Zoltan Tuza'
-author = 'William Poole, Ayush Pandey, Zoltan Tuza'
+copyright = '2020, William Poole, Ayush Pandey, Andrey Shur, Zoltan Tuza, Richard M. Murray'
+author = 'William Poole, Ayush Pandey, Andrey Shur, Zoltan Tuza, Richard M. Murray'
 
 # The short X.Y version
-version = ''
+version = '1.0'
 # The full version, including alpha/beta/rc tags
-release = ''
+release = '1.0.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -129,7 +129,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'BioCRNPyler.tex', 'BioCRNPyler Documentation',
-     'William Poole, Ayush Pandey, Zoltan Tuza', 'manual'),
+     'William Poole, Ayush Pandey, Andrey Shur, Zoltan Tuza, Richard M. Murray', 'manual'),
 ]
 
 
