@@ -11,10 +11,11 @@ and study of the structure, dynamics, and functions
 of complex networks.
 
 - **Website:** https://github.com/BuildACell/BioCRNPyler
-- **Mailing list:** TBA
+- **Mailing list:** [SBTools Google Group](https://groups.google.com/g/sbtools/) Email: sbtools@googlegroups.com
 - **Source:** https://github.com/BuildACell/BioCRNPyler
 - **Bug reports:** https://github.com/BuildACell/BioCRNPyler/issues
 - **Documentation** [biocrnpyler.readthedocs.io](https://readthedocs.org/projects/biocrnpyler/)
+- **Slack** Join the [#biocrnpyler] channel on SBTools slack [here](https://join.slack.com/t/sbtools/shared_invite/zt-g82qjmvm-GAsNFLjyXGPlRBapqGDgFg)
 
 # Simple example
 
