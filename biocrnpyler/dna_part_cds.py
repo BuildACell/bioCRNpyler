@@ -1,7 +1,12 @@
-from .component import Component
+
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
+# See LICENSE file in the project root directory for details.
+
 from .chemical_reaction_network import Species
-from .components_basic import Protein
+from .component import Component
 from .dna_part import DNA_part
+
+
 class CDS(DNA_part):
     def __init__(self,name,protein,no_stop_codons=None, **keywords):
         """a CDS is a sequence of DNA that codes for a protein"""

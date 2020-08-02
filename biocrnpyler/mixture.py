@@ -2,17 +2,17 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-from warnings import warn
-from warnings import resetwarnings
-from .parameter import ParameterDatabase
-from .component import Component
-from .chemical_reaction_network import ChemicalReactionNetwork
-from .species import Species
-from .reaction import Reaction
-from .mechanism import Mechanism
-from .global_mechanism import GlobalMechanism
 import copy
 from typing import List, Union
+from warnings import resetwarnings, warn
+
+from .chemical_reaction_network import ChemicalReactionNetwork
+from .component import Component
+from .global_mechanism import GlobalMechanism
+from .mechanism import Mechanism
+from .parameter import ParameterDatabase
+from .reaction import Reaction
+from .species import Species
 
 
 class Mixture(object):

@@ -1,7 +1,6 @@
-from warnings import warn
-from .mechanism import *
-from .species import Species, Complex
+from .mechanism import Mechanism
 from .reaction import Reaction
+from .species import Complex
 
 
 class BasicCatalysis(Mechanism):

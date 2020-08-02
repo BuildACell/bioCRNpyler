@@ -1,15 +1,16 @@
+
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from warnings import warn
-from .species import Species, ComplexSpecies
-from .reaction import Reaction
-from .parameter import ParameterDatabase, ParameterEntry, Parameter
-from typing import List, Union
-from .mechanism import Mechanism
-from .global_mechanism import GlobalMechanism
 import copy
 from numbers import Real
+from typing import List, Union
+from warnings import warn
+
+from .global_mechanism import GlobalMechanism
+from .mechanism import Mechanism
+from .parameter import Parameter, ParameterDatabase
+from .species import Species
 
 
 class Component(object):

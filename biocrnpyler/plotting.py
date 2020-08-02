@@ -6,21 +6,18 @@
 # Copyright (c) 2018, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
+import math
 import random
 import statistics
-
-import math
-
-from .propensities import MassAction, Hill
-
-from .components_basic import Protein
-from .dna_part_promoter import Promoter
-from .dna_part_rbs import RBS
-from .dna_part_cds import CDS
-from .dna_part_terminator import Terminator
-from .dna_part_misc import AttachmentSite
 from warnings import warn
 
+from .components_basic import Protein
+from .dna_part_cds import CDS
+from .dna_part_misc import AttachmentSite
+from .dna_part_promoter import Promoter
+from .dna_part_rbs import RBS
+from .dna_part_terminator import Terminator
+from .propensities import MassAction
 
 HAVE_MATPLOTLIB = False
 try:
@@ -43,10 +40,12 @@ if(PLOT_DNA and not HAVE_MATPLOTLIB):
 PLOT_NETWORK = False
 try:
     import networkx as nx
-    from bokeh.models import (BoxSelectTool, Circle,Square, EdgesAndLinkedNodes, HoverTool,
-                            MultiLine, NodesAndLinkedEdges, Plot, Range1d, TapTool,PanTool,WheelZoomTool)
-    from bokeh.palettes import Spectral4
+    from bokeh.models import (BoxSelectTool, Circle, EdgesAndLinkedNodes,
+                              HoverTool, MultiLine, NodesAndLinkedEdges,
+                              PanTool, Plot, Range1d, Square, TapTool,
+                              WheelZoomTool)
     from bokeh.models.graphs import from_networkx
+    from bokeh.palettes import Spectral4
     from fa2 import ForceAtlas2
     PLOT_NETWORK = True
 except ModuleNotFoundError:

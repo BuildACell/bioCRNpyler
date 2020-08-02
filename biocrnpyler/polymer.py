@@ -4,6 +4,7 @@ These classes are used by Chemical Reaction Network Species as well as certain C
 """
 import copy
 
+
 class OrderedPolymer:
 
     """a polymer made up of OrderedMonomers that has a specific order"""

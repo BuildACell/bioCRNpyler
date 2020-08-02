@@ -6,12 +6,16 @@
 #
 ################################################################
 
-from .component import Component
-from .polymer import OrderedPolymer,OrderedMonomer
-from .species import Species
-from warnings import warn
 
-class DNA_part(Component,OrderedMonomer):
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
+# See LICENSE file in the project root directory for details.
+
+from .component import Component
+from .polymer import OrderedMonomer, OrderedPolymer
+from .species import Species
+
+
+class DNA_part(Component, OrderedMonomer):
     def __init__(self,name,mechanisms=None,parameters=None,**keywords):
         """this represents a modular component sequence. These get compiled into working components"""
         Component.__init__(self=self, name = name, mechanisms = mechanisms,

@@ -1,18 +1,19 @@
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from .component import Component
-from .components_basic import DNA, RNA, Protein
-from .species import ComplexSpecies, Species
-from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
-from warnings import warn
-import itertools as it
-from .mixture import Mixture
-from .dna_part_promoter import *
-from .dna_part_rbs import *
-from .parameter import ParameterDatabase
 import copy
 from typing import List, Union
+
+from .component import Component
+from .components_basic import DNA, RNA, Protein
+from .dna_part_promoter import Promoter
+from .dna_part_rbs import RBS
+from .mechanism import Mechanism
+from .mixture import Mixture
+from .parameter import ParameterDatabase
+from .reaction import Reaction
+from .species import Species
+
 
 class DNAassembly(DNA):
     """A class that contains a Promoter, RBS, transcript, and protein."""

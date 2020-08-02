@@ -4,12 +4,12 @@
 # Copyright (c) 2018, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-import libsbml
-from random import randint
 import logging
+from random import randint
 from typing import List
 from warnings import warn
 
+import libsbml
 
 # Reaction ID number (global)
 reaction_id = 0
