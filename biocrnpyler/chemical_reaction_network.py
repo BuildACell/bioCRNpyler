@@ -232,70 +232,6 @@ class ChemicalReactionNetwork(object):
             f.write(sbml_string)
         return True
 
-
-    #Commenting this out for now - hopefully will remove fully soon
-    #
-
-    """
-    def create_bioscrape_model(self):
-        #Creates a Bioscrape Model of the CRN directly.
-        
-        from bioscrape.types import Model
-
-        species_list = []
-        initial_condition_dict = {}
-        for s in self.species:
-            species_list.append(repr(s))
-            if s.initial_concentration is None:
-                initial_condition_dict[repr(s)] = 0
-            else:
-                initial_condition_dict[repr(s)] = s.initial_concentration
-
-        reaction_list = []
-        reaction_counter = 0
-        rate_list = []
-        for rxn in self.reactions:
-
-            reactants = []
-            for i in range(len(rxn.inputs)):
-                reactants += [repr(rxn.inputs[i])]*int(rxn.input_coefs[i])
-            products = []
-            for i in range(len(rxn.outputs)):
-                products += [repr(rxn.outputs[i])]*int(rxn.output_coefs[i])
-
-            prop_type = rxn.propensity_type
-            if rxn.propensity_params is None:
-                prop_params = {}
-            else:
-                prop_params = {}
-                for k in rxn.propensity_params:
-                    v = rxn.propensity_params[k]
-                    if isinstance(v, Species):
-                        prop_params[k] = repr(v)
-                    elif isinstance(v, str):
-                        prop_params[k] = v
-                    else:
-                        prop_params[k] = float(v)
-
-
-            prop_params['propensity_type'] = rxn.propensity_type
-            prop_params['k'] = rxn.k
-
-            reaction_list.append((reactants, products, prop_type,
-                                  dict(prop_params)))
-
-            if rxn.is_reversible and rxn.propensity_type == "massaction":
-                prop_params['k'] = rxn.k_r
-                reaction_list.append((products, reactants, prop_type,
-                                      dict(prop_params)))
-            elif rxn.is_reversible:
-                raise ValueError("Only massaction irreversible reactions are "
-                                 "supported for automatic bioscrape simulation."
-                                 " Consider creating two seperate reactions.")
-        model = Model(species = species_list, reactions = reaction_list,
-                      initial_condition_dict = initial_condition_dict)
-        return model"""
-
     def simulate_with_bioscrape(self, timepoints, initial_condition_dict=None,
                                 stochastic = False, return_dataframe = True,
                                 safe = False):
@@ -311,26 +247,7 @@ class ChemicalReactionNetwork(object):
             safe = safe, stochastic = stochastic)
 
         return result
-        """
-        OLD CODE BELOW
-        try:
 
-            from bioscrape.simulator import py_simulate_model
-            m = self.create_bioscrape_model()
-            if not initial_condition_dict:
-                initial_condition_dict = {}
-            m.set_species(initial_condition_dict)
-            if not stochastic and safe:
-                safe = False
-                
-            result = py_simulate_model(timepoints, Model = m,
-                                        stochastic = stochastic,
-                                        return_dataframe = return_dataframe,
-                                        safe = safe)
-        except ModuleNotFoundError:
-            warnings.warn('bioscrape was not found, please install bioscrape')
-
-        return result"""
 
     def simulate_with_bioscrape_via_sbml(self, timepoints, filename = None,
                 initial_condition_dict = None, return_dataframe = True,
@@ -359,8 +276,7 @@ class ChemicalReactionNetwork(object):
                 sbml_warnings = kwargs.get('sbml_warnings')
             else:
                 sbml_warnings = False
-            m = Model(sbml_filename = file_name)
-            #, sbml_warnings = sbml_warnings)
+            m = Model(sbml_filename = file_name, sbml_warnings = sbml_warnings)
             # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
             if initial_condition_dict is not None:
                 m.set_species(initial_condition_dict)
@@ -389,7 +305,6 @@ class ChemicalReactionNetwork(object):
         res_ar = None
         try:
             import roadrunner
-
             rr = roadrunner.RoadRunner(filename)
             result = rr.simulate(timepoints[0],timepoints[-1],len(timepoints))
             # TODO fix roadrunner output

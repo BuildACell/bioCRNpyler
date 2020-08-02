@@ -24,8 +24,8 @@ setup(
     install_requires=[
           "python-libsbml",
           ],
-    extras_require={
-        'all': [
+    extras_require = { 
+        "all": [
             "numpy",
             "matplotlib",
             "networkx",
