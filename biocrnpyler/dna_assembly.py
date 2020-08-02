@@ -7,14 +7,12 @@ from .species import ComplexSpecies, Species
 from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
 from warnings import warn
 import itertools as it
-import numpy as np
 from .mixture import Mixture
 from .dna_part_promoter import *
 from .dna_part_rbs import *
 from .parameter import ParameterDatabase
 import copy
 from typing import List, Union
-
 
 class DNAassembly(DNA):
     """A class that contains a Promoter, RBS, transcript, and protein."""

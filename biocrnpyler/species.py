@@ -3,7 +3,6 @@
 
 from .sbmlutil import *
 import warnings
-import numpy as np
 from typing import List, Union, Dict
 import itertools
 import copy

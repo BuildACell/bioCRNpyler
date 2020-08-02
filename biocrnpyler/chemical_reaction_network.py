@@ -3,7 +3,6 @@
 
 from .reaction import *
 import warnings
-import numpy as np
 from typing import List, Union, Dict, Tuple
 import copy
 from .polymer import OrderedPolymer, OrderedMonomer
@@ -386,7 +385,8 @@ class ChemicalReactionNetwork(object):
 
             rr = roadrunner.RoadRunner(filename)
             result = rr.simulate(timepoints[0],timepoints[-1],len(timepoints))
-            res_ar = np.array(result)
+            # TODO fix roadrunner output
+            res_ar = result
         except ModuleNotFoundError:
             warnings.warn('libroadrunner was not found, please install libroadrunner')
         return res_ar
