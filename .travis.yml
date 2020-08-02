@@ -13,10 +13,17 @@ install:
   - pip install pytest-runner
   - pip install pytest-cov
   - pip install nbval
+  - pip install flake8-mutable
+  - pip install flake8
 
 # command to run tests
+# 1, pytest
+# 2, flake8 checks for default mutable argument
 script:
           - "python setup.py test"
+          - flake8  --select M biocrnpyler
+          - if [[ `flake8  --select M biocrnpyler` ]]; then >&2 echo "default mutable argument detected"; exit 1 ; fi
+
 
 # Push the results back to codecov
 after_success:

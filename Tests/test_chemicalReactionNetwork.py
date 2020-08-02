@@ -4,8 +4,10 @@
 
 from unittest import TestCase
 from unittest.mock import mock_open, patch
-from biocrnpyler import ChemicalReactionNetwork, Species, Reaction
+from biocrnpyler import ChemicalReactionNetwork, Species, Reaction, Complex
+from biocrnpyler import ProportionalHillPositive, ParameterEntry, ParameterKey
 import libsbml
+import warnings
 
 
 class TestChemicalReactionNetwork(TestCase):
@@ -17,16 +19,19 @@ class TestChemicalReactionNetwork(TestCase):
         self.s3 = Species(name='test_species3')
         self.s4 = Species(name='test_species4')
 
+        self.s_old = Species("s_old")
+        self.s_new = Species("s_new")
+
         self.species_list = [self.s1, self.s2]
         # creating a valid reaction two species
-        self.rx1 = Reaction(inputs=[self.s1], outputs=[self.s2], k=0.1)
+        self.rx1 = Reaction.from_massaction(inputs=[self.s1], outputs=[self.s2], k_forward=0.1)
         self.rxn_list = [self.rx1]
 
         self.crn = ChemicalReactionNetwork(species=self.species_list, reactions=self.rxn_list)
 
     def test_check_crn_validity(self):
 
-        checked_species, checked_reactions = ChemicalReactionNetwork.check_crn_validity(reactions=self.rxn_list,
+        checked_reactions, checked_species = ChemicalReactionNetwork.check_crn_validity(reactions=self.rxn_list,
                                                                                         species=self.species_list)
         # test that the returned species list is the same as the species list supplied
         self.assertEqual(self.species_list, checked_species)
@@ -39,34 +44,46 @@ class TestChemicalReactionNetwork(TestCase):
         # test whether a non-species object is detected and Value error has been raised
         #                                         A non-species object was used as a species: [test_species1, test_species2, None]!"'
         #                                         A non-species object was used as a species: [test_species1, test_species2, None]!"
-        with self.assertRaisesRegexp(ValueError, "A non-species object was used as a species!"):
+        with self.assertRaisesRegex(ValueError, "A non-species object was used as a species!"):
             ChemicalReactionNetwork.check_crn_validity(reactions=self.rxn_list, species=species_list_with_none)
 
         rxn_list_with_none = self.rxn_list.copy()
         # injecting a None to the reaction list
         rxn_list_with_none.append(None)
         # test whether a non-reaction object is detected and Value Error has been raised
-        with self.assertRaisesRegexp(ValueError, 'A non-reaction object was used as a reaction!'):
+        with self.assertRaisesRegex(ValueError, 'A non-reaction object was used as a reaction!'):
             ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list_with_none, species=self.species_list)
 
-        rxn2 = Reaction(inputs=[self.s1], outputs=[self.s3], k=0.1)
+        rxn2 = Reaction.from_massaction(inputs=[self.s1], outputs=[self.s3], k_forward=0.1)
         # test warning raised if a species (in the reaction outputs) is detected which is not part of the species list
-        with self.assertWarnsRegex(Warning, f'contains a species {self.s3.name} which is not in the CRN'):
-            ChemicalReactionNetwork.check_crn_validity(reactions=[rxn2], species=self.species_list, warnings=True)
+        with self.assertWarnsRegex(Warning, f'are not part of any reactions in the CRN'):
+            ChemicalReactionNetwork.check_crn_validity(reactions=[rxn2], species=self.species_list, show_warnings=True)
 
-        rxn3 = Reaction(inputs=[self.s4], outputs=[self.s2], k=0.1)
+        rxn3 = Reaction.from_massaction(inputs=[self.s4], outputs=[self.s2], k_forward=0.1)
         # test warning raised if a species (in the reaction inputs) is detected which is not part of the species list
-        with self.assertWarnsRegex(Warning, f'contains a species {self.s4.name} which is not in the CRN'):
-            ChemicalReactionNetwork.check_crn_validity(reactions=[rxn3], species=self.species_list, warnings=True)
+        with self.assertWarnsRegex(Warning, f'are not part of any reactions in the CRN'):
+            ChemicalReactionNetwork.check_crn_validity(reactions=[rxn3], species=self.species_list, show_warnings=True)
 
-        # test duplicate reactions
+        # test warning if reaction has unlisted species
+        rxn4 = Reaction.from_massaction(inputs=[self.s4, self.s3], outputs=[self.s2], k_forward=0.1)
+        with self.assertWarnsRegex(Warning, f'are not listed in the Species list, but part of the reactions'):
+            ChemicalReactionNetwork.check_crn_validity(reactions=[rxn4], species=[self.s4, self.s2], show_warnings=True)
+
+        # test duplicate reactions are both added
         rxn_list = [self.rx1, self.rx1]
-        with self.assertWarnsRegex(Warning, 'may be duplicated in CRN definitions'):
-            ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list, species=self.species_list, warnings=True)
 
-    def test_species_index(self):
-        # TODO add test if we actually use this function
-        pass
+        CRN = ChemicalReactionNetwork(species = [self.s1, self.s2], reactions = rxn_list)
+        self.assertTrue(CRN.reactions.count(self.rx1) == 2)
+
+        with self.assertWarnsRegex(Warning, 'may be duplicated in CRN definitions'):
+            ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list, species=self.species_list, show_warnings=True)
+
+        # test warning suppression
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            ChemicalReactionNetwork.check_crn_validity(reactions=rxn_list, species=self.species_list, show_warnings=False)
+
+        assert not w
 
     def test_initial_condition_vector(self):
 
@@ -85,7 +102,7 @@ class TestChemicalReactionNetwork(TestCase):
     def test_get_all_species_containing(self):
 
         # test that the species arument must be Species object
-        with self.assertRaisesRegexp(ValueError, 'species argument must be an instance of Species!'):
+        with self.assertRaisesRegex(ValueError, 'species argument must be an instance of Species!'):
             self.crn.get_all_species_containing(species=self.species_list)
 
         # s3 is not part of the CRN
@@ -101,36 +118,73 @@ class TestChemicalReactionNetwork(TestCase):
         rtn_species_list = self.crn.get_all_species_containing(species=self.s1, return_as_strings=True)
         self.assertEqual(rtn_species_list, [repr(self.s1)])
 
-    def test_generate_sbml_model(self):
+    def test_replace_species_in_Species(self):
 
-        # generate an sbml model
-        document, model = self.crn.generate_sbml_model()
-        # all species from the CRN are accounted for
-        self.assertEqual(len(model.getListOfSpecies()), len(self.crn.species))
-        # all reactions from the CRN are accounted for
-        self.assertEqual(len(model.getListOfReactions()), len(self.crn.reactions))
+        #Test replace species in a Species
+        self.assertTrue(self.s1.replace_species(self.s2, self.s_new) == self.s1)
+        self.assertTrue(self.s_old.replace_species(self.s_old, self.s_new) == self.s_new)
 
-        # test a reversible reaction
-        rx1 = Reaction(inputs=[self.s1], outputs=[self.s2], k=0.1, k_rev=0.1)
-        rxn_list = [rx1]
-        crn = ChemicalReactionNetwork(species=self.species_list, reactions=rxn_list)
+    def test_replace_Species_in_ComplexSpecies(self):
+        c1 = Complex([self.s1, self.s_old])
+        c2 = Complex([self.s1, c1])
+        self.assertTrue(c1.replace_species(self.s2, self.s_new) == c1)
+        self.assertTrue(c1.replace_species(self.s_old, self.s_new) == Complex([self.s1, self.s_new]))
+        self.assertTrue(c2 == Complex([self.s1, c1]))
+        self.assertTrue(c2.replace_species(self.s_new, self.s_old) == Complex([self.s1, Complex([self.s1, self.s_old])]))
 
-        # generate an sbml model
-        document, model = crn.generate_sbml_model()
-        # all species from the CRN are accounted for
-        self.assertEqual(len(model.getListOfSpecies()), len(crn.species))
-        # all reactions from the CRN are accounted for
-        # the sbml represents a reverisble reaction with to separate reactions
-        self.assertEqual(len(model.getListOfReactions()), 2*len(crn.reactions))
+    def test_replace_Species_in_OrderedComplexSpecies(self):
+        oc1 = Complex([self.s1, self.s_old], ordered = True)
+        self.assertTrue(oc1.replace_species(self.s_old, self.s_new) == Complex([self.s1, self.s_new], ordered = True))
+
+    def test_replace_species_in_Reaction(self):
+        c1 = Complex([self.s1, self.s_old])
+        c2 = Complex([self.s1, self.s_new])
+        r1 = Reaction.from_massaction([self.s1, self.s_old], [c1], k_forward=1)
+        self.assertTrue(r1.replace_species(self.s_old, self.s_new) == Reaction.from_massaction([self.s1, self.s_new], [c2], k_forward=1))
+
+    def test_replace_species_with_a_non_massaction_reaction(self):
+        c1 = Complex([self.s1, self.s_old])
+
+        prop_hill_old = ProportionalHillPositive(k=1., s1=self.s1, K=10, d=self.s_old, n=2)
+        r1 = Reaction([self.s1, self.s_old], [c1], propensity_type=prop_hill_old)
+        prop_hill_new = ProportionalHillPositive(k=1., s1=self.s1, K=10, d=self.s_new, n=2)
+        r1_new = Reaction([self.s1, self.s_new], [c1.replace_species(self.s_old, self.s_new)], propensity_type=prop_hill_new)
+        self.assertTrue(r1.replace_species(self.s_old, self.s_new) == r1_new)
+
+    def test_replace_in_a_chemical_reaction_network(self):
+        c1 = Complex([self.s1, self.s_old])
+        c2 = Complex([self.s1, c1])
+        species = [self.s1, self.s_old, c1, c2]
+        r1 = Reaction.from_massaction([self.s1, self.s_old], [c1], k_forward=1)
+        crn = ChemicalReactionNetwork(species = species, reactions = [r1])
+        new_crn = crn.replace_species(self.s_old, self.s_new)
+
+        self.assertTrue(self.s1 in new_crn.species)
+        self.assertFalse(self.s_old in new_crn.species)
+
+        self.assertTrue(self.s_new in new_crn.species)
+        self.assertFalse(c1 in new_crn.species)
+        self.assertFalse(c2 in new_crn.species)
+        c1_new = Complex([self.s1, self.s_new])
+        c2_new = Complex([self.s1, c1_new])
+        self.assertTrue(c1_new in new_crn.species)
+        self.assertTrue(c2_new in new_crn.species)
+        r1_new = Reaction.from_massaction([self.s1, self.s_new], [c1_new], k_forward=1)
+        self.assertFalse(r1 in new_crn.reactions)
+        self.assertTrue(r1_new in new_crn.reactions)
 
     def test_write_sbml_file(self):
+        s1, s2 = Species("S1"), Species("S2")
+        rx1 = Reaction.from_massaction(inputs=[s1], outputs=[s2], k_forward=0.1)
+        crn = ChemicalReactionNetwork(species = [s1, s2], reactions = [rx1])
 
-        document, _ = self.crn.generate_sbml_model(model_id = 'test_model')
+        model_id = 'test_model'
+        document, _ = crn.generate_sbml_model(model_id=model_id)
         sbml_string = libsbml.writeSBMLToString(document)
 
         file_name = 'test_sbml.xml'
         with patch("builtins.open", new=mock_open()) as _file:
-            self.crn.write_sbml_file(file_name, model_id = 'test_model')
+            crn.write_sbml_file(file_name, model_id=model_id)
 
             _file.assert_called_once_with(file_name, 'w')
             _file().write.assert_called_once_with(sbml_string)

@@ -4,15 +4,15 @@
 # This file contains some utility functions for manipulating and using
 # paths for finding models and configuration files.
 #
-# Copyright (c) 2018, Build-A-Cell. All rights reserved.
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
 from importlib import import_module
 
 
 def load_model(prefix, name, length):
-    """
-    Load a model from a file
+    """Load a model from a file.
+
     Look to see if we have a model for this component
     """
     #! Expand this to look in other locations

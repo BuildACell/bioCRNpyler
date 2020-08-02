@@ -1,246 +1,257 @@
-from .component import *
-from .chemical_reaction_network import Species, ComplexSpecies, OrderedComplexSpecies
-from .mechanism import *
-from .mechanisms_binding import *
 
-# These subclasses of Component represent different kinds of biomolecules.
+#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  See LICENSE file in the project root directory for details.
+
+from typing import List, Union
+
+from .component import Component
+from .reaction import Reaction
+from .species import Complex, Species
+
+
 class DNA(Component):
-    """DNA class
+    """The DNA class is used to represent a DNA sequence that has a given length.
 
-    The DNA class is used to represent a DNA sequence that has a given
-    length.  Its main purpose is as the parent object for DNA
-    fragments and DNA assemblies.
-
-    Note: for initialization of members of this class, the arguments
-    should be as follows:
-
-      DNA(name, length, [mechanisms], [config_file], [prefix])
-
-        DNAtype(name, required_arguments, [length], [mechanisms],
-                [config_file], [prefix], [optional_arguments])
-
-          DNAelement(name, required_arguments, [length], [mechanisms],
-                     [config_file], [optional_arguments])
-
-
-    Data attributes
-    ---------------
-    name        Name of the sequence (str)
-    length      Length of the sequence (int)
-    assy        DNA assembly that we are part of
-    mechanisms  Local mechanisms for this component (overrides defaults)
-    parameters  Parameter dictionary for the DNA element
-
+    Produces no reactions.
     """
 
-    def __init__(
-            self, name: str, length=0,  # positional arguments
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters
-            attributes=[],
-            initial_conc=None,
-            parameter_warnings = True,
-            **keywords
-    ):
-        self.species = Species(name, material_type="dna",
-                               attributes=list(attributes))
-        self._length = length
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc,
-                           parameter_warnings = parameter_warnings, **keywords)
+    def __init__(self, name: str, length=0, attributes=None, **keywords):
+        """Initialize a DNA object to store DNA related information.
 
-    def get_species(self):
+        :param name: Name of the sequence (str)
+        :param length: length of the basepairs (int)
+        :param attributes: Species attribute
+        :param keywords: pass into the parent's (Component) initializer
+        """
+        self.species = self.set_species(name, material_type="dna", attributes=attributes)
+        self.length = length
+        Component.__init__(self=self, name=name, **keywords)
+
+    def get_species(self) -> Species:
         return self.species
 
-    def update_species(self):
+    def update_species(self) -> List[Species]:
         species = [self.get_species()]
         return species
 
-    def update_reactions(self):
+    def update_reactions(self) -> List:
         return []
 
     @property
     def length(self):
-        return  self._length
+        return self._length
 
     @length.setter
     def length(self, dna_length):
-        if dna_length >= 0:
+        if dna_length is None:
+            self._length = dna_length
+        elif dna_length >= 0 and isinstance(dna_length, int):
             self._length = dna_length
         else:
             raise ValueError("Length cannot be negative!")
 
 
 class RNA(Component):
-    def __init__(
-            self, name: str, length=0,  # positional arguments
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters
-            attributes=[],
-            initial_conc=None,
-            **keywords
-    ):
-        self.length = length
-        self.species = Species(name, material_type="rna",
-                               attributes=list(attributes))
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc, **keywords)
+    """A class to represent Components made of RNA. Produces no reactions."""
 
-    def get_species(self):
+    def __init__(self, name: str, length=0, attributes=None, **keywords):
+        """Initialize a RNA object to store RNA related information
+
+        :param name: name of the rna
+        :param length: number of basepairs (int)
+        :param attributes: Species attribute
+        :param keywords: pass into the parent's (Component) initializer
+        """
+
+        self.length = length
+        self.species = self.set_species(name, material_type="rna",
+                                        attributes=attributes)
+        Component.__init__(self=self, name=name, **keywords)
+
+    def get_species(self) -> Species:
         return self.species
 
-    def update_species(self):
+    def update_species(self) -> List[Species]:
         species = [self.get_species()]
         return species
 
-    def update_reactions(self):
+    def update_reactions(self) -> List:
         return []
 
 
 class Protein(Component):
-    def __init__(
-            self, name: str, length=0,  # positional arguments
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters
-            attributes=[],
-            initial_conc=None,
-            **keywords
-    ):
+    """A class to represent Components made of Protein. Produces no reactions."""
+
+    def __init__(self, name: str, length=0, attributes=None, **keywords):
+        """Initialize a Protein object to store Protein related information.
+
+        :param name: name of the protein
+        :param length: length of the protein in number of amino acids
+        :param attributes: Species attribute
+        :param keywords: pass into the parent's (Component) initializer
+        """
+
         self.length = length
-        self.species = Species(name, material_type="protein",
-                               attributes=attributes)
+        self.species = self.set_species(name, material_type="protein",
+                                        attributes=attributes)
 
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc, **keywords)
+        Component.__init__(self=self, name=name, **keywords)
 
-    def get_species(self):
+    def get_species(self) -> Species:
         return self.species
 
-    def update_species(self):
+    def update_species(self) -> List[Species]:
         species = [self.get_species()]
         return species
 
-    def update_reactions(self):
+    def update_reactions(self) -> List:
         return []
 
 
 class ChemicalComplex(Component):
-    """
-    A complex forms when two or more species bind together
-    Complexes inherit the attributes of their species
-    """
-    def __init__(
-            self, species,  # positional arguments
-            name = None, #Override the default naming convention for a complex
-            mechanisms={},  # custom mechanisms
-            parameters={},  # customized parameters,
-            attributes=[],
-            initial_conc=None,
-            material_type = "complex",
-            **keywords
-    ):
+    """A complex forms when two or more species bind together Complexes inherit the attributes of their species."""
 
-        if len(species) < 2 or not isinstance(species, list):
-            raise ValueError("Species must be a list of Species, strings, Component objects.")
+    def __init__(self, species: List[Species], name: str=None, material_type="complex",
+                 attributes=None, **keywords):
+        """Initialize a ChemicalComplex object to store ChemicalComplex related information.
 
-        self.internal_species = [] #a list of species inside the complex
+        :param species: list of species inside a complex
+        :param name: name of the complex
+        :param material_type: option to rename the material_type, default: complex
+        :param attributes: Species attribute
+        :param keywords: pass into the parent's (Component) initializer
+        """
+        if not isinstance(species, list) or len(species) < 2:
+            raise ValueError(f"Invalid Species {species}. Species must be a list of Species, strings, Component objects.")
+
+        self.internal_species = []  # a list of species inside the complex
 
         for s in species:
             self.internal_species.append(self.set_species(s))
-
-        self.species = ComplexSpecies(species = self.internal_species, name = name, material_type=material_type, attributes=list(attributes))
-
+        if attributes is None:
+            attributes = []
+        self.species = Complex(species=self.internal_species, name=name, material_type=material_type, attributes=attributes)
+        
         if name is None:
             name = self.species.name
 
-        Component.__init__(self=self, name=name, mechanisms=mechanisms,
-                           parameters=parameters, attributes=attributes,
-                           initial_conc=initial_conc, **keywords)
+        Component.__init__(self=self, name=name, **keywords)
 
-    def get_species(self):
+    def get_species(self) -> List[Species]:
         return self.species
 
     def update_species(self) -> List[Species]:
 
-        mech_b = self.mechanisms['binding']
-
-        species = mech_b.update_species(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
+        mech_b = self.get_mechanism('binding')
+        bindee = self.internal_species[0]
+        binder = self.internal_species[1:]
+        species = mech_b.update_species(binder, bindee, complex_species=self.get_species(), component=self, part_id=self.name)
 
         return species
 
     def update_reactions(self) -> List[Reaction]:
 
-        mech_b = self.mechanisms['binding']
-
-        reactions = mech_b.update_reactions(self.internal_species, complex_species = self.get_species(), component = self, part_id = self.name)
+        mech_b = self.get_mechanism('binding')
+        bindee = self.internal_species[0]
+        binder = self.internal_species[1:]
+        reactions = mech_b.update_reactions(binder, bindee, complex_species=self.get_species(), component=self, part_id=self.name)
         
         return reactions
 
+
 class Enzyme(Component):
-    def __init__(self, enzyme, substrate, product, **keywords):
+    """A class to represent Enzymes.
+
+    Assumes the enzyme converts a single substrate to a single product.
+    Uses a mechanism called "catalysis"
+    """
+    def __init__(self, enzyme: Union[Species, str, Component],
+                 substrate: Union[Species, str, Component],
+                 product: Union[Species,str, Component], attributes=None, **keywords):
+        """Initialize an Enzyme object to store Enzyme related information.
+
+        :param enzyme: name of the enzyme, reference to an Species or Component
+        :param substrate: name of the enzyme, reference to an Species or Component
+        :param product: name of the product, reference to an Species or Component
+        :param attributes: Species attribute
+        :param keywords: pass into the parent's (Component) initializer
+        """
       
         # ENZYME NAME
-        self.enzyme = self.set_species(enzyme, material_type = 'protein')
+        self.enzyme = self.set_species(enzyme, material_type='protein', attributes=attributes)
     
         # SUBSTRATE
         if substrate is None:
             self.substrate = None
         else:
             self.substrate = self.set_species(substrate)
+
+        # PRODUCT
         if product is None:
             self.product = None
         else:
             self.product = self.set_species(product)
 
-      
-        Component.__init__(self = self, name = self.enzyme.name, **keywords)
+        Component.__init__(self=self, name=self.enzyme.name, **keywords)
     
     def get_species(self):
         return self.enzyme
 
     def update_species(self):
-        mech_cat = self.mechanisms['catalysis']
+        mech_cat = self.get_mechanism('catalysis')
 
         return mech_cat.update_species(self.enzyme, self.substrate, self.product) 
-                                                                                           
-    
-    def update_reactions(self):
-        mech_cat = self.mechanisms['catalysis']
 
-        return mech_cat.update_reactions(self.enzyme, self.substrate, self.product, component = self,  part_id = self.name)
+    def update_reactions(self):
+        mech_cat = self.get_mechanism('catalysis')
+
+        return mech_cat.update_reactions(self.enzyme, self.substrate, self.product, component=self,  part_id=self.name)
 
 
 class MultiEnzyme(Component):
-    def __init__(self, enzyme, substrates, products, **keywords):
+    """A class to represent Enzymes with multiple substrates and products.
+
+    Assumes the enzyme converts all substrates to a all products at once.
+    For example: S1 + S2 + E --> P1 + P2 + E.
+    For enzymes with multiple enzymatic reactions, create multiple Enzyme Components with the same internal species.
+    Uses a mechanism called "catalysis"
+    """
+    def __init__(self, enzyme: Union[Species, str, Component],
+                 substrates: List[Union[Species, str, Component]],
+                 products: List[Union[Species, str, Component]], attributes=None, **keywords):
+        """Initialize an MultiEnzyme object to store MultiEnzyme related information.
+
+        :param enzyme: name of the enzyme, reference to an Species or Component
+        :param substrate: list of (name of the enzyme, reference to an Species or Component)
+        :param product: list of (name of the product, reference to an Species or Component)
+        :param attributes: Species attribute
+        :param keywords: pass into the parent's (Component) initializer
+        """
       
         # ENZYME NAME
-        self.enzyme = self.set_species(enzyme, material_type = 'protein')
-    
-        # SUBSTRATE
+        self.enzyme = self.set_species(enzyme, material_type='protein', attributes=attributes)
+
+        # SUBSTRATE(s)
         self.substrates = []
         for substrate in substrates:
             self.substrates.append(self.set_species(substrate))
 
+        # PRODUCT(s)
         self.products = []
         for product in products:
             self.products.append(self.set_species(product))
       
-        Component.__init__(self = self, name = self.enzyme.name, **keywords)
+        Component.__init__(self=self, name=self.enzyme.name, **keywords)
     
     def get_species(self):
         return self.enzyme
 
     def update_species(self):
-        mech_cat = self.mechanisms['catalysis']
+        mech_cat = self.get_mechanism('catalysis')
 
-        return mech_cat.update_species(self.enzyme, self.substrates, self.products) 
-                                                                                           
-    
+        return mech_cat.update_species(self.enzyme, self.substrates, self.products)
+
     def update_reactions(self):
-        mech_cat = self.mechanisms['catalysis']
+        mech_cat = self.get_mechanism('catalysis')
 
-        return mech_cat.update_reactions(self.enzyme, self.substrates, self.products, component = self,  part_id = self.name)
-
+        return mech_cat.update_reactions(self.enzyme, self.substrates, self.products, component=self,  part_id=self.name)

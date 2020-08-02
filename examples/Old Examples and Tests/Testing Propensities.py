@@ -1,9 +1,11 @@
 from biocrnpyler.chemical_reaction_network import Species, Reaction, ComplexSpecies, ChemicalReactionNetwork
+from biocrnpyler.propensities import MassAction, ProportionalHillPositive, ProportionalHillNegative, HillNegative, HillPositive, Propensity
 
 print("Start")
 
-#Names of different supported propensities
-propensity_types = ['hillpositive', 'proportionalhillpositive', 'hillnegative', 'proportionalhillnegative', 'massaction', 'general']
+# Names of different supported propensities
+for prop in Propensity.get_available_propensities():
+	print(prop)
 
 kb = 100
 ku = 10
@@ -15,36 +17,42 @@ A = Species(name = "A", material_type = "protein") #Activator
 GA = ComplexSpecies([G, A, A]) #Activated Gene
 X = Species(name = "X", material_type = "protein")
 
-rxnd = Reaction([X], [], kd)
+rxnd = Reaction.from_massaction(inputs=[X], outputs=[], k_forward=kd)
 
-#Massaction Unregulated
+# Massaction Unregulated
 species1 = [G, A, GA, X]
 
 
-rxn0_1 = Reaction([G, A, A], [GA], k=kb, k_rev = ku)
-rxn0_2 = Reaction([GA], [GA, X], k=kex)
+rxn0_1 = Reaction.from_massaction(inputs=[G, A, A], outputs=[GA], k_forward=kb, k_reverse=ku)
+rxn0_2 = Reaction.from_massaction(inputs=[GA], outputs=[GA, X], k_forward=kex)
 CRN0 = ChemicalReactionNetwork(species1, [rxn0_1, rxn0_2, rxnd])
 
-rxn1_1 = Reaction([G, A, A], [GA], k=kb, k_rev = ku)
-rxn1_2 = Reaction([G], [G, X], k=kex)
+mak1 = MassAction(k_forward=kb, k_reverse=ku)
+mak2 = MassAction(k_forward=kex)
+rxn1_1 = Reaction([G, A, A], [GA], propensity_type=mak1)
+rxn1_2 = Reaction([G], [G, X], propensity_type=mak2)
 CRN1 = ChemicalReactionNetwork(species1, [rxn1_1, rxn1_2, rxnd])
 
 
-#hill positive
+# Hill positive
 species2 = [G, A, X]
-rxn2_1 = Reaction([G], [G, X], propensity_type = "hillpositive", propensity_params = {"k":kex, "n":2, "K":float(kb/ku), "s1":A})
+hill_pos = HillPositive(k=kex, s1=A, K=float(kb/ku), n=2)
+rxn2_1 = Reaction([G], [G, X], propensity_type=hill_pos)
 CRN2 = ChemicalReactionNetwork(species2, [rxn2_1, rxnd])
 
-#proportional hill positive
-rxn3_1 = Reaction([G], [G, X], propensity_type = "proportionalhillpositive", propensity_params = {"k":kex, "n":2, "K":float(kb/ku), "s1":A, "d":G})
+# proportional Hill positive
+prop_hill_pos = ProportionalHillPositive(k=kex, s1=A, K=float(kb/ku), n=2, d=G)
+rxn3_1 = Reaction([G], [G, X], propensity_type=prop_hill_pos)
 CRN3 = ChemicalReactionNetwork(species2, [rxn3_1, rxnd])
 
-#hill Negative
-rxn4_1 = Reaction([G], [G, X], propensity_type = "hillnegative", propensity_params = {"k":kex, "n":2, "K":float(kb/ku), "s1":A})
+# Hill Negative
+hill_negative = HillNegative(k=kex, s1=A, K=float(kb/ku), n=2)
+rxn4_1 = Reaction([G], [G, X], propensity_type=hill_negative)
 CRN4 = ChemicalReactionNetwork(species2, [rxn4_1, rxnd])
 
-#proportional hill negative
-rxn5_1 = Reaction([G], [G, X], propensity_type = "proportionalhillnegative", propensity_params = {"k":kex, "n":2, "K":float(kb/ku), "s1":A, "d":G})
+# proportional hill negative
+prop_hill_neg = ProportionalHillNegative(k=kex, s1=A, K=float(kb / ku), n=2, d=G)
+rxn5_1 = Reaction([G], [G, X], propensity_type=prop_hill_neg)
 CRN5 = ChemicalReactionNetwork(species2, [rxn5_1, rxnd])
 
 

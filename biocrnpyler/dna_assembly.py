@@ -1,106 +1,168 @@
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
+import copy
+from typing import List, Union
+
 from .component import Component
 from .components_basic import DNA, RNA, Protein
-from .chemical_reaction_network import ComplexSpecies, Species
-from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
-from warnings import warn as pywarn
-import itertools as it
-import numpy as np
-from .dna_assembly_promoter import *
-from .dna_assembly_rbs import *
-
-def warn(txt):
-    pywarn(txt)
+from .dna_part_promoter import Promoter
+from .dna_part_rbs import RBS
+from .mechanism import Mechanism
+from .mixture import Mixture
+from .parameter import ParameterDatabase
+from .reaction import Reaction
+from .species import Species
 
 
 class DNAassembly(DNA):
-    def __init__(self, name: str, dna = None, promoter = None, transcript = None,
-                 rbs = None, protein = None, length = None,
-                 attributes = [], mechanisms = {}, parameters = {}, initial_conc = None,
-                 parameter_warnings = True, **keywords):
+    """A class that contains a Promoter, RBS, transcript, and protein."""
+
+    def __init__(self, name: str, dna=None, promoter=None, transcript=None,
+                 rbs=None, protein=None, length=None,
+                 attributes=None, mechanisms=None, parameters=None, initial_conc=None, **keywords):
+        """
+            Note:
+        If transcript is None and protein is not None,
+        the DNAassembly will use its transcription mechanisms to produce the protein.
+        This is used by Expression Mixtures.
+        :param name: name of the DNA assembly
+        :param dna:
+        :param promoter:
+        :param transcript:
+        :param rbs:
+        :param protein:
+        :param length:
+        :param attributes:
+        :param mechanisms:
+        :param parameters:
+        :param initial_conc:
+        :param keywords: passed into the parent object (DNA)
+        """
         self.promoter = None
         self.rbs = None
         self.transcript = None
         self.initial_concentration = initial_conc
         self.name = name
+        
+        # This has to be called at the end so mechanisms are set for the promoter, RBS, etc.
+        DNA.__init__(self, name, length=length, mechanisms=mechanisms,
+                     parameters=parameters, initial_conc=initial_conc,
+                     attributes=attributes, **keywords)
 
-        DNA.__init__(self, name, length = length, mechanisms = mechanisms,
-                     parameters = parameters, initial_conc = initial_conc,
-                     parameter_warnings = parameter_warnings,
-                     attributes = list(attributes), **keywords)
-
-        self.update_dna(dna, attributes = list(attributes))
+        self.update_dna(dna, attributes=attributes)
         self.update_transcript(transcript)
         self.update_protein(protein)
-        self.update_promoter(promoter, transcript = self.transcript)
-        self.update_rbs(rbs, transcript = self.transcript,
-                        protein = self.protein)
+        self.update_promoter(promoter, transcript=self.transcript, protein=self.protein)
+        self.update_rbs(rbs, transcript=self.transcript, protein=self.protein)
 
-        self.set_parameter_warnings(parameter_warnings)
+    def set_mixture(self, mixture: Mixture) -> None:
+        """Set the mixture the Component is in.
 
-            
+        :param mixture: reference to a Mixture instance
+        :return: None
+        """
+        self.mixture = mixture
+        if self.promoter is not None:
+            self.promoter.set_mixture(mixture)
+        if self.rbs is not None:
+            self.rbs.set_mixture(mixture)
 
-    def set_parameter_warnings(self, parameter_warnings):
-        self.parameter_warnings = parameter_warnings
+    def update_dna(self, dna: Union[None, DNA, str], attributes=None) -> None:
+        """sets up the dna attribute with a valid DNA instance.
 
-        if self.parameter_warnings is not None:
-            if self.promoter is not None:
-                self.promoter.set_parameter_warnings(parameter_warnings)
-            if self.rbs is not None:
-                self.rbs.set_parameter_warnings(parameter_warnings)
-
-
-    def update_dna(self, dna, attributes = None):
+        :param dna: name of a dna sequence or a DNA instance
+        :param attributes: Species attribute
+        :return: None
+        """
         if dna is None:
-            self.dna = self.set_species(self.name, material_type = "dna", attributes = attributes)
+            self.dna = self.set_species(self.name, material_type="dna", attributes=attributes)
         else:
-            self.dna = self.set_species(dna, material_type = "dna", attributes = attributes)
-        
+            self.dna = self.set_species(dna, material_type="dna", attributes=attributes)
 
-    def update_transcript(self, transcript, attributes = None):
+        if self.promoter is not None:
+            self.promoter.dna = self.dna
+        if self.rbs is not None:
+            self.rbs.dna = self.dna
+        
+    def update_transcript(self, transcript: Union[None, RNA, str, bool], attributes=None) -> None:
+        """sets up the transcript attribute with a valid RNA instance.
+
+        :param transcript: name of a RNA transcript or RNA instance
+        :param attributes: Species attribute
+        :return: None
+        """
         if transcript is None:
-            self.transcript = self.set_species(self.name, material_type = "rna", attributes = attributes)
+            self.transcript = self.set_species(self.name, material_type="rna", attributes=attributes)
+
+        # this is used for expression mixtures where there is no transcript!
+        elif transcript is False:
+            self.transcript = None
         else:
-            self.transcript = self.set_species(transcript, material_type = "rna", attributes = attributes)
+            self.transcript = self.set_species(transcript, material_type="rna", attributes=attributes)
 
         if self.promoter is not None:
             self.promoter.transcript = self.transcript
         if self.rbs is not None:
             self.rbs.transcript = self.transcript
 
-    def update_protein(self, protein, attributes = None):
+    def update_protein(self, protein: Union[None, Protein, str], attributes=None) -> None:
+        """sets up the protein attribute with a valid Protein instance.
+
+        :param protein: name of a protein or Protein instance
+        :param attributes: Species attribute
+        :return: None
+        """
         if protein is None:
-            self._protein = self.set_species(self.name, material_type = "protein", attributes = attributes)
+            self.protein = self.set_species(self.name, material_type="protein", attributes=attributes)
         else:
-            self._protein = self.set_species(protein, material_type = "protein", attributes = attributes)
+            self.protein = self.set_species(protein, material_type="protein", attributes=attributes)
 
         if self.rbs is not None:
-            self.rbs.transcript = self.protein
+            self.rbs.protein = self.protein
+        if self.promoter is not None:
+            self.promoter.protein = self.protein
 
-    def update_promoter(self, promoter, transcript=None):
+    def update_promoter(self, promoter: Union[Protein, str], transcript: RNA=None, protein: Protein=None) -> None:
+        """sets up the promoter attribute with a valid Promoter instance.
+
+        :param promoter: name of a promoter or Promoter instance
+        :param transcript: reference to the RNA transcript
+        :param protein:
+        :return: None
+        """
         if transcript is not None:
             self.update_transcript(transcript)
 
         if isinstance(promoter, str):
-            self.promoter = Promoter(assembly = self, name = promoter,
-                                     transcript = self.transcript,
-                                     parameters = self.parameters)
+            self.promoter = Promoter(assembly=self, name=promoter,
+                                     transcript=self.transcript,
+                                     protein=protein)
         elif isinstance(promoter, Promoter):
-            self.promoter = promoter
+            self.promoter = copy.deepcopy(promoter)
             self.promoter.assembly = self
             self.promoter.transcript = self.transcript
+            self.promoter.protein = protein
         elif promoter is not None:
-            raise ValueError("Improper promoter type recieved by DNAassembly. "
+            raise ValueError("Improper promoter type received by DNAassembly. "
                              "Expected string or promoter object. "
-                             f"Recieved {repr(promoter)}.")
-        if promoter is not None:
-            self.promoter.update_parameters(
-                                        mixture_parameters = self.parameters,
-                                        overwrite_custom_parameters = False)
+                             f"Received {repr(promoter)}.")
+        else:
+            self.promoter = None
 
-    def update_rbs(self, rbs, transcript = None, protein = None):
+        if self.promoter is not None:
+            self.promoter.update_parameters(parameter_database=self.parameter_database, overwrite_parameters=False)
+            self.promoter.set_mixture(self.mixture)
+            self.promoter.add_mechanisms(self.mechanisms, optional_mechanism=True)
+
+    def update_rbs(self, rbs: Union[RBS, str], transcript: RNA=None, protein: Protein=None) -> None:
+        """sets up the rbs attribute with a valid RBS instance.
+
+        :param rbs: name of the ribosome binding site or RBS instance
+        :param transcript: RNA that contains the ribosome binding site
+        :param protein: protein that RNA contains
+        :return: None
+        """
         if protein is not None:
             self.update_protein(protein)
 
@@ -108,95 +170,95 @@ class DNAassembly(DNA):
             self.update_transcript(transcript)
 
         if isinstance(rbs, str):
-            self.rbs = RBS(assembly = self, name = rbs, protein = self._protein,
-                           transcript = self.transcript,
-                           parameters = self.parameters)
+            self.rbs = RBS(assembly=self, name=rbs, protein=self.protein,
+                           transcript=self.transcript)
         elif isinstance(rbs, RBS):
-            self.rbs = rbs
+            self.rbs = copy.deepcopy(rbs)
             self.rbs.assembly = self
             self.rbs.transcript = self.transcript
-            self.rbs.protein = self._protein
+            self.rbs.protein = self.protein
         elif rbs is not None:
-            raise ValueError("Improper rbs type recieved by DNAassembly. "
-                             "Expected string or RBS object. Recieved "
-                            f"{repr(rbs)}.")
+            raise ValueError(f"Improper rbs type received by DNAassemby. Expected string or RBS object. Received {repr(rbs)}.")
+        else:
+            self.rbs = None
 
-        if rbs is not None:
-            self.rbs.update_parameters(mixture_parameters = self.parameters,
-                                       overwrite_custom_parameters = False)
+        if self.rbs is not None:
+            self.rbs.update_parameters(parameter_database=self.parameter_database, overwrite_parameters=False)
+            self.rbs.set_mixture(self.mixture)
+            self.rbs.add_mechanisms(self.mechanisms, optional_mechanism=True)
 
-    @property
-    def protein(self):
-        return self._protein
+    def update_species(self) -> List[Species]:
+        """collects the list of Species that a DNAassemlby instance holds.
 
-    def update_species(self):
+        :return: list of Species that a DNAassemlby instance holds
+        """
         species = []
         species.append(self.dna)
-        if self.promoter is not None and self.rbs is not None:
+        if self.promoter is not None:
             species += self.promoter.update_species()
+
+        if self.rbs is not None:
             species += self.rbs.update_species()
 
-        elif self.promoter is not None and self.rbs is None:
-            species += self.promoter.update_species()
+        #deg_mech = self.get_mechanism("rna_degredation", optional_mechanism=True)
+        #if deg_mech is not None and self.promoter is not None and self.transcript is not None:
+        #    species += deg_mech.update_species(rna=self.transcript, component=self.promoter, part_id=self.transcript.name)
 
-        if "rna_degredation" in self.mechanisms and self.promoter is not None:
-            deg_mech = self.mechanisms["rna_degredation"]
-            species += deg_mech.update_species(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
+        return species
 
-        # TODO raise a warning if there were duplicate species
-        return list(set(species))
+    def update_reactions(self) -> List[Reaction]:
+        """collects the list of Reactions that a DNAassemlby instance holds.
 
-    def update_reactions(self):
+        :return: list of Reactions that a DNAassemlby instance holds.
+        """
         reactions = []
         if self.promoter is not None:
-            self.promoter.parameter_warnings = self.parameter_warnings
             reactions += self.promoter.update_reactions()
 
         if self.rbs is not None:
-            self.rbs.parameter_warnings = self.parameter_warnings
             reactions += self.rbs.update_reactions()
 
-        if "rna_degredation" in self.mechanisms and self.promoter is not None:
-            deg_mech = self.mechanisms["rna_degredation"]
+        #deg_mech = self.get_mechanism("rna_degredation", optional_mechanism=True)
+        #if deg_mech is not None and self.promoter is not None and self.transcript is not None:
+        #    reactions += deg_mech.update_reactions(rna=self.transcript, component=self.promoter, part_id=self.transcript.name)
 
-
-            reactions += deg_mech.update_reactions(rna = self.transcript, component = self.promoter, part_id = self.transcript.name)
-        # TODO check that the reaction list is unique
         return reactions
 
-    def update_parameters(self, mixture_parameters = {}, parameters = {},
-                          overwrite_custom_parameters = True):
-        DNA.update_parameters(self = self,
-                              mixture_parameters = mixture_parameters,
-                              parameters = parameters, 
-                              overwrite_custom_parameters = overwrite_custom_parameters)
+    def update_parameters(self, parameter_file: str=None, parameters:ParameterDatabase=None, overwrite_parameters: bool=True) -> None:
+        """updates the parameters stored in dna, promoter and rbs.
+
+        :param parameter_file: valid parameter file
+        :param parameters: a parameter database instance
+        :param overwrite_parameters: whether to overwrite existing parameters
+        :return: None
+        """
+
+        DNA.update_parameters(self=self, parameter_file=parameter_file, parameters=parameters, overwrite_parameters=overwrite_parameters)
 
         if self.promoter is not None:
-            self.promoter.update_parameters(
-                                    mixture_parameters = mixture_parameters,
-                                    parameters = parameters,
-                                    overwrite_custom_parameters = overwrite_custom_parameters)
+            self.promoter.update_parameters(parameter_file=parameter_file, parameters=parameters, overwrite_parameters=overwrite_parameters)
+
         if self.rbs is not None:
-            self.rbs.update_parameters(mixture_parameters = mixture_parameters,
-                                       parameters = parameters,
-                                       overwrite_custom_parameters = overwrite_custom_parameters)
+            self.rbs.update_parameters(parameter_file=parameter_file, parameters=parameters, overwrite_parameters=overwrite_parameters)
 
-    def update_mechanisms(self, mixture_mechanisms = {}, mechanisms = {},
-                          overwrite_custom_mechanisms = False):
-        DNA.update_mechanisms(self = self,
-                              mixture_mechanisms = mixture_mechanisms,
-                              mechanisms = mechanisms)
+    def add_mechanism(self, mechanism: Mechanism, mech_type: str=None, overwrite: bool=False, optional_mechanism: bool=False) -> None:
+        """adds a mechanism of type mech_type to the Component Mechanism dictionary.
 
-        if self.promoter is not None and "transcription" in self.mechanisms:
-            mech_tx = self.mechanisms["transcription"]
-            mechs = {"transcription": mech_tx}
-            self.promoter.update_mechanisms(mechanisms = mechs,
-                                            overwrite_custom_mechanisms = overwrite_custom_mechanisms)
-        if self.rbs is not None and "translation" in self.mechanisms:
-            mech_tl = self.mechanisms["translation"]
-            mechs = {"translation": mech_tl}
-            self.rbs.update_mechanisms(mechanisms = mechs,
-                                       overwrite_custom_mechanisms = overwrite_custom_mechanisms)
+        DNA_assembly also adds the mechanisms to its promoter and rbs (but never overwrites them!)
+
+        :param mechanism: reference to a Mechanism instance
+        :param mech_type: type of mechanism
+        :param overwrite: whether to overwrite the mechanism in Component
+        :param optional_mechanism:
+        :return: None
+        """
+        Component.add_mechanism(self, mechanism, mech_type=mech_type, overwrite=overwrite, optional_mechanism=optional_mechanism)
+
+        if self.promoter is not None:
+            self.promoter.add_mechanism(mechanism, mech_type=mech_type, optional_mechanism=True)
+
+        if self.rbs is not None:
+            self.rbs.add_mechanism(mechanism, mech_type=mech_type, optional_mechanism=True)
 
     def __str__(self):
         return type(self).__name__ + ": " + self.name
@@ -208,5 +270,5 @@ class DNAassembly(DNA):
             txt += "\n\ttranscript = " + repr(self.transcript)
         if self.rbs is not None:
             txt += "\n\t" + repr(self.rbs)
-            txt += "\n\tprotein = " + repr(self._protein)
+            txt += "\n\tprotein = " + repr(self.protein)
         return txt

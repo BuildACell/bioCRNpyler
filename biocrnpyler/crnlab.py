@@ -1,15 +1,16 @@
 
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
-# from .extracts import *
-from .mixture import Mixture
-from .dna_assembly import DNAassembly
-from .mixtures_cell import *
-from .mixtures_extract import *
-import libsbml
-import warnings
+
 import inspect
 import sys
+import warnings
+
+import libsbml
+
+from .dna_assembly import DNAassembly
+from .mixtures_extract import Mixture
+
 
 class CRNLab(object):
     '''

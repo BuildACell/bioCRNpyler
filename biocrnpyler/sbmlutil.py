@@ -4,26 +4,40 @@
 # Copyright (c) 2018, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-import libsbml
-import numpy as np
+import logging
+from random import randint
+from typing import List
 from warnings import warn
+
+import libsbml
 
 # Reaction ID number (global)
 reaction_id = 0
 
+logger = logging.getLogger(__name__)
 
-# Create an SBML model
+
 def create_sbml_model(compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
-                      length_units='metre', area_units='square_metre', volume_units='litre', volume = 1e-6, model_id = None):
-    '''
-    Creates an SBML Level 3 Version 2 model with some fixed standard settings.
-    Returns the SBMLDocument and the Model object as a tuple.
+                      length_units='metre', area_units='square_metre', volume_units='litre', volume=1e-6, model_id=None, **kwargs):
+    """Creates an SBML Level 3 Version 2 model with some fixed standard settings.
+
     Refer to python-libsbml for more information on SBML API.
-    '''
+
+    :param compartment_id:
+    :param time_units:
+    :param extent_units:
+    :param substance_units:
+    :param length_units:
+    :param area_units:
+    :param volume_units:
+    :param volume:
+    :param model_id:
+    :return:  the SBMLDocument and the Model object as a tuple
+    """
     document = libsbml.SBMLDocument(3, 2)
     model = document.createModel()
     if model_id is None:
-        model_id = 'biocrnpyler_'+str(np.random.randint(1e6))
+        model_id = 'biocrnpyler_'+str(randint(1,1e6))
     model.setId(model_id)
     model.setName(model_id)
     # Define units for area (not used, but keeps COPASI from complaining)
@@ -50,8 +64,6 @@ def create_sbml_model(compartment_id="default", time_units='second', extent_unit
     compartment.setConstant(True)  # keep compartment size constant
     compartment.setSpatialDimensions(3)  # 3 dimensional compartment
     compartment.setVolume(volume)  # 1 microliter
-
-    # Returning document is enough. document.getModel() gives the model, and model.getCompartment(0) gives the compartment.
     return document, model
 
 
@@ -66,9 +78,33 @@ def species_sbml_id(species, document=None):
     return species_id
 
 
-# Helper function to add a species to the model
-# species must be chemical_reaction_network.species objects
-def add_species(model, compartment, species, debug=False, initial_concentration=None):
+def add_all_species(model, species: List, compartment=None, **kwargs):
+    """adds a list of Species to the SBML model.
+
+    :param model: valid SBML model
+    :param species: list of species to be added to the SBML model
+    :param compartment: compartment id, if empty species go to the first compartment
+    :return: None
+    """
+
+    if compartment is None:
+        compartment = model.getCompartment(0)
+
+    for s in species:
+        add_species(model=model, compartment=compartment,
+                    species=s, initial_concentration=s.initial_concentration)
+
+
+def add_species(model, compartment, species, initial_concentration=None, **kwargs):
+    """Helper function to add a species to the sbml model.
+
+    :param model:
+    :param compartment: a compartment in the SBML model
+    :param species: must be chemical_reaction_network.species objects
+    :param initial_concentration: initial concentration of the species in the SBML model
+    :return: None
+    """
+
     model = model  # Get the model where we will store results
 
     # Construct the species name
@@ -77,7 +113,7 @@ def add_species(model, compartment, species, debug=False, initial_concentration=
     # Construct the species ID
     species_id = species_sbml_id(species, model.getSBMLDocument())
 
-    if debug: print("Adding species", species_name, species_id)
+    logger.debug(f'Adding species: {species_name}, id: {species_id}')
     sbml_species = model.createSpecies()
     sbml_species.setName(species_name)
     sbml_species.setId(species_id)
@@ -121,199 +157,115 @@ def find_parameter(mixture, id):
     return model.getParameter(id)  # ! TODO: add error checking
 
 
-# Helper function to add a reaction to a model
-# reaction must be a chemical_reaction_network.reaction object
-#propensity params is a dictionary of the parameters for non-massaction propensities.
-def add_reaction(model, inputs, input_coefs, outputs, output_coefs,
-                 reaction_id, k = None, kname = None,
-                 stochastic = False, propensity_type = "massaction", 
-                 propensity_params = None, propensity_annotation = True):
+def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
+    """adds a list of reactions to the SBML model.
 
-    # Create the reaction
-    reaction = model.createReaction()
-    reaction.setReversible(False)
-    # reaction.setFast(False) # Deprecated in SBML
+    :param model: an sbml model created by create_sbml_model()
+    :param reactions: list of Reactions
+    :param stochastic: binary flag for stochastic models
+    :return: None
+    """
+
+    for rxn_count, r in enumerate(reactions):
+        rxn_id = f'r{rxn_count}'
+        add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, **kwargs)
+
+        #Reversible reactions are always seperated into two seperate reactions
+        if r.is_reversible:
+            rxn_id = f'r{rxn_count}rev'
+            add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, reverse_reaction = True, **kwargs)
+
+
+def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction: bool=False, **kwargs):
+    """adds a sbml_reaction to an sbml model.
+
+    :param model: an sbml model created by create_sbml_model()
+    :param crn_reaction: must be a chemical_reaction_network.reaction object
+    :param reaction_id: unique id of the reaction
+    :param stochastic: stochastic model flag
+    :param reverse_reaction: 
+    :return: SBML Reaction object
+    """
+
+    # Create the sbml_reaction in SBML
+    sbml_reaction = model.createReaction()
     all_ids = getAllIds(model.getSBMLDocument().getListOfAllElements())
     trans = SetIdFromNames(all_ids)
-    reaction.setId(trans.getValidIdForName(reaction_id))
-    reaction.setName(reaction.getId())
-    ratestring = "" #Stores the string representing the rate function
-    annotation_dict = {"type":propensity_type}
-    # Create a kinetic law for the reaction
-    ratelaw = reaction.createKineticLaw()
-    #Create Local Propensity Parameters
-    if propensity_type=="massaction":
-        if kname is None:
-            kname = "k"
-        
-        param = ratelaw.createParameter()
-        param.setId(kname)
-        param.setConstant(True)
-        if k is not None and propensity_params is None:
-            param.setValue(k)
-            annotation_dict["k"] = k
-        elif 'k' in propensity_params:
-            param.setValue(propensity_params['k'])
-            annotation_dict["k"] = propensity_params['k']
-        elif k is not None and "k" in propensity_params and propensity_params['k'] != k:
-            raise ValueError("Keyword k and propensity_params['k'] have different values. Only one of these arguments is needed or they must match.")
-        else:
-            raise ValueError("Massaction propensities require a rate k which can be passed into add_reaction as a keyword k= or inside the propensity_params keyword dictionary.")
-        
-        ratestring = kname
+    sbml_reaction.setId(trans.getValidIdForName(reaction_id))
+    sbml_reaction.setName(sbml_reaction.getId())
+    #all reactions are set to be non-reversible in BioCRNpyler because this is correct in deterministic and stochastic simulation.
+    sbml_reaction.setReversible(False)
 
-    #Hill Function Propensities
-    elif propensity_type in ["hillpositive", "hillnegative", "proportionalhillpositive", "proportionalhillnegative"]:
-        if not ("k" in propensity_params and "K" in propensity_params and "n" in propensity_params):
-            raise ValueError(propensity_type+" requires the following keys in the propensity_params dictionary: "
-                    "'k':rate constant (float)"
-                    "'n':cooperativity(float), "
-                    "and 'K':dissociationc constant (float).")
-        param_k = ratelaw.createParameter()
-        param_k.setId("k")
-        param_k.setConstant(True)
-        param_k.setValue(propensity_params['k'])
-
-        param_n = ratelaw.createParameter()
-        param_n.setId("n")
-        param_n.setConstant(True)
-        param_n.setValue(propensity_params['n'])
-
-        param_K = ratelaw.createParameter()
-        param_K.setId("K")
-        param_K.setConstant(True)
-        param_K.setValue(propensity_params['K'])
-
-        ratestring = "k"
-
-        annotation_dict["k"] = propensity_params['k']
-        annotation_dict["K"] = propensity_params['K']
-        annotation_dict["n"] = propensity_params['n']
-
-
-    elif propensity_type == "general":
-        raise NotImplementedError("SBML writing of general propensities not implemented")
+    # Create the reactants and products for the sbml_reaction
+    if not reverse_reaction:
+        _create_reactants(reactant_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
+        _create_products(product_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
     else:
-        raise ValueError(propensity_type+" is not a supported propensity_type")
+        _create_reactants(reactant_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model)
+        _create_products(product_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model)
 
-    # Create the reactants
-    for i in range(len(inputs)):
-        species = str(inputs[i]).replace("'", "")
-        stoichiometry = input_coefs[i]
-        # species_id = species_sbml_id(species, model.getSBMLDocument())
+    # Create the kinetic law and corresponding local propensity parameters
+    crn_reaction.propensity_type.create_kinetic_law(model=model,
+                                                    sbml_reaction=sbml_reaction,
+                                                    stochastic=stochastic,
+                                                    crn_reaction=crn_reaction,
+                                                    reverse_reaction=reverse_reaction,
+                                                    **kwargs)
+    # Create SpeciesModifierReference in SBML for species that are referred by the 
+    # KineticLaw but not in reactants or products
+    _create_modifiers(crn_reaction = crn_reaction, sbml_reaction = sbml_reaction, model = model)
 
+    return sbml_reaction
+
+
+def _create_reactants(reactant_list, sbml_reaction, model):
+    for input in reactant_list:
         # What to do when there are multiple species with same name?
-        species_id = getSpeciesByName(model,species).getId()
-        reactant = reaction.createReactant()
-        reactant.setSpecies(species_id)  # ! TODO: add error checking
+        species_id = getSpeciesByName(model, str(input.species)).getId()
+        reactant = sbml_reaction.createReactant()
+        reactant.setSpecies(species_id)  
         reactant.setConstant(False)
-        if stoichiometry is None or stoichiometry is np.nan:
-            stoichiometry = 1.0
-        reactant.setStoichiometry(stoichiometry)
-        #Create Rate-strings for massaction propensities
-        if propensity_type=="massaction" and stochastic:
-            for i in range(stoichiometry):
-                if i > 0:
-                    ratestring += f" * ( {species_id} - {i} )"
-                else:
-                    ratestring += f" * {species_id}"
+        reactant.setStoichiometry(input.stoichiometry)
 
-        elif propensity_type=="massaction" and not stochastic:
-            if stoichiometry > 1:
-                ratestring += f" * {species_id}^{stoichiometry}"
-            else:
-                ratestring += f" * {species_id}"
-
-    #Create ratestring for non-massaction propensities
-    if propensity_type == "hillpositive":
-        if not ("s1" in propensity_params):
-            raise ValueError("hillpositive propensities, p(s1; k, K, n) "
-                    "= k*s1^n/(s1^n + K), require the following key in the propensity_params dictionary:"
-                    "'s1':species (chemical_reaction_network.species)")
-
-        s = str(propensity_params['s1']).replace("'", "")
-        s_species_id = getSpeciesByName(model,s).getId()
-
-        ratestring+=f"*{s_species_id}^n/({s_species_id}^n+K)"
-
-        annotation_dict["s1"] = s_species_id
-
-    elif propensity_type == "hillnegative":
-        if not ("s1" in propensity_params):
-            raise ValueError("hillnegative propensities, "
-                    "p(s1; k, K, n) = k*1/(s1^n + K), require the following key in the propensity_params dictionary:"
-                    "'s1':species (chemical_reaction_network.species)")
-        s = str(propensity_params['s1']).replace("'", "")
-        s_species_id = getSpeciesByName(model,s).getId()
-
-        ratestring+=f"/({s_species_id}^n+K)"
-
-        annotation_dict["s1"] = s_species_id
-
-    elif propensity_type == "proportionalhillpositive":
-        if not ("s1" in propensity_params and "d" in propensity_params):
-            raise ValueError("proportionalhillpositive propensities, "
-                "p(s1, d; k, K, n) = k*d*s1^n/(s1^n + K), require the following key in the propensity_params dictionary:"
-                "'s1':species (chemical_reaction_network.species)"
-                "'d':species (chemical_reaction_network.species), ")
-
-        s = str(propensity_params['s1']).replace("'", "")
-        d = str(propensity_params['d']).replace("'", "")
-        s_species_id = getSpeciesByName(model,s).getId()
-        d_species_id = getSpeciesByName(model,d).getId()
-
-        ratestring+=f"*{d_species_id}*{s_species_id}^n/({s_species_id}^n + K)"
-
-        annotation_dict["s1"] = s_species_id
-        annotation_dict["d"] = d_species_id
-
-    elif propensity_type == "proportionalhillnegative":
-        if not ("s1" in propensity_params and "d" in propensity_params):
-            raise ValueError("proportionalhillnegative propensities, "
-                "p(s1, d; k, K, n) = k*d/(s1^n + K), require the following key in the propensity_params dictionary:"
-                "'s1':species (chemical_reaction_network.species)"
-                "'d':species (chemical_reaction_network.species), ")
-
-        s = str(propensity_params['s1']).replace("'", "")
-        d = str(propensity_params['d']).replace("'", "")
-        s_species_id = getSpeciesByName(model,s).getId()
-        d_species_id = getSpeciesByName(model,d).getId()
-
-        ratestring+=f"*{d_species_id}/({s_species_id}^n+K)"
-
-        annotation_dict["s1"] = s_species_id
-        annotation_dict["d"] = d_species_id
-
-    elif propensity_type == "general":
-        raise NotImplementedError("General propensity SBML Writing Not Implemented")
-
-
-    # Create the products
-    for i in range(len(outputs)):
-        species = str(outputs[i]).replace("'", "")
-        stoichiometry = output_coefs[i]
-        product = reaction.createProduct()
-        species_id = getSpeciesByName(model, species).getId()
+def _create_products(product_list, sbml_reaction, model):
+    for output in product_list:
+        species_id = getSpeciesByName(model, str(output.species)).getId()
+        product = sbml_reaction.createProduct()
         product.setSpecies(species_id)
-        if stoichiometry is None or stoichiometry is np.nan:
-            stoichiometry = 1.0
-        product.setStoichiometry(stoichiometry)
+        product.setStoichiometry(output.stoichiometry)
         product.setConstant(False)
 
-    # Set the ratelaw to the ratestring
-    math_ast = libsbml.parseL3Formula(ratestring)
-    ratelaw.setMath(math_ast)
-    if propensity_annotation:
-        annotation_string = "<PropensityType>"
-        for k in annotation_dict:
-            annotation_string += " "+k + "=" + str(annotation_dict[k])
-        annotation_string += "</PropensityType>"
-        reaction.appendAnnotation(annotation_string)
+def _create_modifiers(crn_reaction, sbml_reaction, model):
+    reactants_list = [i.species.name for i in crn_reaction.inputs]
+    products_list = [i.species.name for i in crn_reaction.outputs]
+    modifier_species = [i.name for i in crn_reaction.propensity_type.propensity_dict['species'].values()]
+    for modifier_id in modifier_species:
+        modifier_id = str(modifier_id)
+        if modifier_id not in reactants_list and modifier_id not in products_list:
+            modifier = sbml_reaction.createModifier()
+            modifier.setSpecies(modifier_id)
+    
+#Creates a local parameter SBML kinetic rate law
+def _create_local_parameter(ratelaw, name, value, constant = True):
+    param = ratelaw.createParameter()
+    param.setId(name)
+    param.setConstant(constant)
+    param.setValue(value)
 
-    return reaction
+    return param
 
+#Creates a global parameter SBML model
+def _create_global_parameter(model, name, value, constant = True):
+    if model.getParameter(name) is None:
+        param = model.createParameter()
+        param.setId(name)
+        param.setConstant(constant)
+        param.setValue(value)
+    else:
+        param = model.getParameter(name)
 
-# !/usr/bin/env python
+    return param
+
 ##
 ## @file    setIdFromNames.py
 ## @brief   Utility program, renaming all SIds that also has
@@ -358,11 +310,6 @@ def add_reaction(model, inputs, input_coefs, outputs, output_coefs,
 ## ------------------------------------------------------------------------ -->
 ##
 ##
-
-import sys
-import os.path
-import time
-
 
 # This class implements an identifier transformer, that means it can be used
 # to rename all sbase elements.
@@ -418,7 +365,8 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
         if (Id[len(Id) - 1] != '_'):
             return Id
 
-        return Id[:-1]
+        return Id
+        #return Id[:-1] #this code was removing underscores at the end of ComplexSpecies needed for imbedded ComplexSpecies.
 
     #
     # Generates the id out of the name, and ensures it is unique.
@@ -458,7 +406,7 @@ def getSpeciesByName(model, name, compartment=''):
     to look for the species.
     '''
     if type(name) is not str:
-        raise ValueError('"name" must be a string.')
+        raise ValueError(f'"name" must be a string. Recievied {name} type={type(name)}.')
     species_found = []
     for species in model.getListOfSpecies():
         if species.getName() == name:
@@ -479,3 +427,92 @@ def getSpeciesByName(model, name, compartment=''):
     else:
         warn('Multiple species with name ' + name + ' found. Returning a list')
         return species_found
+
+
+## Validate SBML
+
+
+class validateSBML(object):
+    '''
+    libSBML class to validate the generated SBML models
+    ## @brief   Validates SBMLDocument
+    ## @author  Akiya Jouraku (translated from libSBML C++ examples)
+    ## @author  Ben Bornstein
+    ## @author  Michael Hucka
+    '''
+    def __init__(self, ucheck):
+        self.reader    = libsbml.SBMLReader()
+        self.ucheck    = ucheck
+
+    def validate(self, sbml_document, print_results = False):
+        """sbml_document: libSBML SBMLDocument object.
+
+        print_results: Print toggle for validation warnings.
+        """
+        sbmlDoc  = sbml_document
+        errors   = sbmlDoc.getNumErrors()
+        if print_results:
+            print("Validating SBML model with ID: {0}...".format(sbmlDoc.getModel().getId()))
+        seriousErrors = False
+
+        numReadErr  = 0
+        numReadWarn = 0
+        errMsgRead  = ""
+
+        if errors > 0:
+            for i in range(errors):
+                severity = sbmlDoc.getError(i).getSeverity()
+                if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
+                    seriousErrors = True
+                    numReadErr += 1
+                else:
+                    numReadWarn += 1
+            errMsgRead = sbmlDoc.getErrorLog().toString()
+
+        # If serious errors are encountered while reading an SBML document, it
+        # does not make sense to go on and do full consistency checking because
+        # the model may be nonsense in the first place.
+
+        numCCErr  = 0
+        numCCWarn = 0
+        errMsgCC  = ""
+
+        if seriousErrors:
+            errMsgRead += "Further consistency checking and validation aborted."
+        else:
+            sbmlDoc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, self.ucheck)
+            failures = sbmlDoc.checkConsistency()
+            if failures > 0:
+                isinvalid = False
+                for i in range(failures):
+                    severity = sbmlDoc.getError(i).getSeverity()
+                    if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
+                        numCCErr += 1
+                        isinvalid = True
+                    else:
+                        numCCWarn += 1
+                if isinvalid:
+                    errMsgCC = sbmlDoc.getErrorLog().toString()
+        if errMsgRead or errMsgCC: 
+            if print_results:
+                print()
+                print( "===== validation error/warning messages =====\n")
+            if errMsgRead : 
+                if print_results:
+                    print( errMsgRead)
+            if errMsgCC : 
+                if print_results:
+                    print( "*** consistency check ***\n")
+                    print( errMsgCC)
+        if not (numReadErr + numCCErr):
+            print('Successful!')
+        return numReadErr + numCCErr
+        
+
+def validate_sbml(sbml_document, enable_unit_check = False, print_results = True):
+    """Validates the generated SBML model by using libSBML SBML validation code."""
+    validator = validateSBML(enable_unit_check)
+    validation_result = validator.validate(sbml_document, print_results = print_results)
+    if validation_result > 0:
+        warn('SBML model invalid. Run with print_results = False to hide print statements')
+    return validation_result
