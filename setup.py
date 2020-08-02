@@ -6,7 +6,7 @@ with open('README.md') as fp:
 
 setup(
     name='biocrnpyler',
-    version='0.9.0',
+    version='0.9.1',
     author='BuildACell',
     url='https://github.com/BuildACell/biocrnpyler/',
     description='A chemical reaction network compiler for generating large biological circuit models',
@@ -29,7 +29,7 @@ setup(
             "numpy",
             "matplotlib",
             "networkx",
-            "bokeh",
+            "bokeh>=1.4.0",
             "fa2"
             ]
             },
