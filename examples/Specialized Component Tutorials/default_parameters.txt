@@ -1,4 +1,7 @@
 mechanism_id	part_id	param_name	param_val	comments
+		Ribo	120	uM assuming similar to e coli
+		RNAP	15	uM assuming similar to e coli
+		RNAase	30	uM assuming similar to e coli
 	e coli	Ribo	120	uM assuming ~72000 Ribosomes / e. coli with a volume 1 um^3
 	e coli	RNAP	15	uM assuming ~10000 RNAP molecules / e. coli with a volume 1 um^3
 	e coli	RNAase	30	uM assuming ~20000 RNAP molecules / e. coli with a volume 1 um^4
@@ -42,14 +45,6 @@ simple_transcription	pT7	ktx	0.327	Above rescaled by ktx for simple transcriptio
 simple_translation	BCD2	ktl	3	Above rescaled by ktl for simple translation
 simple_translation	BCD8	ktl	0.15	Above rescaled by ktl for simple translation
 simple_translation	BCD12	ktl	0.3	Above rescaled by ktl for simple translation
-MX	pT7	k1	0.072	
-MX	pT7	k2	4	
-MX	pT7	k_iso	0.36
-MX	pT7	ktx_solo	0.085
-MX	pT7	max_occ	40
-multi_tl	RBSG	kbr	1	
-multi_tl	RBSG	kur	100	
-multi_tl	RBSG	k_iso_r	0.3	
-multi_tl	RBSG	ktl_solo	0.02	
-multi_tl	RBSG	max_occ	22	
+multi_tx		kb	0.072	
+multi_tx		ku	4	
 

@@ -5,14 +5,15 @@ from .sbmlutil import *
 from .propensities import Propensity, MassAction, HillNegative, HillPositive, ProportionalHillPositive, ProportionalHillNegative
 from.species import *
 import warnings
-import numpy as np
 from typing import List, Union, Dict
 import itertools
 import copy
 from .utils import remove_bindloc
 
+
 class Reaction(object):
-    """ An abstract representation of a chemical reaction in a CRN
+    """An abstract representation of a chemical reaction in a CRN.
+
     A reaction has the form:
     .. math::
        \sum_i n_i I_i --> \sum_i m_i O_i @ rate = k
@@ -82,7 +83,7 @@ class Reaction(object):
 
     @propensity_type.setter
     def propensity_type(self, new_propensity_type: Propensity):
-        """ Replace the propensity type associated with the reaction object
+        """Replace the propensity type associated with the reaction object.
 
         :param new_propensity_type: Valid propensity type
         """
@@ -96,7 +97,8 @@ class Reaction(object):
     def from_massaction(cls, inputs: Union[List[Species], List[WeightedSpecies]],
                         outputs: Union[List[Species], List[WeightedSpecies]],
                         k_forward: float, k_reverse: float = None):
-        """ Initialize a Reaction object with mass action kinetics
+        """Initialize a Reaction object with mass action kinetics.
+
         :param inputs:
         :param outputs:
         :param k_forward:
@@ -155,7 +157,8 @@ class Reaction(object):
     #    return self.propensity_type.k_reverse
 
     def replace_species(self, species: Species, new_species: Species):
-        """Replaces species with new_species in the reaction
+        """Replaces species with new_species in the reaction.
+
         :param species: species to be replaced
         :param new_species: the new species the old species is replaced with
         :return: a new Reaction instance
@@ -245,7 +248,7 @@ class Reaction(object):
     @property
     def species(self) -> List[Species]:
         """returns a list of species in the reactions collected from the inputs
-        and outputs and the propensity (e.g. Hill kinetics has species in it)
+        and outputs and the propensity (e.g. Hill kinetics has species in it).
 
         :return: list of species in the reactions
         """

@@ -5,18 +5,16 @@ from .mechanisms_binding import *
 from .mechanisms_txtl import *
 from warnings import warn as pywarn
 import itertools as it
-import numpy as np
 from .dna_part import DNA_part
 import copy
 
 
 class Promoter(DNA_part):
-    """
-    A basic Promoter class with no regulation. Needs to be included in a DNAassembly or DNAconstruct to function.
+    """A basic Promoter class with no regulation. Needs to be included in a DNAassembly or DNAconstruct to function.
     """
     def __init__(self, name, assembly=None,
                  transcript=None, length=0,
-                 mechanisms=None, parameters=None, protein=None,dna_to_bind = None, **keywords):
+                 mechanisms=None, parameters=None, protein=None,dna_to_bind=None, **keywords):
         self._dna_bind = dna_to_bind
         self.length = length
 
@@ -27,7 +25,7 @@ class Promoter(DNA_part):
         elif type(transcript) == list:
             self.transcript = transcript
         else:
-            self.transcript = self.set_species(transcript, material_type = 'rna')
+            self.transcript = self.set_species(transcript, material_type='rna')
         
         if(isinstance(protein,str)):
             self.protein = [self.set_species(protein,material_type="protein")]
