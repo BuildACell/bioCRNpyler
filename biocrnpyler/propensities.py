@@ -1,14 +1,17 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from typing import Set, Union, Dict, List
-import numbers
-from .parameter import Parameter, ModelParameter, ParameterEntry
-from .sbmlutil import getSpeciesByName, _create_local_parameter, _create_global_parameter
-from .species import Species
-import libsbml
 import copy
+import numbers
 from collections import defaultdict
+from typing import List, Set, Union
+
+import libsbml
+
+from .parameter import ModelParameter, Parameter, ParameterEntry
+from .sbmlutil import (_create_global_parameter, _create_local_parameter,
+                       getSpeciesByName)
+from .species import Species
 
 
 class Propensity(object):

@@ -2,12 +2,8 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-
-from warnings import warn
-from .species import Species, ComplexSpecies, Multimer
-from .reaction import Reaction
 from typing import List
-import itertools as it
+from warnings import warn
 
 
 class Mechanism(object):

@@ -1,7 +1,13 @@
-from .component import Component
-from .species import Species
-from .dna_part import DNA_part
+
+#  Copyright (c) 2020, Build-A-Cell. All rights reserved.
+#  See LICENSE file in the project root directory for details.
+
 import copy
+
+from .dna_part import DNA_part
+from .species import Species
+
+
 class RBS(DNA_part):
     """
     A simple RBS class with no regulation. Must be included in a DNAconstruct or DNAassembly to do anything.

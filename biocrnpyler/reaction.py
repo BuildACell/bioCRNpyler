@@ -1,13 +1,16 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from .sbmlutil import *
-from .propensities import Propensity, MassAction, HillNegative, HillPositive, ProportionalHillPositive, ProportionalHillNegative
+
+from .propensities import (HillNegative, HillPositive, MassAction, Propensity,
+                           ProportionalHillNegative, ProportionalHillPositive)
+
 from.species import *
-import warnings
-from typing import List, Union, Dict
-import itertools
 import copy
+import itertools
+from typing import List, Union
+from warnings import warn
+
 from .utils import remove_bindloc
 
 

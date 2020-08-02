@@ -48,11 +48,11 @@ The initial condition of any Species (or Component) will also be looked up as a 
 """
 
 import csv
-from warnings import warn
-from typing import List, Dict, Union
 import numbers
 import re
 from collections import namedtuple  # Used for the parameter keys
+from typing import Dict, List, Union
+from warnings import warn
 
 ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')  # This could later be extended
 
