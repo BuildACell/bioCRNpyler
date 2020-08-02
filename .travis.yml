@@ -10,9 +10,11 @@ python:
 install:
   - make get_test_deps
 
+env:
+  - TEST_SUITE=test
+  - TEST_SUITE=test_all
 script:
-  - make test
-  - make test_all
+  - make test $TEST_SUITE
   - make flake8-mutable
   - make install
 
