@@ -248,7 +248,6 @@ class ChemicalReactionNetwork(object):
 
         return result
 
-
     def simulate_with_bioscrape_via_sbml(self, timepoints, filename = None,
                 initial_condition_dict = None, return_dataframe = True,
                 stochastic = False, safe = False, return_model = False, **kwargs):
