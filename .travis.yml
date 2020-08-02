@@ -14,7 +14,7 @@ env:
   - TEST_SUITE=test
   - TEST_SUITE=test_all
 script:
-  - make test $TEST_SUITE
+  - make $TEST_SUITE
   - make flake8-mutable
   - make install
 
