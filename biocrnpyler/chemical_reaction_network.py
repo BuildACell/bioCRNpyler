@@ -247,9 +247,7 @@ class ChemicalReactionNetwork(object):
             safe = safe, stochastic = stochastic)
 
         return result
-        """
-        OLD CODE BELOW
-        try:
+
 
     def simulate_with_bioscrape_via_sbml(self, timepoints, filename = None,
                 initial_condition_dict = None, return_dataframe = True,
