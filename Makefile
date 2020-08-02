@@ -9,7 +9,7 @@ test :
 
 # run the test suite with all dependencies
 test_all :
-	python pip .install[all]
+	python pip install .[all]
 	python setup.py test
 
 # test for default mutable arguments in the code
