@@ -1,6 +1,12 @@
-from .mechanism import *
-from .species import Species, Complex, WeightedSpecies
+
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
+# See LICENSE file in the project root directory for details.
+
+import itertools as it
+
+from .mechanism import Mechanism
 from .reaction import Reaction
+from .species import Complex, Multimer, Species, WeightedSpecies
 
 
 class Reversible_Bimolecular_Binding(Mechanism):

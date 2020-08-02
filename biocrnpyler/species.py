@@ -1,12 +1,11 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from .sbmlutil import *
-import warnings
-from typing import List, Union, Dict
-import itertools
 import copy
-from .polymer import OrderedPolymer, OrderedMonomer
+import warnings
+from typing import List, Union
+
+from .polymer import OrderedMonomer, OrderedPolymer
 
 
 class Species(OrderedMonomer):

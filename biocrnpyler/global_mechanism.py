@@ -1,13 +1,13 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
+from typing import Dict, List
 from warnings import warn
 
 from .mechanism import Mechanism
 from .mechanisms_enzyme import MichaelisMenten
-from .species import Species, ComplexSpecies, OrderedPolymerSpecies
 from .reaction import Reaction
-from typing import List, Union, Dict
+from .species import ComplexSpecies, OrderedPolymerSpecies, Species
 
 """
 Global mechanisms are a lot like mechanisms. They are called only by mixtures

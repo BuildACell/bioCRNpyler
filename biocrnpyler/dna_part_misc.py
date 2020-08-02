@@ -1,8 +1,13 @@
-from .species import Species
-from .mechanisms_binding import One_Step_Cooperative_Binding
-from .dna_part import DNA_part
-from warnings import warn
+
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
+# See LICENSE file in the project root directory for details.
+
 import copy
+from warnings import warn
+
+from .dna_part import DNA_part
+from .mechanisms_binding import One_Step_Cooperative_Binding
+from .species import Species
 
 integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 class DNABindingSite(DNA_part):

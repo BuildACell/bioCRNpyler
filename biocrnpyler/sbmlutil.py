@@ -4,12 +4,12 @@
 # Copyright (c) 2018, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-import libsbml
-from random import randint
 import logging
+from random import randint
 from typing import List
 from warnings import warn
 
+import libsbml
 
 # Reaction ID number (global)
 reaction_id = 0
@@ -159,6 +159,7 @@ def find_parameter(mixture, id):
 
 def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
     """adds a list of reactions to the SBML model.
+<<<<<<< HEAD
 
     :param model: an sbml model created by create_sbml_model()
     :param reactions: list of Reactions
@@ -187,6 +188,36 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
     :return: SBML Reaction object
     """
 
+=======
+
+    :param model: an sbml model created by create_sbml_model()
+    :param reactions: list of Reactions
+    :param stochastic: binary flag for stochastic models
+    :return: None
+    """
+
+    for rxn_count, r in enumerate(reactions):
+        rxn_id = f'r{rxn_count}'
+        add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, **kwargs)
+
+        #Reversible reactions are always seperated into two seperate reactions
+        if r.is_reversible:
+            rxn_id = f'r{rxn_count}rev'
+            add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id, stochastic=stochastic, reverse_reaction = True, **kwargs)
+
+
+def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction: bool=False, **kwargs):
+    """adds a sbml_reaction to an sbml model.
+
+    :param model: an sbml model created by create_sbml_model()
+    :param crn_reaction: must be a chemical_reaction_network.reaction object
+    :param reaction_id: unique id of the reaction
+    :param stochastic: stochastic model flag
+    :param reverse_reaction: 
+    :return: SBML Reaction object
+    """
+
+>>>>>>> 2a66ce0f0b792590115cd5663fed0baa15e7186b
     # Create the sbml_reaction in SBML
     sbml_reaction = model.createReaction()
     all_ids = getAllIds(model.getSBMLDocument().getListOfAllElements())

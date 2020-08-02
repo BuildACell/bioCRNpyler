@@ -6,8 +6,10 @@
 #       See LICENSE file in the project root directory for details.
 #
 ################################################################
-from .species import WeightedSpecies
 import itertools as it
+
+from .species import WeightedSpecies
+
 
 def all_comb(input_list):
     out_list = []

@@ -1,15 +1,18 @@
-from warnings import warn
-from warnings import resetwarnings
-from .components_basic import DNA, RNA, Protein, ChemicalComplex
-from .mechanism import EmptyMechanism
-from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
-from .mechanisms_binding import One_Step_Binding
-from .mechanisms_txtl import Transcription_MM, Translation_MM, OneStepGeneExpression, SimpleTranscription, SimpleTranslation
-from .mixture import Mixture
-from .species import Species
+
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
+# See LICENSE file in the project root directory for details.
+
 from .chemical_reaction_network import ChemicalReactionNetwork
-from .global_mechanism import Dilution, Degredation_mRNA_MM
+from .components_basic import Protein
 from .dna_assembly import DNAassembly
+from .global_mechanism import Degredation_mRNA_MM, Dilution
+from .mechanism import EmptyMechanism
+from .mechanisms_binding import One_Step_Binding
+from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
+from .mechanisms_txtl import (OneStepGeneExpression, SimpleTranscription,
+                              SimpleTranslation, Transcription_MM,
+                              Translation_MM)
+from .mixture import Mixture
 
 
 class ExpressionDilutionMixture(Mixture):
@@ -63,7 +66,6 @@ class ExpressionDilutionMixture(Mixture):
 
         # Call the superclass function
         return Mixture.compile_crn(self)
-
 
 class SimpleTxTlDilutionMixture(Mixture):
     """Mixture with continuous dilution for non-DNA species.

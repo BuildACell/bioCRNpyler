@@ -1,8 +1,8 @@
-from .mechanism import *
-from .species import Species, Complex
+from .mechanism import Mechanism
+from .mechanisms_enzyme import MichaelisMentenCopy
+from .propensities import ProportionalHillNegative, ProportionalHillPositive
 from .reaction import Reaction
-from .propensities import ProportionalHillPositive, ProportionalHillNegative
-from .mechanisms_enzyme import *
+from .species import Complex, Species
 
 
 class OneStepGeneExpression(Mechanism):

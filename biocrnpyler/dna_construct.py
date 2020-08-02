@@ -2,31 +2,27 @@
 #       DNA_construct: a higher level for construct compilation
 #       Author: Andrey Shur
 #       Latest update: 7/31/2020
-#       Copyright (c) 2020, Build-A-Cell. All rights reserved.
-#       See LICENSE file in the project root directory for details.
 #
 ################################################################
 
-import random
 
-from .chemical_reaction_network import ComplexSpecies, Species, OrderedComplexSpecies, OrderedPolymer,\
-                        OrderedMonomer,OrderedPolymerSpecies
-from .mechanisms_binding import One_Step_Cooperative_Binding, Combinatorial_Cooperative_Binding
-from .component import Component
-from .components_basic import DNA, Protein, RNA
-from .species import WeightedSpecies
-from .dna_part import DNA_part
-from .dna_part_misc import DNABindingSite,AttachmentSite
-from .dna_part_rbs import RBS
-from .dna_part_cds import CDS
-from .dna_part_terminator import Terminator
-from .dna_part_promoter import Promoter
-from .utils import *
-#from .dna_part_promoter import 
-import itertools as it
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
+# See LICENSE file in the project root directory for details.
+
 import copy
-
 from warnings import warn
+
+from .component import Component
+from .components_basic import DNA, RNA
+from .dna_part import DNA_part
+from .dna_part_cds import CDS
+from .dna_part_misc import AttachmentSite
+from .dna_part_promoter import Promoter
+from .dna_part_rbs import RBS
+from .dna_part_terminator import Terminator
+from .species import (ComplexSpecies, OrderedMonomer, OrderedPolymer,
+                      OrderedPolymerSpecies)
+from .utils import all_comb, remove_bindloc, rev_dir
 
 #integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 

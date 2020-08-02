@@ -1,7 +1,12 @@
-from .component import *
-from .species import Species, ComplexSpecies, OrderedComplexSpecies
-from .mechanism import *
-from .mechanisms_binding import *
+
+#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  See LICENSE file in the project root directory for details.
+
+from typing import List, Union
+
+from .component import Component
+from .reaction import Reaction
+from .species import Complex, Species
 
 
 class DNA(Component):
