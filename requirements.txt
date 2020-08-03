@@ -11,4 +11,4 @@ pandas
 astropy
 emcee
 python-libsbml
---editable git+git://github.com/biocircuits/bioscrape.git@master#egg=bioscrape
+#--editable git+git://github.com/biocircuits/bioscrape.git@master#egg=bioscrape
