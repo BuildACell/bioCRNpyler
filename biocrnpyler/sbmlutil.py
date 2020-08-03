@@ -159,7 +159,6 @@ def find_parameter(mixture, id):
 
 def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
     """adds a list of reactions to the SBML model.
-
     :param model: an sbml model created by create_sbml_model()
     :param reactions: list of Reactions
     :param stochastic: binary flag for stochastic models
@@ -178,7 +177,6 @@ def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
 
 def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction: bool=False, **kwargs):
     """adds a sbml_reaction to an sbml model.
-
     :param model: an sbml model created by create_sbml_model()
     :param crn_reaction: must be a chemical_reaction_network.reaction object
     :param reaction_id: unique id of the reaction
