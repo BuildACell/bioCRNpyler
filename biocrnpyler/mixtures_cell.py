@@ -67,7 +67,6 @@ class ExpressionDilutionMixture(Mixture):
         # Call the superclass function
         return Mixture.compile_crn(self)
 
-
 class SimpleTxTlDilutionMixture(Mixture):
     """Mixture with continuous dilution for non-DNA species.
 
