@@ -10,11 +10,11 @@ BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, mani
 and study of the structure, dynamics, and functions
 of complex biochemical networks.
 
-- **Website:** https://github.com/BuildACell/BioCRNPyler
+- **Website:** http://buildacell.io/BioCRNPyler
 - **Mailing list:** [SBTools Google Group](https://groups.google.com/g/sbtools/) Email: sbtools@googlegroups.com
 - **Source:** https://github.com/BuildACell/BioCRNPyler
 - **Bug reports:** https://github.com/BuildACell/BioCRNPyler/issues
-- **Documentation** [biocrnpyler.readthedocs.io](https://readthedocs.org/projects/biocrnpyler/)
+- **Documentation** https://github.com/BuildACell/BioCRNPyler/
 - **Slack** Join the #biocrnpyler channel on SBTools slack: Ask on the public SBTools Google group to be added or send a message to one of the maintainers. 
 
 # Example 1: Building Simple CRNs by Hand
