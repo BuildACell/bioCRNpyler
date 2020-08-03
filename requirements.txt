@@ -1,0 +1,5 @@
+--editable git+git://github.com/dr3y/dnaplotlib.git@master#egg=dnaplotlib
+bokeh
+matplotlib
+networkx
+fa2

@@ -18,7 +18,6 @@ script:
   - make flake8-mutable
   - make install
 
-
 # Push the results back to codecov
 after_success:
   - codecov
