@@ -3,8 +3,3 @@ bokeh
 matplotlib
 networkx
 fa2
-lxml
-beautifulsoup4
-cython
-sympy
-pandas
