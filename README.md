@@ -14,7 +14,6 @@ of complex biochemical networks.
 - **Mailing list:** TBA
 - **Source:** https://github.com/BuildACell/BioCRNPyler
 - **Bug reports:** https://github.com/BuildACell/BioCRNPyler/issues
-[comment]: <> (- **Documentation** [biocrnpyler.readthedocs.io](https://readthedocs.org/projects/biocrnpyler/))
 
 # Simple example
 
