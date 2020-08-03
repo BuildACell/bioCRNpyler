@@ -1,10 +1,5 @@
-<<<<<<< HEAD
 # BioCRNPyler &mdash; Biomolecular Chemical Reaction Network Compiler
 ## Python toolbox to create CRN models in SBML for biomolecular mechanisms
-=======
-# BioCRNpyler: Compiling Chemical Reaction Networks from Parts in Diverse Contexts
-## Python framework and library that compiles SBML models from simple specifications
->>>>>>> 99c710c99638e5083a56ad502029304aaf726e36
 
 [![Build Status](https://travis-ci.com/BuildACell/BioCRNPyler.svg?branch=master)](https://travis-ci.com/BuildACell/BioCRNPyler)
 [![codecov](https://codecov.io/gh/BuildACell/BioCRNPyler/branch/master/graph/badge.svg)](https://codecov.io/gh/BuildACell/BioCRNPyler)
