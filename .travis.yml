@@ -8,22 +8,15 @@ python:
 
 # Install the codecov and pytest pip dependencies
 install:
-  - pip install codecov
-  - pip install pytest
-  - pip install pytest-runner
-  - pip install pytest-cov
-  - pip install nbval
-  - pip install flake8-mutable
-  - pip install flake8
+  - make get_test_deps
 
-# command to run tests
-# 1, pytest
-# 2, flake8 checks for default mutable argument
+env:
+  - TEST_SUITE=test
+  - TEST_SUITE=test_all
 script:
-          - "python setup.py test"
-          - flake8  --select M biocrnpyler
-          - if [[ `flake8  --select M biocrnpyler` ]]; then >&2 echo "default mutable argument detected"; exit 1 ; fi
-
+  - make $TEST_SUITE
+  - make flake8-mutable
+  - make install
 
 # Push the results back to codecov
 after_success:

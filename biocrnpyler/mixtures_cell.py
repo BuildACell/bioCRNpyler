@@ -18,6 +18,7 @@ from .mixture import Mixture
 class ExpressionDilutionMixture(Mixture):
     """A Model for in-vivo Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.).
 
+
     Here transcription and Translation are lumped into one reaction: expression.
     A global mechanism is used to dilute all non-dna species
     """
@@ -173,4 +174,3 @@ class TxTlDilutionMixture(Mixture):
         }
 
         self.add_mechanisms(default_mechanisms)
-

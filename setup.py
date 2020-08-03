@@ -6,7 +6,7 @@ with open('README.md') as fp:
 
 setup(
     name='biocrnpyler',
-    version='0.9.0',
+    version='1.0.0',
     author='BuildACell',
     url='https://github.com/BuildACell/biocrnpyler/',
     description='A chemical reaction network compiler for generating large biological circuit models',
@@ -31,8 +31,8 @@ setup(
             "networkx",
             "bokeh",
             "fa2"
-            ]
-            },
+            ],
+        },
     setup_requires=["pytest-runner"],
     python_requires='>=3.6',
     keywords="SBML synthetic biology modeling Chemical Reaction Network CRN model",

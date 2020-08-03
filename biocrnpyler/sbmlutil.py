@@ -20,9 +20,7 @@ logger = logging.getLogger(__name__)
 def create_sbml_model(compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
                       length_units='metre', area_units='square_metre', volume_units='litre', volume=1e-6, model_id=None, **kwargs):
     """Creates an SBML Level 3 Version 2 model with some fixed standard settings.
-
     Refer to python-libsbml for more information on SBML API.
-
     :param compartment_id:
     :param time_units:
     :param extent_units:
@@ -80,7 +78,6 @@ def species_sbml_id(species, document=None):
 
 def add_all_species(model, species: List, compartment=None, **kwargs):
     """adds a list of Species to the SBML model.
-
     :param model: valid SBML model
     :param species: list of species to be added to the SBML model
     :param compartment: compartment id, if empty species go to the first compartment
@@ -97,7 +94,6 @@ def add_all_species(model, species: List, compartment=None, **kwargs):
 
 def add_species(model, compartment, species, initial_concentration=None, **kwargs):
     """Helper function to add a species to the sbml model.
-
     :param model:
     :param compartment: a compartment in the SBML model
     :param species: must be chemical_reaction_network.species objects
@@ -159,7 +155,6 @@ def find_parameter(mixture, id):
 
 def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
     """adds a list of reactions to the SBML model.
-
     :param model: an sbml model created by create_sbml_model()
     :param reactions: list of Reactions
     :param stochastic: binary flag for stochastic models
@@ -178,7 +173,6 @@ def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
 
 def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, reverse_reaction: bool=False, **kwargs):
     """adds a sbml_reaction to an sbml model.
-
     :param model: an sbml model created by create_sbml_model()
     :param crn_reaction: must be a chemical_reaction_network.reaction object
     :param reaction_id: unique id of the reaction
@@ -446,7 +440,6 @@ class validateSBML(object):
 
     def validate(self, sbml_document, print_results = False):
         """sbml_document: libSBML SBMLDocument object.
-
         print_results: Print toggle for validation warnings.
         """
         sbmlDoc  = sbml_document
