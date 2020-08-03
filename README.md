@@ -47,6 +47,8 @@ print(CRN)
 
 BioCRNpyler also allows for higher level descriptions to be compiled into a CRN. In the below example, a piece of synthetic DNA with two promoters pointing in opposite directions is constructed from a list of DNAparts which are combined together in a DNA_construct and then simulated in a TxTlExtract context, which represents a cell-free bacterial lysate with machinery like Ribosomes and Polymerases modeled explicitly.
 
+![Specification to CRN Illustration](static/SpecificationToCRN.png)
+
 ```python
 from biocrnpyler import *
 
