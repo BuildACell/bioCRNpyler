@@ -1,4 +1,4 @@
-# BioCRNPyler -- BioCRNpyler: Compiling Chemical Reaction Networks from Parts in Diverse Contexts
+# BioCRNpyler: Compiling Chemical Reaction Networks from Parts in Diverse Contexts
 ## Python framework and library that compiles SBML models from simple specifications
 
 [![Build Status](https://travis-ci.com/BuildACell/BioCRNPyler.svg?branch=master)](https://travis-ci.com/BuildACell/BioCRNPyler)
