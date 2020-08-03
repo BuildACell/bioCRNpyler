@@ -172,4 +172,3 @@ class TxTlDilutionMixture(Mixture):
         }
 
         self.add_mechanisms(default_mechanisms)
-
