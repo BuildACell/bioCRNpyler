@@ -10,6 +10,5 @@ sympy
 pandas
 astropy
 emcee
-sbmlteam
 python-libsbml
 --editable git+git://github.com/biocircuits/bioscrape.git@master#egg=bioscrape
