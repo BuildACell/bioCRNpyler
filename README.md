@@ -10,7 +10,7 @@ BioCRNPyler is a Python package for the creation, manipulation,
 and study of the structure, dynamics, and functions
 of complex networks.
 
-- **Website:** https://github.com/BuildACell/BioCRNPyler
+- **Website:** http://buildacell.io/BioCRNPyler
 - **Mailing list:** TBA
 - **Source:** https://github.com/BuildACell/BioCRNPyler
 - **Bug reports:** https://github.com/BuildACell/BioCRNPyler/issues
