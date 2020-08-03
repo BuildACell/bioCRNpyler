@@ -1,0 +1,15 @@
+--editable git+git://github.com/dr3y/dnaplotlib.git@master#egg=dnaplotlib
+bokeh
+matplotlib
+networkx
+fa2
+lxml
+beautifulsoup4
+cython
+sympy
+pandas
+astropy
+emcee
+sbmlteam
+python-libsbml
+--editable git+git://github.com/biocircuits/bioscrape.git@master#egg=bioscrape

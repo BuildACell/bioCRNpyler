@@ -452,7 +452,10 @@ def plotDesign(design,renderer = None,part_renderers=None,\
             part_renderers = renderer.SBOL_part_renderers()
         fig = plt.figure(figsize=(len(design)*.75,1.1))
         ax = fig.add_axes([0,0,1,1])
-        start,end = renderer.renderDNA(ax,design,part_renderers,circular=circular)
+        try:
+            start,end = renderer.renderDNA(ax,design,part_renderers,circular=circular)
+        except TypeError:
+            start,end = renderer.renderDNA(ax,design,part_renderers)
         ax.axis('off')
         if title is not None:
             ax.set_title(title)
