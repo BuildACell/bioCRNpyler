@@ -456,6 +456,7 @@ def plotDesign(design,renderer = None,part_renderers=None,\
             start,end = renderer.renderDNA(ax,design,part_renderers,circular=circular)
         except TypeError:
             start,end = renderer.renderDNA(ax,design,part_renderers)
+
         ax.axis('off')
         if title is not None:
             ax.set_title(title)
