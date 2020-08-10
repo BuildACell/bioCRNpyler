@@ -3,7 +3,7 @@
 These classes are used by Chemical Reaction Network Species as well as certain Components such as DNA_construct.
 """
 import copy
-
+from warnings import warn
 
 class OrderedPolymer:
 
