@@ -23,12 +23,18 @@ class CRNLab(object):
         self.crn = None
         self.warning_print = True
 
+        warnings.warn("CRNLab is depricated and will cease to function with future releases.")
+
+
     def mixture(self, name, **kwargs):
         """
         Create a Mixture of a given name into the CRNLab object
         Specify the extract and buffer optionally
         Specify extra parameters to be loaded as dictionaries optionally
         """
+
+        warnings.warn("CRNLab is depricated and will cease to function with future releases: to produce a Mixture please use that Mixture's class constructor.")
+
         extract = kwargs.get('extract') 
         if 'warning_print' in kwargs:
             self.warning_print = kwargs['warning_print']
@@ -67,6 +73,9 @@ class CRNLab(object):
     def add_dna(self, dna = None, name = "", promoter = "", 
                 rbs = "", protein = "", initial_conc ="", 
                 final_conc = "", volume = 0, **kwargs):
+
+        warnings.warn("CRNLab is depricated and will cease to function with future releases: to add DNA to a mixture, please use Mixture.add_component.")
+
         if volume:
             self.volume += volume
         if dna:
@@ -86,6 +95,8 @@ class CRNLab(object):
         return self.Mixture
 
     def add_component(self, component):
+        warnings.warn("CRNLab is depricated and will cease to function with future releases: to add a Component to a mixture, please use Mixture.add_component.")
+
         self.Mixture.add_components(component)
         return self.Mixture
     def set_volumes(self):
@@ -103,10 +114,12 @@ class CRNLab(object):
         else:
             return
     def get_model(self):
+        warnings.warn("CRNLab is depricated and will cease to function with future releases: to generate a CRN model, please use Mixture.combile_crn()")
         self.crn = self.Mixture.compile_crn()
         return self.crn
 
     def write_sbml_file(self, filename, **kwargs):
+        warnings.warn("CRNLab is depricated and will cease to function with future releases: to save a CRN to SBML, please use ChemicalReactionNetwork.write_sbml_file()")
         self.set_volumes()
         if self.volume:
             kwargs['volume'] = self.volume
