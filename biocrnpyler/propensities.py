@@ -255,6 +255,9 @@ class GeneralPropensity(Propensity):
 
         self.name = 'general'
 
+    def pretty_print_rate(self, **kwargs):
+        return self.propensity_function
+
     def create_kinetic_law(self, model, sbml_reaction, **kwargs):
         """Creates KineticLaw object for SBML using the propensity_function string."""
         ratelaw = sbml_reaction.createKineticLaw()
