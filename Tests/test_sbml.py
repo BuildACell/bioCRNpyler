@@ -129,6 +129,10 @@ def test_add_reaction_for_bioscrape():
                 k = k.replace("_reverse", "").replace("_forward", "")
                 check_var = f"{k}=" in sbml_annotation
                 assert  check_var == True
+
+                #be sure that "k=" only shows up once in the annotation
+                assert sbml_annotation.count(f"{k}=") == 1
+                
             for s in prop.propensity_dict["species"]:
                 check_var = f"{s}=" in sbml_annotation
                 assert check_var == True 
