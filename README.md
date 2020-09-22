@@ -6,8 +6,7 @@
 [![PyPI version](https://badge.fury.io/py/biocrnpyler.svg)](https://badge.fury.io/py/biocrnpyler)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/BuildACell/BioCRNPyler/master?filepath=%2Fexamples%2F)
 
-BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, manipulation, and study of the structure, dynamics, and functions
-of complex biochemical networks.
+BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, manipulation, and study of the structure, dynamics, and functions of complex biochemical networks.
 
 - **Website:** http://buildacell.io/BioCRNPyler
 - **Source:** https://github.com/BuildACell/BioCRNPyler

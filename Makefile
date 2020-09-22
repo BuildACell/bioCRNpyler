@@ -25,4 +25,3 @@ get_test_deps :
 	pip install codecov
 	pip install flake8-mutable
 	pip install flake8
-
