@@ -156,6 +156,7 @@ def test_general_propensity():
     assert str(S1) in gn1.propensity_dict['species']
     assert k1.parameter_name in gn1.propensity_dict['parameters']
     assert k2.parameter_name in gn1.propensity_dict['parameters']
+    assert gn1.pretty_print() == 'k1*2 - k2/S1^2\n  k1=1.11\n  k2=2.22\n'
 
     gn2 = GeneralPropensity('S1^2 + S2^2 + S3^2', propensity_species=[S1, S2, S3], propensity_parameters=[])
     assert str(S1) in gn1.propensity_dict['species']

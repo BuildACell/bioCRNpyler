@@ -89,7 +89,7 @@ class Parameter(object):
         if not (isinstance(new_parameter_value, numbers.Real) or isinstance(new_parameter_value, str)):
             raise ValueError(f"parameter_value must be a float or int: received {type(new_parameter_value)}.")
         if isinstance(new_parameter_value, str):
-            if re.search('[a-d-f-z]', new_parameter_value, re.I) \
+            if re.search('[a-df-z]', new_parameter_value, re.I) \
                     or re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e-?[0-9]+)|(^.?[0-9])', new_parameter_value, re.I) is None:
                 raise ValueError(f'No valid parameter value! Accepted formats: 1.00 or 1e4 or 2/5, we got {new_parameter_value} ')
 

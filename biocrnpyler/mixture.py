@@ -144,47 +144,6 @@ class Mixture(object):
             return self.mechanisms[mechanism_type]
         else:
             return None
-                
-    @property
-    def global_mechanisms(self):
-        """
-        global_mechanisms stores global Mechanisms in the Mixture
-        """
-        return self._global_mechanisms
-
-    @global_mechanisms.setter
-    def global_mechanisms(self, mechanisms):
-        self._global_mechanisms = {}
-        if isinstance(mechanisms, dict):
-            for mech_type in mechanisms:
-                self.add_global_mechanism(mechanisms[mech_type], mech_type, overwrite = True)
-        elif isinstance(mechanisms, list):
-            for mech in mechanisms:
-                self.add_global_mechanism(mech, overwrite = True)
-
-    def add_global_mechanism(self, mechanism: Mechanism, mech_type=None, overwrite=False):
-        """adds a mechanism of type mech_type to the Mixture global_mechanism dictonary.
-
-        :param mechanism: a Mechanism instance
-        :param mech_type: the type of mechanism. defaults to mechanism.mech_type if None
-        :param overwrite: whether to overwrite existing mechanisms of the same type (default False)
-        :return:
-        """
-        if not hasattr(self, "_global_mechanisms"):
-            self._global_mechanisms = {}
-
-        if not isinstance(mechanism, GlobalMechanism):
-            raise TypeError(f"mechanism must be a GlobalMechanism. Received {mechanism}.")
-
-        if mech_type is None:
-            mech_type = mechanism.mechanism_type
-        if not isinstance(mech_type, str):
-            raise TypeError(f"mechanism keys must be strings. Received {mech_type}")
-
-        if mech_type in self._mechanisms and not overwrite:
-            raise ValueError(f"mech_type {mech_type} already in Mixture {self}. To overwrite, use keyword overwrite = True.")
-        else:
-            self._global_mechanisms[mech_type] = copy.deepcopy(mechanism)
 
     def add_components(self, components: Union[List[Component], Component]):
         """This function adds a list of components to the mixture.
@@ -292,18 +251,6 @@ class Mixture(object):
         else:
             raise ValueError(f"add_mechanisms expected a list of Mechanisms. Recieved {mechanisms}")
 
-    def get_mechanism(self, mechanism_type):
-        """Searches the Mixture for a Mechanism of the correct type.
-
-        If no Mechanism is found, None is returned.
-        """
-        if not isinstance(mechanism_type, str):
-            raise TypeError(f"mechanism_type must be a string. Recievied {mechanism_type}.")
-
-        if mechanism_type in self.mechanisms:
-            return self.mechanisms[mechanism_type]
-        else:
-            return None
                 
     @property
     def global_mechanisms(self):

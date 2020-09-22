@@ -200,15 +200,20 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
        ComplexSpecies are seperated by this process, including embedded ComplexSpecies. 
        OrderedPolymerSpecies are ignored.
     """
-    def __init__(self, nuclease, name="rna_degredation_mm", mechanism_type = "rna_degredation", **keywords):
+    def __init__(self, nuclease, name="rna_degredation_mm", mechanism_type = "rna_degredation", 
+        default_on = False, recursive_species_filtering = True, filter_dict = None, **keywords):
+
         if isinstance(nuclease, Species):
             self.nuclease = nuclease
         else:
             raise ValueError("'nuclease' must be a Species.")
         MichaelisMenten.__init__(self=self, name=name, mechanism_type = mechanism_type)
 
-        GlobalMechanism.__init__(self, name = name, mechanism_type = mechanism_type, default_on = False,
-                                 filter_dict = {"rna":True, "notdegradable":False}, recursive_species_filtering = True)
+        if filter_dict is None:
+            filter_dict = {"rna":True, "notdegradable":False}
+
+        GlobalMechanism.__init__(self, name = name, mechanism_type = mechanism_type, default_on = default_on,
+                                 filter_dict = filter_dict, recursive_species_filtering = recursive_species_filtering)
 
     def update_species(self, s, mixture):
         species = []
@@ -273,15 +278,19 @@ class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
        Species_degtagged + protease <--> Species_degtagged:protease --> protease
        All species with the attribute degtagged and material_type protein are degraded. The method is not recursive.
     """
-    def __init__(self, protease, deg_tag = "degtagged", name="deg_tagged_degredation", mechanism_type="degredation", **keywords):
+    def __init__(self, protease, deg_tag = "degtagged", name="deg_tagged_degredation", mechanism_type="degredation", 
+        filter_dict= None, recursive_species_filtering = False, default_on = False, **keywords):
         if isinstance(protease, Species):
             self.protease = protease
         else:
             raise ValueError("'protease' must be a Species.")
         MichaelisMenten.__init__(self=self, name=name, mechanism_type=mechanism_type)
 
-        GlobalMechanism.__init__(self, name = name, mechanism_type = mechanism_type, default_on = False,
-                                 filter_dict = {deg_tag:True}, recursive_species_filtering = False)
+        if filter_dict is None:
+            filter_dict = {deg_tag:True}
+            
+        GlobalMechanism.__init__(self, name = name, mechanism_type = mechanism_type, default_on = default_on,
+                                 filter_dict = filter_dict, recursive_species_filtering = recursive_species_filtering)
 
     def update_species(self, s, mixture):
         species = []
