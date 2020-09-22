@@ -15,7 +15,7 @@ of complex biochemical networks.
 - **Paper:** - [BioCRNpyler: Compiling Chemical Reaction Networks from Biomolecular Parts in Diverse Contexts](https://www.biorxiv.org/content/10.1101/2020.08.02.233478v1)
 - **Mailing list:** [SBTools Google Group](https://groups.google.com/g/sbtools/) Email: sbtools@googlegroups.com
 - **Bug reports:** https://github.com/BuildACell/BioCRNPyler/issues
-- **Documentation** [biocrnpyler.readthedocs.io](https://readthedocs.org/projects/biocrnpyler/)
+- **Documentation** Coming Soon! Check out the [website](http://buildacell.io/BioCRNPyler) and [source code](https://github.com/BuildACell/BioCRNPyler) until then.
 - **Slack** Join the #biocrnpyler channel on SBTools slack: Ask on the public SBTools Google group to be added or send a message to one of the maintainers. 
 
 # Example 1: Building Simple CRNs by Hand
