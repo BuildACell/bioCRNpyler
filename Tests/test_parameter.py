@@ -29,6 +29,9 @@ class TestParameter(TestCase):
 
         self.assertTrue(Parameter(parameter_name="None", parameter_value="1e2").value == 100)
 
+        self.assertTrue(Parameter(parameter_name="None", parameter_value="1e-2").value == 0.01)
+        self.assertTrue(Parameter(parameter_name="None", parameter_value="2e-2/2").value == 0.01)
+
         # testing invalid parameter name
         with self.assertRaisesRegex(ValueError, f"parameter_name should be at least one character and cannot start with a number!"):
             Parameter(parameter_name="2", parameter_value=2)

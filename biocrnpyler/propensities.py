@@ -255,6 +255,9 @@ class GeneralPropensity(Propensity):
 
         self.name = 'general'
 
+    def pretty_print_rate(self, **kwargs):
+        return self.propensity_function
+
     def create_kinetic_law(self, model, sbml_reaction, **kwargs):
         """Creates KineticLaw object for SBML using the propensity_function string."""
         ratelaw = sbml_reaction.createKineticLaw()
@@ -336,6 +339,7 @@ class MassAction(Propensity):
         # create a kinetic law for the sbml_reaction
         ratelaw = sbml_reaction.createKineticLaw()
 
+
         # translate the internal representation of a propensity to SBML format
         propensity_dict_in_sbml = self._translate_propensity_dict_to_sbml(model=model, ratelaw=ratelaw)
 
@@ -345,8 +349,9 @@ class MassAction(Propensity):
             for w_species in crn_reaction.inputs:
                 species_id = getSpeciesByName(model, str(w_species.species)).getId()
                 reactant_species[species_id] = w_species
-
             param = propensity_dict_in_sbml['parameters']['k_forward']
+            propensity_dict_in_sbml['parameters'].pop('k_reverse', None) #remove the other parameter from the propensities
+            ratelaw.removeLocalParameter("k_reverse") #if k_reverse is a local parameter, remove it
         # set up a reverse reaction
         elif reverse_reaction:
             reactant_species = {}
@@ -354,6 +359,8 @@ class MassAction(Propensity):
                 species_id = getSpeciesByName(model, str(w_species.species)).getId()
                 reactant_species[species_id] = w_species
             param = propensity_dict_in_sbml['parameters']['k_reverse']
+            propensity_dict_in_sbml['parameters'].pop('k_forward', None) #remove the other parameter from the propensities
+            ratelaw.removeLocalParameter("k_forward") #if k_forward is a local parameter, remove it
 
         rate_formula = self._get_rate_formula(param, stochastic, reactant_species)
         # Set the ratelaw to the rateformula
