@@ -6,8 +6,8 @@ with open('README.md') as fp:
 
 setup(
     name='biocrnpyler',
-    version='1.1.2',
-    author='Build-A-Cell',
+    version='1.0.1',
+    author='BuildACell',
     url='https://github.com/BuildACell/biocrnpyler/',
     description='A chemical reaction network compiler for generating large biological circuit models',
     long_description=long_description,
@@ -26,21 +26,17 @@ setup(
           ],
     extras_require = { 
         "all": [
-            "numpy<2.0",
+            "numpy",
             "matplotlib",
             "networkx",
             "bokeh>=1.4.0",
-            "fa2_modified",
-            "jupyter",
-            "pytest",
-            "pytest-cov",
-            "nbconvert"
+            "fa2"
             ],
         },
-    tests_require=["pytest", "pytest-cov"],
     setup_requires=["pytest-runner"],
     python_requires='>=3.6',
-    keywords="SBML synthetic systems biology modeling Chemical Reaction Network CRN model",
+    keywords="SBML synthetic biology modeling Chemical Reaction Network CRN model",
+    tests_require=["pytest", "pytest-cov", "nbval"],
     project_urls={
     'Documentation': 'https://readthedocs.org/projects/biocrnpyler/',
     'Funding': 'http://www.cds.caltech.edu/~murray/wiki/index.php?title=Developing_Standardized_Cell-Free_Platforms_for_Rapid_Prototyping_of_Synthetic_Biology_Circuits_and_Pathways',

@@ -1,20 +1,21 @@
 # BioCRNPyler &mdash; Biomolecular Chemical Reaction Network Compiler
 ## Python toolbox to create CRN models in SBML for biomolecular mechanisms
 
-[![Build Status](https://github.com/buildacell/biocrnpyler/actions/workflows/deploy.yml/badge.svg)](https://github.com/biocircuits/bioscrape/actions/workflows/deploy_bioscrape.yml)
+[![Build Status](https://travis-ci.com/BuildACell/BioCRNPyler.svg?branch=master)](https://travis-ci.com/BuildACell/BioCRNPyler)
 [![codecov](https://codecov.io/gh/BuildACell/BioCRNPyler/branch/master/graph/badge.svg)](https://codecov.io/gh/BuildACell/BioCRNPyler)
 [![PyPI version](https://badge.fury.io/py/biocrnpyler.svg)](https://badge.fury.io/py/biocrnpyler)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/BuildACell/BioCRNPyler/master?filepath=%2Fexamples%2F)
 
-BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, manipulation,
-and study of the structure, dynamics, and functions
-of complex biochemical networks.
 
-- **Mailing list:** [SBTools Google Group](https://groups.google.com/g/sbtools/) Email: sbtools@googlegroups.com
+BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, manipulation, and study of the structure, dynamics, and functions of complex biochemical networks.
+
+- **Website:** http://buildacell.io/BioCRNPyler
 - **Source:** https://github.com/BuildACell/BioCRNPyler
 - **Paper:** - [BioCRNpyler: Compiling Chemical Reaction Networks from Biomolecular Parts in Diverse Contexts](https://www.biorxiv.org/content/10.1101/2020.08.02.233478v1)
+- **Mailing list:** [SBTools Google Group](https://groups.google.com/g/sbtools/) Email: sbtools@googlegroups.com
 - **Bug reports:** https://github.com/BuildACell/BioCRNPyler/issues
-- **Slack** Join the #biocrnpyler channel on SBTools slack: Ask on the public SBTools Google group to be added or send a message to one of the maintainers. 
+- **Documentation:** Coming Soon!
+- **Slack:** Join the #biocrnpyler channel on SBTools slack: Ask on the public SBTools Google group to be added or send a message to one of the maintainers. 
 
 # Example 1: Building Simple CRNs by Hand
 
@@ -24,7 +25,7 @@ BioCRNpyler allows for CRNs to be built by hand, adding Species and Reactions ma
 from biocrnpyler import *
 # let's build the following CRN
 # A -->[k1] 2B
-# B -->[k2] C+D
+# B -->[k2] B+D
 # Species
 A = Species("A")
 B = Species("B")
@@ -35,7 +36,7 @@ D = Species("D")
 k1 = 3.
 k2 = 1.4
 
-#Reaction Objects
+#Reaciton Objects
 R1 = Reaction.from_massaction([A], [B, B], k_forward = k1)
 R2 = Reaction.from_massaction([B], [C, D], k_forward = k2)
 
@@ -95,8 +96,6 @@ Install with all optional dependencies::
 
     $ pip install biocrnpyler[all]
 
-(Note that on some operating systems you made need to use "\[all\]" to avoid shell errors.)
-
 Further details about the installation process can be found in the [BioCRNPyler wiki](https://github.com/BuildACell/BioCRNPyler/wiki#installation).
 
 # Bugs
@@ -111,13 +110,12 @@ see [contribution guidelines](https://github.com/BuildACell/BioCRNPyler/blob/mas
 
 BioCRNpyler versions:
 
-* 1.1.2 (latest stable release): To install run `pip install biocrnpyler` 
-* 1.1.1 (previous stable release, compatible only with python <= 3.10): To install run `pip install biocrnpyler==1.1.1` 
+* 1.0.0 (latest stable release): To install run `pip install biocrnpyler` 
 * 0.9.0 (beta release): To install run `pip install biocrnpyler==0.9.0`
 * 0.2.1 (alpha release): To install run `pip install biocrnpyler==0.2.1`
 
 # License
 Released under the BSD 3-Clause License (see `LICENSE`)
 
-Copyright (c) 2024, Build-A-Cell. All rights reserved.
+Copyright (c) 2020, Build-A-Cell. All rights reserved.
 
