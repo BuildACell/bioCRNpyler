@@ -71,6 +71,45 @@ class TestComponent(TestCase):
         # test that the parameter dictionary is still the same length as before
         self.assertTrue(len(self.component.parameter_database.parameters) == len(parameters))
 
+
+    def test_add_mechanism(self):
+        tx = SimpleTranscription()
+        tl = SimpleTranslation()
+
+        #test adding a single mechanism instead of a list still works
+        self.component.add_mechanisms(tx)
+        self.assertTrue(tx.mechanism_type in self.component.mechanisms)
+
+        #add a non-mechanism
+        with self.assertRaisesRegex(TypeError, 'mechanism must be a Mechanism.'):
+            self.component.add_mechanism(None)
+
+        with self.assertRaisesRegex(ValueError, 'add_mechanisms expected a list of Mechanisms.'):
+            self.component.add_mechanisms(None)
+
+        #add same mechanism, new type
+        self.component.add_mechanism(tx, mech_type = "new")
+        self.assertTrue("new" in self.component.mechanisms)
+        self.assertTrue(type(self.component.mechanisms["new"]) == SimpleTranscription)
+
+        #Add invalid mech_type
+        with self.assertRaisesRegex(TypeError, 'mechanism keys must be strings.'):
+            self.component.add_mechanism(tx, mech_type = 1234)
+
+        #add a mechanism already in the Component
+        with self.assertRaisesRegex(ValueError, f"mech_type {tx.mechanism_type} already in component"):
+            self.component.add_mechanism(tx)
+
+        #add mechanism with optional_mechanism - does not overwrite!
+        self.component.add_mechanism(tl, mech_type = tx.mechanism_type, optional_mechanism = True)
+        self.assertTrue(tx.mechanism_type in self.component.mechanisms)
+        self.assertTrue(type(self.component.mechanisms[tx.mechanism_type]) == SimpleTranscription)
+
+        #add mechanism with overwrite
+        self.component.add_mechanism(tl, mech_type = tx.mechanism_type, overwrite = True)
+        self.assertTrue(tx.mechanism_type in self.component.mechanisms)
+        self.assertTrue(type(self.component.mechanisms[tx.mechanism_type]) == SimpleTranslation)
+
     def test_update_mechanisms(self):
 
         tx = SimpleTranscription()
