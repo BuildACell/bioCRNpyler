@@ -1,7 +1,7 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from biocrnpyler import MassAction, ProportionalHillNegative, ProportionalHillPositive, HillPositive, HillNegative
+from biocrnpyler import MassAction, ProportionalHillNegative, ProportionalHillPositive, HillPositive, HillNegative, Hill
 from biocrnpyler import GeneralPropensity
 from biocrnpyler import ParameterEntry
 from biocrnpyler import Species
@@ -175,3 +175,38 @@ def test_general_propensity():
     test_formula = 'k2*S3^2'
     with pytest.raises(ValueError, match=f'must be part of the formula'):
         GeneralPropensity(test_formula, propensity_species=[S3], propensity_parameters=[k1])
+
+
+def test_propensity_dict_massaction():
+    k1 = ParameterEntry(parameter_value = '1', parameter_name = 'k1')
+    k2 = ParameterEntry(parameter_value = '2', parameter_name = 'k2')
+
+    #Should store the ParameterEntry in this case
+    P1 = MassAction(k_forward = k1, k_reverse = k2)
+    assert P1.propensity_dict["parameters"]["k_forward"] == k1
+    assert P1.propensity_dict["parameters"]["k_reverse"] == k2
+
+    #Should store a numerical value in this case
+    P2 = MassAction(k_forward = k1.value, k_reverse = k2.value)
+    assert P2.propensity_dict["parameters"]["k_forward"] == k1.value
+    assert P2.propensity_dict["parameters"]["k_reverse"] == k2.value
+
+def test_propensity_dict_hill():
+    d = Species('d')
+    s1 = Species('s1')
+    k = ParameterEntry(parameter_value = '1', parameter_name = 'k')
+    K = ParameterEntry(parameter_value = '2', parameter_name = 'K')
+    n = ParameterEntry(parameter_value = '3', parameter_name = 'n')
+
+    #Should store the ParameterEntry in this case
+    P1 = Hill(k = k, K = K, n = n, s1 = s1, d = d)
+    assert P1.propensity_dict["parameters"]["k"] == k
+    assert P1.propensity_dict["parameters"]["K"] == K
+    assert P1.propensity_dict["parameters"]["n"] == n
+
+    #Should store a numerical value in this case
+    P2 = Hill(k = k.value, K = K.value, n = n.value, s1 = s1, d = d)
+    assert P2.propensity_dict["parameters"]["k"] == k.value
+    assert P2.propensity_dict["parameters"]["K"] == K.value
+    assert P2.propensity_dict["parameters"]["n"] == n.value
+
