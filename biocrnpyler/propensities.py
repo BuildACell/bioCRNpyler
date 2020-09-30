@@ -408,7 +408,7 @@ class Hill(Propensity):
     @k.setter
     def k(self, new_k):
         self._k = self._check_parameter(new_k)
-        self.propensity_dict['parameters']['k'] = self.k
+        self.propensity_dict['parameters']['k'] = self._k
 
     @property
     def K(self):
@@ -420,7 +420,7 @@ class Hill(Propensity):
     @K.setter
     def K(self, new_K):
         self._K = self._check_parameter(new_K)
-        self.propensity_dict['parameters']['K'] = self.K
+        self.propensity_dict['parameters']['K'] = self._K
 
     @property
     def n(self):
@@ -431,7 +431,7 @@ class Hill(Propensity):
     @n.setter
     def n(self, new_n):
         self._n = self._check_parameter(new_n)
-        self.propensity_dict['parameters']['n'] = self.n
+        self.propensity_dict['parameters']['n'] = self._n
 
     @property
     def s1(self):
@@ -449,7 +449,7 @@ class Hill(Propensity):
     @d.setter
     def d(self, new_d):
         self._d = self._check_species(new_d, allow_None=True)
-        self.propensity_dict['species']['d'] = self.d
+        self.propensity_dict['species']['d'] = self._d
 
     def pretty_print_rate(self, show_parameters = True, **kwargs):
         raise NotImplementedError("Propensity class Hill is meant to be subclassed: try HillPositive, HillNegative, ProportionalHillPositive, or ProportionalHillNegative.")
