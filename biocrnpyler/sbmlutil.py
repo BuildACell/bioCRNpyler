@@ -230,9 +230,9 @@ def _create_products(product_list, sbml_reaction, model):
         product.setConstant(False)
 
 def _create_modifiers(crn_reaction, sbml_reaction, model):
-    reactants_list = [i.species.name for i in crn_reaction.inputs]
-    products_list = [i.species.name for i in crn_reaction.outputs]
-    modifier_species = [i.name for i in crn_reaction.propensity_type.propensity_dict['species'].values()]
+    reactants_list = [str(i.species) for i in crn_reaction.inputs]
+    products_list = [str(i.species) for i in crn_reaction.outputs]
+    modifier_species = [str(i) for i in crn_reaction.propensity_type.propensity_dict['species'].values()]
     for modifier_id in modifier_species:
         modifier_id = str(modifier_id)
         if modifier_id not in reactants_list and modifier_id not in products_list:
