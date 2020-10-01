@@ -64,7 +64,7 @@ def test_hill_negative_rate_formula():
     in_n = 2
     philpos = HillNegative(k=in_k, s1=in_s1, K=in_K, n=in_n)
 
-    assert philpos._get_rate_formula(philpos.propensity_dict) == f"{in_k}/(1+({in_s1}/{in_K})^{in_n})"
+    assert philpos._get_rate_formula(philpos.propensity_dict) == f"{in_k} / ( 1 + ({in_s1}/{in_K})^{in_n} )"
 
 
 def test_hill_positive_init():
@@ -89,7 +89,7 @@ def test_hill_positive_rate_formula():
     in_n = 2
     philpos = HillPositive(k=in_k, s1=in_s1, K=in_K, n=in_n)
 
-    assert philpos._get_rate_formula(philpos.propensity_dict) == f"{in_k}*({in_s1}/{in_K})^{in_n}/(1+({in_s1}/{in_K})^{in_n})"
+    assert philpos._get_rate_formula(philpos.propensity_dict) == f"{in_k}*( {in_s1}/{in_K} )^{in_n} / ( 1 + ({in_s1}/{in_K})^{in_n} )"
 
 
 def test_proportional_hill_positive_init():
@@ -116,7 +116,7 @@ def test_proportional_hill_positive_rate_formula():
     in_n = 2
     philpos = ProportionalHillPositive(k=in_k, s1=in_s1, K=in_K, n=in_n, d=in_d)
 
-    assert philpos._get_rate_formula(philpos.propensity_dict) == f"{in_k}*{in_d}*({in_s1}/{in_K})^{in_n}/(1+({in_s1}/{in_K})^{in_n})"
+    assert philpos._get_rate_formula(philpos.propensity_dict) == f"{in_k}*{in_d}*( {in_s1}/{in_K} )^{in_n} / ( 1 + ({in_s1}/{in_K})^{in_n} )"
 
 
 def test_proportional_hill_negative_init():
@@ -143,7 +143,7 @@ def test_proportional_hill_negative_rate_formula():
     in_n = 2
     philneg = ProportionalHillNegative(k=in_k, s1=in_s1, K=in_K, n=in_n, d=in_d)
 
-    assert philneg._get_rate_formula(philneg.propensity_dict) == f"{in_k}*{in_d}/(1+({in_s1}/{in_K})^{in_n})"
+    assert philneg._get_rate_formula(philneg.propensity_dict) == f"{in_k}*{in_d} / ( 1 + ({in_s1}/{in_K})^{in_n} )"
 
 
 def test_general_propensity():
