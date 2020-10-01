@@ -89,7 +89,7 @@ def test_hill_positive_rate_formula():
     in_n = 2
     philpos = HillPositive(k=in_k, s1=in_s1, K=in_K, n=in_n)
 
-    assert philpos._get_rate_formula(philpos.propensity_dict) == f"{in_k}*{in_s1}^{in_n} / ( {in_K}^{in_n} + {in_s1}^{in_n} )"
+    assert philpos._get_rate_formula(philpos.propensity_dict) == f"{in_k}*( {in_s1}/{in_K} )^{in_n} / ( 1 + ({in_s1}/{in_K})^{in_n} )"
 
 
 def test_proportional_hill_positive_init():
@@ -116,7 +116,7 @@ def test_proportional_hill_positive_rate_formula():
     in_n = 2
     philpos = ProportionalHillPositive(k=in_k, s1=in_s1, K=in_K, n=in_n, d=in_d)
 
-    assert philpos._get_rate_formula(philpos.propensity_dict) == f"{in_k}*{in_d}*{in_s1}^{in_n} / ( {in_K}^{in_n} + {in_s1}^{in_n} )"
+    assert philpos._get_rate_formula(philpos.propensity_dict) == f"{in_k}*{in_d}*( {in_s1}/{in_K} )^{in_n} / ( 1 + ({in_s1}/{in_K})^{in_n} )"
 
 
 def test_proportional_hill_negative_init():
@@ -186,19 +186,10 @@ def test_propensity_dict_massaction():
     assert P1.propensity_dict["parameters"]["k_forward"] == k1
     assert P1.propensity_dict["parameters"]["k_reverse"] == k2
 
-    #assert getters work (should return values instead of ParameterEntries)
-    assert P1.k_forward == k1.value
-    assert P1.k_reverse == k2.value
-
     #Should store a numerical value in this case
     P2 = MassAction(k_forward = k1.value, k_reverse = k2.value)
     assert P2.propensity_dict["parameters"]["k_forward"] == k1.value
     assert P2.propensity_dict["parameters"]["k_reverse"] == k2.value
-
-    #assert getters work
-    assert P2.k_forward == k1.value
-    assert P2.k_reverse == k2.value
-
 
 def test_propensity_dict_hill():
     d = Species('d')
@@ -212,17 +203,10 @@ def test_propensity_dict_hill():
     assert P1.propensity_dict["parameters"]["k"] == k
     assert P1.propensity_dict["parameters"]["K"] == K
     assert P1.propensity_dict["parameters"]["n"] == n
-    #assert the getters work (should return values instead of ParameterEntries)
-    assert P1.k == k.value
-    assert P1.K == K.value
-    assert P1.n == n.value
 
     #Should store a numerical value in this case
     P2 = Hill(k = k.value, K = K.value, n = n.value, s1 = s1, d = d)
     assert P2.propensity_dict["parameters"]["k"] == k.value
     assert P2.propensity_dict["parameters"]["K"] == K.value
     assert P2.propensity_dict["parameters"]["n"] == n.value
-    #assert the getters work
-    assert P2.k == k.value
-    assert P2.K == K.value
-    assert P2.n == n.value
+
