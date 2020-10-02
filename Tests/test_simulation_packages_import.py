@@ -54,12 +54,12 @@ def test_bioscrape_import_simulate_via_sbml():
 
 def test_libroadrunner_import():
     from biocrnpyler import ChemicalReactionNetwork
+    CRN = ChemicalReactionNetwork(species=[], reactions=[])
     try:
-        import numpy as np
-
-        CRN = ChemicalReactionNetwork(species=[],reactions=[])
+        import roadrunner
+    except ModuleNotFoundError:
         with pytest.warns(None) as record:
-            sim_results = CRN.runsim_roadrunner(timepoints=np.linspace(0, 10, 100), filename=None)
+            sim_results = CRN.simulate_with_roadrunner(timepoints=list(range(0,10)))
 
         assert sim_results is None
 
@@ -67,7 +67,10 @@ def test_libroadrunner_import():
         assert len(record) == 1
         # check the warning message
         assert str(record[0].message) == "libroadrunner was not found, please install libroadrunner"
-    except ModuleNotFoundError:
-        print('test skipped')
+    else:
+        sim_results = CRN.simulate_with_roadrunner(timepoints=list(range(0,10)))
+        assert sim_results is not None
+
+
 
 
