@@ -58,16 +58,11 @@ def test_libroadrunner_import():
     try:
         import roadrunner
     except ModuleNotFoundError:
-        with pytest.warns(None) as record:
-            sim_results = CRN.simulate_with_roadrunner(timepoints=list(range(0,10)))
-
-        assert sim_results is None
-
-        # only one warning was triggered
-        assert len(record) == 1
-        # check the warning message
-        assert str(record[0].message) == "libroadrunner was not found, please install libroadrunner"
+        # libroadrunner is not installed, let's check if it triggers a warning inside simulate_with_roadrunner()
+        with pytest.warns(UserWarning, match='libroadrunner was not found, please install libroadrunner'):
+            CRN.simulate_with_roadrunner(timepoints=list(range(0,10)))
     else:
+        # no exception was triggered, we can simulate the CRN with roadrunner
         sim_results = CRN.simulate_with_roadrunner(timepoints=list(range(0,10)))
         assert sim_results is not None
 
