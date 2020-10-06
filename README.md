@@ -110,7 +110,7 @@ see [contribution guidelines](https://github.com/BuildACell/BioCRNPyler/blob/mas
 
 BioCRNpyler versions:
 
-* 1.0.0 (latest stable release): To install run `pip install biocrnpyler` 
+* 1.0.2 (latest stable release): To install run `pip install biocrnpyler` 
 * 0.9.0 (beta release): To install run `pip install biocrnpyler==0.9.0`
 * 0.2.1 (alpha release): To install run `pip install biocrnpyler==0.2.1`
 
