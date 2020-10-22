@@ -701,7 +701,6 @@ class RNA_construct(Construct,RNA):
 
     def explore_txtl(self):
         """an RNA has no tx, only TL! central dogma exists, right?"""
-        # lets try to make this more modular shall we?
         explorer = TxTl_Explorer(possible_rxns = ("translation",))
         explorer.make_rna(self.my_promoter)
         part_index = 0
