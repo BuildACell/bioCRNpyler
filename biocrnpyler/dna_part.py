@@ -13,6 +13,7 @@
 from .component import Component
 from .polymer import OrderedMonomer, OrderedPolymer
 from .species import Species
+import copy
 
 
 class DNA_part(Component, OrderedMonomer):
