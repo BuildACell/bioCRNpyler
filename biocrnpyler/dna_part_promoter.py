@@ -78,7 +78,7 @@ class Promoter(DNA_part):
                         component = self, part_id = self.name, complex = None,
                         transcript = self.transcript, protein = self.get_protein_for_expression())
         return reactions
-    def update_component(self,dna,rnas,proteins,mypos = None):
+    def update_component(self,dna,rnas=None,proteins=None,mypos = None):
         """returns a copy of this component, except with the proper fields updated"""
         if(dna.material_type == "rna"):
             #Promoters only work with DNA
@@ -88,13 +88,16 @@ class Promoter(DNA_part):
             out_component.dna_to_bind = dna[mypos]
         else:
             out_component.dna_to_bind = dna
-        myrna = rnas[self]
-        out_component.transcript = myrna.get_species()
-        rbslist = proteins[myrna]
-        proteinlist = []
-        for a in rbslist:
-            proteinlist += rbslist[a]
-        out_component.protein = proteinlist
+        myrna = None
+        if(self.transcript is None and rnas is not None):
+            myrna = rnas[self]
+            out_component.transcript = myrna.get_species()
+        if(self.protein is None and myrna is not None):
+            rbslist = proteins[myrna]
+            proteinlist = []
+            for a in rbslist:
+                proteinlist += rbslist[a]
+            out_component.protein = proteinlist
         return out_component
 
 
