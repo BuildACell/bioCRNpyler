@@ -642,19 +642,20 @@ class Construct(Component,OrderedPolymer):
             
         return combinatorial_complexes
     def update_components(self,rnas=None,proteins=None):
+        big_comps = self.enumerate_components()
         multivalent_self = self.get_species()
         self.update_parameters()
-        if((rnas is None) or (proteins is None)):
-            rnas = self.predicted_rnas
-            proteins = self.predicted_proteins
-            if(rnas is None or proteins is None):
-                warn("{} is running explore_txtl possibly more than once".format(str(self)))
-                rnas,proteins = self.explore_txtl()
+
+        #if((rnas is None) or (proteins is None)):
+        #    rnas = self.predicted_rnas
+        #    proteins = self.predicted_proteins
+        #    if(rnas is None or proteins is None):
+        #        warn("{} is running explore_txtl possibly more than once".format(str(self)))
+        #        rnas,proteins = self.explore_txtl()
         active_components = []
         for part in self.parts_list:
             if(hasattr(part,"update_component")):
-                updated_components = part.update_component(multivalent_self[part.position],\
-                                                                                rnas,proteins)
+                updated_components = part.update_component(multivalent_self[part.position])
                 if(updated_components is not None):
                     active_components += [updated_components]
         combinatorial_complexes = self.update_combinatorial_complexes(active_components)
@@ -667,9 +668,8 @@ class Construct(Component,OrderedPolymer):
                         #in this case the position of interest is already complexed. Skip!
                         pass
                     else:
-                        combinatorial_components += [part.update_component(comb_specie[part_pos],\
-                                                                                    rnas,proteins)]
-        return combinatorial_components
+                        combinatorial_components += [part.update_component(comb_specie[part_pos])]
+        return combinatorial_components,big_comps
     def __hash__(self):
         return hash(self.__repr__())
     def __eq__(self,construct2):
@@ -683,16 +683,17 @@ class Construct(Component,OrderedPolymer):
         species = [self.get_species()]
         rnas = None
         proteins = None
-        rnas,proteins = self.explore_txtl()
-        self.predicted_rnas = rnas
-        self.predicted_proteins = proteins
+        #rnas,proteins = self.explore_txtl()
+        #self.predicted_rnas = rnas
+        #self.predicted_proteins = proteins
+        
         #rnas:
         #this is a dictionary of the form:
         #{promoter:rna_construct,promoter2:rna_construct2}
         #proteins:
         #this is a dictionary of the form:
         #{rna_construct:{RBS:[Product1,Product2],RBS2:[Product3]}}
-        out_components = self.update_components(rnas,proteins)
+        out_components,big_comps = self.update_components(rnas,proteins)
         #TODO save out_components
         for part in out_components:
 
@@ -700,10 +701,14 @@ class Construct(Component,OrderedPolymer):
             
             species+=remove_bindloc(sp_list)
         self.out_components = out_components
-        for rna in proteins:
-            if(not rna == self):
+        predicted_rnas = []
+        for comp in big_comps:
+            if(isinstance(comp,RNA_construct)):
+                predicted_rnas+=[comp]
+            if(not comp == self):
                 #this part makes sure we don't do an infinite loop if we are in fact an RNA_construct
-                species += rna.update_species()
+                species += comp.update_species()
+        self.predicted_rnas = predicted_rnas
         return species
     def reset_stored_data(self):
         self.out_components = None
@@ -719,9 +724,9 @@ class Construct(Component,OrderedPolymer):
         proteins = None
         rnas = self.predicted_rnas
         proteins = self.predicted_proteins
-        if((rnas is None) or (proteins is None)):
-            warn("{} is running explore_txtl possibly more than once".format(str(self)))
-            rnas,proteins = self.explore_txtl()
+        #if((rnas is None) or (proteins is None)):
+        #    warn("{} is running explore_txtl possibly more than once".format(str(self)))
+        #    rnas,proteins = self.explore_txtl()
         #rnas,proteins = self.explore_txtl()
 
         if(self.out_components is None):
@@ -734,7 +739,7 @@ class Construct(Component,OrderedPolymer):
             #thus we need to make sure they have update_species() run on them before
             #doing update_reactions, in case any of these parts have memory
             reactions+= part.update_reactions()
-        for rna in proteins:
+        for rna in self.predicted_rnas:
             if(not rna == self):
                 #this part makes sure we don't do an infinite loop if we are in fact an RNA_construct
                 reactions += rna.update_reactions()
@@ -744,7 +749,7 @@ class Construct(Component,OrderedPolymer):
         for enumerator in self.component_enumerators:
             new_comp = enumerator.update_components(component=self)
             out_comp += new_comp
-        return out_comp+[self]
+        return out_comp
 
 
 class DNA_construct(Construct,DNA):
