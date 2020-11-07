@@ -44,7 +44,7 @@ try:
                               HoverTool, MultiLine, NodesAndLinkedEdges,
                               PanTool, Plot, Range1d, Square, TapTool,
                               WheelZoomTool)
-    from bokeh.models.graphs import from_networkx
+    from bokeh.plotting import from_networkx
     from bokeh.palettes import Spectral4
     from fa2 import ForceAtlas2
     PLOT_NETWORK = True

@@ -424,60 +424,19 @@ class Construct(Component,OrderedPolymer):
         for part in self.parts_list:
             part.add_mechanism( mechanism, mech_type = mech_type, \
                                 overwrite = overwrite, optional_mechanism = optional_mechanism)
-    def explore_txtl(self):
-        """this function finds promoters and terminators and stuff in the construct"""
-        print("ran construct.explore_txtl")
-        proteins = {}
-        rnas = {}
-        for direction in ["forward","reverse"]:
-            explorer = TxTl_Explorer()
-            explorer.direction=direction
-            if(direction == "reverse"):
-                #if we go backwards then also list the parts backwards
-                #deepcopy so we don't mangle the list
-                newlist = copy.deepcopy(self.parts_list)[::-1]
-                #TODO can we use the OrderedPolymer.reverse() function here?
-            else:
-                newlist = copy.deepcopy(self.parts_list)
-            part_index = 0
-            keep_going = 1
-            second_looping = 0
-            while keep_going: #we may have to loop through the parts twice because the construct is circular.
-                                #this does not account for infinite loops, RCA, etc.
-                part = newlist[part_index] #pull out the part
-                keep_going = explorer.see(part) #the explorer keeps track of everything
-                part_index+=1 #keep going+
-                if(part_index==len(self.parts_list)):
-                    part_index = 0 #this takes care of looping
-                    if(self.circular and second_looping == 0):
-                        #print('restart from beginning')
-                        second_looping = 1 #during the second loop, we don't care about promoters
-                        explorer.second_loop() #tell the explorer that we don't care about promoters
-                    else:
-                        explorer.end() #this completes all "in progress" RNAs and proteins
-                        break
-            #proteins.update(explorer.get_proteins())
-            rnas.update(explorer.get_rnas())
-        proteins = {}
-        for promoter in rnas:
-            _,prots = rnas[promoter].explore_txtl()
-            proteins.update(prots)
-        return rnas,proteins
     def __repr__(self):
         """this is just for display purposes"""
         return "DNA_construct = "+ self.make_name()
     def show(self):
         txt = self.name
-        rnas,proteins = self.explore_txtl()
-        if(len(rnas)>0):
-            for promoter in rnas:
-                txt += "\n\t"+repr(promoter)
-                txt += "\n\t" + repr(rnas[promoter])
-                if(rnas[promoter] in proteins):
-                    for rbs in proteins[rnas[promoter]]:
-                        txt += "\n\t"+repr(rbs)
-                        for protein in proteins[rnas[promoter]][rbs]:
-                            txt += "\n\tprotein = "+repr(protein)
+        for part in self.parts_list:
+            if(isinstance(part,Promoter)):
+                if(part.transcript is not None):
+                    txt += "\n\t"+repr(part)
+                    txt += "\n\t" + repr(part.transcript)
+                if(part.protein is not None):
+                    for prot in part.protein:
+                        txt += "\n\tprotein = "+repr(prot)
         return txt
     def __contains__(self,obj2):
         """checks if this construct contains a certain part, or a copy of a certain part"""
@@ -650,8 +609,6 @@ class Construct(Component,OrderedPolymer):
         #    rnas = self.predicted_rnas
         #    proteins = self.predicted_proteins
         #    if(rnas is None or proteins is None):
-        #        warn("{} is running explore_txtl possibly more than once".format(str(self)))
-        #        rnas,proteins = self.explore_txtl()
         active_components = []
         for part in self.parts_list:
             if(hasattr(part,"update_component")):
@@ -683,7 +640,6 @@ class Construct(Component,OrderedPolymer):
         species = [self.get_species()]
         rnas = None
         proteins = None
-        #rnas,proteins = self.explore_txtl()
         #self.predicted_rnas = rnas
         #self.predicted_proteins = proteins
         
@@ -696,9 +652,7 @@ class Construct(Component,OrderedPolymer):
         out_components,big_comps = self.update_components(rnas,proteins)
         #TODO save out_components
         for part in out_components:
-
             sp_list =  part.update_species()
-            
             species+=remove_bindloc(sp_list)
         self.out_components = out_components
         predicted_rnas = []
@@ -718,17 +672,11 @@ class Construct(Component,OrderedPolymer):
         self.reset_stored_data()
         self.name = self.make_name()
     def update_reactions(self,norna=False):
-        
         reactions = []
         rnas = None
         proteins = None
         rnas = self.predicted_rnas
         proteins = self.predicted_proteins
-        #if((rnas is None) or (proteins is None)):
-        #    warn("{} is running explore_txtl possibly more than once".format(str(self)))
-        #    rnas,proteins = self.explore_txtl()
-        #rnas,proteins = self.explore_txtl()
-
         if(self.out_components is None):
             raise AttributeError("construct "+str(self) +" has no components! This happens because update_reactions has been run before update_species")
         for part in self.out_components:
@@ -799,29 +747,6 @@ class RNA_construct(Construct,RNA):
         self.my_promoter = made_by
         Construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,\
                                 component_enumerators = component_enumerators,**keywords)
-
-    def explore_txtl(self):
-        """an RNA has no tx, only TL! central dogma exists, right?"""
-        print("ran rna construct explore txtl")
-        explorer = TxTl_Explorer(possible_rxns = ("translation",))
-        explorer.make_rna(self.my_promoter)
-        part_index = 0
-        keep_going = 1
-        while keep_going:
-            
-            part = self.parts_list[part_index]
-            keep_going = explorer.see(part)
-            part_index+=1
-            if(part_index==len(self.parts_list)):
-                part_index = 0
-                if(self.circular):
-                    explorer.second_loop()
-                else:
-                    explorer.end()
-                    break
-        proteins = explorer.get_proteins()
-        rnadict = {self.my_promoter:self}
-        return rnadict, proteins
     #def get_species(self):
     #    outspec = Construct.get_species(self)
         #for spec in outspec:
@@ -838,167 +763,6 @@ class RNA_construct(Construct,RNA):
         """the name of an RNA should be different from DNA, right?"""
         output = "rna = "+self.name
         return output
-
-
-class TxTl_Explorer:
-    def __init__(self,possible_rxns=("transcription","translation"),direction="forward"):
-        """this class goes through a parts_list of a DNA_construct and decides what RNAs are made
-        and what proteins are made based on orientation and location of parts"""
-        self.current_rnas = {}
-        self.current_proteins = {}
-        self.made_rnas = {}
-        self.all_rnas = {}
-        self.made_proteins = {}
-        self.current_rbs = None
-        self.possible_rxns = possible_rxns
-        self.direction=direction
-        self.second_looping = False
-    def see(self,part):
-        """the explorer sees a part. This does different stuff depending on
-        1) if there is a current rna or current rbs
-        2) what the part is
-        it returns whether:
-        1: not done, keep going
-        0: done, stop
-        """
-        effective_direction = part.direction
-        if(self.direction=="reverse"):
-            effective_direction = rev_dir(effective_direction)
-        if(self.current_rnas!={}):
-            #this means we are making an RNA
-            terminated = 0
-            #TODO how do we know that promoters transcribe and RBSes translate?
-            #maybe you can transcribe or translate in both directions?
-            if(isinstance(part,RBS) and "translation" in self.possible_rxns and \
-                                                    effective_direction == "forward"):
-                
-                self.current_proteins[part]= []
-                for promoter in self.current_rnas:
-                    #this tells us that whatever RNAs are currently being made contain this RBS
-                    if(part not in self.current_rnas[promoter][1]):
-                        self.current_rnas[promoter][1] += [part]
-                if(self.current_rbs == None):
-                    #this means nobody is translating yet
-                    self.current_rbs = part
-                else:
-                    #another RBS is translating. this could mean a few things:
-                    #1: translational coupling. the previous translation ends and turns
-                    #   into this one, with an added coupling term when that gets implemented
-                    #2: it terminates the previous translation. Chances are it would, right?
-                    self.current_rbs = part
-                    # TODO add coupling
-            elif(effective_direction in part.no_stop_codons and self.current_rbs != None):
-                #this means we can translate through the current part!
-                self.current_proteins[self.current_rbs] += [[part,effective_direction]]
-            elif(self.current_rbs != None):
-                #this means we CAN'T translate through the current part, but we are translating
-                self.current_proteins[self.current_rbs] += [[part,effective_direction]]
-                self.current_rbs = None #current RBS has done its work
-            for promoter in list(self.current_rnas.keys()):
-                self.current_rnas[promoter][0]+=[[part,effective_direction]]
-                #we add the current part
-                if(isinstance(part,Terminator) and effective_direction == "forward"):
-                    terminated = 1 #a terminator ends everything. This does not account for leakiness
-                    self.terminate_transcription(promoter)
-            if(terminated):
-                assert(self.current_rnas=={}) #this should be true if terminate_transcription() worked
-                # this means that all RNAs have been stopped. But, since the proteins didn't know
-                # which RNAs they belonged to, they are still hanging around so we have to
-                # clean them up
-                self.current_proteins = {}
-                self.current_rbs = None
-                terminated = 0
-        if((effective_direction=="forward") and \
-                (isinstance(part,Promoter) and "transcription" in self.possible_rxns)):
-            #this if statement makes sure that the current part wants to transcribe, and
-            #that is something that we are allowed to do
-            self.current_rnas.update({part:[[],[]]})
-            return 1
-        elif((("transcription" not in self.possible_rxns) or self.second_looping) and \
-                                         self.current_rnas=={}):
-            return 0 #this means we are pretty sure there is nothing else left to do.
-        else:
-            return 1 #this means keep going! As far as we know there could be more to see
-    def second_loop(self):
-        """if we already went around the plasmid, then what we're checking for is continuing
-        transcripts or proteins. We don't want to start making new transcripts
-        because we already checked this area for promoters"""
-        if(self.second_looping==False):
-            new_rxns = []
-            for rxn in self.possible_rxns:
-                if(rxn!="transcription"):
-                    #remove transcription from the set of possible reactions!
-                    new_rxns += [rxn]
-            self.possible_rxns = new_rxns
-            self.second_looping=True
-        else:
-            self.end()
-    def make_rna(self,promname="external"):
-        """we are making an rna! imposed by external force"""
-        if(promname in self.current_rnas):
-            warn("RNA already started; it looks like this: "+str(self.current_rnas[promname]))
-        else:
-            self.current_rnas.update({promname:[[],[]]})
-    def terminate_transcription(self,promoter=None):
-        """this terminates the transcription of a specific RNA, started by the promoter
-        given in the argument. the RNA is deleted from the list of currently transcribing RNAs,
-        and any proteins that it was making are catalogued"""
-        if(promoter==None and len(self.current_rnas)>0):
-            #if you don't specify then it terminates the first one
-            promoter = list(self.current_rnas.keys())[0]
-        elif(len(self.current_rnas)==0):
-            #in this case you terminated transcription when nothing was transcribing
-            return
-        rna_partslist = self.current_rnas[promoter][0]
-        #print(self.current_rnas)
-        #print(self.current_proteins)
-        #TODO copy parts here and not in the constructor
-        rna_construct = RNA_construct(copy.deepcopy(rna_partslist),made_by = promoter)
-        rna_construct.set_mixture(promoter.mixture)
-        #current_rna_name = str(promoter)+"-"+str(rna_construct)
-        self.made_proteins[rna_construct]={}
-        #compile the name, keeping track of which promoter made the rna and all the parts on it
-        for rbs in self.current_rnas[promoter][1]:
-            #ending the RNA also ends all the proteins being generated here.
-            proteins_per_rbs = []
-            # TODO this will run multiple times for each RNA. make it so it runs once!
-            for protein_part in self.current_proteins[rbs]:
-                if(protein_part[1] == "forward"):
-                    #it is essential to be forwards
-                    if(isinstance(protein_part[0],CDS) and protein_part[0].protein != None):
-                        #this happens if we do in fact make a protein
-                        proteins_per_rbs+=[protein_part[0]]
-            #print(rna_partslist)
-            #print("currently we are translating from "+str(rbs)+ " which is located at " + str(rbs.pos))
-            #TODO correct_rbs is possibly not needed
-            #print(rbs)
-            #print(rna_partslist)
-            correct_rbs = rna_construct.parts_list[rna_partslist.index([rbs,"forward"])]
-            self.made_proteins[rna_construct].update({correct_rbs:proteins_per_rbs})
-
-            # so this has to be done at the end of the RNA only because only then do we know
-            # exactly what that full RNA is going to be.
-            # we want to clear the current proteins, but there could be multiple RNAs that run over the same proteins,
-            # so wait until we are done tallying all the RNAs before removing everything from current_proteins
-        del self.current_rnas[promoter] # this removes the current RNA from the list, because it's
-                                        # being terminated!!
-        self.all_rnas.update({promoter:rna_construct})
-        return
-    def end(self):
-        """we've reached the end of the dna! End everything!"""
-        for promoter in list(self.current_rnas.keys()):
-            self.terminate_transcription(promoter)
-        self.current_rnas = {}
-        self.current_proteins = {}
-        self.current_rbs = None
-    def get_proteins(self):
-        """return all the proteins made during the latest exploration"""
-        return self.made_proteins
-    def get_rnas(self):
-        """return all RNAs made during the latest exploration"""
-        return self.all_rnas
-
-
 
 
 
