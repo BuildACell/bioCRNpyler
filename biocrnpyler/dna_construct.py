@@ -482,10 +482,12 @@ class Construct(Component,OrderedPolymer):
         then, take the lists from comb_list and create all possible lists
         out of prototype_list that includes those elements"""
         #first we have to construct the list we are tracing paths through
-        spec_indexes = [a.position for a in spec_list] #extract all indexes
+        spec_indexes = [[a.position for a in b] for b in spec_list] #extract all indexes
         compacted_indexes = sorted(list(set(spec_indexes)))
         prototype_list = [None]*len(compacted_indexes)
         for spec in spec_list:
+            #now, spec is a list which contains all the elements which are defined for each variant.
+            #
             #go through every element and put it in the right place
             proto_ind = compacted_indexes.index(spec.position) #where to put it?
             if(prototype_list[proto_ind] is None):
@@ -578,18 +580,13 @@ class Construct(Component,OrderedPolymer):
             comp_binders = []
             for unit in unique_complexes[bb_name]:
                 #for each complex for this backbone, find out what is bound at which location
-                comp_bound = None
+                comp_bound = []
                 pos_i = 0
                 for pos in unit:
                     #find the position that has a ComplexSpecies in it
-                    if(isinstance(pos,ComplexSpecies) and comp_bound is None):
-                        comp_bound = copy.deepcopy(pos) #this is how we record the location
-                    elif(isinstance(pos,ComplexSpecies)):
-                        raise ValueError("complex exists in two locations!")
-                        #in this case a mechanism has somehow yielded a DNA with items bound at two spots.
-                        #this really shouldn't happen because each component can only bind to one spot.
-                        #TODO perhaps the thing to do here is to assume that these two locations are
-                        #always bound together? For example if integrase binds in two seperate locations?
+                    if(isinstance(pos,ComplexSpecies)):
+                        comp_bound += [copy.deepcopy(pos)] 
+
                     pos_i+=1
                 if(comp_bound is not None):
                     comp_binders += [comp_bound] #record what is bound, and at what position
