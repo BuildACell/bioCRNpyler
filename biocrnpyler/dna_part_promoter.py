@@ -13,7 +13,8 @@ from .mechanisms_txtl import (NegativeHillTranscription,
                               PositiveHillTranscription)
 from .species import Species
 
-
+from .utils import remove_bindloc
+#TODO put remove_bindloc in the component instead of in dna_construct
 class Promoter(DNA_part):
     """A basic Promoter class with no regulation. Needs to be included in a DNAassembly or DNAconstruct to function.
     """

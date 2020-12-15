@@ -1,3 +1,6 @@
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
+# See LICENSE file in the project root directory for details.
+
 from .component_enumerator import ComponentEnumerator
 from .dna_part import DNA_part
 from .dna_construct import DNA_construct

@@ -13,7 +13,7 @@ from .mechanism import Mechanism
 from .parameter import ParameterDatabase
 from .reaction import Reaction
 from .species import Species
-
+from .utils import remove_bindloc
 
 class Mixture(object):
     def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
@@ -390,12 +390,38 @@ class Mixture(object):
         #add the extra species to the CRN
         self.add_species_to_crn(self.added_species, component = None)
 
+        #local component enumeration
+        new_comp = []
+        comp_i = 0
+        comps_to_enumerate = self.components
+        #this is going through a steadily increasing list,
+        #that's why it's not a for loop
+        while comp_i < len(comps_to_enumerate):
+            component = comps_to_enumerate[comp_i]
+            comp_i+=1
+            if(hasattr(component,"enumerate_components")):
+                #if a component can be enumerated, it should be
+                endpt_components,unenumerated_components = component.update_components()
+                #components can produce unenumerated components (like RNA constructs)
+                #these get put back into the list to go again
+                #this list will contain "protein" components too...
+                for unen_comp in unenumerated_components:
+                    if(hasattr(unen_comp,"enumerate_components")):
+                        #put the unenumerated stuff back in only if it can be enumerated
+                        comps_to_enumerate += [unen_comp]
+                #endpoint components that can't be enumerated
+                #go into the list of everything to process for species
+                new_comp += endpt_components
+            else:
+                #if it can't be enumerated it should be processed as normal
+                new_comp += [component]
+
         #Append Species from each Component
-        for component in self.components:
-            self.add_species_to_crn(component.update_species(), component)
+        for component in new_comp:
+            self.add_species_to_crn(remove_bindloc(component.update_species()), component)
 
         #Append Reactions from each Component
-        for component in self.components:
+        for component in new_comp:
             self.crn.add_reactions(component.update_reactions())
 
         #global mechanisms are applied last and only to all the species

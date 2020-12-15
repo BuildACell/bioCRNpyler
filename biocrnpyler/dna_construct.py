@@ -21,7 +21,7 @@ from .dna_part_promoter import Promoter
 from .dna_part_rbs import RBS
 from .dna_part_terminator import Terminator
 import biocrnpyler.component_enumerator as ce
-from .component_enumerator import ComponentEnumerator
+from .component_enumerator import ComponentEnumerator,LocalComponentEnumerator, GlobalComponentEnumerator
 from .species import (ComplexSpecies, OrderedMonomer, OrderedPolymer,
                       OrderedPolymerSpecies)
 from .utils import all_comb, remove_bindloc, rev_dir
@@ -29,11 +29,12 @@ from .utils import all_comb, remove_bindloc, rev_dir
 #integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 
 
-class TxTlExplorer_CE(ComponentEnumerator):
-    def __init__(self,name="TxTlExplorer",enumerator_type="local",possible_rxns=("transcription","translation"),direction="forward",possible_directions=("forward","reverse")):
+class TxTlExplorer_CE(LocalComponentEnumerator):
+    def __init__(self,name="TxTlExplorer",possible_rxns=("transcription","translation"),\
+                                                        direction="forward",possible_directions=("forward","reverse")):
         """this class goes through a parts_list of a DNA_construct and decides what RNAs are made
         and what proteins are made based on orientation and location of parts"""
-        ComponentEnumerator.__init__(self=self,name=name,enumerator_type=enumerator_type)
+        LocalComponentEnumerator.__init__(self=self,name=name)
         self.current_rnas = {}
         self.current_proteins = {}
         self.made_rnas = {}
@@ -44,17 +45,17 @@ class TxTlExplorer_CE(ComponentEnumerator):
         self.direction=direction
         self.second_looping = False
         self.possible_directions = possible_directions
-    def update_components(self,component=None,starting_rna=None):
+    def enumerate(self,component):
         #TODO the component we are given better be a dna_construct or something that can be txtled
         proteins = {}
         rnas = {}
         newlist = copy.deepcopy(component.parts_list)
         for direction in self.possible_directions:
-            self.__init__(possible_rxns=self.possible_rxns,direction=direction,possible_directions=self.possible_directions)
-            if(starting_rna is None):
+            self.__init__(direction=direction)
+            if("transcription" in self.possible_rxns):
                 pass
             else:
-                self.make_rna(starting_rna)
+                self.make_rna(component.my_promoter)
                 #rnas[starting_rna]=[]
             startnum = 0
             
@@ -63,6 +64,8 @@ class TxTlExplorer_CE(ComponentEnumerator):
                 #if we go backwards then also list the parts backwards
                 #deepcopy so we don't mangle the list
                 #newlist = copy.deepcopy(component.parts_list)[::-1]
+            elif(direction not in ["forward","reverse"]):
+                raise ValueError("Got incoherent direction "+str(direction)+" when it should be either forward or reverse")
             else:
                 pass
                 #newlist = copy.deepcopy(component.parts_list)
@@ -116,7 +119,11 @@ class TxTlExplorer_CE(ComponentEnumerator):
         for rna in proteins:
             for rbs in proteins[rna]:
                 protein_components += proteins[rna][rbs]
-        outlist = rna_constructs + protein_components
+        outlist = []
+        if("transcription" in self.possible_rxns):
+            outlist += rna_constructs
+        if("translation" in self.possible_rxns):
+            outlist += protein_components
         return outlist
     def see(self,part):
         """the explorer sees a part. This does different stuff depending on
@@ -239,7 +246,13 @@ class TxTlExplorer_CE(ComponentEnumerator):
             #print("currently we are translating from "+str(rbs)+ " which is located at " + str(rbs.pos))
             #print(rbs)
             #print(rna_partslist)
-            correct_rbs = rna_construct.parts_list[rna_partslist.index([rbs,"forward"])]
+            if("transcription" in self.possible_rxns):
+                #this means we are creating new RNAs, and so the correct RBS is the one in the new RNA.
+                correct_rbs = rna_construct.parts_list[rna_partslist.index([rbs,"forward"])]
+            else:
+                #this means we are reading an existing RNA, so then the correct rbs is the one
+                #in the original "DNA", which is actually an RNA.
+                correct_rbs = rbs
             proteins_per_promoter+=proteins_per_rbs
             self.made_proteins[rna_construct].update({correct_rbs:proteins_per_rbs})
             correct_rbs.protein = [a.get_species() for a in proteins_per_rbs]
@@ -249,9 +262,11 @@ class TxTlExplorer_CE(ComponentEnumerator):
             # so wait until we are done tallying all the RNAs before removing everything from current_proteins
         del self.current_rnas[promoter] # this removes the current RNA from the list, because it's
                                         # being terminated!!
-        
-        promoter.transcript = rna_construct.get_species() #set the promoter's transcript to be correct
-        promoter.protein = [a.get_species() for a in proteins_per_promoter]
+        if("transcription" in self.possible_rxns):
+            promoter.transcript = rna_construct.get_species() #set the promoter's transcript to be correct
+        promoter_proteins = [a.get_species() for a in proteins_per_promoter]
+        if(len(promoter_proteins)>0):
+            promoter.protein = promoter_proteins
         self.all_rnas.update({promoter:rna_construct})
         return
     def end(self):
@@ -268,6 +283,17 @@ class TxTlExplorer_CE(ComponentEnumerator):
         """return all RNAs made during the latest exploration"""
         return self.all_rnas
 
+class TxExplorer(TxTlExplorer_CE):
+    def __init__(self,name="TxExplorer",possible_rxns=("transcription"),\
+                        direction="forward",possible_directions=("forward","reverse")):
+        TxTlExplorer_CE.__init__(self,name=name,possible_rxns=possible_rxns,\
+                        direction=direction,possible_directions=possible_directions)
+
+class TlExplorer(TxTlExplorer_CE):
+    def __init__(self,name="TlExplorer",possible_rxns=("translation"),\
+                        direction="forward",possible_directions=("forward",)):
+        TxTlExplorer_CE.__init__(self,name=name,possible_rxns=possible_rxns,\
+                        direction=direction,possible_directions=possible_directions)
 
 class Construct(Component,OrderedPolymer):
     def __init__(self,
@@ -482,8 +508,13 @@ class Construct(Component,OrderedPolymer):
         then, take the lists from comb_list and create all possible lists
         out of prototype_list that includes those elements"""
         #first we have to construct the list we are tracing paths through
-        spec_indexes = [[a.position for a in b] for b in spec_list] #extract all indexes
+        spec_list = [a[0] for a in spec_list]
+        spec_indexes = [a.position for a in spec_list] #extract all indexes
+        #print(spec_indexes)
+        #the following takes apart the lists because i don't yet know how to deal
+        #with multiple binders at the same time
         compacted_indexes = sorted(list(set(spec_indexes)))
+
         prototype_list = [None]*len(compacted_indexes)
         for spec in spec_list:
             #now, spec is a list which contains all the elements which are defined for each variant.
@@ -586,10 +617,10 @@ class Construct(Component,OrderedPolymer):
                     #find the position that has a ComplexSpecies in it
                     if(isinstance(pos,ComplexSpecies)):
                         comp_bound += [copy.deepcopy(pos)] 
-
                     pos_i+=1
-                if(comp_bound is not None):
+                if(len(comp_bound) >0):
                     comp_binders += [comp_bound] #record what is bound, and at what position
+            #comp_binders is a list of lists because multiple things can be bound at the same time
             allcomb = self.located_allcomb(comp_binders) #all possible combinations of binders are made here
             allcomb += [[]] #unbound dna should also be used
             #now, all possibilities have been enumerated.
@@ -634,19 +665,14 @@ class Construct(Component,OrderedPolymer):
             return False
     
     def update_species(self):
+        print("construct update species")
         species = [self.get_species()]
+        return species
         rnas = None
         proteins = None
         #self.predicted_rnas = rnas
         #self.predicted_proteins = proteins
-        
-        #rnas:
-        #this is a dictionary of the form:
-        #{promoter:rna_construct,promoter2:rna_construct2}
-        #proteins:
-        #this is a dictionary of the form:
-        #{rna_construct:{RBS:[Product1,Product2],RBS2:[Product3]}}
-        out_components,big_comps = self.update_components(rnas,proteins)
+        out_components,big_comps = self.update_components()
         #TODO save out_components
         for part in out_components:
             sp_list =  part.update_species()
@@ -656,9 +682,9 @@ class Construct(Component,OrderedPolymer):
         for comp in big_comps:
             if(isinstance(comp,RNA_construct)):
                 predicted_rnas+=[comp]
-            if(not comp == self):
-                #this part makes sure we don't do an infinite loop if we are in fact an RNA_construct
-                species += comp.update_species()
+        #    if(not comp == self):
+        #        #this part makes sure we don't do an infinite loop if we are in fact an RNA_construct
+        #        species += comp.update_species()
         self.predicted_rnas = predicted_rnas
         return species
     def reset_stored_data(self):
@@ -669,6 +695,8 @@ class Construct(Component,OrderedPolymer):
         self.reset_stored_data()
         self.name = self.make_name()
     def update_reactions(self,norna=False):
+        return []
+        print("construct update reactions")
         reactions = []
         rnas = None
         proteins = None
@@ -684,15 +712,11 @@ class Construct(Component,OrderedPolymer):
             #thus we need to make sure they have update_species() run on them before
             #doing update_reactions, in case any of these parts have memory
             reactions+= part.update_reactions()
-        for rna in self.predicted_rnas:
-            if(not rna == self):
-                #this part makes sure we don't do an infinite loop if we are in fact an RNA_construct
-                reactions += rna.update_reactions()
         return reactions
     def enumerate_components(self):
         out_comp = []
         for enumerator in self.component_enumerators:
-            new_comp = enumerator.update_components(component=self)
+            new_comp = enumerator.enumerate(component=self)
             out_comp += new_comp
         return out_comp
 
@@ -707,7 +731,7 @@ class DNA_construct(Construct,DNA):
                 attributes=None,
                 initial_concentration=None,
                 copy_parts=True,
-                component_enumerators = [TxTlExplorer_CE()],
+                component_enumerators = [TxExplorer()],
                 **keywords):
 
         self.material_type = "dna"
@@ -735,8 +759,7 @@ class DNA_construct(Construct,DNA):
         
 class RNA_construct(Construct,RNA):
     def __init__(self,parts_list,name=None,made_by="unknown",\
-                component_enumerators = [TxTlExplorer_CE(possible_rxns=("translation",),\
-                                                        possible_directions=("forward",))],\
+                component_enumerators = [TlExplorer()],\
                 **keywords):
         """an RNA_construct is a lot like a DNA_construct except it can only translate, and
         can only be linear"""
@@ -750,12 +773,6 @@ class RNA_construct(Construct,RNA):
         #    spec.material_type = "rna"
         #outspec.material_type="rna"
     #    return outspec
-    def enumerate_components(self):
-        out_comp = []
-        for enumerator in self.component_enumerators:
-            new_comp = enumerator.update_components(self,starting_rna=self.my_promoter)
-            out_comp += new_comp
-        return out_comp
     def __repr__(self):
         """the name of an RNA should be different from DNA, right?"""
         output = "rna = "+self.name
