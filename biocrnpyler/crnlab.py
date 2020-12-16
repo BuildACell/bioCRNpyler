@@ -107,8 +107,8 @@ class CRNLab(object):
             for species in self.Mixture.crn_species:
                 # Set the final concentration for all species
                 # TODO
-                species.initial_concentrationentration = \
-                                    species.initial_concentrationentration/final_volume
+                species.initial_concentration = \
+                                    species.initial_concentration/final_volume
             self.crn = self.Mixture.compile_crn()
             return self.volume
         else:

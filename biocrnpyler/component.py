@@ -74,11 +74,11 @@ class Component(object):
             self.initial_condition_dictionary = dict(initial_condition_dictionary)
 
     @property
-    def initial_concentrationentration(self) -> float:
+    def initial_concentration(self) -> float:
         return self._initial_concentration
 
-    @initial_concentrationentration.setter
-    def initial_concentrationentration(self, initial_concentration: float):
+    @initial_concentration.setter
+    def initial_concentration(self, initial_concentration: float):
         if initial_concentration is None:
             self._initial_concentration = initial_concentration
         elif initial_concentration < 0.0:
@@ -304,8 +304,8 @@ class Component(object):
             return self.initial_condition_dictionary[repr(s)]
         # Then try all conditions using self.name (if s is self.get_species())
         elif s == self.get_species():
-            if self.initial_concentrationentration is not None:
-                return self.initial_concentrationentration
+            if self.initial_concentration is not None:
+                return self.initial_concentration
             elif self.mixture is not None and (self.mixture.name, self.name) in self.initial_condition_dictionary:
                 return self.initial_condition_dictionary[(self.mixture.name, self.name)]
             elif self.name in self.initial_condition_dictionary:

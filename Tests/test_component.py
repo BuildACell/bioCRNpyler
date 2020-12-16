@@ -16,18 +16,18 @@ class TestComponent(TestCase):
         self.component = Component(name=self.comp_name, mechanisms={}, parameters={}, parameter_file=None,
                                    mixture=None, attributes=[], initial_concentration=self.default_concentration)
 
-    def test_initial_concentrationentration(self):
+    def test_initial_concentration(self):
 
         # test that the default initial concentration is zero
-        self.assertEqual(self.component.initial_concentrationentration, self.default_concentration)
+        self.assertEqual(self.component.initial_concentration, self.default_concentration)
         new_value = 5
-        self.component.initial_concentrationentration = new_value
+        self.component.initial_concentration = new_value
         # test that the initial concentration has been modified
-        self.assertEqual(self.component.initial_concentrationentration, new_value)
+        self.assertEqual(self.component.initial_concentration, new_value)
 
         not_valid_value = -1
         with self.assertRaisesRegex(ValueError, f'Initial concentration must be non-negative, this was given: {not_valid_value}'):
-            self.component.initial_concentrationentration = not_valid_value
+            self.component.initial_concentration = not_valid_value
 
     def test_get_species(self):
 

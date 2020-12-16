@@ -270,8 +270,8 @@ def test_sbml_basics():
     S2 = Species("S2")
     compartment = model.getCompartment(0)
     check(compartment, 'get compartment in SBML model')
-    sbml_species = add_species(model, compartment, S1, initial_concentrationentration= 10)
-    sbml_species2 = add_species(model, compartment, S2, initial_concentrationentration= 10)
+    sbml_species = add_species(model, compartment, S1, initial_concentration= 10)
+    sbml_species2 = add_species(model, compartment, S2, initial_concentration= 10)
     check(sbml_species.getId(), 'get ID for SBML species')
     check(sbml_species.getInitialConcentration(), 'get concentration for SBML species')
 

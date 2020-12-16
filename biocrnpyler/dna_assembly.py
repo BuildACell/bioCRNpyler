@@ -42,7 +42,7 @@ class DNAassembly(DNA):
         self.promoter = None
         self.rbs = None
         self.transcript = None
-        self.initial_concentrationentration = initial_concentration
+        self.initial_concentration = initial_concentration
         self.name = name
         
         # This has to be called at the end so mechanisms are set for the promoter, RBS, etc.

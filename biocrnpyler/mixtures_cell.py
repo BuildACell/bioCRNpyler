@@ -138,9 +138,9 @@ class TxTlDilutionMixture(Mixture):
 
         init = kwargs.get('init')
         if init:
-            self.rnap.get_species().initial_concentrationentration = init[repr(rnap)]
-            self.rnaase.get_species().initial_concentrationentration = init[repr(rnaase)]
-            self.ribosome.get_species().initial_concentrationentration = init[repr(ribosome)]
+            self.rnap.get_species().initial_concentration = init[repr(rnap)]
+            self.rnaase.get_species().initial_concentration = init[repr(rnaase)]
+            self.ribosome.get_species().initial_concentration = init[repr(ribosome)]
 
         # DNAassmbly represents background processes / loading in a cell
         background_parameters = {("transcription", None, "ku"): 50, ("transcription", None, "kb"): 500, ("transcription", None, "ktx"): 0.1,

@@ -89,15 +89,15 @@ def add_all_species(model, species: List, compartment=None, **kwargs):
 
     for s in species:
         add_species(model=model, compartment=compartment,
-                    species=s, initial_concentrationentration=s.initial_concentrationentration)
+                    species=s, initial_concentration=s.initial_concentration)
 
 
-def add_species(model, compartment, species, initial_concentrationentration=None, **kwargs):
+def add_species(model, compartment, species, initial_concentration=None, **kwargs):
     """Helper function to add a species to the sbml model.
     :param model:
     :param compartment: a compartment in the SBML model
     :param species: must be chemical_reaction_network.species objects
-    :param initial_concentrationentration: initial concentration of the species in the SBML model
+    :param initial_concentration: initial concentration of the species in the SBML model
     :return: None
     """
 
@@ -117,9 +117,9 @@ def add_species(model, compartment, species, initial_concentrationentration=None
     sbml_species.setConstant(False)
     sbml_species.setBoundaryCondition(False)
     sbml_species.setHasOnlySubstanceUnits(False)
-    if initial_concentrationentration is None:
-        initial_concentrationentration = 0
-    sbml_species.setInitialConcentration(initial_concentrationentration)
+    if initial_concentration is None:
+        initial_concentration = 0
+    sbml_species.setInitialConcentration(initial_concentration)
 
     return sbml_species
 
