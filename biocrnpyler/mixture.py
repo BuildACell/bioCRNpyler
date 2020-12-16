@@ -303,63 +303,49 @@ class Mixture(object):
 
         return param
 
-    def set_initial_condition(self, s: Species, component=None):
+    def get_initial_condition(self, s: Species, component=None):
         """
-        Tries to find an initial condition of species s using the parameter hierarchy
-        1. Tries to find the initial concentration in the Component initial_concentration_dictionary and ParameterDatabase
-        2. Tries to find self.name, repr(s) in self.initial_condition_dictionary
-        3. Tries to find repr(s) in self.initial_condition_dictionary
-        4. if s == component.get_species(), tries to find (None, self.name, component.name) in self.initial_condition_dictionary
-        5. if s == component.get_species(), tries to find component.name in self.initial_condition_dictionary
-        6. tries to find (None, self.name, repr(s)) in self.parameter_database
-        7. tries to find repr(s) in self.parameter_database
-        8. if s == component.get_species(), tries to find (None, self.name, component.name) in self.parameter_database
-        9. if s == component.get_species(), tries to find component.name in self.parameter_database
-        10-. defaults to 0
+        Tries to find an initial condition of species s using the parameter hierarchy using the key:
 
-        :param s:
-        :param component:
-        :return:
+        1. Searches Component's ParameterDatabase using the key:
+            mechanisms = "initial concentration"
+            part_id = mixture.name
+            parameter_name = str(s)
+
+            if s == component.get_species, also checks with parameter_name=component.name
+
+        2. Searches the Mixture's ParameterDatabase using the key:
+            mechanisms = "initial concentration"
+            part_id = mixture.name
+            parameter_name = str(s)
+
+            if s == component.get_species, also checks with parameter_name=component.name
+
+        3. Defaults to 0
         """
 
         if not isinstance(s, Species):
             raise ValueError(f"{s} is not a Species! Can only set initial concentration of a Species.")
 
         init_conc = None
-        #1
+        #1 Check the component
         if component is not None:
-            init_conc = component.get_initial_condition(s)
+            init_conc = component.get_parameter(param_name = str(s), part_id = self.name, mechanism = "initial concentration")
+
+            if init_conc is None and component.get_species() == s:
+                init_conc = component.get_parameter(param_name = component.name, part_id = self.name, mechanism = "initial concentration")
+        
+        #2 Check self
+        if init_conc is None:
+            init_conc = self.get_parameter(param_name = str(s), part_id = self.name, mechanism = "initial concentration")
+
+            if init_conc is None and component is not None and component.get_species() == s:
+                initi_conc = self.get_parameter(param_name = component.name, part_id = self.name, mechanism = "initial concentration")
 
         if init_conc is None:
-            #2
-            if (self.name, repr(s)) in self.initial_condition_dictionary:
-                init_conc = self.initial_condition_dictionary[(self.name, repr(s))]
-            #3
-            elif repr(s) in self.initial_condition_dictionary:
-                init_conc = self.initial_condition_dictionary[repr(s)]
-            #4
-            elif component is not None and component.get_species() == s and (self.name, component.name) in self.initial_condition_dictionary:
-                return self.initial_condition_dictionary[(self.name, component.name)]
-            #5
-            elif component is not None and component.get_species() == s and component.name in self.initial_condition_dictionary:
-                return self.initial_condition_dictionary[component.name]
-            #6
-            elif self.parameter_database.find_parameter(None, self.name, repr(s)) is not None:
-                init_conc = self.parameter_database.find_parameter(None, self.name, repr(s)).value
-            #7
-            elif self.parameter_database.find_parameter(None, None, repr(s)) is not None:
-                init_conc = self.parameter_database.find_parameter(None, None, repr(s)).value
-            #8
-            elif component is not None and component.get_species() == s and (None, self.name, component.name) in self.parameter_database:
-                return self.parameter_database.find_parameter(None, self.name, component.name).value
-            #9
-            elif component is not None and component.get_species() == s and component.name in self.parameter_database:
-                return self.parameter_database.find_parameter(None, None, component.name).value
-            #10
-            else:
-                init_conc = 0
+            init_conc = 0
 
-        s.initial_concentration = init_conc
+        return init_conc
 
     def add_species_to_crn(self, new_species, component):
 

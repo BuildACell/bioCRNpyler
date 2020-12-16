@@ -9,7 +9,7 @@ from warnings import warn
 
 from .global_mechanism import GlobalMechanism
 from .mechanism import Mechanism
-from .parameter import Parameter, ParameterDatabase
+from .parameter import Parameter, ParameterDatabase, ParameterEntry, ParameterKey
 from .species import Species
 
 
@@ -26,8 +26,7 @@ class Component(object):
                  parameter_file=None,  # custom parameter file
                  mixture=None,
                  attributes=None,
-                 initial_concentration=None,
-                 initial_condition_dictionary=None,
+                 initial_concentration = None, #This is added as a parameter ("initial concentration", None, self.name):initial_concentration
                  **keywords  # parameter keywords
                  ):
         """Initializes a Component object.
@@ -63,28 +62,14 @@ class Component(object):
         else:
             self.set_mixture(None)
 
+        if parameters is None: 
+            parameters = {}
+
+        if initial_concentration is not None: #place initial concentration in the parameter_database via the parameters dictionary
+            param_key = ParameterKey(mechanism = "initial concentration", part_id = None, name = self.name)
+            parameters[param_key] = initial_concentration
+
         self.parameter_database = ParameterDatabase(parameter_file=parameter_file, parameter_dictionary=parameters)
-
-        # A component can store an initial concentration used for self.get_species() species
-        self._initial_concentration = initial_concentration
-        # Components can also store initial conditions, just like Mixtures
-        if initial_condition_dictionary is None:
-            self.initial_condition_dictionary = {}
-        else:
-            self.initial_condition_dictionary = dict(initial_condition_dictionary)
-
-    @property
-    def initial_concentration(self) -> float:
-        return self._initial_concentration
-
-    @initial_concentration.setter
-    def initial_concentration(self, initial_concentration: float):
-        if initial_concentration is None:
-            self._initial_concentration = initial_concentration
-        elif initial_concentration < 0.0:
-            raise ValueError("Initial concentration must be non-negative, "f"this was given: {initial_concentration}")
-        else:
-            self._initial_concentration = initial_concentration
 
     def set_mixture(self, mixture) -> None:
         """Set the mixture the Component is in.
@@ -285,43 +270,6 @@ class Component(object):
         reactions = []
         warn("Unsubclassed update_reactions called for " + repr(self))
         return reactions
-
-    def get_initial_condition(self, s):
-        """Tries to find an initial condition of species s using the parameter hierarchy
-
-        1. mixture.name, repr(s) in self.initial_condition_dictionary
-        2. repr(s) in self.initial_condition_dictionary
-        3. If s == self.get_species and self.initial_con is not None: self.initial_concentration
-        4. IF s == self.get_species(): mixture.name, self.name in initial_condition_dictionary
-        5. IF s == self.get_species(): self.name in initial_condition_dictionary
-        Repeat 1-2, 4-5 in self.parameter_database
-        Note: Mixture will also repeat this same order in it's own initial_condition_dictionary and ParameterDatabase after Component.
-        """
-        # First try all conditions in initial_condition_dictionary
-        if (self.mixture is not None and (self.mixture.name, repr(s)) in self.initial_condition_dictionary):
-            return self.initial_condition_dictionary[(self.mixture.name, repr(s))]
-        elif repr(s) in self.initial_condition_dictionary:
-            return self.initial_condition_dictionary[repr(s)]
-        # Then try all conditions using self.name (if s is self.get_species())
-        elif s == self.get_species():
-            if self.initial_concentration is not None:
-                return self.initial_concentration
-            elif self.mixture is not None and (self.mixture.name, self.name) in self.initial_condition_dictionary:
-                return self.initial_condition_dictionary[(self.mixture.name, self.name)]
-            elif self.name in self.initial_condition_dictionary:
-                return self.initial_condition_dictionary[(self.mixture.name, self.name)]
-        # Then try above in self.parameter_database
-        elif self.mixture is not None and self.parameter_database.find_parameter(None, self.mixture.name, repr(s)) is not None:
-            return self.parameter_database.find_parameter(None, self.mixture.name, repr(s)).value
-        elif self.parameter_database.find_parameter(None, None, repr(s)) is not None:
-            return self.parameter_database.find_parameter(None, None, repr(s)).value
-        elif s == self.get_species():
-            if self.mixture is not None and self.parameter_database.find_parameter(None, self.mixture.name, self.name) is not None:
-                return self.parameter_database.find_parameter(None, self.mixture.name, self.name).value
-            elif self.parameter_database.find_parameter(None, None, self.name) is not None:
-                return self.parameter_database.find_parameter(None, None, self.name).value
-        else:
-            return None
 
     def __repr__(self):
         return type(self).__name__ + ": " + self.name
