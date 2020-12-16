@@ -78,7 +78,6 @@ class Component(object):
     
         self._initial_concentration = initial_concentration
 
-
     def set_mixture(self, mixture) -> None:
         """Set the mixture the Component is in.
 
