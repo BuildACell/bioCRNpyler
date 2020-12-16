@@ -306,7 +306,7 @@ class Mixture(object):
     def set_initial_condition(self, s: Species, component=None):
         """
         Tries to find an initial condition of species s using the parameter hierarchy
-        1. Tries to find the initial concentration in the Component initial_Concentration_dictionary and ParameterDatabase
+        1. Tries to find the initial concentration in the Component initial_concentration_dictionary and ParameterDatabase
         2. Tries to find self.name, repr(s) in self.initial_condition_dictionary
         3. Tries to find repr(s) in self.initial_condition_dictionary
         4. if s == component.get_species(), tries to find (None, self.name, component.name) in self.initial_condition_dictionary

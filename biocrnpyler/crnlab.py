@@ -71,7 +71,7 @@ class CRNLab(object):
 
    
     def add_dna(self, dna = None, name = "", promoter = "", 
-                rbs = "", protein = "", initial_conc ="", 
+                rbs = "", protein = "", initial_concentration ="", 
                 final_conc = "", volume = 0, **kwargs):
 
         warnings.warn("CRNLab is deprecated and will cease to function with future releases: to add DNA to a mixture, please use Mixture.add_component.", DeprecationWarning)
@@ -80,14 +80,14 @@ class CRNLab(object):
             self.volume += volume
         if dna:
             self.Mixture.add_components(dna)
-        elif name and promoter and rbs and protein and initial_conc:
+        elif name and promoter and rbs and protein and initial_concentration:
             if final_conc:
                 dna = DNAassembly(name, promoter = promoter, rbs = rbs,
-                                  protein = protein, initial_conc = final_conc)
-            elif initial_conc:
+                                  protein = protein, initial_concentration = final_conc)
+            elif initial_concentration:
                 dna = DNAassembly(name, promoter = promoter, rbs = rbs,
                                   protein = protein,
-                                  initial_conc = initial_conc*volume)
+                                  initial_concentration = initial_concentration*volume)
             self.add_dna(dna)
         else:
             raise ValueError('add_dna either needs a DNAassembly object '

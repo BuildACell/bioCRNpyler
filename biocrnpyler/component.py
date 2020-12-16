@@ -26,7 +26,7 @@ class Component(object):
                  parameter_file=None,  # custom parameter file
                  mixture=None,
                  attributes=None,
-                 initial_conc=None,
+                 initial_concentration=None,
                  initial_condition_dictionary=None,
                  **keywords  # parameter keywords
                  ):
@@ -38,7 +38,7 @@ class Component(object):
         :param parameter_file:
         :param mixture:
         :param attributes:
-        :param initial_conc:
+        :param initial_concentration:
         :param initial_condition_dictionary:
         :param keywords:
         """
@@ -66,7 +66,7 @@ class Component(object):
         self.parameter_database = ParameterDatabase(parameter_file=parameter_file, parameter_dictionary=parameters)
 
         # A component can store an initial concentration used for self.get_species() species
-        self._initial_conc = initial_conc
+        self._initial_concentration = initial_concentration
         # Components can also store initial conditions, just like Mixtures
         if initial_condition_dictionary is None:
             self.initial_condition_dictionary = {}
@@ -75,16 +75,16 @@ class Component(object):
 
     @property
     def initial_concentration(self) -> float:
-        return self._initial_conc
+        return self._initial_concentration
 
     @initial_concentration.setter
-    def initial_concentration(self, initial_conc: float):
-        if initial_conc is None:
-            self._initial_conc = initial_conc
-        elif initial_conc < 0.0:
-            raise ValueError("Initial concentration must be non-negative, "f"this was given: {initial_conc}")
+    def initial_concentration(self, initial_concentration: float):
+        if initial_concentration is None:
+            self._initial_concentration = initial_concentration
+        elif initial_concentration < 0.0:
+            raise ValueError("Initial concentration must be non-negative, "f"this was given: {initial_concentration}")
         else:
-            self._initial_conc = initial_conc
+            self._initial_concentration = initial_concentration
 
     def set_mixture(self, mixture) -> None:
         """Set the mixture the Component is in.
@@ -291,7 +291,7 @@ class Component(object):
 
         1. mixture.name, repr(s) in self.initial_condition_dictionary
         2. repr(s) in self.initial_condition_dictionary
-        3. If s == self.get_species and self.initial_con is not None: self.initial_conc
+        3. If s == self.get_species and self.initial_con is not None: self.initial_concentration
         4. IF s == self.get_species(): mixture.name, self.name in initial_condition_dictionary
         5. IF s == self.get_species(): self.name in initial_condition_dictionary
         Repeat 1-2, 4-5 in self.parameter_database

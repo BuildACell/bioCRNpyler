@@ -14,7 +14,7 @@ class TestComponent(TestCase):
         self.comp_name = 'test_component'
         self.default_concentration = 0
         self.component = Component(name=self.comp_name, mechanisms={}, parameters={}, parameter_file=None,
-                                   mixture=None, attributes=[], initial_conc=self.default_concentration)
+                                   mixture=None, attributes=[], initial_concentration=self.default_concentration)
 
     def test_initial_concentration(self):
 
