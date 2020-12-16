@@ -20,7 +20,7 @@ class DNAassembly(DNA):
 
     def __init__(self, name: str, dna=None, promoter=None, transcript=None,
                  rbs=None, protein=None, length=None,
-                 attributes=None, mechanisms=None, parameters=None, initial_conc=None, **keywords):
+                 attributes=None, mechanisms=None, parameters=None, initial_concentration=None, **keywords):
         """
             Note:
         If transcript is None and protein is not None,
@@ -36,18 +36,18 @@ class DNAassembly(DNA):
         :param attributes:
         :param mechanisms:
         :param parameters:
-        :param initial_conc:
+        :param initial_concentration:
         :param keywords: passed into the parent object (DNA)
         """
         self.promoter = None
         self.rbs = None
         self.transcript = None
-        self.initial_concentration = initial_conc
+        self.initial_concentrationentration = initial_concentration
         self.name = name
         
         # This has to be called at the end so mechanisms are set for the promoter, RBS, etc.
         DNA.__init__(self, name, length=length, mechanisms=mechanisms,
-                     parameters=parameters, initial_conc=initial_conc,
+                     parameters=parameters, initial_concentration=initial_concentration,
                      attributes=attributes, **keywords)
 
         self.update_dna(dna, attributes=attributes)
