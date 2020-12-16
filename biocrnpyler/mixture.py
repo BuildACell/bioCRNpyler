@@ -296,6 +296,7 @@ class Mixture(object):
         return param
 
     def get_initial_concentration(self, S: Union[List, Species], component=None):
+
         """
         Tries to find an initial condition of species s using the parameter hierarchy using the key:
 
