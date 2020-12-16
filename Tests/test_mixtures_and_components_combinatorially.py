@@ -184,7 +184,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 					assert validate_sbml(document) == 0
 
 					#Validate the CRN topology
-					Component_CRN_validation(CRN, C, M)
+					Component_CRN_validation(CRN = CRN, component = C, mixture = M)
 
 		except Exception as e:
 			error_txt = f"Instantiating Component {comp} in Mixture {mixture} with args {args}. \n Unexpected Error: {str(e)}."
@@ -198,7 +198,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 				for (rbs, args) in self.rbs_classes:
 					R = rbs(**args)
 					for (mixture, args) in self.mixture_classes:
-						A = DNAassembly("G", promoter = P, rbs = R)
+						A = DNAassembly(name = "G", promoter = P, rbs = R)
 						args["parameters"] = dict(self.parameters)
 
 						#test adding the component in the construtor
@@ -210,7 +210,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 						assert validate_sbml(document) == 0
 
 						#Validate the CRN topology
-						Component_CRN_validation(CRN, A, M)
+						Component_CRN_validation(CRN = CRN, component = A, mixture = M)
 
 						#Test adding the component after the constructor
 						M2 = mixture(**args)
@@ -223,7 +223,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 						assert validate_sbml(document) == 0
 
 						#Validate the CRN topology
-						Component_CRN_validation(CRN2, A, M)
+						Component_CRN_validation(CRN = CRN2, component = A, mixture = M)
 						
 		except Exception as e:
 			error_txt = f"Instantiating Promoter {prom} & RBS {rbs} in a DNAassembly in Mixture {mixture} with args {args}. \n Unexpected Error: {str(e)}."
@@ -240,7 +240,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 							Mtx = mech_tx(**args_tx)
 							Mtl = mech_tl(**args_tl)
 							mechs = {Mtx.mechanism_type:Mtx, Mtl.mechanism_type:Mtl, "binding": One_Step_Cooperative_Binding()}
-							A = DNAassembly("G", promoter = P, rbs = R)
+							A = DNAassembly(name = "G", promoter = P, rbs = R)
 							M = Mixture(mechanisms = mechs, components = [A], parameters = self.parameters)
 
 							CRN = M.compile_crn()
@@ -248,7 +248,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 							assert validate_sbml(document) == 0
 
 							#Validate the CRN topology
-							Component_CRN_validation(CRN, A, M)
+							Component_CRN_validation(CRN = CRN, component = A, mixture = M)
 
 		except Exception as e:
 			error_txt = f"Instantiating Promoter {prom} & RBS {rbs} in a DNAassembly in Mixure with mech_tx = {mech_tx} and mech_tl = {mech_tl}. \n Unexpected Error: {str(e)}."
