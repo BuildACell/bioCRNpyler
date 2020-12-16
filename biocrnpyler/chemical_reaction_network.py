@@ -291,13 +291,13 @@ class ChemicalReactionNetwork(object):
         else:
             return result
 
-    def runsim_roadrunner(self, timepoints, filename, species_to_plot = None):
+    def simulate_with_roadrunner(self, timepoints: List[float], initial_condition_dict: Dict[str,float]=None, return_roadrunner=False):
         """To simulate using roadrunner.
         Arguments:
-        timepoints: The array of time points to run the simulation for. 
-        filename: Name of the SBML file to simulate
+        timepoints: The array of time points to run the simulation for.
+        initial_condition_dict:
 
-        Returns the results array as returned by RoadRunner.
+        Returns the results array as returned by RoadRunner OR a Roadrunner model object.
 
         Refer to the libRoadRunner simulator library documentation 
         for details on simulation results: (http://libroadrunner.org/)[http://libroadrunner.org/]
@@ -306,10 +306,23 @@ class ChemicalReactionNetwork(object):
         res_ar = None
         try:
             import roadrunner
-            rr = roadrunner.RoadRunner(filename)
-            result = rr.simulate(timepoints[0],timepoints[-1],len(timepoints))
-            # TODO fix roadrunner output
-            res_ar = result
+            import io
+            document, _ = self.generate_sbml_model(stochastic_model=False)
+            sbml_string = libsbml.writeSBMLToString(document)
+            # write the sbml_string into a temporary file in memory instead of a file
+            string_out = io.StringIO()
+            string_out.write(sbml_string)
+            # use the temporary file in memory to load the model into libroadrunner
+            rr = roadrunner.RoadRunner(string_out.getvalue())
+            if initial_condition_dict:
+                for species, value in initial_condition_dict.items():
+                    rr.model[f"init([{species}])"] = value
+
+            if return_roadrunner:
+                return rr
+            else:
+                result = rr.simulate(timepoints[0], timepoints[-1], len(timepoints))
+                res_ar = result
         except ModuleNotFoundError:
             warnings.warn('libroadrunner was not found, please install libroadrunner')
         return res_ar
