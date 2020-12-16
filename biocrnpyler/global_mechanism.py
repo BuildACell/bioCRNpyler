@@ -72,7 +72,7 @@ class GlobalMechanism(Mechanism):
         Note that the above filtering is done automatically. Any parameters needed by
         the global mechanism must be in the Mixture's parameter dictionary. These
         methods are assumed to take a single species as input.
-        :param default_on:
+        :param default_on: what to do if a species doesn't come up in the filter dict. Also used for as the default if there is a filterdict conflict
         :param recursive_species_filtering:  keyword determines how the material_type and name of ComplexSpecies is defined.
         If True: the filter based upon all subspecies.type and name recursively going through
         all ComplexSpecies. If False: the filter dict will act only on the ComplexSpecies. By default, this is False.
@@ -274,16 +274,16 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
 
 
 class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
-    """Michaelis Menten Degredation of deg-tagged proteins by Proteases
-       Species_degtagged + protease <--> Species_degtagged:protease --> protease
+    """Michaelis Menten Degredation of deg-tagged proteins by degredase (such as proteases)
+       Species_degtagged + degredase <--> Species_degtagged:degredase --> degredase
        All species with the attribute degtagged and material_type protein are degraded. The method is not recursive.
     """
-    def __init__(self, protease, deg_tag = "degtagged", name="deg_tagged_degredation", mechanism_type="degredation", 
+    def __init__(self, degredase, deg_tag = "degtagged", name="deg_tagged_degredation", mechanism_type="degredation", 
         filter_dict= None, recursive_species_filtering = False, default_on = False, **keywords):
-        if isinstance(protease, Species):
-            self.protease = protease
+        if isinstance(degredase, Species):
+            self.degredase = degredase
         else:
-            raise ValueError("'protease' must be a Species.")
+            raise ValueError("'degredase' must be a Species.")
         MichaelisMenten.__init__(self=self, name=name, mechanism_type=mechanism_type)
 
         if filter_dict is None:
@@ -294,7 +294,7 @@ class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
 
     def update_species(self, s, mixture):
         species = []
-        species += MichaelisMenten.update_species(self, Enzyme = self.protease, Sub = s, Prod = None)
+        species += MichaelisMenten.update_species(self, Enzyme = self.degredase, Sub = s, Prod = None)
         return species
 
     def update_reactions(self, s, mixture):
@@ -304,5 +304,5 @@ class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
         ku = self.get_parameter(s, "ku", mixture)
 
         rxns = []
-        rxns += MichaelisMenten.update_reactions(self, Enzyme = self.protease, Sub = s, Prod = None, kb=kb, ku=ku, kcat=kdeg)
+        rxns += MichaelisMenten.update_reactions(self, Enzyme = self.degredase, Sub = s, Prod = None, kb=kb, ku=ku, kcat=kdeg)
         return rxns

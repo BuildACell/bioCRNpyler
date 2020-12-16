@@ -26,50 +26,7 @@ class Reaction(object):
     .. math::
        \sum_i m_i O_i  --> \sum_i n_i I_i @ rate = k_rev
     """
-    def __init__(self, *args, **kwargs):
-        # This is to have backward compatibility for now, should be removed!
-        if args:
-            kwargs['inputs'] = args[0]
-            kwargs['outputs'] = args[1]
-        if 'k' in kwargs or 'propensity_params' in kwargs:
-            self.old_interface(**kwargs)
-        else:
-            self.new_interface(**kwargs)
-
-    def old_interface(self,inputs, outputs, k = 0, input_coefs = None,
-                      output_coefs = None, k_rev = 0, propensity_type = "massaction",
-                      rate_formula = None, propensity_params = None):
-        warnings.warn('This way to initialize a reaction object is deprecated, please refactor your code!', DeprecationWarning)
-
-        if propensity_type == 'hillpositive':
-            propensity_type = HillPositive(**propensity_params)
-        elif propensity_type == 'hillnegative':
-            propensity_type = HillNegative(**propensity_params)
-        elif propensity_type == 'proportionalhillpositive':
-            propensity_type = ProportionalHillPositive(**propensity_params)
-        elif propensity_type == 'proportionalhillnegative':
-            propensity_type = ProportionalHillNegative(**propensity_params)
-        elif k_rev:
-            propensity_type = MassAction(k_forward=k, k_reverse=k_rev)
-        else:
-            propensity_type = MassAction(k_forward=k)
-
-        if rate_formula is not None:
-            NotImplementedError('General propensity is not supported this way!')
-
-        if input_coefs:
-            reactants = [WeightedSpecies(species=s, stoichiometry=v) for s,v in zip(inputs, input_coefs, strict=True)]
-        else:
-            reactants = [WeightedSpecies(species=s) for s in inputs]
-
-        if output_coefs:
-            products = [WeightedSpecies(species=s, stoichiometry=v) for s,v in zip(outputs, output_coefs, strict=True)]
-        else:
-            products = [WeightedSpecies(species=s) for s in outputs]
-
-        self.new_interface(inputs=reactants, outputs=products, propensity_type=propensity_type)
-
-    def new_interface(self, inputs: Union[List[Species], List[WeightedSpecies]],
+    def __init__(self, inputs: Union[List[Species], List[WeightedSpecies]],
                  outputs: Union[List[Species], List[WeightedSpecies]],
                  propensity_type: Propensity):
 
