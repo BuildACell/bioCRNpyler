@@ -51,9 +51,16 @@ def Component_CRN_validation(CRN, component, mixture):
 	if isinstance(component, Enzyme):
 		assert component.enzyme in reaction_inputs #enzyme should be an input
 		assert component.enzyme in reaction_outputs #enzyme should be an output
+		assert component.substrate in reaction_inputs #substrate should be an input
+		assert component.product in reaction_outputs #product should be an output
+
+	if isinstance(component, MultiEnzyme):
+		assert component.enzyme in reaction_inputs #enzyme should be an input
+		assert component.enzyme in reaction_outputs #enzyme should be an output
 		assert all([s in reaction_inputs for s in component.substrates]) #substrates should be inputs
 		assert all([s in reaction_outputs for s in component.products]) #products should be outputs
 	
+
 
 class CombinatorialComponentMixtureTest(TestCase):
 
@@ -65,7 +72,8 @@ class CombinatorialComponentMixtureTest(TestCase):
 			(RNA, {"name":"rna"}),
 			(Protein, {"name":"protein"}),
 			(ChemicalComplex, {"species":[Species("S1"), Species("S2")]}),
-			(Enzyme, {"enzyme":Species("E"), "substrates": [Species("S")], "products":[Species("P")]}),
+			(Enzyme, {"enzyme":Species("E"), "substrate":Species("S"), "product":Species("P")}),
+			(MultiEnzyme, {"enzyme":Species("E1"), "substrates":[Species("S1"), Species("S2")], "products":[Species("P1"), Species("P2")]}),
 			(DNAassembly, {'name':"dna_assembly_v1", "promoter":"P", "rbs":"R", "transcript":"T", "protein":"X"}),
 			(DNAassembly, {'name':"dna_assembly_v2", "promoter":"P", "rbs":"R", "transcript":None, "protein":None}),
 			(DNAassembly, {'name':"dna_assembly_v3", "promoter":"P", "rbs":None}),
@@ -93,14 +101,12 @@ class CombinatorialComponentMixtureTest(TestCase):
 			(TxTlExtract, {"name":"tx_tl_extract"}),
 			(ExpressionDilutionMixture, {"name":"expression_dilution_mixture"}),
 			(SimpleTxTlDilutionMixture, {'name':"simple_tx_tl_dilution_mixture"}),
-			(TxTlDilutionMixture, {"name":"tx_tl_dilution_mixture"}),
-			(EnergyTxTlExtract, {"name":"energy_tx_tl_extract"})
+			(TxTlDilutionMixture, {"name":"tx_tl_dilution_mixture"})
 			]
 
 		#Use default parameters
 		self.parameters = {"kb":1.0, "ku":1.0, "ktx":1.0, "ktl":1.0, "kdeg":1.0, "kdil":1.0, "kexpress":1.0,"kcat":1.0, "K":10, 
-		"cooperativity":2, "n":2, "k":1.0, "max_occ":10, "kleak":.01, "k1":1.0, "kbr":1.0, "k2":1.0, "kur":.1, "k_iso":.2, 
-		"length":100, "vmax":5, "ktx_solo":1.0, "k_iso_r":10, "ktl_solo":1.0}
+		"cooperativity":2, "n":2, "k":1.0, "max_occ":10, "kleak":.01, "k1":1.0, "kbr":1.0, "k2":1.0, "kur":.1, "k_iso":.2, "ktx_solo":1.0, "k_iso_r":10, "ktl_solo":1.0}
 
 		self.transcription_mechs = [
 			(SimpleTranscription, {}), 
