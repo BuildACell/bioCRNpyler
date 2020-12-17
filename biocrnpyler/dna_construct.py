@@ -323,12 +323,14 @@ class Construct(Component,OrderedPolymer):
                 attributes=None,
                 initial_concentration=None, 
                 copy_parts=True,
-                component_enumerators = [],
+                component_enumerators = None,
                 **keywords):
         """this represents a bunch of parts in a row.
         A parts list has [[part,direction],[part,direction],...]
         Each part must be an OrderedMonomer"""
         #TODO get_part, dna_part search engine like get_component from mixture
+        if(component_enumerators is None):
+            component_enumerators = []
         self.component_enumerators = component_enumerators
         myparts = []
         for part in parts_list:
@@ -749,7 +751,7 @@ class DNA_construct(Construct,DNA):
                 attributes=None,
                 initial_concentration=None,
                 copy_parts=True,
-                component_enumerators = [TxExplorer()],
+                component_enumerators = (TxExplorer(),),
                 **keywords):
 
         self.material_type = "dna"
@@ -779,7 +781,7 @@ class DNA_construct(Construct,DNA):
         
 class RNA_construct(Construct,RNA):
     def __init__(self,parts_list,name=None,made_by="unknown",\
-                component_enumerators = [TlExplorer()],\
+                component_enumerators = (TlExplorer(),),\
                 **keywords):
         """an RNA_construct is a lot like a DNA_construct except it can only translate, and
         can only be linear"""
