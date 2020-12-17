@@ -17,7 +17,7 @@ from .utils import remove_bindloc
 
 class Mixture(object):
     def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
-                 global_mechanisms=None, species=None, **kwargs):
+                 global_mechanisms=None, species=None, initial_condition_dictionary=None, recursion_depth=4, **kwargs):
         """A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
         and parameters related to the mixture itself (e.g. Transcription rate). Default components and mechanisms can be
         added as well as global mechanisms that impacts all species (e.g. cell growth).
@@ -32,6 +32,9 @@ class Mixture(object):
         """
         # Initialize instance variables
         self.name = name  # Save the name of the mixture
+
+        #recursion depth for component enumeration
+        self.recursion_depth = recursion_depth
 
         # process the components
         if components is None and not hasattr(self, "_components"):
@@ -394,29 +397,21 @@ class Mixture(object):
         new_comp = []
         comp_i = 0
         comps_to_enumerate = self.components
-        #this is going through a steadily increasing list,
-        #that's why it's not a for loop
-        #TODO do a nested for loop configuration
-        while comp_i < len(comps_to_enumerate):
-            component = comps_to_enumerate[comp_i]
-            comp_i+=1
-            if(hasattr(component,"enumerate_components")):
-                #if a component can be enumerated, it should be
-                #TODO make all components have update_components funcitonality
+        #component enumeration
+        outstanding_components = []
+        for a in range(self.recursion_depth):
+            for component in comps_to_enumerate:
                 endpt_components,unenumerated_components = component.update_components()
-                #components can produce unenumerated components (like RNA constructs)
-                #these get put back into the list to go again
-                #this list will contain "protein" components too...
-                for unen_comp in unenumerated_components:
-                    if(hasattr(unen_comp,"enumerate_components")):
-                        #put the unenumerated stuff back in only if it can be enumerated
-                        comps_to_enumerate += [unen_comp]
-                #endpoint components that can't be enumerated
-                #go into the list of everything to process for species
                 new_comp += endpt_components
+                outstanding_components += unenumerated_components
+            if(len(outstanding_components) == 0):
+                #this happens if we are done early
+                break
             else:
-                #if it can't be enumerated it should be processed as normal
-                new_comp += [component]
+                comps_to_enumerate = outstanding_components
+                outstanding_components = []
+        if(len(outstanding_components) > 0):
+            warn("Mixture was left with unenumerated components "+str(', '.join(outstanding_components)))
 
         #Append Species from each Component
         for component in new_comp:

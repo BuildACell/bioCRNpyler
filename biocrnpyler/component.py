@@ -279,6 +279,50 @@ class Component(object):
         reactions = []
         warn("Unsubclassed update_reactions called for " + repr(self))
         return reactions
+    def update_components(self) -> (List,List):
+        """this is for component enumeration. Usually you will return a list of components that are
+        copies of existing ones (first list) and new components (second list). For example,
+        A DNA_construct makes a list of copies of its parts as the first output, and a list of RNA_constructs
+        as the second output.
+        An RNA_construct will make a list of copies of its parts as the first output, and a list of Protein
+        components as its second output (if it makes any proteins)"""
+        return [], []
+    def get_initial_condition(self, s):
+        """Tries to find an initial condition of species s using the parameter hierarchy
+
+        1. mixture.name, repr(s) in self.initial_condition_dictionary
+        2. repr(s) in self.initial_condition_dictionary
+        3. If s == self.get_species and self.initial_con is not None: self.initial_conc
+        4. IF s == self.get_species(): mixture.name, self.name in initial_condition_dictionary
+        5. IF s == self.get_species(): self.name in initial_condition_dictionary
+        Repeat 1-2, 4-5 in self.parameter_database
+        Note: Mixture will also repeat this same order in it's own initial_condition_dictionary and ParameterDatabase after Component.
+        """
+        # First try all conditions in initial_condition_dictionary
+        if (self.mixture is not None and (self.mixture.name, repr(s)) in self.initial_condition_dictionary):
+            return self.initial_condition_dictionary[(self.mixture.name, repr(s))]
+        elif repr(s) in self.initial_condition_dictionary:
+            return self.initial_condition_dictionary[repr(s)]
+        # Then try all conditions using self.name (if s is self.get_species())
+        elif s == self.get_species():
+            if self.initial_concentration is not None:
+                return self.initial_concentration
+            elif self.mixture is not None and (self.mixture.name, self.name) in self.initial_condition_dictionary:
+                return self.initial_condition_dictionary[(self.mixture.name, self.name)]
+            elif self.name in self.initial_condition_dictionary:
+                return self.initial_condition_dictionary[(self.mixture.name, self.name)]
+        # Then try above in self.parameter_database
+        elif self.mixture is not None and self.parameter_database.find_parameter(None, self.mixture.name, repr(s)) is not None:
+            return self.parameter_database.find_parameter(None, self.mixture.name, repr(s)).value
+        elif self.parameter_database.find_parameter(None, None, repr(s)) is not None:
+            return self.parameter_database.find_parameter(None, None, repr(s)).value
+        elif s == self.get_species():
+            if self.mixture is not None and self.parameter_database.find_parameter(None, self.mixture.name, self.name) is not None:
+                return self.parameter_database.find_parameter(None, self.mixture.name, self.name).value
+            elif self.parameter_database.find_parameter(None, None, self.name) is not None:
+                return self.parameter_database.find_parameter(None, None, self.name).value
+        else:
+            return None
 
     def __repr__(self):
         return type(self).__name__ + ": " + self.name
