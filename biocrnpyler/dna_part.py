@@ -16,12 +16,14 @@ from .species import Species
 
 
 class DNA_part(Component, OrderedMonomer):
-    def __init__(self,name,mechanisms=None,parameters=None,**keywords):
+    def __init__(self,name, **keywords):
         """this represents a modular component sequence. These get compiled into working components"""
-        Component.__init__(self=self, name = name, mechanisms = mechanisms,
-                           parameters = parameters, **keywords)
+
+        if "initial_concentration" in keywords:
+            raise AttributeError("DNA_part should not recieve initial_concentration keyword. Pass this into the DNAassembly or DNA_construct instead.")
+
+        Component.__init__(self=self, name = name, **keywords)
         
-        self.name = name
         #self.assembly = property(self._get_assembly,self._set_assembly)
         assembly = None #this is already covered in self.assembly. Is this needed?
         direction = None #orientation
@@ -53,9 +55,11 @@ class DNA_part(Component, OrderedMonomer):
         else:
             self.assembly = assembly
             OrderedMonomer.__init__(self)
+
     @property
     def dna_species(self):
         return Species(self.name, material_type="dna")
+
     def __repr__(self):
         myname = self.name
         if(self.position is not None):
@@ -63,6 +67,7 @@ class DNA_part(Component, OrderedMonomer):
         if(self.direction =="reverse"):
             myname += "_r"
         return myname
+
     def __hash__(self):
         hval = 0
         if(hasattr(self,"assembly")):
@@ -76,6 +81,7 @@ class DNA_part(Component, OrderedMonomer):
         hval+= hash(self.position)
         hval += hash(self.direction)
         return hval
+
     def __eq__(self,other):
         if(type(other)==type(self)):
             if(self.name==other.name):
