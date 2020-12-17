@@ -6,6 +6,7 @@ import copy
 import warnings
 from typing import Dict, List, Tuple, Union
 from warnings import warn
+import numbers
 
 import libsbml
 
@@ -13,7 +14,7 @@ from .reaction import Reaction
 from .sbmlutil import add_all_reactions, add_all_species, create_sbml_model
 from .species import Species
 from .utils import process_initial_concentration_dict, parameter_to_value
-from .parameter import ModelParameter
+from .parameter import ModelParameter, Parameter
 
 
 class ChemicalReactionNetwork(object):
@@ -30,7 +31,7 @@ class ChemicalReactionNetwork(object):
     k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
     where a_i is the spectrometric coefficient of species i
     """
-    def __init__(self, species: List[Species], reactions: List[Reaction], initial_condition_dict = None, show_warnings=False):
+    def __init__(self, species: List[Species], reactions: List[Reaction],  initial_condition_dict: Dict[Species,Union[numbers.Real, Parameter]] = None, show_warnings=False):
         self.species = []
         self.reactions = []
         self.add_species(species)
