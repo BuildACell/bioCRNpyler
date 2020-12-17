@@ -31,10 +31,14 @@ from .utils import all_comb, remove_bindloc, rev_dir
 
 class TxTlExplorer_CE(LocalComponentEnumerator):
     def __init__(self,name="TxTlExplorer",possible_rxns=("transcription","translation"),\
-                                                        direction="forward",possible_directions=("forward","reverse")):
+                    direction="forward",possible_directions=("forward","reverse"),\
+                        return_rnas = True, return_proteins = True,debug=False):
         """this class goes through a parts_list of a DNA_construct and decides what RNAs are made
         and what proteins are made based on orientation and location of parts"""
         LocalComponentEnumerator.__init__(self=self,name=name)
+        self.debug=debug
+        self.return_rnas = return_rnas
+        self.return_proteins = return_proteins
         self.current_rnas = {}
         self.current_proteins = {}
         self.made_rnas = {}
@@ -47,15 +51,20 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
         self.possible_directions = possible_directions
     def enumerate(self,component):
         #TODO the component we are given better be a dna_construct or something that can be txtled
+        if(self.debug):
+            print("enumerating "+str(component))
         proteins = {}
         rnas = {}
         newlist = copy.deepcopy(component.parts_list)
         for direction in self.possible_directions:
-            self.__init__(direction=direction)
+            self.__init__(direction=direction,possible_rxns=self.possible_rxns,possible_directions=self.possible_directions,debug=self.debug)
+            if(self.debug):
+                print("direction is "+str(direction))
             if("transcription" in self.possible_rxns):
                 pass
             else:
-                self.make_rna(component.my_promoter)
+                if(component.material_type == "rna"):
+                    self.make_rna(component.my_promoter)
                 #rnas[starting_rna]=[]
             startnum = 0
             
@@ -84,7 +93,6 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
                 if(part_index==len(component.parts_list) or part_index<0):
                     part_index = startnum #this takes care of looping
                     if(component.circular and second_looping == 0):
-                        #print('restart from beginning')
                         second_looping = 1 #during the second loop, we don't care about promoters
                         self.second_loop() #tell the explorer that we don't care about promoters
                     else:
@@ -120,9 +128,9 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
             for rbs in proteins[rna]:
                 protein_components += proteins[rna][rbs]
         outlist = []
-        if("transcription" in self.possible_rxns):
+        if(self.return_rnas):
             outlist += rna_constructs
-        if("translation" in self.possible_rxns):
+        if(self.return_proteins):
             outlist += protein_components
         return outlist
     def see(self,part):
@@ -134,6 +142,10 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
         0: done, stop
         """
         effective_direction = part.direction
+        if(self.debug):
+            print("looking at "+str(part))
+            print("possible reactions are "+str(self.possible_rxns))
+            print("current_rnas are "+str(self.current_rnas))
         if(self.direction=="reverse"):
             effective_direction = rev_dir(effective_direction)
         if(self.current_rnas!={}):
@@ -181,7 +193,7 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
                 self.current_rbs = None
                 terminated = 0
         if((effective_direction=="forward") and \
-                (isinstance(part,Promoter) and "transcription" in self.possible_rxns)):
+                isinstance(part,Promoter) and "transcription" in self.possible_rxns and not self.second_looping):
             #this if statement makes sure that the current part wants to transcribe, and
             #that is something that we are allowed to do
             self.current_rnas.update({part:[[],[]]})
@@ -195,13 +207,15 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
         """if we already went around the plasmid, then what we're checking for is continuing
         transcripts or proteins. We don't want to start making new transcripts
         because we already checked this area for promoters"""
+        if(self.debug):
+            print("second loop!")
         if(self.second_looping==False):
-            new_rxns = []
-            for rxn in self.possible_rxns:
-                if(rxn!="transcription"):
-                    #remove transcription from the set of possible reactions!
-                    new_rxns += [rxn]
-            self.possible_rxns = new_rxns
+            #new_rxns = []
+            #for rxn in self.possible_rxns:
+            #    if(rxn!="transcription"):
+            #        #remove transcription from the set of possible reactions!
+            #        new_rxns += [rxn]
+            #self.possible_rxns = new_rxns
             self.second_looping=True
         else:
             self.end()
@@ -215,6 +229,8 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
         """this terminates the transcription of a specific RNA, started by the promoter
         given in the argument. the RNA is deleted from the list of currently transcribing RNAs,
         and any proteins that it was making are catalogued"""
+        if(self.debug):
+            print("transcription terminated! Promoter was "+str(promoter))
         if(promoter==None and len(self.current_rnas)>0):
             #if you don't specify then it terminates the first one
             promoter = list(self.current_rnas.keys())[0]
@@ -246,7 +262,7 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
             #print("currently we are translating from "+str(rbs)+ " which is located at " + str(rbs.pos))
             #print(rbs)
             #print(rna_partslist)
-            if("transcription" in self.possible_rxns):
+            if(self.return_rnas):
                 #this means we are creating new RNAs, and so the correct RBS is the one in the new RNA.
                 correct_rbs = rna_construct.parts_list[rna_partslist.index([rbs,"forward"])]
             else:
@@ -262,7 +278,7 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
             # so wait until we are done tallying all the RNAs before removing everything from current_proteins
         del self.current_rnas[promoter] # this removes the current RNA from the list, because it's
                                         # being terminated!!
-        if("transcription" in self.possible_rxns):
+        if(self.return_rnas):
             promoter.transcript = rna_construct.get_species() #set the promoter's transcript to be correct
         promoter_proteins = [a.get_species() for a in proteins_per_promoter]
         if(len(promoter_proteins)>0):
@@ -271,6 +287,8 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
         return
     def end(self):
         """we've reached the end of the dna! End everything!"""
+        if(self.debug):
+            print("end of the DNA!")
         for promoter in list(self.current_rnas.keys()):
             self.terminate_transcription(promoter)
         self.current_rnas = {}
@@ -284,16 +302,16 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
         return self.all_rnas
 
 class TxExplorer(TxTlExplorer_CE):
-    def __init__(self,name="TxExplorer",possible_rxns=("transcription"),\
-                        direction="forward",possible_directions=("forward","reverse")):
+    def __init__(self,name="TxExplorer",possible_rxns=("transcription",),\
+                        direction="forward",possible_directions=("forward","reverse"),debug=False):
         TxTlExplorer_CE.__init__(self,name=name,possible_rxns=possible_rxns,\
-                        direction=direction,possible_directions=possible_directions)
+                        direction=direction,possible_directions=possible_directions,return_proteins=False,debug=debug)
 
 class TlExplorer(TxTlExplorer_CE):
-    def __init__(self,name="TlExplorer",possible_rxns=("translation"),\
-                        direction="forward",possible_directions=("forward",)):
+    def __init__(self,name="TlExplorer",possible_rxns=("translation",),\
+                        direction="forward",possible_directions=("forward",),debug=False):
         TxTlExplorer_CE.__init__(self,name=name,possible_rxns=possible_rxns,\
-                        direction=direction,possible_directions=possible_directions)
+                        direction=direction,possible_directions=possible_directions,return_rnas = False,debug=debug)
 
 class Construct(Component,OrderedPolymer):
     def __init__(self,
@@ -452,7 +470,7 @@ class Construct(Component,OrderedPolymer):
                                 overwrite = overwrite, optional_mechanism = optional_mechanism)
     def __repr__(self):
         """this is just for display purposes"""
-        return "DNA_construct = "+ self.make_name()
+        return "Construct = "+ self.make_name()
     def show(self):
         txt = self.name
         for part in self.parts_list:
@@ -755,6 +773,8 @@ class DNA_construct(Construct,DNA):
                     pind+=1
                     part.color2 = pind
             pind+=1
+    def __repr__(self):
+        return "DNA_construct = "+ self.make_name()
     
         
 class RNA_construct(Construct,RNA):
@@ -775,8 +795,7 @@ class RNA_construct(Construct,RNA):
     #    return outspec
     def __repr__(self):
         """the name of an RNA should be different from DNA, right?"""
-        output = "rna = "+self.name
-        return output
+        return "RNA_construct = "+self.name
 
 
 
