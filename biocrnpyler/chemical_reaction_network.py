@@ -12,7 +12,8 @@ import libsbml
 from .reaction import Reaction
 from .sbmlutil import add_all_reactions, add_all_species, create_sbml_model
 from .species import Species
-from .utils import process_initial_concentration_dict
+from .utils import process_initial_concentration_dict, parameter_to_value
+from .parameter import ModelParameter
 
 
 class ChemicalReactionNetwork(object):
@@ -154,7 +155,7 @@ class ChemicalReactionNetwork(object):
         txt += "]"
         return txt
 
-    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, show_initial_condition = True, **kwargs):
+    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, show_initial_condition = True, show_keys = True, **kwargs):
         """A more powerful printing function.
 
         Useful for understanding CRNs but does not return string identifiers.
@@ -163,16 +164,32 @@ class ChemicalReactionNetwork(object):
         show_rates toggles whether reaction rate functions are printed
         """
 
-        txt = f"Species ({len(self.species)}) = "+"{"
-        for sind in range(len(self.species)):
-            s = self.species[sind]
-            txt += f"{sind}. "+s.pretty_print(show_material = show_material, show_attributes = show_attributes, show_initial_condition = show_initial_condition, **kwargs) + ", "
-        txt = txt[:-2] + '}\n'
+        txt = "Species"+ f"(N = {len(self.species)}) = "+"{\n"
+
+        ics = lambda s: self.initial_condition_dict[s] if s in self.initial_condition_dict else 0
+
+        species_sort_list = [(parameter_to_value(ics(s)), s) for s in self.species]
+        species_sort_list.sort()
+        species_sort_list.reverse()
+        for sind, (init_cond, s) in enumerate(species_sort_list):
+            init_cond = ics(s) 
+
+            txt += s.pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+
+            if show_initial_condition:
+                txt += f" (@ {parameter_to_value(init_cond)}),  "
+
+                if show_keys: #shows where the initial conditions came from
+                    if isinstance(init_cond, ModelParameter):
+                        txt+=f"\n   found_key=(mech={init_cond.found_key.mechanism}, partid={init_cond.found_key.part_id}, name={init_cond.found_key.name}).\n   search_key=(mech={init_cond.search_key.mechanism}, partid={init_cond.search_key.part_id}, name={init_cond.search_key.name}).\n"
+
+
+        txt += '\n}\n'
         txt += f"\nReactions ({len(self.reactions)}) = [\n"
 
         for rind in range(len(self.reactions)):
             r = self.reactions[rind]
-            txt += f"{rind}. " + r.pretty_print(show_rates = show_rates, show_material = show_material, show_attributes = show_attributes, **kwargs) + "\n"
+            txt += f"{rind}. " + r.pretty_print(show_rates = show_rates, show_material = show_material, show_attributes = show_attributes, show_keys = show_keys, **kwargs) + "\n"
         txt += "]"
         return txt
 
