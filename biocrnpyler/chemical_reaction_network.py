@@ -17,7 +17,6 @@ from .utils import process_initial_concentration_dict, parameter_to_value
 from .parameter import ModelParameter, Parameter
 
 
-
 class ChemicalReactionNetwork(object):
     """A chemical reaction network is a container of species and reactions
     chemical reaction networks can be compiled into SBML.
