@@ -8,11 +8,10 @@ import copy
 from .utils import rev_dir
 
 class ComponentEnumerator:
-    def __init__(self, name:str,enumerator_type=""):
+    def __init__(self, name:str):
         """a component enumerator's job is to create new components in a process similar to mechanisms."""
         self.name = name
-        self.enumerator_type = enumerator_type
-    def enumerate(self,component=None) -> List:
+    def enumerate_components(self,component=None) -> List:
         """this will create new components based on the input component somehow
         The child class should implement this
         :return: empty list"""
@@ -23,15 +22,15 @@ class ComponentEnumerator:
 class LocalComponentEnumerator(ComponentEnumerator):
     """a component enumerator's job is to create new components in a process similar to mechanisms.
     A local component enumerator only cares about the single component that is passed in"""
-    def __init__(self,name:str,enumerator_type="local"):
-        ComponentEnumerator.__init__(self,name=name,enumerator_type=enumerator_type)
+    def __init__(self,name:str):
+        ComponentEnumerator.__init__(self,name=name)
 class GlobalComponentEnumerator(ComponentEnumerator):
-    def __init__(self,name:str,enumerator_type="global"):
+    def __init__(self,name:str):
         """a component enumerator's job is to create new components in a process similar to mechanisms.
     A global component enumerator takes in every component that is in the mixture. This is for complex enumeration that
     cares about other components"""
-        ComponentEnumerator.__init__(self,name=name,enumerator_type=enumerator_type)
-    def enumerate(self,component=None,other_components=None):
+        ComponentEnumerator.__init__(self,name=name)
+    def enumerate_components(self,component=None,other_components=None):
         """this will create new components based on the input component and a list of all components in the mixture
         The child class should implement this
         :return: empty list"""
