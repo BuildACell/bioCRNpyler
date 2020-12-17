@@ -303,7 +303,7 @@ class Mixture(object):
 
         return param
 
-    def get_initial_condition(self, s: Species, component=None):
+    def get_initial_condition(self, S: Union[List, Species], component=None):
         """
         Tries to find an initial condition of species s using the parameter hierarchy using the key:
 
@@ -323,29 +323,35 @@ class Mixture(object):
 
         3. Defaults to 0
         """
+        if isinstance(S, Species):
+            S = [S]
 
-        if not isinstance(s, Species):
-            raise ValueError(f"{s} is not a Species! Can only set initial concentration of a Species.")
+        init_cond_dict = {}
+        for s in S:
+            if not isinstance(s, Species):
+                raise ValueError(f"{s} is not a Species! Can only find initial concentration of a Species.")
 
-        init_conc = None
-        #1 Check the component
-        if component is not None:
-            init_conc = component.get_parameter(param_name = str(s), part_id = self.name, mechanism = "initial concentration")
+            init_cond = None
+            #1 Check the component
+            if component is not None:
+                init_cond = component.get_parameter(param_name = str(s), part_id = self.name, mechanism = "initial concentration", check_mixture = False, return_none = True)
 
-            if init_conc is None and component.get_species() == s:
-                init_conc = component.get_parameter(param_name = component.name, part_id = self.name, mechanism = "initial concentration")
-        
-        #2 Check self
-        if init_conc is None:
-            init_conc = self.get_parameter(param_name = str(s), part_id = self.name, mechanism = "initial concentration")
+                if init_cond is None and component.get_species() == s:
+                    init_cond = component.get_parameter(param_name = component.name, part_id = self.name, mechanism = "initial concentration", check_mixture = False, return_none = True)
+            
+            #2 Check self
+            if init_cond is None:
+                init_cond = self.get_parameter(param_name = str(s), part_id = self.name, mechanism = "initial concentration")
 
-            if init_conc is None and component is not None and component.get_species() == s:
-                initi_conc = self.get_parameter(param_name = component.name, part_id = self.name, mechanism = "initial concentration")
+                if init_cond is None and component is not None and component.get_species() == s:
+                    init_cond = self.get_parameter(param_name = component.name, part_id = self.name, mechanism = "initial concentration")
 
-        if init_conc is None:
-            init_conc = 0
+            if init_cond is None:
+                init_cond = 0
 
-        return init_conc
+            init_cond_dict[s] = init_cond
+
+        return init_cond_dict
 
     def add_species_to_crn(self, new_species, component):
 
@@ -356,13 +362,10 @@ class Mixture(object):
             new_species = [new_species]
 
         for s in new_species:
-            if isinstance(s, Species):
-                self.set_initial_condition(s, component)
+            if isinstance(s, Species) or(isinstance(s, list) and(all(isinstance(ss, Species) for ss in s) or len(s) == 0)):
+                init_cond_dict = self.get_initial_condition(s, component)
                 self.crn.add_species(s)
-            elif isinstance(s, list) and(all(isinstance(ss, Species) for ss in s) or len(s) == 0):
-                for ss in s: 
-                    self.set_initial_condition(ss, component)
-                self.crn.add_species(s)
+                self.crn.update_initial_condition(init_cond_dict)
             elif s is not None:
                 raise ValueError(f"Invalid Species Returned in {component}.update_species(): {s}.")
 

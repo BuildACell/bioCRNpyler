@@ -9,7 +9,7 @@ from warnings import warn
 
 from .global_mechanism import GlobalMechanism
 from .mechanism import Mechanism
-from .parameter import Parameter, ParameterDatabase, ParameterEntry, ParameterKey
+from .parameter import Parameter, ParameterDatabase, ParameterKey
 from .species import Species
 
 
@@ -62,14 +62,23 @@ class Component(object):
         else:
             self.set_mixture(None)
 
-        if parameters is None: 
-            parameters = {}
-
-        if initial_concentration is not None: #place initial concentration in the parameter_database via the parameters dictionary
-            param_key = ParameterKey(mechanism = "initial concentration", part_id = None, name = self.name)
-            parameters[param_key] = initial_concentration
-
         self.parameter_database = ParameterDatabase(parameter_file=parameter_file, parameter_dictionary=parameters)
+        self.initial_concentration = initial_concentration
+
+    @property
+    def initial_concentration(self):
+        return self._initial_concentration
+
+    @initial_concentration.setter
+    def initial_concentration(self, initial_concentration):
+        if initial_concentration is not None:
+            if initial_concentration < 0:
+                raise ValueError(f'Initial concentration must be non-negative, this was given: {initial_concentration}')
+            param_key = ParameterKey(mechanism = "initial concentration", part_id = None, name = self.name)
+            self.parameter_database.add_parameter(parameter_name = "initial concentration", parameter_value = initial_concentration, parameter_key = param_key, overwrite_parameters = True)
+    
+        self._initial_concentration = initial_concentration
+
 
     def set_mixture(self, mixture) -> None:
         """Set the mixture the Component is in.
@@ -221,7 +230,7 @@ class Component(object):
         else:
             raise ValueError(f"add_mechanisms expected a list of Mechanisms. Received {mechanisms}")
 
-    def get_parameter(self, param_name: str, part_id=None, mechanism=None, return_numerical=False) -> Union[Parameter, Real]:
+    def get_parameter(self, param_name: str, part_id=None, mechanism=None, return_numerical=False, return_none = False, check_mixture = True) -> Union[Parameter, Real]:
         """Get a parameter from different objects that hold parameters.
 
         Hierarchy:
@@ -232,16 +241,18 @@ class Component(object):
         :param part_id:
         :param mechanism:
         :param return_numerical: numerical value or the parameter object is returned
+        :param return_none: returns None instead of throwing an error if a parameter isn't found
+        :param check_mixture: toggle whether or not to check the Component's Mixture as well
         :return: Parameter object or a Real number
         """
         # Try the Component ParameterDatabase
         param = self.parameter_database.find_parameter(mechanism, part_id, param_name)
 
         # Next try the Mixture ParameterDatabase
-        if param is None and self.mixture is not None:
+        if param is None and self.mixture is not None and check_mixture:
             param = self.mixture.get_parameter(mechanism, part_id, param_name)
 
-        if param is None:
+        if param is None and not return_none:
             raise ValueError("No parameters can be found that match the "
                              "(mechanism, part_id, "
                              f"param_name)=({repr(mechanism)}, {part_id}, "

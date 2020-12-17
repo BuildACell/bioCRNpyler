@@ -29,11 +29,12 @@ class ChemicalReactionNetwork(object):
     k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
     where a_i is the spectrometric coefficient of species i
     """
-    def __init__(self, species: List[Species], reactions: List[Reaction], show_warnings=False):
+    def __init__(self, species: List[Species], reactions: List[Reaction], initial_condition_dict = None, show_warnings=False):
         self.species = []
         self.reactions = []
         self.add_species(species)
         self.add_reactions(reactions)
+        self.initial_condition_dict = initial_condition_dict
 
         ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings=show_warnings)
 
@@ -76,6 +77,31 @@ class ChemicalReactionNetwork(object):
             self.reactions.append(copy.deepcopy(r)) #copy the Reaction and add it to the CRN
 
             #TODO synchronize Species in the CRN
+
+    @property
+    def initial_condition_dict(self):
+        return self._initial_condition_dict
+
+    @initial_condition_dict.setter
+    def initial_condition_dict(self, init_cond_dict):
+        if init_cond_dict is None:
+            init_cond_dict = {}
+        elif isinstance(init_cond_dict, dict):
+            for s in init_cond_dict:
+                if s not in self.species:
+                    raise ValueError(f"Trying to set the initial condition of a Species {s} not in the CRN")
+
+        self._initial_condition_dict = init_cond_dict
+
+    
+    def update_initial_condition(self, init_cond_dict):
+        #Used to update the initial_condition_dictionary without resetting all values
+        for s in init_cond_dict:
+            if s not in self.species:
+                raise ValueError(f"Trying to set the initial condition of a Species {s} not in the CRN")
+            else:
+                self._initial_condition_dict[s] = init_cond_dict[s]
+
 
     @staticmethod
     def check_crn_validity(reactions: List[Reaction], species: List[Species], show_warnings=True) -> Tuple[List[Reaction],List[Species]]:
@@ -210,7 +236,7 @@ class ChemicalReactionNetwork(object):
 
         document, model = create_sbml_model(**keywords)
         
-        add_all_species(model=model, species=self.species)
+        add_all_species(model=model, species=self.species, initial_condition_dictionary = self.initial_condition_dict)
 
         add_all_reactions(model=model, reactions=self.reactions, stochastic_model=stochastic_model, **keywords)
 

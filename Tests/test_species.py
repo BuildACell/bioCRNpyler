@@ -34,15 +34,6 @@ class TestSpecies(TestCase):
             correct_name += "_"+attribute
         self.assertEqual(repr(species), correct_name)
 
-        # tests initial condition by default should be 0
-        species = Species(name='test_species')
-        self.assertTrue(species.initial_concentration == 0)
-
-        # tests setting correct initial concentration
-        initial_concentration = 10
-        species = Species(name='test_species', initial_concentration=initial_concentration)
-        self.assertEqual(species.initial_concentration, initial_concentration)
-
         #test OrderedMonomer subclass
         self.assertTrue(species.parent is None)
         self.assertTrue(species.position is None)
