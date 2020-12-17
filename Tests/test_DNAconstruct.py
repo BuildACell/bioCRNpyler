@@ -123,12 +123,26 @@ class TestDNAConstruct(TestCase):
                                  [myprom,"forward"],\
                                  [myrbs2,"forward"],\
                                  [mycds2,"forward"]],circular=True)
-        rnas,proteins = myconst.explore_txtl()
-        
+        parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
+        myMixture = TxTlExtract(name = "txtl", parameters = parameters, \
+                            components = [myconst])
+        mixconst = myMixture.components[0]
+        myconst = mixconst
+        components,rnas = myconst.update_components()
+        proteins = []
+        rna_species = []
+        all_rna_parts = []
+        for rna in rnas:
+            rna_species += [rna.get_species()]
+            rna_part_list,cds = rna.update_components()
+            prot_list = [a.protein for a in cds]
+            all_rna_parts += rna_part_list
+            proteins += prot_list
         #circular construct properly makes RNA
-        self.assertTrue(myconst[5] in rnas)
+        self.assertTrue(myconst[5].transcript in rna_species )
 
-        myTranscript = rnas[myconst[5]]
+        _,rnas_made = myconst.update_components()
+        myTranscript = rnas_made[0]
         myRBS = myTranscript[0]
         myRBSnotl = myTranscript[2]
         myRBS2 = myTranscript[3]
@@ -136,19 +150,19 @@ class TestDNAConstruct(TestCase):
         myCDS2 = myTranscript[4]
         myCDS3 = myTranscript[5]
         #transcript is made
-        self.assertTrue(myTranscript in proteins)
+        self.assertTrue(myTranscript.get_species() in rna_species)
         #two RBSes found in the transcript
-        self.assertTrue(myRBS in proteins[myTranscript])
-        self.assertTrue(myRBSnotl in proteins[myTranscript])
-        self.assertTrue(myRBS2 in proteins[myTranscript])
+        self.assertTrue(myRBS in all_rna_parts)
+        self.assertTrue(myRBSnotl in all_rna_parts)
+        self.assertTrue(myRBS2 in all_rna_parts)
         #proper protein is made by the right RBS
-        self.assertTrue(myCDS in proteins[myTranscript][myRBS])
-        self.assertTrue(myCDS2 in proteins[myTranscript][myRBS2])
-        self.assertTrue(myCDS3 in proteins[myTranscript][myRBS2])
-        self.assertTrue(proteins[myTranscript][myRBSnotl]==[])
+        self.assertTrue(myCDS.protein in proteins)
+        self.assertTrue(myCDS2.protein in proteins)
+        self.assertTrue(myCDS3.protein in proteins)
+        self.assertTrue(myRBSnotl.protein is None)
         #CDSes have the right name
-        self.assertTrue(proteins[myTranscript][myRBS][0].name==mycds2.name)
-        self.assertTrue(proteins[myTranscript][myRBS2][1].name==mycds.name)
+        self.assertTrue(mycds2.protein in [a for a in proteins])
+        self.assertTrue(mycds.protein in [a for a in proteins])
         
 
     def test_dna_construct_species(self):
@@ -193,13 +207,22 @@ class TestDNAConstruct(TestCase):
         self.assertTrue(sum([spec.material_type=="rna" for spec in myCRN2.species])==2)
 
         #make sure we saved the predicted values
+        #is this still relevant?
         mc2_from_mix = myMixture2.get_component(name=myconst2.name)
-        self.assertTrue(mc2_from_mix.predicted_rnas is not None)
-        self.assertTrue(mc2_from_mix.predicted_proteins is not None)
-        mc2_from_mix[4]=myt2.set_dir("forward")
+        components,rnas = mc2_from_mix.update_components()
+        predicted_proteins = []
+        for a in rnas:
+            x,prots = a.update_components()
+            predicted_proteins += prots
+        #make sure that rnas and proteins are predicted
+        self.assertTrue(rnas is not None)
+        self.assertTrue(predicted_proteins is not None)
+        #we are not saving predicted proteins and rnas any more
+
+        #mc2_from_mix[4]=myt2.set_dir("forward")
         #now, when we change the cosntruct, the previous values are not valid any more
-        self.assertTrue(mc2_from_mix.predicted_rnas is None)
-        self.assertTrue(mc2_from_mix.predicted_proteins is None)
+        #self.assertTrue(mc2_from_mix.predicted_rnas is None)
+        #self.assertTrue(mc2_from_mix.predicted_proteins is None)
         
 
 

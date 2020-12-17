@@ -396,11 +396,13 @@ class Mixture(object):
         comps_to_enumerate = self.components
         #this is going through a steadily increasing list,
         #that's why it's not a for loop
+        #TODO do a nested for loop configuration
         while comp_i < len(comps_to_enumerate):
             component = comps_to_enumerate[comp_i]
             comp_i+=1
             if(hasattr(component,"enumerate_components")):
                 #if a component can be enumerated, it should be
+                #TODO make all components have update_components funcitonality
                 endpt_components,unenumerated_components = component.update_components()
                 #components can produce unenumerated components (like RNA constructs)
                 #these get put back into the list to go again
