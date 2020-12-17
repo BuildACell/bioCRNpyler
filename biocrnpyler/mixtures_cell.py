@@ -136,12 +136,6 @@ class TxTlDilutionMixture(Mixture):
         self.ribosome.add_attribute("machinery")
         self.rnaase.add_attribute("machinery")
 
-        init = kwargs.get('init')
-        if init:
-            self.rnap.get_species().initial_concentration = init[repr(rnap)]
-            self.rnaase.get_species().initial_concentration = init[repr(rnaase)]
-            self.ribosome.get_species().initial_concentration = init[repr(ribosome)]
-
         # DNAassmbly represents background processes / loading in a cell
         background_parameters = {("transcription", None, "ku"): 50, ("transcription", None, "kb"): 500, ("transcription", None, "ktx"): 0.1,
               ("translation", None, "ku"): 5, ("translation", None, "kb"): 500, ("translation",None, "ktl"): .1,
