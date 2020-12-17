@@ -3,20 +3,37 @@
 
 import pytest
 from unittest import TestCase
-from biocrnpyler import Species, Mixture, ExpressionExtract, Component, ParameterKey, ChemicalReactionNetwork, ChemicalComplex
+from biocrnpyler import Species, Mixture, ExpressionExtract, Component, ParameterKey, ChemicalReactionNetwork, ChemicalComplex, parameter_to_value
 
 
 
 def test_initial_condition_in_crn():
     S = Species("S")
+    S2 = Species("S2")
+    S3 = Species("S3")
 
-    CRN = ChemicalReactionNetwork(species = [S], reactions = [])
+    CRN = ChemicalReactionNetwork(species = [S, S2, S3], reactions = [])
 
-    assert S not in CRN.initial_condition_dict
+    #No Initial Concentration Dict
+    assert S not in CRN.initial_concentration_dict
 
-    CRN.initial_condition_dict = {S:10}
-    assert S in CRN.initial_condition_dict
-    assert CRN.initial_condition_dict[S] == 10
+    #test setter
+    CRN.initial_concentration_dict = {S:10, S2:10}
+    assert S in CRN.initial_concentration_dict
+    assert CRN.initial_concentration_dict[S] == 10
+
+    #Test setter overwriting
+    CRN.initial_concentration_dict = {S:11, S3:10}
+    assert S2 in CRN.initial_concentration_dict
+    assert CRN.initial_concentration_dict[S] == 11
+    assert CRN.initial_concentration_dict[S2] == 10
+    assert CRN.initial_concentration_dict[S3] == 10
+
+    #Test setter reset
+    CRN.initial_concentration_dict = None
+    assert S not in CRN.initial_concentration_dict
+    assert S2 not in CRN.initial_concentration_dict
+    assert S3 not in CRN.initial_concentration_dict
 
 
 def test_species_initial_condition_in_component():
@@ -33,13 +50,13 @@ def test_species_initial_condition_in_component():
     M = Mixture(name = "M", components = [C])
 
     #Initial condition found under the Species name
-    assert M.get_initial_condition(S1, C)[S1].value == 10
+    assert parameter_to_value(M.get_initial_concentration(S1, C)[S1]) == 10
 
     #Initial condition defaults to 0
-    assert M.get_initial_condition(S2, C)[S2] == 0
+    assert parameter_to_value(M.get_initial_concentration(S2, C)[S2]) == 0
 
     #Initial condition found under the Component name
-    assert M.get_initial_condition(S3, C)[S3].value == 2.2
+    assert parameter_to_value(M.get_initial_concentration(S3, C)[S3]) == 2.2
 
 
 def test_species_initial_condition_in_mixture():
@@ -57,13 +74,13 @@ def test_species_initial_condition_in_mixture():
     M = Mixture(name = mixture_name, components = [C], parameters = {key1:10, key2:2.2})
 
     #Initial condition found under the Species name
-    assert M.get_initial_condition(S1)[S1].value == 10
+    assert parameter_to_value(M.get_initial_concentration(S1)[S1]) == 10
 
     #Initial condition defaults to 0
-    assert M.get_initial_condition(S2)[S2] == 0
+    assert parameter_to_value(M.get_initial_concentration(S2)[S2]) == 0
 
     #Initial condition found under the Component name
-    assert M.get_initial_condition(S3, C)[S3].value == 2.2
+    assert parameter_to_value(M.get_initial_concentration(S3, C)[S3]) == 2.2
 
 def test_species_initial_condition_defaulting():
 
@@ -82,9 +99,9 @@ def test_species_initial_condition_defaulting():
     M = Mixture(name = mixture_name, components = [C], parameters = {key1:1.1, key2:2.2, key3:3.3})
 
     #Initial condition found under the Species name, in the Component, not Mixture
-    assert M.get_initial_condition(S1, C)[S1].value == .11
-    assert M.get_initial_condition(S2, C)[S2].value == .22
-    assert M.get_initial_condition(S3, C)[S3].value == .33
+    assert parameter_to_value(M.get_initial_concentration(S1, C)[S1]) == .11
+    assert parameter_to_value(M.get_initial_concentration(S2, C)[S2]) == .22
+    assert parameter_to_value(M.get_initial_concentration(S3, C)[S3]) == .33
 
 
 def test_species_initial_condition_at_compile():
@@ -106,15 +123,15 @@ def test_species_initial_condition_at_compile():
     #Initial condition found under the Species name, in the Component, not Mixture
     CRN = M.compile_crn()
     #Initial condition found under the Species name, in the Component, not Mixture
-    assert CRN.initial_condition_dict[S1].value == .11
-    assert CRN.initial_condition_dict[S2].value == .22
-    assert CRN.initial_condition_dict[S3].value == .33
+    assert parameter_to_value(CRN.initial_concentration_dict[S1]) == .11
+    assert parameter_to_value(CRN.initial_concentration_dict[S2]) == .22
+    assert parameter_to_value(CRN.initial_concentration_dict[S3]) == .33
 
     #These new conditions should overide the old ones
-    CRN2 = M.compile_crn(initial_condition_dict = {S1:1.1, S2:2.2})
-    assert CRN2.initial_condition_dict[S1] == 1.1
-    assert CRN2.initial_condition_dict[S2] == 2.2
-    assert CRN2.initial_condition_dict[S3].value == .33
+    CRN2 = M.compile_crn(initial_concentration_dict = {S1:1.1, S2:2.2})
+    assert parameter_to_value(CRN2.initial_concentration_dict[S1]) == 1.1
+    assert parameter_to_value(CRN2.initial_concentration_dict[S2]) == 2.2
+    assert parameter_to_value(CRN2.initial_concentration_dict[S3]) == .33
 
 
 

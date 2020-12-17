@@ -38,7 +38,6 @@ class Component(object):
         :param mixture:
         :param attributes:
         :param initial_concentration:
-        :param initial_condition_dictionary:
         :param keywords:
         """
         if mechanisms is None:

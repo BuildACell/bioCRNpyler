@@ -31,12 +31,13 @@ class ChemicalReactionNetwork(object):
     k \Prod_{inputs i} (S_i)!/(S_i - a_i)!
     where a_i is the spectrometric coefficient of species i
     """
-    def __init__(self, species: List[Species], reactions: List[Reaction],  initial_condition_dict: Dict[Species,Union[numbers.Real, Parameter]] = None, show_warnings=False):
+    def __init__(self, species: List[Species], reactions: List[Reaction],  initial_concentration_dict: Dict[Species,Union[numbers.Real, Parameter]] = None, show_warnings=False):
         self.species = []
         self.reactions = []
         self.add_species(species)
         self.add_reactions(reactions)
-        self.initial_condition_dict = initial_condition_dict
+        self.initial_concentration_dict = None #Create an unpopulated dictionary
+        self.initial_concentration_dict = initial_concentration_dict #update it
 
         ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings=show_warnings)
 
@@ -81,28 +82,21 @@ class ChemicalReactionNetwork(object):
             #TODO synchronize Species in the CRN
 
     @property
-    def initial_condition_dict(self):
-        return self._initial_condition_dict
+    def initial_concentration_dict(self):
+        return self._initial_concentration_dict
 
-    @initial_condition_dict.setter
-    def initial_condition_dict(self, init_cond_dict):
-        if init_cond_dict is None:
-            init_cond_dict = {}
-        elif isinstance(init_cond_dict, dict):
-            for s in init_cond_dict:
+    @initial_concentration_dict.setter
+    def initial_concentration_dict(self, initial_concentration_dict):
+        if initial_concentration_dict is None:
+            self._initial_concentration_dict = {}
+        elif isinstance(initial_concentration_dict, dict):
+            for s in initial_concentration_dict:
                 if s not in self.species:
-                    raise ValueError(f"Trying to set the initial condition of a Species {s} not in the CRN")
-
-        self._initial_condition_dict = init_cond_dict
-
-    
-    def update_initial_condition(self, init_cond_dict):
-        #Used to update the initial_condition_dictionary without resetting all values
-        for s in init_cond_dict:
-            if s not in self.species:
-                raise ValueError(f"Trying to set the initial condition of a Species {s} not in the CRN")
-            else:
-                self._initial_condition_dict[s] = init_cond_dict[s]
+                    raise ValueError(f"Trying to set the initial concentration of a Species {s} not in the CRN")
+                elif parameter_to_value(initial_concentration_dict[s]) >= 0:
+                    self.initial_concentration_dict[s] = initial_concentration_dict[s]
+                else:
+                    raise ValueError(f"Trying to set a species {s} to a negative concentration {initial_concentration_dict[s]}")
 
 
     @staticmethod
@@ -156,7 +150,7 @@ class ChemicalReactionNetwork(object):
         txt += "]"
         return txt
 
-    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, show_initial_condition = True, show_keys = True, **kwargs):
+    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, show_initial_concentration = True, show_keys = True, **kwargs):
         """A more powerful printing function.
 
         Useful for understanding CRNs but does not return string identifiers.
@@ -167,21 +161,21 @@ class ChemicalReactionNetwork(object):
 
         txt = "Species"+ f"(N = {len(self.species)}) = "+"{\n"
 
-        ics = lambda s: self.initial_condition_dict[s] if s in self.initial_condition_dict else 0
+        ics = lambda s: self.show_initial_concentration[s] if s in self.show_initial_concentration else 0
 
         species_sort_list = [(parameter_to_value(ics(s)), s) for s in self.species]
         species_sort_list.sort()
         species_sort_list.reverse()
-        for sind, (init_cond, s) in enumerate(species_sort_list):
-            init_cond = ics(s) 
+        for sind, (init_conc, s) in enumerate(species_sort_list):
+            init_conc = ics(s) 
 
             txt += s.pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
 
-            if show_initial_condition:
-                txt += f" (@ {parameter_to_value(init_cond)}),  "
+            if show_initial_concentration:
+                txt += f" (@ {parameter_to_value(init_conc)}),  "
 
                 if show_keys: #shows where the initial conditions came from
-                    if isinstance(init_cond, ModelParameter):
+                    if isinstance(init_conc, ModelParameter):
                         txt+=f"\n   found_key=(mech={init_cond.found_key.mechanism}, partid={init_cond.found_key.part_id}, name={init_cond.found_key.name}).\n   search_key=(mech={init_cond.search_key.mechanism}, partid={init_cond.search_key.part_id}, name={init_cond.search_key.name}).\n"
 
 
@@ -254,7 +248,7 @@ class ChemicalReactionNetwork(object):
 
         document, model = create_sbml_model(**keywords)
         
-        add_all_species(model=model, species=self.species, initial_condition_dictionary = self.initial_condition_dict)
+        add_all_species(model=model, species=self.species, initial_condition_dictionary = self.initial_concentration_dict)
 
         add_all_reactions(model=model, reactions=self.reactions, stochastic_model=stochastic_model, **keywords)
 
