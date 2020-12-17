@@ -383,9 +383,9 @@ class Mixture(object):
         self.add_species_to_crn(global_mech_species, component = None)
         self.crn.add_reactions(global_mech_reactions)
 
-    def compile_crn(self) -> ChemicalReactionNetwork:
+    def compile_crn(self, initial_condition_dict = None) -> ChemicalReactionNetwork:
         """Creates a chemical reaction network from the species and reactions associated with a mixture object.
-
+        :param initial_condition_dict: a dictionary to overwride initial concentrations at the end of compile time
         :return: ChemicalReactionNetwork
         """
         resetwarnings()#Reset warnings - better to toggle them off manually.
@@ -411,6 +411,10 @@ class Mixture(object):
         #global mechanisms are applied last and only to all the species
         #the reactions and species are added to the CRN
         self.apply_global_mechanisms(self.crn.species)
+
+        #Manually change/override initial conditions at compile time
+        if initial_condition_dict is not None:
+            self.crn.update_initial_condition(initial_condition_dict)
 
         return self.crn
 

@@ -49,7 +49,7 @@ class ExpressionDilutionMixture(Mixture):
         global_mechanisms = {"dilution": dilution_mechanism}
         self.add_mechanisms(global_mechanisms)
 
-    def compile_crn(self) -> ChemicalReactionNetwork:
+    def compile_crn(self, **keywords) -> ChemicalReactionNetwork:
         """Overwriting compile_crn to replace transcripts with proteins for all DNA_assemblies.
 
         Overwriting compile_crn to turn off transcription in all DNAassemblies
@@ -66,7 +66,7 @@ class ExpressionDilutionMixture(Mixture):
                     component.update_transcript(False)
 
         # Call the superclass function
-        return Mixture.compile_crn(self)
+        return Mixture.compile_crn(self, **keywords)
 
 class SimpleTxTlDilutionMixture(Mixture):
     """Mixture with continuous dilution for non-DNA species.

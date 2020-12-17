@@ -44,7 +44,7 @@ class ExpressionExtract(Mixture):
 
         self.add_mechanisms(default_mechanisms)
 
-    def compile_crn(self) -> ChemicalReactionNetwork:
+    def compile_crn(self, **keywords) -> ChemicalReactionNetwork:
         """Overwriting compile_crn to turn off transcription in all DNAassemblies
 
         :return: compiled CRN instance
@@ -59,7 +59,7 @@ class ExpressionExtract(Mixture):
                     component.update_transcript(False)
 
         # Call the superclass function
-        return Mixture.compile_crn(self)
+        return Mixture.compile_crn(self, **keywords)
 
 
 class SimpleTxTlExtract(Mixture):
