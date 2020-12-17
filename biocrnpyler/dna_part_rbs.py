@@ -54,34 +54,12 @@ class RBS(DNA_part):
         if(self.protein is not None):
             out_component = copy.deepcopy(self)
             if(mypos is not None):
+                #this should never happen
                 out_component.transcript = dna[mypos]
             else:
                 out_component.transcript = dna
-        elif(proteins is None):
-            return None
         else:
-            my_rna = None
-            if(len(proteins)==1):
-                my_rna = list(proteins.keys())[0]
-            else:
-                #if this happens, it means we are being called from DNA
-                if(self.parent.get_species().material_type is not "dna"):
-                    raise ValueError("something went wrong")
-                return None
-            out_component = None
-            if(self in proteins[my_rna]):
-                my_proteins = proteins[my_rna][self]
-                out_component = copy.deepcopy(self)
-                protein_species = []
-                for CDS in my_proteins:
-                    protein_species += CDS.update_species()
-
-                out_component.protein = protein_species
-                if(mypos is not None):
-                    out_component.transcript = dna[mypos]
-                else:
-                    out_component.transcript = dna
-                #my_rna.get_species()
+            return None
         return out_component
 
     @classmethod
