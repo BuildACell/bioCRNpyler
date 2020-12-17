@@ -137,3 +137,11 @@ class TxTlExtract(Mixture):
             mech_bind.mechanism_type: mech_bind
         }
         self.add_mechanisms(default_mechanisms)
+
+
+
+class TxTlExtract(TxTlExtract):
+    """A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
+
+    This model include energy in the form of NTPs, Amino Acids, and a Fuel Species (such as 3PGA) used for NTP
+    regeneration. This model is equivalent to TxTl extract, but with limited fuel."""
