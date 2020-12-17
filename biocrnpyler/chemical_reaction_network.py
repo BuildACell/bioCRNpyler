@@ -159,6 +159,7 @@ class ChemicalReactionNetwork(object):
         """
 
         txt = "Species"+ f"(N = {len(self.species)}) = "+"{\n"
+        
         ics = lambda s: self.initial_concentration_dict[s] if s in self.initial_concentration_dict else 0
 
         species_sort_list = [(parameter_to_value(ics(s)), s) for s in self.species]
