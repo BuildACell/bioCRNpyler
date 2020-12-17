@@ -320,10 +320,10 @@ class Mixture(object):
             S = [S]
 
         init_conc_dict = {}
+
         for s in S:
             if not isinstance(s, Species):
                 raise ValueError(f"{s} is not a Species! Can only find initial concentration of a Species.")
-
             init_conc = None
             #1 Check the component
             if component is not None:
@@ -359,6 +359,7 @@ class Mixture(object):
                 init_conc_dict = self.get_initial_concentration(s, component)
                 self.crn.add_species(s)
                 self.crn.initial_concentration_dict = init_conc_dict
+
             elif s is not None:
                 raise ValueError(f"Invalid Species Returned in {component}.update_species(): {s}.")
 

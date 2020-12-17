@@ -32,12 +32,14 @@ class ChemicalReactionNetwork(object):
     where a_i is the spectrometric coefficient of species i
     """
     def __init__(self, species: List[Species], reactions: List[Reaction],  initial_concentration_dict: Dict[Species,Union[numbers.Real, Parameter]] = None, show_warnings=False):
+
         self.species = []
         self.reactions = []
         self.add_species(species)
         self.add_reactions(reactions)
         self.initial_concentration_dict = None #Create an unpopulated dictionary
         self.initial_concentration_dict = initial_concentration_dict #update it
+
 
         ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings=show_warnings)
 
@@ -97,6 +99,7 @@ class ChemicalReactionNetwork(object):
                     self.initial_concentration_dict[s] = initial_concentration_dict[s]
                 else:
                     raise ValueError(f"Trying to set a species {s} to a negative concentration {initial_concentration_dict[s]}")
+
 
 
     @staticmethod
