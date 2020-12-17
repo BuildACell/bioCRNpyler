@@ -286,7 +286,7 @@ class Component(object):
         as the second output.
         An RNA_construct will make a list of copies of its parts as the first output, and a list of Protein
         components as its second output (if it makes any proteins)"""
-        return [], []
+        return [self], []
     def get_initial_condition(self, s):
         """Tries to find an initial condition of species s using the parameter hierarchy
 
