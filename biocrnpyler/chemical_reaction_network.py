@@ -209,16 +209,17 @@ class ChemicalReactionNetwork(object):
         ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings=show_warnings)
 
         document, model = create_sbml_model(**keywords)
-        
-        add_all_species(model=model, species=self.species)
-
-        add_all_reactions(model=model, reactions=self.reactions, stochastic_model=stochastic_model, **keywords)
-
         all_compartments = []
         for species in self.species:
             if species.compartment not in all_compartments: 
                 all_compartments.append(species.compartment)
         add_all_compartments(model = model, compartments = all_compartments, **keywords)
+        
+        add_all_species(model=model, species=self.species)
+
+        add_all_reactions(model=model, reactions=self.reactions, stochastic_model=stochastic_model, **keywords)
+
+        
 
         if document.getNumErrors():
             warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
