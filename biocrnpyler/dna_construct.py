@@ -28,6 +28,136 @@ from .utils import all_comb, remove_bindloc, rev_dir
 import logging
 
 
+class ConstructExplorer(ComponentEnumerator):
+    def __init__(self, name, direction="forward",possible_directions=("forward","reverse"), max_loop_count = 2):
+        ComponentEnumerator.__init__(self=self,name=name)
+        self.direction=direction
+        self.max_loop_count = max_loop_count
+        self.possible_directions = possible_directions
+
+    def enumerate_components(self,component):
+        #iterate through the possible directions
+        for direction in self.possible_directions:
+            #Set the loop count
+            self.current_loop_count = 0
+            self.initialize_loop(direction = direction)
+
+            #Deep Copy Component
+            parts_list = list(component.parts_list)
+            #Set the direction
+            if direction == "reverse":
+                parts_list.reverse()
+
+            #Main iteration loop
+            while self.check_loop():
+                #Check each part
+                for part_ind, part in enumerate(parts_list):
+                    #Do something to the part
+                    self.iterate_part(part, direction)
+
+        return self.return_components()
+
+    def check_loop(self):
+        """if we already went around the plasmid, then what we're checking for is continuing
+        transcripts or proteins. We don't want to start making new transcripts
+        because we already checked this area for promoters"""
+        logging.debug(f"loop count = {self.current_loop_count}")
+        if self.current_loop_count >= self.max_loop_count:
+            self.terminate_loop()
+            return False
+        else:
+            self.current_loop_count += 1
+            return True
+
+    def initialize_loop(self, direction):
+        #Starts the loop
+        #MUST SUBCLASS
+        pass
+
+    def iterate_part(self, part, direction):
+        #Part is a DNA_part
+        #direction is the direction we are looking in along the DNA_construct
+        #runs on every part and does something!
+        #MUST SUBCLASS
+        pass
+
+    def terminate_loop(self):
+        #called when we are done enumerating
+        pass
+        #MUST SUBCLASS
+
+    def return_components(self):
+        #returns components at the end of the loop
+        #MUST SUBCLASS
+        return []
+
+class TxExplorer(ConstructExplorer):
+    def __init__(self, name = "TxExplorer", direction="forward",possible_directions=("forward","reverse"), max_loop_count = 2):
+        ConstructExplorer.__init__(self, name, direction="forward",possible_directions=("forward","reverse"), max_loop_count = 2)
+
+        self.all_rnas = {} #Stores all transcripts from the DNA_Construct
+
+
+    def initialize_loop(self, direction):
+        self.current_rnas = {} #Stores RNA's being examined in loop promoter --> [(DNA_part, direction) list]
+
+
+    def iterate_part(self, part, reading_direction):
+        #Part is a DNA_part
+        #direction is the direction we are looking in along the DNA_construct
+        
+        """the explorer sees a dna_part.
+        1. it calculates effective direction of part relative to transcription direction
+        2. it adds parts to growing transcripts
+        3. it makes new transcripts and terminates growing transcripts.
+        """
+        logging.debug("looking at "+str(part))
+        logging.debug("current_rnas are "+str(self.current_rnas))
+
+        #The orientation of the part absolutely to the DNA_construct
+        part_direction = part.direction
+
+        #The relative orientation of the part to the reading direction
+        if part_direction == reading_direction:
+            effective_direction = "forward"
+        else:
+            effective_direction = "reverse"
+
+        #Grow Existing Transcripts
+        #For each promoter being transcribed, we will add the part and its direction relative to that promoter
+        for promoter in self.current_rnas:
+            self.current_rnas[promoter]+= [(part, effective_direction)]
+
+        #Case for Different Parts doing different things
+
+        #Case 1: Promoter in the correct direction (and first loop around a circular plasmid)
+        if effective_direction=="forward" and isinstance(part,Promoter) and self.current_loop_count == 0:
+            #this if statement makes sure that the current part wants to transcribe, and
+            #that is something that we are allowed to do
+            self.current_rnas[part] = []
+
+        #Case 2: Terminator
+        elif effective_direction == "forward" and isinstance(part, Terminator): #Kill Sarah Day O'Connor
+            self.terminate_loop()
+    
+
+    def terminate_loop(self):
+        #Transfers current rnas into all_rnas
+
+        #Create RNA Construct
+        for promoter in self.current_rnas:
+            rna_parts_list = self.current_rnas[promoter]
+            rna_construct = RNA_construct(rna_parts_list, promoter = promoter)
+            self.all_rnas[promoter] = rna_construct
+            promoter.transcript = rna_construct.get_species()
+
+        self.current_rnas = {}
+
+    def return_components(self):
+        return [self.all_rnas[k] for k in self.all_rnas]
+
+
+
 class TxTlExplorer_CE(LocalComponentEnumerator):
     def __init__(self,name="TxTlExplorer",possible_rxns=("transcription","translation"),\
                     direction="forward",possible_directions=("forward","reverse"),\
@@ -269,7 +399,7 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
         """return all RNAs made during the latest exploration"""
         return self.all_rnas
 
-class TxExplorer(TxTlExplorer_CE):
+class TxExplorerOLD(TxTlExplorer_CE):
     def __init__(self,name="TxExplorer",possible_rxns=("transcription",),\
                         direction="forward",possible_directions=("forward","reverse"),debug=False):
         TxTlExplorer_CE.__init__(self,name=name,possible_rxns=possible_rxns,\
@@ -710,13 +840,13 @@ class DNA_construct(Construct,DNA):
     
         
 class RNA_construct(Construct,RNA):
-    def __init__(self,parts_list,name=None,made_by="unknown",\
+    def __init__(self,parts_list,name=None,promoter="unknown",\
                 component_enumerators = (TlExplorer(),),\
                 **keywords):
         """an RNA_construct is a lot like a DNA_construct except it can only translate, and
         can only be linear"""
         self.material_type = "rna"
-        self.my_promoter = made_by
+        self.my_promoter = promoter
         Construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,\
                                 component_enumerators = component_enumerators,**keywords)
     #def get_species(self):
