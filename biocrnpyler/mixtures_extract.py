@@ -12,7 +12,7 @@ from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
 from .mechanisms_txtl import (OneStepGeneExpression, SimpleTranscription,
                               SimpleTranslation, Transcription_MM, Translation_MM,
                               Energy_Transcription_MM, Energy_Translation_MM)
-from .mechanisms_metabolite import OneStepHillPathway, OneStepPathway
+from .mechanisms_metabolite import OneStepPathway
 from .mixture import Mixture
 
 
