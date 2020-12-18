@@ -35,7 +35,7 @@ class Construct(Component,OrderedPolymer):
                 mechanisms=None,  # custom mechanisms
                 parameters=None,  # customized parameters
                 attributes=None,
-                initial_conc=None, 
+                initial_concentration=None, 
                 copy_parts=True,
                 **keywords):
         """this represents a bunch of parts in a row.
@@ -77,7 +77,7 @@ class Construct(Component,OrderedPolymer):
         self.name = name
         Component.__init__(self=self,name=name,length = len(parts_list),
                     mechanisms=mechanisms,parameters=parameters,
-                    attributes=attributes,initial_conc = initial_conc,
+                    attributes=attributes,initial_concentration = initial_concentration,
                      **keywords)
         self.update_parameters()
         self.transcripts = []
@@ -503,7 +503,7 @@ class DNA_construct(Construct,DNA):
                 mechanisms=None,  # custom mechanisms
                 parameters=None,  # customized parameters
                 attributes=None,
-                initial_conc=None,
+                initial_concentration=None,
                 copy_parts=True,
                 **keywords):
 
@@ -512,7 +512,7 @@ class DNA_construct(Construct,DNA):
         Construct.__init__(self=self, parts_list =parts_list, name = name, \
                             circular=circular, mechanisms=mechanisms, \
                             parameters=parameters, attributes=attributes, \
-                            initial_conc=initial_conc, \
+                            initial_concentration=initial_concentration, \
                             copy_parts=copy_parts, **keywords)
 
 

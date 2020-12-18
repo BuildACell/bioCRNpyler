@@ -25,10 +25,23 @@ def test_add_all_species():
     C2 = Complex([Complex([S1, S2]), S3, S4])
 
     species = [S1, S2, S3, S4, C1, C2]
-    add_all_species(model, species)
+
+    #initial conditions
+    init_cond_dict = {S1:1, S2:2, S3:3, S4:4}
+
+    add_all_species(model, species, init_cond_dict)
 
     assert len(model.getListOfSpecies()) == len(species)
     assert validate_sbml(document) == 0
+
+    #Test names
+    sbml_species = model.getListOfSpecies()
+    assert all([sbml_species[i].getName() == str(species[i]) for i in range(len(sbml_species))])
+
+    #Test initial condition
+    init_cond_dict[C1] = 0
+    init_cond_dict[C2] = 0
+    assert all([sbml_species[i].getInitialConcentration() == init_cond_dict[species[i]] for i in range(len(sbml_species))])
 
 
 def test_add_reaction():
@@ -57,7 +70,7 @@ def test_add_reaction():
                     rxn_num = 0
                     model_id = f"{prop.name}_model_with_stochastic_{stochastic}"
                     document, model = create_sbml_model(model_id = model_id)
-                    add_all_species(model, species)
+                    add_all_species(model, species, {})
                     rxn = Reaction(inputs, outputs, propensity_type = prop) #create a reaction
                     try:
                         sbml_reaction = add_reaction(model, rxn, f"r{rxn_num}", stochastic = stochastic) #add reaction to SBML Model
@@ -98,7 +111,7 @@ def test_add_reaction_for_bioscrape():
         rxn_num = 0
         model_id = f"{prop.name}_model_with_for_bioscrape_{for_bioscrape}"
         document, model = create_sbml_model(model_id = model_id)
-        add_all_species(model, species)
+        add_all_species(model, species, {})
         rxn = Reaction([S1], [S2, S3], propensity_type = prop) #create a reaction
         try:
             sbml_reaction = add_reaction(model, rxn, f"r{rxn_num}", for_bioscrape = for_bioscrape) #add reaction to SBML Model

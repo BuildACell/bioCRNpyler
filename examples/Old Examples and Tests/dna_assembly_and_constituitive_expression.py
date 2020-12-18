@@ -5,7 +5,7 @@ parameters = {"kb": kb, "ku": ku, "ktx": ktx, "ktl": ktl, "kdeg": kdeg}
 myMixture = BasicExtract(name="txtl", parameters=parameters)
 
 A1 = DNAassembly(name="G1", promoter="pBest",
-                 rbs="BCD2", transcript="T1", protein="GFP", initial_conc=10, parameter_warnings = False)
+                 rbs="BCD2", transcript="T1", protein="GFP", initial_concentration=10, parameter_warnings = False)
 # Note: Protein and Transcript strings (or chemical_reaction_network.specie objects) are optional parameters
 # DNAassemblies default to using their name for their transcript and protein products.
 

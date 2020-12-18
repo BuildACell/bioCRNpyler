@@ -76,7 +76,7 @@
     "\n",
     "\n",
     "# Or simply add a new dna in one line as follows.\n",
-    "txtl.add_dna(name = \"G1\", promoter = \"pBest\", rbs = \"BCD2\", protein = \"GFP\", initial_conc = 10, volume = 1e-7)\n",
+    "txtl.add_dna(name = \"G1\", promoter = \"pBest\", rbs = \"BCD2\", protein = \"GFP\", initial_concentration = 10, volume = 1e-7)\n",
     "#print(txtl.Mixture.mechanisms['transcription'])\n",
     "# Combine all of the tubes together to get the model\n",
     "well1 = txtl.get_model()\n",

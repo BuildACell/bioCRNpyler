@@ -17,7 +17,7 @@ from .species import Species
 
 class Mixture(object):
     def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
-                 global_mechanisms=None, species=None, initial_condition_dictionary=None, **kwargs):
+                 global_mechanisms=None, species=None, **kwargs):
         """A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
         and parameters related to the mixture itself (e.g. Transcription rate). Default components and mechanisms can be
         added as well as global mechanisms that impacts all species (e.g. cell growth).
@@ -61,14 +61,6 @@ class Mixture(object):
         # Create a paraemter database
         self.parameter_database = ParameterDatabase(parameter_file = parameter_file, parameter_dictionary = parameters, **kwargs)
         
-        # Initial conditions are searched for by defauled in the parameter file
-        # see Mixture.set_initial_condition(self)
-        # These can be overloaded with custom_initial_condition dictionary: component.name --> initial amount
-        if initial_condition_dictionary is None:
-            self.initial_condition_dictionary = {}
-        else:
-            self.initial_condition_dictionary = dict(initial_condition_dictionary)
-
         # CRN is stored here during compilation
         self.crn = None
 
@@ -303,63 +295,55 @@ class Mixture(object):
 
         return param
 
-    def set_initial_condition(self, s: Species, component=None):
+    def get_initial_concentration(self, S: Union[List, Species], component=None):
         """
-        Tries to find an initial condition of species s using the parameter hierarchy
-        1. Tries to find the initial concentration in the Component initial_Concentration_dictionary and ParameterDatabase
-        2. Tries to find self.name, repr(s) in self.initial_condition_dictionary
-        3. Tries to find repr(s) in self.initial_condition_dictionary
-        4. if s == component.get_species(), tries to find (None, self.name, component.name) in self.initial_condition_dictionary
-        5. if s == component.get_species(), tries to find component.name in self.initial_condition_dictionary
-        6. tries to find (None, self.name, repr(s)) in self.parameter_database
-        7. tries to find repr(s) in self.parameter_database
-        8. if s == component.get_species(), tries to find (None, self.name, component.name) in self.parameter_database
-        9. if s == component.get_species(), tries to find component.name in self.parameter_database
-        10-. defaults to 0
+        Tries to find an initial condition of species s using the parameter hierarchy using the key:
 
-        :param s:
-        :param component:
-        :return:
+        1. Searches Component's ParameterDatabase using the key:
+            mechanisms = "initial concentration"
+            part_id = mixture.name
+            parameter_name = str(s)
+
+            if s == component.get_species, also checks with parameter_name=component.name
+
+        2. Searches the Mixture's ParameterDatabase using the key:
+            mechanisms = "initial concentration"
+            part_id = mixture.name
+            parameter_name = str(s)
+
+            if s == component.get_species, also checks with parameter_name=component.name
+
+        3. Defaults to 0
         """
+        if isinstance(S, Species):
+            S = [S]
 
-        if not isinstance(s, Species):
-            raise ValueError(f"{s} is not a Species! Can only set initial concentration of a Species.")
+        init_conc_dict = {}
+        for s in S:
+            if not isinstance(s, Species):
+                raise ValueError(f"{s} is not a Species! Can only find initial concentration of a Species.")
 
-        init_conc = None
-        #1
-        if component is not None:
-            init_conc = component.get_initial_condition(s)
+            init_conc = None
+            #1 Check the component
+            if component is not None:
+                init_conc = component.get_parameter(param_name = str(s), part_id = self.name, mechanism = "initial concentration", check_mixture = False, return_none = True)
 
-        if init_conc is None:
-            #2
-            if (self.name, repr(s)) in self.initial_condition_dictionary:
-                init_conc = self.initial_condition_dictionary[(self.name, repr(s))]
-            #3
-            elif repr(s) in self.initial_condition_dictionary:
-                init_conc = self.initial_condition_dictionary[repr(s)]
-            #4
-            elif component is not None and component.get_species() == s and (self.name, component.name) in self.initial_condition_dictionary:
-                return self.initial_condition_dictionary[(self.name, component.name)]
-            #5
-            elif component is not None and component.get_species() == s and component.name in self.initial_condition_dictionary:
-                return self.initial_condition_dictionary[component.name]
-            #6
-            elif self.parameter_database.find_parameter(None, self.name, repr(s)) is not None:
-                init_conc = self.parameter_database.find_parameter(None, self.name, repr(s)).value
-            #7
-            elif self.parameter_database.find_parameter(None, None, repr(s)) is not None:
-                init_conc = self.parameter_database.find_parameter(None, None, repr(s)).value
-            #8
-            elif component is not None and component.get_species() == s and (None, self.name, component.name) in self.parameter_database:
-                return self.parameter_database.find_parameter(None, self.name, component.name).value
-            #9
-            elif component is not None and component.get_species() == s and component.name in self.parameter_database:
-                return self.parameter_database.find_parameter(None, None, component.name).value
-            #10
-            else:
+                if init_conc is None and component.get_species() == s:
+                    init_conc = component.get_parameter(param_name = component.name, part_id = self.name, mechanism = "initial concentration", check_mixture = False, return_none = True)
+                
+            #2 Check self
+            if init_conc is None:
+                init_conc = self.get_parameter(param_name = str(s), part_id = self.name, mechanism = "initial concentration")
+
+                if init_conc is None and component is not None and component.get_species() == s:
+                    init_conc = self.get_parameter(param_name = component.name, part_id = self.name, mechanism = "initial concentration")
+
+            if init_conc is None:
                 init_conc = 0
 
-        s.initial_concentration = init_conc
+            init_conc_dict[s] = init_conc
+
+        return init_conc_dict
 
     def add_species_to_crn(self, new_species, component):
 
@@ -370,13 +354,10 @@ class Mixture(object):
             new_species = [new_species]
 
         for s in new_species:
-            if isinstance(s, Species):
-                self.set_initial_condition(s, component)
+            if isinstance(s, Species) or(isinstance(s, list) and(all(isinstance(ss, Species) for ss in s) or len(s) == 0)):
+                init_conc_dict = self.get_initial_concentration(s, component)
                 self.crn.add_species(s)
-            elif isinstance(s, list) and(all(isinstance(ss, Species) for ss in s) or len(s) == 0):
-                for ss in s: 
-                    self.set_initial_condition(ss, component)
-                self.crn.add_species(s)
+                self.crn.initial_concentration_dict = init_conc_dict
             elif s is not None:
                 raise ValueError(f"Invalid Species Returned in {component}.update_species(): {s}.")
 
@@ -394,9 +375,9 @@ class Mixture(object):
         self.add_species_to_crn(global_mech_species, component = None)
         self.crn.add_reactions(global_mech_reactions)
 
-    def compile_crn(self) -> ChemicalReactionNetwork:
+    def compile_crn(self, initial_concentration_dict = None) -> ChemicalReactionNetwork:
         """Creates a chemical reaction network from the species and reactions associated with a mixture object.
-
+        :param initial_concentration_dict: a dictionary to overwride initial concentrations at the end of compile time
         :return: ChemicalReactionNetwork
         """
         resetwarnings()#Reset warnings - better to toggle them off manually.
@@ -422,6 +403,10 @@ class Mixture(object):
         #global mechanisms are applied last and only to all the species
         #the reactions and species are added to the CRN
         self.apply_global_mechanisms(self.crn.species)
+
+        #Manually change/override initial conditions at compile time
+        if initial_concentration_dict is not None:
+            self.crn.initial_concentration_dict = initial_concentration_dict
 
         return self.crn
 

@@ -8,6 +8,7 @@ import logging
 from random import randint
 from typing import List
 from warnings import warn
+from .utils import parameter_to_value
 
 import libsbml
 
@@ -76,11 +77,12 @@ def species_sbml_id(species, document=None):
     return species_id
 
 
-def add_all_species(model, species: List, compartment=None, **kwargs):
+def add_all_species(model, species: List, initial_condition_dictionary: dict, compartment=None, **kwargs):
     """adds a list of Species to the SBML model.
     :param model: valid SBML model
     :param species: list of species to be added to the SBML model
     :param compartment: compartment id, if empty species go to the first compartment
+    :param initial_concentration_dict: a dictionary s --> initial_concentration
     :return: None
     """
 
@@ -88,8 +90,12 @@ def add_all_species(model, species: List, compartment=None, **kwargs):
         compartment = model.getCompartment(0)
 
     for s in species:
+        if s in initial_condition_dictionary:
+            initial_concentration = parameter_to_value(initial_condition_dictionary[s])
+        else:
+            initial_concentration = 0
         add_species(model=model, compartment=compartment,
-                    species=s, initial_concentration=s.initial_concentration)
+                    species=s, initial_concentration=initial_concentration)
 
 
 def add_species(model, compartment, species, initial_concentration=None, **kwargs):

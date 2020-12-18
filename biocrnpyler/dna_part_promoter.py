@@ -41,8 +41,8 @@ class Promoter(DNA_part):
         else:
             self.protein = None
         #Promoter should not have initial conditions. These need to be in DNAAssembly or DNAConstruct
-        if "initial_conc" in keywords.values() and keywords["initial_conc"] is not None:
-            raise AttributeError("Cannot set initial_conc of a Promoter. Must set initial_conc for the DNAassembly or DNAConstruct.")
+        if "initial_concentration" in keywords.values() and keywords["initial_concentration"] is not None:
+            raise AttributeError("Cannot set initial_concentration of a Promoter. Must set initial_concentration for the DNAassembly or DNAConstruct.")
         if "initial_condition_dictionary" in keywords.values() and keywords["initial_condition_dictionary"] is not None:
             raise AttributeError("Cannot set initial_condition_dictionary of a Promoter. Must set initial_condition_dictionary for the DNAassembly or DNAconstruct.")
 
