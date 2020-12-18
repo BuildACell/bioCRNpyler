@@ -16,7 +16,7 @@ class Species(OrderedMonomer):
     """
 
     def __init__(self, name: str, material_type="", attributes: Union[List,None] = None,
-                 initial_concentration=0, **keywords):
+                 initial_concentration=0, compartment = None, **keywords):
         OrderedMonomer.__init__(self,**keywords)
 
         self.name = name
@@ -24,6 +24,7 @@ class Species(OrderedMonomer):
         self.initial_concentration = initial_concentration
         self._attributes = [] #Set this to avoid errors
         self.attributes = attributes
+        self.compartment = compartment
 
     @property
     def attributes(self):
@@ -84,7 +85,20 @@ class Species(OrderedMonomer):
         else:
             self._name = self._check_name(name)
 
-    
+    @property
+    def compartment(self):
+        if self._compartment is None:
+            return ""
+        else:
+            return self._compartment
+
+    @compartment.setter
+    def compartment(self, compartment: str):
+        if compartment is None:
+            raise TypeError("Name must be a string.")
+        else:
+            self._compartment = self._check_name(compartment)
+
     #Use OrderedMonomers getter
     direction = property(OrderedMonomer.direction.__get__)
 
@@ -222,6 +236,7 @@ class Species(OrderedMonomer):
                             and self.name == other.name \
                             and set(self.attributes) == set(other.attributes)\
                             and self.parent == other.parent\
+                            and self.compartment == other.compartment\
                             and self.position == other.position:
             return True
         else:
