@@ -4,7 +4,7 @@ from .propensities import ProportionalHillNegative, ProportionalHillPositive
 from .reaction import Reaction
 from .species import Complex, Species
 from .utils import parameter_to_value
-
+from typing import List
 
 class OneStepGeneExpression(Mechanism):
     """A mechanism to model gene expression without transcription or translation.
@@ -360,7 +360,7 @@ class Translation_MM(MichaelisMentenCopy):
         return rxns
 
 class Energy_Transcription_MM(Mechanism):
-    """Michaelis Menten Transcription.
+    """Michaelis Menten Transcription that consumed energy.
 
         G + RNAP <--> G:RNAP
         Fuel + G:RNAP --> G + RNAP + T + Fuel (Transcription can only happen when there is fuel)
@@ -381,7 +381,7 @@ class Energy_Transcription_MM(Mechanism):
         else:
             raise ValueError("'rnap' parameter must be a Species.")
 
-        if all([isinstance(s) for s in fuels]):
+        if all([isinstance(s, Species) for s in fuels]):
             self.fuels = fuels
         else:
             raise ValueError('recieved a non-Species object in the fuels list.')
@@ -390,7 +390,7 @@ class Energy_Transcription_MM(Mechanism):
                                      mechanism_type="transcription")
 
     def update_species(self, dna, transcript=None, protein = None, **keywords):
-        species = [dna, self.rnap, transcript]+fuels
+        species = [dna, self.rnap, transcript]+self.fuels
         bound_complex = Complex([dna, self.rnap])
         species += [bound_complex]
 
@@ -414,16 +414,16 @@ class Energy_Transcription_MM(Mechanism):
         #RNAP DNA Binding
         r1 = Reaction.from_massaction([dna, self.rnap], [bound_complex], k_forward = kb, k_reverse = ku)
         #Transcription
-        r2 = Reaction.from_massaction(fuels + [bound_complex], fuels + [dna, self.rnap, transcript],
+        r2 = Reaction.from_massaction(self.fuels + [bound_complex], self.fuels + [dna, self.rnap, transcript],
             k_forward = parameter_to_value(ktx.value)/parameter_to_value(L))
         #Fuel consumption
-        r3 = Reaction.from_massaction(fuels + [bound_complex], [bound_complex], k_forward = ktx)
+        r3 = Reaction.from_massaction(self.fuels + [bound_complex], [bound_complex], k_forward = ktx)
 
         return [r1, r2, r3]
 
 
 class Energy_Translation_MM(Mechanism):
-    """Michaelis Menten Translation.
+    """Michaelis Menten Translation that consumes energy species.
 
         mRNA + Rib  <--> mRNA:Rib  (binding)
         fuels + mRNA:Rib --> mRNA + Rib + Protein + fuels    (translation)
@@ -442,7 +442,7 @@ class Energy_Translation_MM(Mechanism):
         else:
             raise ValueError("ribosome must be a Species!")
 
-        if all([isinstance(s) for s in fuels]):
+        if all([isinstance(s, Species) for s in fuels]):
             self.fuels = fuels
         else:
             raise ValueError("Fuels must be a list of Species!")
@@ -452,7 +452,7 @@ class Energy_Translation_MM(Mechanism):
 
     def update_species(self, transcript, protein, **keywords):
         species = self.fuels+[self.ribosome, protein]
-        bound_complex = Complex([dna, self.rnap])
+        bound_complex = Complex([transcript, self.ribosome])
         species += [bound_complex]
 
         return species
@@ -475,10 +475,10 @@ class Energy_Translation_MM(Mechanism):
         #RNAP DNA Binding
         r1 = Reaction.from_massaction([transcript, self.ribosome], [bound_complex], k_forward = kb, k_reverse = ku)
         #Transcription
-        r2 = Reaction.from_massaction(fuels + [bound_complex], fuels + [transcript, self.ribosome, protein],
+        r2 = Reaction.from_massaction(self.fuels + [bound_complex], self.fuels + [transcript, self.ribosome, protein],
             k_forward = parameter_to_value(ktl.value)/parameter_to_value(L))
         #Fuel consumption
-        r3 = Reaction.from_massaction(fuels + [bound_complex], [bound_complex], k_forward = ktl)
+        r3 = Reaction.from_massaction(self.fuels + [bound_complex], [bound_complex], k_forward = ktl)
 
         return [r1, r2, r3]
 

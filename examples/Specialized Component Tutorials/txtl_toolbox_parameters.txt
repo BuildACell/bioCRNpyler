@@ -1,0 +1,18 @@
+mechanism	part_id	param_name	value	comments
+energy_transcription_mm		ktx	3.25	
+energy_transcription_mm		kb	4.48	For the promoter tested in Singhal et al Supplemental Table S2
+energy_transcription_mm		ku	2.48889E-06	For the promoter tested in Singhal et al Supplemental Table S3
+energy_transcription_mm		length	300	"This is a default length, gene specific ones should be set"
+energy_translation_mm		ktl	19.2	
+energy_translation_mm		kb	0.819	For the RBS tested in Singhal et al Supplemental Table S2
+energy_translation_mm		ku	0.002853659	For the RBS tested in Singhal et al Supplemental Table S3
+energy_translation_mm		length	100	"This is a default length, transcript specific ones should be set"
+rna_degredation_mm		kdeg	1.01	
+rna_degredation_mm		kb	1	
+rna_degredation_mm		ku	1.26582E-06	
+one_step_hill_pathway	NTPs_production	vmax	0.02	Corresponds to alpha_atp in the paper
+one_step_hill_pathway	NTPs_production	K	10	
+one_step_hill_pathway	NTPs_degredation	vmax	0.0000177	Corresponds to delta_atp in the paper
+one_step_hill_pathway	NTPs_degredation	K	10	
+initial_concentration		NTPs	5	mM (total NTPs in standard energy buffer)
+initial_concentration		amino_acids	30	mM (total amino acids in standard energy buffer)

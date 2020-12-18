@@ -101,12 +101,14 @@ class CombinatorialComponentMixtureTest(TestCase):
 			(TxTlExtract, {"name":"tx_tl_extract"}),
 			(ExpressionDilutionMixture, {"name":"expression_dilution_mixture"}),
 			(SimpleTxTlDilutionMixture, {'name':"simple_tx_tl_dilution_mixture"}),
-			(TxTlDilutionMixture, {"name":"tx_tl_dilution_mixture"})
+			(TxTlDilutionMixture, {"name":"tx_tl_dilution_mixture"}),
+			(EnergyTxTlExtract, {"name":"energy_tx_tl_extract"})
 			]
 
 		#Use default parameters
 		self.parameters = {"kb":1.0, "ku":1.0, "ktx":1.0, "ktl":1.0, "kdeg":1.0, "kdil":1.0, "kexpress":1.0,"kcat":1.0, "K":10, 
-		"cooperativity":2, "n":2, "k":1.0, "max_occ":10, "kleak":.01, "k1":1.0, "kbr":1.0, "k2":1.0, "kur":.1, "k_iso":.2, "ktx_solo":1.0, "k_iso_r":10, "ktl_solo":1.0}
+		"cooperativity":2, "n":2, "k":1.0, "max_occ":10, "kleak":.01, "k1":1.0, "kbr":1.0, "k2":1.0, "kur":.1, "k_iso":.2, 
+		"length":100, "vmax":5, "ktx_solo":1.0, "k_iso_r":10, "ktl_solo":1.0}
 
 		self.transcription_mechs = [
 			(SimpleTranscription, {}), 
