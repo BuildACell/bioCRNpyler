@@ -82,6 +82,10 @@ class TestSpecies(TestCase):
         # different attributes: not the same species
         self.assertFalse(s1 == s5)
 
+        s6 = Species(name='a', material_type='mat1', attributes=['red'], compartment = 'test_compartment')
+        # same species name in different compartments: not the same species
+        self.assertFalse(s1 == s6)
+
 
 def test_weighted_species_init():
     s1 = Species(name='a')

@@ -95,7 +95,7 @@ class Species(OrderedMonomer):
     @compartment.setter
     def compartment(self, compartment: str):
         if compartment is None:
-            raise TypeError("Name must be a string.")
+            self._compartment = "default"
         else:
             self._compartment = self._check_name(compartment)
 
