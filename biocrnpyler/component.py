@@ -279,14 +279,16 @@ class Component(object):
         reactions = []
         warn("Unsubclassed update_reactions called for " + repr(self))
         return reactions
-    def update_components(self) -> (List,List):
+        
+    def enumerate_components(self) -> (List,List):
         """this is for component enumeration. Usually you will return a list of components that are
         copies of existing ones (first list) and new components (second list). For example,
         A DNA_construct makes a list of copies of its parts as the first output, and a list of RNA_constructs
         as the second output.
         An RNA_construct will make a list of copies of its parts as the first output, and a list of Protein
         components as its second output (if it makes any proteins)"""
-        return [self], []
+        return []
+
     def get_initial_condition(self, s):
         """Tries to find an initial condition of species s using the parameter hierarchy
 

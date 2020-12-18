@@ -376,6 +376,26 @@ class Mixture(object):
         self.add_species_to_crn(global_mech_species, component = None)
         self.crn.add_reactions(global_mech_reactions)
 
+    def component_enumeration(self, recursion_depth) -> List[Component]:
+        #Components that produce components through Component Enumeration
+
+        all_components = []
+        new_components = []
+        comps_to_enumerate = self.components
+
+        #Recursion depth
+        for a in range(recursion_depth):
+            for component in comps_to_enumerate:
+                new_components += component.enumerate_components()
+
+            all_components += comps_to_enumerate
+            comps_to_enumerate = new_components
+
+        if(len(comps_to_enumerate) > 0):
+            warn("Mixture was left with unenumerated components "+str(', '.join(comps_to_enumerate)))
+
+        return all_components
+
     def compile_crn(self, initial_concentration_dict = None) -> ChemicalReactionNetwork:
         """Creates a chemical reaction network from the species and reactions associated with a mixture object.
         :param initial_concentration_dict: a dictionary to overwride initial concentrations at the end of compile time
@@ -383,42 +403,26 @@ class Mixture(object):
         """
         resetwarnings()#Reset warnings - better to toggle them off manually.
 
-        #reset the Components' mixture to self - in case they have been added to other Mixtures
-        for c in self.components:
-            c.set_mixture(self)
-
         #Create a CRN to filter out duplicate species
         self.crn = ChemicalReactionNetwork([], [])
 
         #add the extra species to the CRN
         self.add_species_to_crn(self.added_species, component = None)
 
-        #local component enumeration
-        new_comp = []
-        comp_i = 0
-        comps_to_enumerate = self.components
-        #component enumeration
-        outstanding_components = []
-        for a in range(self.recursion_depth):
-            for component in comps_to_enumerate:
-                endpt_components,unenumerated_components = component.update_components()
-                new_comp += endpt_components
-                outstanding_components += unenumerated_components
-            if(len(outstanding_components) == 0):
-                #this happens if we are done early
-                break
-            else:
-                comps_to_enumerate = outstanding_components
-                outstanding_components = []
-        if(len(outstanding_components) > 0):
-            warn("Mixture was left with unenumerated components "+str(', '.join(outstanding_components)))
+        enumerated_components = self.enumerated_components() #This includes self.components
+
+        #reset the Components' mixture to self - in case they have been added to other Mixtures
+        for c in enumerated_components:
+            print(c, c.mixture)
+            c.set_mixture(self)
+            print(c, c.mixture)
 
         #Append Species from each Component
-        for component in new_comp:
-            self.add_species_to_crn(remove_bindloc(component.update_species()), component)
+        for component in enumerated_components:
+            self.add_species_to_crn(remove_bindloc(component.update_species()), component) #TODO remove_bindloc to CRN
 
         #Append Reactions from each Component
-        for component in new_comp:
+        for component in enumerated_components:
             self.crn.add_reactions(component.update_reactions())
 
         #global mechanisms are applied last and only to all the species
