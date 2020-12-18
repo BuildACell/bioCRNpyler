@@ -1,5 +1,5 @@
 
-#  Copyright (c) 2019, Build-A-Cell. All rights reserved.
+#  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
 from typing import List, Union
@@ -160,59 +160,10 @@ class ChemicalComplex(Component):
 
 
 class Enzyme(Component):
-    """A class to represent Enzymes.
-
-    Assumes the enzyme converts a single substrate to a single product.
-    Uses a mechanism called "catalysis"
-    """
-    def __init__(self, enzyme: Union[Species, str, Component],
-                 substrate: Union[Species, str, Component],
-                 product: Union[Species,str, Component], attributes=None, **keywords):
-        """Initialize an Enzyme object to store Enzyme related information.
-
-        :param enzyme: name of the enzyme, reference to an Species or Component
-        :param substrate: name of the enzyme, reference to an Species or Component
-        :param product: name of the product, reference to an Species or Component
-        :param attributes: Species attribute
-        :param keywords: pass into the parent's (Component) initializer
-        """
-      
-        # ENZYME NAME
-        self.enzyme = self.set_species(enzyme, material_type='protein', attributes=attributes)
-    
-        # SUBSTRATE
-        if substrate is None:
-            self.substrate = None
-        else:
-            self.substrate = self.set_species(substrate)
-
-        # PRODUCT
-        if product is None:
-            self.product = None
-        else:
-            self.product = self.set_species(product)
-
-        Component.__init__(self=self, name=self.enzyme.name, **keywords)
-    
-    def get_species(self):
-        return self.enzyme
-
-    def update_species(self):
-        mech_cat = self.get_mechanism('catalysis')
-
-        return mech_cat.update_species(self.enzyme, self.substrate, self.product) 
-
-    def update_reactions(self):
-        mech_cat = self.get_mechanism('catalysis')
-
-        return mech_cat.update_reactions(self.enzyme, self.substrate, self.product, component=self,  part_id=self.name)
-
-
-class MultiEnzyme(Component):
     """A class to represent Enzymes with multiple substrates and products.
 
     Assumes the enzyme converts all substrates to a all products at once.
-    For example: S1 + S2 + E --> P1 + P2 + E.
+    For example: S1 + S2 + ... + S_N + E --> P1 + P2 + ... + P_M + E.
     For enzymes with multiple enzymatic reactions, create multiple Enzyme Components with the same internal species.
     Uses a mechanism called "catalysis"
     """
@@ -221,37 +172,49 @@ class MultiEnzyme(Component):
                  products: List[Union[Species, str, Component]], attributes=None, **keywords):
         """Initialize an MultiEnzyme object to store MultiEnzyme related information.
 
-        :param enzyme: name of the enzyme, reference to an Species or Component
-        :param substrate: list of (name of the enzyme, reference to an Species or Component)
-        :param product: list of (name of the product, reference to an Species or Component)
+        :param enzyme: name of the enzyme or reference to an Species or Component
+        :param substrates: list of (name of the substrate or reference to an Species or Component)
+        :param products: list of (name of the product or reference to an Species or Component)
         :param attributes: Species attribute
         :param keywords: pass into the parent's (Component) initializer
         """
-      
-        # ENZYME NAME
         self.enzyme = self.set_species(enzyme, material_type='protein', attributes=attributes)
+        self.substrates = substrates
+        self.products = products
 
-        # SUBSTRATE(s)
-        self.substrates = []
-        for substrate in substrates:
-            self.substrates.append(self.set_species(substrate))
-
-        # PRODUCT(s)
-        self.products = []
-        for product in products:
-            self.products.append(self.set_species(product))
-      
         Component.__init__(self=self, name=self.enzyme.name, **keywords)
+
+    @property
+    def substrates(self) -> List:
+        return self._substrates
+
+    @substrates.setter
+    def substrates(self, new_substrates: List[Union[Species, str, Component]]):
+        if not isinstance(new_substrates, list):
+            new_substrates = [new_substrates]
+        # convert the new substrates to Species
+        self._substrates = [self.set_species(s) for s in new_substrates]
+
+    @property
+    def products(self) -> List:
+        return self._products
+
+    @products.setter
+    def products(self, new_products: List[Union[Species, str, Component]]):
+        if not isinstance(new_products, list):
+            new_products = [new_products]
+        # convert the new products to Products
+        self._products = [self.set_species(p) for p in new_products]
     
-    def get_species(self):
+    def get_species(self) -> Species:
         return self.enzyme
 
-    def update_species(self):
+    def update_species(self) -> List[Species]:
         mech_cat = self.get_mechanism('catalysis')
 
-        return mech_cat.update_species(self.enzyme, self.substrates, self.products)
+        return mech_cat.update_species(Enzyme=self.enzyme, Sub=self.substrates, Prod=self.products)
 
-    def update_reactions(self):
+    def update_reactions(self) -> List[Reaction]:
         mech_cat = self.get_mechanism('catalysis')
-
-        return mech_cat.update_reactions(self.enzyme, self.substrates, self.products, component=self,  part_id=self.name)
+        return mech_cat.update_reactions(Enzyme=self.enzyme, Sub=self.substrates, Prod=self.products,
+                                         component=self,  part_id=self.name)
