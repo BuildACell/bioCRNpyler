@@ -191,7 +191,8 @@ class Species(OrderedMonomer):
         return [self]
 
     
-    def pretty_print(self, show_material = True, show_attributes = True, show_initial_condition = False, **kwargs):
+    def pretty_print(self, show_material = True, show_compartment = False, show_attributes = True, 
+                    show_initial_condition = False, **kwargs):
         """
         #A more powerful printing function. 
         Useful for understanding CRNs but does not return string identifiers.
@@ -203,6 +204,9 @@ class Species(OrderedMonomer):
             txt = self.material_type + "["
 
         txt += self.name
+
+        if self.compartment not in ["", None] and show_compartment:
+            txt += " in " + self.compartment + "."
 
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
             txt += "("
