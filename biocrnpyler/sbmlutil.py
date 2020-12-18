@@ -76,9 +76,12 @@ def add_all_species(model, species: List, compartment=None, **kwargs):
     :param compartment: compartment id, if empty species go to the first compartment
     :return: None
     """
-    if compartment is None:
-        compartment = model.getCompartment(0)
     for s in species:
+        if compartment is None or s.compartment is not None:
+            # If no compartment was passed in or if species (s) has its own compartment set:
+            compartment = get_compartment_by_name(model, s.compartment.name)
+            if compartment is None:
+                compartment = add_compartment(model, s.compartment)
         add_species(model=model, compartment=compartment,
                     species=s, initial_concentration=s.initial_concentration)
 
@@ -137,6 +140,13 @@ def add_compartment(model, compartment, **keywords):
     sbml_compartment.setVolume(compartment.volume)  # For example, 1e-6 liter
     return sbml_compartment
 
+def get_compartment_by_name(model, compartment_name):
+    """ Helper function to find the SBML compartment object 
+    given the compartment name in the SBML file
+    """
+    for compartment in model.getListOfCompartments():
+        if compartment.getName() == compartment_name:
+            return compartment
 
 # Helper function to add a parameter to the model
 def add_parameter(mixture, name, value=0, debug=False):
