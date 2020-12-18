@@ -12,6 +12,7 @@ from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
 from .mechanisms_txtl import (OneStepGeneExpression, SimpleTranscription,
                               SimpleTranslation, Transcription_MM,
                               Translation_MM)
+from .mechanisms_metabolite import OneStepHillPathway
 from .mixture import Mixture
 
 
@@ -167,17 +168,21 @@ class EnergyTxTlExtract(Mixture):
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
         self.rnaase = Protein(rnaase)
-        self.ntps = Metabolite(ntps)
         self.amino_acids = Metabolite(amino_acids)
         self.fuel = Metabolite(fuel)
+        self.ntps = Metabolite(ntps, precursors = [self.fuel], products = [None])
+
+        #These mechanisms are Component specific and only added to the NTPs metabolite
+        mech_pathway = OneStepHillPathway()
+        self.ntps.add_mechanisms(mech_pathway)
 
 
-        default_components = [self.rnap, self.ribosome, self.rnaase]
+        default_components = [self.rnap, self.ribosome, self.rnaase, self.amino_acids, self.ntps, self.fuel]
         self.add_components(default_components)
 
         # Create default TxTl Mechanisms
         mech_tx = Energy_Transcription_MM(rnap=self.rnap.get_species(), ntp = self.ntps.get_species())
-        mech_tl = Energy_Translation_MM(ribosome=self.ribosome.get_species(), ntp = self.ntps.get_species(), aa = self.amino_acid.get_species())
+        mech_tl = Energy_Translation_MM(ribosome=self.ribosome.get_species(), ntp = self.ntps.get_species(), aa = self.amino_acids.get_species())
         mech_rna_deg = Degredation_mRNA_MM(nuclease=self.rnaase.get_species())
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
@@ -190,4 +195,6 @@ class EnergyTxTlExtract(Mixture):
             mech_bind.mechanism_type: mech_bind
         }
         self.add_mechanisms(default_mechanisms)
+
+
 

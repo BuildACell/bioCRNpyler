@@ -107,6 +107,70 @@ class Protein(Component):
     def update_reactions(self) -> List:
         return []
 
+class Metabolite(Component):
+    def __init__(self, name: str, attributes=None, precursors = None, products = None, **keywords):
+        """Initialize a Metabolite object to store Metabolite related information.
+        Metabolites look for "production" and "degredation" mechanisms, but will not throw
+        an error if none are found.
+            
+        :param name: name of the protein
+        :param attributes: Species attribute
+        :param precursors: list of chemical species which are directly transformed into this metabolite via the production mechanism
+        :param products: list of chemical species directly produced from this metabolite via the degredation mechanism
+        :param keywords: pass into the parent's (Component) initializer
+        """
+
+        self.species = self.set_species(name, material_type="metabolite",
+                                        attributes=attributes)
+
+
+        #Set percursor species list
+        self.precursors = []
+        if precursors is not None:
+            for p in precursors:
+                if p is None:
+                    self.precursors.append(None) #None is a valid precursor representing constuitive production
+                else:
+                    self.precursors.append(self.set_species(p))
+
+        #Set product species list
+        self.products = []
+        if products is not None:
+            for p in products:
+                if p is None:
+                    self.products.append(None) #None is a valid product representing total degredation
+                else:
+                    self.products.append(self.set_species(p))
+
+
+        Component.__init__(self=self, name=name, **keywords)
+
+    def get_species(self) -> Species:
+        return self.species
+
+    def update_species(self) -> List[Species]:
+        species = [self.get_species()]
+        mech_pathway = self.get_mechanism('metabolic_pathway', optional_mechanism = True)
+
+        if mech_pathway is not None:
+            for p in self.precursors:
+                species += mech_pathway.update_species(precursor = p, product = self.get_species(), component = self, part_id = self.name+"_production")
+            for p in self.products:
+                species += mech_pathway.update_species(precursor = self.get_species(), product = p, component = self, part_id = self.name+"_degredation")
+
+        return species
+
+    def update_reactions(self) -> List:
+        reactions = []
+        mech_pathway = self.get_mechanism('metabolic_pathway', optional_mechanism = True)
+
+        if mech_pathway is not None:
+            for p in self.precursors:
+                reactions += mech_pathway.update_reactions(precursor = p, product = self.get_species(), component = self, part_id = self.name+"_production")
+            for p in self.products:
+                reactions += mech_pathway.update_reactions(precursor = self.get_species(), product = p, component = self, part_id = self.name+"_degredation")
+        return reactions
+
 
 class ChemicalComplex(Component):
     """A complex forms when two or more species bind together Complexes inherit the attributes of their species."""
