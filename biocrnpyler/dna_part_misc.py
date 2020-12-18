@@ -21,6 +21,7 @@ class DNABindingSite(DNA_part):
         self.mechanisms = {"binding":One_Step_Cooperative_Binding()}
         DNA_part.__init__(self,name,no_stop_codons=no_stop_codons,mechanisms = self.mechanisms,assembly = assembly,**keywords)
         self.name = name
+        self.dna_to_bind = None
         #self.assembly = None
         
     def __repr__(self):
