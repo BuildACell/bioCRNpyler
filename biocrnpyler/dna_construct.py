@@ -35,34 +35,38 @@ class ConstructExplorer(ComponentEnumerator):
         self.max_loop_count = max_loop_count
         self.possible_directions = possible_directions
 
-    def enumerate_components(self,component):
-        #iterate through the possible directions
-        for direction in self.possible_directions:
-            #Set the loop count
-            self.current_loop_count = 0
-            self.initialize_loop(direction = direction)
+    def enumerate_components(self, component):
+        #Only works on Constructs!
+        if isinstance(component, Construct):
+            #iterate through the possible directions
+            for direction in self.possible_directions:
+                #Set the loop count
+                self.current_loop_count = 0 #due to while loop, current_loop_count is instantly increment to 1
+                self.initialize_loop(direction = direction)
 
-            #Deep Copy Component
-            parts_list = list(component.parts_list)
-            #Set the direction
-            if direction == "reverse":
-                parts_list.reverse()
+                #Deep Copy Component
+                parts_list = list(copy.deepcopy(component.parts_list))
+                #Set the direction
+                if direction == "reverse":
+                    parts_list.reverse()
 
-            #Main iteration loop
-            while self.check_loop():
-                #Check each part
-                for part_ind, part in enumerate(parts_list):
-                    #Do something to the part
-                    self.iterate_part(part, direction)
+                #Main iteration loop
+                while self.check_loop():
+                    #Check each part
+                    for part_ind, part in enumerate(parts_list):
+                        #Do something to the part
+                        self.iterate_part(part, direction)
 
-        return self.return_components()
+            return self.return_components()
+        else:
+            return []
 
     def check_loop(self):
         """if we already went around the plasmid, then what we're checking for is continuing
         transcripts or proteins. We don't want to start making new transcripts
         because we already checked this area for promoters"""
         logging.debug(f"loop count = {self.current_loop_count}")
-        if self.current_loop_count >= self.max_loop_count:
+        if self.current_loop_count > self.max_loop_count:
             self.terminate_loop()
             return False
         else:
@@ -111,6 +115,7 @@ class TxExplorer(ConstructExplorer):
         2. it adds parts to growing transcripts
         3. it makes new transcripts and terminates growing transcripts.
         """
+        print(part, reading_direction)
         logging.debug("looking at "+str(part))
         logging.debug("current_rnas are "+str(self.current_rnas))
 
@@ -131,7 +136,7 @@ class TxExplorer(ConstructExplorer):
         #Case for Different Parts doing different things
 
         #Case 1: Promoter in the correct direction (and first loop around a circular plasmid)
-        if effective_direction=="forward" and isinstance(part,Promoter) and self.current_loop_count == 0:
+        if effective_direction=="forward" and isinstance(part,Promoter) and self.current_loop_count == 1:
             #this if statement makes sure that the current part wants to transcribe, and
             #that is something that we are allowed to do
             self.current_rnas[part] = []
@@ -144,7 +149,8 @@ class TxExplorer(ConstructExplorer):
     def terminate_loop(self):
         #Transfers current rnas into all_rnas
 
-        #Create RNA Construct
+        #Create RNA_Constructs for each promoter
+
         for promoter in self.current_rnas:
             rna_parts_list = self.current_rnas[promoter]
             rna_construct = RNA_construct(rna_parts_list, promoter = promoter)
@@ -153,6 +159,7 @@ class TxExplorer(ConstructExplorer):
 
         self.current_rnas = {}
 
+    #Returns a list of RNAconstructs
     def return_components(self):
         return [self.all_rnas[k] for k in self.all_rnas]
 
@@ -744,8 +751,14 @@ class Construct(Component,OrderedPolymer):
             combinatorial_complexes += self.make_polymers(allcomb,possible_backbones[bb_name])
             
         return combinatorial_complexes
-    def update_components(self,rnas=None,proteins=None):
-        big_comps = self.enumerate_components()
+
+    #Overwrite Component.enumerate_components    
+    def enumerate_components(self):
+        big_comps = []
+        for enumerator in self.component_enumerators:
+            new_comp = enumerator.enumerate_components(component=self)
+            big_comps += new_comp
+
         multivalent_self = self.get_species()
         self.update_parameters()
 
@@ -770,7 +783,7 @@ class Construct(Component,OrderedPolymer):
                         pass
                     else:
                         combinatorial_components += [part.update_component(comb_specie[part_pos])]
-        return combinatorial_components,big_comps
+        return combinatorial_components+big_comps
     def __hash__(self):
         return hash(self.__repr__())
     def __eq__(self,construct2):
@@ -793,12 +806,7 @@ class Construct(Component,OrderedPolymer):
         self.name = self.make_name()
     def update_reactions(self,norna=False):
         return []
-    def enumerate_components(self):
-        out_comp = []
-        for enumerator in self.component_enumerators:
-            new_comp = enumerator.enumerate_components(component=self)
-            out_comp += new_comp
-        return out_comp
+        
 
 
 class DNA_construct(Construct,DNA):
@@ -840,7 +848,7 @@ class DNA_construct(Construct,DNA):
     
         
 class RNA_construct(Construct,RNA):
-    def __init__(self,parts_list,name=None,promoter="unknown",\
+    def __init__(self,parts_list,name=None,promoter=None,\
                 component_enumerators = (TlExplorer(),),\
                 **keywords):
         """an RNA_construct is a lot like a DNA_construct except it can only translate, and
