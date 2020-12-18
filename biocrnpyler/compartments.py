@@ -46,4 +46,18 @@ class Compartment():
     @volume.setter
     def volume(self, volume: float):
         self._volume = volume
-        
+    
+    def __eq__(self, other):
+        """
+        Overrides the default implementation
+        Two compartments are equivalent if they have the same name, spatial dimension, and volume
+        :param other: Compartment instance
+        :return: boolean
+        """
+        if isinstance(other, Compartment) \
+                            and self.spatial_dimensions == other.spatial_dimensions \
+                            and self.name == other.name \
+                            and self.volume == other.volume:
+            return True
+        else:
+            return False

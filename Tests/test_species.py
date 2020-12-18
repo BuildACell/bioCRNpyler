@@ -16,7 +16,7 @@ class TestSpecies(TestCase):
         # tests naming convention for species with name and compartment
         species = Species(name='test_species', compartment = 'test_compartment')
         self.assertEqual(repr(species), species.name)
-        self.assertEqual(species.compartment, 'test_compartment')
+        self.assertEqual(species.compartment.name, 'test_compartment')
 
         # tests material type
         species = Species(name='test_species', material_type="dna")
