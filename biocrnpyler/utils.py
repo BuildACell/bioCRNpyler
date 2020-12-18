@@ -7,8 +7,10 @@
 #
 ################################################################
 import itertools as it
+import numbers
 
-from .species import WeightedSpecies
+from typing import Dict, Union
+from .species import WeightedSpecies, Species
 
 
 def all_comb(input_list):
@@ -39,3 +41,7 @@ def remove_bindloc(spec_list):
             else:
                 out_sp_list+= [specie]
         return out_sp_list
+
+
+def process_initial_concentration_dict(initial_concentration_dict: Dict[Union[str, Species], numbers.Real]) -> Dict[str, numbers.Real]:
+    return {str(key): value for (key, value) in initial_concentration_dict.items()}

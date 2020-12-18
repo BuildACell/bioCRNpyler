@@ -2,6 +2,65 @@ from unittest import TestCase
 from biocrnpyler import *
 import sys
 
+def Component_CRN_validation(CRN, component, mixture):
+	#Helper function which ensures components are compiled into "reasonable" CRNs with
+	#inputs and outputs (somwhere in the network) that match the functionality
+
+	reaction_inputs = [w.species for r in CRN.reactions for w in r.inputs ]
+	reaction_outputs = [w.species for r in CRN.reactions for w in r.outputs ]
+
+	#The below cases test for different kinds of Components
+	
+	if isinstance(component, DNAassembly):
+		G = component.dna
+		T = component.transcript
+		P = component.protein
+		prom = component.promoter
+		rbs = component.rbs
+
+		#Test Expression (No Tx/Tl) Convention
+		if isinstance(mixture, ExpressionExtract) or isinstance(mixture, ExpressionDilutionMixture):
+
+			#transcript should be ignored in all reactions
+			assert T not in reaction_outputs
+			assert T not in reaction_inputs
+
+			if  P is not None and prom is not None:
+				assert G in reaction_inputs #dna must be an input
+				assert P in reaction_outputs #protein must be an output
+			else:
+				assert P not in reaction_outputs #in this case, no expression
+		else:
+			if G is not None and T is not None and P is not None and rbs is not None and prom is not None: #Transcription and Translation
+				assert G in reaction_inputs #dna must be an input
+				assert T in reaction_inputs #transcript must be an input
+				assert T in reaction_outputs #transcript must be an output
+				assert P in reaction_outputs #protein must be an output
+			elif G is not None and T is not None and prom is not None and (P is None or rbs is None): #Just Transcription
+				assert G in reaction_inputs #dna must be an input
+				assert T in reaction_outputs #protein must be an output
+				assert P not in reaction_outputs #No protein output
+			else:
+				assert T not in reaction_outputs #Otherwise no transcription
+				assert P not in reaction_outputs #No translation
+	
+	if isinstance(component, ChemicalComplex):
+		assert component.get_species() in reaction_outputs #Complex can be formed
+		assert all([s in reaction_inputs for s in component.internal_species]) #All species in the complex are inputs
+
+	if isinstance(component, Enzyme):
+		assert component.enzyme in reaction_inputs #enzyme should be an input
+		assert component.enzyme in reaction_outputs #enzyme should be an output
+		assert component.substrate in reaction_inputs #substrate should be an input
+		assert component.product in reaction_outputs #product should be an output
+
+	if isinstance(component, MultiEnzyme):
+		assert component.enzyme in reaction_inputs #enzyme should be an input
+		assert component.enzyme in reaction_outputs #enzyme should be an output
+		assert all([s in reaction_inputs for s in component.substrates]) #substrates should be inputs
+		assert all([s in reaction_outputs for s in component.products]) #products should be outputs
+	
+
 
 class CombinatorialComponentMixtureTest(TestCase):
 
@@ -124,6 +183,9 @@ class CombinatorialComponentMixtureTest(TestCase):
 					document, _ = CRN.generate_sbml_model()
 					assert validate_sbml(document) == 0
 
+					#Validate the CRN topology
+					Component_CRN_validation(CRN = CRN, component = C, mixture = M)
+
 		except Exception as e:
 			error_txt = f"Instantiating Component {comp} in Mixture {mixture} with args {args}. \n Unexpected Error: {str(e)}."
 			raise Exception(error_txt)
@@ -136,7 +198,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 				for (rbs, args) in self.rbs_classes:
 					R = rbs(**args)
 					for (mixture, args) in self.mixture_classes:
-						A = DNAassembly("assembly", promoter = P, rbs = R)
+						A = DNAassembly(name = "G", promoter = P, rbs = R)
 						args["parameters"] = dict(self.parameters)
 
 						#test adding the component in the construtor
@@ -147,6 +209,9 @@ class CombinatorialComponentMixtureTest(TestCase):
 						document, _ = CRN.generate_sbml_model()
 						assert validate_sbml(document) == 0
 
+						#Validate the CRN topology
+						Component_CRN_validation(CRN = CRN, component = A, mixture = M)
+
 						#Test adding the component after the constructor
 						M2 = mixture(**args)
 						M2.add_component(A)
@@ -156,6 +221,9 @@ class CombinatorialComponentMixtureTest(TestCase):
 						CRN2 = M2.compile_crn()
 						document, _ = CRN2.generate_sbml_model()
 						assert validate_sbml(document) == 0
+
+						#Validate the CRN topology
+						Component_CRN_validation(CRN = CRN2, component = A, mixture = M)
 						
 		except Exception as e:
 			error_txt = f"Instantiating Promoter {prom} & RBS {rbs} in a DNAassembly in Mixture {mixture} with args {args}. \n Unexpected Error: {str(e)}."
@@ -172,12 +240,16 @@ class CombinatorialComponentMixtureTest(TestCase):
 							Mtx = mech_tx(**args_tx)
 							Mtl = mech_tl(**args_tl)
 							mechs = {Mtx.mechanism_type:Mtx, Mtl.mechanism_type:Mtl, "binding": One_Step_Cooperative_Binding()}
-							A = DNAassembly("assembly", promoter = P, rbs = R)
+							A = DNAassembly(name = "G", promoter = P, rbs = R)
 							M = Mixture(mechanisms = mechs, components = [A], parameters = self.parameters)
 
 							CRN = M.compile_crn()
 							document, _ = CRN.generate_sbml_model()
 							assert validate_sbml(document) == 0
+
+							#Validate the CRN topology
+							Component_CRN_validation(CRN = CRN, component = A, mixture = M)
+
 		except Exception as e:
 			error_txt = f"Instantiating Promoter {prom} & RBS {rbs} in a DNAassembly in Mixure with mech_tx = {mech_tx} and mech_tl = {mech_tl}. \n Unexpected Error: {str(e)}."
 			raise Exception(error_txt)
