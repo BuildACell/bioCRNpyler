@@ -26,7 +26,6 @@ from .species import (ComplexSpecies, OrderedMonomer, OrderedPolymer,
                       OrderedPolymerSpecies)
 from .utils import all_comb, remove_bindloc, rev_dir
 import logging
-#integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 
 
 class TxTlExplorer_CE(LocalComponentEnumerator):
@@ -49,10 +48,11 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
         self.second_looping = False
         self.possible_directions = possible_directions
     def enumerate_components(self,component):
-        #TODO the component we are given better be a dna_construct or something that can be txtled
+        assert(isinstance(component,Construct))
         logging.debug("enumerating "+str(component))
         proteins = {}
         rnas = {}
+        #copy the components so 
         newlist = copy.deepcopy(component.parts_list)
         for direction in self.possible_directions:
             self.__init__(direction=direction,possible_rxns=self.possible_rxns,possible_directions=self.possible_directions)
@@ -61,7 +61,6 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
                 #if we are looking at an RNA, then track the fact that it is an RNA (and properly evaluate RNA_specific parts)
                     self.make_rna(component.my_promoter)
             startnum = 0
-            
             if(direction == "reverse"):
                 startnum = len(component.parts_list)-1
                 #if we go backwards then also list the parts backwards
@@ -89,38 +88,31 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
                         break
             proteins.update(self.get_proteins())
             rnas.update(self.get_rnas())
-        #proteins = {}
         protein_components = []
-        #if("transcription" in self.possible_rxns):
-        #    for promoter in rnas:
-        #        _,prots = rnas[promoter].explore_txtl()
-        #        protein_components+=rnas[promoter].enumerate_components()
-        #        proteins.update(prots)
         #the output of this function should be a list of new components.
         #but txtl explorer knows more than that! it knows who made what also
         #perhaps these reactions should be *inside* the components which we spit out.
         #
-        #we could update the appropriate RBS or promoter parts with the species they are
+        #we will update the appropriate RBS or promoter parts with the species they are
         #making, then output those components as new components.
         rna_constructs = [rnas[a] for a in rnas]
+        #this next part is configuring the output list with the qualities of the previous components
         for partind in range(len(newlist)):
             if(hasattr(newlist[partind],"transcript")):
                 component[partind].transcript = newlist[partind].transcript
             if(hasattr(newlist[partind],"protein")):
                 component[partind].protein = newlist[partind].protein
-
-        #component._polymer = newlist
-        #protein_components = []
-        #print("proteins are ")
-        #print(proteins)
+        
         for rna in proteins:
             for rbs in proteins[rna]:
                 protein_components += proteins[rna][rbs]
         outlist = []
+        ######################################
         if(self.return_rnas):
             outlist += rna_constructs
         if(self.return_proteins):
             outlist += protein_components
+        ######################################
         return outlist
     def see(self,part):
         """the explorer sees a part. This does different stuff depending on
@@ -224,30 +216,21 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
             #in this case you terminated transcription when nothing was transcribing
             return
         rna_partslist = self.current_rnas[promoter][0]
-        #print(rna_partslist)
-        #print(self.current_rnas)
-        #print(self.current_proteins)
         copied_partslist = copy.deepcopy(rna_partslist)
         rna_construct = RNA_construct(copied_partslist,made_by = promoter)
         rna_construct.set_mixture(promoter.mixture)
-        #current_rna_name = str(promoter)+"-"+str(rna_construct)
         self.made_proteins[rna_construct]={}
         #compile the name, keeping track of which promoter made the rna and all the parts on it
         proteins_per_promoter = []
         for rbs in self.current_rnas[promoter][1]:
             #ending the RNA also ends all the proteins being generated here.
             proteins_per_rbs = []
-            # TODO this will run multiple times for each RNA. make it so it runs once!
             for protein_part in self.current_proteins[rbs]:
                 if(protein_part[1] == "forward"):
                     #it is essential to be forwards
                     if(isinstance(protein_part[0],CDS) and protein_part[0].protein != None):
                         #this happens if we do in fact make a protein
                         proteins_per_rbs+=[protein_part[0]]
-            #print(rna_partslist)
-            #print("currently we are translating from "+str(rbs)+ " which is located at " + str(rbs.pos))
-            #print(rbs)
-            #print(rna_partslist)
             if(self.return_rnas):
                 #this means we are creating new RNAs, and so the correct RBS is the one in the new RNA.
                 correct_rbs = rna_construct.parts_list[rna_partslist.index([rbs,"forward"])]
@@ -313,7 +296,6 @@ class Construct(Component,OrderedPolymer):
         """this represents a bunch of parts in a row.
         A parts list has [[part,direction],[part,direction],...]
         Each part must be an OrderedMonomer"""
-        #TODO get_part, dna_part search engine like get_component from mixture
         if(component_enumerators is None):
             component_enumerators = []
         self.component_enumerators = component_enumerators
@@ -345,7 +327,6 @@ class Construct(Component,OrderedPolymer):
                 newpart = [npart,npartd]
             myparts += [newpart]
         OrderedPolymer.__init__(self,myparts)
-        #self.parts_list = self._polymer
         self.circular=circular
         if(name is None):
             name = self.make_name() #automatic naming
@@ -747,51 +728,3 @@ class RNA_construct(Construct,RNA):
     def __repr__(self):
         """the name of an RNA should be different from DNA, right?"""
         return "RNA_construct = "+self.name
-
-
-
-#NOT IMPLEMENTED circular matching code below
-#apparently below won't work because you can't hash the parts_list
-    #this means the equality won't work for circular constructs. oops!
-    '''
-        if(len(self.parts_list) != len(construct2.parts_list)):
-            return False
-        else:
-            if(self.circular == construct2.circular):
-                if(self.circular == False):
-                    for p1,p2 in zip(self.parts_list,construct2.parts_list):
-                        if((p1.name != p2.name) or type(p1)!=type(p2) or p1.pos!=p2.pos):
-                            #name and type are the crucial elements
-                            #the pos should always match up. If it doesn't, then one of the two
-                            #DNA_constructs is super wrong somehow...
-                            
-                            return False
-                    #if you look through the whole list and don't find a mismatch then it's a match
-                    return True
-                elif(self.circular == True):
-                    #in this case we need to rotate them until they align
-                    #this opens up a can of worms though. How can we refer to positions of things
-                    #if the sequence can be rotated???
-                    poslist = [a for a in range(len(construct2.parts_list))]
-                    for part_id in range(len(construct2.parts_list)):
-                        #try every possible rotation of the thing we're comparing against
-                        permuted_id_list = poslist[part_id:]+poslist[:part_id]
-                        #we're just making a new list with the parts_list rotated
-                        permuted_p2list = [construct2.parts_list[a] for a in permuted_id_list]
-                        match = True #if you make it through the loop, then the match is true
-                        for p1,p2 in zip(self.parts_list,permuted_p2list):
-                            #compare each element to each other element
-                            if((p1.name != p2.name) or type(p1)!=type(p2)):
-                                match = False
-                                #as soon as you find something wrong, quit
-                                break
-                        if(match==False):
-                            #try the next permutation
-                            continue
-                        else:
-                            #if we made it all the way here then it matches!
-                            return True
-                    #if we are here then we've gone through all permutations and hit "continue" every time.
-                    #that means there is no orientation in which it matches
-                    return False
-    #'''
