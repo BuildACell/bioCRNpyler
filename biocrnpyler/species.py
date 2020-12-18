@@ -4,7 +4,7 @@
 import copy
 import warnings
 from typing import List, Union
-
+from .compartments import Compartment
 from .polymer import OrderedMonomer, OrderedPolymer
 
 
@@ -93,11 +93,14 @@ class Species(OrderedMonomer):
             return self._compartment
 
     @compartment.setter
-    def compartment(self, compartment: str):
+    def compartment(self, compartment):
         if compartment is None:
-            self._compartment = "default"
+            self._compartment = Compartment(name = "default")
         else:
-            self._compartment = self._check_name(compartment)
+            if isinstance(compartment, str):
+                self._compartment = Compartment(name = self._check_name(compartment))
+            elif isinstance(compartment, Compartment):
+                self._compartment = compartment
 
     #Use OrderedMonomers getter
     direction = property(OrderedMonomer.direction.__get__)
@@ -126,13 +129,13 @@ class Species(OrderedMonomer):
     def _check_name(self, name):
         """
         Check that the string contains only underscores and alpha-numeric characters or is None. 
-        Additionally cannot end in "_" or contain double "__"
+        Additionally cannot end in "_" or contain double "__", also cannot start with a number
         """
         if name is None:
             return name
         elif isinstance(name, str):
             no_underscore_string = name.replace("_", "")
-            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_":
+            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_" and not name[0].isnumeric():
                 return name
             else:
                 raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or end in an underscore.")

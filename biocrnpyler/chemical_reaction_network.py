@@ -10,7 +10,7 @@ from warnings import warn
 import libsbml
 
 from .reaction import Reaction
-from .sbmlutil import add_all_reactions, add_all_species, create_sbml_model
+from .sbmlutil import add_all_reactions, add_all_species, add_all_compartments, create_sbml_model
 from .species import Species
 from .utils import process_initial_concentration_dict
 
@@ -213,6 +213,12 @@ class ChemicalReactionNetwork(object):
         add_all_species(model=model, species=self.species)
 
         add_all_reactions(model=model, reactions=self.reactions, stochastic_model=stochastic_model, **keywords)
+
+        all_compartments = []
+        for species in self.species:
+            if species.compartment not in all_compartments: 
+                all_compartments.append(species.compartment)
+        add_all_compartments(model = model, compartments = all_compartments, **keywords)
 
         if document.getNumErrors():
             warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
