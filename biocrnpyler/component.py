@@ -27,7 +27,6 @@ class Component(object):
                  mixture=None,
                  attributes=None,
                  initial_concentration = None, #This is added as a parameter ("initial concentration", None, self.name):initial_concentration
-                 initial_condition_dictionary=None,
                  **keywords  # parameter keywords
                  ):
         """Initializes a Component object.
@@ -39,7 +38,6 @@ class Component(object):
         :param mixture:
         :param attributes:
         :param initial_concentration:
-        :param initial_condition_dictionary:
         :param keywords:
         """
         if mechanisms is None:
@@ -66,11 +64,6 @@ class Component(object):
         self.parameter_database = ParameterDatabase(parameter_file=parameter_file, parameter_dictionary=parameters)
         self.initial_concentration = initial_concentration
 
-        # Components can also store initial conditions, just like Mixtures
-        if initial_condition_dictionary is None:
-            self.initial_condition_dictionary = {}
-        else:
-            self.initial_condition_dictionary = dict(initial_condition_dictionary)
     @property
     def initial_concentration(self):
         return self._initial_concentration
@@ -84,6 +77,7 @@ class Component(object):
             self.parameter_database.add_parameter(parameter_name = "initial concentration", parameter_value = initial_concentration, parameter_key = param_key, overwrite_parameters = True)
     
         self._initial_concentration = initial_concentration
+
 
     def set_mixture(self, mixture) -> None:
         """Set the mixture the Component is in.
@@ -100,7 +94,7 @@ class Component(object):
         :return: None
         """
         return None
-    @classmethod
+
     def set_species(self, species: Union[Species, str], material_type=None, attributes=None) -> Species:
         """Helper function that allows species to be set from strings, species, or Components
 
@@ -109,16 +103,15 @@ class Component(object):
         :param attributes:
         :return: Species
         """
+
         if isinstance(species, Species):
-            return species
+                return species
         elif isinstance(species, str):
             return Species(name=species, material_type=material_type, attributes=attributes)
         elif isinstance(species, Component) and species.get_species() is not None:
             return species.get_species()
-        elif isinstance(species, list):
-            return [self.set_species(s, material_type = material_type, attributes = attributes) for s in species]
         else:
-            raise ValueError(f"Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input. Recieved {species}")
+            raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
 
     def __hash__(self):
         return str.__hash__(repr(self.get_species()))
@@ -287,16 +280,6 @@ class Component(object):
         reactions = []
         warn("Unsubclassed update_reactions called for " + repr(self))
         return reactions
-        
-    def enumerate_components(self,**keywords) -> List:
-        """this is for component enumeration. Usually you will return a list of components that are
-        copies of existing ones (first list) and new components (second list). For example,
-        A DNA_construct makes a list of copies of its parts as the first output, and a list of RNA_constructs
-        as the second output.
-        An RNA_construct will make a list of copies of its parts as the first output, and a list of Protein
-        components as its second output (if it makes any proteins)"""
-        return []
-
 
     def __repr__(self):
         return type(self).__name__ + ": " + self.name

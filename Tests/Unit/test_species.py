@@ -13,38 +13,15 @@ class TestSpecies(TestCase):
         species = Species(name='test_species')
         self.assertEqual(repr(species), species.name)
 
-        with self.assertRaisesRegex(ValueError, f"name attribute @test_species must consist of letters, numbers, or underscores and cannot contain double underscores or begin/end with a special character."):
-            species = Species(name="@test_species")
-
-        self.assertEqual(species.compartment.name, "default")
-        # tests naming convention for species with name and compartment
-        species = Species(name='test_species', compartment='test_compartment')
-        self.assertEqual(repr(species), species.name +
-                         '_' + species.compartment.name)
-        self.assertEqual(species.compartment.name, 'test_compartment')
-
         # tests material type
         species = Species(name='test_species', material_type="dna")
         self.assertTrue(species.material_type == "dna")
-        species.material_type = None
 
-        with self.assertRaisesRegex(ValueError, f"species name: 2test_species contains a number as the first character and therefore requires a material_type."):
-            species = Species(name='2test_species')
-        with self.assertRaisesRegex(ValueError, f"material_type 2dna must be alpha-numeric and start with a letter."):
-            species = Species(name="test_species", material_type="2dna")
-
-        species2 = Species(name = "test_species2")
-        with self.assertRaisesRegex(ValueError, "species argument must be an instance of Species!"):
-            species.replace_species(species, "new_species")
-        with self.assertRaisesRegex(ValueError, "species argument must be an instance of Species!"):
-            species.replace_species("new_species", species)
         # tests emtpy attributes
         self.assertTrue(isinstance(species.attributes, list))
 
-        species = Species(name='test_species', material_type="dna")
         # tests naming convention via repr without attributes
-        self.assertEqual(
-            repr(species), species.material_type + "_" + species.name)
+        self.assertEqual(repr(species), species.material_type + "_" + species.name)
 
         # tests adding attributes
         attr_list = ['atr1', 'atr2']
@@ -57,7 +34,7 @@ class TestSpecies(TestCase):
             correct_name += "_"+attribute
         self.assertEqual(repr(species), correct_name)
 
-        # test OrderedMonomer subclass
+        #test OrderedMonomer subclass
         self.assertTrue(species.parent is None)
         self.assertTrue(species.position is None)
         self.assertTrue(species.direction is None)
@@ -65,7 +42,7 @@ class TestSpecies(TestCase):
     def test_add_attribute(self):
         species = Species(name='test_species')
         # an attribute must be a string
-        with self.assertRaisesRegex(AssertionError, f'must be an alpha-numeric string'):
+        with self.assertRaisesRegex(AssertionError,f'must be an alpha-numeric string'):
             species.add_attribute({'k': 'v'})
 
         species.add_attribute('attribute')
@@ -87,15 +64,9 @@ class TestSpecies(TestCase):
         # different material type: not the same species
         self.assertFalse(s1 == s4)
 
-        s5 = Species(name='a', material_type='mat1',
-                     attributes=['red', 'large'])
+        s5 = Species(name='a', material_type='mat1', attributes=['red', 'large'])
         # different attributes: not the same species
         self.assertFalse(s1 == s5)
-
-        s6 = Species(name='a', material_type='mat1', attributes=[
-                     'red'], compartment='test_compartment')
-        # same species name in different compartments: not the same species
-        self.assertFalse(s1 == s6)
 
 
 def test_weighted_species_init():
@@ -152,3 +123,16 @@ def test_weighted_species_equality():
     ws3 = WeightedSpecies(species=s2, stoichiometry=1)
 
     assert ws1 != ws3
+
+
+
+
+
+
+
+
+
+
+
+
+

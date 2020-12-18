@@ -1,0 +1,132 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 1. Introduction\n",
+    "BioCRNpyler is a software tool designed to rapidly compile large biological chemical reaction networks (CRNs) from simple user specifications (written in python). It has built in support of a number of models for transcription, translation, and gene expression regulation using components common in _E. coli_ synthetic biology. This tutorial explains how to get started in the simplest way. We create a SBML model of a gene expression system. A promoter that expresses GFP is modeled with appropriate transcription and translation mechanisms. \n",
+    "\n",
+    "At the user level, BioCRNplyer provides a CRNLab class that can be used to create a reaction mixture system with - \n",
+    "* extract, a buffer, and other desired \"extracts\"\n",
+    "* DNA components\n",
+    "* specify volume of each extract and concentrations of DNA components\n",
+    "\n",
+    "After adding all components, a combined model can be obtained as an SBML model object that can be simulated using your simulator of choice. \n",
+    "\n",
+    "\n",
+    "## Key Features: \n",
+    "* Write your own custom \"extract\" in `extracts.py` and simply use them with `txtl.mixture` in the `extract` argument.\n",
+    "* Specify your own parameter file in the `mixture_parameters` argument (look at `Perfect Param File Example.tsv` for a specimen) or just use default files available with bioCRNpyler.\n",
+    "* Specify the volume of a extract being added in `txtl.mixture` using mixture_volume keyword argument or just specify the final_volume for the model.\n",
+    "* Control warning messages with arguments for `parameter_warning` and `warning` for general warnings (as a boolean).\n",
+    "\n",
+    "\n",
+    "### For more details on how BioCRNpyler works, refer to the Developer Overview, and Advanced Examples ipython notebooks."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Species = protein_RNAP, protein_Ribo, protein_RNAase, protein_GFP, dna_G1, complex_rna_G1_protein_RNAase, rna_G1, complex_rna_G1_protein_Ribo, complex_dna_G1_protein_RNAP\n",
+      "Reactions = [\n",
+      "\tdna_G1 + protein_RNAP <--> complex_dna_G1_protein_RNAP        massaction: k_f(dna_G1,protein_RNAP)=100.0*dna_G1*protein_RNAP        k_r(complex_dna_G1_protein_RNAP)=10.0*complex_dna_G1_protein_RNAP\n",
+      "\tcomplex_dna_G1_protein_RNAP --> dna_G1 + rna_G1 + protein_RNAP        massaction: k_f(complex_dna_G1_protein_RNAP)=3.0*complex_dna_G1_protein_RNAP\n",
+      "\trna_G1 + protein_Ribo <--> complex_rna_G1_protein_Ribo        massaction: k_f(rna_G1,protein_Ribo)=10.0*rna_G1*protein_Ribo        k_r(complex_rna_G1_protein_Ribo)=0.25*complex_rna_G1_protein_Ribo\n",
+      "\tcomplex_rna_G1_protein_Ribo --> rna_G1 + protein_GFP + protein_Ribo        massaction: k_f(complex_rna_G1_protein_Ribo)=2.0*complex_rna_G1_protein_Ribo\n",
+      "\trna_G1 + protein_RNAase <--> complex_rna_G1_protein_RNAase        massaction: k_f(rna_G1,protein_RNAase)=10.0*rna_G1*protein_RNAase        k_r(complex_rna_G1_protein_RNAase)=0.5*complex_rna_G1_protein_RNAase\n",
+      "\tcomplex_rna_G1_protein_RNAase --> protein_RNAase        massaction: k_f(complex_rna_G1_protein_RNAase)=1.0*complex_rna_G1_protein_RNAase\n",
+      "]\n",
+      "The SBML model generated is a valid document according to the SBML Level 3 Version 1 specifications. Use sbml.org/validator for further troubleshooting.\n",
+      "SBML model successfully written to geneexpr.xml\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "<SBMLDocument>"
+      ]
+     },
+     "execution_count": 1,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "%matplotlib inline\n",
+    "\n",
+    "from biocrnpyler import *\n",
+    "import numpy as np\n",
+    "\n",
+    "txtl = CRNLab(\"GFP\")\n",
+    "\n",
+    "\n",
+    "txtl.mixture(\"mixture1\", extract = \"TxTlExtract\", mixture_volume = 1e-6, mixture_parameters = 'BasicExtract.tsv')\n",
+    "\n",
+    "\n",
+    "dna = DNAassembly(\"mydna\",promoter=RegulatedPromoter(\"plac\",[\"laci\"]),rbs=\"UTR1\",protein=\"GFP\")\n",
+    "print(dna.mechanisms)\n",
+    "#returns: {}\n",
+    "\n",
+    "\n",
+    "# Or simply add a new dna in one line as follows.\n",
+    "txtl.add_dna(name = \"G1\", promoter = \"pBest\", rbs = \"BCD2\", protein = \"GFP\", initial_concentration = 10, volume = 1e-7)\n",
+    "#print(txtl.Mixture.mechanisms['transcription'])\n",
+    "# Combine all of the tubes together to get the model\n",
+    "well1 = txtl.get_model()\n",
+    "#print(well1)\n",
+    "# Create an SBML file containing the model\n",
+    "filename = \"geneexpr.xml\"\n",
+    "txtl.write_sbml_file(filename)\n",
+    "#txtl.validate_sbml_generated()\n",
+    "#print('SBML model successfully written to {0}'.format(filename))\n",
+    "\n",
+    "# Run a simulation (using bioscrape or your own simulator) and plot the result\n",
+    "# (Optional) Specify the type of simulation (deterministic or stochastic)\n",
+    "# timepoints = np.linspace(0,14*60,100)\n",
+    "# simdata = well1.runsim_bioscrape(timepoints, filename, simtype = \"stochastic\", plot_show = True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### You can create your own custom mechanisms, components, or mixtures. Refer to the advanced \"Developer Overview\" notebook for more details"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.4"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
