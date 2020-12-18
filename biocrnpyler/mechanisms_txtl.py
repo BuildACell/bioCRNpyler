@@ -366,13 +366,14 @@ class Energy_Transcription_MM(Mechanism):
         Fuel + G:RNAP --> G + RNAP + T + Fuel (Transcription can only happen when there is fuel)
             at rate ktx/L (length dependent transcription rate)
 
-        Fuel + G:RNAP --> G:RNAP (Fuel consumption treated faster)
+        Fuel + G:RNAP --> G:RNAP +wastes (Fuel consumption treated faster)
             at rate ktx (This occurs L times faster than the above, resulting in the correct fuel use)
     """
 
-    def __init__(self, rnap: Species,  fuels: List[Species], name="energy_transcription_mm", **keywords):
+    def __init__(self, rnap: Species,  fuels: List[Species], wastes = List[Species], name="energy_transcription_mm", **keywords):
         """Initializes a Transcription_MM instance.
         :param fuels: List of Species consumed during transcription
+        :param wastes: List of Species consumed during transcription
         :param rnap: Species instance that is representing an RNA polymerase
         :param name: name of the Mechanism, default: transcription_mm
         """
@@ -385,6 +386,11 @@ class Energy_Transcription_MM(Mechanism):
             self.fuels = fuels
         else:
             raise ValueError('recieved a non-Species object in the fuels list.')
+
+        if all([isinstance(s, Species) for s in fuels]):
+            self.wastes = wastes
+        else:
+            raise ValueError("wastes must be a list of Species!")
 
         Mechanism.__init__(self=self, name=name,
                                      mechanism_type="transcription")
@@ -417,7 +423,7 @@ class Energy_Transcription_MM(Mechanism):
         r2 = Reaction.from_massaction(self.fuels + [bound_complex], self.fuels + [dna, self.rnap, transcript],
             k_forward = parameter_to_value(ktx.value)/parameter_to_value(L))
         #Fuel consumption
-        r3 = Reaction.from_massaction(self.fuels + [bound_complex], [bound_complex], k_forward = ktx)
+        r3 = Reaction.from_massaction(self.fuels + [bound_complex], [bound_complex]+self.wastes, k_forward = ktx)
 
         return [r1, r2, r3]
 
@@ -427,15 +433,16 @@ class Energy_Translation_MM(Mechanism):
 
         mRNA + Rib  <--> mRNA:Rib  (binding)
         fuels + mRNA:Rib --> mRNA + Rib + Protein + fuels    (translation)
-        fuels + mRNA:Rib --> mRNA:Rib  (fuel consumption)
+        fuels + mRNA:Rib --> mRNA:Rib  +wastes (fuel consumption)
     """
 
-    def __init__(self, ribosome: Species, fuels: List[Species], name="energy_translation_mm", **keywords):
+    def __init__(self, ribosome: Species, fuels: List[Species], wastes = List[Species], name="energy_translation_mm", **keywords):
         """Initializes a Translation_MM instance.
         
         :param ribosome: Species instance that is representing a ribosome
         :param fuels: List of fuel Species that are consumed during translation
-        :param name: name of the Mechanism, default: translation_mm
+        :param wastes: List of Species consumed during translation
+        :param name: name of the Mechanism, default: energy_translation_mm
         """
         if isinstance(ribosome, Species):
             self.ribosome = ribosome
@@ -446,6 +453,11 @@ class Energy_Translation_MM(Mechanism):
             self.fuels = fuels
         else:
             raise ValueError("Fuels must be a list of Species!")
+
+        if all([isinstance(s, Species) for s in fuels]):
+            self.wastes = wastes
+        else:
+            raise ValueError("wastes must be a list of Species!")
 
         Mechanism.__init__(self=self, name=name,
                                      mechanism_type="translation")
@@ -478,7 +490,7 @@ class Energy_Translation_MM(Mechanism):
         r2 = Reaction.from_massaction(self.fuels + [bound_complex], self.fuels + [transcript, self.ribosome, protein],
             k_forward = parameter_to_value(ktl.value)/parameter_to_value(L))
         #Fuel consumption
-        r3 = Reaction.from_massaction(self.fuels + [bound_complex], [bound_complex], k_forward = ktl)
+        r3 = Reaction.from_massaction(self.fuels + [bound_complex], [bound_complex]+self.wastes, k_forward = ktl)
 
         return [r1, r2, r3]
 

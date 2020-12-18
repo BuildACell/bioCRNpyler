@@ -10,9 +10,18 @@ energy_translation_mm		length	100	"This is a default length, transcript specific
 rna_degredation_mm		kdeg	1.01	
 rna_degredation_mm		kb	1	
 rna_degredation_mm		ku	1.26582E-06	
-one_step_hill_pathway	NTPs_production	vmax	0.02	Corresponds to alpha_atp in the paper
-one_step_hill_pathway	NTPs_production	K	10	
-one_step_hill_pathway	NTPs_degredation	vmax	0.0000177	Corresponds to delta_atp in the paper
-one_step_hill_pathway	NTPs_degredation	K	10	
-initial_concentration		NTPs	5	mM (total NTPs in standard energy buffer)
-initial_concentration		amino_acids	30	mM (total amino acids in standard energy buffer)
+one_step_pathway	NTPs_production	k	0.02	
+one_step_pathway	NTPs_degredation	k	0.0000177	
+initial concentration		NTPs	5	mM (total NTPs in standard energy buffer)
+initial concentration		amino_acids	30	mM (total amino acids in standard energy buffer)
+initial concentration		Fuel_3PGA	30	mM (standard energy buffer amount)
+initial concentration		RNAase	20.2	
+initial concentration		protein_Ribo	0.0273	
+initial concentration		RNAP	0.00933	
+				
+				
+				
+one_step_hill_pathway	NTPs_production	vmax	0.002	Estimated by hand to keep ATP levels constant for ~3 hours before degrading
+one_step_hill_pathway	NTPs_production	K	5	
+one_step_hill_pathway	NTPs_degredation	vmax	0.002	
+one_step_hill_pathway	NTPs_degredation	K	1	

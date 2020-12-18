@@ -153,10 +153,10 @@ class Metabolite(Component):
         mech_pathway = self.get_mechanism('metabolic_pathway', optional_mechanism = True)
 
         if mech_pathway is not None:
-            for p in self.precursors:
-                species += mech_pathway.update_species(precursor = p, product = self.get_species(), component = self, part_id = self.name+"_production")
-            for p in self.products:
-                species += mech_pathway.update_species(precursor = self.get_species(), product = p, component = self, part_id = self.name+"_degredation")
+            if len(self.precursors) > 0:
+                species += mech_pathway.update_species(precursor = self.precursors, product = [self.get_species()], component = self, part_id = self.name+"_production")
+            if len(self.products) > 0:
+                species += mech_pathway.update_species(precursor = [self.get_species()], product = self.products, component = self, part_id = self.name+"_degredation")
 
         return species
 
@@ -165,10 +165,10 @@ class Metabolite(Component):
         mech_pathway = self.get_mechanism('metabolic_pathway', optional_mechanism = True)
 
         if mech_pathway is not None:
-            for p in self.precursors:
-                reactions += mech_pathway.update_reactions(precursor = p, product = self.get_species(), component = self, part_id = self.name+"_production")
-            for p in self.products:
-                reactions += mech_pathway.update_reactions(precursor = self.get_species(), product = p, component = self, part_id = self.name+"_degredation")
+            if len(self.precursors) > 0:
+                reactions += mech_pathway.update_reactions(precursor = self.precursors, product = [self.get_species()], component = self, part_id = self.name+"_production")
+            if len(self.products) > 0:
+                reactions += mech_pathway.update_reactions(precursor = [self.get_species()], product = self.products, component = self, part_id = self.name+"_degredation")
         return reactions
 
 

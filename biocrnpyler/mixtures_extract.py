@@ -12,7 +12,7 @@ from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
 from .mechanisms_txtl import (OneStepGeneExpression, SimpleTranscription,
                               SimpleTranslation, Transcription_MM, Translation_MM,
                               Energy_Transcription_MM, Energy_Translation_MM)
-from .mechanisms_metabolite import OneStepHillPathway
+from .mechanisms_metabolite import OneStepHillPathway, OneStepPathway
 from .mixture import Mixture
 
 
@@ -151,7 +151,7 @@ class EnergyTxTlExtract(Mixture):
     Energy usage for transcription and translation is length dependent."""
 
     def __init__(self, name="", rnap="RNAP", ribosome="Ribo", rnaase="RNAase", 
-        ntps = "NTPs", amino_acids = "amino_acids", fuel = "3PGA", **kwargs):
+        ntps = "NTPs", ndps = "NDPs", amino_acids = "amino_acids", fuel = "Fuel_3PGA", **kwargs):
         """
         :param name: name of the mixture
         :param rnap: name of the RNA polymerase, default: RNAP
@@ -169,20 +169,23 @@ class EnergyTxTlExtract(Mixture):
         self.ribosome = Protein(ribosome)
         self.rnaase = Protein(rnaase)
         self.amino_acids = Metabolite(amino_acids)
-        self.fuel = Metabolite(fuel)
-        self.ntps = Metabolite(ntps, precursors = [self.fuel], products = [None])
+        self.fuel = Metabolite(fuel) #fuel is degraded into things other than ATP as well
+        self.ndps = Metabolite(ndps) #NDPs
+        self.ntps = Metabolite(ntps, precursors = [self.fuel, self.ndps], products = [self.ndps]) #fuel becomes ATP, and ATP is degraded
+        
 
         #These mechanisms are Component specific and only added to the NTPs metabolite
-        mech_pathway = OneStepHillPathway()
+        mech_pathway = OneStepPathway()
         self.ntps.add_mechanisms(mech_pathway)
+        self.fuel.add_mechanisms(mech_pathway)
 
 
         default_components = [self.rnap, self.ribosome, self.rnaase, self.amino_acids, self.ntps, self.fuel]
         self.add_components(default_components)
 
         # Create default TxTl Mechanisms
-        mech_tx = Energy_Transcription_MM(rnap=self.rnap.get_species(), fuels = [self.ntps.get_species()])
-        mech_tl = Energy_Translation_MM(ribosome=self.ribosome.get_species(), fuels = [self.ntps.get_species(), self.ntps.get_species(), self.amino_acids.get_species()])
+        mech_tx = Energy_Transcription_MM(rnap=self.rnap.get_species(), fuels = [self.ntps.get_species()], wastes = [])
+        mech_tl = Energy_Translation_MM(ribosome=self.ribosome.get_species(), fuels = 4*[self.ntps.get_species()] +[self.amino_acids.get_species()], wastes = 4*[self.ndps.get_species()])
         mech_rna_deg = Degredation_mRNA_MM(nuclease=self.rnaase.get_species())
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
