@@ -435,7 +435,8 @@ class ComplexSpecies(Species):
         This is good for modelling order-indpendent binding complexes.
         For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
     """
-    def __init__(self, species: List[Union[Species,str]], name: Union[str,None] = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
+    def __init__(self, species: List[Union[Species,str]], name: Union[str,None] = None, material_type = "complex", 
+                attributes = None, compartment = None, initial_concentration = 0, **keywords):
         
         #A little check to enforce use of Complex() to create ComplexSpecies
         if "called_from_complex" not in keywords or not keywords["called_from_complex"]:
@@ -448,7 +449,8 @@ class ComplexSpecies(Species):
         self.species = species 
 
         #call super class
-        Species.__init__(self, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)
+        Species.__init__(self, name = name, material_type = material_type, attributes = attributes, 
+                        compartment = compartment, initial_concentration = initial_concentration)
 
     def __repr__(self):
         """
@@ -592,7 +594,8 @@ class Multimer(ComplexSpecies):
     """A subclass of ComplexSpecies for Complexes made entirely of the same kind of species,
     eg dimers, tetramers, etc.
     """
-    def __init__(self, species, multiplicity, name = None, material_type = "complex", attributes = None, initial_concentration = 0, **keywords):
+    def __init__(self, species, multiplicity, name = None, material_type = "complex", attributes = None, 
+                compartment = None, initial_concentration = 0, **keywords):
 
         if "called_from_complex" not in keywords or not keywords["called_from_complex"]:
             warnings.warn("OrderedComplexSpecies should be created from the Complex([List of Species], ordered = True) function, not directly!")
@@ -604,7 +607,9 @@ class Multimer(ComplexSpecies):
         else:
             species = [species]
 
-        ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration, **keywords)   
+        ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, 
+                                compartment = compartment, attributes = attributes, initial_concentration = initial_concentration,
+                                **keywords)   
 
 class OrderedComplexSpecies(ComplexSpecies):
     """ 
@@ -616,7 +621,8 @@ class OrderedComplexSpecies(ComplexSpecies):
     Used for attribute inheritance and storing groups of bounds Species. 
     """
 
-    def __init__(self, species, name = None, material_type = "ordered_complex", attributes = None, initial_concentration = 0, **keywords):
+    def __init__(self, species, name = None, material_type = "ordered_complex", attributes = None, 
+                compartment = None, initial_concentration = 0, **keywords):
         #Set species because it is used for default naming
         if len(Species.flatten_list(species)) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
@@ -624,10 +630,9 @@ class OrderedComplexSpecies(ComplexSpecies):
         self.species = species
 
         #Call the Species superclass constructor
-        Species.__init__(self, name = name, material_type = material_type, attributes = attributes, initial_concentration = initial_concentration)
+        Species.__init__(self, name = name, material_type = material_type, attributes = attributes, 
+                        compartment = compartment, initial_concentration = initial_concentration)
 
-
-    
     @property
     def name(self):
         if self._name is None:
@@ -733,10 +738,11 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
     of any Mechanism.
     """
     default_material="ordered_polymer"
-    def __init__(self,species, name=None, base_species = None, material_type = default_material, \
-                             attributes = None, initial_concentration = 0,circular = False):
+    def __init__(self,species, name=None, base_species = None, material_type = default_material, 
+                compartment = None, attributes = None, initial_concentration = 0,circular = False):
 
         self.material_type = material_type
+        self.compartment = compartment
         self.parent=None
         self.position=None
         self.direction=None
