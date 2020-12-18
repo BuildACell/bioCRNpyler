@@ -105,6 +105,29 @@ class Promoter(DNA_part):
         else:
             return None
 
+    @classmethod
+    def from_promoter(cls, name, assembly, transcript, protein):
+        """Helper function to initialize a promoter instance from another promoter or str.
+
+        :param name: either string or an other promoter instance
+        :param assembly:
+        :param transcript:
+        :param protein:
+        :return: Promoter instance
+        """
+        if isinstance(name, Promoter):
+            promoter_instance = copy.deepcopy(name)
+            promoter_instance.assembly = assembly
+            promoter_instance.transcript = transcript
+            promoter_instance.protein = protein
+        elif isinstance(name, str):
+            promoter_instance = cls(name=name, assembly=assembly,
+                                    transcript=transcript, protein=protein)
+        else:
+            raise TypeError(f'Promoter can be initialized from string or another promoter! We got {type(name)}')
+        return promoter_instance
+
+
 class RegulatedPromoter(Promoter):
     """
     A Promoter class with simple regulation.

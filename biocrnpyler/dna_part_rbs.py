@@ -76,3 +76,25 @@ class RBS(DNA_part):
                 out_component.transcript = dna
             #my_rna.get_species()
         return out_component
+
+    @classmethod
+    def from_rbs(cls, name, assembly, transcript, protein):
+        """Helper function to initialize a rbs instance from another rbs or str.
+
+        :param name: either string or an other rbs instance
+        :param assembly:
+        :param transcript:
+        :param protein:
+        :return: RBS instance
+        """
+        if isinstance(name, RBS):
+            rbs_instance = copy.deepcopy(name)
+            rbs_instance.assembly = assembly
+            rbs_instance.transcript = transcript
+            rbs_instance.protein = protein
+        elif isinstance(name, str):
+            rbs_instance = cls(name=name, assembly=assembly,
+                               transcript=transcript, protein=protein)
+        else:
+            raise TypeError(f'RBS can be initialized from string or another RBS! We got {type(name)}')
+        return  rbs_instance
