@@ -6,6 +6,8 @@ class Compartment():
     """ A formal Compartment object for a Species in a CRN.
      A Compartment must have a name. They may also have a spatial dimension (such as 2 for two-dimensional,
      or 3 for three-dimensional) and the volume in litres. 
+     Note: The "default" keyword is reserved for BioCRNpyler allotting a default compartment. 
+     Users must choose a different string. 
     """
 
     def __init__(self, name: str, volume = 1e-6, spatial_dimensions = 3, **keywords):
@@ -26,10 +28,10 @@ class Compartment():
             raise TypeError("Compartment name must be a string.")
         elif type(name) is str:
             no_underscore_string = name.replace("_", "")
-            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_" and not name[0].isnumeric():
+            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_" and name[0].isalpha():
                 self._name = name
             else:
-                raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or end in an underscore.")
+                raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character.")
         else:
             raise ValueError('Compartment name must be a string.')
 
@@ -52,8 +54,8 @@ class Compartment():
 
     @volume.setter
     def volume(self, volume: float):
-        if type(volume) is not float:
-            raise ValueError('Compartment volume must be a float.')
+        if type(volume) not in [float, int]:
+            raise ValueError('Compartment volume must be a float or int.')
         elif volume < 0:
             raise ValueError('Compartment volume must be non-negative.')
         else:

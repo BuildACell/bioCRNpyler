@@ -134,10 +134,10 @@ class Species(OrderedMonomer):
             return name
         elif isinstance(name, str):
             no_underscore_string = name.replace("_", "")
-            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_" and not name[0].isnumeric():
+            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_" and name[0].isalpha():
                 return name
             else:
-                raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or end in an underscore.")
+                raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character.")
         else:
             raise TypeError("Name must be a string.")
 
@@ -171,7 +171,9 @@ class Species(OrderedMonomer):
             for i in self.attributes:
                 if i is not None:
                     txt += "_" + str(i)
-        txt += "_" + self.compartment.name
+        if self.compartment.name != 'default':
+            # Only add a compartment name if it is not the default one.
+            txt += "_" + self.compartment.name
         txt.replace("'", "")
         return txt
 
@@ -632,7 +634,7 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         #Call the Species superclass constructor
         Species.__init__(self, name = name, material_type = material_type, attributes = attributes, 
-                        compartment = compartment, initial_concentration = initial_concentration)
+                            compartment = compartment, initial_concentration = initial_concentration)
 
     @property
     def name(self):
@@ -710,7 +712,7 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         if self.compartment not in ["", None] and show_compartment:
             txt += " in " + self.compartment + "."
-            
+
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
             txt += "("
             for i in self.attributes:

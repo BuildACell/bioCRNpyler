@@ -27,7 +27,7 @@ class TestSpecies(TestCase):
             compartment = Compartment(name = "test_compartment")
             compartment.name = 24
 
-        with pytest.raises(ValueError, match = 'Compartment volume must be a float.'):
+        with pytest.raises(ValueError, match = 'Compartment volume must be a float or int.'):
             Compartment(name = "test_compartment", volume= '2.5')
 
         with pytest.raises(ValueError, match = 'Compartment volume must be non-negative.'):

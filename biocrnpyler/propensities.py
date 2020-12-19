@@ -219,7 +219,8 @@ class Propensity(object):
             propensity_dict_in_sbml['parameters'][param_name] = parameter_in_sbml.getId()
 
         for species_name, species in propensity_dict_in_sbml['species'].items():
-            propensity_dict_in_sbml['species'][species_name] = getSpeciesByName(model, str(species)).getId()
+            # propensity_dict_in_sbml['species'][species_name] = getSpeciesByName(model, str(species)).getId()
+            propensity_dict_in_sbml['species'][species_name] = str(species)
 
         return propensity_dict_in_sbml
 
@@ -347,7 +348,8 @@ class MassAction(Propensity):
         if not reverse_reaction:
             reactant_species = {}
             for w_species in crn_reaction.inputs:
-                species_id = getSpeciesByName(model, str(w_species.species)).getId()
+                # species_id = getSpeciesByName(model, str(w_species.species)).getId()
+                species_id = str(w_species.species)
                 reactant_species[species_id] = w_species
             param = propensity_dict_in_sbml['parameters']['k_forward']
             propensity_dict_in_sbml['parameters'].pop('k_reverse', None) #remove the other parameter from the propensities
@@ -356,7 +358,8 @@ class MassAction(Propensity):
         elif reverse_reaction:
             reactant_species = {}
             for w_species in crn_reaction.outputs:
-                species_id = getSpeciesByName(model, str(w_species.species)).getId()
+                # species_id = getSpeciesByName(model, str(w_species.species)).getId()
+                species_id = str(w_species.species)
                 reactant_species[species_id] = w_species
             param = propensity_dict_in_sbml['parameters']['k_reverse']
             propensity_dict_in_sbml['parameters'].pop('k_forward', None) #remove the other parameter from the propensities

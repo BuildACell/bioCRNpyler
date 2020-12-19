@@ -110,7 +110,7 @@ def add_species(model, compartment, species, initial_concentration=None, **kwarg
 
     logger.debug(f'Adding species: {species_name}, id: {species_id}')
     sbml_species = model.createSpecies()
-    sbml_species.setName(species_name)
+    sbml_species.setName(species.name)
     sbml_species.setId(species_id)
     sbml_species.setCompartment(compartment.getId())
     sbml_species.setConstant(False)
@@ -138,7 +138,7 @@ def add_compartment(model, compartment, **keywords):
     :return: SBML compartment object 
     """
     sbml_compartment = model.createCompartment()
-    compartment_id = valid_sbml_id(compartment.name, model.getSBMLDocument())
+    compartment_id = compartment.name
     sbml_compartment.setId(compartment_id)
     sbml_compartment.setName(compartment.name)
     sbml_compartment.setConstant(True)  # keep compartment size constant
@@ -245,7 +245,7 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
 def _create_reactants(reactant_list, sbml_reaction, model):
     for input in reactant_list:
         # What to do when there are multiple species with same name?
-        species_id = getSpeciesByName(model, str(input.species)).getId()
+        species_id = str(input.species)
         reactant = sbml_reaction.createReactant()
         reactant.setSpecies(species_id)  
         reactant.setConstant(False)
@@ -253,7 +253,8 @@ def _create_reactants(reactant_list, sbml_reaction, model):
 
 def _create_products(product_list, sbml_reaction, model):
     for output in product_list:
-        species_id = getSpeciesByName(model, str(output.species)).getId()
+        # species_id = getSpeciesByName(model, output.species.name).getId()
+        species_id = str(output.species)
         product = sbml_reaction.createProduct()
         product.setSpecies(species_id)
         product.setStoichiometry(output.stoichiometry)
