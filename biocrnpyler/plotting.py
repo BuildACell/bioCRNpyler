@@ -527,7 +527,7 @@ def plotConstruct(DNA_construct_obj, dna_renderer=None,
         plotDesign(design, circular=circular,
                    title=DNA_construct_obj.get_species())
         if(plot_rnas):
-            rnas_and_proteins = DNA_construct_obj.enumerate_components()
+            rnas_and_proteins = DNA_construct_obj.enumerate_constructs()
             for component in rnas_and_proteins:
                 if(component.get_species().material_type=="rna"):
                     rnadesign = make_dpl_from_construct(component,showlabels=showlabels)
