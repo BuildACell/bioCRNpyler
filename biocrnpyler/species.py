@@ -171,6 +171,7 @@ class Species(OrderedMonomer):
             for i in self.attributes:
                 if i is not None:
                     txt += "_" + str(i)
+        txt += "_" + self.compartment.name
         txt.replace("'", "")
         return txt
 
