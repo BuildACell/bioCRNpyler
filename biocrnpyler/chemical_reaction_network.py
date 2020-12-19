@@ -98,7 +98,6 @@ class ChemicalReactionNetwork(object):
                 else:
                     raise ValueError(f"Trying to set a species {s} to a negative concentration {initial_concentration_dict[s]}")
 
-
     @staticmethod
     def check_crn_validity(reactions: List[Reaction], species: List[Species], show_warnings=True) -> Tuple[List[Reaction],List[Species]]:
         """Checks that the given list of reactions and list of species can form a valid CRN.
@@ -160,7 +159,7 @@ class ChemicalReactionNetwork(object):
         """
 
         txt = "Species"+ f"(N = {len(self.species)}) = "+"{\n"
-
+        
         ics = lambda s: self.initial_concentration_dict[s] if s in self.initial_concentration_dict else 0
 
         species_sort_list = [(parameter_to_value(ics(s)), s) for s in self.species]

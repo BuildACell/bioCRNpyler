@@ -322,7 +322,6 @@ class Mixture(object):
         for s in S:
             if not isinstance(s, Species):
                 raise ValueError(f"{s} is not a Species! Can only find initial concentration of a Species.")
-
             init_conc = None
             #1 Check the component
             if component is not None:
