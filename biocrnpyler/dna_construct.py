@@ -59,7 +59,7 @@ class ConstructExplorer(ComponentEnumerator):
                         #Do something to the part
                         self.iterate_part(part, direction)
 
-            return self.return_components()
+            return self.return_components(component)
         else:
             print("ConstructExplorer returning nothing (else)", component)
             return []
@@ -96,7 +96,7 @@ class ConstructExplorer(ComponentEnumerator):
         pass
         #MUST SUBCLASS
 
-    def return_components(self):
+    def return_components(self,component):
         #returns components at the end of the loop
         #MUST SUBCLASS
         return []
@@ -136,7 +136,7 @@ class TxExplorer(ConstructExplorer):
         #Grow Existing Transcripts
         #For each promoter being transcribed, we will add the part and its direction relative to that promoter
         for promoter in self.current_rnas:
-            self.current_rnas[promoter]+= [(part, effective_direction)]
+            self.current_rnas[promoter]+= [(copy.deepcopy(part), effective_direction)]
 
         #Case for Different Parts doing different things
 
@@ -163,12 +163,17 @@ class TxExplorer(ConstructExplorer):
             rna_construct = RNA_construct(rna_parts_list, promoter = promoter)
             self.all_rnas[promoter] = rna_construct
             promoter.transcript = rna_construct.get_species()
-
         self.current_rnas = {}
 
     #Returns a list of RNAconstructs
-    def return_components(self):
-        return [self.all_rnas[k] for k in self.all_rnas]
+    def return_components(self,component):
+        rna_construct_list = [self.all_rnas[k] for k in self.all_rnas]
+
+        for rna_construct in rna_construct_list:
+            correct_promoter = component[rna_construct.my_promoter.position]
+            correct_promoter.transcript = rna_construct.get_species()
+            rna_construct.my_promoter = correct_promoter
+        return rna_construct_list
 
 
 
