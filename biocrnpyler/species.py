@@ -553,7 +553,8 @@ class ComplexSpecies(Species):
         return species
 
 
-    def pretty_print(self, show_material = True, show_attributes = True, show_initial_condition = False, **kwargs):
+    def pretty_print(self, show_material = True, show_compartment = False, show_attributes = True, 
+                        show_initial_condition = False, **kwargs):
         """
         A more powerful printing function. 
         Useful for understanding CRNs but does not return string identifiers.
@@ -571,6 +572,9 @@ class ComplexSpecies(Species):
                 txt += f"{count}x_"
             txt += s.pretty_print(show_material = show_material, show_attributes = False)+":"
         txt = txt[:-1]
+
+        if self.compartment not in ["", None] and show_compartment:
+            txt += " in " + self.compartment + "."
 
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
             txt += "("
@@ -685,7 +689,8 @@ class OrderedComplexSpecies(ComplexSpecies):
         
         return Complex(species = new_species_list, name = new_name, material_type = self.material_type, attributes = self.attributes, ordered = True)
 
-    def pretty_print(self, show_material = True, show_attributes = True, show_initial_condition = False, **kwargs):
+    def pretty_print(self, show_material = True, show_compartment = False, show_attributes = True, 
+                        show_initial_condition = False, **kwargs):
         """
         A more powerful printing function. 
         Useful for understanding CRNs but does not return string identifiers.
@@ -703,6 +708,9 @@ class OrderedComplexSpecies(ComplexSpecies):
             txt += s.pretty_print(show_material = show_material, show_attributes = False)+":"
         txt = txt[:-1]
 
+        if self.compartment not in ["", None] and show_compartment:
+            txt += " in " + self.compartment + "."
+            
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
             txt += "("
             for i in self.attributes:
