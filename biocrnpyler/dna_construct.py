@@ -115,7 +115,6 @@ class TxExplorer(ConstructExplorer):
         2. it adds parts to growing transcripts
         3. it makes new transcripts and terminates growing transcripts.
         """
-        print(part, reading_direction)
         logging.debug("looking at "+str(part))
         logging.debug("current_rnas are "+str(self.current_rnas))
 
@@ -161,6 +160,7 @@ class TxExplorer(ConstructExplorer):
 
     #Returns a list of RNAconstructs
     def return_components(self):
+        print("TxEnumerator returning,", [self.all_rnas[k] for k in self.all_rnas])
         return [self.all_rnas[k] for k in self.all_rnas]
 
 
@@ -184,6 +184,7 @@ class TxTlExplorer_CE(LocalComponentEnumerator):
         self.direction=direction
         self.second_looping = False
         self.possible_directions = possible_directions
+
     def enumerate_components(self,component):
         assert(isinstance(component,Construct))
         logging.debug("enumerating "+str(component))
@@ -551,15 +552,18 @@ class Construct(Component,OrderedPolymer):
         self.name = self.make_name()
         self.update_base_species()
         return self
+
     def set_mixture(self, mixture):
         self.mixture = mixture
         for part in self.parts_list:
             part.set_mixture(mixture)
+
     def update_base_species(self, base_name=None, attributes = None):
         if base_name is None:
             self.base_species = self.set_species(self.name, material_type = self.material_type, attributes = attributes)
         else:
             self.base_species = self.set_species(base_name, material_type = self.material_type, attributes = attributes)
+
     def update_parameters(self, overwrite_parameters = True):
         """update parameters of all parts in the construct"""
         Component.update_parameters(self = self,parameter_database=self.parameter_database)
@@ -573,9 +577,11 @@ class Construct(Component,OrderedPolymer):
         for part in self.parts_list:
             part.add_mechanism( mechanism, mech_type = mech_type, \
                                 overwrite = overwrite, optional_mechanism = optional_mechanism)
+    
     def __repr__(self):
         """this is just for display purposes"""
         return "Construct = "+ self.make_name()
+
     def show(self):
         txt = self.name
         for part in self.parts_list:
@@ -587,6 +593,7 @@ class Construct(Component,OrderedPolymer):
                     for prot in part.protein:
                         txt += "\n\tprotein = "+repr(prot)
         return txt
+
     def __contains__(self,obj2):
         """checks if this construct contains a certain part, or a copy of a certain part"""
         if(isinstance(obj2,DNA_part)):
@@ -609,6 +616,7 @@ class Construct(Component,OrderedPolymer):
         elif(isinstance(obj2,str)):
             #if we get a string, that means we want to know if the name exists anywhere
             return obj2 in str(self)
+
     def get_species(self):
         ocomplx = []
         for part in self.parts_list:
@@ -752,20 +760,22 @@ class Construct(Component,OrderedPolymer):
             
         return combinatorial_complexes
 
-    #Overwrite Component.enumerate_components    
-    def enumerate_components(self):
-        big_comps = []
+    #Overwrite Component.enumerate_components 
+    def enumerate_constructs(self):
+        #Runs component enumerator to generate new constructs
+        new_constructs = []
         for enumerator in self.component_enumerators:
             new_comp = enumerator.enumerate_components(component=self)
-            big_comps += new_comp
+            new_constructs += new_comp
+        return new_constructs
 
+    def combinatorial_enumeration(self):
+        #Looks at combinatorial states of constructs to generate DNA_parts
         multivalent_self = self.get_species()
         self.update_parameters()
 
-        #if((rnas is None) or (proteins is None)):
-        #    rnas = self.predicted_rnas
-        #    proteins = self.predicted_proteins
-        #    if(rnas is None or proteins is None):
+
+        #Go through parts
         active_components = []
         for part in self.parts_list:
             if(hasattr(part,"update_component")):
@@ -783,7 +793,18 @@ class Construct(Component,OrderedPolymer):
                         pass
                     else:
                         combinatorial_components += [part.update_component(comb_specie[part_pos])]
-        return combinatorial_components+big_comps
+        return combinatorial_components
+
+    def enumerate_components(self):
+        #Runs component enumerator to generate new constructs
+        new_constructs = self.enumerate_constructs()
+
+        #Looks at combinatorial states of constructs to generate DNA_parts
+        combinatorial_components = self.combinatorial_enumeration()
+
+        return combinatorial_components+new_constructs
+
+
     def __hash__(self):
         return hash(self.__repr__())
     def __eq__(self,construct2):
@@ -794,7 +815,6 @@ class Construct(Component,OrderedPolymer):
             return False
     
     def update_species(self):
-        print("construct update species")
         species = [self.get_species()]
         return species
     def reset_stored_data(self):
