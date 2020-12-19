@@ -1,0 +1,20 @@
+mechanism	part_id	param_name	value	comments
+energy_transcription_mm		ktx	3.25	Tx_cat from Singhal et al.
+energy_transcription_mm		kb	4.48	For the promoter tested in Singhal et al Supplemental Table S2
+energy_transcription_mm		ku	2.48889E-06	For the promoter tested in Singhal et al Supplemental Table S2
+energy_transcription_mm		length	300	"This is a default length, gene specific ones should be set"
+energy_translation_mm		ktl	19.2	TL_cat from Singhal et al.
+energy_translation_mm		kb	0.819	For the RBS tested in Singhal et al Supplemental Table S2
+energy_translation_mm		ku	0.002853659	For the RBS tested in Singhal et al Supplemental Table S2
+energy_translation_mm		length	100	"This is a default length, transcript specific ones should be set"
+rna_degredation_mm		kdeg	1.01	The values from Singhal et al Supplemental Table S2
+rna_degredation_mm		kb	1	The values from Singhal et al Supplemental Table S2
+rna_degredation_mm		ku	1.26582E-06	The values from Singhal et al Supplemental Table S2
+one_step_pathway	NTPs_production	k	0.02	alpha_atp fron Singhal et al.
+one_step_pathway	NTPs_degredation	k	0.0000177	Delta_ATP from Singhal et a.
+initial concentration		NTPs	5	mM (total NTPs in standard energy buffer)
+initial concentration		amino_acids	30	mM (total amino acids in standard energy buffer)
+initial concentration		Fuel_3PGA	30	mM (standard energy buffer amount)
+initial concentration		RNAase	20.2	The values from Singhal et al Supplemental Table S2
+initial concentration		protein_Ribo	0.0273	The values from Singhal et al Supplemental Table S2
+initial concentration		RNAP	0.00933	The values from Singhal et al Supplemental Table S2
