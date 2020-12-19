@@ -36,8 +36,10 @@ class ConstructExplorer(ComponentEnumerator):
         self.possible_directions = possible_directions
 
     def enumerate_components(self, component):
+        print("ConstructExplorer.enumerate_components")
         #Only works on Constructs!
         if isinstance(component, Construct):
+            print("Recieved Construct", component)
             #iterate through the possible directions
             for direction in self.possible_directions:
                 #Set the loop count
@@ -59,6 +61,7 @@ class ConstructExplorer(ComponentEnumerator):
 
             return self.return_components()
         else:
+            print("ConstructExplorer returning nothing (else)", component)
             return []
 
     def check_loop(self):
@@ -67,9 +70,11 @@ class ConstructExplorer(ComponentEnumerator):
         because we already checked this area for promoters"""
         logging.debug(f"loop count = {self.current_loop_count}")
         if self.current_loop_count > self.max_loop_count:
+            print("loop end???")
             self.terminate_loop()
             return False
         else:
+            print("loop #", self.current_loop_count)
             self.current_loop_count += 1
             return True
 
@@ -87,6 +92,7 @@ class ConstructExplorer(ComponentEnumerator):
 
     def terminate_loop(self):
         #called when we are done enumerating
+        print("am I calling this????")
         pass
         #MUST SUBCLASS
 
@@ -146,11 +152,13 @@ class TxExplorer(ConstructExplorer):
     
 
     def terminate_loop(self):
+        print("Terminate loop")
         #Transfers current rnas into all_rnas
 
         #Create RNA_Constructs for each promoter
 
         for promoter in self.current_rnas:
+            print("adding promoter", promoter, type(promoter))
             rna_parts_list = self.current_rnas[promoter]
             rna_construct = RNA_construct(rna_parts_list, promoter = promoter)
             self.all_rnas[promoter] = rna_construct
@@ -160,7 +168,6 @@ class TxExplorer(ConstructExplorer):
 
     #Returns a list of RNAconstructs
     def return_components(self):
-        print("TxEnumerator returning,", [self.all_rnas[k] for k in self.all_rnas])
         return [self.all_rnas[k] for k in self.all_rnas]
 
 
@@ -496,6 +503,7 @@ class Construct(Component,OrderedPolymer):
         if(self.circular):
             output+="_o"
         return output
+
     def get_part(self,part = None, part_type=None, name = None, index = None):
         """
         Function to get parts from Construct.parts_list.
@@ -684,6 +692,7 @@ class Construct(Component,OrderedPolymer):
                 combo_sublists += [prototype_list[compacted_indexes.index(combo_index)]]
             outlist+= recursive_path(combo_sublists)
         return outlist
+
     def make_polymers(self,species_lists,backbone):
         """makes polymers from lists of species
         inputs:
@@ -709,6 +718,7 @@ class Construct(Component,OrderedPolymer):
                 new_backbone.material_type = new_material
                 polymers += [new_backbone] #we make a new OrderedComplexSpecies
         return polymers
+
     def update_combinatorial_complexes(self,active_components):
         """given an input list of components, we produce all complexes
         yielded by those components, mixed and matched to make all possible combinatorial
@@ -762,6 +772,7 @@ class Construct(Component,OrderedPolymer):
 
     #Overwrite Component.enumerate_components 
     def enumerate_constructs(self):
+        print("Construct.enumerate_constructs")
         #Runs component enumerator to generate new constructs
         new_constructs = []
         for enumerator in self.component_enumerators:
@@ -796,6 +807,7 @@ class Construct(Component,OrderedPolymer):
         return combinatorial_components
 
     def enumerate_components(self):
+        print("Construct.enumerate_components")
         #Runs component enumerator to generate new constructs
         new_constructs = self.enumerate_constructs()
 
@@ -839,10 +851,12 @@ class DNA_construct(Construct,DNA):
                 attributes=None,
                 initial_concentration=None,
                 copy_parts=True,
-                component_enumerators = (TxExplorer(),),
+                component_enumerators = None,
                 **keywords):
 
         self.material_type = "dna"
+        if component_enumerators is None:
+            component_enumerators = [TxExplorer()]
         Construct.__init__(self=self, parts_list =parts_list, name = name, \
                             circular=circular, mechanisms=mechanisms, \
                             parameters=parameters, attributes=attributes, \
@@ -869,12 +883,15 @@ class DNA_construct(Construct,DNA):
         
 class RNA_construct(Construct,RNA):
     def __init__(self,parts_list,name=None,promoter=None,\
-                component_enumerators = (TlExplorer(),),\
+                component_enumerators = None,\
                 **keywords):
         """an RNA_construct is a lot like a DNA_construct except it can only translate, and
         can only be linear"""
         self.material_type = "rna"
         self.my_promoter = promoter
+        if component_enumerators is None:
+            self.component_enumerators = [TlExplorer()]\
+
         Construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,\
                                 component_enumerators = component_enumerators,**keywords)
     #def get_species(self):
