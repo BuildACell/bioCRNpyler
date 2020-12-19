@@ -20,14 +20,26 @@ class TestComponent(TestCase):
 
         # test that the default initial concentration is zero
         self.assertEqual(self.component.initial_concentration, self.default_concentration)
+        #test there is one entry in the parameter database (the initial concentration)
+        self.assertTrue(len(self.component.parameter_database.parameters) == 1)
+        param = self.component.parameter_database.find_parameter(mechanism = 'initial concentration', part_id = None, param_name = self.comp_name)
+        self.assertTrue(param.value == self.default_concentration)
+
         new_value = 5
         self.component.initial_concentration = new_value
         # test that the initial concentration has been modified
         self.assertEqual(self.component.initial_concentration, new_value)
 
+        #test the value in the param dictionary has changes
+        param = self.component.parameter_database.find_parameter(mechanism = 'initial concentration', part_id = None, param_name = self.comp_name)
+        self.assertTrue(param.value == new_value)
+
         not_valid_value = -1
         with self.assertRaisesRegex(ValueError, f'Initial concentration must be non-negative, this was given: {not_valid_value}'):
             self.component.initial_concentration = not_valid_value
+
+        
+        
 
     def test_get_species(self):
 
@@ -53,23 +65,24 @@ class TestComponent(TestCase):
         parameters = {"kb": kb, "ku": ku, "ktx": ktx, "ktl": ktl, "kdeg": kdeg}
 
         # test that the custom parameters dictionary is empty
-        self.assertTrue(isinstance(self.component.parameter_database, ParameterDatabase)
-                        and len(self.component.parameter_database.parameters) == 0)
+        component = Component(self.comp_name)
+        self.assertTrue(isinstance(component.parameter_database, ParameterDatabase)
+                        and len(component.parameter_database.parameters) == 0)
 
         
 
-        self.component.update_parameters(parameters=parameters)
+        component.update_parameters(parameters=parameters)
 
         # test that the component has all the parameters
-        self.assertTrue(len(self.component.parameter_database.parameters) == len(parameters))
+        self.assertTrue(len(component.parameter_database.parameters) == len(parameters))
 
         # test overwriting parameters
         new_val = 111
         one_param = {"kb": new_val}
-        self.component.update_parameters(parameters=one_param, overwrite_parameters = True)
-        self.assertEqual(self.component.parameter_database[(None, None, "kb")].value, new_val)
+        component.update_parameters(parameters=one_param, overwrite_parameters = True)
+        self.assertEqual(component.parameter_database[(None, None, "kb")].value, new_val)
         # test that the parameter dictionary is still the same length as before
-        self.assertTrue(len(self.component.parameter_database.parameters) == len(parameters))
+        self.assertTrue(len(component.parameter_database.parameters) == len(parameters))
 
 
     def test_add_mechanism(self):

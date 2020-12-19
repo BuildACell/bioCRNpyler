@@ -15,13 +15,16 @@ class Species(OrderedMonomer):
      RNA, Protein), and a list of attributes.
     """
 
+<<<<<<< HEAD
     def __init__(self, name: str, material_type="", attributes: Union[List,None] = None,
                  initial_concentration=0, compartment = None, **keywords):
+=======
+    def __init__(self, name: str, material_type="", attributes: Union[List,None] = None, **keywords):
+>>>>>>> 812d0b406704da46d26a38535dd0fb59f506bcda
         OrderedMonomer.__init__(self,**keywords)
 
         self.name = name
         self.material_type = material_type
-        self.initial_concentration = initial_concentration
         self._attributes = [] #Set this to avoid errors
         self.attributes = attributes
         self.compartment = compartment
@@ -194,8 +197,12 @@ class Species(OrderedMonomer):
         return [self]
 
     
+<<<<<<< HEAD
     def pretty_print(self, show_material = True, show_compartment = False, show_attributes = True, 
                     show_initial_condition = False, **kwargs):
+=======
+    def pretty_print(self, show_material = True, show_attributes = True, **kwargs):
+>>>>>>> 812d0b406704da46d26a38535dd0fb59f506bcda
         """
         #A more powerful printing function. 
         Useful for understanding CRNs but does not return string identifiers.
@@ -223,9 +230,6 @@ class Species(OrderedMonomer):
             txt += "-"+self.direction
         if self.material_type not in ["", None] and show_material:
             txt += "]"
-
-        if show_initial_condition:
-            txt+=f" init_conc = {self.initial_concentration}"
 
         return txt
 
@@ -438,8 +442,12 @@ class ComplexSpecies(Species):
         This is good for modelling order-indpendent binding complexes.
         For a case where species order matters (e.g. polymers) use OrderedComplexSpecies
     """
+<<<<<<< HEAD
     def __init__(self, species: List[Union[Species,str]], name: Union[str,None] = None, material_type = "complex", 
                 attributes = None, compartment = None, initial_concentration = 0, **keywords):
+=======
+    def __init__(self, species: List[Union[Species,str]], name: Union[str,None] = None, material_type = "complex", attributes = None, **keywords):
+>>>>>>> 812d0b406704da46d26a38535dd0fb59f506bcda
         
         #A little check to enforce use of Complex() to create ComplexSpecies
         if "called_from_complex" not in keywords or not keywords["called_from_complex"]:
@@ -452,8 +460,12 @@ class ComplexSpecies(Species):
         self.species = species 
 
         #call super class
+<<<<<<< HEAD
         Species.__init__(self, name = name, material_type = material_type, attributes = attributes, 
                         compartment = compartment, initial_concentration = initial_concentration)
+=======
+        Species.__init__(self, name = name, material_type = material_type, attributes = attributes)
+>>>>>>> 812d0b406704da46d26a38535dd0fb59f506bcda
 
     def __repr__(self):
         """
@@ -587,9 +599,6 @@ class ComplexSpecies(Species):
             txt += "-"+self.direction
         txt += "]"
 
-        if show_initial_condition:
-            txt+=f" init_conc = {self.initial_concentration}"
-
         return txt
 
 
@@ -597,8 +606,12 @@ class Multimer(ComplexSpecies):
     """A subclass of ComplexSpecies for Complexes made entirely of the same kind of species,
     eg dimers, tetramers, etc.
     """
+<<<<<<< HEAD
     def __init__(self, species, multiplicity, name = None, material_type = "complex", attributes = None, 
                 compartment = None, initial_concentration = 0, **keywords):
+=======
+    def __init__(self, species, multiplicity, name = None, material_type = "complex", attributes = None, **keywords):
+>>>>>>> 812d0b406704da46d26a38535dd0fb59f506bcda
 
         if "called_from_complex" not in keywords or not keywords["called_from_complex"]:
             warnings.warn("OrderedComplexSpecies should be created from the Complex([List of Species], ordered = True) function, not directly!")
@@ -610,9 +623,13 @@ class Multimer(ComplexSpecies):
         else:
             species = [species]
 
+<<<<<<< HEAD
         ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, 
                                 compartment = compartment, attributes = attributes, initial_concentration = initial_concentration,
                                 **keywords)   
+=======
+        ComplexSpecies.__init__(self, species = species*multiplicity, name = name, material_type = material_type, attributes = attributes, **keywords)   
+>>>>>>> 812d0b406704da46d26a38535dd0fb59f506bcda
 
 class OrderedComplexSpecies(ComplexSpecies):
     """ 
@@ -624,8 +641,12 @@ class OrderedComplexSpecies(ComplexSpecies):
     Used for attribute inheritance and storing groups of bounds Species. 
     """
 
+<<<<<<< HEAD
     def __init__(self, species, name = None, material_type = "ordered_complex", attributes = None, 
                 compartment = None, initial_concentration = 0, **keywords):
+=======
+    def __init__(self, species, name = None, material_type = "ordered_complex", attributes = None, **keywords):
+>>>>>>> 812d0b406704da46d26a38535dd0fb59f506bcda
         #Set species because it is used for default naming
         if len(Species.flatten_list(species)) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
@@ -633,8 +654,13 @@ class OrderedComplexSpecies(ComplexSpecies):
         self.species = species
 
         #Call the Species superclass constructor
+<<<<<<< HEAD
         Species.__init__(self, name = name, material_type = material_type, attributes = attributes, 
                         compartment = compartment, initial_concentration = initial_concentration)
+=======
+        Species.__init__(self, name = name, material_type = material_type, attributes = attributes)
+
+>>>>>>> 812d0b406704da46d26a38535dd0fb59f506bcda
 
     @property
     def name(self):
@@ -719,9 +745,6 @@ class OrderedComplexSpecies(ComplexSpecies):
         txt.replace("'", "")
         txt += "]"
 
-        if show_initial_condition:
-            txt+=f" init_conc = {self.initial_concentration}"
-
         return txt
 
 class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
@@ -741,8 +764,13 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
     of any Mechanism.
     """
     default_material="ordered_polymer"
+<<<<<<< HEAD
     def __init__(self,species, name=None, base_species = None, material_type = default_material, 
                 compartment = None, attributes = None, initial_concentration = 0,circular = False):
+=======
+    def __init__(self,species, name=None, base_species = None, material_type = default_material, \
+                             attributes = None,circular = False):
+>>>>>>> 812d0b406704da46d26a38535dd0fb59f506bcda
 
         self.material_type = material_type
         self.compartment = compartment
@@ -750,7 +778,6 @@ class OrderedPolymerSpecies(OrderedComplexSpecies,OrderedPolymer):
         self.position=None
         self.direction=None
         
-        self.initial_concentration = initial_concentration
         self.circular = circular
 
         if attributes is None:

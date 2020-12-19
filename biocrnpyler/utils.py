@@ -11,6 +11,7 @@ import numbers
 
 from typing import Dict, Union
 from .species import WeightedSpecies, Species
+from .parameter import Parameter
 
 
 def all_comb(input_list):
@@ -42,6 +43,13 @@ def remove_bindloc(spec_list):
                 out_sp_list+= [specie]
         return out_sp_list
 
+#Converts a parameter to its Value
+def parameter_to_value(p):
+    if isinstance(p, Parameter):
+        return p.value
+    else:
+        return p
 
-def process_initial_concentration_dict(initial_concentration_dict: Dict[Union[str, Species], numbers.Real]) -> Dict[str, numbers.Real]:
-    return {str(key): value for (key, value) in initial_concentration_dict.items()}
+#Converts a dictionary of Species (or strings) --> Parameters (or Numbers) to Strings --> Numbers
+def process_initial_concentration_dict(initial_concentration_dict: Dict[Union[str, Species], Union[numbers.Real, Parameter]]) -> Dict[str, numbers.Real]:
+    return {str(key): parameter_to_value(value) for (key, value) in initial_concentration_dict.items()}
