@@ -6,16 +6,18 @@
 [![PyPI version](https://badge.fury.io/py/biocrnpyler.svg)](https://badge.fury.io/py/biocrnpyler)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/BuildACell/BioCRNPyler/master?filepath=%2Fexamples%2F)
 
-
-BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, manipulation, and study of the structure, dynamics, and functions of complex biochemical networks.
+BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, manipulation,
+and study of the structure, dynamics, and functions
+of complex biochemical networks.
 
 - **Website:** http://buildacell.io/BioCRNPyler
+- **Mailing list:** [SBTools Google Group](https://groups.google.com/g/sbtools/) Email: sbtools@googlegroups.com
 - **Source:** https://github.com/BuildACell/BioCRNPyler
 - **Paper:** - [BioCRNpyler: Compiling Chemical Reaction Networks from Biomolecular Parts in Diverse Contexts](https://www.biorxiv.org/content/10.1101/2020.08.02.233478v1)
 - **Mailing list:** [SBTools Google Group](https://groups.google.com/g/sbtools/) Email: sbtools@googlegroups.com
 - **Bug reports:** https://github.com/BuildACell/BioCRNPyler/issues
-- **Documentation:** Coming Soon!
-- **Slack:** Join the #biocrnpyler channel on SBTools slack: Ask on the public SBTools Google group to be added or send a message to one of the maintainers. 
+- **Documentation** https://github.com/BuildACell/BioCRNPyler/
+- **Slack** Join the #biocrnpyler channel on SBTools slack: Ask on the public SBTools Google group to be added or send a message to one of the maintainers. 
 
 # Example 1: Building Simple CRNs by Hand
 

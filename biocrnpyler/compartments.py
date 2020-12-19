@@ -8,7 +8,7 @@ class Compartment():
      or 3 for three-dimensional) and the volume in litres. 
     """
 
-    def __init__(self, name: str, spatial_dimensions = 3, volume=1e-6, **keywords):
+    def __init__(self, name: str, volume = 1e-6, spatial_dimensions = 3, **keywords):
         self.name = name
         self.spatial_dimensions = spatial_dimensions 
         self.volume = volume 
@@ -23,13 +23,15 @@ class Compartment():
     @name.setter
     def name(self, name: str):
         if name is None:
-            raise TypeError("Name must be a string.")
-        else:
+            raise TypeError("Compartment name must be a string.")
+        elif type(name) is str:
             no_underscore_string = name.replace("_", "")
             if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_" and not name[0].isnumeric():
                 self._name = name
             else:
                 raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or end in an underscore.")
+        else:
+            raise ValueError('Compartment name must be a string.')
 
     @property
     def spatial_dimensions(self):
@@ -37,7 +39,12 @@ class Compartment():
 
     @spatial_dimensions.setter
     def spatial_dimensions(self, spatial_dimensions: int):
-        self._spatial_dimensions = spatial_dimensions
+        if type(spatial_dimensions) is not int:
+            raise ValueError('Compartment spatial dimension must be an integer.')
+        elif spatial_dimensions < 0:
+            raise ValueError('Compartment spatial dimension must be non-negative.')
+        else:
+            self._spatial_dimensions = spatial_dimensions
 
     @property
     def volume(self):
@@ -45,7 +52,12 @@ class Compartment():
 
     @volume.setter
     def volume(self, volume: float):
-        self._volume = volume
+        if type(volume) is not float:
+            raise ValueError('Compartment volume must be a float.')
+        elif volume < 0:
+            raise ValueError('Compartment volume must be non-negative.')
+        else:
+            self._volume = volume
     
     def __eq__(self, other):
         """
@@ -54,10 +66,10 @@ class Compartment():
         :param other: Compartment instance
         :return: boolean
         """
-        if isinstance(other, Compartment) \
-                            and self.spatial_dimensions == other.spatial_dimensions \
-                            and self.name == other.name \
-                            and self.volume == other.volume:
+        if isinstance(other, Compartment) and self.name == other.name:
+            # Now if two compartments have same name but other attributes are different, throw an error:
+            if self.volume != other.volume or self.spatial_dimensions != other.spatial_dimensions:
+                raise ValueError('Compartments with same names must have the same volume and spatial dimensions.')
             return True
         else:
             return False
