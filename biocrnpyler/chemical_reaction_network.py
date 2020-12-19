@@ -150,7 +150,8 @@ class ChemicalReactionNetwork(object):
         txt += "]"
         return txt
 
-    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, show_initial_concentration = True, show_keys = True, **kwargs):
+    def pretty_print(self, show_rates = True, show_material = True, show_attributes = True, show_compartment = False,
+                        show_initial_concentration = True, show_keys = True, **kwargs):
         """A more powerful printing function.
 
         Useful for understanding CRNs but does not return string identifiers.
@@ -169,7 +170,7 @@ class ChemicalReactionNetwork(object):
         for sind, (init_conc, s) in enumerate(species_sort_list):
             init_conc = ics(s) 
 
-            txt += s.pretty_print(show_material = show_material, show_attributes = show_attributes, **kwargs)
+            txt += s.pretty_print(show_material = show_material, show_compartment = False, show_attributes = show_attributes, **kwargs)
 
             if show_initial_concentration:
                 txt += f" (@ {parameter_to_value(init_conc)}),  "
