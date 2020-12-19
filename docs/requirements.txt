@@ -1,0 +1,7 @@
+sphinx
+sphinx_rtd_theme
+sphinx-copybutton
+sphinx-toggleprompt
+nbsphinx
+nbsphinx-link
+recommonmark
