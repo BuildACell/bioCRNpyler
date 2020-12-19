@@ -3,7 +3,8 @@ from .mechanisms_enzyme import MichaelisMentenCopy
 from .propensities import ProportionalHillNegative, ProportionalHillPositive
 from .reaction import Reaction
 from .species import Complex, Species
-
+from .utils import parameter_to_value
+from typing import List
 
 class OneStepGeneExpression(Mechanism):
     """A mechanism to model gene expression without transcription or translation.
@@ -318,7 +319,7 @@ class Translation_MM(MichaelisMentenCopy):
     def __init__(self, ribosome: Species, name="translation_mm", **keywords):
         """Initializes a Translation_MM instance.
 
-        :param rnap: Species instance that is representing a ribosome
+        :param ribosome: Species instance that is representing a ribosome
         :param name: name of the Mechanism, default: translation_mm
         """
         if isinstance(ribosome, Species):
@@ -358,6 +359,140 @@ class Translation_MM(MichaelisMentenCopy):
             rxns += MichaelisMentenCopy.update_reactions(self, Enzyme = self.ribosome, Sub = transcript, Prod = protein, complex=complex, kb=kb, ku=ku, kcat=ktl)
         return rxns
 
+class Energy_Transcription_MM(Mechanism):
+    """Michaelis Menten Transcription that consumed energy.
+
+        G + RNAP <--> G:RNAP
+        Fuel + G:RNAP --> G + RNAP + T + Fuel (Transcription can only happen when there is fuel)
+            at rate ktx/L (length dependent transcription rate)
+
+        Fuel + G:RNAP --> G:RNAP +wastes (Fuel consumption treated faster)
+            at rate ktx (This occurs L times faster than the above, resulting in the correct fuel use)
+    """
+
+    def __init__(self, rnap: Species,  fuels: List[Species], wastes = List[Species], name="energy_transcription_mm", **keywords):
+        """Initializes a Transcription_MM instance.
+        :param fuels: List of Species consumed during transcription
+        :param wastes: List of Species consumed during transcription
+        :param rnap: Species instance that is representing an RNA polymerase
+        :param name: name of the Mechanism, default: transcription_mm
+        """
+        if isinstance(rnap, Species):
+            self.rnap = rnap
+        else:
+            raise ValueError("'rnap' parameter must be a Species.")
+
+        if all([isinstance(s, Species) for s in fuels]):
+            self.fuels = fuels
+        else:
+            raise ValueError('recieved a non-Species object in the fuels list.')
+
+        if all([isinstance(s, Species) for s in fuels]):
+            self.wastes = wastes
+        else:
+            raise ValueError("wastes must be a list of Species!")
+
+        Mechanism.__init__(self=self, name=name,
+                                     mechanism_type="transcription")
+
+    def update_species(self, dna, transcript=None, protein = None, **keywords):
+        species = [dna, self.rnap, transcript]+self.fuels
+        bound_complex = Complex([dna, self.rnap])
+        species += [bound_complex]
+
+        return species
+
+    def update_reactions(self, dna, component, part_id = None, complex=None, transcript=None, protein = None,
+                         **keywords):
+
+        #Get Parameters
+        if part_id == None and component != None:
+            part_id = component.name
+
+        ktx = component.get_parameter("ktx", part_id = part_id, mechanism = self)
+        kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+        ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+        L = component.get_parameter("length", part_id = part_id, mechanism = self)
+
+
+        bound_complex = Complex([dna, self.rnap])
+
+        #RNAP DNA Binding
+        r1 = Reaction.from_massaction([dna, self.rnap], [bound_complex], k_forward = kb, k_reverse = ku)
+        #Transcription
+        r2 = Reaction.from_massaction(self.fuels + [bound_complex], self.fuels + [dna, self.rnap, transcript],
+            k_forward = parameter_to_value(ktx.value)/parameter_to_value(L))
+        #Fuel consumption
+        r3 = Reaction.from_massaction(self.fuels + [bound_complex], [bound_complex]+self.wastes, k_forward = ktx)
+
+        return [r1, r2, r3]
+
+
+class Energy_Translation_MM(Mechanism):
+    """Michaelis Menten Translation that consumes energy species.
+
+        mRNA + Rib  <--> mRNA:Rib  (binding)
+        fuels + mRNA:Rib --> mRNA + Rib + Protein + fuels    (translation)
+        fuels + mRNA:Rib --> mRNA:Rib  +wastes (fuel consumption)
+    """
+
+    def __init__(self, ribosome: Species, fuels: List[Species], wastes = List[Species], name="energy_translation_mm", **keywords):
+        """Initializes a Translation_MM instance.
+        
+        :param ribosome: Species instance that is representing a ribosome
+        :param fuels: List of fuel Species that are consumed during translation
+        :param wastes: List of Species consumed during translation
+        :param name: name of the Mechanism, default: energy_translation_mm
+        """
+        if isinstance(ribosome, Species):
+            self.ribosome = ribosome
+        else:
+            raise ValueError("ribosome must be a Species!")
+
+        if all([isinstance(s, Species) for s in fuels]):
+            self.fuels = fuels
+        else:
+            raise ValueError("Fuels must be a list of Species!")
+
+        if all([isinstance(s, Species) for s in fuels]):
+            self.wastes = wastes
+        else:
+            raise ValueError("wastes must be a list of Species!")
+
+        Mechanism.__init__(self=self, name=name,
+                                     mechanism_type="translation")
+
+    def update_species(self, transcript, protein, **keywords):
+        species = self.fuels+[self.ribosome, protein]
+        bound_complex = Complex([transcript, self.ribosome])
+        species += [bound_complex]
+
+        return species
+
+    def update_reactions(self, transcript, protein, component, part_id = None, complex=None, **keywords):
+        rxns = []
+
+        #Get Parameters
+        if part_id == None and component != None:
+            part_id = component.name
+
+        ktl = component.get_parameter("ktl", part_id = part_id, mechanism = self)
+        kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+        ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+        L = component.get_parameter("length", part_id = part_id, mechanism = self)
+
+
+        bound_complex = Complex([transcript, self.ribosome])
+
+        #RNAP DNA Binding
+        r1 = Reaction.from_massaction([transcript, self.ribosome], [bound_complex], k_forward = kb, k_reverse = ku)
+        #Transcription
+        r2 = Reaction.from_massaction(self.fuels + [bound_complex], self.fuels + [transcript, self.ribosome, protein],
+            k_forward = parameter_to_value(ktl.value)/parameter_to_value(L))
+        #Fuel consumption
+        r3 = Reaction.from_massaction(self.fuels + [bound_complex], [bound_complex]+self.wastes, k_forward = ktl)
+
+        return [r1, r2, r3]
 
 class multi_tx(Mechanism):
     """Multi-RNAp Transcription w/ Isomerization.
