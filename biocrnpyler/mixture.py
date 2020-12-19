@@ -388,6 +388,7 @@ class Mixture(object):
         for a in range(recursion_depth):
             print("recursion", a)
             print("comps to enumerate", len(comps_to_enumerate), comps_to_enumerate)
+
             for component in comps_to_enumerate:
                 component.set_mixture(self)
                 print("enumerating", component, component.enumerate_components())
@@ -396,6 +397,7 @@ class Mixture(object):
 
             all_components += comps_to_enumerate
             comps_to_enumerate = new_components
+            new_components = []
 
         if(len(comps_to_enumerate) > 0):
             warn("Mixture was left with unenumerated components "+str(', '.join(comps_to_enumerate)))

@@ -111,6 +111,7 @@ class DNA_part(Component, OrderedMonomer):
         #self.direction = direction
         #self.assembly = parent_dna
         return self
+
     def unclone(self):
         """removes the current part from anything"""
         self.remove()
@@ -123,6 +124,7 @@ class DNA_part(Component, OrderedMonomer):
         #self.direction = None
         #self.assembly = None
         return self
+        
     def reverse(self):
         OrderedMonomer.reverse(self)
         #if(self.direction=="forward"):
