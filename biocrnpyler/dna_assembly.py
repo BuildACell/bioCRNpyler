@@ -1,7 +1,6 @@
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-import copy
 from typing import List, Union
 
 from .component import Component
@@ -132,19 +131,10 @@ class DNAassembly(DNA):
         if transcript is not None:
             self.update_transcript(transcript)
 
-        if isinstance(promoter, str):
-            self.promoter = Promoter(assembly=self, name=promoter,
-                                     transcript=self.transcript,
-                                     protein=protein)
-        elif isinstance(promoter, Promoter):
-            self.promoter = copy.deepcopy(promoter)
-            self.promoter.assembly = self
-            self.promoter.transcript = self.transcript
-            self.promoter.protein = protein
-        elif promoter is not None:
-            raise ValueError("Improper promoter type received by DNAassembly. "
-                             "Expected string or promoter object. "
-                             f"Received {repr(promoter)}.")
+        if promoter is not None:
+            self.promoter = Promoter.from_promoter(name=promoter, assembly=self,
+                                                   transcript=self.transcript,
+                                                   protein=protein)
         else:
             self.promoter = None
 
@@ -167,16 +157,9 @@ class DNAassembly(DNA):
         if transcript is not None:
             self.update_transcript(transcript)
 
-        if isinstance(rbs, str):
-            self.rbs = RBS(assembly=self, name=rbs, protein=self.protein,
-                           transcript=self.transcript)
-        elif isinstance(rbs, RBS):
-            self.rbs = copy.deepcopy(rbs)
-            self.rbs.assembly = self
-            self.rbs.transcript = self.transcript
-            self.rbs.protein = self.protein
-        elif rbs is not None:
-            raise ValueError(f"Improper rbs type received by DNAassemby. Expected string or RBS object. Received {repr(rbs)}.")
+        if rbs is not None:
+            self.rbs = RBS.from_rbs(name=rbs, assembly=self, protein=self.protein,
+                                    transcript=self.transcript)
         else:
             self.rbs = None
 
