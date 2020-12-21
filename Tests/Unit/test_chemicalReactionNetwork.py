@@ -94,9 +94,6 @@ class TestChemicalReactionNetwork(TestCase):
         #Internal species copied correctly to return
         assert S in CRN.species
 
-        #assert species are copied
-        assert not S is CRN._species[0]
-
         #Returned list does not effect internal species
         CRN.species[0] = S2
         assert S2 not in CRN.species
@@ -104,16 +101,9 @@ class TestChemicalReactionNetwork(TestCase):
         #add species effects internal species list
         CRN.add_species(S2)
         assert S2 in CRN.species
-        #assert correct copying
-        assert S2 is not CRN._species[1]
 
         with self.assertRaisesRegex(AttributeError, "The species in a CRN cannot be removed or modified*"):
             CRN.species = []
-
-        #Test bypassing species protection
-        CRN = ChemicalReactionNetwork([], [])
-        CRN.add_species([S], copy_species = False)
-        assert S is CRN._species[0]
 
     def test_reaction_protection(self):
         #tests that Reactions cannot be changed once they are in a CRN
@@ -125,7 +115,6 @@ class TestChemicalReactionNetwork(TestCase):
 
         #Internal reactions copied correctly to return
         assert R in CRN.reactions
-        assert not R is CRN._reactions[0]
 
         #Returned list does not effect internal reactions
         CRN.reactions[0] = R2
@@ -134,22 +123,9 @@ class TestChemicalReactionNetwork(TestCase):
         #add reactions effects internal reaction list
         CRN.add_reactions(R2)
         assert R2 in CRN.reactions
-        assert not R2 is CRN._reactions[1]
 
         with self.assertRaisesRegex(AttributeError, "The reactions in a CRN cannot be removed or modified*"):
             CRN.reactions = []
-
-        #test bypassing reaction protection
-        CRN = ChemicalReactionNetwork([], [])
-        CRN.add_reactions([R], copy_reactions = False)
-        assert R is CRN._reactions[0]
-        assert S in CRN.species
-
-        #test bypassing reaction protection
-        CRN = ChemicalReactionNetwork([], [])
-        CRN.add_reactions([R], add_species = False)
-        assert not S in CRN.species
-
 
     def test_initial_condition_vector(self):
 
