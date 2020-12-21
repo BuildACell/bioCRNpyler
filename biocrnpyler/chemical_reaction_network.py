@@ -32,15 +32,38 @@ class ChemicalReactionNetwork(object):
     where a_i is the spectrometric coefficient of species i
     """
     def __init__(self, species: List[Species], reactions: List[Reaction],  initial_concentration_dict: Dict[Species,Union[numbers.Real, Parameter]] = None, show_warnings=False):
-        self.species = []
-        self.reactions = []
-        self.add_species(species)
-        self.add_reactions(reactions)
+        self.species = species
+        self.reactions = reactions
         self.initial_concentration_dict = None #Create an unpopulated dictionary
         self.initial_concentration_dict = initial_concentration_dict #update it
 
         ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings=show_warnings)
 
+    @property
+    def species(self):
+        return [copy.deepcopy(s) for s in self._species]
+
+    @species.setter
+    def species(self, species):
+        if not hasattr(self, "_species"):
+            self._species = []
+            self.add_species(species)
+        else:
+            raise AttributeError("The species in a CRN cannot be removed or modified. New Species can be added with CRN.add_species(...).")
+
+    @property
+    def reactions(self):
+        return  [copy.deepcopy(r) for r in self._reactions]
+
+    @reactions.setter
+    def reactions(self, reactions):
+        if not hasattr(self, "_reactions"):
+            self._reactions = []
+            self.add_reactions(reactions)
+        else:
+            raise AttributeError("The reactions in a CRN cannot be removed or modified. New reactions can be added with CRN.add_reactions(...).")
+
+    
     def add_species(self, species, show_warnings=False):
         if not isinstance(species, list):
             species = [species]
@@ -51,13 +74,7 @@ class ChemicalReactionNetwork(object):
             if not isinstance(s, Species): #check species are Species
                 raise ValueError("A non-species object was used as a species!")
             if s not in self.species: #Do not add duplicate Species
-                self.species.append(copy.deepcopy(s)) #copy the species and add it to the CRN
-
-            #This case matters when Species are inside an OrderedPolymerSpecies, in which case there can be duplicates (in terms of name)   
-            if s in self.species:
-                s_duplicates = [S for S in self.species if s == S]
-                pass
-                #Code will go here for testing s.parent and s.position
+                self._species.append(copy.deepcopy(s)) #copy the species and add it to the CRN
 
     def add_reactions(self, reactions: Union[Reaction,List[Reaction]], show_warnings=True) -> None:
         """Adds a reaction or a list of reactions to the CRN object
@@ -77,9 +94,7 @@ class ChemicalReactionNetwork(object):
             reaction_species = list(set([w.species for w in r.inputs + r.outputs]))
             self.add_species(reaction_species, show_warnings=show_warnings)
 
-            self.reactions.append(copy.deepcopy(r)) #copy the Reaction and add it to the CRN
-
-            #TODO synchronize Species in the CRN
+            self._reactions.append(copy.deepcopy(r)) #copy the Reaction and add it to the CRN
 
     @property
     def initial_concentration_dict(self):
