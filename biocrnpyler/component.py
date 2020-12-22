@@ -280,7 +280,7 @@ class Component(object):
         warn("Unsubclassed update_reactions called for " + repr(self))
         return reactions
         
-    def enumerate_components(self) -> (List,List):
+    def enumerate_components(self) -> List:
         """this is for component enumeration. Usually you will return a list of components that are
         copies of existing ones (first list) and new components (second list). For example,
         A DNA_construct makes a list of copies of its parts as the first output, and a list of RNA_constructs
