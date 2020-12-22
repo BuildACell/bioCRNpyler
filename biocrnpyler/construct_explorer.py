@@ -29,7 +29,7 @@ from .utils import all_comb, remove_bindloc, rev_dir
 import logging
 
 
-class ConstructExplorer(ComponentEnumerator):
+class ConstructExplorer(LocalComponentEnumerator):
     def __init__(self, name, direction="forward",possible_directions=("forward","reverse")):
         ComponentEnumerator.__init__(self=self,name=name)
         self.direction=direction

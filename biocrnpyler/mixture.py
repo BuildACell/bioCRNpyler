@@ -423,7 +423,7 @@ class Mixture(object):
 
         #Append Species from each Component
         for component in enumerated_components:
-            self.add_species_to_crn(remove_bindloc(component.update_species()), component) #TODO remove_bindloc to CRN
+            self.add_species_to_crn(component.update_species(), component)
 
         #Append Reactions from each Component
         for component in enumerated_components:

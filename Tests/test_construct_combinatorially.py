@@ -183,7 +183,8 @@ def test_combinatorial_RNAconstruct_in_Mixtures():
 
 def test_combinatorial_DNAconstruct_RNAconstruct_in_Mixtures():
     #Tests the DNA_construct [Promoter, RBS, CDS, Terminator] in many different mixtures
-    #This will also produce an RNA_construct during compilation
+    #This will also produce an RNA_construct during component enumeration and can be seen
+    #as a combination of the above two tests
     try:
         for mclass, args in mixture_classes:
             #create the Mixture with parameters
@@ -216,5 +217,5 @@ def test_combinatorial_DNAconstruct_RNAconstruct_in_Mixtures():
                             assert construct[2].protein in outputs
 
     except Exception as e:
-        error_txt = f"Combinatorial compilation failed when RNA_construct parts list was {[rbs, cds]} in mixture {m}. \n Unexpected Error: {str(e)}"
+        error_txt = f"Combinatorial compilation failed when DNA_construct parts list was {[p, rbs, cds, t]} in mixture {m}. \n Unexpected Error: {str(e)}"
         raise Exception(error_txt)

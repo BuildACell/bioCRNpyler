@@ -95,9 +95,11 @@ class Construct(Component,OrderedPolymer):
         self.out_components = None
         self.predicted_rnas = None
         self.predicted_proteins = None
+
     @property
     def parts_list(self):
         return self._polymer
+
     def make_name(self):
         output = ""
         outlst = []
