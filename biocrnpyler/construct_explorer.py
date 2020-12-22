@@ -34,9 +34,15 @@ class ConstructExplorer(ComponentEnumerator):
         ComponentEnumerator.__init__(self=self,name=name)
         self.direction=direction
         self.possible_directions = possible_directions
+        self.reset_enumerator()
+
+    def reset_enumerator(self):
+        """clear accumulator variables from the numerator. MUST BE SUBCLASSED"""
+        pass
 
     def enumerate_components(self, component):
         #Only works on Constructs!
+        self.reset_enumerator()
         if isinstance(component, Construct):
 
             #if we are circular, then we can go around twice
@@ -108,8 +114,9 @@ class TxExplorer(ConstructExplorer):
     def __init__(self, name = "TxExplorer", direction="forward",possible_directions=("forward","reverse")):
         ConstructExplorer.__init__(self, name, direction=direction,possible_directions=possible_directions)
 
-        self.all_rnas = {} #Stores all transcripts from the DNA_Construct
 
+    def reset_enumerator(self):
+        self.all_rnas = {} #must clear this before filling it up again
 
     def initialize_loop(self, direction):
         self.current_rnas = {} #Stores RNA's being examined in loop promoter --> [(DNA_part, direction) list]
@@ -171,16 +178,12 @@ class TxExplorer(ConstructExplorer):
     #Returns a list of RNAconstructs
     def return_components(self,component):
         rna_construct_list = [self.all_rnas[k] for k in self.all_rnas]
-
-        #for rna_construct in rna_construct_list:
-        #    correct_promoter = component[rna_construct.my_promoter.position]
-        #    correct_promoter.transcript = rna_construct.get_species()
-        #    rna_construct.my_promoter = correct_promoter
         return rna_construct_list
 
 class TlExplorer(ConstructExplorer):
     def __init__(self, name = "TlExplorer", direction="forward",possible_directions=("forward",)):
         ConstructExplorer.__init__(self, name, direction=direction,possible_directions=possible_directions)
+    def reset_enumerator(self):
         self.all_proteins = {} #Stores all proteins from the RNA_construct
     def initialize_loop(self, direction):
         self.current_proteins = {} #Stores proteins being examined in loop rbs --> [(DNA_part, direction) list]

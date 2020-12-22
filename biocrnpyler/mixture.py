@@ -386,13 +386,12 @@ class Mixture(object):
 
         #Recursion depth
         for a in range(recursion_depth):
-            print("recursion", a)
-            print("comps to enumerate", len(comps_to_enumerate), comps_to_enumerate)
 
             for component in comps_to_enumerate:
+                
                 component.set_mixture(self)
-                print("enumerating", component, component.enumerate_components())
-                new_components += component.enumerate_components()
+                enumerated = component.enumerate_components()
+                new_components += enumerated
 
 
             all_components += comps_to_enumerate
@@ -401,7 +400,6 @@ class Mixture(object):
 
         if(len(comps_to_enumerate) > 0):
             warn("Mixture was left with unenumerated components "+str(', '.join(comps_to_enumerate)))
-        print("finished")
         return all_components
 
     def compile_crn(self, recursion_depth = 10, initial_concentration_dict = None) -> ChemicalReactionNetwork:
@@ -421,9 +419,7 @@ class Mixture(object):
 
         #reset the Components' mixture to self - in case they have been added to other Mixtures
         for c in enumerated_components:
-            print(c, c.mixture)
             c.set_mixture(self)
-            print(c, c.mixture)
 
         #Append Species from each Component
         for component in enumerated_components:
@@ -431,7 +427,8 @@ class Mixture(object):
 
         #Append Reactions from each Component
         for component in enumerated_components:
-            self.crn.add_reactions(component.update_reactions())
+            comp_rxns = component.update_reactions()
+            self.crn.add_reactions(comp_rxns)
 
         #global mechanisms are applied last and only to all the species
         #the reactions and species are added to the CRN
