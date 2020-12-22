@@ -39,8 +39,7 @@ class RBS(DNA_part):
     def update_species(self):
         mech_tl = self.get_mechanism('translation')
         species = []
-        if self.protein is not None:
-            species += mech_tl.update_species(transcript = self.transcript, protein = self.protein, component = self, part_id = self.name)
+        species += mech_tl.update_species(transcript = self.transcript, protein = self.protein, component = self, part_id = self.name)
         return species
 
     def update_reactions(self):
