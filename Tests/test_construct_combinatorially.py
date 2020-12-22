@@ -73,5 +73,148 @@ def test_combinatorial_DNAconstruct_RNAconstruct():
                         assert(any([p.direction == 'forward' for p in element if isinstance(p, RBS)]))
                         assert(any([p.direction == 'forward' for p in element if isinstance(p, CDS)]))
     except Exception as e:
-        error_txt = f"Combinatorial testing failed when parts list was {combination}. \n Unexpected Error: {str(e)}"
+        error_txt = f"Combinatorial enumerate_components failed when parts list was {combination}. \n Unexpected Error: {str(e)}"
+        raise Exception(error_txt)
+
+
+
+from biocrnpyler import Promoter, ActivatablePromoter, RepressiblePromoter, RegulatedPromoter, CombinatorialPromoter
+
+#list of possible promoter types
+promoters = [
+    Promoter("promoter"),
+    ActivatablePromoter("activatable_promoter", activator = Species("A")),
+    RepressiblePromoter("repressible_promoter", repressor = Species("R")),
+    RegulatedPromoter("regulated_promoter", regulators = [Species("S1"), Species("S2")]),
+    CombinatorialPromoter("combinatorial_promoter", regulators = [Species("S1"), Species("S2")])
+    ]
+
+from biocrnpyler import Terminator
+#list of possible terminators
+terminators = [
+    Terminator("terminator")
+    ]
+
+from biocrnpyler import SimpleTxTlExtract, TxTlExtract, SimpleTxTlDilutionMixture, TxTlDilutionMixture
+#list of possible mixtures
+parameters = {"kb":1.0, "ku":1.0, "ktx":1.0, "ktl":1.0, "kdeg":1.0, "kdil":1.0, "kexpress":1.0,"kcat":1.0, "K":10, 
+    "cooperativity":2, "n":2, "k":1.0, "kleak":1.0}
+
+#Mixtures have to be instantiated each time, to reset their internal variables
+mixture_classes = [
+    (SimpleTxTlExtract, {"name":"simple_tx_tl_extract"}),
+    (TxTlExtract, {"name":"tx_tl_extract"}),
+    (SimpleTxTlDilutionMixture, {'name':"simple_tx_tl_dilution_mixture"}),
+    (TxTlDilutionMixture, {"name":"tx_tl_dilution_mixture"})
+    ]
+
+#Helper function to do sanity checks on CRN reaction inputs and outputs
+def all_reaction_inputs_and_outputs(CRN):
+    inputs = []
+    outputs = []
+    for r in CRN.reactions:
+        inputs += [w.species for w in r.inputs]
+        outputs += [w.species for w in r.outputs]
+
+    return inputs, outputs
+
+def test_combinatorial_DNAconstruct_in_Mixtures():
+    #Tests the construct [Promoter, Terminator] in many different mixtures
+    try:
+        for mclass, args in mixture_classes:
+            #create the Mixture with parameters
+            args["parameters"] = dict(parameters)
+            m = mclass(**args)
+
+            #Promoters and terminators are instances
+            for p in promoters:
+                for t in terminators:
+                    construct = DNA_construct([p, t])
+                    m.add_component(construct)
+                    #Get the construct out of the Mixture
+                    construct = m.get_component(construct)
+                    crn = m.compile_crn()
+                    inputs, outputs = all_reaction_inputs_and_outputs(crn)
+
+                    #the DNA construct should be the input of a reaction
+                    assert construct.get_species() in inputs
+
+                    #the DNA_construct's promoter should produce a transcript
+                    assert construct[0].transcript in outputs
+
+    except Exception as e:
+        error_txt = f"Combinatorial compilation failed when DNA_constrct parts list was {[p, t]} in mixture {m}. \n Unexpected Error: {str(e)}"
+        raise Exception(error_txt)
+
+
+#list of CDSs
+CDSs = [CDS("cds")]
+
+#list of RBSs
+RBSs = [RBS("rbs")]
+
+def test_combinatorial_RNAconstruct_in_Mixtures():
+    #Tests the RNA_construct [RBS, CDS] in many different mixtures
+    try:
+        for mclass, args in mixture_classes:
+            #create the Mixture with parameters
+            args["parameters"] = dict(parameters)
+            m = mclass(**args)
+
+            #RBSs and CDSs are instances
+            for rbs in RBSs:
+                for cds in CDSs:
+                    construct = RNA_construct([rbs, cds])
+                    m.add_component(construct)
+                    #Get the construct out of the Mixture
+                    construct = m.get_component(construct)
+                    crn = m.compile_crn()
+                    inputs, outputs = all_reaction_inputs_and_outputs(crn)
+
+                    #the RNA construct should be the input of a reaction
+                    assert construct.get_species() in inputs
+
+                    #the RNA_construct's CDS should produce a transcript
+                    assert construct[1].protein in outputs
+
+    except Exception as e:
+        error_txt = f"Combinatorial compilation failed when RNA_construct parts list was {[rbs, cds]} in mixture {m}. \n Unexpected Error: {str(e)}"
+        raise Exception(error_txt)
+
+def test_combinatorial_DNAconstruct_RNAconstruct_in_Mixtures():
+    #Tests the DNA_construct [Promoter, RBS, CDS, Terminator] in many different mixtures
+    #This will also produce an RNA_construct during compilation
+    try:
+        for mclass, args in mixture_classes:
+            #create the Mixture with parameters
+            args["parameters"] = dict(parameters)
+            m = mclass(**args)
+
+            #Promoters and terminators are instances
+            for p in promoters:
+                for t in terminators:
+                    for rbs in RBSs:
+                        for cds in CDSs:
+                            construct = DNA_construct([p, rbs, cds, t])
+
+                            m.add_component(construct)
+                            #Get the construct out of the Mixture
+                            construct = m.get_component(construct)
+                            crn = m.compile_crn()
+                            inputs, outputs = all_reaction_inputs_and_outputs(crn)
+
+                            #the DNA construct should be the input of a reaction
+                            assert construct.get_species() in inputs
+
+                            #the DNA_construct's promoter should produce a transcript
+                            assert construct[0].transcript in outputs
+
+                            #the RNA construct transcript should be the input of a reaction
+                            assert construct[0].transcript in inputs
+
+                            #the RNA_construct's CDS should produce a transcript
+                            assert construct[2].protein in outputs
+
+    except Exception as e:
+        error_txt = f"Combinatorial compilation failed when RNA_construct parts list was {[rbs, cds]} in mixture {m}. \n Unexpected Error: {str(e)}"
         raise Exception(error_txt)
