@@ -8,6 +8,7 @@ from .dna_part import DNA_part
 from .species import Species
 
 
+
 class RBS(DNA_part):
     """
     A simple RBS class with no regulation. Must be included in a DNAconstruct or DNAassembly to do anything.
@@ -49,15 +50,20 @@ class RBS(DNA_part):
         if self.protein is not None:
             reactions += mech_tl.update_reactions(transcript = self.transcript, protein = self.protein, component = self, part_id = self.name)
         return reactions
-    def update_component(self,dna=None,rnas=None,proteins=None,mypos=None):
+    def update_component(self,internal_species=None,**keywords):
         """returns a copy of this component, except with the proper fields updated"""
-        if(self.protein is not None):
-            out_component = copy.deepcopy(self)
-            if(mypos is not None):
-                #this should never happen
-                out_component.transcript = dna[mypos]
+        from .dna_construct import RNA_construct,DNA_construct
+        if(isinstance(self.parent,DNA_construct)):
+            return None
+        elif(isinstance(self.parent,RNA_construct)):
+            if(self.direction=="forward"):
+                out_component = copy.copy(self)
+                out_component.transcript = internal_species
+                return out_component
+            elif(self.direction=="reverse"):
+                return None
             else:
-                out_component.transcript = dna
+                raise AttributeError(f"Unknown direction {self.direction} encountered in {self}")
         else:
             return None
         return out_component

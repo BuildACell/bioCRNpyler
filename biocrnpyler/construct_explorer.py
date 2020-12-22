@@ -12,31 +12,33 @@
 import copy
 from warnings import warn
 
+from .component import Component
+from .components_basic import DNA, RNA
+from .dna_part import DNA_part
 from .dna_part_cds import CDS
+from .dna_part_misc import AttachmentSite
 from .dna_part_promoter import Promoter
 from .dna_part_rbs import RBS
 from .dna_part_terminator import Terminator
 from .dna_construct import Construct, RNA_construct
-from .component_enumerator import LocalComponentEnumerator
+import biocrnpyler.component_enumerator as ce
+from .component_enumerator import ComponentEnumerator,LocalComponentEnumerator, GlobalComponentEnumerator
+from .species import (ComplexSpecies, OrderedMonomer, OrderedPolymer,
+                      OrderedPolymerSpecies)
 from .utils import all_comb, remove_bindloc, rev_dir
 import logging
 
 
-class ConstructExplorer(LocalComponentEnumerator):
+class ConstructExplorer(ComponentEnumerator):
     def __init__(self, name, direction="forward",possible_directions=("forward","reverse")):
-        LocalComponentEnumerator.__init__(self=self,name=name)
+        ComponentEnumerator.__init__(self=self,name=name)
         self.direction=direction
         self.possible_directions = possible_directions
-        self.reset_enumerator()
 
-    def reset_enumerator(self):
-        """clear accumulator variables from the numerator. MUST BE SUBCLASSED"""
-        pass
-
-    def enumerate_components(self, component, previously_enumerated = None):
+    def enumerate_components(self, component):
         #Only works on Constructs!
-        self.reset_enumerator()
         if isinstance(component, Construct):
+
             #if we are circular, then we can go around twice
             #otherwise, once is the correct amount
             if(component.circular):
@@ -64,7 +66,7 @@ class ConstructExplorer(LocalComponentEnumerator):
                 #must stop before switching directions
                 self.terminate_loop()
 
-            return self.return_components(component, previously_enumerated)
+            return self.return_components(component)
         else:
             return []
 
@@ -97,7 +99,7 @@ class ConstructExplorer(LocalComponentEnumerator):
         pass
         #MUST SUBCLASS
 
-    def return_components(self,component, previously_enumerated = None):
+    def return_components(self,component):
         #returns components at the end of the loop
         #MUST SUBCLASS
         return []
@@ -106,11 +108,10 @@ class TxExplorer(ConstructExplorer):
     def __init__(self, name = "TxExplorer", direction="forward",possible_directions=("forward","reverse")):
         ConstructExplorer.__init__(self, name, direction=direction,possible_directions=possible_directions)
 
+        self.all_rnas = {} #Stores all transcripts from the DNA_Construct
 
-    def reset_enumerator(self):
-        self.all_rnas = {} #must clear this before filling it up again
 
-    def initialize_loop(self, direction=None):
+    def initialize_loop(self, direction):
         self.current_rnas = {} #Stores RNA's being examined in loop promoter --> [(DNA_part, direction) list]
 
 
@@ -126,8 +127,11 @@ class TxExplorer(ConstructExplorer):
         logging.debug("looking at "+str(part))
         logging.debug("current_rnas are "+str(self.current_rnas))
 
+        #The orientation of the part absolutely to the DNA_construct
+        part_direction = part.direction
+
         #The relative orientation of the part to the reading direction
-        if part.direction == reading_direction:
+        if part_direction == reading_direction:
             effective_direction = "forward"
         else:
             effective_direction = "reverse"
@@ -154,31 +158,31 @@ class TxExplorer(ConstructExplorer):
         #Transfers current rnas into all_rnas
 
         #Create RNA_Constructs for each promoter
-        for promoter,rna_parts_list in self.current_rnas.items():
+        for promoter in self.current_rnas:
+            rna_parts_list = self.current_rnas[promoter]
             if(len(rna_parts_list) > 0):
                 rna_construct = RNA_construct(rna_parts_list, promoter = promoter)
                 self.all_rnas[promoter] = rna_construct
                 promoter.transcript = rna_construct.get_species()
             else:
                 warn(f"{promoter} makes empty transcript! Protein binding to this promoter will not be included in the CRN")
-        self.initialize_loop()
+        self.current_rnas = {}
 
     #Returns a list of RNAconstructs
-    def return_components(self,component, previously_enumerated = None):
-        return_rnas = []
-        for rna in self.all_rnas.values():
-            if((previously_enumerated is None) or (rna not in previously_enumerated)):
-                return_rnas+=[rna]
-            else:
-                pass
-        return return_rnas
+    def return_components(self,component):
+        rna_construct_list = [self.all_rnas[k] for k in self.all_rnas]
+
+        #for rna_construct in rna_construct_list:
+        #    correct_promoter = component[rna_construct.my_promoter.position]
+        #    correct_promoter.transcript = rna_construct.get_species()
+        #    rna_construct.my_promoter = correct_promoter
+        return rna_construct_list
 
 class TlExplorer(ConstructExplorer):
     def __init__(self, name = "TlExplorer", direction="forward",possible_directions=("forward",)):
         ConstructExplorer.__init__(self, name, direction=direction,possible_directions=possible_directions)
-    def reset_enumerator(self):
         self.all_proteins = {} #Stores all proteins from the RNA_construct
-    def initialize_loop(self, direction=None):
+    def initialize_loop(self, direction):
         self.current_proteins = {} #Stores proteins being examined in loop rbs --> [(DNA_part, direction) list]
     def iterate_part(self, part, reading_direction):
         #Part is a DNA_part
@@ -236,13 +240,16 @@ class TlExplorer(ConstructExplorer):
                 self.terminate_loop()
                 
     def terminate_loop(self):
-        self.all_proteins.update(self.current_proteins)
-        self.initialize_loop()
+        for rbs in self.current_proteins:
+            self.all_proteins[rbs] = self.current_proteins[rbs]
+        self.current_proteins = {} #reset who is translating
 
-    def return_components(self,component, previously_enumerated = None):
+    def return_components(self,component):
         returnable_proteins = []
         for rbs in self.all_proteins:
             proteins = [a[0] for a in self.all_proteins[rbs]]
+            #print("protein directions")
+            #print([a.direction for a in proteins])
             returnable_proteins += proteins
             protein_species = [a.get_species() for a in proteins]
             if(protein_species==[]):
