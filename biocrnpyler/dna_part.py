@@ -32,6 +32,8 @@ class DNA_part(Component, OrderedMonomer):
         self.color2 = None #this will be taken from higher up and only defined for attL/R sites
         pos = None #position in the dna_construct
         self.sequence = None #nucleotide sequence
+        #most parts have stop codons
+        #if you want your part to not have stop codons, put "forward" and/or "reverse"
         self.no_stop_codons = [] #some parts will set this, others won't. Default is that it has stop codons
         
         for key, value in keywords.items():
@@ -68,7 +70,7 @@ class DNA_part(Component, OrderedMonomer):
         if(self.direction =="reverse"):
             myname += "_r"
         return myname
-
+    '''
     def __hash__(self):
         hval = 0
         if(hasattr(self,"assembly")):
@@ -78,11 +80,13 @@ class DNA_part(Component, OrderedMonomer):
                 hval += hash(str(self.assembly))
         hval += hash(self.name)
         if(self.parent is not None):
-            hval+= hash(str(self.parent))
+            hval+= hash(self.parent)
         hval+= hash(self.position)
         hval += hash(self.direction)
         return hval
-
+    #'''
+    def __hash__(self):
+        return OrderedMonomer.__hash__(self)
     def __eq__(self,other):
         if(type(other)==type(self)):
             if(self.name==other.name):

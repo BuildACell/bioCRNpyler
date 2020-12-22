@@ -13,6 +13,7 @@ from .dna_part_misc import *
 from .dna_part_promoter import *
 from .dna_part_rbs import *
 from .dna_part_terminator import *
+from .construct_explorer import *
 
 from .global_mechanism import *
 from .mechanism import *

@@ -14,6 +14,8 @@ from .mechanisms_txtl import (NegativeHillTranscription,
 from .species import Species
 
 from .utils import remove_bindloc
+
+
 #TODO put remove_bindloc in the component instead of in dna_construct
 class Promoter(DNA_part):
     """A basic Promoter class with no regulation. Needs to be included in a DNAassembly or DNAconstruct to function.
@@ -71,6 +73,7 @@ class Promoter(DNA_part):
         self._dna_bind = value
     def get_species(self):
         return None
+
     def update_reactions(self):
         mech_tx = self.get_mechanism("transcription")
         reactions = []
@@ -79,27 +82,18 @@ class Promoter(DNA_part):
                         component = self, part_id = self.name, complex = None,
                         transcript = self.transcript, protein = self.get_protein_for_expression())
         return reactions
-    def update_component(self,dna,rnas=None,proteins=None,mypos = None):
+
+    def update_component(self,internal_species=None,**keywords):
         """returns a copy of this component, except with the proper fields updated"""
-        if(dna.material_type == "rna"):
-            #Promoters only work with DNA
+        from .dna_construct import DNA_construct, RNA_construct
+        if(isinstance(self.parent,RNA_construct)):
             return None
-        out_component = copy.deepcopy(self)
-        if(mypos is not None):
-            out_component.dna_to_bind = dna[mypos]
+        elif(isinstance(self.parent,DNA_construct)):
+            out_component = copy.copy(self)
+            out_component.dna_to_bind = internal_species
+            return out_component
         else:
-            out_component.dna_to_bind = dna
-        myrna = None
-        if(self.transcript is None and rnas is not None):
-            myrna = rnas[self]
-            out_component.transcript = myrna.get_species()
-        if(self.protein is None and myrna is not None):
-            rbslist = proteins[myrna]
-            proteinlist = []
-            for a in rbslist:
-                proteinlist += rbslist[a]
-            out_component.protein = proteinlist
-        return out_component
+            raise TypeError(f"Unknown parent class {type(self.parent)}, expect either DNA_construct or RNA_construct")
 
 
     #Used for expression mixtures where transcripts are replaced by proteins
