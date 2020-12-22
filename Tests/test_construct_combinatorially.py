@@ -7,9 +7,9 @@ import pytest
 import copy
 
 from itertools import permutations
-from biocrnpyler import *
+from biocrnpyler import Promoter, RBS, CDS, Terminator, Transcription_MM, Translation_MM, RNA_construct, DNA_construct, Species
 
-def combinatorial_DNAconstruct_RNAconstruct():
+def test_combinatorial_DNAconstruct_RNAconstruct():
 
     P = Promoter("pconst") #constitutive promoter
     U = RBS("rbs")

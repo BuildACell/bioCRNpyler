@@ -3,11 +3,11 @@
 
 import pytest
 #from unittest import TestCase
-from biocrnpyler import *
+from biocrnpyler import RBS, CDS, Translation_MM, RNA_construct, Species
 import copy
 
 
-def basic_RNAconstruct():
+def test_basic_RNAconstruct():
     R = RBS("rbs")
     C = CDS("gfp")
     parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
@@ -30,7 +30,7 @@ def basic_RNAconstruct():
     y = x.enumerate_components()
     assert(y==[]) #just a CDS does nothing
 
-def basic_RBS_CDS_RNAconstruct():
+def test_basic_RBS_CDS_RNAconstruct():
     R = RBS("rbs")
     C = CDS("gfp")
     parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}

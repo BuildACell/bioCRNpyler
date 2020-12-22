@@ -4,10 +4,10 @@
 
 import pytest
 #from unittest import TestCase
-from biocrnpyler import *
+from biocrnpyler import Promoter, DNA_construct, Terminator, Transcription_MM, Species
 import copy
 
-def promoter_DNAconstruct():
+def test_promoter_DNAconstruct():
     P = Promoter("pconst") #constitutive promoter
     parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
     mechs = {"transcription":Transcription_MM(Species("RNAP",material_type="protein"))}
@@ -27,7 +27,7 @@ def promoter_DNAconstruct():
     assert([x[0]] == y)
     assert(x[0].transcript is None)
 
-def promoter_terminator_DNAconstruct():
+def test_promoter_terminator_DNAconstruct():
     P = Promoter("pconst") #constitutive promoter
     T = Terminator("term")
     parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
@@ -54,7 +54,7 @@ def promoter_terminator_DNAconstruct():
     assert(y[1].promoter == x[1]) #rna is linked back to the DNA_construct's promoter
     assert(y[1].promoter == y[0]) #correct promoter is returned by enumerate_constructs
 
-def circular_DNAconstruct():
+def test_circular_DNAconstruct():
     P = Promoter("pconst") #constitutive promoter
     T = Terminator("term")
     parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
