@@ -253,7 +253,6 @@ def _create_reactants(reactant_list, sbml_reaction, model):
 
 def _create_products(product_list, sbml_reaction, model):
     for output in product_list:
-        # species_id = getSpeciesByName(model, output.species.name).getId()
         species_id = str(output.species)
         product = sbml_reaction.createProduct()
         product.setSpecies(species_id)
