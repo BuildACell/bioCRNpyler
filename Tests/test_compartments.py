@@ -15,6 +15,10 @@ class TestSpecies(TestCase):
         self.assertEqual(compartment.name, 'test_compartment')
         self.assertEqual(species.compartment.name, compartment.name)
 
+        # Test non-string named compartment
+        with pytest.raises(ValueError, match='Compartment name must be a string.'):
+            compartment = Compartment(name = 24)
+
         # tests naming convention for species with name and compartment
         compartment = Compartment(
             name='test_compartment', spatial_dimensions=1, volume=1e-4)

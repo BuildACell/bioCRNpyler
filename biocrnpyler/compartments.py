@@ -17,10 +17,7 @@ class Compartment():
 
     @property
     def name(self):
-        if self._name is None:
-            return ""
-        else:
-            return self._name
+        return self._name
 
     @name.setter
     def name(self, name: str):
