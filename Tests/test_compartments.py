@@ -15,10 +15,6 @@ class TestSpecies(TestCase):
         self.assertEqual(compartment.name, 'test_compartment')
         self.assertEqual(species.compartment.name, compartment.name)
 
-        # Test None compartment compartment
-        with pytest.raises(ValueError, match='Compartment name must be a string.'):
-            compartment = Compartment(name = None)
-
         # Test non-string named compartment
         with pytest.raises(ValueError, match='Compartment name must be a string.'):
             compartment = Compartment(name = 24)
