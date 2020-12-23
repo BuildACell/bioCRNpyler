@@ -218,7 +218,7 @@ class Species(OrderedMonomer):
         txt += self.name
 
         if self.compartment not in ["", None] and show_compartment:
-            txt += " in " + self.compartment + "."
+            txt += " in " + self.compartment.name + "."
 
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
             txt += "("
@@ -600,7 +600,7 @@ class ComplexSpecies(Species):
         txt = txt[:-1]
 
         if self.compartment not in ["", None] and show_compartment:
-            txt += " in " + self.compartment + "."
+            txt += " in " + self.compartment.name + "."
 
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
             txt += "("
@@ -743,7 +743,7 @@ class OrderedComplexSpecies(ComplexSpecies):
         txt = txt[:-1]
 
         if self.compartment not in ["", None] and show_compartment:
-            txt += " in " + self.compartment + "."
+            txt += " in " + self.compartment.name + "."
 
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
             txt += "("
