@@ -2,7 +2,7 @@
 #
 # !!!make sure you use TABs instead of 4 spaces once you edit this file!!!
 #
-
+.PHONY: docs
 # test the core functionality of the toolbox
 test :
 	python setup.py test
@@ -25,3 +25,7 @@ get_test_deps :
 	pip install codecov
 	pip install flake8-mutable
 	pip install flake8
+
+docs :
+	# this has to be one line to run everything in the docs folder
+	cd docs; echo "Running Sphinx docs generator"; sphinx-apidoc -o source/ ../biocrnpyler; python generate_nblinks.py; make clean && make html;
