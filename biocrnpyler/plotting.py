@@ -311,6 +311,8 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
         allnodenum += 1
     # reactions follow, allnodenum is not reset between these two loops
     for rxn in CRN.reactions:
+        print("###########################")
+        print(rxn)
         CRNgraph.add_node(allnodenum)
         CRNgraph.nodes[allnodenum]["type"] = str(rxn.propensity_type)
         if isinstance(rxn.propensity_type, MassAction):
@@ -340,8 +342,8 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
         if((krev_val is not None) and (not useweights)):
             krev_val = 1
         for reactant in rxn.inputs:
-            CRNgraph.add_edge(
-                nodedict[reactant.species], allnodenum, weight=kval)
+            
+            CRNgraph.add_edge(nodedict[reactant.species],allnodenum,weight=kval)
             if(krev_val is not None):
                 # if the k is 0 then the node does not exist, right?
                 CRNgraph.add_edge(
