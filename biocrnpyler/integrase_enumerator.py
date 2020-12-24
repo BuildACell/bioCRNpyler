@@ -91,14 +91,15 @@ class Polymer_transformation:
                     newname = ["input1","input2"][part[0].parent.name=="input1"]
                     new_parentsdict[part[0].parent]=newname
             return Polymer_transformation(self.partslist,self.circular,parentsdict=new_parentsdict)
-    def create_polymer(self,*args,**keywords):
+    def create_polymer(self,*args,bound=True,**keywords):
         inputcount = 1
         for arg in args:
             inputname = "input"+str(inputcount)
             assert(inputname not in keywords)
             keywords[inputname]=arg
             inputcount += 1
-        assert(len(keywords)>=self.number_of_inputs)
+        assert(sum(["input" in a for a in keywords])>=self.number_of_inputs)
+
         outlst = []
         for part_list in self.partslist:
             part = part_list[0]
@@ -115,7 +116,10 @@ class Polymer_transformation:
                 if(isinstance(keywords["input1"],Construct)):
                     outpart = part
                 else:
-                    outpart = part.dna_species
+                    if(bound):
+                        outpart = part.get_complexed_species(part.dna_species)
+                    else:
+                        outpart = part.dna_species
             #assuming the stored parts have a valid direction
             outlst += [[outpart,partdir]]
         return keywords["input1"].__class__(outlst,circular = self.circular)
@@ -302,10 +306,11 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         int_dict = {}
         for part in construct.parts_list:
             if(isinstance(part,AttachmentSite) and part.integrase is not None):
-                if(part.integrase in int_dict):
-                    int_dict.update({part.integrase:int_dict[part.integrase]+[part]})
+                part_integrase = part.integrase.name
+                if(part_integrase in int_dict):
+                    int_dict.update({part_integrase:int_dict[part_integrase]+[part]})
                 else:
-                    int_dict[part.integrase]=[part]
+                    int_dict[part_integrase]=[part]
         return int_dict
     def enumerate_components(self,components = None, **keywords):
         """this explores all the possible integrase-motivated DNA configurations. If some
@@ -323,6 +328,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                     example, a CRE type 1 or a CRE type 2 site. The sites can also be palindromic,
                     which means that they can react in either direction.
         """
+        print(f"ran integrase enumerator on {components}")
         construct_list = []
         for component in components:
             if(isinstance(component,DNA_construct)):
@@ -334,6 +340,8 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
             con_dict = self.list_integrase(construct)
             
             int_dict = self.combine_dictionaries(int_dict,con_dict)
+        print(f"got an int_dict of {int_dict}")
+        print(f"int_mechanisms is {self.int_mechanisms}")
         constructlist = []
         for integrase in int_dict:
             if(integrase in self.int_mechanisms):
@@ -351,6 +359,6 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                         new_dnas = [a.create_polymer(combo[0].parent,combo[1].parent) for a in int_functions]
 
                         constructlist += new_dnas
-        
+        print(f"returned integrated dnas {constructlist}")
         return constructlist
 
