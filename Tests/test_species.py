@@ -13,10 +13,10 @@ class TestSpecies(TestCase):
         species = Species(name='test_species')
         self.assertEqual(repr(species), species.name)
 
-        with self.assertRaisesRegex(ValueError, f"name attribute {species.name} must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character."):
+        with self.assertRaisesRegex(ValueError, f"name attribute 2test_species must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character."):
             species = Species(name="2test_species")
 
-        self.assertEqual(species.compartment, "")
+        self.assertEqual(species.compartment.name, "default")
         # tests naming convention for species with name and compartment
         species = Species(name='test_species', compartment='test_compartment')
         self.assertEqual(repr(species), species.name +
@@ -27,6 +27,14 @@ class TestSpecies(TestCase):
         species = Species(name='test_species', material_type="dna")
         self.assertTrue(species.material_type == "dna")
 
+        with self.assertRaisesRegex(ValueError, f"material_type 2dna must be alpha-numeric and start with a letter."):
+            species = Species(name="test_species", material_type="2dna")
+
+        species2 = Species(name = "test_species2")
+        with self.assertRaisesRegex(ValueError, "species argument must be an instance of Species!"):
+            species.replace_species(species, "new_species")
+        with self.assertRaisesRegex(ValueError, "species argument must be an instance of Species!"):
+            species.replace_species("new_species", species)
         # tests emtpy attributes
         self.assertTrue(isinstance(species.attributes, list))
 
