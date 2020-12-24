@@ -1,16 +1,16 @@
-mechanism_id	part_id	param_name	param_val	comments
-transcription_mm	ptet_tetR	kb	10.	extra columns are okay!
-transcription_mm	ptet_tetR	ku	.1	These are the parameters for transcription
+mechanism_id	part_id	param_name	param_val	units	comments
+transcription_mm	ptet_tetR	kb	10.	litre_per_mole_per_hour	extra columns are okay!
+transcription_mm	ptet_tetR	ku	.1	per_hour	These are the parameters for transcription
 transcription_mm	ptet_tetR	ktx	1.		
-transcription_mm	ptet_leak	ktx	.1	These are the parameters for transcription leak
+transcription_mm	ptet_leak	ktx	.1		These are the parameters for transcription leak
 transcription_mm	ptet_leak	ku	.1		
 transcription_mm	ptet_leak	kb	.1		
-one_step_cooperative_binding	ptet_tetR	ku	.1	These are parameters for tetR dimerization and binding with the promoter	
-one_step_cooperative_binding	ptet_tetR	kb	.1
-one_step_cooperative_binding	ptet_tetR	cooperativity	2
-translation_mm	BCD	ktl	2.0	These are parameters for translation
-translation_mm	BCD	ku	.25		
-translation_mm	BCD	kb	10
-rna_degredation_mm		kb	10	These are parameters for RNA degredation. 
-rna_degredation_mm		ku	.5	They will be the same for all RNAs because of parameter defaulting.
+one_step_cooperative_binding	ptet_tetR	ku	.1		These are parameters for tetR dimerization and binding with the promoter
+one_step_cooperative_binding	ptet_tetR	kb	.1		
+one_step_cooperative_binding	ptet_tetR	cooperativity	2		
+translation_mm	BCD	ktl	2.0		These are parameters for translation
+translation_mm	BCD	ku	.25	per_hour	
+translation_mm	BCD	kb	10	litre_per_mole_per_hour	
+rna_degredation_mm		kb	10		"These are parameters for RNA degredation. "
+rna_degredation_mm		ku	.5		They will be the same for all RNAs because of parameter defaulting.
 rna_degredation_mm		kdeg	1.5		

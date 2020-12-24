@@ -30,21 +30,24 @@ Inside of bioCRNpyler, parameters are stored as a dictionary key value pair:
 
 #### Initial Conditions are also Parameters
 The initial condition of any Species (or Component) will also be looked up as a parameters automatically.
-    Initial conditions can be customized in through the custom_initial_condition keyword in the Mixture constructor.
+    Initial conditions can be customized in through the custom_initial_conditions keyword in the Mixture constructor.
     custom_initial_conditions will take precedent to parameter initial conditions.
 
     During compilation, Mixture.set_initial_condition() checks for parameters for all species in the following order:
 
-    # First checks if (mixture.name, repr(species) is in the self.custom_initial_condition_dict
-    # Then checks if (repr(species) is in the self.custom_initial_condition_dict
+    # First checks if (mixture.name, repr(species)) is in the self.custom_initial_condition_dict
+    # Then checks if (repr(species)) is in the self.custom_initial_condition_dict
     # Then checks if (mixture.name, component.name) is in the self.custom_initial_condition_dictionary
     # Then checks if (component.name) is in the self.custom_initial_condition_dictionary
 
-    # Then checks if (mixture.name, repr(species) is in the parameter dictionary
+    # Then checks if (mixture.name, repr(species)) is in the parameter dictionary
     # Then checks if repr(species) is in the parameter dictionary
-    # Then checks if (mixture.name, component.name) is in the parameter dictionary
+    # Then checks if (mixture.name, component.name)) is in the parameter dictionary
     # Then checks if component.name is in the parameter dictionary
     # Then defaults to 0
+
+#### Units are read directly read from the column labeled "units" in the parameter file. 
+
 """
 
 import csv
@@ -58,14 +61,19 @@ ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')  # This coul
 
 
 class Parameter(object):
-    def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real]):
+    def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real], unit = None):
         """A class for representing parameters in general. Only the below subclasses are ever used.
 
         :param parameter_name: is the name of the parameter
         :param parameter_value: is the value of the parameter
+        :param unit: is the unit of the parameter or a species
         """
         self.parameter_name = parameter_name
         self.value = parameter_value
+        if unit is None:
+            self.unit = ""
+        else:
+            self.unit = unit
 
     @property
     def parameter_name(self) -> str:
@@ -97,6 +105,16 @@ class Parameter(object):
         else:
             self._value = new_parameter_value
 
+    @property
+    def unit(self) -> str:
+        return self._unit
+    
+    @unit.setter
+    def unit(self, new_unit: str):
+        if type(new_unit) is not str:
+            raise ValueError("All units must be strings.")
+        self._unit = new_unit
+
     @staticmethod
     def _convert_rational(p_value: str) -> numbers.Real:
         if '/' in p_value:
@@ -116,8 +134,8 @@ class ParameterEntry(Parameter):
      parameter_info is a dictionary {key:value} of additional information about the parameter. 
          For example: additional columns in the parameter file or the parameter file name.
     """
-    def __init__(self, parameter_name: str, parameter_value: Union[str,numbers.Real], parameter_key=None, parameter_info=None):
-        Parameter.__init__(self, parameter_name, parameter_value)
+    def __init__(self, parameter_name: str, parameter_value: Union[str,numbers.Real], unit=None, parameter_key=None, parameter_info=None):
+        Parameter.__init__(self, parameter_name, parameter_value, unit=unit)
 
         self.parameter_key = parameter_key
         self.parameter_info = parameter_info
@@ -187,9 +205,9 @@ class ModelParameter(ParameterEntry):
       search_key is a tuple searched for to find the parameter, eg (mech_id, part_id, param_name), :
       found_key is the tuple used after defaulting to find the parameter eg (param_name)
     """
-    def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real], search_key, found_key, parameter_key=None, parameter_info=None):
+    def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real], search_key, found_key, unit=None, parameter_key=None, parameter_info=None):
 
-        ParameterEntry.__init__(self, parameter_name, parameter_value, parameter_key=parameter_key, parameter_info=parameter_info)
+        ParameterEntry.__init__(self, parameter_name, parameter_value, unit=unit, parameter_key=parameter_key, parameter_info=parameter_info)
         self.search_key = search_key
         self.found_key = found_key
 
