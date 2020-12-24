@@ -70,10 +70,7 @@ class Parameter(object):
         """
         self.parameter_name = parameter_name
         self.value = parameter_value
-        if unit is None:
-            self.unit = ""
-        else:
-            self.unit = unit
+        self.unit = unit
 
     @property
     def parameter_name(self) -> str:
@@ -111,9 +108,12 @@ class Parameter(object):
     
     @unit.setter
     def unit(self, new_unit: str):
-        if type(new_unit) is not str:
-            raise ValueError("All units must be strings.")
-        self._unit = new_unit
+        if new_unit is None:
+            self._unit = ""
+        elif type(new_unit) is not str:
+            raise ValueError(f"All units must be strings. Recieved {new_unit}.")
+        else:
+            self._unit = new_unit
 
     @staticmethod
     def _convert_rational(p_value: str) -> numbers.Real:
@@ -134,8 +134,8 @@ class ParameterEntry(Parameter):
      parameter_info is a dictionary {key:value} of additional information about the parameter. 
          For example: additional columns in the parameter file or the parameter file name.
     """
-    def __init__(self, parameter_name: str, parameter_value: Union[str,numbers.Real], unit=None, parameter_key=None, parameter_info=None):
-        Parameter.__init__(self, parameter_name, parameter_value, unit=unit)
+    def __init__(self, parameter_name: str, parameter_value: Union[str,numbers.Real], parameter_key=None, parameter_info=None, **keywords):
+        Parameter.__init__(self, parameter_name, parameter_value, **keywords)
 
         self.parameter_key = parameter_key
         self.parameter_info = parameter_info
@@ -183,6 +183,13 @@ class ParameterEntry(Parameter):
             self._parameter_info = {}
         elif isinstance(parameter_info, dict):
             self._parameter_info = dict(parameter_info)
+
+            #Update the units attribute, if necessary
+            if "unit" in parameter_info and self.unit != "" and self.unit != parameter_info["unit"]:
+                raise ValueError(f"Recieved multiple parameter units through constructor {self.unit} and parameter_info dictionary {parameter_info['unit']}.")
+            elif "unit" in parameter_info:
+                self.unit = parameter_info["unit"]
+
         else:
             raise ValueError(f"parameter_info must be None or a dictionary: received {parameter_info}.")
 
@@ -205,9 +212,9 @@ class ModelParameter(ParameterEntry):
       search_key is a tuple searched for to find the parameter, eg (mech_id, part_id, param_name), :
       found_key is the tuple used after defaulting to find the parameter eg (param_name)
     """
-    def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real], search_key, found_key, unit=None, parameter_key=None, parameter_info=None):
+    def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real], search_key, found_key, unit=None, parameter_key=None, parameter_info=None, **keywords):
 
-        ParameterEntry.__init__(self, parameter_name, parameter_value, unit=unit, parameter_key=parameter_key, parameter_info=parameter_info)
+        ParameterEntry.__init__(self, parameter_name, parameter_value, unit=unit, parameter_key=parameter_key, parameter_info=parameter_info, **keywords)
         self.search_key = search_key
         self.found_key = found_key
 
@@ -394,7 +401,8 @@ class ParameterDatabase(object):
                 'mechanism': ['mechanism', 'mechanism_id'],
                 'param_name': ["parameter_name", "parameter", "param", "param_name"],
                 'part_id': ['part_id', 'part'],
-                'param_val': ["val", "value", "param_val", "parameter_value"]
+                'param_val': ["val", "value", "param_val", "parameter_value"],
+                'unit':['unit', 'units']
             }
 
             field_names = self._get_field_names(csvreader.fieldnames, accepted_field_names)
@@ -556,5 +564,5 @@ class ParameterDatabase(object):
             return None
         else:
             return_param = ModelParameter(found_entry.parameter_name,found_entry.value, (mech_name, part_id, param_name), found_key,
-                parameter_key = found_entry.parameter_key, parameter_info = found_entry.parameter_info)
+                parameter_key = found_entry.parameter_key, parameter_info = found_entry.parameter_info, unit = found_entry.unit)
             return return_param
