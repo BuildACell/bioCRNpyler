@@ -1,16 +1,14 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
-def combine_dictionaries(dict1,dict2):
-    """append lists that share the same key, and add new keys"""
-    outdict = copy.deepcopy(dict1)
-    for key in dict2:
-        if key in outdict:
-            assert(isinstance(dict2[key],list))
-            assert(isinstance(outdict[key],list))
-            outdict[key] += dict2[key]
-        else:
-            outdict[key] = dict2[key]
-    return outdict
+from .species import Species
+from .polymer import OrderedPolymer, OrderedMonomer, NamedPolymer
+from .dna_construct import Construct, DNA_construct
+from .dna_part_misc import AttachmentSite
+from .component_enumerator import GlobalComponentEnumerator
+import itertools as it
+import copy
+
+'''
 def all_paths(prototype_list):
     """recursively enumerate all paths through a list"""
     if(len(prototype_list)==1):
@@ -26,178 +24,106 @@ def all_paths(prototype_list):
                 #put in every possible rest of the list
                 retlist+=[[a]+rlist]
     return retlist
-class DNA_function:
-    def __init__(self,outputlists,productsites,intbound = None,integrase_species=None):
-        """this creates one sequence out of one or two input sequences
-        reactants: Species of the reactants
-        outputlists: dictionary of indexlists for the products. key is the output Species, value is the [[index,direction, identity],[index1,direction1,identity],...]
-        productsites: {output_name1:[site1,site2,site3,...],output_name2:[site1,site2,...]} each site is a list which has [species,position]
-        intbound: 
+#'''
+
+
+class Polymer_transformation:
+    def __init__(self,partslist,circular=False,parentsdict = None):
+        """A Polymer transformation is like a generic transformation of a polymer sequence.
+        You specify a parts list that would make up the output polymer. This list can contain:
+        parts from ordered polymers
+        parts that aren't in any polymers (have parent = None)
+        parts from ordered polymers are considered as "placeholders"
+        parts with parent = None are inserted into the new polymer.
+
+        Also you can specify if the output should be circular or not.
         """
-        self.outputlists = outputlists
-        self.integrase_species = integrase_species
-        self.intbound = intbound
-        self.update_reactants_products()
-        self.productsites = productsites
-    def replace_dna_name(self,namedict):
-        """replace internal representation of dna names with whatever the user wants"""
-        new_outputlists = {}
-        new_productsites = {}
-        for outputname in self.outputlists:
-            if(outputname in namedict):
-                #this means we are replacing the name of an output.
-                #it occurs in two places: outputlists and also productsites
-                new_outputlists[namedict[outputname]]=self.outputlists[outputname]
-                new_productsites[namedict[outputname]]=self.productsites[outputname]
+        if(parentsdict is None):
+            parentsdict = {} #this is a conversion of the parents of the inputted parts into "blank" dummy polymers
+                            #each unique parent becomes a different dummy polymer
+        inputcount = 1
+        actual_partslist = []
+        partdir = -1 #-1 = not set. Valid values are "forward" "reverse" and None
+        #go through the parts
+        inputname = None
+        for part in partslist:
+            if(type(part)==list or type(part) ==tuple):
+                #if the part is a tuple that means it looks like [OrderedMonomer,"direction"]
+                partdir = part[1]
+                part_ref = part[0]
             else:
-                #if we aren't replacing it, still remember that it exists
-                new_outputlists[outputname] = self.outputlists[outputname]
-                new_productsites[outputname]= self.productsites[outputname]
-        for new_name in new_outputlists:
-            #maybe we need to replace an input for some reason?
-            dna_prototype = []
-            for element in new_outputlists[new_name]:
-                if(element[2] in namedict):
-                    dna_prototype +=[[element[0],element[1],namedict[element[2]]]]
-                else:
-                    dna_prototype += [element]
-            new_outputlists[new_name]=dna_prototype
-        self.outputlists = new_outputlists
-        self.productsites = new_productsites
-        self.update_reactants_products()
-    def update_reactants_products(self):
-        """update reactants and products to coincide with outputlists"""
-        identities = []
-        for outputSpecies in self.outputlists:
-            identities+=[a[2] for a in self.outputlists[outputSpecies]]
-        self.number_of_inputs = len(list(set(identities)))
-        self.reactants =  list(set(identities))
-        self.products = [a for a in self.outputlists.keys()]
-    def transform_ordered_complex(self,input_complexes):
-        """take an input complex and convert it into a product
-        inputComplexes is a list of OrderedComplexes"""
-        assert(len(input_complexes)==self.number_of_inputs,"wrong number of complexes provided")
-        #make sure we have the right number of inputs
-        #TODO this does not work with two copies of the same thing that react together, does it!?
-        for a in input_complexes:
-            assert(isinstance(a,OrderedComplexSpecies), "{} is not an OrderedComplexSpecies".format(a))
-        new_input_complexes = copy.deepcopy(input_complexes)
-        input_complex_dict = {a.species[-1].name:a.species[:-1] for a in new_input_complexes}
-        out_dict = self.transform_list(input_complex_dict)
-        outproducts = []
-        for out_spec_name in out_dict:
-            out_spec = Species(out_spec_name,material_type="dna")
-            #print("out_spec is "+str(type(out_spec)))
-            unordered = [a[0] for a in out_dict[out_spec_name]]
-            modified_parts_list = []
-            for spec in unordered:
-                if(isinstance(spec,DNA_part)):
-                    # you can't have DNA_parts in an OrderedComplexSpecies,
-                    # but in this case the only thing that can happen 
-                    # is to make a species with integrase bound.
-                    #TODO put in a make_complex() here?
-                    partspec = Species(spec.name,material_type="dna")
-                    coop = spec.integrase_cooperativity
-                    part_complex = ComplexSpecies([partspec]+[spec.integrase_species]*coop)
-                    modified_parts_list += [part_complex]
-                elif(isinstance(spec,str) or isinstance(spec,Species)):
-                    modified_parts_list += [spec]
-            outproducts +=[OrderedComplexSpecies(modified_parts_list+[out_spec],\
-                                material_type="ordered_complex")] #TODO just assume we want the material_type of the first complex..?
-        return outproducts
-    def transform_DNA_parts_list(self,input_complexes):
-        """take an input complex and convert it into a product
-        input_complexes is a dictionary of lists of DNA_part objects"""
-        
-        assert(len(input_complexes)==self.number_of_inputs,"wrong number of complexes provided")
-        #make sure we have the right number of inputs
-        #TODO this does not work with two copies of the same thing that react together, does it!?
-        for input_sublist in input_complexes:
-            #everything should be a DNA part
-            for a in input_complexes[input_sublist]:
-                assert(isinstance(a,DNA_part),"{} in {} is not a DNA_part".format(a,input_complexes[input_sublist]))
-            #assert(sum([isinstance(a,DNA_part) for a in input_complexes[input_sublist]])==len(input_complexes[input_sublist]), "{} is not made of DNA_parts")
-        new_input_complexes = copy.deepcopy(input_complexes)
-        out_dict = self.transform_list(new_input_complexes)
-        outproducts = {}
-        for out_spec in out_dict:
-            speclist = []
-            for a in out_dict[out_spec]:
-                if(a[1]=="reverse"):
-                    a[0].reverse()
-                a[1] = a[0].direction
-                speclist += [a]
-            outproducts[out_spec] =speclist
-        return outproducts
-    def is_valid_reactant(self,ordered_species):
-        if(self.intbound is None):
-            raise ValueError("intbound is not defined")
-        if(isinstance(ordered_species,OrderedComplexSpecies)):
-            pass #in this case keep going
+                part_ref = part
+                partdir = part_ref.direction
+            #if the parent is populated, it means this part should be a placeholder
+            if(part_ref.parent is not None):
+                #if we haven't tracked it already
+                if(part_ref.parent not in parentsdict):
+                    #create a 'blank' polymer based on the input, and give it a generic name
+                    inputname = "input"+str(inputcount)
+                    dummyPolymer = self.dummify(part_ref.parent,inputname)
+                    #set the value in the dictionary
+                    parentsdict[part_ref.parent]=dummyPolymer.name
+                    #increment for the next time this happens
+                    
+                    inputcount+=1
+                elif(inputname is None or inputname != parentsdict[part_ref.parent]):
+                    inputname = parentsdict[part_ref.parent]
+                    dummyPolymer = self.dummify(part_ref.parent,inputname)
+                #this variable is the actual parts list that will be stored. It has mostly dummy parts
+                actual_partslist += [[dummyPolymer[part_ref.position],partdir]]
+            else:
+                #if the part has no parent, copy it and put it in
+                actual_partslist += [[copy.deepcopy(part_ref),partdir]]
+        self.number_of_inputs = len(parentsdict)
+        self.parentsdict = parentsdict
+        self.partslist = actual_partslist
+        self.circular = circular
+    def inverted(self):
+        """return an "inverted" version of yourself where site1 = site2
+        WARNING: this will not work with more than 2 sites!"""
+        new_parentsdict = {}
+        if(len(self.parentsdict)==1):
+            #in this case we have only "input1"
+            return self
         else:
-            #only OrderedComplexSpecies can be valid reactants anyway
-            return False
-        dna_name = ordered_species.species[-1].name
-        if(dna_name in self.reactants):
-            #is the name of this dna something we recognize?
-            bound_amt = len(self.intbound[dna_name])
-            #this is an accumulator for counting how many valid integrase bound locations we have
-            for bound_loc in self.intbound[dna_name]:
-                #go through each location
-                bound_spec = self.intbound[dna_name][bound_loc]
-                #this is the species that should be bound at this location
-                if(isinstance(ordered_species.species[bound_loc],ComplexSpecies) and bound_spec in ordered_species.species[bound_loc]):
-                    #if integrase is bound, count success!
-                    #TODO I don't care about how many copies of integrase are bound but that might be important
-                    bound_amt-=1 #count it
-            if(bound_amt < 0):
-                #this should not happen?
-                raise ValueError("there are too many integrases bound to {}! That seems wrong".format(ordered_species))
-            elif(bound_amt == 0):
-                #there are exactly the right amount of integrases bound
-                return True
+            for part in self.partslist:
+                if(part[0].parent is not None and part[0].parent not in new_parentsdict):
+                    newname = ["input1","input2"][part[0].parent.name=="input1"]
+                    new_parentsdict[part[0].parent]=newname
+            return Polymer_transformation(self.partslist,self.circular,parentsdict=new_parentsdict)
+    def create_polymer(self,*args,**keywords):
+        inputcount = 1
+        for arg in args:
+            inputname = "input"+str(inputcount)
+            assert(inputname not in keywords)
+            keywords[inputname]=arg
+            inputcount += 1
+        assert(len(keywords)>=self.number_of_inputs)
+        outlst = []
+        for part_list in self.partslist:
+            part = part_list[0]
+            partdir = part_list[1]
+            outpart = None
+            
+            if(part.parent is not None):
+                #grab the part from the proper input
+                outpart = keywords[part.parent.name][part.position]
             else:
-                return False
-
-    def __repr__(self):
-        outstr = "DNA_func "
-        dup_reactants = copy.deepcopy(self.reactants)
-        dup_prod = copy.deepcopy(self.products)
-        #print(self.intbound)
-        #print(self.productsites)
-        for input_spec in self.reactants:
-            intbounds = ', '.join([str(a) for a in self.intbound[input_spec]])
-            outstr+=str(input_spec)+" + "
-        outstr = outstr[:-3]+" "+intbounds+" ===> "
-        for output_spec in self.products:
-            #print(self.productsites)
-            intbounds = ', '.join([str(a[1]) for a in self.productsites[output_spec]])
-            outstr+=str(output_spec)+" "+intbounds+" + "
-        outstr = outstr[:-3]
-        return outstr
-    def transform_list(self,input_lists):
-        """input_lists is a dictionary of lists. {dna1:[part1,part2,..],dna2:[part1,part2,...]]}"""
-        #in this case we have a list of parts as input. the keys are DNA species that match the ones
-        #we gave when we created this instance
-
-        #assert(sum([isinstance(a,Species) for a in input_lists])==len([a for a in input_lists]))
-        outlst = {a:[] for a in self.outputlists}
-        #outproducts_dict = {}
-        #this is what the outputs look like
-        for out_spec in self.outputlists:
-            output_list = self.outputlists[out_spec]
-            #print(list(output_list))
-            for index,direction,identity in output_list:
-                #print([input_lists[identity][index],direction])
-                #print(outlst)
-                outlst[out_spec] += [[input_lists[identity][index],direction]]
-            for site in self.productsites[out_spec]:
-                #now we swap out the sites on the output for the ones that should be there
-                outlst[out_spec][site[1]]=[site[0],"forward"]
-            #outproducts_dict[out_spec] = outlst
-        return outlst
-    
-
+                #this part deals with parts that don't come from input1 or input2.
+                #they need to be either DNA_part or species objects, depending on
+                #what kind of object we are making in the end.
+                if(isinstance(keywords["input1"],Construct)):
+                    outpart = part
+                else:
+                    outpart = part.dna_species
+            #assuming the stored parts have a valid direction
+            outlst += [[outpart,partdir]]
+        return keywords["input1"].__class__(outlst,circular = self.circular)
+    def dummify(self,in_polymer,name):
+        out_list = []    
+        for element in in_polymer:
+            out_list += [OrderedMonomer(direction=element.direction)]
+        return NamedPolymer(out_list,name)
 
 class IntegraseMechanism:
     def __init__(self,name=None,reactions={("attB","attP"):"attL",("attP","attB"):"attR"}):
@@ -210,7 +136,7 @@ class IntegraseMechanism:
             self.name = "int1"
         else:
             self.name = name
-        self.integrase_species = Protein(self.name).get_species()
+        self.integrase_species = Species(self.name,material_type="protein")
         self.reactions = reactions
         self.attsites = []
         for reactants in reactions:
@@ -253,246 +179,178 @@ class IntegraseMechanism:
     def integrate(self,site1,site2):
         """perform an integration reaction between the chosen sites and make new DNA_constructs"""
         #if one of the sites is not part of a construct then raise an error!
-        if(not(isinstance(site1.assembly,DNA_construct))):
+        if(not(isinstance(site1.parent,Construct))):
             raise ValueError("{} not part of a construct".format(site1))
-        elif(not(isinstance(site2.assembly,DNA_construct))):
+        elif(not(isinstance(site2.parent,Construct))):
             raise ValueError("{} not part of a construct".format(site2))
-        site1_initial_facing = copy.deepcopy(site1.direction) #keep track of what we reverse so we can flip it back!
-        site2_initial_facing = copy.deepcopy(site2.direction)
-        
-        cutpos1 = site1.pos
-        cutpos2 = site2.pos
+        cutpos1 = site1.position
+        cutpos2 = site2.position
         #below are the references to the sites in the products
-        finalprod1 = None
-        finalprod2 = None
-        if(site1.assembly==site2.assembly):
+        dna_inputs = []
+        if(site1.parent==site2.parent):
             #these sites are part of the same piece of DNA, so they are going to do an intramolecular reaction
-            if(site1.pos > site2.pos):
+            if(site1.position > site2.position):
                 #we reverse which position is where
-                cutpos2 = site1.pos
-                cutpos1 = site2.pos
+                cutpos2 = site1.position
+                cutpos1 = site2.position
                 prod1,prod2 = self.generate_products(site2,site1)
                 #integrase sites are converted into different sites according to this function
             else:
                 prod1,prod2 = self.generate_products(site1,site2)
                 #integrase sites are converted into different sites according to this function
             
-            dna = copy.deepcopy(site1.assembly)
-            dna_list = list(range(len(dna.parts_list)))
+            dna = site1.parent
+            dna_inputs = [dna]
+            #dna = copy.deepcopy(site1.assembly)
+            #dna_list = list(range(len(dna.parts_list)))
             circularity = dna.circular
             
             if(site1.direction == site2.direction):
                 #if the sites point in the same direction, then we are doing a deletion reaction
-                cutdna_list_parts = dna_list[:cutpos1]+[dna_list[cutpos1]]+dna_list[cutpos2+1:] #delete
-                newdna_list_parts = [dna_list[cutpos1]]+dna_list[1+cutpos1:cutpos2]
-                cutdna_list = [[a,"forward",dna.name] for a in cutdna_list_parts]
-                newdna_list = [[a,"forward",dna.name] for a in newdna_list_parts]
-                integ_func = DNA_function({"cutdna":cutdna_list,"newdna":newdna_list},\
-                                                            {"cutdna":[[prod1,cutpos1]],"newdna":[[prod2,0]]})
-                #we want to feed out this integ_func
-                outdna = integ_func.transform_DNA_parts_list({dna.name:dna.parts_list})
-                cutdna_transformed = outdna["cutdna"]
-                newdna_transformed = outdna["newdna"]
+                #direction doesn't matter so we don't need to flip anything
+                cutdna_list_parts = list(dna[:cutpos1])+[[prod1,site1.direction]]+list(dna[cutpos2+1:]) #delete
+                newdna_list_parts = [[prod2,site2.direction]]+list(dna[1+cutpos1:cutpos2])
 
-                cutdna = DNA_construct(cutdna_transformed,circular=circularity) 
-                #the part we cut out of stays the same topology
-                finalprod1 = cutdna.parts_list[cutpos1]
-                if(site1_initial_facing != prod1.direction):
-                    cutdna.reverse()
-                
-                newdna2 = DNA_construct(newdna_transformed,circular=True) 
-                integ_func.replace_dna_name({"cutdna":cutdna.name,"newdna":newdna2.name})
-                #update integ_func with the actual names
-                
-                #the part that gets cut out is always a circle
-                finalprod2 = newdna2.parts_list[0]
-                if(site2_initial_facing != prod2.direction):
-                    newdna2.reverse()
-                newdna = [newdna2,cutdna]
+                integ_funcs = [Polymer_transformation(cutdna_list_parts,circular = circularity),\
+                                        Polymer_transformation(newdna_list_parts,circular=True)]
             else:
                 #this means we are dealing with an inversion
-                inv_segment = [[a,"reverse"] for a in dna_list[cutpos1+1:cutpos2][::-1]]
-                #the inverted segment is reverse relative to everything else
+                inv_segment = []
                 
-                invertdna_list = [[a,"forward"] for a in dna_list[:cutpos1+1]] + \
-                                        inv_segment+ \
-                                        [[a,"forward"] for a in dna_list[cutpos2:]]
-                invertdna_list = [[a[0],a[1],dna.name] for a in invertdna_list]
-                #above makes a list of indexes that tells the DNA_function below
-                #how to assemble to new list of DNA_part objects
+                [[a,] for a in dna[cutpos1+1:cutpos2][::-1]]
+                for a in dna[cutpos1+1:cutpos2][::-1]:
+                    inv_segment += [[a,["forward","reverse"][a.direction=="forward"]]]
+                #the inverted segment is reversed
                 
-                integ_func = DNA_function({"invdna":invertdna_list},\
-                                                {"invdna":[[prod1,cutpos1],[prod2,cutpos2]]})
-                #once the new list has been assembled, we extract the correct DNA_part list
-                outdna = integ_func.transform_DNA_parts_list({dna.name:dna.parts_list})
-                inv_dna = outdna["invdna"]
-                #now the DNA_part list is converted into a DNA_construct
-                inverteddna = DNA_construct(inv_dna,circular=circularity)
-                integ_func.replace_dna_name({"invdna":inverteddna.name})
-                #update integ_func with the actual names
-                #this just pulls out the attL and attR sites TODO unnecessary, now that we are using DNA_function?
-                finalprod1 = inverteddna.parts_list[cutpos1]
-                finalprod2 = inverteddna.parts_list[cutpos2]
-                if(site1_initial_facing != prod1.direction):
-                    #this is making sure the final DNA_construct is inverted into the correct orientation
-                    inverteddna.reverse()
-                newdna = [inverteddna]
+                invertdna_list = list(dna[:cutpos1])+\
+                                [[prod1,site1.direction]]+\
+                                inv_segment+ \
+                                [[prod2,site2.direction]]+\
+                                list(dna[cutpos2+1:])
+
+                integ_funcs = [Polymer_transformation(invertdna_list,circular=circularity)]
         else:
-            #TODO didn't modify intermolecular reactions to use the DNA_function yet
             #otherwise these sites are on different pieces of DNA, so they are going to combine
-            #don't mangle the inputs
-            dna1 = copy.deepcopy(site1.assembly)
-            dna2 = copy.deepcopy(site2.assembly)
-            #fix references to sites
-            site1 = dna1.parts_list[site1.pos]
-            site2 = dna2.parts_list[site2.pos]
+            dna1 = site1.parent
+            dna2 = site2.parent
+            dna_inputs = [dna1,dna2]
             #make sure everyone is forwards
-            if(site1.direction=="reverse"):
-                dna1.reverse()
-            if(site2.direction=="reverse"):
-                dna2.reverse()
-            
-            
-            dna1_list = [[a,dna1.name] for a in list(range(len(dna1.parts_list)))] #list of indexes, for the DNA_function
-            dna2_list = [[a,dna2.name] for a in list(range(len(dna2.parts_list)))]
+            sites = [site1,site2]
+            site_halves = []
+            for dna_num,site_num in zip(dna_inputs,sites):
+                if(site_num.direction=="reverse"):
+                    dnanum_beginning = [[a,["forward","reverse"][a.direction=="forward"]] for a in dna_num[site_num.position+1:][::-1]]
+                    dnanum_end = [[a,["forward","reverse"][a.direction=="forward"]] for a in dna_num[:site_num.position][::-1]]
+                else:
+                    dnanum_beginning = dna_num[:site_num.position]
+                    dnanum_end = dna_num[site_num.position+1:]
+                site_halves += [[list(dnanum_beginning),list(dnanum_end)]]
+            dna1_halves = site_halves[0]
+            dna2_halves = site_halves[1]
+
             circ1 = dna1.circular
             circ2 = dna2.circular
             prod1,prod2 = self.generate_products(site1,site2)
 
-            #generate attL and attR sites
-            prod1.direction = "forward"
-            prod2.direction = "forward"
             #direction of everything should be forward
-            #now, cut the DNAs
-            #flip the DNAs around so that they are pointing forwards
-            
-            
+
             if(circ2==True):
                 #in this case we are combining a circular plasmid with a circular or linear plasmid
                 #either way the result is basically the same, except the result is either linear or circular
-                new_construct_list_ind = dna1_list[:site1.pos+1]+dna2_list[site2.pos+1:]+dna2_list[:site2.pos]+dna1_list[site1.pos:]
-                new_construct_list_dir = [[a[0],"forward",a[1]] for a in new_construct_list_ind]
-                new_construct_list = {"newdna":new_construct_list_dir}
-                #computing the integrase site positions
-                prod1_pos = site1.pos
-                prod2_pos = site1.pos+len(dna2.parts_list)
-                #constructing DNA transformation function
-                integ_func = DNA_function(new_construct_list,{"newdna":[[prod1,prod1_pos],[prod2,prod2_pos]]})
-                #applying DNA transformation function
-                new_parts_lists = integ_func.transform_DNA_parts_list({dna1.name:dna1.parts_list,dna2.name:dna2.parts_list})
-                #make a DNA_construct out of the transformed list
-                if(circ1==False):
-                    #if only the first one was a circle then the result is linear
-                    new_construct = DNA_construct(new_parts_lists["newdna"],circular=False)
-                elif(circ1==True):
-                    #if both were circles then make the result a circle
-                    new_construct = DNA_construct(new_parts_lists["newdna"],circular=True)
-                integ_func.replace_dna_name({"newdna":new_construct.name})
-                #store results for returning later
-                newdna = [new_construct]
-                finalprod1 = new_construct.parts_list[prod1_pos]
-                finalprod2 = new_construct.parts_list[prod2_pos]
+                #result is ONE PIECE OF DNA
+                result = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]+dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
+                integ_funcs = [Polymer_transformation(result,circ1)]
             elif(circ2 ==False and circ1 == True):
                 #if the sites are backwards just reverse everything
                 return self.integrate(site2,site1)
             elif(circ1==False and circ1==circ2):
                 #here we are recombining two linear plasmids, so two linear plasmids are produced
-                newdna_1_list = dna1_list[:site1.pos]+dna2_list[site2.pos:]
-                newdna_2_list = dna2_list[:site2.pos]+dna1_list[site1.pos:]
-                newdna1_list_dir = [[a[0],"forward",a[1]] for a in newdna_1_list]
-                newdna2_list_dir = [[a[0],"forward",a[1]] for a in newdna_2_list]
-                prod1_pos = site1.pos
-                prod2_pos = site2.pos
-                integ_func = DNA_function({"newdna1":newdna1_list_dir,"newdna2":newdna2_list_dir},
-                                            {"newdna1":[[prod1,prod1_pos]],"newdna2":[[prod2,prod2_pos]]})
-                reactant_dicts = {dna1.name:dna1.parts_list,dna2.name:dna2.parts_list}
-                new_parts = integ_func.transform_DNA_parts_list(reactant_dicts)
-                newdna_1 = DNA_construct(new_parts["newdna1"],circular=False)
-                newdna_2 = DNA_construct(new_parts["newdna2"],circular=False)
-                #create the new constructs
-                integ_func.replace_dna_name({"newdna1":newdna_1.name,"newdna2":newdna_2.name})
-                #now that we know what the new dnas will be called, put their names in there!
-                finalprod1 = newdna_1.parts_list[site1.pos]
-                
-                finalprod2 = newdna_2.parts_list[site2.pos]
-                #flip DNA so it's oriented correctly!
-                if(site1_initial_facing != prod1.direction):
-                    newdna_1.reverse()
-                if(site2_initial_facing != prod2.direction):
-                    newdna_2.reverse()
-                newdna = [newdna_1,newdna_2]
-        intbound = {}
-        #now we are remembering where the integrases should be bound for the reactants
-        for site in [site1,site2]:
-            dna_name = site.assembly.name
-            boundpos = site.pos
-            integrase = Protein(site.integrase).get_species()
-            if(dna_name in intbound):
-                intbound[dna_name][boundpos] = integrase
-            else:
-                intbound[dna_name] = {boundpos:integrase}
-        integ_func.intbound = intbound
-        integ_func.integrase_species = self.integrase_species
-        return newdna,integ_func
 
-def list_integrase(construct):
-    """lists all the parts that can be acted on by integrases"""
-    int_dict = {}
-    for part in construct.parts_list:
-        if(isinstance(part,AttachmentSite) and part.integrase is not None):
-            if(part.integrase in int_dict):
-                int_dict.update({part.integrase:int_dict[part.integrase]+[part]})
-            else:
-                int_dict[part.integrase]=[part]
-    return int_dict
-
-
-
-
-def explore_integrases(construct_list,int_mechanisms):
-    """this explores all the possible integrase-motivated DNA configurations. If some
-    integrases aren't present, then define intnames to be a list of names of the
-    integrases which are present.
-    An integrase can act in different ways. 
-    * serine integrases recombine B and P sites that turn into L and R sites, 
-                and only sites with the same dinucleotide can be recombined.
-    * serine integrases with directionality factors recombine L and R sites
-                with the same dinucleotide
-    * Invertases only do flipping reactions
-    * resolvases only do deletion reactions
-    * FLP or CRE react with homotypic sites, so site1+site1 = site1+site1. But
-                there are still different types of sites which are orthogonal. For
-                example, a CRE type 1 or a CRE type 2 site. The sites can also be palindromic,
-                which means that they can react in either direction.
-    """
-    int_dict = {}
-    for construct in construct_list:
-        #list each integrase that exists and which sites they react with
-        con_dict = list_integrase(construct)
+                result1 = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]
+                result2 = dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
+                integ_funcs = [Polymer_transformation(result1),Polymer_transformation(result2)]
         
-        int_dict = combine_dictionaries(int_dict,con_dict)
-    constructlist = []
-    rxn_list = []
-    integ_component_list = [] #not sure what this is
-    #print(self.integraselist)
-    for integrase in int_dict:
-        if(integrase in int_mechanisms):
-            int_mech = int_mechanisms[integrase]
-            #now, going through each one, generate the reactions and species that arise
-            attsites = int_dict[integrase]
-            #but now we need to know what kind of integrase reactions are possible
-            attcombos = [a for a in it.combinations(attsites,2)]
-            #print(attcombos)
-            for combo in attcombos:
-                #first question: is this combo legal?
-                if(tuple([a.site_type for a in combo]) in int_mech.reactions):
-                    #this means the reaction can exist
-                    results,int_rxn = int_mech.integrate(combo[0],combo[1])
-                    #self.add_integration(combo[0],combo[1],s1,s2)
-                    #integ_component_list = 
-                    #second question: what are the resulting dna_constructs and reaction-primed parts
-                    constructlist += copy.deepcopy(results)
-                    rxn_list += [int_rxn]
-    global_int = GlobalIntegraseMechanism(rxn_list)
-    return constructlist,global_int
+        #newdna = [a.create_polymer(*dna_inputs) for a in integ_funcs]
+
+        site1.linked_sites[site2] = [integ_funcs,[]]
+        site2.linked_sites[site1] = [[a.inverted() for a in integ_funcs],[]]
+        return integ_funcs
+
+
+
+
+
+class Integrase_Enumerator(GlobalComponentEnumerator):
+    def __init__(self,name:str,int_mechanisms = None):
+        if(int_mechanisms is None):
+            int_mechanisms={"int1":IntegraseMechanism()}
+        self.int_mechanisms = int_mechanisms
+        GlobalComponentEnumerator.__init__(self,name=name)
+    def combine_dictionaries(self,dict1,dict2):
+        """append lists that share the same key, and add new keys"""
+        outdict = dict1
+        for key in dict2:
+            if key in outdict:
+                assert(isinstance(dict2[key],list))
+                assert(isinstance(outdict[key],list))
+                outdict[key] += dict2[key]
+            else:
+                outdict[key] = dict2[key]
+        return outdict
+    def list_integrase(self,construct):
+        """lists all the parts that can be acted on by integrases"""
+        int_dict = {}
+        for part in construct.parts_list:
+            if(isinstance(part,AttachmentSite) and part.integrase is not None):
+                if(part.integrase in int_dict):
+                    int_dict.update({part.integrase:int_dict[part.integrase]+[part]})
+                else:
+                    int_dict[part.integrase]=[part]
+        return int_dict
+    def enumerate_components(self,components = None, **keywords):
+        """this explores all the possible integrase-motivated DNA configurations. If some
+        integrases aren't present, then define intnames to be a list of names of the
+        integrases which are present.
+        An integrase can act in different ways. 
+        * serine integrases recombine B and P sites that turn into L and R sites, 
+                    and only sites with the same dinucleotide can be recombined.
+        * serine integrases with directionality factors recombine L and R sites
+                    with the same dinucleotide
+        * Invertases only do flipping reactions
+        * resolvases only do deletion reactions
+        * FLP or CRE react with homotypic sites, so site1+site1 = site1+site1. But
+                    there are still different types of sites which are orthogonal. For
+                    example, a CRE type 1 or a CRE type 2 site. The sites can also be palindromic,
+                    which means that they can react in either direction.
+        """
+        construct_list = []
+        for component in components:
+            if(isinstance(component,DNA_construct)):
+                construct_list += [component]
+       
+        int_dict = {}
+        for construct in construct_list:
+            #list each integrase that exists and which sites they react with
+            con_dict = self.list_integrase(construct)
+            
+            int_dict = self.combine_dictionaries(int_dict,con_dict)
+        constructlist = []
+        for integrase in int_dict:
+            if(integrase in self.int_mechanisms):
+                int_mech = self.int_mechanisms[integrase]
+                #now, going through each one, generate the reactions and species that arise
+                attsites = int_dict[integrase]
+                #but now we need to know what kind of integrase reactions are possible
+                attcombos = [a for a in it.combinations(attsites,2)]
+                #print(attcombos)
+                for combo in attcombos:
+                    #first question: is this combo legal?
+                    if(tuple([a.site_type for a in combo]) in int_mech.reactions):
+                        #this means the reaction can exist
+                        int_functions = int_mech.integrate(combo[0],combo[1])
+                        new_dnas = [a.create_polymer(combo[0].parent,combo[1].parent) for a in int_functions]
+
+                        constructlist += new_dnas
+        
+        return constructlist
 

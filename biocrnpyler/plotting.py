@@ -539,4 +539,4 @@ def plotConstruct(DNA_construct_obj, dna_renderer=None,
                         part['opts'].update({'edgecolor':rnacolor})
                 plotDesign(rnadesign,renderer=rna_renderer,title=component.get_species())
     else:
-        print(DNA_construct_obj.show())
+        print(DNA_construct_obj)

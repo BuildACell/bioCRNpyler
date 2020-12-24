@@ -149,7 +149,12 @@ class OrderedPolymer:
             part.direction = self.direction_invert(part.direction)
         self.changed()
 
-
+class NamedPolymer(OrderedPolymer):
+    """The same as an OrderedPolymer but it has a name"""
+    def __init__(self,parts,name,default_direction=None):
+        self.name = name
+        OrderedPolymer.__init__(self=self,parts=parts,default_direction=default_direction)
+        
 class OrderedMonomer:
     """a unit that belongs to an OrderedPolymer. Each unit has a direction, a location, and a link back to its parent"""
     def __init__(self,direction=None,position=None,parent=None):
