@@ -17,7 +17,8 @@ from .utils import remove_bindloc
 
 class Mixture(object):
     def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
-                 global_mechanisms=None, species=None, initial_condition_dictionary=None, recursion_depth=4, **kwargs):
+                 global_mechanisms=None, species=None, initial_condition_dictionary=None, \
+                 global_component_enumerators=None,recursion_depth=4, **kwargs):
         """A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
         and parameters related to the mixture itself (e.g. Transcription rate). Default components and mechanisms can be
         added as well as global mechanisms that impacts all species (e.g. cell growth).
@@ -57,6 +58,12 @@ class Mixture(object):
             self.global_mechanisms = {}
         else:
             self.add_mechanisms(global_mechanisms)
+
+        # global component enumerators
+        if global_component_enumerators is None:
+            self.global_component_enumerators = []
+        else:
+            self.global_component_enumerators = global_component_enumerators
 
         # process the species
         self.add_species(species)
@@ -376,12 +383,13 @@ class Mixture(object):
         self.add_species_to_crn(global_mech_species, component = None)
         self.crn.add_reactions(global_mech_reactions)
 
-    def component_enumeration(self, recursion_depth) -> List[Component]:
+    def component_enumeration(self, comps_to_enumerate = None,recursion_depth=10) -> List[Component]:
         #Components that produce components through Component Enumeration
 
         all_components = []
         new_components = []
-        comps_to_enumerate = self.components
+        if(comps_to_enumerate is None):
+            comps_to_enumerate = self.components
 
 
         #Recursion depth
@@ -401,7 +409,22 @@ class Mixture(object):
         if(len(comps_to_enumerate) > 0):
             warn("Mixture was left with unenumerated components "+str(', '.join(comps_to_enumerate)))
         return all_components
+    
+    def global_component_enumeration(self,comps_to_enumerate=None, recursion_depth=4) -> List[Component]:
+        """components that produce other components infinitely"""
+        new_components = []
+        if(comps_to_enumerate is None):
+            comps_to_enumerate = self.components
+        #Recursion depth
+        for a in range(recursion_depth):
+            new_components = []
+            for global_enumerator in self.global_component_enumerators:
+                enumerated = global_enumerator.enumerate_components(comps_to_enumerate)
+                new_components += enumerated
+            comps_to_enumerate += new_components
+            new_components = []
 
+        return comps_to_enumerate
     def compile_crn(self, recursion_depth = 10, initial_concentration_dict = None) -> ChemicalReactionNetwork:
         """Creates a chemical reaction network from the species and reactions associated with a mixture object.
         :param initial_concentration_dict: a dictionary to overwride initial concentrations at the end of compile time
@@ -414,8 +437,8 @@ class Mixture(object):
 
         #add the extra species to the CRN
         self.add_species_to_crn(self.added_species, component = None)
-
-        enumerated_components = self.component_enumeration(recursion_depth) #This includes self.components
+        globally_enumerated_components = self.global_component_enumeration(recursion_depth=4)
+        enumerated_components = self.component_enumeration(globally_enumerated_components,recursion_depth) #This includes self.components
 
         #reset the Components' mixture to self - in case they have been added to other Mixtures
         for c in enumerated_components:
