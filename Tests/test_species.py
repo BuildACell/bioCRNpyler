@@ -13,9 +13,14 @@ class TestSpecies(TestCase):
         species = Species(name='test_species')
         self.assertEqual(repr(species), species.name)
 
+        with self.assertRaisesRegex(ValueError, f"name attribute {species.name} must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character."):
+            species = Species(name="2test_species")
+
+        self.assertEqual(species.compartment, "")
         # tests naming convention for species with name and compartment
-        species = Species(name='test_species', compartment = 'test_compartment')
-        self.assertEqual(repr(species), species.name + '_' + species.compartment.name)
+        species = Species(name='test_species', compartment='test_compartment')
+        self.assertEqual(repr(species), species.name +
+                         '_' + species.compartment.name)
         self.assertEqual(species.compartment.name, 'test_compartment')
 
         # tests material type
@@ -26,7 +31,8 @@ class TestSpecies(TestCase):
         self.assertTrue(isinstance(species.attributes, list))
 
         # tests naming convention via repr without attributes
-        self.assertEqual(repr(species), species.material_type + "_" + species.name)
+        self.assertEqual(
+            repr(species), species.material_type + "_" + species.name)
 
         # tests adding attributes
         attr_list = ['atr1', 'atr2']
@@ -39,7 +45,7 @@ class TestSpecies(TestCase):
             correct_name += "_"+attribute
         self.assertEqual(repr(species), correct_name)
 
-        #test OrderedMonomer subclass
+        # test OrderedMonomer subclass
         self.assertTrue(species.parent is None)
         self.assertTrue(species.position is None)
         self.assertTrue(species.direction is None)
@@ -47,7 +53,7 @@ class TestSpecies(TestCase):
     def test_add_attribute(self):
         species = Species(name='test_species')
         # an attribute must be a string
-        with self.assertRaisesRegex(AssertionError,f'must be an alpha-numeric string'):
+        with self.assertRaisesRegex(AssertionError, f'must be an alpha-numeric string'):
             species.add_attribute({'k': 'v'})
 
         species.add_attribute('attribute')
@@ -69,11 +75,13 @@ class TestSpecies(TestCase):
         # different material type: not the same species
         self.assertFalse(s1 == s4)
 
-        s5 = Species(name='a', material_type='mat1', attributes=['red', 'large'])
+        s5 = Species(name='a', material_type='mat1',
+                     attributes=['red', 'large'])
         # different attributes: not the same species
         self.assertFalse(s1 == s5)
 
-        s6 = Species(name='a', material_type='mat1', attributes=['red'], compartment = 'test_compartment')
+        s6 = Species(name='a', material_type='mat1', attributes=[
+                     'red'], compartment='test_compartment')
         # same species name in different compartments: not the same species
         self.assertFalse(s1 == s6)
 
@@ -132,16 +140,3 @@ def test_weighted_species_equality():
     ws3 = WeightedSpecies(species=s2, stoichiometry=1)
 
     assert ws1 != ws3
-
-
-
-
-
-
-
-
-
-
-
-
-
