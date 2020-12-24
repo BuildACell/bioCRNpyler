@@ -19,6 +19,10 @@ class TestSpecies(TestCase):
         with self.assertRaisesRegex(ValueError, 'Compartment name must be a string.'):
             compartment = Compartment(name = 24)
 
+        with self.assertRaisesRegex(TypeError, 'Compartment name must be a string.'):
+            compartment = Compartment(name = "test_compartment")
+            compartment.name = None
+
         # tests naming convention for species with name and compartment
         compartment = Compartment(
             name='test_compartment', spatial_dimensions=1, volume=1e-4)

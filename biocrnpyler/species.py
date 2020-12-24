@@ -88,10 +88,7 @@ class Species(OrderedMonomer):
 
     @property
     def compartment(self):
-        if self._compartment is None:
-            return ""
-        else:
-            return self._compartment
+        return self._compartment
 
     @compartment.setter
     def compartment(self, compartment):

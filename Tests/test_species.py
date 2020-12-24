@@ -26,6 +26,7 @@ class TestSpecies(TestCase):
         # tests material type
         species = Species(name='test_species', material_type="dna")
         self.assertTrue(species.material_type == "dna")
+        species.material_type = None
 
         with self.assertRaisesRegex(ValueError, f"material_type 2dna must be alpha-numeric and start with a letter."):
             species = Species(name="test_species", material_type="2dna")
@@ -38,6 +39,7 @@ class TestSpecies(TestCase):
         # tests emtpy attributes
         self.assertTrue(isinstance(species.attributes, list))
 
+        species = Species(name='test_species', material_type="dna")
         # tests naming convention via repr without attributes
         self.assertEqual(
             repr(species), species.material_type + "_" + species.name)
