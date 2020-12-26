@@ -51,16 +51,9 @@ def Component_CRN_validation(CRN, component, mixture):
 	if isinstance(component, Enzyme):
 		assert component.enzyme in reaction_inputs #enzyme should be an input
 		assert component.enzyme in reaction_outputs #enzyme should be an output
-		assert component.substrate in reaction_inputs #substrate should be an input
-		assert component.product in reaction_outputs #product should be an output
-
-	if isinstance(component, MultiEnzyme):
-		assert component.enzyme in reaction_inputs #enzyme should be an input
-		assert component.enzyme in reaction_outputs #enzyme should be an output
 		assert all([s in reaction_inputs for s in component.substrates]) #substrates should be inputs
 		assert all([s in reaction_outputs for s in component.products]) #products should be outputs
 	
-
 
 class CombinatorialComponentMixtureTest(TestCase):
 
@@ -72,8 +65,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 			(RNA, {"name":"rna"}),
 			(Protein, {"name":"protein"}),
 			(ChemicalComplex, {"species":[Species("S1"), Species("S2")]}),
-			(Enzyme, {"enzyme":Species("E"), "substrate":Species("S"), "product":Species("P")}),
-			(MultiEnzyme, {"enzyme":Species("E1"), "substrates":[Species("S1"), Species("S2")], "products":[Species("P1"), Species("P2")]}),
+			(Enzyme, {"enzyme":Species("E"), "substrates": [Species("S")], "products":[Species("P")]}),
 			(DNAassembly, {'name':"dna_assembly_v1", "promoter":"P", "rbs":"R", "transcript":"T", "protein":"X"}),
 			(DNAassembly, {'name':"dna_assembly_v2", "promoter":"P", "rbs":"R", "transcript":None, "protein":None}),
 			(DNAassembly, {'name':"dna_assembly_v3", "promoter":"P", "rbs":None}),

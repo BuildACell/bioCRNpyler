@@ -26,7 +26,7 @@ Tests/sbml_test_file.xml
 
 
 # Sphinx documentation
-docs/_build/
+docs/build/
 
 # Covers JetBrains PyCharm
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
