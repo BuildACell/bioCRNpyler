@@ -307,15 +307,17 @@ def _create_local_parameter(ratelaw, name, value, constant=True):
 
 def _create_global_parameter(model, name, value, p_unit=None, constant=True):
     if p_unit is not None:
-        if p_unit is not str:
+        if not isinstance(p_unit, str):
             raise ValueError(
                 "Units for a parameter must be passed as strings.")
+        unit_added = False
         for unit_definition in model.getListOfUnitDefinitions():
             if unit_definition.getId() == p_unit:
                 unit_added = True
         if not unit_added:
             try:
                 unit_created = getattr(units, "create_unit_" + p_unit)(model)
+                model.addUnitDefinition(unit_created)
             except AttributeError:
                 warnings.warn(
                     "The units for {0} parameter in the parameter database, {1} not supported by BioCRNpyler, SBML might be invalid.".format(name, p_unit))
@@ -327,11 +329,11 @@ def _create_global_parameter(model, name, value, p_unit=None, constant=True):
         param.setConstant(constant)
         param.setValue(value)
         if p_unit is not None:
-            param.setUnits(p_unit)
+            param.setUnits(str(p_unit))
     else:
         param = model.getParameter(name)
         if p_unit is not None:
-            param.setUnits(p_unit)
+            param.setUnits(str(p_unit))
     return param
 
 ##

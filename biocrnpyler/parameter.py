@@ -61,7 +61,7 @@ ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')  # This coul
 
 
 class Parameter(object):
-    def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real], unit = None):
+    def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real], unit=None):
         """A class for representing parameters in general. Only the below subclasses are ever used.
 
         :param parameter_name: is the name of the parameter
