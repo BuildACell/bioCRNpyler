@@ -134,11 +134,11 @@ class Species(OrderedMonomer):
             return name
         elif isinstance(name, str):
             no_underscore_string = name.replace("_", "")
-            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_" and name[0].isalpha():
+            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_" and name[0].isalnum():
                 return name
             else:
                 raise ValueError(
-                    f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character.")
+                    f"name attribute {name} must consist of letters, numbers, or underscores and cannot contain double underscores or begin/end with a special character.")
         else:
             raise TypeError("Name must be a string.")
 

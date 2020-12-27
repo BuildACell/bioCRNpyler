@@ -13,8 +13,8 @@ class TestSpecies(TestCase):
         species = Species(name='test_species')
         self.assertEqual(repr(species), species.name)
 
-        with self.assertRaisesRegex(ValueError, f"name attribute 2test_species must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character."):
-            species = Species(name="2test_species")
+        with self.assertRaisesRegex(ValueError, f"name attribute @test_species must consist of letters, numbers, or underscores and cannot contain double underscores or begin/end with a special character."):
+            species = Species(name="@test_species")
 
         self.assertEqual(species.compartment.name, "default")
         # tests naming convention for species with name and compartment
@@ -28,6 +28,8 @@ class TestSpecies(TestCase):
         self.assertTrue(species.material_type == "dna")
         species.material_type = None
 
+        with self.assertRaisesRegex(ValueError, f"species name: 2test_species contains a number as the first character and therefore requires a material_type."):
+            species = Species(name='2test_species')
         with self.assertRaisesRegex(ValueError, f"material_type 2dna must be alpha-numeric and start with a letter."):
             species = Species(name="test_species", material_type="2dna")
 
