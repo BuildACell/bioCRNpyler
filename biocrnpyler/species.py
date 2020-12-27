@@ -395,10 +395,6 @@ class Complex:
             else:
                 other_species += [specie]
 
-        if len(other_species) == 0:
-            raise ValueError(
-                "Trying to create a Complex from a single species!")
-
         # If no OrderedPolymerSpecies is found, just call the regular constructor.
         if(valent_complex is None):
             if ordered:
