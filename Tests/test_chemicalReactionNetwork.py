@@ -85,6 +85,48 @@ class TestChemicalReactionNetwork(TestCase):
 
         assert not w
 
+    def test_species_protection(self):
+        #tests that Species cannot be changed once they are in a CRN
+        S = Species("S")
+        S2 = Species("S2")
+        CRN = ChemicalReactionNetwork([S], [])
+
+        #Internal species copied correctly to return
+        assert S in CRN.species
+
+        #Returned list does not effect internal species
+        CRN.species[0] = S2
+        assert S2 not in CRN.species
+
+        #add species effects internal species list
+        CRN.add_species(S2)
+        assert S2 in CRN.species
+
+        with self.assertRaisesRegex(AttributeError, "The species in a CRN cannot be removed or modified*"):
+            CRN.species = []
+
+    def test_reaction_protection(self):
+        #tests that Reactions cannot be changed once they are in a CRN
+        S = Species("S")
+        S2 = Species("S2")
+        R = Reaction.from_massaction([S], [S2], k_forward = 1.0)
+        R2 = Reaction.from_massaction([S2], [S], k_forward = 1.0)
+        CRN = ChemicalReactionNetwork([S, S2], [R])
+
+        #Internal reactions copied correctly to return
+        assert R in CRN.reactions
+
+        #Returned list does not effect internal reactions
+        CRN.reactions[0] = R2
+        assert R2 not in CRN.reactions
+
+        #add reactions effects internal reaction list
+        CRN.add_reactions(R2)
+        assert R2 in CRN.reactions
+
+        with self.assertRaisesRegex(AttributeError, "The reactions in a CRN cannot be removed or modified*"):
+            CRN.reactions = []
+
     def test_initial_condition_vector(self):
 
         # no initial value is supplied for s2
