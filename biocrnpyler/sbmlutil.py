@@ -56,25 +56,18 @@ def create_sbml_model(compartment_id="default", time_units='second', extent_unit
     model.setAreaUnits(area_units)  # area units (never used?)
     model.setVolumeUnits(volume_units)  # default volume unit
 
-    # Define the default compartment
-    compartment = model.createCompartment()
-    compartment.setId(compartment_id)
-    compartment.setName(compartment_id)
-    compartment.setConstant(True)  # keep compartment size constant
-    compartment.setSpatialDimensions(3)  # 3 dimensional compartment
-    compartment.setVolume(volume)  # 1 microliter
     return document, model
 
 
 # Creates an SBML id from a chemical_reaction_network.species object
-def species_sbml_id(species, document=None):
+def valid_sbml_id(given_id, document=None):
     # Construct the species ID
     all_ids = []
     if document:
         all_ids = getAllIds(document.getListOfAllElements())
     trans = SetIdFromNames(all_ids)
-    species_id = trans.getValidIdForName(repr(species))
-    return species_id
+    valid_id = trans.getValidIdForName(repr(given_id))
+    return valid_id
 
 
 def add_all_species(model, species: List, initial_condition_dictionary: dict, compartment=None, **kwargs):
@@ -85,11 +78,12 @@ def add_all_species(model, species: List, initial_condition_dictionary: dict, co
     :param initial_concentration_dict: a dictionary s --> initial_concentration
     :return: None
     """
-
-    if compartment is None:
-        compartment = model.getCompartment(0)
-
     for s in species:
+        if compartment is None or s.compartment is not None:
+            # If no compartment was passed in or if species (s) has its own compartment set:
+            compartment = get_compartment_by_name(model, s.compartment.name)
+            if compartment is None:
+                compartment = add_compartment(model, s.compartment)
         if s in initial_condition_dictionary:
             initial_concentration = parameter_to_value(initial_condition_dictionary[s])
         else:
@@ -97,14 +91,13 @@ def add_all_species(model, species: List, initial_condition_dictionary: dict, co
         add_species(model=model, compartment=compartment,
                     species=s, initial_concentration=initial_concentration)
 
-
 def add_species(model, compartment, species, initial_concentration=None, **kwargs):
     """Helper function to add a species to the sbml model.
     :param model:
     :param compartment: a compartment in the SBML model
     :param species: must be chemical_reaction_network.species objects
     :param initial_concentration: initial concentration of the species in the SBML model
-    :return: None
+    :return: SBML species object
     """
 
     model = model  # Get the model where we will store results
@@ -113,11 +106,11 @@ def add_species(model, compartment, species, initial_concentration=None, **kwarg
     species_name = repr(species)
 
     # Construct the species ID
-    species_id = species_sbml_id(species, model.getSBMLDocument())
+    species_id = valid_sbml_id(species, model.getSBMLDocument())
 
     logger.debug(f'Adding species: {species_name}, id: {species_id}')
     sbml_species = model.createSpecies()
-    sbml_species.setName(species_name)
+    sbml_species.setName(species.name)
     sbml_species.setId(species_id)
     sbml_species.setCompartment(compartment.getId())
     sbml_species.setConstant(False)
@@ -129,6 +122,39 @@ def add_species(model, compartment, species, initial_concentration=None, **kwarg
 
     return sbml_species
 
+def add_all_compartments(model, compartments: List, **keywords):
+    """ Adds the list of Compartment objects to the SBML model
+    :param model: valid SBML model
+    :param compartments: list of compartments to be added to the SBML model
+    :return: None
+    """
+    for compartment in compartments:
+        add_compartment(model = model, compartment = compartment, **keywords)
+
+def add_compartment(model, compartment, **keywords):
+    """ Helper function to add a compartment to the SBML model.
+    :param model: a valid SBML model
+    :param compartment: a Compartment object
+    :return: SBML compartment object 
+    """
+    sbml_compartment = model.createCompartment()
+    compartment_id = compartment.name
+    sbml_compartment.setId(compartment_id)
+    sbml_compartment.setName(compartment.name)
+    sbml_compartment.setConstant(True)  # keep compartment size constant
+    sbml_compartment.setSpatialDimensions(compartment.spatial_dimensions)  # For example, 3 dimensional compartment
+    sbml_compartment.setSize(compartment.size)  # For example, 1e-6 liter
+    if compartment.unit is not None:
+        sbml_compartment.setUnits(compartment.unit)
+    return sbml_compartment
+
+def get_compartment_by_name(model, compartment_name):
+    """ Helper function to find the SBML compartment object 
+    given the compartment name in the SBML file
+    """
+    for compartment in model.getListOfCompartments():
+        if compartment.getName() == compartment_name:
+            return compartment
 
 # Helper function to add a parameter to the model
 def add_parameter(mixture, name, value=0, debug=False):
@@ -221,7 +247,7 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool=False, 
 def _create_reactants(reactant_list, sbml_reaction, model):
     for input in reactant_list:
         # What to do when there are multiple species with same name?
-        species_id = getSpeciesByName(model, str(input.species)).getId()
+        species_id = str(input.species)
         reactant = sbml_reaction.createReactant()
         reactant.setSpecies(species_id)  
         reactant.setConstant(False)
@@ -229,7 +255,7 @@ def _create_reactants(reactant_list, sbml_reaction, model):
 
 def _create_products(product_list, sbml_reaction, model):
     for output in product_list:
-        species_id = getSpeciesByName(model, str(output.species)).getId()
+        species_id = str(output.species)
         product = sbml_reaction.createProduct()
         product.setSpecies(species_id)
         product.setStoichiometry(output.stoichiometry)

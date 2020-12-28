@@ -32,6 +32,7 @@ from .reaction import *
 
 from .sbmlutil import *
 from .species import *
+from .compartments import *
 from .utils import *
 
 #checking for nonexistant plotting-related modules now happens in plotting.py
