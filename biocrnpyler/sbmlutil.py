@@ -143,7 +143,9 @@ def add_compartment(model, compartment, **keywords):
     sbml_compartment.setName(compartment.name)
     sbml_compartment.setConstant(True)  # keep compartment size constant
     sbml_compartment.setSpatialDimensions(compartment.spatial_dimensions)  # For example, 3 dimensional compartment
-    sbml_compartment.setVolume(compartment.volume)  # For example, 1e-6 liter
+    sbml_compartment.setSize(compartment.size)  # For example, 1e-6 liter
+    if compartment.unit is not None:
+        sbml_compartment.setUnits(compartment.unit)
     return sbml_compartment
 
 def get_compartment_by_name(model, compartment_name):

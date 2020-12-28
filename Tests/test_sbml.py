@@ -43,16 +43,16 @@ class TestSBML(TestCase):
         # Some Species
         S1 = Species("S1", compartment="S1_compartment")
         S2 = Species("S2", compartment="S2_compartment")
-        S3_compartment = Compartment("S3_compartment", volume=2e-4)
+        S3_compartment = Compartment("S3_compartment", size=2e-4)
         S3 = Species("S3", compartment=S3_compartment)
         S4_compartment = Compartment(
-            "S4_compartment", volume=4e-4, spatial_dimensions=2)
+            "S4_compartment", size=4e-4, spatial_dimensions=2, unit = "litre")
         S4 = Species("S4", compartment=S4_compartment, material_type="protein")
 
         species = [S1, S2, S3, S4]
         list_of_compartments = [S1.compartment,
                                 S2.compartment, S3_compartment, S4_compartment]
-        list_of_volumes = [1e-6, 1e-6, 2e-4, 4e-4]
+        list_of_sizes = [1e-6, 1e-6, 2e-4, 4e-4]
         list_of_dimensions = [3, 3, 3, 2]
         add_all_compartments(model, list_of_compartments)
         # initial conditions
@@ -61,8 +61,8 @@ class TestSBML(TestCase):
 
         self.assertEqual(len(model.getListOfCompartments()),
                          len(list_of_compartments))
-        for compartment, volume, dim in zip(model.getListOfCompartments(), list_of_volumes, list_of_dimensions):
-            self.assertEqual(compartment.getVolume(), volume)
+        for compartment, size, dim in zip(model.getListOfCompartments(), list_of_sizes, list_of_dimensions):
+            self.assertEqual(compartment.getSize(), size)
             self.assertEqual(compartment.getSpatialDimensions(), dim)
         self.assertEqual(len(model.getListOfSpecies()), len(species))
         self.assertEqual(validate_sbml(document), 0)

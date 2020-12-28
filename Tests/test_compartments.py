@@ -25,9 +25,9 @@ class TestSpecies(TestCase):
 
         # tests naming convention for species with name and compartment
         compartment = Compartment(
-            name='test_compartment', spatial_dimensions=1, volume=1e-4)
+            name='test_compartment', spatial_dimensions=1, size=1e-4)
         self.assertEqual(compartment.spatial_dimensions, 1)
-        self.assertEqual(compartment.volume, 1e-4)
+        self.assertEqual(compartment.size, 1e-4)
         with self.assertRaises(ValueError):
             Compartment(name='2test_compartment')
 
@@ -35,11 +35,11 @@ class TestSpecies(TestCase):
             compartment = Compartment(name="test_compartment")
             compartment.name = 24
 
-        with self.assertRaisesRegex(ValueError, 'Compartment volume must be a float or int.'):
-            Compartment(name="test_compartment", volume='2.5')
+        with self.assertRaisesRegex(ValueError, 'Compartment size must be a float or int.'):
+            Compartment(name="test_compartment", size='2.5')
 
-        with self.assertRaisesRegex(ValueError, 'Compartment volume must be non-negative.'):
-            Compartment(name="test_compartment", volume=-2)
+        with self.assertRaisesRegex(ValueError, 'Compartment size must be non-negative.'):
+            Compartment(name="test_compartment", size=-2)
 
         with self.assertRaisesRegex(ValueError, 'Compartment spatial dimension must be an integer.'):
             Compartment(name="test_compartment", spatial_dimensions=2.5)
@@ -47,9 +47,19 @@ class TestSpecies(TestCase):
         with self.assertRaisesRegex(ValueError, 'Compartment spatial dimension must be non-negative.'):
             Compartment(name="test_compartment", spatial_dimensions=-2)
 
-        with self.assertRaisesRegex(ValueError, 'Compartments with same names must have the same volume and spatial dimensions.'):
+        with self.assertRaisesRegex(ValueError, 'Compartments with same names must have the same size and spatial dimensions.'):
             compartment1 = Compartment(
                 name="test_compartment", spatial_dimensions=2)
             compartment2 = Compartment(
                 name="test_compartment", spatial_dimensions=3)
             self.assertEqual(compartment1, compartment2)
+        compartment = Compartment(name="test_compartment", unit="litre")
+        self.assertEqual(compartment.unit, "litre")
+        compartment.unit = "nanolitre"
+        self.assertEqual(compartment.unit, "nanolitre")
+        with self.assertRaisesRegex(ValueError, 'Unit of compartment must be a string representing compartment size.'):
+            compartment = Compartment(name="test_compartment")
+            compartment.unit = 24
+
+        compartment = Compartment(name="test_compartment")
+        self.assertEqual(compartment.unit, None)
