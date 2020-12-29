@@ -93,7 +93,6 @@ def add_all_species(model, species: List, initial_condition_dictionary: dict, co
         add_species(model=model, compartment=compartment,
                     species=s, initial_concentration=initial_concentration)
 
-
 def add_species(model, compartment, species, initial_concentration=None, **kwargs):
     """Helper function to add a species to the sbml model.
     :param model:
@@ -126,6 +125,39 @@ def add_species(model, compartment, species, initial_concentration=None, **kwarg
 
     return sbml_species
 
+def add_all_compartments(model, compartments: List, **keywords):
+    """ Adds the list of Compartment objects to the SBML model
+    :param model: valid SBML model
+    :param compartments: list of compartments to be added to the SBML model
+    :return: None
+    """
+    for compartment in compartments:
+        add_compartment(model = model, compartment = compartment, **keywords)
+
+def add_compartment(model, compartment, **keywords):
+    """ Helper function to add a compartment to the SBML model.
+    :param model: a valid SBML model
+    :param compartment: a Compartment object
+    :return: SBML compartment object 
+    """
+    sbml_compartment = model.createCompartment()
+    compartment_id = compartment.name
+    sbml_compartment.setId(compartment_id)
+    sbml_compartment.setName(compartment.name)
+    sbml_compartment.setConstant(True)  # keep compartment size constant
+    sbml_compartment.setSpatialDimensions(compartment.spatial_dimensions)  # For example, 3 dimensional compartment
+    sbml_compartment.setSize(compartment.size)  # For example, 1e-6 liter
+    if compartment.unit is not None:
+        sbml_compartment.setUnits(compartment.unit)
+    return sbml_compartment
+
+def get_compartment_by_name(model, compartment_name):
+    """ Helper function to find the SBML compartment object 
+    given the compartment name in the SBML file
+    """
+    for compartment in model.getListOfCompartments():
+        if compartment.getName() == compartment_name:
+            return compartment
 
 def add_all_compartments(model, compartments: List, **keywords):
     """ Adds the list of Compartment objects to the SBML model

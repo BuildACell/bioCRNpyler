@@ -16,36 +16,50 @@ class TestSpecies(TestCase):
         self.assertEqual(species.compartment.name, compartment.name)
 
         # Test non-string named compartment
-        with pytest.raises(ValueError, match='Compartment name must be a string.'):
+        with self.assertRaisesRegex(ValueError, 'Compartment name must be a string.'):
             compartment = Compartment(name = 24)
+
+        with self.assertRaisesRegex(TypeError, 'Compartment name must be a string.'):
+            compartment = Compartment(name = "test_compartment")
+            compartment.name = None
 
         # tests naming convention for species with name and compartment
         compartment = Compartment(
-            name='test_compartment', spatial_dimensions=1, volume=1e-4)
+            name='test_compartment', spatial_dimensions=1, size=1e-4)
         self.assertEqual(compartment.spatial_dimensions, 1)
-        self.assertEqual(compartment.volume, 1e-4)
-        with pytest.raises(ValueError):
+        self.assertEqual(compartment.size, 1e-4)
+        with self.assertRaises(ValueError):
             Compartment(name='2test_compartment')
 
-        with pytest.raises(ValueError, match='Compartment name must be a string'):
+        with self.assertRaisesRegex(ValueError, 'Compartment name must be a string'):
             compartment = Compartment(name="test_compartment")
             compartment.name = 24
 
-        with pytest.raises(ValueError, match='Compartment volume must be a float or int.'):
-            Compartment(name="test_compartment", volume='2.5')
+        with self.assertRaisesRegex(ValueError, 'Compartment size must be a float or int.'):
+            Compartment(name="test_compartment", size='2.5')
 
-        with pytest.raises(ValueError, match='Compartment volume must be non-negative.'):
-            Compartment(name="test_compartment", volume=-2)
+        with self.assertRaisesRegex(ValueError, 'Compartment size must be non-negative.'):
+            Compartment(name="test_compartment", size=-2)
 
-        with pytest.raises(ValueError, match='Compartment spatial dimension must be an integer.'):
+        with self.assertRaisesRegex(ValueError, 'Compartment spatial dimension must be an integer.'):
             Compartment(name="test_compartment", spatial_dimensions=2.5)
 
-        with pytest.raises(ValueError, match='Compartment spatial dimension must be non-negative.'):
+        with self.assertRaisesRegex(ValueError, 'Compartment spatial dimension must be non-negative.'):
             Compartment(name="test_compartment", spatial_dimensions=-2)
 
-        with pytest.raises(ValueError, match='Compartments with same names must have the same volume and spatial dimensions.'):
+        with self.assertRaisesRegex(ValueError, 'Compartments with same names must have the same size and spatial dimensions.'):
             compartment1 = Compartment(
                 name="test_compartment", spatial_dimensions=2)
             compartment2 = Compartment(
                 name="test_compartment", spatial_dimensions=3)
             self.assertEqual(compartment1, compartment2)
+        compartment = Compartment(name="test_compartment", unit="litre")
+        self.assertEqual(compartment.unit, "litre")
+        compartment.unit = "nanolitre"
+        self.assertEqual(compartment.unit, "nanolitre")
+        with self.assertRaisesRegex(ValueError, 'Unit of compartment must be a string representing compartment size.'):
+            compartment = Compartment(name="test_compartment")
+            compartment.unit = 24
+
+        compartment = Compartment(name="test_compartment")
+        self.assertEqual(compartment.unit, None)

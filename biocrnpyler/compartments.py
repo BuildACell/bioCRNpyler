@@ -7,15 +7,19 @@ class Compartment():
 
     """ A formal Compartment object for a Species in a CRN.
      A Compartment must have a name. They may also have a spatial dimension (such as 2 for two-dimensional,
-     or 3 for three-dimensional) and the volume in litres. 
+     or 3 for three-dimensional) and the size in litres. 
      Note: The "default" keyword is reserved for BioCRNpyler allotting a default compartment. 
      Users must choose a different string. 
+     The unit attribute for Compartment can be used to set unit for the Compartment size. Make sure
+     that the string identifier used for the unit is a supported unit in BioCRNpyler. Check the 
+     documentation to find a list of supported units. Add your own custom units in units.py if needed.
     """
 
-    def __init__(self, name: str, volume = 1e-6, spatial_dimensions = 3, **keywords):
+    def __init__(self, name: str, size = 1e-6, spatial_dimensions = 3, unit = None, **keywords):
         self.name = name
         self.spatial_dimensions = spatial_dimensions 
-        self.volume = volume 
+        self.size = size 
+        self.unit = unit 
 
     @property
     def name(self):
@@ -48,29 +52,42 @@ class Compartment():
             self._spatial_dimensions = spatial_dimensions
 
     @property
-    def volume(self):
-        return self._volume
+    def size(self):
+        return self._size
 
-    @volume.setter
-    def volume(self, volume: float):
-        if type(volume) not in [float, int]:
-            raise ValueError('Compartment volume must be a float or int.')
-        elif volume < 0:
-            raise ValueError('Compartment volume must be non-negative.')
+    @size.setter
+    def size(self, size: float):
+        if type(size) not in [float, int]:
+            raise ValueError('Compartment size must be a float or int.')
+        elif size < 0:
+            raise ValueError('Compartment size must be non-negative.')
         else:
-            self._volume = volume
+            self._size = size
     
+    @property
+    def unit(self):
+        return self._unit
+
+    @unit.setter
+    def unit(self, unit: str):
+        if unit is not None:
+            if not isinstance(unit, str):
+                raise ValueError("Unit of compartment must be a string representing compartment size.")
+            self._unit = unit 
+        else:
+            self._unit = None
+
     def __eq__(self, other):
         """
         Overrides the default implementation
-        Two compartments are equivalent if they have the same name, spatial dimension, and volume
+        Two compartments are equivalent if they have the same name, spatial dimension, and size
         :param other: Compartment instance
         :return: boolean
         """
         if isinstance(other, Compartment) and self.name == other.name:
             # Now if two compartments have same name but other attributes are different, throw an error:
-            if self.volume != other.volume or self.spatial_dimensions != other.spatial_dimensions:
-                raise ValueError('Compartments with same names must have the same volume and spatial dimensions.')
+            if self.size != other.size or self.spatial_dimensions != other.spatial_dimensions:
+                raise ValueError('Compartments with same names must have the same size and spatial dimensions.')
             return True
         else:
             return False

@@ -16,7 +16,7 @@ class Species(OrderedMonomer):
     """
 
     def __init__(self, name: str, material_type="", attributes: Union[List, None] = None,
-                 initial_concentration=0, compartment=None, **keywords):
+                 compartment=None, **keywords):
         OrderedMonomer.__init__(self, **keywords)
 
         self.name = name
@@ -88,10 +88,7 @@ class Species(OrderedMonomer):
 
     @property
     def compartment(self):
-        if self._compartment is None:
-            return ""
-        else:
-            return self._compartment
+        return self._compartment
 
     @compartment.setter
     def compartment(self, compartment):
@@ -137,11 +134,11 @@ class Species(OrderedMonomer):
             return name
         elif isinstance(name, str):
             no_underscore_string = name.replace("_", "")
-            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_" and name[0].isalpha():
+            if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_" and name[0].isalnum():
                 return name
             else:
                 raise ValueError(
-                    f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character.")
+                    f"name attribute {name} must consist of letters, numbers, or underscores and cannot contain double underscores or begin/end with a special character.")
         else:
             raise TypeError("Name must be a string.")
 
@@ -217,7 +214,7 @@ class Species(OrderedMonomer):
 
         txt += self.name
 
-        if self.compartment not in ["", None] and show_compartment:
+        if self.compartment not in ["default", None] and show_compartment:
             txt += " in " + self.compartment.name + "."
 
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
@@ -398,10 +395,6 @@ class Complex:
             else:
                 other_species += [specie]
 
-        if len(other_species) == 0:
-            raise ValueError(
-                "Trying to create a Complex from a single species!")
-
         # If no OrderedPolymerSpecies is found, just call the regular constructor.
         if(valent_complex is None):
             if ordered:
@@ -455,7 +448,7 @@ class ComplexSpecies(Species):
     """
 
     def __init__(self, species: List[Union[Species, str]], name: Union[str, None] = None, material_type="complex",
-                 attributes=None, compartment=None, initial_concentration=0, **keywords):
+                 attributes=None, compartment=None, **keywords):
 
         # A little check to enforce use of Complex() to create ComplexSpecies
         if "called_from_complex" not in keywords or not keywords["called_from_complex"]:
@@ -470,7 +463,7 @@ class ComplexSpecies(Species):
 
         # call super class
         Species.__init__(self, name=name, material_type=material_type, attributes=attributes,
-                         compartment=compartment, initial_concentration=initial_concentration)
+                         compartment=compartment)
 
     def __repr__(self):
         """
@@ -599,7 +592,7 @@ class ComplexSpecies(Species):
                                   show_attributes=False)+":"
         txt = txt[:-1]
 
-        if self.compartment not in ["", None] and show_compartment:
+        if self.compartment not in ["default", None] and show_compartment:
             txt += " in " + self.compartment.name + "."
 
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
@@ -623,7 +616,7 @@ class Multimer(ComplexSpecies):
     """
 
     def __init__(self, species, multiplicity, name=None, material_type="complex", attributes=None,
-                 compartment=None, initial_concentration=0, **keywords):
+                 compartment=None, **keywords):
 
         if "called_from_complex" not in keywords or not keywords["called_from_complex"]:
             warnings.warn(
@@ -638,7 +631,7 @@ class Multimer(ComplexSpecies):
             species = [species]
 
         ComplexSpecies.__init__(self, species=species*multiplicity, name=name, material_type=material_type,
-                                compartment=compartment, attributes=attributes, initial_concentration=initial_concentration,
+                                compartment=compartment, attributes=attributes,
                                 **keywords)
 
 
@@ -653,7 +646,7 @@ class OrderedComplexSpecies(ComplexSpecies):
     """
 
     def __init__(self, species, name=None, material_type="ordered_complex", attributes=None,
-                 compartment=None, initial_concentration=0, **keywords):
+                 compartment=None, **keywords):
         # Set species because it is used for default naming
         if len(Species.flatten_list(species)) <= 1:
             raise ValueError("chemical_reaction_network.complex requires 2 "
@@ -662,7 +655,7 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         # Call the Species superclass constructor
         Species.__init__(self, name=name, material_type=material_type, attributes=attributes,
-                         compartment=compartment, initial_concentration=initial_concentration)
+                         compartment=compartment)
 
     @property
     def name(self):
@@ -742,7 +735,7 @@ class OrderedComplexSpecies(ComplexSpecies):
                                   show_attributes=False)+":"
         txt = txt[:-1]
 
-        if self.compartment not in ["", None] and show_compartment:
+        if self.compartment not in ["default", None] and show_compartment:
             txt += " in " + self.compartment.name + "."
 
         if len(self.attributes) > 0 and self.attributes != [] and show_attributes:
@@ -777,7 +770,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
     default_material = "ordered_polymer"
 
     def __init__(self, species, name=None, base_species=None, material_type=default_material,
-                 compartment=None, attributes=None, initial_concentration=0, circular=False):
+                 compartment=None, attributes=None, circular=False):
 
         self.material_type = material_type
         self.compartment = compartment
