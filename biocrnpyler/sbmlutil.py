@@ -159,43 +159,7 @@ def get_compartment_by_name(model, compartment_name):
         if compartment.getName() == compartment_name:
             return compartment
 
-def add_all_compartments(model, compartments: List, **keywords):
-    """ Adds the list of Compartment objects to the SBML model
-    :param model: valid SBML model
-    :param compartments: list of compartments to be added to the SBML model
-    :return: None
-    """
-    for compartment in compartments:
-        add_compartment(model=model, compartment=compartment, **keywords)
-
-
-def add_compartment(model, compartment, **keywords):
-    """ Helper function to add a compartment to the SBML model.
-    :param model: a valid SBML model
-    :param compartment: a Compartment object
-    :return: SBML compartment object 
-    """
-    sbml_compartment = model.createCompartment()
-    compartment_id = compartment.name
-    sbml_compartment.setId(compartment_id)
-    sbml_compartment.setName(compartment.name)
-    sbml_compartment.setConstant(True)  # keep compartment size constant
-    # For example, 3 dimensional compartment
-    sbml_compartment.setSpatialDimensions(compartment.spatial_dimensions)
-    sbml_compartment.setVolume(compartment.volume)  # For example, 1e-6 liter
-    return sbml_compartment
-
-
-def get_compartment_by_name(model, compartment_name):
-    """ Helper function to find the SBML compartment object 
-    given the compartment name in the SBML file
-    """
-    for compartment in model.getListOfCompartments():
-        if compartment.getName() == compartment_name:
-            return compartment
-
 # Helper function to add a parameter to the model
-
 
 def add_parameter(mixture, name, value=0, debug=False):
     model = mixture.model  # Get the model where we will store results
