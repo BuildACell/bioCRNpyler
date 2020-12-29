@@ -364,6 +364,10 @@ def test_sbml_basics():
     check(local_param, 'create local parameter in SBML model')
     global_param = _create_global_parameter(model, 'k_global', 10)
     check(global_param, 'create global parameter in SBML model')
+    with pytest.raises(ValueError, match = "Units for a parameter must be passed as strings."):
+        global_param = _create_global_parameter(model, 'k_global', value = 10, p_unit = 24)
+    with pytest.raises(Warning, match = "The units for k_global parameter in the parameter database, 1_s is not supported by BioCRNpyler, SBML might be invalid."):
+        global_param = _create_global_parameter(model, 'k_global', value = 10, p_unit = "1_s")
     check(rateLaw.setFormula('k_local*10 - k_global/2'),
           'set rate formula for reaction')
     validator = validateSBML(ucheck=False)

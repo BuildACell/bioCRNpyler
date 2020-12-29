@@ -54,7 +54,6 @@ def create_unit_nM(model):
 
 # Time units
 
-
 def create_unit_hour(model):
     hour = create_new_unit_definition(
         model, unit_id='hour', unit_kind=libsbml.UNIT_KIND_SECOND, unit_exponents=1, unit_scale=0, unit_multipler=3600)

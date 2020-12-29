@@ -161,24 +161,18 @@ def get_compartment_by_name(model, compartment_name):
 
 # Helper function to add a parameter to the model
 
+
 def add_parameter(mixture, name, value=0, debug=False):
     model = mixture.model  # Get the model where we will store results
 
     # Check to see if this parameter is already present
     parameter = find_parameter(mixture, name)  # ! TODO: add error checking
     if parameter is None:
-        if debug:
-            print("Adding parameter %s" % name)
         parameter = model.createParameter()
         all_ids = getAllIds(model.getSBMLDocument().getListOfAllElements())
         trans = SetIdFromNames(all_ids)
         # ! TODO: add error checking
         parameter.setId(trans.getValidIdForName(name))
-
-    else:
-        if debug:
-            print("add_parameter: %s already exists", parameter.getId())
-
     # Set the value of the parameter
     parameter.setValue(float(value))
     parameter.setConstant(True)
@@ -316,8 +310,7 @@ def _create_global_parameter(model, name, value, p_unit=None, constant=True):
                 model.addUnitDefinition(unit_created)
             except AttributeError:
                 warnings.warn(
-                    "The units for {0} parameter in the parameter database, {1} not supported by BioCRNpyler, SBML might be invalid.".format(name, p_unit))
-                print("Add your own units by simply creating a function in biocrnpyler/units.py.")
+                    "The units for {0} parameter in the parameter database, {1} is not supported by BioCRNpyler, SBML might be invalid.".format(name, p_unit))
 
     if model.getParameter(name) is None:
         param = model.createParameter()
