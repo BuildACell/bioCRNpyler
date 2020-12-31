@@ -33,19 +33,6 @@ The initial condition of any Species (or Component) will also be looked up as a 
     Initial conditions can be customized in through the custom_initial_conditions keyword in the Mixture constructor.
     custom_initial_conditions will take precedent to parameter initial conditions.
 
-    During compilation, Mixture.set_initial_condition() checks for parameters for all species in the following order:
-
-    # First checks if (mixture.name, repr(species)) is in the self.custom_initial_condition_dict
-    # Then checks if (repr(species)) is in the self.custom_initial_condition_dict
-    # Then checks if (mixture.name, component.name) is in the self.custom_initial_condition_dictionary
-    # Then checks if (component.name) is in the self.custom_initial_condition_dictionary
-
-    # Then checks if (mixture.name, repr(species)) is in the parameter dictionary
-    # Then checks if repr(species) is in the parameter dictionary
-    # Then checks if (mixture.name, component.name)) is in the parameter dictionary
-    # Then checks if component.name is in the parameter dictionary
-    # Then defaults to 0
-
 #### Units are read directly read from the column labeled "units" in the parameter file. 
 
 """
