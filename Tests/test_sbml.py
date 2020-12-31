@@ -35,8 +35,8 @@ class TestSBML(TestCase):
 
         add_all_species(model, species, init_cond_dict)
         # Test get species by name:
-        self.assertEqual(getSpeciesByName(model, model.getSpecies(0).getName()), "S1")
-        with self.assertRaisesRegex(ValueError, '"name" must be a string. Received 24 type=int'):
+        self.assertEqual(str(getSpeciesByName(model, model.getSpecies(0).getName()).getName()), "S1")
+        with self.assertRaisesRegex(ValueError, '"name" must be a string. Received 24.'):
             getSpeciesByName(model, 24)
 
         self.assertEqual(len(model.getListOfSpecies()), len(species))
