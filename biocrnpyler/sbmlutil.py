@@ -464,7 +464,7 @@ def getSpeciesByName(model, name, compartment=''):
     '''
     if type(name) is not str:
         raise ValueError(
-            f'"name" must be a string. Recievied {name} type={type(name)}.')
+            f'"name" must be a string. Received {name} type={type(name)}.')
     species_found = []
     for species in model.getListOfSpecies():
         if species.getName() == name:

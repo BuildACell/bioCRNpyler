@@ -8,26 +8,26 @@ def biocrnpyler_supported_units():
         # Volume units
         'nL': 
         {'unit_kind':[libsbml.UNIT_KIND_LITRE],
-        'unit_exponents':[1],
-        'unit_scale':[-9],
-        'unit_multiplier':[1]},
+        'unit_exponents':1,
+        'unit_scale':-9,
+        'unit_multiplier':1},
 
         'uL': 
-        {'unit_kind':[libsbml.UNIT_KIND_LITRE],
+        {'unit_kind':libsbml.UNIT_KIND_LITRE,
         'unit_exponents':[1],
-        'unit_scale':[-6],
-        'unit_multiplier':[1]},
+        'unit_scale':-6,
+        'unit_multiplier':1},
 
         'mL': 
-        {'unit_kind':[libsbml.UNIT_KIND_LITRE],
-        'unit_exponents':[1],
+        {'unit_kind':libsbml.UNIT_KIND_LITRE,
+        'unit_exponents':1,
         'unit_scale':[-3],
-        'unit_multiplier':[1]},
+        'unit_multiplier':1},
 
         'L': 
-        {'unit_kind':[libsbml.UNIT_KIND_LITRE],
-        'unit_exponents':[1],
-        'unit_scale':[0],
+        {'unit_kind':libsbml.UNIT_KIND_LITRE,
+        'unit_exponents':1,
+        'unit_scale':0,
         'unit_multiplier':[1]},
         
         # Concentration units
@@ -166,6 +166,12 @@ def create_new_unit_definition(model, unit_id):
 
     if type(unit_kind) is not list:
         unit_kind = [unit_kind]
+        if type(unit_scale) is list:
+            unit_scale = unit_scale[0]
+        if type(unit_multiplier) is list:
+            unit_multiplier = unit_multiplier[0]
+        if type(unit_exponents) is list:
+            unit_exponents = unit_exponents[0]
         if type(unit_scale) is not int or type(unit_multiplier) is not int:
             raise ValueError(
                 'Scale and unit_multiplier must be integers when there is only one unit kind')

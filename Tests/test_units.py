@@ -31,11 +31,12 @@ def check(value, message):
         else:
             return
 
-class TestSpecies(TestCase):
+class TestUnits(TestCase):
     def test_units_initialization(self):
-        # tests naming convention repr without species type or attributes
         document, sbml_model = create_sbml_model()
         supported_units = biocrnpyler_supported_units().keys()
         for unit in supported_units:
             unit_definition = create_new_unit_definition(sbml_model, unit)
             check(unit_definition, "create new unit definition")
+        with self.assertRaisesRegex(ValueError, 'The arguments are not of expected type. unit_id must be a string.'):
+            create_new_unit_definition(sbml_model, 24)
