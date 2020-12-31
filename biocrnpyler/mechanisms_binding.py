@@ -6,7 +6,7 @@ import itertools as it
 
 from .mechanism import Mechanism
 from .reaction import Reaction
-from .species import Complex, Multimer, Species, WeightedSpecies
+from .species import Complex, Species, WeightedSpecies
 
 
 class Reversible_Bimolecular_Binding(Mechanism):

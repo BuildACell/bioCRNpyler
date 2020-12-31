@@ -871,4 +871,68 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         return False
 
 
+class PolymerConformation(ComplexSpecies):
+    """
+    This class stores a set of PolymerSpecies and a set of connections between them in the form of ComplexSpecies containing Monomers inside the PolymerSpecies.
 
+    The main function of this class is to provide a unique name to each conformation. The name is given by:
+
+        conformation__[PolymerSpecies 1]_..._[PolymerSpecies N]_[ComplexSpecies_1]_..._[ComplexSpecies_M]__
+    
+    where the list of PolymerSpecies and ComplexSpecies are in alphabetical order.
+
+    In general, users should not produce PolymerConformations directly. The Complex function will automatically produce these
+    when a complex is formed involving Multiple OrderedMonomers contained within one or more PolymerSpecies.
+
+    In effect, this can be thought of as a data structure for a hypergraph. The monomers of the PolymerSpecies are
+    vertices and ComplexSpecies form edges that connect an arbitrary number of vertices (potentially including 
+    other Species as well). Note that this class allows for multiple edges between the same sets of vertices.
+    """
+
+    def __init__(self, polymers, complexes, material_type = "conformation", **keywords):
+
+        
+
+        self.polymers = polymers
+        self.complexes = complexes
+        
+
+        ComplexSpecies.__init__(self, species = polymers+complexes, material_type = material_type, **keywords)
+
+    @property
+    def polymers(self):
+        return self._polymers
+    
+    @polymers.setter
+    def polymers(self, polymers):
+        if not isinstance(polymers, list) or len(polymers) < 1 or not all([isinstance(p, OrderedPolymerSpecies) for p in polymers]):
+            raise TypeError(f"polymers must be a list containing PolymerSpecies. Recieved {polymers}.")
+
+        self._polymers = polymers
+        #sort the list
+        self._polymers.sort()
+
+    @property
+    def complexes(self):
+        return self._complexes
+
+    @complexes.setter
+    def complexes(self, complexes):
+        if not isinstance(complexes, list) or len(complexes) < 1 or not all([isinstance(c, ComplexSpecies) for c in complexes]):
+            raise TypeError(f"complexes must be a list containing ComplexSpecies. Recieved {complexes}.")
+        self._complexes = complexes
+        #sort the list
+        self._complexes.sort()
+    
+    @property
+    def name(self):
+        if self._name is None:
+            name = self.material_type+"_"
+            for p in self.polymers:
+                name += "_"+str(p)
+            for c in self.complexes:
+                name += "_"+str(c)
+            name += "__"
+            return name
+        else:
+            return self._name
