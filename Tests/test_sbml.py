@@ -1,4 +1,5 @@
 import pytest
+import warnings
 from unittest import TestCase
 from biocrnpyler.sbmlutil import *
 from biocrnpyler.species import Species, Complex
@@ -33,6 +34,10 @@ class TestSBML(TestCase):
         init_cond_dict = {S1: 1, S2: 2, S3: 3, S4: 4}
 
         add_all_species(model, species, init_cond_dict)
+        # Test get species by name:
+        self.assertEqual(str(getSpeciesByName(model, model.getSpecies(0).getName()).getName()), "S1")
+        with self.assertRaisesRegex(ValueError, '"name" must be a string. Received 24.'):
+            getSpeciesByName(model, 24)
 
         self.assertEqual(len(model.getListOfSpecies()), len(species))
         self.assertEqual(validate_sbml(document), 0)
@@ -364,6 +369,10 @@ def test_sbml_basics():
     check(local_param, 'create local parameter in SBML model')
     global_param = _create_global_parameter(model, 'k_global', 10)
     check(global_param, 'create global parameter in SBML model')
+    with pytest.raises(ValueError, match = "Units for a parameter must be passed as strings."):
+        global_param = _create_global_parameter(model, 'k_global', value = 10, p_unit = 24)
+    with pytest.warns(Warning, match = "The string identifier for the unit 1_s is not supported by BioCRNpyler. Add this to the dictionary in biocrnpyler/units.py if you want this unit."):
+        global_param = _create_global_parameter(model, 'k_global', value = 10, p_unit = "1_s")
     check(rateLaw.setFormula('k_local*10 - k_global/2'),
           'set rate formula for reaction')
     validator = validateSBML(ucheck=False)

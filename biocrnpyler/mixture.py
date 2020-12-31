@@ -292,7 +292,6 @@ class Mixture(object):
     
     def get_parameter(self, mechanism, part_id, param_name):
         param = self.parameter_database.find_parameter(mechanism, part_id, param_name)
-
         return param
 
     def get_initial_concentration(self, S: Union[List, Species], component=None):

@@ -58,12 +58,14 @@ class Propensity(object):
             where part_id and mechanism can be empty (but _ will always be incldued for uniqueness).
         if self.propensity_dict["parameter"]["parameter_name"] is a Number,
             creates a local parameter "parameter_name".
-        rname_dict allows for param.name to be changed to rename_dict[param.name]
+        rename_dict allows for param.name to be changed to rename_dict[param.name]
         """
         p = self.propensity_dict["parameters"][parameter_name]
         if isinstance(p, ParameterEntry):
             v = p.value
-
+            p_unit = p.unit
+            if p_unit == "":
+                p_unit = None
             m = p.parameter_key.mechanism 
             if m is None:
                 m = ""
@@ -76,7 +78,7 @@ class Propensity(object):
             else:
                 sbml_name = rename_dict[p.parameter_name]+"_"+pid+"_"+m
 
-            return _create_global_parameter(sbml_model, sbml_name, v)
+            return _create_global_parameter(sbml_model, sbml_name, v, p_unit)
             
         elif isinstance(p, int) or isinstance(p, float):
             v = p
