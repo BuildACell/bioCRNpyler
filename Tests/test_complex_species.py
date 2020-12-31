@@ -6,9 +6,8 @@ from unittest import TestCase
 from biocrnpyler import Species
 from biocrnpyler import ComplexSpecies
 from biocrnpyler import OrderedComplexSpecies
-from biocrnpyler import Multimer
 
-"""This file tests ComplexSpecies, OrderedComplexSpecies, and Multimers which are all subclasses of species."""
+"""This file tests ComplexSpecies, OrderedComplexSpecies which are all subclasses of species."""
 
 
 class TestComplexSpecies(TestCase):
@@ -28,22 +27,16 @@ class TestComplexSpecies(TestCase):
                                                  'or more species in its constructor.'):
             OrderedComplexSpecies([s1], called_from_complex = True)
         
-        # Check invalidity of multimers with fewer than 2 component
-        with self.assertRaisesRegex(ValueError, 'chemical_reaction_network.complex requires 2 '
-                                                 'or more species in its constructor'):
-            Multimer(s1, 1, called_from_complex = True)
 
         # Check the naming conventions
         oc1 = OrderedComplexSpecies([s2, s1], called_from_complex = True)
         c1 = ComplexSpecies([s2, s1], called_from_complex = True)
-        m1 = Multimer(s1, 2, called_from_complex = True)
         c3 = ComplexSpecies([s1, s1], called_from_complex = True)
 
-        # Check invalidity of ComplexSpecies, Multimers and OrderedComplexSpecies with strings instead of species
+        # Check invalidity of ComplexSpecies and OrderedComplexSpecies with strings instead of species
         with self.assertRaisesRegex(TypeError, 'recieved a non-species as a member of the list species'):
             self.assertEqual(OrderedComplexSpecies([s2, "s1"]), oc1)
             self.assertEqual(ComplexSpecies([s2, "s1"]), c1)
-            self.assertEqual(Multimer("s1", 2), m1)
             
         
         # ComplexSpecies should sort the species added alphabetically by representation
@@ -52,10 +45,6 @@ class TestComplexSpecies(TestCase):
         
         # OrderedComplexSpecies do not sort their internal species
         self.assertEqual(repr(oc1), "ordered_complex_"+repr(s2)+"_"+repr(s1)+"_")
-        
-        # Multimers are just complexes with multiplicity
-        self.assertEqual(repr(m1), "complex_"+repr(s1)+"_2x_")
-        self.assertEqual(repr(c3), repr(m1))
 
         # Nested list creation of ComplexSpecies
         c1 = ComplexSpecies([s1, [s2, s1]], called_from_complex = True)
