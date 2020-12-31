@@ -10,7 +10,7 @@ from random import randint
 from typing import List
 from warnings import warn
 from .utils import parameter_to_value
-import biocrnpyler.units as units
+from .units import create_new_unit_definition
 import libsbml
 
 # Reaction ID number (global)
@@ -305,12 +305,8 @@ def _create_global_parameter(model, name, value, p_unit=None, constant=True):
             if unit_definition.getId() == p_unit:
                 unit_added = True
         if not unit_added:
-            try:
-                unit_created = getattr(units, "create_unit_" + p_unit)(model)
-                model.addUnitDefinition(unit_created)
-            except AttributeError:
-                warnings.warn(
-                    "The units for {0} parameter in the parameter database, {1} is not supported by BioCRNpyler, SBML might be invalid.".format(name, p_unit))
+            unit_created = create_new_unit_definition(model, p_unit)
+            model.addUnitDefinition(unit_created)
 
     if model.getParameter(name) is None:
         param = model.createParameter()

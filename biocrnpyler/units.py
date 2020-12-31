@@ -1,118 +1,142 @@
+# Copyright (c) 2020, Build-A-Cell. All rights reserved.
+# See LICENSE file in the project root directory for details.
+
 import libsbml
+import warnings
+def biocrnpyler_supported_units():
+    supported_units = {
+        # Volume units
+        'nL': 
+        {'unit_kind':[libsbml.UNIT_KIND_LITRE],
+        'unit_exponents':[1],
+        'unit_scale':[-9],
+        'unit_multiplier':[1]},
 
-# Volume units
+        'uL': 
+        {'unit_kind':[libsbml.UNIT_KIND_LITRE],
+        'unit_exponents':[1],
+        'unit_scale':[-6],
+        'unit_multiplier':[1]},
 
+        'mL': 
+        {'unit_kind':[libsbml.UNIT_KIND_LITRE],
+        'unit_exponents':[1],
+        'unit_scale':[-3],
+        'unit_multiplier':[1]},
 
-def create_unit_nL(model):
-    nL = create_new_unit_definition(
-        model, unit_id='nL', unit_kind=libsbml.UNIT_KIND_LITER, unit_exponents=1, unit_scale=-9)
-    return nL
+        'L': 
+        {'unit_kind':[libsbml.UNIT_KIND_LITRE],
+        'unit_exponents':[1],
+        'unit_scale':[0],
+        'unit_multiplier':[1]},
+        
+        # Concentration units
+        'M': 
+        {'unit_kind':[libsbml.UNIT_KIND_MOLE, libsbml.UNIT_KIND_LITRE],
+        'unit_exponents':[1, -1],
+        'unit_scale':[0, 0],
+        'unit_multiplier':[1,1]},
 
+        'mM': 
+        {'unit_kind':[libsbml.UNIT_KIND_MOLE, libsbml.UNIT_KIND_LITRE],
+        'unit_exponents':[1,-1],
+        'unit_scale':[-3,0],
+        'unit_multiplier':[1,1]},
 
-def create_unit_uL(model):
-    uL = create_new_unit_definition(
-        model, unit_id='uL', unit_kind=libsbml.UNIT_KIND_LITER, unit_exponents=1, unit_scale=-6)
-    return uL
+        'uM': 
+        {'unit_kind':[libsbml.UNIT_KIND_MOLE, libsbml.UNIT_KIND_LITRE],
+        'unit_exponents':[1, -1],
+        'unit_scale':[-6, 0],
+        'unit_multiplier':[1,1]},
 
+        'nM': 
+        {'unit_kind':[libsbml.UNIT_KIND_MOLE, libsbml.UNIT_KIND_LITRE],
+        'unit_exponents':[1, -1],
+        'unit_scale':[-9, 0],
+        'unit_multiplier':[1,1]},
 
-def create_unit_mL(model):
-    mL = create_new_unit_definition(
-        model, unit_id='mL', unit_kind=libsbml.UNIT_KIND_LITER, unit_exponents=1, unit_scale=-3)
-    return mL
+        'mM': 
+        {'unit_kind':[libsbml.UNIT_KIND_MOLE, libsbml.UNIT_KIND_LITRE],
+        'unit_exponents':[1, -1],
+        'unit_scale':[-3, 0],
+        'unit_multiplier':[1,1]},
+        
+        # Time units
+        'hour': 
+        {'unit_kind':[libsbml.UNIT_KIND_SECOND],
+        'unit_exponents':[1],
+        'unit_scale':[0],
+        'unit_multiplier':[3600]},
 
+        'minute': 
+        {'unit_kind':[libsbml.UNIT_KIND_SECOND],
+        'unit_exponents':[1],
+        'unit_scale':[0],
+        'unit_multiplier':[60]},
 
-def create_unit_L(model):
-    L = create_new_unit_definition(
-        model, unit_id='L', unit_kind=libsbml.UNIT_KIND_LITER, unit_exponents=1, unit_scale=0)
-    return L
+        'second': 
+        {'unit_kind':[libsbml.UNIT_KIND_SECOND],
+        'unit_exponents':[1],
+        'unit_scale':[0],
+        'unit_multiplier':[1]},
+        
+        # Common parameter units
+        'per_second': 
+        {'unit_kind':[libsbml.UNIT_KIND_SECOND],
+        'unit_exponents':[-1],
+        'unit_scale':[0],
+        'unit_multiplier':[1]},
 
-# Concentration units
+        'per_minute': 
+        {'unit_kind':[libsbml.UNIT_KIND_SECOND],
+        'unit_exponents':[-1],
+        'unit_scale':[0],
+        'unit_multiplier':[1/60]},
 
+        'per_hour': 
+        {'unit_kind':[libsbml.UNIT_KIND_SECOND],
+        'unit_exponents':[-1],
+        'unit_scale':[0],
+        'unit_multiplier':[1/3600]},
 
-def create_unit_M(model):
-    M = create_new_unit_definition(model, unit_id='M', unit_kind=[
-        libsbml.UNIT_KIND_MOLE, libsbml.UNIT_KIND_LITER], unit_exponents=[1, -1], unit_scale=[0, 0])
-    return M
+        'mole_per_litre': 
+        {'unit_kind':[libsbml.UNIT_KIND_LITRE, libsbml.UNIT_KIND_MOLE],
+        'unit_exponents':[-1,1],
+        'unit_scale':[0,0],
+        'unit_multiplier':[1,1]},
 
+        'litre_per_mole_per_second': 
+        {'unit_kind':[libsbml.UNIT_KIND_SECOND, libsbml.UNIT_KIND_LITRE, libsbml.UNIT_KIND_MOLE],
+        'unit_exponents':[-1,1,-1],
+        'unit_scale':[0,0,0],
+        'unit_multiplier':[1,1,1]},
 
-def create_unit_mM(model):
-    mM = create_new_unit_definition(model, unit_id='mM', unit_kind=[
-                                    libsbml.UNIT_KIND_MOLE, libsbml.UNIT_KIND_LITER], unit_exponents=[1, -1], unit_scale=[-3, 0])
-    return mM
+        'litre_per_mole_per_hour': 
+        {'unit_kind':[libsbml.UNIT_KIND_SECOND, libsbml.UNIT_KIND_LITRE, libsbml.UNIT_KIND_MOLE],
+        'unit_exponents':[-1,1,-1],
+        'unit_scale':[0,0,0],
+        'unit_multiplier':[1/3600,1,1]},
+    }
+    ### Add your own units to this dictionary ###
+    return supported_units
 
-
-def create_unit_uM(model):
-    uM = create_new_unit_definition(model, unit_id='uM', unit_kind=[
-                                    libsbml.UNIT_KIND_MOLE, libsbml.UNIT_KIND_LITER], unit_exponents=[1, -1], unit_scale=[-6, 0])
-    return uM
-
-
-def create_unit_nM(model):
-    nM = create_new_unit_definition(model, unit_id='nM', unit_kind=[
-                                    libsbml.UNIT_KIND_MOLE, libsbml.UNIT_KIND_LITER], unit_exponents=[1, -1], unit_scale=[-9, 0])
-    return nM
-
-# Time units
-
-def create_unit_hour(model):
-    hour = create_new_unit_definition(
-        model, unit_id='hour', unit_kind=libsbml.UNIT_KIND_SECOND, unit_exponents=1, unit_scale=0, unit_multipler=3600)
-    return hour
-
-
-def create_unit_minute(model):
-    minute = create_new_unit_definition(
-        model, unit_id='minute', unit_kind=libsbml.UNIT_KIND_SECOND, unit_exponents=1, unit_scale=0, unit_multipler=60)
-    return minute
-
-
-def create_unit_second(model):
-    second = create_new_unit_definition(
-        model, unit_id='second', unit_kind=libsbml.UNIT_KIND_SECOND, unit_exponents=1, unit_scale=0, unit_multipler=1)
-    return second
-
-# Common parameter units
-
-def create_unit_per_second(model):
-    per_second = create_new_unit_definition(
-        model, unit_id='per_second', unit_kind=libsbml.UNIT_KIND_SECOND, unit_exponents=-1, unit_scale=0, unit_multipler=1)
-    return per_second
-
-def create_unit_per_hour(model):
-    per_hour = create_new_unit_definition(
-        model, unit_id='per_hour', unit_kind=libsbml.UNIT_KIND_SECOND, unit_exponents=-1, unit_scale=0, unit_multipler=3600)
-    return per_hour
-
-def create_unit_mole_per_litre(model):
-    mole_per_litre = create_new_unit_definition(
-        model, unit_id='mole_per_litre', unit_kind=[libsbml.UNIT_KIND_SECOND, libsbml.UNIT_KIND_LITRE, libsbml.UNIT_KIND_MOLE], 
-        unit_exponents=[-1,1,-1], unit_scale=[0,0,0], unit_multipler=[1,1,1])
-    return mole_per_litre
-
-def create_unit_litre_per_mole_per_second(model):
-    litre_per_mole_per_second = create_new_unit_definition(
-        model, unit_id='litre_per_mole_per_second', unit_kind=[libsbml.UNIT_KIND_SECOND, libsbml.UNIT_KIND_LITRE, libsbml.UNIT_KIND_MOLE], 
-        unit_exponents=[-1,1,-1], unit_scale=[0,0,0], unit_multipler=[1,1,1])
-    return litre_per_mole_per_second
-
-def create_unit_litre_per_mole_per_hour(model):
-    litre_per_mole_per_hour = create_new_unit_definition(
-        model, unit_id='litre_per_mole_per_hour', unit_kind=[libsbml.UNIT_KIND_SECOND, libsbml.UNIT_KIND_LITRE, libsbml.UNIT_KIND_MOLE], 
-        unit_exponents=[-1,1,-1], unit_scale=[0,0,0], unit_multipler=[3600,1,1])
-    return litre_per_mole_per_hour
-#
-### Add your own units here ###
-
-
-def create_new_unit_definition(model, unit_id, unit_kind, unit_exponents, unit_scale=0, unit_multipler=1):
+def create_new_unit_definition(model, unit_id):
     """
     Creates a new UnitDefinition inside the 
     SBML Model object passed as model argument and other attributes. 
     Returns a pointer to the new libSBML object created for the unit type.
     """
+    supported_units = biocrnpyler_supported_units()
     if type(unit_id) is not str:
         raise ValueError(
-            'The arguments are not of expected type. unit_id must be a string of valid SId format')
+            'The arguments are not of expected type. unit_id must be a string.')
+    if unit_id not in supported_units.keys():
+        warnings.warn('The string identifier for the unit {0} is not supported by BioCRNpyler. Add this to the dictionary in biocrnpyler/units.py if you want this unit.'.format(unit_id))
+        return None
+    unit_kind = supported_units[unit_id]['unit_kind']
+    unit_exponents = supported_units[unit_id]['unit_exponents']
+    unit_scale = supported_units[unit_id]['unit_scale']
+    unit_multiplier = supported_units[unit_id]['unit_multiplier']
 
     unitdef = model.createUnitDefinition()
     unitdef.setId(unit_id)
@@ -129,24 +153,24 @@ def create_new_unit_definition(model, unit_id, unit_kind, unit_exponents, unit_s
         unit_scaleList = unit_scale[:]
 
     # Multiplier list
-    if type(unit_kind) is list and type(unit_multipler) is not list:
-        unit_multiplerList = []
+    if type(unit_kind) is list and type(unit_multiplier) is not list:
+        unit_multiplierList = []
         for kind in unit_kind:
-            unit_multiplerList.append(unit_multipler)
+            unit_multiplierList.append(unit_multiplier)
 
-    elif type(unit_kind) is list and type(unit_multipler) is list:
-        if len(unit_kind) != len(unit_multipler):
+    elif type(unit_kind) is list and type(unit_multiplier) is list:
+        if len(unit_kind) != len(unit_multiplier):
             raise ValueError(
-                'Lengths of unit kind and unit_multipler lists are not equal')
-        unit_multiplerList = unit_multipler[:]
+                'Lengths of unit kind and unit_multiplier lists are not equal')
+        unit_multiplierList = unit_multiplier[:]
 
     if type(unit_kind) is not list:
         unit_kind = [unit_kind]
-        if type(unit_scale) is not int or type(unit_multipler) is not int:
+        if type(unit_scale) is not int or type(unit_multiplier) is not int:
             raise ValueError(
-                'Scale and unit_multipler must be integers when there is only one unit kind')
+                'Scale and unit_multiplier must be integers when there is only one unit kind')
         unit_scaleList = [unit_scale]
-        unit_multiplerList = [unit_multipler]
+        unit_multiplierList = [unit_multiplier]
     if type(unit_exponents) is not list:
         if type(unit_exponents) is not int:
             raise ValueError('All unit_exponentss should be integers')
@@ -155,10 +179,10 @@ def create_new_unit_definition(model, unit_id, unit_kind, unit_exponents, unit_s
         raise ValueError(
             'Lengths of unit kind and unit unit_exponents lists must be equal')
 
-    for kind, expo, unit_scale, unit_multipler in zip(unit_kind, unit_exponents, unit_scaleList, unit_multiplerList):
+    for kind, expo, unit_scale, unit_multiplier in zip(unit_kind, unit_exponents, unit_scaleList, unit_multiplierList):
         unit = unitdef.createUnit()
         unit.setKind(kind)
         unit.setExponent(expo)
         unit.setScale(unit_scale)
-        unit.setMultiplier(unit_multipler)
+        unit.setMultiplier(unit_multiplier)
     return unitdef

@@ -7,6 +7,7 @@ from biocrnpyler.sbmlutil import create_sbml_model
 import biocrnpyler.units as units
 import pytest
 import libsbml
+from biocrnpyler.units import *
 
 def check(value, message):
         """If 'value' is None, prints an error message constructed using
@@ -34,11 +35,7 @@ class TestSpecies(TestCase):
     def test_units_initialization(self):
         # tests naming convention repr without species type or attributes
         document, sbml_model = create_sbml_model()
-        list_of_supported_units = ["nL", "uL", "mL", "L",
-                                   "nM", "uM", "mM", "M",
-                                   "hour", "minute", "second",
-                                   "per_second", "per_hour", "mole_per_litre",
-                                   "litre_per_mole_per_second", "litre_per_mole_per_hour"]
-        for unit in list_of_supported_units:
-            unit_definition = getattr(units, "create_unit_"+unit)(sbml_model)
+        supported_units = biocrnpyler_supported_units().keys()
+        for unit in supported_units:
+            unit_definition = create_new_unit_definition(sbml_model, unit)
             check(unit_definition, "create new unit definition")
