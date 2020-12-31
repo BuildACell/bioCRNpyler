@@ -877,9 +877,10 @@ class PolymerConformation(ComplexSpecies):
 
     The main function of this class is to provide a unique name to each conformation. The name is given by:
 
-        conformation__[PolymerSpecies 1]_..._[PolymerSpecies N]_[ComplexSpecies_1]_..._[ComplexSpecies_M]__
+        conformation__[PolymerSpecies 1]_..._[PolymerSpecies N]_[ComplexSpecies_1 parent Polymer indices]_[ComplexSpecies_1]..._[ComplexSpecies_M]__
     
-    where the list of PolymerSpecies and ComplexSpecies are in alphabetical order.
+    where the list of PolymerSpecies and ComplexSpecies are in alphabetical order. 
+    The ComplexSpecies parent Polymer indices notes which Polymers each Species in the ComplexSpecies comes from, with 'n' used for None.
 
     In general, users should not produce PolymerConformations directly. The Complex function will automatically produce these
     when a complex is formed involving Multiple OrderedMonomers contained within one or more PolymerSpecies.
@@ -890,13 +891,13 @@ class PolymerConformation(ComplexSpecies):
     """
 
     def __init__(self, polymers, complexes, material_type = "conformation", **keywords):
-
-        
-
+        """
+        polymers: a list of OrderedPolymerSpecies
+        complexes: a list of ComplexSpecies each of which must contain Monomers from the OrderedPolymerSpecies in the conformation
+        """
         self.polymers = polymers
         self.complexes = complexes
-        
-
+        self.check_conformation() #checks teh conformation is valid
         ComplexSpecies.__init__(self, species = polymers+complexes, material_type = material_type, **keywords)
 
     @property
@@ -923,16 +924,55 @@ class PolymerConformation(ComplexSpecies):
         self._complexes = complexes
         #sort the list
         self._complexes.sort()
+
+    def check_conformation(self):
+        """
+        Checks that the conformation is valid - meaning all complexes contains monomers with parents in the polymer list and
+        all polymers in conformation have monomers which are part of a complex.
+        """
+
+        #create an empty dictionary that stores polymer --> child complexes
+        parent_dict = {i:[] for i in self.polymers}
+
+        #check that each complex contains monomers from polymers
+        #and label the complexes according to their polymer index
+        for c in self.complexes:
+            parent_found = False
+            for s in c.species:
+                #Additional species are allowed in these Complexes
+                if s.parent is None:
+                    pass
+                elif s.parent not in self.polymers:
+                    raise ValueError(f"Complex {c} contains a Species {s} inside  with parent {s.parent} but this polymer is not included in self.polymers!")
+                else:
+                    parent_found = True
+                    if c not in parent_dict[s.parent]:
+                        parent_dict[s.parent].append(c)
+            if not parent_found:
+                raise ValueError(f"Complex {c} does not contain a Species with a parent polymer!")
+
+        for p in self.polymers:
+            if len(parent_dict[p]) == 0:
+                raise ValueError(f"Polymer {p} not connected by any complexes.")
     
     @property
     def name(self):
         if self._name is None:
-            name = self.material_type+"_"
+            name = ""
             for p in self.polymers:
                 name += "_"+str(p)
             for c in self.complexes:
+                for s in c.species:
+                    parent = s.parent
+                    if parent is None:
+                        name += "_n"
+                    else:
+                        name += "_"+str(self.polymers.index(parent))
                 name += "_"+str(c)
-            name += "__"
             return name
         else:
             return self._name
+
+    @name.setter
+    def name(self, name: str):
+        self._name = self._check_name(name)
