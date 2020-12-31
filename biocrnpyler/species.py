@@ -909,7 +909,7 @@ class PolymerConformation(ComplexSpecies):
         if not isinstance(polymers, list) or len(polymers) < 1 or not all([isinstance(p, OrderedPolymerSpecies) for p in polymers]):
             raise TypeError(f"polymers must be a list containing PolymerSpecies. Recieved {polymers}.")
 
-        self._polymers = polymers
+        self._polymers = [copy.deepcopy(p) for p in polymers]
         #sort the list
         self._polymers.sort()
 
@@ -921,7 +921,7 @@ class PolymerConformation(ComplexSpecies):
     def complexes(self, complexes):
         if not isinstance(complexes, list) or len(complexes) < 1 or not all([isinstance(c, ComplexSpecies) for c in complexes]):
             raise TypeError(f"complexes must be a list containing ComplexSpecies. Recieved {complexes}.")
-        self._complexes = complexes
+        self._complexes = [copy.deepcopy(c) for c in complexes]
         #sort the list
         self._complexes.sort()
 
