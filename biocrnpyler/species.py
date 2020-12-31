@@ -612,31 +612,6 @@ class ComplexSpecies(Species):
         return txt
 
 
-class Multimer(ComplexSpecies):
-    """A subclass of ComplexSpecies for Complexes made entirely of the same kind of species,
-    eg dimers, tetramers, etc.
-    """
-
-    def __init__(self, species, multiplicity, name=None, material_type="complex", attributes=None,
-                 compartment=None, **keywords):
-
-        if "called_from_complex" not in keywords or not keywords["called_from_complex"]:
-            warnings.warn(
-                "OrderedComplexSpecies should be created from the Complex([List of Species], ordered = True) function, not directly!")
-
-        if isinstance(species, str):
-            species = [Species(name=species)]
-        elif not isinstance(species, Species):
-            raise ValueError(
-                "Multimer must be defined by a Species (or subclasses thereof) and a multiplicity (int).")
-        else:
-            species = [species]
-
-        ComplexSpecies.__init__(self, species=species*multiplicity, name=name, material_type=material_type,
-                                compartment=compartment, attributes=attributes,
-                                **keywords)
-
-
 class OrderedComplexSpecies(ComplexSpecies):
     """ 
     !!!ComplexSpecies and OrderedComplexSpecies should ALWAYS be created with the Complex function!!!
@@ -894,3 +869,6 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
             if((part == item) or (item == part.data) or (item in part)):
                 return True
         return False
+
+
+
