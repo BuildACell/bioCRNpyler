@@ -22,6 +22,10 @@ class TestParameter(TestCase):
         with self.assertRaisesRegex(ValueError, f"No valid parameter value! Accepted format"):
             Parameter(parameter_name="None", parameter_value='2ba')
 
+        # test invalid unit value
+        with self.assertRaisesRegex(ValueError, f"All units must be strings"):
+            Parameter(parameter_name="None", parameter_value=1.0, unit = 0.0)
+
         # test string parameter values
         self.assertTrue(Parameter(parameter_name="None", parameter_value="1.0").value == 1.0)
 
@@ -32,13 +36,31 @@ class TestParameter(TestCase):
         self.assertTrue(Parameter(parameter_name="None", parameter_value="1e-2").value == 0.01)
         self.assertTrue(Parameter(parameter_name="None", parameter_value="2e-2/2").value == 0.01)
 
+        #Test unit setting
+        self.assertTrue(Parameter(parameter_name="None", parameter_value="1.0", unit = None).unit == "")
+        self.assertTrue(Parameter(parameter_name="None", parameter_value="1.0", unit = "M").unit == "M")
+
         # testing invalid parameter name
         with self.assertRaisesRegex(ValueError, f"parameter_name should be at least one character and cannot start with a number!"):
             Parameter(parameter_name="2", parameter_value=2)
 
     def test_parameter_entry(self):
         #Valid ParameterEntry Construction
-        ParameterEntry(parameter_name="None", parameter_value=1.0, parameter_key = {"part_id":"id"}, parameter_info = {"comment":"comment"})
+        #With unit
+        P0 = ParameterEntry(parameter_name="None", parameter_value=1.0, parameter_key = {"part_id":"id"}, parameter_info = {"comment":"comment", "unit":"M"})
+        P1 = ParameterEntry(parameter_name="None", parameter_value=1.0, parameter_key = {"part_id":"id"}, parameter_info = {"comment":"comment"}, unit = "M")
+
+        #Without unit
+        P2 = ParameterEntry(parameter_name="None", parameter_value=1.0, parameter_key = {"part_id":"id"}, parameter_info = {"comment":"comment"})
+
+        #Assert unit is passed through to Parameter.unit from the parameter_info_dictionary
+        self.assertTrue(P0.unit == "M")
+        self.assertTrue(P1.unit == "M")
+        self.assertTrue(P2.unit == "")
+
+        #Test duplication of parameter information error
+        with self.assertRaisesRegex(ValueError, "Recieved multiple parameter units"):
+             P0 = ParameterEntry(parameter_name="None", parameter_value=1.0, parameter_key = {"part_id":"id"}, parameter_info = {"comment":"comment", "unit":"M"}, unit = "m")
 
         #Invalid keys
         param_keys = Parameter(parameter_name="None", parameter_value=1.0)
