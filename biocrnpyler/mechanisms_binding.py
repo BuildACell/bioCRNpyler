@@ -142,18 +142,18 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
         n_mer = None
         if n_mer_species is None:
-            n_mer_name = binder.name
-            n_mer_material = binder.material_type
+            n_mer_name = None
+            n_mer_material = None
         elif isinstance(n_mer_species, str):
             n_mer_name = n_mer_species
-            n_mer_material = "complex"
+            n_mer_material = None
         elif isinstance(n_mer_species, Species):
             n_mer = n_mer_species
         else:
             raise TypeError("n_mer_species keyword nust be a str, Species, or None. Not "+str(n_mer_species))
 
         if n_mer is None:
-            n_mer = Multimer(binder, cooperativity, name = n_mer_name, material_type = n_mer_material)
+            n_mer = ComplexSpecies(cooperativity*[binder], cooperativity, name = n_mer_name, material_type = n_mer_material)
 
         complexS = None
         if complex_species is None:
