@@ -377,9 +377,10 @@ class Complex:
         else:
             ordered = False
 
-        valent_complex = None  # valent_complex is an OrderedPolymer Species
-        bindloc = None  # bindloc is the location a Species is bound to valent_complex
-        other_species = []  # Other species in the Complex
+        valent_complex = None #valent_complex is an OrderedPolymer Species
+        bindloc = None #bindloc is the location a Species is bound to valent_complex
+        other_species = [] #Other species in the Complex
+        monomer_species = None #the species which is a monomer of a polymer
 
         # Below cycle through species and see if one has a parent. If it does, that means the species is
         # in an OrderedPolymerSpecies and the Complex should be formed around it.
@@ -388,17 +389,25 @@ class Complex:
                 if(valent_complex is None):
                     # It is very important to deepcopy here because the underlying OrderedPolymerSpecies will be modified.
                     valent_complex = copy.deepcopy(specie.parent)
-                    bindloc = specie.position
+                    monomer_species = specie
                 else:
-                    # If valent_complex has already been found - it means there are two OrderedPolymer
-                    # or two Species in the same OrderedPolymer. This kind of binding has not been implemented.
-                    raise NotImplementedError(
-                        "binding together two OrderedPolymerSpecies or two species in the same OrderedPolymerSpecies!")
+                    #If valent_complex has already been found - it means there are two OrderedPolymer
+                    #or two Species in the same OrderedPolymer. This kind of binding has not been implemented.
+                    raise NotImplementedError("binding together two OrderedPolymerSpecies or two species in the same OrderedPolymerSpecies!")
+            elif(hasattr(specie,"position") and (specie.position is not None)):
+                #this means we have a monomer that has a position but no parent. This should float to the top
+                if(monomer_species is None):
+                    monomer_species = specie
+                else:
+                    raise NotImplementedError("binding together two species that have a position is not allowed")
             else:
                 other_species += [specie]
 
-        # If no OrderedPolymerSpecies is found, just call the regular constructor.
-        if(valent_complex is None):
+        if len(other_species) == 0:
+            raise ValueError("Trying to create a Complex from a single species!")
+
+        #If no OrderedPolymerSpecies is found, just call the regular constructor.
+        if(valent_complex is None and monomer_species is None):
             if ordered:
                 # this creates an OrderedComplexSpecies
                 # pass in all the args and keywords appropriately
@@ -408,15 +417,15 @@ class Complex:
                 # this creates a ComplexSpecies
                 # pass in all the args and keywords appropriately
                 keywords["called_from_complex"] = True
-                return ComplexSpecies(species, *args, **keywords)
-
-        # This means the Complex is being formed inside an OrderedPolymerSpecies
+                return ComplexSpecies(species,*args,**keywords)
+        #This means the Complex is being formed inside an OrderedPolymerSpecies
         else:
-            # this is the species around which the complex is being formed
-            # basically we want to "unclone" this and then "clone the new ComplexSpecies we will have created"
-            prev_species = copy.deepcopy(valent_complex[bindloc])
+            #this is the species around which the complex is being formed
+            #basically we want to "unclone" this and then "clone the new ComplexSpecies we will have created"
+            prev_species = copy.deepcopy(monomer_species)
             prev_species.remove()
-            prev_direction = copy.deepcopy(valent_complex[bindloc].direction)
+            prev_direction = copy.deepcopy(monomer_species.direction)
+            bindloc = copy.deepcopy(monomer_species.position)
 
             # combine what was in the OrderedMonomer with the new stuff in the list
             new_species = other_species+[prev_species]
@@ -429,12 +438,19 @@ class Complex:
             # Create a ComplexSpecies
             else:
                 keywords["called_from_complex"] = True
-                new_complex = ComplexSpecies(new_species, *args, **keywords)
-            # now we replace the monomer inside the parent polymer
-            valent_complex.replace(bindloc, new_complex, prev_direction)
-            # this is saying that we are now a complex
-            valent_complex.material_type = OrderedPolymerSpecies.default_material
-            return valent_complex[bindloc]
+                new_complex = ComplexSpecies(new_species,*args,**keywords)
+            #now we replace the monomer inside the parent polymer
+            out_species = new_complex
+            if(valent_complex is not None):
+                #we have a parent, we must populate it
+                valent_complex.replace(bindloc,new_complex,prev_direction)
+                valent_complex.material_type = OrderedPolymerSpecies.default_material #this is saying that we are now a complex
+                out_species = valent_complex[bindloc]
+            else:
+                #if we have no parent, still keep track of direction and position
+                out_species.position = bindloc
+                out_species.direction = prev_direction
+            return out_species
 
 
 class ComplexSpecies(Species):
@@ -769,10 +785,9 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
     sometimes it is convenient to pass an internal Species. Both will work from the point of view
     of any Mechanism.
     """
-    default_material = "ordered_polymer"
-
-    def __init__(self, species, name=None, base_species=None, material_type=default_material,
-                 compartment=None, attributes=None, circular=False):
+    default_material="ordered_polymer"
+    def __init__(self,species, name=None, material_type = default_material, \
+                             attributes = None, initial_concentration = 0,circular = False):
 
         self.material_type = material_type
         self.compartment = compartment
@@ -806,16 +821,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
                 # only species are acceptable
 
         OrderedPolymer.__init__(self, monomers)
-        self.material_type = material_type
-
-        if(base_species is None):
-            self.base_species = Species(self.name, material_type=material_type)
-        elif(isinstance(base_species, Species)):
-            self.base_species = base_species
-        else:
-            raise TypeError("base_species is of type "+type(base_species) +
-                            " which is not acceptable. Use Species or str")
-
+        self.material_type = material_type  
     @property
     def species_set(self):
         return set(self._polymer)
@@ -869,8 +875,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
 
     def __hash__(self):
         ophash = OrderedPolymer.__hash__(self)
-        ophash += hash(self.circular)+hash(self.base_species) + \
-            hash(self.name)+hash(self.material_type)
+        ophash += hash(self.circular)+hash(self.name)+hash(self.material_type)
         return ophash
 
     def replace(self, position, part, direction=None):

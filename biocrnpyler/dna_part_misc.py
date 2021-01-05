@@ -75,19 +75,19 @@ class AttachmentSite(DNABindingSite):
             warn("warning! site {} has site_type {} which is not recognized".format(self.name,self.site_type))
         return myname
     def get_complexed_species(self,dna):
-        print(f"getting complexed species for {self}")
         recomp = Complex([dna,self.integrase,self.integrase],material_type=None)
-        print(recomp.pretty_print())
         return recomp
     def update_reactions(self):
         #TODO implement "integrase" mechanism
-        print(f"update reactions of {self}")
         reactions = DNABindingSite.update_reactions(self)
         complex_parent = self.get_complexed_species(self.dna_to_bind).parent
         int_mech = self.get_mechanism('integration')
+        print(self)
+        print("I am connected to ")
+        print(self.linked_sites)
+        print("my parent is "+str(complex_parent))
         #this next part generates integrase reactions
         for site in self.linked_sites:
-            print(f"other dnas are {self.linked_sites[site][1]}")
             integrated_dnas = []
             #each integrase reaction will have an entry here
             
@@ -96,29 +96,35 @@ class AttachmentSite(DNABindingSite):
 
             #however, if we are dealing with an intramolecular reaction, then
             #only return the reaction if the pair HASN'T been processed
-            if(self.linked_sites[site][0][0].number_of_inputs == 1):
+            dict_inputs = []
+            for transformation in self.linked_sites[site][0]:
+                for pspec in transformation.parentsdict:
+                    dict_inputs += [transformation.parentsdict[pspec]]
+            print(dict_inputs)
+
+            if(len(set(dict_inputs))== 1):
                 #this is an intramolecular reaction so we don't care about the other site's DNAs
                 integrated_dnas = []
                 if(isinstance(complex_parent[self.position],ComplexSpecies) and \
-                                isinstance(complex_parent[site.position],ComplexSpecies)):
+                                isinstance(complex_parent[site.position],ComplexSpecies) and \
+                                self.linked_sites[site][1]==[]):
+                    #make sure that both this site and the other site are bound
                     for integrase_function in self.linked_sites[site][0]:
-                        print(f"recombining {complex_parent}")
                         integr = integrase_function.create_polymer(complex_parent)
-                        print(f"obtained {integr}")
                         integrated_dnas += [integr]
                 
                 reactions += int_mech.update_reactions([complex_parent],integrated_dnas,component=self,part_id = self.integrase.name)
             else:
+                
                 #go through all possible "other" dnas then calculate for each RNA
                 for other_dna in self.linked_sites[site][1]:
                     integrated_dnas = []
                     for integrase_function in self.linked_sites[site][0]:
                         #for every result that we could get, generate it
-                        print(f"recombining {complex_parent} with {other_dna.parent}")
-                        integrated_dnas += [integrase_function.create_polymer(complex_parent,other_dna.parent)]
-                    reactions += int_mech.update_reactions([complex_parent,other_dna.parent],integrated_dnas,component=self,part_id = self.integrase.name)
-                if(complex_parent not in site.linked_sites[self][1]):
-                    print(f"seeding {site} with {complex_parent}")
-                    site.linked_sites[self][1] += [complex_parent]
+                        integrated_dnas += [integrase_function.create_polymer(complex_parent,other_dna)]
+                    reactions += int_mech.update_reactions([complex_parent,other_dna],integrated_dnas,component=self,part_id = self.integrase.name)
+            #next part updates the linked site
+            if(complex_parent is not None and complex_parent not in site.linked_sites[self][1]):
+                site.linked_sites[self][1] += [complex_parent]
         return reactions
             

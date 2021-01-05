@@ -311,8 +311,6 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
         allnodenum += 1
     # reactions follow, allnodenum is not reset between these two loops
     for rxn in CRN.reactions:
-        print("###########################")
-        print(rxn)
         CRNgraph.add_node(allnodenum)
         CRNgraph.nodes[allnodenum]["type"] = str(rxn.propensity_type)
         if isinstance(rxn.propensity_type, MassAction):
@@ -349,8 +347,8 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
                 CRNgraph.add_edge(
                     allnodenum, nodedict[reactant.species], weight=krev_val)
         for product in rxn.outputs:
-            CRNgraph.add_edge(
-                allnodenum, nodedict[product.species], weight=kval)
+            #TODO species cannot find another species in the nodedict????
+            CRNgraph.add_edge(allnodenum,nodedict[product.species],weight=kval)
             if(krev_val is not None):
                 CRNgraph.add_edge(
                     nodedict[product.species], allnodenum, weight=krev_val)
@@ -480,9 +478,8 @@ def make_dpl_from_part(part, direction=None, color=None, color2=None, showlabel=
         outdesign = outdesign[::-1]
     return outdesign
 
-
-def plotDesign(design, renderer=None, part_renderers=None,
-               circular=False, title=None):
+def plotDesign(design,renderer = None,part_renderers=None,\
+                circular=False,title=None,outfig=None):
     """helper function for doing dnaplotlib plots. You need to set the size and min max of the
     plot, and that's what this function does"""
     if(PLOT_DNA):
@@ -500,17 +497,19 @@ def plotDesign(design, renderer=None, part_renderers=None,
         ax.axis('off')
         if title is not None:
             ax.set_title(title)
-        addedsize = 1
-        ax.set_xlim([start-addedsize, end+addedsize])
-        ax.set_ylim([-15, 15])
-        plt.show()
+        addedsize=1
+        ax.set_xlim([start-addedsize,end+addedsize])
+        ax.set_ylim([-15,15])
+        if(outfig is not None):
+            fig.savefig(outfig,format='png')
+        else:
+            plt.show()
     else:
         warn("plotting DNA has been disabled because you don't have DNAplotlib")
 
-
-def plotConstruct(DNA_construct_obj, dna_renderer=None,
-                  rna_renderer=None,
-                  plot_rnas=False, debug=False, showlabels=None, plot_dna_test=True):
+def plotConstruct(DNA_construct_obj,dna_renderer=None,\
+                                    rna_renderer=None,\
+                                    plot_rnas=False,debug=False,showlabels = None,plot_dna_test=True,outfig=None):
     """helper function for making dnaplotlib plots of a DNA_construct object. Plots the
     DNAs and the RNAs that come from that DNA, using DNA_construct.explore_txtl"""
     # TODO: make the label showing more general
@@ -520,14 +519,12 @@ def plotConstruct(DNA_construct_obj, dna_renderer=None,
         if(dna_renderer is None):
             dna_renderer = dpl.DNARenderer(scale=5, linewidth=3)
         if(rna_renderer is None):
-            rna_renderer = dpl.DNARenderer(
-                scale=5, linewidth=3, linecolor=(1, 0, 0))
-
-    design = make_dpl_from_construct(DNA_construct_obj, showlabels=showlabels)
-    circular = DNA_construct_obj.circular
+            rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0))
+    
+    design = make_dpl_from_construct(DNA_construct_obj,showlabels=showlabels)
+    circular=DNA_construct_obj.circular
     if(PLOT_DNA and plot_dna_test):
-        plotDesign(design, circular=circular,
-                   title=DNA_construct_obj.get_species())
+        plotDesign(design,circular=circular,title=DNA_construct_obj.get_species(),outfig=outfig)
         if(plot_rnas):
             rnas_and_proteins = DNA_construct_obj.enumerate_constructs()
             for component in rnas_and_proteins:

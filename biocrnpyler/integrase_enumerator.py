@@ -79,7 +79,7 @@ class Polymer_transformation:
         self.partslist = actual_partslist
         self.circular = circular
     def inverted(self):
-        """return an "inverted" version of yourself where site1 = site2
+        """return an "inverted" version of yourself where input1 = input2
         WARNING: this will not work with more than 2 sites!"""
         new_parentsdict = {}
         if(len(self.parentsdict)==1):
@@ -88,6 +88,7 @@ class Polymer_transformation:
         else:
             for part in self.partslist:
                 if(part[0].parent is not None and part[0].parent not in new_parentsdict):
+                    #this next line outputs input2 when given input1
                     newname = ["input1","input2"][part[0].parent.name=="input1"]
                     new_parentsdict[part[0].parent]=newname
             return Polymer_transformation(self.partslist,self.circular,parentsdict=new_parentsdict)
@@ -128,6 +129,24 @@ class Polymer_transformation:
         for element in in_polymer:
             out_list += [OrderedMonomer(direction=element.direction)]
         return NamedPolymer(out_list,name)
+    def __repr__(self):
+        part_texts = []
+        for plist in self.partslist:
+            part = plist[0]
+            part_dir = plist[1]
+            if(part.parent is not None):
+                part_texts += [[part.parent.name,part.position,part_dir]]
+            else:
+                part_texts += [[part.name,part_dir]]
+        out_txt = "Polymer transformation = "
+        for part_text in part_texts:
+            out_txt += "("+str(part_text[0])
+            if(len(part_text)==3):
+                out_txt +="-"+str(part_text[1])
+            if(part_text[-1]!="forward"):
+                out_txt += "-r"
+            out_txt += ")"
+        return out_txt
 
 class IntegraseMechanism:
     def __init__(self,name=None,reactions={("attB","attP"):"attL",("attP","attB"):"attR"}):
@@ -238,6 +257,7 @@ class IntegraseMechanism:
             dna1 = site1.parent
             dna2 = site2.parent
             dna_inputs = [dna1,dna2]
+            pdict = {a[1]:"input"+str(a[0]+1) for a in enumerate(dna_inputs)}
             #make sure everyone is forwards
             sites = [site1,site2]
             site_halves = []
@@ -263,7 +283,7 @@ class IntegraseMechanism:
                 #either way the result is basically the same, except the result is either linear or circular
                 #result is ONE PIECE OF DNA
                 result = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]+dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
-                integ_funcs = [Polymer_transformation(result,circ1)]
+                integ_funcs = [Polymer_transformation(result,circ1,parentsdict=pdict)]
             elif(circ2 ==False and circ1 == True):
                 #if the sites are backwards just reverse everything
                 return self.integrate(site2,site1)
@@ -272,7 +292,7 @@ class IntegraseMechanism:
 
                 result1 = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]
                 result2 = dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
-                integ_funcs = [Polymer_transformation(result1),Polymer_transformation(result2)]
+                integ_funcs = [Polymer_transformation(result1,parentsdict=pdict),Polymer_transformation(result2,parentsdict=pdict)]
         
         #newdna = [a.create_polymer(*dna_inputs) for a in integ_funcs]
 
@@ -328,7 +348,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                     example, a CRE type 1 or a CRE type 2 site. The sites can also be palindromic,
                     which means that they can react in either direction.
         """
-        print(f"ran integrase enumerator on {components}")
+        
         construct_list = []
         for component in components:
             if(isinstance(component,DNA_construct)):
@@ -340,8 +360,6 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
             con_dict = self.list_integrase(construct)
             
             int_dict = self.combine_dictionaries(int_dict,con_dict)
-        print(f"got an int_dict of {int_dict}")
-        print(f"int_mechanisms is {self.int_mechanisms}")
         constructlist = []
         for integrase in int_dict:
             if(integrase in self.int_mechanisms):
@@ -356,9 +374,10 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                     if(tuple([a.site_type for a in combo]) in int_mech.reactions):
                         #this means the reaction can exist
                         int_functions = int_mech.integrate(combo[0],combo[1])
-                        new_dnas = [a.create_polymer(combo[0].parent,combo[1].parent) for a in int_functions]
+                        new_dnas = []
+                        for a in int_functions:
+                            new_dnas += [a.create_polymer(combo[0].parent,combo[1].parent)]
 
                         constructlist += new_dnas
-        print(f"returned integrated dnas {constructlist}")
         return constructlist
 
