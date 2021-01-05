@@ -416,12 +416,14 @@ class Mixture(object):
         if(comps_to_enumerate is None):
             comps_to_enumerate = self.components
         #Recursion depth
+        return_components = []
         for a in range(recursion_depth):
             new_components = []
             for global_enumerator in self.global_component_enumerators:
                 enumerated = global_enumerator.enumerate_components(comps_to_enumerate)
                 new_components += enumerated
-            comps_to_enumerate += new_components
+            return_components += comps_to_enumerate
+            comps_to_enumerate = new_components
             new_components = []
 
         return comps_to_enumerate
