@@ -70,21 +70,6 @@ class DNA_part(Component, OrderedMonomer):
         if(self.direction =="reverse"):
             myname += "_r"
         return myname
-    '''
-    def __hash__(self):
-        hval = 0
-        if(hasattr(self,"assembly")):
-            if(self.assembly is None):
-                hval += hash(None)
-            else:
-                hval += hash(str(self.assembly))
-        hval += hash(self.name)
-        if(self.parent is not None):
-            hval+= hash(self.parent)
-        hval+= hash(self.position)
-        hval += hash(self.direction)
-        return hval
-    #'''
     def __hash__(self):
         return OrderedMonomer.__hash__(self)
     def __eq__(self,other):

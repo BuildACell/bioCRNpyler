@@ -34,7 +34,7 @@ def remove_bindloc(spec_list):
         out_sp_list = []
         for specie in spec_list:
             #waited species case used in reactions
-            if(type(specie)==WeightedSpecies):
+            if(isinstance(specie,WeightedSpecies)):
                 spec2 = specie.species
                 #replace the species (representing a binding location) with its parent
                 if(hasattr(spec2,"parent") and (spec2.parent is not None)):
