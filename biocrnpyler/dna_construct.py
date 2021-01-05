@@ -33,7 +33,6 @@ class Construct(Component,OrderedPolymer):
                 parameters=None,  # customized parameters
                 attributes=None,
                 initial_concentration=None, 
-                copy_parts=True,
                 component_enumerators = None,
                 **keywords):
         """this represents a bunch of parts in a row.
@@ -42,42 +41,6 @@ class Construct(Component,OrderedPolymer):
         if(component_enumerators is None):
             component_enumerators = []
         self.component_enumerators = component_enumerators
-        '''
-        myparts = []
-        
-        if(copy_parts):
-            parts_list  = copy.deepcopy(parts_list)
-            
-        for part in parts_list:
-            newpart = []
-            if(type(part)==list or type(part)==tuple):
-                newpart = [part[0].remove(),part[1]]
-                #if(copy_parts):
-                #    newpart = [part[0].remove(),part[1]]
-                #else:
-                #    newpart = [part[0].remove(),part[1]]
-            elif(isinstance(part,OrderedMonomer)):
-                npartd = None
-                npart = None
-                if(part.direction is not None):
-                    #remember the direction that is in the part
-                    npartd = copy.deepcopy(part.direction)
-                else:
-                    #if no direction is specified, forward is default
-                    npartd = "forward"
-                if(copy_parts):
-                    #we have to copy the part
-                    npart = copy.deepcopy(part)
-                else:
-                    npart = part
-                #forget everything about being part of a polymer
-                npart.remove()
-                #for the purposes of OrderedPolymer, you still need [part,direction]
-                newpart = [npart,npartd]
-            myparts += [newpart]
-        
-        OrderedPolymer.__init__(self,myparts)
-        #'''
         OrderedPolymer.__init__(self,parts_list,default_direction="forward")
         self.circular=circular
         if(name is None):
@@ -458,8 +421,8 @@ class DNA_construct(Construct,DNA):
                             circular=circular, mechanisms=mechanisms, \
                             parameters=parameters, attributes=attributes, \
                             initial_concentration=initial_concentration, \
-                            copy_parts=copy_parts, \
                             component_enumerators = component_enumerators, **keywords)
+        DNA.__init__(self=self,name=self.name)
 
         pind = 0
         for part in self.parts_list:
@@ -492,12 +455,7 @@ class RNA_construct(Construct,RNA):
 
         Construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,\
                                 component_enumerators = component_enumerators,**keywords)
-    #def get_species(self):
-    #    outspec = Construct.get_species(self)
-        #for spec in outspec:
-        #    spec.material_type = "rna"
-        #outspec.material_type="rna"
-    #    return outspec
+        RNA.__init__(self=self,name=self.name)
     def __repr__(self):
         """the name of an RNA should be different from DNA, right?"""
         return "RNA_construct = "+self.name

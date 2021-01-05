@@ -4,9 +4,6 @@
 from typing import List, Union
 from warnings import warn
 
-import copy
-from .utils import rev_dir
-
 class ComponentEnumerator:
     def __init__(self, name:str):
         """a component enumerator's job is to create new components in a process similar to mechanisms."""
