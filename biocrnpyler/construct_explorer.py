@@ -12,19 +12,12 @@
 import copy
 from warnings import warn
 
-from .component import Component
-from .components_basic import DNA, RNA
-from .dna_part import DNA_part
 from .dna_part_cds import CDS
-from .dna_part_misc import AttachmentSite
 from .dna_part_promoter import Promoter
 from .dna_part_rbs import RBS
 from .dna_part_terminator import Terminator
 from .dna_construct import Construct, RNA_construct
-import biocrnpyler.component_enumerator as ce
-from .component_enumerator import ComponentEnumerator,LocalComponentEnumerator, GlobalComponentEnumerator
-from .species import (ComplexSpecies, OrderedMonomer, OrderedPolymer,
-                      OrderedPolymerSpecies)
+from .component_enumerator import LocalComponentEnumerator
 from .utils import all_comb, remove_bindloc, rev_dir
 import logging
 
