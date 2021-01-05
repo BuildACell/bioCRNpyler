@@ -16,12 +16,8 @@ from .component import Component
 from .components_basic import DNA, RNA
 from .dna_part import DNA_part
 from .dna_part_misc import AttachmentSite
-import biocrnpyler.component_enumerator as ce
-
-from .component_enumerator import ComponentEnumerator,LocalComponentEnumerator, GlobalComponentEnumerator
-from .species import (ComplexSpecies, OrderedMonomer, OrderedPolymer,
-                      OrderedPolymerSpecies)
-from .utils import all_comb, remove_bindloc, rev_dir
+from .species import ComplexSpecies, OrderedPolymer, OrderedPolymerSpecies
+from .utils import all_comb, remove_bindloc
 import logging
 
 class Construct(Component,OrderedPolymer):

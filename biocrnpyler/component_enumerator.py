@@ -31,8 +31,3 @@ class GlobalComponentEnumerator(ComponentEnumerator):
     A global component enumerator takes in every component that is in the mixture. This is for complex enumeration that
     cares about other components"""
         ComponentEnumerator.__init__(self,name=name)
-    def enumerate_components(self,components = None, **keywords):
-        """this will create new components based upon a list of all components in the Mixture.
-        :return: empty list"""
-        warn(f"Default update_components called for GlobalComponentEnumerator = {self.name}.")
-        return []
