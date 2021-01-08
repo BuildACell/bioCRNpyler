@@ -6,6 +6,7 @@ import copy
 
 from .dna_part import DNA_part
 from .species import Species
+from .components_basic import DNA, RNA
 
 class RBS(DNA_part):
     """
@@ -49,10 +50,9 @@ class RBS(DNA_part):
         return reactions
     def update_component(self,internal_species=None,**keywords):
         """returns a copy of this component, except with the proper fields updated"""
-        from .dna_construct import RNA_construct,DNA_construct
-        if(isinstance(self.parent,DNA_construct)):
+        if(isinstance(self.parent,DNA)):
             return None
-        elif(isinstance(self.parent,RNA_construct)):
+        elif(isinstance(self.parent,RNA)):
             if(self.direction=="forward"):
                 out_component = copy.copy(self)
                 out_component.transcript = internal_species
