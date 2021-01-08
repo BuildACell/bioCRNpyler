@@ -31,3 +31,4 @@ class GlobalComponentEnumerator(ComponentEnumerator):
     A global component enumerator takes in every component that is in the mixture. This is for complex enumeration that
     cares about other components"""
         ComponentEnumerator.__init__(self,name=name)
+        
