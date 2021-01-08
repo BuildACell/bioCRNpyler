@@ -84,3 +84,4 @@ def test_circular_DNAconstruct():
     assert(y[1]==e[1]) #different DNA constructs lead to the same RNA construct
     assert(y[0]==x[0]) #correct promoter is working
     assert(e[0]==z[1]) #correct promoter is working
+    

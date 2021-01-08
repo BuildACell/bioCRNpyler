@@ -229,6 +229,12 @@ class Construct(Component,OrderedPolymer):
         # for all possible choices made this way
         comb_list = all_comb(compacted_indexes)
         def recursive_path(in_list):
+            """this function takes every possible "path" through a list of lists.
+            For example:
+            input:  [[A,B],[C],[D,E]]
+            we have two options for the first position, one option for the second, and two options for the third.
+            so, output:[[A,C,D],[B,C,D],[A,C,E],[B,C,E]]
+            """
             if(len(in_list)==1):
                 out_list = []
                 for a in in_list[0]:
@@ -278,7 +284,15 @@ class Construct(Component,OrderedPolymer):
     def update_combinatorial_complexes(self,active_components):
         """given an input list of components, we produce all complexes
         yielded by those components, mixed and matched to make all possible combinatorial
-        complexes, where each component is assumed to only care about binding to one spot"""
+        complexes, where each component is assumed to only care about binding to one spot.
+        First, the components are asked what species they make, then these species are sifted to
+        reveal only the ones which are versions of the same polymer, just with different locations bound.
+        Then, combinatorial combinations are made.
+        for example:
+            construct: <A,B,C>
+        two new species are possible: <[A:RNAP],B,C>; <A,[B:RNAP],C>
+        combinatorial species is also possible (since A and B are assumed to act independantly)
+                                        <[A:RNAP],[B:RNAP],C>"""
         species = [self.get_species()]
         for part in active_components:
             #first we make binary complexes
@@ -328,7 +342,7 @@ class Construct(Component,OrderedPolymer):
 
     #Overwrite Component.enumerate_components 
     def enumerate_constructs(self):
-        #Runs component enumerator to generate new constructs
+        """Runs all our component enumerators to generate new constructs"""
         new_constructs = []
         for enumerator in self.component_enumerators:
             new_comp = enumerator.enumerate_components(component=self)
@@ -336,21 +350,39 @@ class Construct(Component,OrderedPolymer):
         return new_constructs
 
     def combinatorial_enumeration(self):
+        """returns a list of new components that are copies of
+        existing components, but with a different species placed inside. This different
+        species represents different combinatorial states of the polymer.
+        for example:
+            construct: <A,B,C>
+        two new species are possible: <[A:RNAP],B,C>; <A,[B:RNAP],C>
+        combinatorial species is also possible (since A and B are assumed to act independantly)
+                                        <[A:RNAP],[B:RNAP],C>
+        Thus, this function returns A which binds to <A,B,C> (creating <[A:RNAP],B,C>) AND also
+        A which binds to <A,[B:RNAP],C> (creating <[A:RNAP],[B:RNAP],C>). Likewise for B
+        In total two A components are returned, and two B components are returned.
+        """
         #Looks at combinatorial states of constructs to generate DNA_parts
-        multivalent_self = self.get_species()
+        multivalent_self = self.get_species() #this is the unbound polymer
         self.update_parameters()
-
 
         #Go through parts
         active_components = []
         for part in self.parts_list:
-            if(hasattr(part,"update_component")):
+            if(hasattr(part,"update_component")): #if a part can be updated, then update it
                 updated_components = part.update_component(multivalent_self[part.position])
-                if(updated_components is not None):
+                if(updated_components is not None): #if new species are made, then this part is "active"
                     active_components += [updated_components]
+        #this next part creates "combinatorial" bound complexes, given singly bound complexes generated above.
+        #for example, let's say we got <[A:RNAP],B,C> and <A,[B:RNAP],C> from A and B individually, then a combinatorial
+        #construct would be <[A:RNAP],[B:RNAP],C>
         combinatorial_complexes = self.update_combinatorial_complexes(active_components)
         combinatorial_components = []
         for comb_specie in combinatorial_complexes:
+            #after making all combinatorially bound parts, we must seed components with the right species
+            #so that the right reactions are made. For example, A cannot react with <[A:RNAP],[B:RNAP],C> because
+            #that's the species you get after A has already reacted. So here we are finding species with the
+            #proper positions unbound, so they can be fed to the proper components
             if(isinstance(comb_specie,OrderedPolymerSpecies) and comb_specie.base_species == self.base_species):
                 for part in active_components:
                     part_pos = part.position
@@ -362,6 +394,23 @@ class Construct(Component,OrderedPolymer):
         return combinatorial_components
 
     def enumerate_components(self):
+        """returns a list of new components and constructs.
+        New components are generated if:
+        - a component creates a species which results in binding to part of the construct
+            Example: <A,B,C> -> <[A:RNAP],B,C>
+            Then, A would be returned since a new species is created
+        - more than one such component exist in the same construct, for example:
+            construct: <A,B,C>
+            two new species are possible: <[A:RNAP],B,C>; <A,[B:RNAP],C>
+            combinatorial species is also possible (since A and B are assumed to act independantly)
+                                         <[A:RNAP],[B:RNAP],C>
+            Thus, this function returns A which binds to <A,B,C> (creating <[A:RNAP],B,C>) AND also
+            A which binds to <A,[B:RNAP],C> (creating <[A:RNAP],[B:RNAP],C>). Likewise for B
+            In total two A components are returned, and two B components are returned.
+        New constructs are generated if:
+            self.enumerate_construcs() says so.
+            For example, in <A,B,C>, A is a promoter and makes an RNA_construct containing <B,C>
+        """
         #Runs component enumerator to generate new constructs
         new_constructs = self.enumerate_constructs()
 
@@ -455,3 +504,4 @@ class RNA_construct(Construct,RNA):
     def __repr__(self):
         """the name of an RNA should be different from DNA, right?"""
         return "RNA_construct = "+self.name
+        
