@@ -279,6 +279,15 @@ class OrderedMonomer:
         copied_monomer = copy.copy(self)
         copied_monomer.parent = None
         return(copied_monomer)
+    def get_removed(self):
+        copied_part = copy.copy(self)
+        copied_part.parent = None
+        copied_part.direction = None
+        copied_part.position = None
+        if(hasattr(copied_part,"_attributes")):
+            copied_part.remove_attribute("forward")
+            copied_part.remove_attribute("reverse")
+        return copied_part
     def __repr__(self):
         txt = "OrderedMonomer(direction="+str(self.direction)+",position="+\
                                 str(self.position)+")"
