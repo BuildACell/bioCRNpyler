@@ -20,6 +20,9 @@ from .dna_part_terminator import Terminator
 from .propensities import MassAction
 from .species import ComplexSpecies, Species
 from .polymer import OrderedPolymer
+from .dna_construct import Construct
+import io
+import base64
 
 import copy
 HAVE_MATPLOTLIB = False
@@ -105,7 +108,8 @@ def makeArrows2(graph_renderer, graph, positions, headsize=3, headangle=math.pi/
     return xbounds, ybounds
 
 
-def graphPlot(DG, DGspecies, DGreactions, plot, layout="force", positions=None, posscale=1.0, layoutfunc=None, iterations=2000, rseed=30):
+def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,\
+                        posscale = 1.0,layoutfunc=None,iterations=2000,rseed=30,show_species_images=True):
     """given a directed graph, plot it!
     Inputs:
     DG: a directed graph of type DiGraph
@@ -197,21 +201,22 @@ def graphPlot(DG, DGspecies, DGreactions, plot, layout="force", positions=None, 
 
     # nodes
     species_renderer.node_renderer.glyph = Circle(size=12, fill_color="color")
-    species_renderer.node_renderer.selection_glyph = Circle(
-        size=15, fill_color=Spectral4[2])
-    species_renderer.node_renderer.hover_glyph = Circle(
-        size=15, fill_color=Spectral4[1])
-
-    # this part adds the interactive elements that make it so that the lines are highlighted
-    # when you mouse over and click
-    edge_hover_tool = HoverTool(tooltips=None, renderers=[edges_renderer])
-    species_hover_tool = HoverTool(tooltips=[("name", "@species"), ("type", "@type")],
-                                   renderers=[species_renderer], attachment="right")
-    rxn_hover_tool = HoverTool(tooltips=[("reaction", "@species"), ("type", "@type"), ("k_f", "@k"), ("k_r", "@k_r")],
-                               renderers=[reaction_renderer], attachment="right")
-
-    plot.add_tools(edge_hover_tool, species_hover_tool, rxn_hover_tool,
-                   TapTool(), BoxSelectTool(), PanTool(), WheelZoomTool())
+    species_renderer.node_renderer.selection_glyph = Circle(size=15, fill_color=Spectral4[2])
+    species_renderer.node_renderer.hover_glyph = Circle(size=15, fill_color=Spectral4[1])
+    
+    #this part adds the interactive elements that make it so that the lines are highlighted 
+    #when you mouse over and click
+    edge_hover_tool = HoverTool(tooltips= None,renderers=[edges_renderer])
+    if( not show_species_images):
+        species_hover_tool = HoverTool(tooltips=[("name", "@species"), ("type", "@type")],\
+                                        renderers=[species_renderer],attachment="right")
+    else:
+        species_hover_tool = HoverTool(tooltips='<div><div> <img src="data:image/png;base64,@image" style="float: left; margin: 0px 0px 0px 0px;"></img></div></div>',\
+                                        renderers=[species_renderer],attachment="right")
+    rxn_hover_tool = HoverTool(tooltips=[("reaction", "@species"), ("type", "@type"),("k_f","@k"),("k_r","@k_r")],\
+                                        renderers=[reaction_renderer],attachment="right")
+    
+    plot.add_tools(edge_hover_tool,species_hover_tool,rxn_hover_tool, TapTool(), BoxSelectTool(),PanTool(),WheelZoomTool())
 
     edges_renderer.selection_policy = NodesAndLinkedEdges()
     edges_renderer.inspection_policy = EdgesAndLinkedNodes()
@@ -220,11 +225,9 @@ def graphPlot(DG, DGspecies, DGreactions, plot, layout="force", positions=None, 
     plot.renderers.append(reaction_renderer)
     plot.renderers.append(species_renderer)
 
-
-def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_show_material=True,
-                            pp_show_rates=True, pp_show_attributes=True,
-                            pp_show_compartments=True,
-                            colordict=None):
+def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_material=True,
+                                                    pp_show_rates=True,pp_show_attributes=True,
+                                                colordict=None,imagedict = None):
     """generates a networkx DiGraph object that represents the CRN.
     input:
     ==========================
@@ -304,7 +307,9 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
 
         nodedict[species] = allnodenum
         CRNgraph.add_node(allnodenum)
-        CRNgraph.nodes[allnodenum]["type"] = str(species.material_type)
+        CRNgraph.nodes[allnodenum]["type"]=str(species.material_type)
+        if((imagedict is not None) and (species in imagedict)):
+            CRNgraph.nodes[allnodenum]["image"]= imagedict[species].decode()
         if(not use_pretty_print):
             CRNgraph.nodes[allnodenum]["species"] = str(species)
         else:
@@ -408,7 +413,6 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
 
 
 class CRNPlotter:
-    
     class MultiPart:
         def __init__(self,name,parts_list,bound = None):
             """multiple simple parts which are treated as one"""
@@ -422,7 +426,6 @@ class CRNPlotter:
                 bound_for_distribution = copy.copy(bound)
             elif(self.bound is not None):
                 bound_for_distribution = copy.copy(self.bound)
-            print(f"these things are bound to {self}: {bound_for_distribution}")
             if(bound_for_distribution is not None):
                 recursion = 10
                 while(len(bound_for_distribution)>0 and recursion > 0):
@@ -473,7 +476,6 @@ class CRNPlotter:
             my_dpl_output = self.get_dpl()
             out_regs = []
             for design in my_dpl_output:
-                print(design)
                 if('make_binders' in design):
                     for binder in design['make_binders']:
                         linecolor = 'blue'
@@ -506,7 +508,6 @@ class CRNPlotter:
             my_regs,my_designs = self.get_dpl_binders()
             for part in my_designs:
                 part['opts'].update({'edgecolor':dna_renderer.linecolor})
-            print(my_designs)
             start,end = dna_renderer.renderDNA(ax,my_designs,part_renderers,circular=self.circular,\
                                     regs=my_regs, reg_renderers=reg_renderers,plot_backbone=plot_backbone)
             
@@ -531,7 +532,8 @@ class CRNPlotter:
             
             addedsize = 1
             axis_xlim = [start-addedsize,end+addedsize]
-            fig.set_size_inches((axis_xlim[1]-axis_xlim[0])/yheight*1.5,1.5)
+            width = (axis_xlim[1]-axis_xlim[0])/30.0
+            fig.set_size_inches(width,yheight/(axis_xlim[1]-axis_xlim[0])*width)
             ax.axis('off')
             ax.set_xlim(axis_xlim)
             ax.set_ylim(ylimits)
@@ -584,16 +586,60 @@ class CRNPlotter:
         def __repr__(self):
             return "SimplePart("+str(self.name)+"-"+str(self.direction)[0]+")"
 
-    def __init__(self,dna_renderer=None,cmap = "Set3"):
+    def __init__(self,dna_renderer=None,rna_renderer=None,cmap = "Set3"):
         if(dna_renderer is None):
             self.dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3)
+        else:
+            self.dna_renderer = dna_renderer
+        if(rna_renderer is None):
+            self.rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0))
+        else:
+            self.rna_renderer = rna_renderer
         self.cmap = plt.get_cmap(cmap).colors
         self.color_counter = 0
         self.clear_dicts()
+    def renderMixture(self,mixture,rna_renderer=None,dna_renderer=None,store=True):
+        """creates dnaplotlib images for all relevant species in a mixture"""
+        mycrn = mixture.compile_crn()
+        if(rna_renderer is None and self.rna_renderer is not None):
+            rna_renderer = self.rna_renderer
+        else:
+            raise ValueError("rna_renderer cannot be None")
+        if(dna_renderer is None and self.dna_renderer is not None):
+            dna_renderer = self.dna_renderer
+        else:
+            raise ValueError("dna_renderer cannot be None")
+        self.clear_dicts()
+        for component in mixture.component_enumeration(10):
+            if(isinstance(component,Construct)):
+                a = self.make_dpls_from_construct(component)
+        plt.ioff()
+        for species in mycrn.species:
+            a = self.make_dpl_from_species(species)
+            if(a.material_type is not None):
+                plot_bb = True
+                if(not isinstance(a,self.SimpleConstruct)):
+                    plot_bb = False
+                    newcon = self.SimpleConstruct(a.name,[a],material_type=a.material_type)
+                else:
+                    newcon = a
+                
+                if(newcon.material_type=='rna'):
+                    ax = newcon.renderDNA(rna_renderer,plot_backbone=plot_bb)
+                else:
+                    ax = newcon.renderDNA(dna_renderer,plot_backbone=plot_bb)
+                if(store):
+                    imagestream = io.BytesIO()
+                    fig = ax.get_figure()
+                    fig.savefig(imagestream)
+                    png_str = base64.b64encode(imagestream.getvalue())
+                    self.species_image_dict[species]= png_str
+
     def clear_dicts(self):
         self.part_dpl_dict = {}
         self.construct_dpl_dict = {}
         self.species_dpl_dict = {}
+        self.species_image_dict ={}
     def get_color(self):
         if(self.cmap is not None):
             out_color = self.cmap[self.color_counter]
@@ -632,8 +678,6 @@ class CRNPlotter:
                 for monomer in species:
                     #going through the monomers
                     removed_monomer = monomer.get_removed()
-                   
-                    print(f"currently found {removed_monomer}")
                     if(removed_monomer in self.species_dpl_dict):
                         #if we already know about this monomer, just use that
                         polylist += [self.species_dpl_dict[removed_monomer].get_directed(monomer.direction)]
@@ -644,7 +688,6 @@ class CRNPlotter:
                         for specie in monomer.get_species(recursive=True):
                             if(isinstance(specie,ComplexSpecies)):
                                 continue
-                            print(f"currently looking at {specie} with material type {specie.material_type}")
                             if(specie.material_type=='part'):
                                 #this material type is only made by dna constructs
                                 base_simplepart = copy.copy(self.make_dpl_from_species(specie)) #copy it because now we make it bound to stuff
@@ -685,7 +728,6 @@ class CRNPlotter:
             self.species_dpl_dict[species] = out_dpl
             return out_dpl
             
-
     def make_dpl_from_part(self,part):
         removed_part = part.get_removed()
         if(removed_part in self.part_dpl_dict):
@@ -734,168 +776,3 @@ class CRNPlotter:
             self.species_dpl_dict[part.dna_species] = retpart
             return retpart.get_directed(part.direction)
 
-
-def make_dpl_from_construct(construct,showlabels=None):
-    """ This function creats a dictionary suitable for
-    input into dnaplotlib for plotting constructs.
-    Inputs:
-    construct: a DNA_construct object
-    showlabels: list of part types to show labels for. For example, [AttachmentSite,Terminator]"""
-    # TODO make showlabels more general
-    if(showlabels is None):
-        showlabels = []
-    outdesign = []
-    if(HAVE_MATPLOTLIB):
-        cmap = cm.Set1(range(len(construct.parts_list)*2+1))
-    pind = 0
-    for part in construct.parts_list:
-        pcolor = None
-        pcolor2 = None
-        if(HAVE_MATPLOTLIB):
-            if(type(pcolor) == int):
-                c1 = cmap[pcolor%(len(cmap)-1)][:-1]
-            else:
-                c1 = cmap[pind%(len(cmap)-1)][:-1]
-            if(type(pcolor2) == int):
-                c2 = cmap[pcolor2%(len(cmap)-1)][:-1]
-            else:
-                c2 = cmap[random.choice(
-                    list(range(len(construct.parts_list))))][:-1]
-        showlabel = False
-        if(type(part) in showlabels):
-            showlabel = True
-        outdesign += make_dpl_from_part(part, direction=part.direction == "forward",
-                                        color=c1, color2=c2, showlabel=showlabel)
-        pind += 1
-        if(pind>=len(cmap)):
-            pind = 0
-    return outdesign
-
-
-def make_dpl_from_part(part, direction=None, color=None, color2=None, showlabel=False):
-    """ This function creats a dictionary suitable for
-    input into dnaplotlib for plotting constructs.
-    Inputs:
-    part: a DNA_part object
-    direction: True for forward, False for reverse. If you leave it as None, it will take from the DNA_part object
-    color: this is the color of the part. Tuple with relative rgb values. if the DNA_part has a defined color it will take that first before
-                looking at this variable
-    color2: this is the secondary color of the part. Only relevant for RecombinaseSite2 components. Basically the
-            same idea as color, above
-    showlabel: if True, the label of this part will be shown."""
-    regs = []
-    if(direction is None and part.direction is not None):
-        direction = part.direction == "forward"
-    elif(direction is None):
-        direction = True
-    if(hasattr(part,"color")):
-        if(type(part.color) is not int):
-            color = part.color
-        elif(color is not None):
-            part.color = color
-        if(type(part.color2) is not int):
-            color2 = part.color2
-        elif(color2 is not None):
-            part.color2 = color2
-    dpl_type = "UserDefined" #this is the default part type
-    if(hasattr(part,"dpl_type")):
-        part_dpl = part.dpl_type
-    else:
-        part_dpl = None
-
-    if(isinstance(part, Promoter)):
-        dpl_type = "Promoter"
-        if(hasattr(part, "regulators")):
-            regs = part.regulators
-    elif(isinstance(part, RBS)):
-        dpl_type = "RBS"
-    elif(isinstance(part, CDS)):
-        dpl_type = "CDS"
-    elif(isinstance(part, Protein)):
-        dpl_type = "CDS"
-    elif(isinstance(part,Origin)):
-        dpl_type = "Origin"
-    elif(isinstance(part, Terminator)):
-        dpl_type = "Terminator"
-    elif(isinstance(part, IntegraseSite)):
-        if(part.site_type == "attP" or part.site_type == "attB"):
-            dpl_type = "RecombinaseSite"
-        elif(part.site_type == "attL" or part.site_type == "attR"):
-            dpl_type = "RecombinaseSite2"
-    if(part_dpl is not None):
-        # parts can have their own pre-set dnaplotlib types
-        dpl_type = part_dpl
-    outdesign = [{'type': dpl_type, "name": part.name,
-                  "fwd": direction, 'opts': {'color': color, 'color2': color2}}]
-    for reg in regs:
-        # promoters with regulators have a number of "operator" symbols on them
-        outdesign += [{"type": "Operator", "name": str(reg), "fwd": direction, 'opts': {
-            'color': color, 'color2': color2}}]
-    if(showlabel):
-        outdesign[0]["opts"].update(
-            {'label': str(part.name), 'label_size': 13, 'label_y_offset': -8, })
-    if(not direction):
-        outdesign = outdesign[::-1]
-    return outdesign
-
-def plotDesign(design,renderer = None,part_renderers=None,\
-                circular=False,title=None,outfig=None):
-    """helper function for doing dnaplotlib plots. You need to set the size and min max of the
-    plot, and that's what this function does"""
-    if(PLOT_DNA):
-        if(renderer is None):
-            renderer = dpl.DNARenderer(scale=5, linewidth=3)
-        if(part_renderers is None):
-            part_renderers = renderer.SBOL_part_renderers()
-        fig = plt.figure(figsize=(len(design)*.75, 1.1))
-        ax = fig.add_axes([0, 0, 1, 1])
-        try:
-            start, end = renderer.renderDNA(
-                ax, design, part_renderers, circular=circular)
-        except TypeError:
-            start, end = renderer.renderDNA(ax, design, part_renderers)
-        ax.axis('off')
-        if title is not None:
-            ax.set_title(title)
-        addedsize=1
-        ax.set_xlim([start-addedsize,end+addedsize])
-        ax.set_ylim([-15,15])
-        if(outfig is not None):
-            fig.savefig(outfig,format='png')
-        else:
-            plt.show()
-    else:
-        warn("plotting DNA has been disabled because you don't have DNAplotlib")
-
-def plotConstruct(DNA_construct_obj,dna_renderer=None,\
-                                    rna_renderer=None,\
-                                    plot_rnas=False,debug=False,showlabels = None,plot_dna_test=True,outfig=None):
-    """helper function for making dnaplotlib plots of a DNA_construct object. Plots the
-    DNAs and the RNAs that come from that DNA, using DNA_construct.explore_txtl"""
-    # TODO: make the label showing more general
-    if(showlabels is None):
-        showlabels = []
-    if(PLOT_DNA and plot_dna_test):
-        if(dna_renderer is None):
-            dna_renderer = dpl.DNARenderer(scale=5, linewidth=3)
-        if(rna_renderer is None):
-            rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0))
-    
-    design = make_dpl_from_construct(DNA_construct_obj,showlabels=showlabels)
-    circular=DNA_construct_obj.circular
-    if(PLOT_DNA and plot_dna_test):
-        plotDesign(design,circular=circular,title=DNA_construct_obj.get_species(),outfig=outfig)
-        if(plot_rnas):
-            rnas_and_proteins = DNA_construct_obj.enumerate_constructs()
-            for component in rnas_and_proteins:
-                if(component.get_species().material_type=="rna"):
-                    rnadesign = make_dpl_from_construct(component,showlabels=showlabels)
-                else:
-                    continue
-                rnacolor = rna_renderer.linecolor
-                for part in rnadesign:
-                    if("edgecolor" not in part['opts']):
-                        part['opts'].update({'edgecolor':rnacolor})
-                plotDesign(rnadesign,renderer=rna_renderer,title=component.get_species())
-    else:
-        print(DNA_construct_obj)
