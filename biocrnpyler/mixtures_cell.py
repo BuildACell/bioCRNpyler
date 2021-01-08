@@ -49,7 +49,7 @@ class ExpressionDilutionMixture(Mixture):
         global_mechanisms = {"dilution": dilution_mechanism}
         self.add_mechanisms(global_mechanisms)
 
-    def compile_crn(self) -> ChemicalReactionNetwork:
+    def compile_crn(self, **keywords) -> ChemicalReactionNetwork:
         """Overwriting compile_crn to replace transcripts with proteins for all DNA_assemblies.
 
         Overwriting compile_crn to turn off transcription in all DNAassemblies
@@ -66,8 +66,7 @@ class ExpressionDilutionMixture(Mixture):
                     component.update_transcript(False)
 
         # Call the superclass function
-        return Mixture.compile_crn(self)
-
+        return Mixture.compile_crn(self, **keywords)
 
 class SimpleTxTlDilutionMixture(Mixture):
     """Mixture with continuous dilution for non-DNA species.
@@ -136,12 +135,6 @@ class TxTlDilutionMixture(Mixture):
         self.rnap.add_attribute("machinery")
         self.ribosome.add_attribute("machinery")
         self.rnaase.add_attribute("machinery")
-
-        init = kwargs.get('init')
-        if init:
-            self.rnap.get_species().initial_concentration = init[repr(rnap)]
-            self.rnaase.get_species().initial_concentration = init[repr(rnaase)]
-            self.ribosome.get_species().initial_concentration = init[repr(ribosome)]
 
         # DNAassmbly represents background processes / loading in a cell
         background_parameters = {("transcription", None, "ku"): 50, ("transcription", None, "kb"): 500, ("transcription", None, "ktx"): 0.1,

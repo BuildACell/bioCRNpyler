@@ -14,20 +14,32 @@ class TestComponent(TestCase):
         self.comp_name = 'test_component'
         self.default_concentration = 0
         self.component = Component(name=self.comp_name, mechanisms={}, parameters={}, parameter_file=None,
-                                   mixture=None, attributes=[], initial_conc=self.default_concentration)
+                                   mixture=None, attributes=[], initial_concentration=self.default_concentration)
 
     def test_initial_concentration(self):
 
         # test that the default initial concentration is zero
         self.assertEqual(self.component.initial_concentration, self.default_concentration)
+        #test there is one entry in the parameter database (the initial concentration)
+        self.assertTrue(len(self.component.parameter_database.parameters) == 1)
+        param = self.component.parameter_database.find_parameter(mechanism = 'initial concentration', part_id = None, param_name = self.comp_name)
+        self.assertTrue(param.value == self.default_concentration)
+
         new_value = 5
         self.component.initial_concentration = new_value
         # test that the initial concentration has been modified
         self.assertEqual(self.component.initial_concentration, new_value)
 
+        #test the value in the param dictionary has changes
+        param = self.component.parameter_database.find_parameter(mechanism = 'initial concentration', part_id = None, param_name = self.comp_name)
+        self.assertTrue(param.value == new_value)
+
         not_valid_value = -1
         with self.assertRaisesRegex(ValueError, f'Initial concentration must be non-negative, this was given: {not_valid_value}'):
             self.component.initial_concentration = not_valid_value
+
+        
+        
 
     def test_get_species(self):
 
@@ -53,23 +65,63 @@ class TestComponent(TestCase):
         parameters = {"kb": kb, "ku": ku, "ktx": ktx, "ktl": ktl, "kdeg": kdeg}
 
         # test that the custom parameters dictionary is empty
-        self.assertTrue(isinstance(self.component.parameter_database, ParameterDatabase)
-                        and len(self.component.parameter_database.parameters) == 0)
+        component = Component(self.comp_name)
+        self.assertTrue(isinstance(component.parameter_database, ParameterDatabase)
+                        and len(component.parameter_database.parameters) == 0)
 
         
 
-        self.component.update_parameters(parameters=parameters)
+        component.update_parameters(parameters=parameters)
 
         # test that the component has all the parameters
-        self.assertTrue(len(self.component.parameter_database.parameters) == len(parameters))
+        self.assertTrue(len(component.parameter_database.parameters) == len(parameters))
 
         # test overwriting parameters
         new_val = 111
         one_param = {"kb": new_val}
-        self.component.update_parameters(parameters=one_param, overwrite_parameters = True)
-        self.assertEqual(self.component.parameter_database[(None, None, "kb")].value, new_val)
+        component.update_parameters(parameters=one_param, overwrite_parameters = True)
+        self.assertEqual(component.parameter_database[(None, None, "kb")].value, new_val)
         # test that the parameter dictionary is still the same length as before
-        self.assertTrue(len(self.component.parameter_database.parameters) == len(parameters))
+        self.assertTrue(len(component.parameter_database.parameters) == len(parameters))
+
+
+    def test_add_mechanism(self):
+        tx = SimpleTranscription()
+        tl = SimpleTranslation()
+
+        #test adding a single mechanism instead of a list still works
+        self.component.add_mechanisms(tx)
+        self.assertTrue(tx.mechanism_type in self.component.mechanisms)
+
+        #add a non-mechanism
+        with self.assertRaisesRegex(TypeError, 'mechanism must be a Mechanism.'):
+            self.component.add_mechanism(None)
+
+        with self.assertRaisesRegex(ValueError, 'add_mechanisms expected a list of Mechanisms.'):
+            self.component.add_mechanisms(None)
+
+        #add same mechanism, new type
+        self.component.add_mechanism(tx, mech_type = "new")
+        self.assertTrue("new" in self.component.mechanisms)
+        self.assertTrue(type(self.component.mechanisms["new"]) == SimpleTranscription)
+
+        #Add invalid mech_type
+        with self.assertRaisesRegex(TypeError, 'mechanism keys must be strings.'):
+            self.component.add_mechanism(tx, mech_type = 1234)
+
+        #add a mechanism already in the Component
+        with self.assertRaisesRegex(ValueError, f"mech_type {tx.mechanism_type} already in component"):
+            self.component.add_mechanism(tx)
+
+        #add mechanism with optional_mechanism - does not overwrite!
+        self.component.add_mechanism(tl, mech_type = tx.mechanism_type, optional_mechanism = True)
+        self.assertTrue(tx.mechanism_type in self.component.mechanisms)
+        self.assertTrue(type(self.component.mechanisms[tx.mechanism_type]) == SimpleTranscription)
+
+        #add mechanism with overwrite
+        self.component.add_mechanism(tl, mech_type = tx.mechanism_type, overwrite = True)
+        self.assertTrue(tx.mechanism_type in self.component.mechanisms)
+        self.assertTrue(type(self.component.mechanisms[tx.mechanism_type]) == SimpleTranslation)
 
     def test_update_mechanisms(self):
 

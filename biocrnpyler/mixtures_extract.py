@@ -3,15 +3,16 @@
 # See LICENSE file in the project root directory for details.
 
 from .chemical_reaction_network import ChemicalReactionNetwork
-from .components_basic import Protein
+from .components_basic import Protein, Metabolite
 from .dna_assembly import DNAassembly
 from .global_mechanism import Degredation_mRNA_MM, Dilution
 from .mechanism import EmptyMechanism
 from .mechanisms_binding import One_Step_Binding
 from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten
 from .mechanisms_txtl import (OneStepGeneExpression, SimpleTranscription,
-                              SimpleTranslation, Transcription_MM,
-                              Translation_MM)
+                              SimpleTranslation, Transcription_MM, Translation_MM,
+                              Energy_Transcription_MM, Energy_Translation_MM)
+from .mechanisms_metabolite import OneStepPathway
 from .mixture import Mixture
 
 
@@ -44,7 +45,7 @@ class ExpressionExtract(Mixture):
 
         self.add_mechanisms(default_mechanisms)
 
-    def compile_crn(self) -> ChemicalReactionNetwork:
+    def compile_crn(self, **keywords) -> ChemicalReactionNetwork:
         """Overwriting compile_crn to turn off transcription in all DNAassemblies
 
         :return: compiled CRN instance
@@ -59,7 +60,7 @@ class ExpressionExtract(Mixture):
                     component.update_transcript(False)
 
         # Call the superclass function
-        return Mixture.compile_crn(self)
+        return Mixture.compile_crn(self, **keywords)
 
 
 class SimpleTxTlExtract(Mixture):
@@ -119,12 +120,6 @@ class TxTlExtract(Mixture):
         self.ribosome = Protein(ribosome)
         self.rnaase = Protein(rnaase)
 
-        init = kwargs.get('init')
-        if init:
-            self.rnap.get_species().initial_concentration = init[repr(rnap)]
-            self.rnaase.get_species().initial_concentration = init[repr(rnaase)]
-            self.ribosome.get_species().initial_concentration = init[repr(ribosome)]
-
         default_components = [self.rnap, self.ribosome, self.rnaase]
         self.add_components(default_components)
 
@@ -143,3 +138,66 @@ class TxTlExtract(Mixture):
             mech_bind.mechanism_type: mech_bind
         }
         self.add_mechanisms(default_mechanisms)
+
+
+
+class EnergyTxTlExtract(Mixture):
+    """A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
+
+    This model include energy carrier molcules in the form of NTPs, Amino Acids, and a Fuel Species (such as 3PGA) used for NTP
+    regeneration. This model is equivalent to TxTl extract, but with limited fuel. Note that different amino acids and nucleotides
+    are lumped together.
+
+    Energy usage for transcription and translation is length dependent."""
+
+    def __init__(self, name="", rnap="RNAP", ribosome="Ribo", rnaase="RNAase", 
+        ntps = "NTPs", ndps = "NDPs", amino_acids = "amino_acids", fuel = "Fuel_3PGA", **kwargs):
+        """
+        :param name: name of the mixture
+        :param rnap: name of the RNA polymerase, default: RNAP
+        :param ribosome: name of the ribosome, default: Ribo
+        :param rnaase: name of the Ribonuclease, default: RNAase
+        :param ntps: name of the nucleotide fuel source (eg ATP + GTP etc), default: NTP
+        :param amino_acids: name of the amino acids species, default: amino_acids
+        :param fuel: name of the fuel species that regenerates ATP
+        :param kwargs: keywords passed into the parent Class (Mixture)
+        """
+        Mixture.__init__(self, name=name, **kwargs)
+        
+        # create default Components to represent cellular machinery
+        self.rnap = Protein(rnap)
+        self.ribosome = Protein(ribosome)
+        self.rnaase = Protein(rnaase)
+        self.amino_acids = Metabolite(amino_acids)
+        self.fuel = Metabolite(fuel) #fuel is degraded into things other than ATP as well
+        self.ndps = Metabolite(ndps) #NDPs
+        self.ntps = Metabolite(ntps, precursors = [self.fuel, self.ndps], products = [self.ndps]) #fuel becomes ATP, and ATP is degraded
+        
+
+        #These mechanisms are Component specific and only added to the NTPs metabolite
+        mech_pathway = OneStepPathway()
+        self.ntps.add_mechanisms(mech_pathway)
+        self.fuel.add_mechanisms(mech_pathway)
+
+
+        default_components = [self.rnap, self.ribosome, self.rnaase, self.amino_acids, self.ntps, self.fuel]
+        self.add_components(default_components)
+
+        # Create default TxTl Mechanisms
+        mech_tx = Energy_Transcription_MM(rnap=self.rnap.get_species(), fuels = [self.ntps.get_species()], wastes = [])
+        mech_tl = Energy_Translation_MM(ribosome=self.ribosome.get_species(), fuels = 4*[self.ntps.get_species()] +[self.amino_acids.get_species()], wastes = 4*[self.ndps.get_species()])
+        mech_rna_deg = Degredation_mRNA_MM(nuclease=self.rnaase.get_species())
+        mech_cat = MichaelisMenten()
+        mech_bind = One_Step_Binding()
+
+        default_mechanisms = {
+            mech_tx.mechanism_type: mech_tx,
+            mech_tl.mechanism_type: mech_tl,
+            mech_rna_deg.mechanism_type: mech_rna_deg,
+            mech_cat.mechanism_type: mech_cat,
+            mech_bind.mechanism_type: mech_bind
+        }
+        self.add_mechanisms(default_mechanisms)
+
+
+

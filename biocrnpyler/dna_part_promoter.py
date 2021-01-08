@@ -41,8 +41,8 @@ class Promoter(DNA_part):
         else:
             self.protein = None
         #Promoter should not have initial conditions. These need to be in DNAAssembly or DNAConstruct
-        if "initial_conc" in keywords.values() and keywords["initial_conc"] is not None:
-            raise AttributeError("Cannot set initial_conc of a Promoter. Must set initial_conc for the DNAassembly or DNAConstruct.")
+        if "initial_concentration" in keywords.values() and keywords["initial_concentration"] is not None:
+            raise AttributeError("Cannot set initial_concentration of a Promoter. Must set initial_concentration for the DNAassembly or DNAConstruct.")
         if "initial_condition_dictionary" in keywords.values() and keywords["initial_condition_dictionary"] is not None:
             raise AttributeError("Cannot set initial_condition_dictionary of a Promoter. Must set initial_condition_dictionary for the DNAassembly or DNAconstruct.")
 
@@ -104,6 +104,29 @@ class Promoter(DNA_part):
             return self.protein
         else:
             return None
+
+    @classmethod
+    def from_promoter(cls, name, assembly, transcript, protein):
+        """Helper function to initialize a promoter instance from another promoter or str.
+
+        :param name: either string or an other promoter instance
+        :param assembly:
+        :param transcript:
+        :param protein:
+        :return: Promoter instance
+        """
+        if isinstance(name, Promoter):
+            promoter_instance = copy.deepcopy(name)
+            promoter_instance.assembly = assembly
+            promoter_instance.transcript = transcript
+            promoter_instance.protein = protein
+        elif isinstance(name, str):
+            promoter_instance = cls(name=name, assembly=assembly,
+                                    transcript=transcript, protein=protein)
+        else:
+            raise TypeError(f'Promoter can be initialized from string or another promoter! We got {type(name)}')
+        return promoter_instance
+
 
 class RegulatedPromoter(Promoter):
     """

@@ -7,8 +7,11 @@
 #
 ################################################################
 import itertools as it
+import numbers
 
-from .species import WeightedSpecies
+from typing import Dict, Union
+from .species import WeightedSpecies, Species
+from .parameter import Parameter
 
 
 def all_comb(input_list):
@@ -39,3 +42,14 @@ def remove_bindloc(spec_list):
             else:
                 out_sp_list+= [specie]
         return out_sp_list
+
+#Converts a parameter to its Value
+def parameter_to_value(p):
+    if isinstance(p, Parameter):
+        return p.value
+    else:
+        return p
+
+#Converts a dictionary of Species (or strings) --> Parameters (or Numbers) to Strings --> Numbers
+def process_initial_concentration_dict(initial_concentration_dict: Dict[Union[str, Species], Union[numbers.Real, Parameter]]) -> Dict[str, numbers.Real]:
+    return {str(key): parameter_to_value(value) for (key, value) in initial_concentration_dict.items()}

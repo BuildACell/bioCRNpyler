@@ -21,7 +21,7 @@ txtl.mixture("mixture1", extract = "BasicExtract", mixture_parameters = "BasicEx
 # txtl.add_dna(gene1)
 
 # Or simply add a new dna in one line as follows.
-txtl.add_dna(name = "G2", promoter = "pBest", rbs = "BCD2", protein = "tetR", initial_conc = 10, volume = 1e-7)
+txtl.add_dna(name = "G2", promoter = "pBest", rbs = "BCD2", protein = "tetR", initial_concentration = 10, volume = 1e-7)
 
 # Combine all of the tubes together to get the model
 well1 = txtl.get_model()
