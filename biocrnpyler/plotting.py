@@ -11,14 +11,17 @@ import random
 import statistics
 from warnings import warn
 
-from .components_basic import Protein
+from .components_basic import Protein, DNA, RNA
 from .dna_part_cds import CDS
 from .dna_part_misc import IntegraseSite, Origin
 from .dna_part_promoter import Promoter
 from .dna_part_rbs import RBS
 from .dna_part_terminator import Terminator
 from .propensities import MassAction
+from .species import ComplexSpecies, Species
+from .polymer import OrderedPolymer
 
+import copy
 HAVE_MATPLOTLIB = False
 try:
     import matplotlib.pyplot as plt
@@ -404,7 +407,335 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
     return CRNgraph, CRNspeciesonly, CRNreactionsonly
 
 
-def make_dpl_from_construct(construct, showlabels=None):
+class CRNPlotter:
+    
+    class MultiPart:
+        def __init__(self,name,parts_list,bound = None):
+            """multiple simple parts which are treated as one"""
+            self.name = name
+            self.parts_list = parts_list
+            self.bound = None
+        def get_directed(self,direction,bound=None,non_binder=['Promoter']):
+            new_multipart = copy.deepcopy(self)
+            bound_for_distribution = None
+            if(bound is not None):
+                bound_for_distribution = copy.copy(bound)
+            elif(self.bound is not None):
+                bound_for_distribution = copy.copy(self.bound)
+            print(f"these things are bound to {self}: {bound_for_distribution}")
+            if(bound_for_distribution is not None):
+                recursion = 10
+                while(len(bound_for_distribution)>0 and recursion > 0):
+                    for part in new_multipart.parts_list:
+                        if(part.dpl_type not in non_binder):
+                            if(part.bound is None):
+                                part.bound = [bound_for_distribution.pop(0)]
+                            else:
+                                part.bound += [bound_for_distribution.pop(0)]
+                            if(len(bound_for_distribution) == 0):
+                                break
+                    recursion -= 1
+                if(recursion == 0):
+                    raise ValueError(f"reached maximum recursion when trying to populate multipart {self}")
+                
+            new_multipart.parts_list = [a.get_directed(direction) for a in new_multipart.parts_list]
+            if(direction=="reverse"):
+                new_multipart.parts_list = new_multipart.parts_list[::-1]
+                return new_multipart
+            else:
+                return new_multipart
+        def get_dpl(self):
+            outlist = []
+            for part in self.parts_list:
+                outlist+= part.get_dpl()
+            return outlist
+        def __repr__(self):
+            return "MultiPart("+",".join([str(a) for a in self.parts_list])+")"
+          
+    class SimpleConstruct:
+        def __init__(self,name,parts_list,circular=False,material_type="dna",label_size=13,added_opts = None):
+            self.name = name
+            self.parts_list = parts_list
+            self.circular = circular
+            self.material_type = material_type
+            self.label_size = label_size
+            if(added_opts is None):
+                self.added_opts = {}
+        def get_dpl(self):
+            outlist = []
+            for part in self.parts_list:
+                part_dpl = part.get_dpl()
+                for subpart_dpl in part_dpl:
+                    subpart_dpl["opts"].update(self.added_opts)
+                outlist+= part_dpl
+            return outlist
+        def get_dpl_binders(self):
+            my_dpl_output = self.get_dpl()
+            out_regs = []
+            for design in my_dpl_output:
+                print(design)
+                if('make_binders' in design):
+                    for binder in design['make_binders']:
+                        linecolor = 'blue'
+                        if(binder.material_type=='dna'):
+                            linecolor = 'black'
+                        elif(binder.material_type=='rna'):
+                            linecolor = 'red'
+                        if(hasattr(binder,"color")):
+                            bindcolor = binder.color
+                        else:
+                            bindcolor = (0.5,0.5,0.5)
+                        out_reg = {'type':'Binding', 'from_part':design, 'to_part':design,
+                                            'opts':{'label':binder.name,'label_size':self.label_size*.7,\
+                                                    'color':linecolor, 'label_x_offset':-1,'y_offset':10,\
+                                                    'face_color':bindcolor}
+                                  }
+                        out_reg['opts'].update(binder.added_opts)
+                        out_regs+=[out_reg]
+            return out_regs,my_dpl_output
+        def renderDNA(self,  dna_renderer,ax=None,plot_backbone=True):
+            
+            part_renderers = dna_renderer.SBOL_part_renderers()
+            reg_renderers = dna_renderer.std_reg_renderers()
+            if(ax is None):
+                figsize = (len(self.parts_list)*.75,1.6)
+                fig = plt.figure(figsize=figsize)
+                ax = fig.add_axes([0,0,1,1])
+                plt.tight_layout(pad=0.01)
+            
+            my_regs,my_designs = self.get_dpl_binders()
+            for part in my_designs:
+                part['opts'].update({'edgecolor':dna_renderer.linecolor})
+            print(my_designs)
+            start,end = dna_renderer.renderDNA(ax,my_designs,part_renderers,circular=self.circular,\
+                                    regs=my_regs, reg_renderers=reg_renderers,plot_backbone=plot_backbone)
+            
+            fig = ax.get_figure()
+            
+            ylimits = [0,0]
+            xlimits = [0,0]
+            for patch in ax.patches:
+                bbox = patch.get_window_extent()
+                if(bbox.y1 > ylimits[1]):
+                    ylimits[1] = bbox.y1
+                if(bbox.y0 < ylimits[0]):
+                    ylimits[0] = bbox.y0
+                if(bbox.x1 > xlimits[1]):
+                    xlimits[1] = bbox.x1
+                if(bbox.x0 < xlimits[0]):
+                    xlimits[0] = bbox.x0
+            ylimits = [a/fig.dpi for a in ylimits]
+            xlimits = [a/fig.dpi for a in xlimits]
+            yheight = ylimits[1]-ylimits[0]
+            xheight = xlimits[1]-xlimits[0]
+            
+            addedsize = 1
+            axis_xlim = [start-addedsize,end+addedsize]
+            fig.set_size_inches((axis_xlim[1]-axis_xlim[0])/yheight*1.5,1.5)
+            ax.axis('off')
+            ax.set_xlim(axis_xlim)
+            ax.set_ylim(ylimits)
+            return ax
+    
+    class SimplePart:
+        def __init__(self,name,dpl_type,direction='forward',bound=None,color=None,\
+                        color2=None,show_label=True,label_size = 13,label_y_offset = -8,added_opts=None,material_type=None):
+            """a simple 'part' for the sole purpose of rendering using DNAplotlib"""
+            self.name = name
+            self.color = color
+            self.color2 = color2 
+            self.dpl_type = dpl_type #this is a string which dnaplotlib knows about
+            self.direction=direction #"forward" or "reverse"
+            self.bound = bound #this should be a list of SimpleParts
+            if(added_opts is None):
+                self.added_opts = {}
+            else:
+                self.added_opts = added_opts #dictionary of keywords for dnaplotlib
+            self.show_label =show_label #if the label should be added to the 'opts' upon output
+            self.label_size = label_size #font size of the label
+            self.label_y_offset = label_y_offset
+            self.material_type = material_type
+        def get_directed(self,direction,bound=None):
+            copied_part = copy.copy(self)
+            copied_part.direction = direction
+            if(bound is not None):
+                copied_part.bound=bound
+            elif(self.bound is not None):
+                copied_part.bound = self.bound
+            return copied_part
+        def get_dpl(self,bound=None):
+            direction = True
+            if(self.direction == "reverse"):
+                direction = False
+            dpl_out = {'type':self.dpl_type, 'name':self.name, 'fwd':direction}
+            opts = {'color':self.color,'color2':self.color2}
+            if(self.show_label):
+                opts['label']=self.name
+                opts['label_size']=self.label_size
+                opts['label_y_offset']=self.label_y_offset
+            opts.update(self.added_opts)
+            dpl_out['opts']=opts
+            if(bound is not None):
+                dpl_out['make_binders']=bound
+            elif(self.bound is not None):
+                dpl_out['make_binders']=self.bound
+
+            return [dpl_out]
+        def __repr__(self):
+            return "SimplePart("+str(self.name)+"-"+str(self.direction)[0]+")"
+
+    def __init__(self,dna_renderer=None,cmap = "Set3"):
+        if(dna_renderer is None):
+            self.dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3)
+        self.cmap = plt.get_cmap(cmap).colors
+        self.color_counter = 0
+        self.clear_dicts()
+    def clear_dicts(self):
+        self.part_dpl_dict = {}
+        self.construct_dpl_dict = {}
+        self.species_dpl_dict = {}
+    def get_color(self):
+        if(self.cmap is not None):
+            out_color = self.cmap[self.color_counter]
+            self.color_counter+=1
+            if(self.color_counter>=len(self.cmap)):
+                self.color_counter = 0
+            return out_color
+        else:
+            raise ValueError("No colormap set")
+    def make_dpls_from_construct(self,construct):
+        if(construct in self.construct_dpl_dict):
+            return self.construct_dpl_dict[construct]
+        else:
+            new_parts_list = []
+            for part in construct:
+                new_parts_list += [self.make_dpl_from_part(part)]
+            
+            if(isinstance(construct,DNA)):
+                mat_type = "dna"
+            elif(isinstance(construct,RNA)):
+                mat_type = "rna"
+            simple_construct = self.SimpleConstruct(name = construct.name,\
+                                                    parts_list=new_parts_list,\
+                                                    circular=construct.circular,\
+                                                    material_type = mat_type)
+            self.construct_dpl_dict[construct]=simple_construct
+            return simple_construct
+    
+    def make_dpl_from_species(self,species):
+        if(species in self.species_dpl_dict):
+            return self.species_dpl_dict[species]
+        else:
+            if(isinstance(species,OrderedPolymer)):
+                #we are dealing with a polymer
+                polylist = [] #accumulating the list of SimpleParts
+                for monomer in species:
+                    #going through the monomers
+                    removed_monomer = monomer.get_removed()
+                   
+                    print(f"currently found {removed_monomer}")
+                    if(removed_monomer in self.species_dpl_dict):
+                        #if we already know about this monomer, just use that
+                        polylist += [self.species_dpl_dict[removed_monomer].get_directed(monomer.direction)]
+                    elif(isinstance(monomer,ComplexSpecies)):
+                        #if the monomer is a complex that means we have to make a bound simplepart
+                        binders = []
+                        base_simplepart = None #we must figure out who the base is. This is how we do that
+                        for specie in monomer.get_species(recursive=True):
+                            if(isinstance(specie,ComplexSpecies)):
+                                continue
+                            print(f"currently looking at {specie} with material type {specie.material_type}")
+                            if(specie.material_type=='part'):
+                                #this material type is only made by dna constructs
+                                base_simplepart = copy.copy(self.make_dpl_from_species(specie)) #copy it because now we make it bound to stuff
+                                #ideally you already ran make_dpl_from_construct and so this will be populated
+                            else:
+                                binders += [self.make_dpl_from_species(specie)] #other stuff gets added as a binder
+                        base_simplepart.bound = binders
+                        self.species_dpl_dict[removed_monomer]=base_simplepart
+                        polylist += [base_simplepart.get_directed(monomer.direction)]
+                    elif(isinstance(monomer,Species)):
+                        #in this case we couldnt find the monomer in our dictionary, but it is
+                        #at the base level
+                        base_simplepart = self.SimplePart(monomer.name,'UserDefined',color=self.get_color()) #new simplepart
+                        self.species_dpl_dict[removed_monomer]=base_simplepart #adding it to the dictionary for the future
+                        polylist += [base_simplepart.get_directed(monomer.direction)] #add it to the polymer, with a direction
+                out_dpl = self.SimpleConstruct(name = species.name,parts_list = polylist,circular=species.circular,material_type = species.material_type)
+            elif(isinstance(species,ComplexSpecies)):
+                #if we have a complex but it is not a polymer, we just do the "binding" determination of the polymer part
+                base_simplepart = None
+                binders = []
+                for specie in species.species:
+                    #i don't really care who is the base of this thing
+                    if(base_simplepart is None):
+                        base_simplepart = self.make_dpl_from_species(specie)
+                    else:
+                        binders += [self.make_dpl_from_species(specie)]
+                
+                out_dpl = base_simplepart.get_directed(None,binders)
+            elif(isinstance(species,Species)):
+                #this happens if we have another type of species
+                dpl_type = 'Origin' #default is 'origin', which is just a circle
+                if(species.material_type=='dna'):
+                    dpl_type = 'UserDefined'
+                elif(species.material_type=='rna'):
+                    dpl_type = 'NCRNA'
+                out_dpl = self.SimplePart(name = species.name,dpl_type = dpl_type,color=self.get_color(),material_type=species.material_type)
+            
+            self.species_dpl_dict[species] = out_dpl
+            return out_dpl
+            
+
+    def make_dpl_from_part(self,part):
+        removed_part = part.get_removed()
+        if(removed_part in self.part_dpl_dict):
+            return self.part_dpl_dict[removed_part]
+        else:
+            dpl_type= "UserDefined"
+            needs_color2 = False
+            regs = None
+            if(isinstance(part,Promoter)):
+                dpl_type = "Promoter"
+                if(hasattr(part,"regulators")):
+                    regs = part.regulators
+            elif(isinstance(part,RBS)):
+                dpl_type = "RBS"
+            elif(isinstance(part,CDS)):
+                dpl_type = "CDS"
+            elif(isinstance(part,Protein)):
+                dpl_type = "CDS"
+            elif(isinstance(part,Terminator)):
+                dpl_type = "Terminator"
+            elif(isinstance(part,AttachmentSite)):
+                if(part.site_type == "attP" or part.site_type == "attB"):
+                    dpl_type = "RecombinaseSite"
+                    needs_color2 = True
+                elif(part.site_type == "attL" or part.site_type == "attR"):
+                    dpl_type = "RecombinaseSite2"
+                    needs_color2 = True
+            color = self.get_color()
+            color2 = None
+            if(needs_color2):
+                color2 = self.get_color()
+            
+            outpart = self.SimplePart(name=part.name,\
+                                      dpl_type=dpl_type,
+                                      color=color,
+                                      color2=color2)
+            if(regs is not None):
+                regparts = []
+                for reg in regs:
+                    regpart = self.SimplePart(name=reg,dpl_type="Operator",color=color,show_label=False)
+                    regparts += [regpart]
+                retpart = self.MultiPart(name=part.name,parts_list =[outpart]+regparts)
+            else:
+                retpart = outpart
+            self.part_dpl_dict[part] = retpart
+            self.species_dpl_dict[part.dna_species] = retpart
+            return retpart.get_directed(part.direction)
+
+
+def make_dpl_from_construct(construct,showlabels=None):
     """ This function creats a dictionary suitable for
     input into dnaplotlib for plotting constructs.
     Inputs:
@@ -418,8 +749,8 @@ def make_dpl_from_construct(construct, showlabels=None):
         cmap = cm.Set1(range(len(construct.parts_list)*2+1))
     pind = 0
     for part in construct.parts_list:
-        pcolor = part.color
-        pcolor2 = part.color2
+        pcolor = None
+        pcolor2 = None
         if(HAVE_MATPLOTLIB):
             if(type(pcolor) == int):
                 c1 = cmap[pcolor%(len(cmap)-1)][:-1]
@@ -457,16 +788,17 @@ def make_dpl_from_part(part, direction=None, color=None, color2=None, showlabel=
         direction = part.direction == "forward"
     elif(direction is None):
         direction = True
-    if(type(part.color) is not int):
-        color = part.color
-    elif(color is not None):
-        part.color = color
-    if(type(part.color2) is not int):
-        color2 = part.color2
-    elif(color2 is not None):
-        part.color2 = color2
-    dpl_type = "UserDefined"  # this is the default part type
-    if(hasattr(part, "dpl_type")):
+    if(hasattr(part,"color")):
+        if(type(part.color) is not int):
+            color = part.color
+        elif(color is not None):
+            part.color = color
+        if(type(part.color2) is not int):
+            color2 = part.color2
+        elif(color2 is not None):
+            part.color2 = color2
+    dpl_type = "UserDefined" #this is the default part type
+    if(hasattr(part,"dpl_type")):
         part_dpl = part.dpl_type
     else:
         part_dpl = None

@@ -25,11 +25,9 @@ class DNA_part(Component, OrderedMonomer):
 
         Component.__init__(self=self, name = name, **keywords)
         
-        #self.assembly = property(self._get_assembly,self._set_assembly)
+        self.name = name
         assembly = None #this is already covered in self.assembly. Is this needed?
         direction = None #orientation
-        self.color = None #this will be taken from higher up
-        self.color2 = None #this will be taken from higher up and only defined for attL/R sites
         pos = None #position in the dna_construct
         self.sequence = None #nucleotide sequence
         #most parts have stop codons
@@ -42,10 +40,6 @@ class DNA_part(Component, OrderedMonomer):
                 assembly = value
             elif(key=="direction"):
                 direction = value
-            elif(key=="color"):
-                self.color = value
-            elif(key=="color2"):
-                self.color2 = value
             elif(key=="pos"):
                 pos = value
             elif(key=="sequence"):
@@ -63,7 +57,7 @@ class DNA_part(Component, OrderedMonomer):
 
     @property
     def dna_species(self):
-        return Species(self.name, material_type=self.material_type)
+        return Species(self.name, material_type="part")
 
     def __repr__(self):
         myname = self.name
