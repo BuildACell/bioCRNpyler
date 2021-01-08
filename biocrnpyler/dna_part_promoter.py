@@ -12,7 +12,7 @@ from .mechanisms_binding import (Combinatorial_Cooperative_Binding,
 from .mechanisms_txtl import (NegativeHillTranscription,
                               PositiveHillTranscription)
 from .species import Species
-
+from .components_basic import DNA, RNA
 from .utils import remove_bindloc
 
 
@@ -85,10 +85,9 @@ class Promoter(DNA_part):
 
     def update_component(self,internal_species=None,**keywords):
         """returns a copy of this component, except with the proper fields updated"""
-        from .dna_construct import DNA_construct, RNA_construct
-        if(isinstance(self.parent,RNA_construct)):
+        if(isinstance(self.parent,RNA)):
             return None
-        elif(isinstance(self.parent,DNA_construct)):
+        elif(isinstance(self.parent,DNA)):
             out_component = copy.copy(self)
             out_component.dna_to_bind = internal_species
             return out_component
