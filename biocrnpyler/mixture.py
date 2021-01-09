@@ -426,7 +426,7 @@ class Mixture(object):
             comps_to_enumerate = new_components
             new_components = []
 
-        return comps_to_enumerate
+        return return_components
     def compile_crn(self, recursion_depth = 10, initial_concentration_dict = None) -> ChemicalReactionNetwork:
         """Creates a chemical reaction network from the species and reactions associated with a mixture object.
         :param initial_concentration_dict: a dictionary to overwride initial concentrations at the end of compile time
