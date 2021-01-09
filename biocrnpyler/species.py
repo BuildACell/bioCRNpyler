@@ -274,6 +274,8 @@ class Species(OrderedMonomer):
             for element in in_list:
                 if isinstance(element, list):
                     out_list += Species.flatten_list(element)
+                elif(element is None):
+                    pass
                 else:
                     out_list += [element]
         return out_list

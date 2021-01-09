@@ -44,7 +44,7 @@ try:
                               HoverTool, MultiLine, NodesAndLinkedEdges,
                               PanTool, Plot, Range1d, Square, TapTool,
                               WheelZoomTool)
-    from bokeh.models.graphs import from_networkx
+    from bokeh.plotting import from_networkx
     from bokeh.palettes import Spectral4
     from fa2 import ForceAtlas2
     PLOT_NETWORK = True
@@ -527,15 +527,16 @@ def plotConstruct(DNA_construct_obj, dna_renderer=None,
         plotDesign(design, circular=circular,
                    title=DNA_construct_obj.get_species())
         if(plot_rnas):
-            rnas, proteins = DNA_construct_obj.explore_txtl()
-            for promoter in rnas:
-                rnadesign = make_dpl_from_construct(
-                    rnas[promoter], showlabels=showlabels)
+            rnas_and_proteins = DNA_construct_obj.enumerate_constructs()
+            for component in rnas_and_proteins:
+                if(component.get_species().material_type=="rna"):
+                    rnadesign = make_dpl_from_construct(component,showlabels=showlabels)
+                else:
+                    continue
                 rnacolor = rna_renderer.linecolor
                 for part in rnadesign:
                     if("edgecolor" not in part['opts']):
-                        part['opts'].update({'edgecolor': rnacolor})
-                plotDesign(rnadesign, renderer=rna_renderer,
-                           title=rnas[promoter].get_species())
+                        part['opts'].update({'edgecolor':rnacolor})
+                plotDesign(rnadesign,renderer=rna_renderer,title=component.get_species())
     else:
         print(DNA_construct_obj.show())

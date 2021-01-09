@@ -27,18 +27,23 @@ def rev_dir(dir):
 
 
 def remove_bindloc(spec_list):
-        """go through every species on a list and remove any "bindloc" attributes"""
-        #spec_list2 = copy.copy(spec_list)
+        """go through every species on a list and remove any "bindloc" attributes. This is used
+        to convert monomers with a parent polymer into the correct species after combinatorial binding
+        in things like DNAassembly and RNAassembly."""
+        
         out_sp_list = []
         for specie in spec_list:
-            #go through the species and remove the "bindloc" attribute
-            #I don't care about the binding now that I am done generating species
-            if(type(specie)==WeightedSpecies):
+            #waited species case used in reactions
+            if(isinstance(specie,WeightedSpecies)):
                 spec2 = specie.species
+                #replace the species (representing a binding location) with its parent
                 if(hasattr(spec2,"parent") and (spec2.parent is not None)):
                     specie.species = spec2.parent
+            #OrderedMonomerSpecies is inside an OrderedPolymerSpecies
             if(hasattr(specie,"parent") and (specie.parent is not None)):
+                #replace the Species with its parent
                 out_sp_list += [specie.parent]
+            #Standard Species (without parents) are not effected
             else:
                 out_sp_list+= [specie]
         return out_sp_list
