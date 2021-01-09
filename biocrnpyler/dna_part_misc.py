@@ -82,10 +82,6 @@ class AttachmentSite(DNABindingSite):
         reactions = DNABindingSite.update_reactions(self)
         complex_parent = self.get_complexed_species(self.dna_to_bind).parent
         int_mech = self.get_mechanism('integration')
-        print(self)
-        print("I am connected to ")
-        print(self.linked_sites)
-        print("my parent is "+str(complex_parent))
         #this next part generates integrase reactions
         for site in self.linked_sites:
             integrated_dnas = []
@@ -100,7 +96,6 @@ class AttachmentSite(DNABindingSite):
             for transformation in self.linked_sites[site][0]:
                 for pspec in transformation.parentsdict:
                     dict_inputs += [transformation.parentsdict[pspec]]
-            print(dict_inputs)
 
             if(len(set(dict_inputs))== 1):
                 #this is an intramolecular reaction so we don't care about the other site's DNAs

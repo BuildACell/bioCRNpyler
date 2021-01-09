@@ -890,9 +890,6 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         else:
             OrderedPolymer.replace(
                 self, position=position, part=part, direction=mydir)
-            # print("replacing")
-            #print([a.data for a in self._polymer])
-            #self.name = self.make_name()
 
     def __contains__(self, item):
         for part in self.species:
