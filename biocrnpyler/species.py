@@ -667,7 +667,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
     """
     default_material="ordered_polymer"
     def __init__(self,species, name=None, material_type = default_material, \
-                             attributes = None, initial_concentration = 0,circular = False):
+                   compartment=None, attributes = None,circular = False):
 
         self.material_type = material_type
         self.compartment = compartment
