@@ -13,6 +13,7 @@
 from .component import Component
 from .polymer import OrderedMonomer, OrderedPolymer
 from .species import Species
+import copy
 
 
 class DNA_part(Component, OrderedMonomer):
@@ -31,6 +32,8 @@ class DNA_part(Component, OrderedMonomer):
         self.color2 = None #this will be taken from higher up and only defined for attL/R sites
         pos = None #position in the dna_construct
         self.sequence = None #nucleotide sequence
+        #most parts have stop codons
+        #if you want your part to not have stop codons, put "forward" and/or "reverse"
         self.no_stop_codons = [] #some parts will set this, others won't. Default is that it has stop codons
         
         for key, value in keywords.items():
@@ -67,21 +70,8 @@ class DNA_part(Component, OrderedMonomer):
         if(self.direction =="reverse"):
             myname += "_r"
         return myname
-
     def __hash__(self):
-        hval = 0
-        if(hasattr(self,"assembly")):
-            if(self.assembly is None):
-                hval += hash(None)
-            else:
-                hval += hash(str(self.assembly))
-        hval += hash(self.name)
-        if(self.parent is not None):
-            hval+= hash(str(self.parent))
-        hval+= hash(self.position)
-        hval += hash(self.direction)
-        return hval
-
+        return OrderedMonomer.__hash__(self)
     def __eq__(self,other):
         if(type(other)==type(self)):
             if(self.name==other.name):
@@ -110,6 +100,7 @@ class DNA_part(Component, OrderedMonomer):
         #self.direction = direction
         #self.assembly = parent_dna
         return self
+
     def unclone(self):
         """removes the current part from anything"""
         self.remove()
@@ -122,6 +113,7 @@ class DNA_part(Component, OrderedMonomer):
         #self.direction = None
         #self.assembly = None
         return self
+        
     def reverse(self):
         OrderedMonomer.reverse(self)
         #if(self.direction=="forward"):

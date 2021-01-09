@@ -3,12 +3,12 @@
 These classes are used by Chemical Reaction Network Species as well as certain Components such as DNA_construct.
 """
 import copy
-
+from warnings import warn
 
 class OrderedPolymer:
 
     """a polymer made up of OrderedMonomers that has a specific order"""
-    def __init__(self,parts):
+    def __init__(self,parts,default_direction=None):
         """parts can be a list of lists containing 
         [[OrderedMonomer,direction],[OrderedMonomer,direction],...]
         alternatively, you can have a regular list, and the direcitons
@@ -16,7 +16,7 @@ class OrderedPolymer:
         polymer = []
         assert(type(parts)==list or type(parts)==tuple), "OrderedPolymer must be instantiated with a list"
         for item in parts:
-            if(isinstance(item,list)):
+            if(isinstance(item,list) or isinstance(item,tuple)):
                 part = item[0]
                 if(len(item)>1):
                     partdir = item[1]
@@ -26,18 +26,28 @@ class OrderedPolymer:
                 part = item
                 partdir = item.direction
             else:
-                raise ValueError("{} is not an OrderedMonomer or a list of the form [OrderedMonomer,direction]".format(str(part)))
-            
+                raise ValueError("{} is not an OrderedMonomer or a list of the form [OrderedMonomer,direction]".format(str(item)))
             part_copy = copy.copy(part) #OrderedMonomers are always copied when inserted into an OrderedPolymer
             polymer += [part_copy]
             position = len(polymer)-1
             direction = partdir
+            if(direction==None):
+                direction = default_direction
             part_copy.monomer_insert(self,position,direction)
 
         self._polymer = tuple(polymer)
 
+
     def __hash__(self):
-        return hash(self._polymer)
+        hval = 0
+        if(not hasattr(self,"_polymer") or len(self._polymer)==0):
+            hval = 0
+        else:
+            hval = sum([a.subhash() for a in self._polymer])
+        if(hasattr(self,"name")):
+            hval += hash(self.name)
+        
+        return hval
     def changed(self):
         #runs whenever anything changed
         pass
@@ -212,3 +222,17 @@ class OrderedMonomer:
             if(self.direction == other.direction and self.position == other.position and self.parent == other.parent):
                 return True
         return False
+
+    def __hash__(self):
+        hval = 0
+        hval += self.subhash()
+        if(self.parent is not None):
+            hval+= hash(self.parent)
+        return hval
+    def subhash(self):
+        hval = 0
+        hval+= hash(self.position)
+        hval += hash(self.direction)
+        if(hasattr(self,"name")):
+            hval += hash(self.name)
+        return hval

@@ -12,8 +12,11 @@ from .mechanisms_binding import (Combinatorial_Cooperative_Binding,
 from .mechanisms_txtl import (NegativeHillTranscription,
                               PositiveHillTranscription)
 from .species import Species
+from .components_basic import DNA, RNA
+from .utils import remove_bindloc
 
 
+#TODO put remove_bindloc in the component instead of in dna_construct
 class Promoter(DNA_part):
     """A basic Promoter class with no regulation. Needs to be included in a DNAassembly or DNAconstruct to function.
     """
@@ -70,6 +73,7 @@ class Promoter(DNA_part):
         self._dna_bind = value
     def get_species(self):
         return None
+
     def update_reactions(self):
         mech_tx = self.get_mechanism("transcription")
         reactions = []
@@ -78,24 +82,17 @@ class Promoter(DNA_part):
                         component = self, part_id = self.name, complex = None,
                         transcript = self.transcript, protein = self.get_protein_for_expression())
         return reactions
-    def update_component(self,dna,rnas,proteins,mypos = None):
+
+    def update_component(self,internal_species=None,**keywords):
         """returns a copy of this component, except with the proper fields updated"""
-        if(dna.material_type == "rna"):
-            #Promoters only work with DNA
+        if(isinstance(self.parent,RNA)):
             return None
-        out_component = copy.deepcopy(self)
-        if(mypos is not None):
-            out_component.dna_to_bind = dna[mypos]
+        elif(isinstance(self.parent,DNA)):
+            out_component = copy.copy(self)
+            out_component.dna_to_bind = internal_species
+            return out_component
         else:
-            out_component.dna_to_bind = dna
-        myrna = rnas[self]
-        out_component.transcript = myrna.get_species()
-        rbslist = proteins[myrna]
-        proteinlist = []
-        for a in rbslist:
-            proteinlist += rbslist[a]
-        out_component.protein = proteinlist
-        return out_component
+            raise TypeError(f"Unknown parent class {type(self.parent)}, expect either DNA_construct or RNA_construct")
 
 
     #Used for expression mixtures where transcripts are replaced by proteins

@@ -97,11 +97,13 @@ def test_species_initial_condition_defaulting():
 
     C = ChemicalComplex([S1, S2], name = "C", parameters = {key1:.11, key2:.22}, initial_concentration = .33)
     M = Mixture(name = mixture_name, components = [C], parameters = {key1:1.1, key2:2.2, key3:3.3})
-
+    
     #Initial condition found under the Species name, in the Component, not Mixture
     assert parameter_to_value(M.get_initial_concentration(S1, C)[S1]) == .11
     assert parameter_to_value(M.get_initial_concentration(S2, C)[S2]) == .22
     assert parameter_to_value(M.get_initial_concentration(S3, C)[S3]) == .33
+    
+
 
 
 def test_species_initial_condition_at_compile():
