@@ -186,7 +186,7 @@ def graphPlot(DG, DGspecies, DGreactions, plot, layout="force", positions=None, 
 
     # reactions
     reaction_renderer.node_renderer.glyph = Square(
-        size=8, fill_color=Spectral4[0])
+        size=8, fill_color="color")
     reaction_renderer.node_renderer.selection_glyph = Square(
         size=8, fill_color=Spectral4[2])
     reaction_renderer.node_renderer.hover_glyph = Square(
@@ -274,7 +274,8 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
     # "nothing" node. However, usually we are making degradation reactions which yield the
     # degradation enzyme, so then it doesn't go to nothing. This means actually this node
     # isn't use for anything. But i think it's good to have just in case.
-    defaultcolor = "grey"
+    default_species_color = "grey"
+    default_reaction_color = "cornflowerblue"
     nodedict["nothing"] = 0
     CRNgraph.add_node(0)
     CRNgraph.nodes[0]["type"] = "nothing"
@@ -285,18 +286,18 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
         # add all species first
 
         if repr(species) in colordict:
-            mycol = colordict[repr(species)]
+            species_color = colordict[repr(species)]
         elif species.name in colordict:
-            mycol = colordict[species.name]
+            species_color = colordict[species.name]
         elif (species.material_type, tuple(species.attributes)) in colordict:
-            mycol = colordict[(species.material_type,
+            species_color = colordict[(species.material_type,
                                tuple(species.attributes))]
         elif(species.material_type in colordict):
-            mycol = colordict[species.material_type]
+            species_color = colordict[species.material_type]
         elif tuple(species.attributes) in colordict:
-            mycol = colordict[tuple(species.attributes)]
+            species_color = colordict[tuple(species.attributes)]
         else:
-            mycol = defaultcolor
+            species_color = default_species_color
 
         nodedict[species] = allnodenum
         CRNgraph.add_node(allnodenum)
@@ -307,7 +308,7 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
             spectxt = species.pretty_print(
                 show_material=pp_show_material, show_compartment=pp_show_compartments)
             CRNgraph.nodes[allnodenum]["species"] = spectxt
-        CRNgraph.nodes[allnodenum]["color"] = mycol
+        CRNgraph.nodes[allnodenum]["color"] = species_color
         allnodenum += 1
     # reactions follow, allnodenum is not reset between these two loops
     for rxn in CRN.reactions:
@@ -322,7 +323,26 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
             CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
             CRNgraph.nodes[allnodenum]["k_r"] = ''
 
-        default_color = "blue"
+        reaction_color = None
+        if repr(rxn) in colordict:
+            reaction_color = colordict[repr(rxn)]
+        for k,p in rxn.propensity_type.propensity_dict["parameters"].items():
+            if(hasattr(p,"search_key")):
+                mech_str = repr(p.search_key.mechanism).strip('\'\"')
+                partid_str = repr(p.search_key.part_id).strip('\'\"')
+                name_str = repr(p.search_key.name).strip('\'\"')
+                new_color = reaction_color
+                if(name_str in colordict):
+                    new_color = colordict[name_str]
+                if(partid_str in colordict):
+                    new_color = colordict[partid_str]
+                if(mech_str in colordict):
+                    new_color = colordict[mech_str]
+                if(reaction_color is not None and reaction_color != new_color):
+                        warn(f"reaction color was {reaction_color} but now you want it to be {colordict[name_str]}")
+                reaction_color = new_color
+
+
         # CRNgraph.nodes[allnodenum]
         if isinstance(rxn.propensity_type, MassAction):
             kval = rxn.propensity_type.k_forward
@@ -362,7 +382,9 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
             CRNgraph.add_edge(0, allnodenum, weight=kval)
             if(krev_val is not None):
                 CRNgraph.add_edge(allnodenum, 0, weight=krev_val)
-        CRNgraph.nodes[allnodenum]["color"] = default_color
+        if(reaction_color is None):
+            reaction_color = default_reaction_color
+        CRNgraph.nodes[allnodenum]["color"] = reaction_color
         if(not use_pretty_print):
             CRNgraph.nodes[allnodenum]["species"] = str(rxn)
         else:
