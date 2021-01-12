@@ -34,6 +34,7 @@ class Construct(Component,OrderedPolymer):
         """this represents a bunch of parts in a row.
         A parts list has [[part,direction],[part,direction],...]
         Each part must be an OrderedMonomer"""
+
         if(component_enumerators is None):
             component_enumerators = []
         self.component_enumerators = component_enumerators

@@ -36,6 +36,7 @@ class TestComplexSpecies(TestCase):
         # Check invalidity of ComplexSpecies and OrderedComplexSpecies with strings instead of species
         with self.assertRaisesRegex(TypeError, 'recieved a non-species as a member of the list species'):
             self.assertEqual(OrderedComplexSpecies([s2, "s1"]), oc1)
+        with self.assertRaisesRegex(TypeError, 'recieved a non-species as a member of the list species'):
             self.assertEqual(ComplexSpecies([s2, "s1"]), c1)
             
         

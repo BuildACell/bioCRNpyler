@@ -21,3 +21,10 @@ class TestComplex(TestCase):
         truth = OrderedComplexSpecies([a,Complex([b,a]),a])
         testcomplx = Complex([a,Complex([b,a]),a],ordered=True)
         self.assertEqual(truth,testcomplx)
+
+    def test_invalid_complex(self):
+        with self.assertRaisesRegex(TypeError, ""):
+            Complex("A")
+
+        with self.assertRaisesRegex(TypeError, ""):
+            Complex(species = "A")

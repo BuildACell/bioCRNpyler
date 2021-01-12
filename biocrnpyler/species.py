@@ -793,14 +793,14 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
 
     @property
     def species_set(self):
-        return set(self._polymer)
+        return set(self.polymer)
 
     @property
     def species(self):
-        return self._polymer
+        return self.polymer
 
     def get_species_list(self):
-        return self._polymer
+        return self.polymer
 
     @property
     def circular(self):
@@ -827,7 +827,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
             name = self._name
         outlst = []
 
-        for monomer in self._polymer:
+        for monomer in self.polymer:
             assert(isinstance(monomer, Species))
             pname = monomer.name
             pdir = None
@@ -853,7 +853,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         mydir = direction
         if((mydir is None) and (part.direction is not None)):
             mydir = part.direction
-        if(part == self._polymer[position] and self._polymer[position].direction == mydir):
+        if(part == self.polymer[position] and self.polymer[position].direction == mydir):
             # in this case we are replacing a part with the same thing, so do nothing
             # but it could be true that the reference changes? That shouldnt be
             pass
@@ -871,7 +871,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         return False
 
 
-class PolymerConformation(ComplexSpecies):
+class PolymerConformation(ComplexSpecies, MonomerCollection):
     """
     This class stores a set of PolymerSpecies and a set of connections between them in the form of ComplexSpecies containing Monomers inside the PolymerSpecies.
 
