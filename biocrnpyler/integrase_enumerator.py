@@ -8,25 +8,6 @@ from .component_enumerator import GlobalComponentEnumerator
 import itertools as it
 import copy
 
-'''
-def all_paths(prototype_list):
-    """recursively enumerate all paths through a list"""
-    if(len(prototype_list)==1):
-        #base case
-        return [[a] for a in prototype_list[0]]
-    elif(len(prototype_list)>1):
-        rest = all_paths(prototype_list[1:])
-        #this is the recursive part
-        retlist = []
-        for a in prototype_list[0]:
-            #for every member of the first list
-            for rlist in rest:
-                #put in every possible rest of the list
-                retlist+=[[a]+rlist]
-    return retlist
-#'''
-
-
 class Polymer_transformation:
     def __init__(self,partslist,circular=False,parentsdict = None):
         """A Polymer transformation is like a generic transformation of a polymer sequence.
@@ -100,7 +81,6 @@ class Polymer_transformation:
             keywords[inputname]=arg
             inputcount += 1
         assert(sum(["input" in a for a in keywords])>=self.number_of_inputs)
-
         outlst = []
         for part_list in self.partslist:
             part = part_list[0]
@@ -108,22 +88,27 @@ class Polymer_transformation:
             outpart = None
             
             if(part.parent is not None):
-                #grab the part from the proper input
-                outpart = keywords[part.parent.name][part.position]
+                outpart = keywords[part.parent.name][part.position] #grab the part from the proper input
             else:
-                #this part deals with parts that don't come from input1 or input2.
+                #parts that don't come from input1 or input2.
                 #they need to be either DNA_part or species objects, depending on
                 #what kind of object we are making in the end.
                 if(isinstance(keywords["input1"],Construct)):
                     outpart = part
                 else:
+                    #this is a new part which wasn't part of a polymer (like an attL site)
                     if(bound):
                         outpart = part.get_complexed_species(part.dna_species)
                     else:
                         outpart = part.dna_species
             #assuming the stored parts have a valid direction
+            if(isinstance(outpart,AttachmentSite)):
+                outpart = copy.copy(outpart)
+                outpart.linked_sites = {} #make sure that any integrase sites we copy this way have no
+                                            #linked sites, as those would not be links created by the integrate() function
             outlst += [[outpart,partdir]]
-        return keywords["input1"].__class__(outlst,circular = self.circular)
+        outpolymer = keywords["input1"].__class__(outlst,circular = self.circular)
+        return outpolymer
     def dummify(self,in_polymer,name):
         out_list = []    
         for element in in_polymer:
@@ -188,10 +173,10 @@ class IntegraseMechanism:
         
         part_prod1 = AttachmentSite(prod1,prod1,dinucleotide=dinucleotide,
                                     integrase=integrase,direction=site1.direction,
-                                            color=site1.color,color2=site2.color)
+                                            color=site2.color,color2=site1.color)
         part_prod2 = AttachmentSite(prod2,prod2,dinucleotide=dinucleotide,
                                     integrase=integrase,direction=site2.direction,
-                                            color=site2.color,color2=site1.color)
+                                            color=site1.color,color2=site2.color)
         if(site1.direction=="forward"):
             return (part_prod1,part_prod2)
         else:
@@ -376,8 +361,8 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                         int_functions = int_mech.integrate(combo[0],combo[1])
                         new_dnas = []
                         for a in int_functions:
-                            new_dnas += [a.create_polymer(combo[0].parent,combo[1].parent)]
-
+                            new_dna = a.create_polymer(combo[0].parent,combo[1].parent)
+                            new_dnas += [new_dna]
                         constructlist += new_dnas
         return constructlist
 

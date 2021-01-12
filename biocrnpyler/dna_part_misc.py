@@ -10,6 +10,7 @@ from .mechanisms_binding import One_Step_Cooperative_Binding
 from .species import Species, ComplexSpecies, Complex
 from .mechanisms_integrase import BasicIntegration
 from .component import Component
+from .components_basic import DNA
 
 integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 class DNABindingSite(DNA_part):
@@ -47,8 +48,7 @@ class DNABindingSite(DNA_part):
         return rxns
     def update_component(self,internal_species=None,**keywords):
         """returns a copy of this component, except with the proper fields updated"""
-        from .dna_construct import RNA_construct,DNA_construct
-        if(isinstance(self.parent,DNA_construct)):
+        if(isinstance(self.parent,DNA)):
             out_component = copy.copy(self)
             out_component.dna_to_bind = internal_species
             return out_component
@@ -74,16 +74,55 @@ class AttachmentSite(DNABindingSite):
         else:
             warn("warning! site {} has site_type {} which is not recognized".format(self.name,self.site_type))
         return myname
+    def __hash__(self):
+        sumhash = DNABindingSite.__hash__(self) + self.dna_to_bind.__hash__()
+        return sumhash
     def get_complexed_species(self,dna):
         recomp = Complex([dna,self.integrase,self.integrase],material_type=None)
         return recomp
+    def update_component(self,internal_species=None,**keywords):
+        """returns a copy of this component, except with the proper fields updated"""
+        newcomp = DNABindingSite.update_component(self,internal_species=internal_species)
+        if(newcomp is None):
+            return None
+        elif(internal_species.parent is None):
+            return newcomp
+        else:
+            for othersite in self.linked_sites:
+                populate = True #by default, add the appropriate data members to the other site
+                if(self.count_inputs(othersite)==1):
+                    #the reaction with the site in question is intramolecular
+                    #that means we should only populate the other site if our internal_species
+                    #has the proper location bound by integrase
+                    otherisbound = othersite.integrase in internal_species.parent[othersite.position]
+                    if(not otherisbound):
+                        populate = False
+                if(populate):
+                    if(self in othersite.linked_sites):
+                        mystuff = copy.copy(othersite.linked_sites[self])
+                    else:
+                        blank_self = copy.copy(self)
+                        blank_self.dna_to_bind = None
+                        mystuff = copy.copy(othersite.linked_sites[blank_self])
+                    othersite.linked_sites.update({newcomp:mystuff})
+                    assert(othersite in newcomp.linked_sites)
+            return newcomp
+    def count_inputs(self,site):
+        assert(site in self.linked_sites)
+        dict_inputs = []
+        for transformation in self.linked_sites[site][0]:
+            for pspec in transformation.parentsdict:
+                dict_inputs += [transformation.parentsdict[pspec]]
+        return len(set(dict_inputs))
     def update_reactions(self):
-        #TODO implement "integrase" mechanism
         reactions = DNABindingSite.update_reactions(self)
         complex_parent = self.get_complexed_species(self.dna_to_bind).parent
         int_mech = self.get_mechanism('integration')
         #this next part generates integrase reactions
         for site in self.linked_sites:
+            if(site.dna_to_bind is None or site.dna_to_bind.parent is None):
+                #skip sites which do not know who they bind to
+                continue
             integrated_dnas = []
             #each integrase reaction will have an entry here
             
@@ -92,25 +131,21 @@ class AttachmentSite(DNABindingSite):
 
             #however, if we are dealing with an intramolecular reaction, then
             #only return the reaction if the pair HASN'T been processed
-            dict_inputs = []
-            for transformation in self.linked_sites[site][0]:
-                for pspec in transformation.parentsdict:
-                    dict_inputs += [transformation.parentsdict[pspec]]
-
-            if(len(set(dict_inputs))== 1):
+            populate = True
+            if(self.count_inputs(site)== 1):
                 #this is an intramolecular reaction so we don't care about the other site's DNAs
                 integrated_dnas = []
-                if(isinstance(complex_parent[self.position],ComplexSpecies) and \
-                                isinstance(complex_parent[site.position],ComplexSpecies) and \
-                                self.linked_sites[site][1]==[]):
+                if(site.integrase in complex_parent[site.position] and \
+                                complex_parent in self.linked_sites[site][1]):
                     #make sure that both this site and the other site are bound
                     for integrase_function in self.linked_sites[site][0]:
                         integr = integrase_function.create_polymer(complex_parent)
                         integrated_dnas += [integr]
                 
-                reactions += int_mech.update_reactions([complex_parent],integrated_dnas,component=self,part_id = self.integrase.name)
+                    reactions += int_mech.update_reactions([complex_parent],integrated_dnas,component=self,part_id = self.integrase.name)
+                    populate = False
             else:
-                
+                #this is for intermolecular reactions. now "other_dna" is possible
                 #go through all possible "other" dnas then calculate for each RNA
                 for other_dna in self.linked_sites[site][1]:
                     integrated_dnas = []
@@ -118,8 +153,10 @@ class AttachmentSite(DNABindingSite):
                         #for every result that we could get, generate it
                         integrated_dnas += [integrase_function.create_polymer(complex_parent,other_dna)]
                     reactions += int_mech.update_reactions([complex_parent,other_dna],integrated_dnas,component=self,part_id = self.integrase.name)
+                    populate = False #since the other site already populated us, no reason to populate it
             #next part updates the linked site
-            if(complex_parent is not None and complex_parent not in site.linked_sites[self][1]):
+            
+            if(populate and complex_parent is not None and complex_parent not in site.linked_sites[self][1]):
                 site.linked_sites[self][1] += [complex_parent]
         return reactions
             
