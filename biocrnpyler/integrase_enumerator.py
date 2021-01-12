@@ -138,8 +138,7 @@ class IntegraseMechanism:
         """The integrase mechanism is a mechanism at the level of DNA. It creates DNA species which
         the integrase manipulations would lead to. This mechanism does not create any reaction rates.
         We need to figure out how integrase binding will work before being able to create
-        reactions and their corresponding rates
-        This is intended to be a GLOBAL MECHANISM"""
+        reactions and their corresponding rates"""
         if(name is None):
             self.name = "int1"
         else:
