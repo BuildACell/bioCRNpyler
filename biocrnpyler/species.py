@@ -698,7 +698,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
                             " which is not acceptable. Use Species or str")
 
     @classmethod
-    def from_polymer_species(cls, ops, replace_dict):
+    def from_polymer_species(cls, ops, replace_dict, **keywords):
         """
         Created a new OrderedPolymerSpecies with certain monomers replaced based upon replace_dict:
 
@@ -714,8 +714,18 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
                 direction = monomer.direction
                 monomer.remove()
                 monomers.append([monomer, direction])
-        return cls(monomers, name = ops._name, base_species = ops.base_species, material_type = ops.default_material,
-                    compartment = ops.compartment, attributes = ops.attributes, circular = ops.circular)
+
+        #Set keywords
+        if "circular" not in keywords:
+            keywords["circular"] = ops.circular
+        if "material_type" not in keywords:
+            keywords["material_type"] = ops.default_material
+        if "compartment" not in keywords:
+            keywords["compartment"] = ops.compartment
+        if "attributes" not in keywords:
+            keywords["attributes"] = ops.attributes
+
+        return cls(monomers, **keywords)
 
     @property
     def species_set(self):
@@ -786,9 +796,6 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         else:
             OrderedPolymer.replace(
                 self, position=position, part=part, direction=mydir)
-            # print("replacing")
-            #print([a.data for a in self._polymer])
-            #self.name = self.make_name()
 
     def __contains__(self, item):
         for part in self.species:
@@ -818,13 +825,91 @@ class PolymerConformation(ComplexSpecies, MonomerCollection):
 
     def __init__(self, complexes, material_type = "conformation", **keywords):
         """
-        polymers: a list of OrderedPolymerSpecies
         complexes: a list of ComplexSpecies each of which must contain Monomers from the OrderedPolymerSpecies in the conformation
         """
         
         self.complexes = complexes
-
         ComplexSpecies.__init__(self, species = self.polymers+self.complexes, material_type = material_type, **keywords)
+
+    @classmethod
+    def from_polymer_conformation(cls, pcs, complexes, **keywords):
+        """
+        This function produces a new PolymerConformation from previously existing PolymerConformations and new Complexes.
+
+        pcs: a list of PolymerConformations
+        complexes: a list of complexes to add to the polymer conformation
+        """
+
+        if not isinstance(pcs, list) or not any([isinstance(pc, PolymerConformation) for pc in pcs]):
+            raise TypeError(f"pcs must be a list of PolymerConformations. Recieved {pcs}.")
+
+        #generate a list of all complexes
+        for pc in pcs:
+            complexes += pc.complexes
+
+        return cls(complexes, **keywords)
+
+    @classmethod
+    def from_polymer_replacement(cls, pc, old_polymers, new_polymers, **keywords):
+        """
+        This function produces a PolymerConformation from a previously existing PolymerConformation by replacing old_polymers with new_polymers
+        
+        pc: the PolymerConformation to replace polymers from.
+        old_polymers: a list of PolymerSpecies instances. These must be the same instances stored inside pc or an error is thrown.
+        new_polymers: a list of new PolymerSpecies instances to replace each of the old_polymers. Must be the same length as old_polymers.
+        """
+        if not isinstance(pc, PolymerConformation):
+            raise TypeError(f"pc must be a PolymerConformation. Recieved {pc}.")
+
+        if not isinstance(new_polymers, list) and all([isinstance(p, OrderedPolymerSpecies) for p in new_polymers]):
+            raise TypeError(f"new_polymers must be a list of OrderedPolymerSpecies. Recieved: {new_polymers}")
+
+        if not isinstance(old_polymers, list) and all([isinstance(p, OrderedPolymerSpecies) for p in old_polymers]):
+            raise TypeError(f"new_polymers must be a list of OrderedPolymerSpecies. Recieved: {old_polymers}")
+
+        if not all([any([p is pp for pp in pc.polymers]) for p in old_polymers]):
+            raise ValueError("All OrderedPolymerSpecies in old_polymers must be contained (as instances, not string equivalents) in pc.polymers.")
+
+        if len(old_polymers) != len(new_polymers):
+            raise ValueError("old_polymers and new_polymers must be the same length.")
+
+        
+
+        complexes = pc.complexes
+        new_complexes = []
+
+        #Create a set of new ComplexeSpecies with the correct monomers inside
+        for c in complexes:
+            pol_inds = pc.get_polymer_indices(c)
+            species = []
+            for ci, s in enumerate(c.species):
+                pi = pol_inds[ci]
+                #If s is part of a polymer:
+                if pi is not None:
+                    #add the new_polymers[pi][s.position] to the new species
+                    species.append(new_polymers[pi][s.position])
+                #Otherwise, the species is not part of a polymer
+                else:
+                    species.append(s)
+
+            #Create the new Complex
+            if isinstance(c, OrderedComplexSpecies): #is the complex ordered?
+                new_complexes += [OrderedComplexSpecies(species, material_type = c.material_type, attributes = c.attributes, comparment = c.compartment, from_complex = True)]
+            elif isinstance(c, ComplexSpecies):
+                new_complexes += [ComplexSpecies(species, material_type = c.material_type, attributes = c.attributes, comparment = c.compartment, from_complex = True)]
+            else:
+                raise TypeError(f"Invalid object found in PolymerConformation.complexes: {c}.")
+
+        #Set keywords
+        if "material_type" not in keywords:
+            keywords["material_type"] = pc.material_type
+        if "compartment" not in keywords:
+            keywords["compartment"] = pc.compartment
+        if "attributes" not in keywords:
+            keywords["attributes"] = pc.attributes
+
+        return cls(new_complexes, **keywords)
+
 
     @property
     def polymers(self):
@@ -847,6 +932,12 @@ class PolymerConformation(ComplexSpecies, MonomerCollection):
 
         if any([sum([cc==c and cc.species == c.species for cc in complexes]) > 1 for c in complexes]):
             raise ValueError("Complexes contains two identical complexes.")
+
+        #Sort the complexes by their name, and the ids of the polymers inside of them to get a unique ordering for identically named Complexes and Polymers
+        #this will produce a unique ordering of the internal polymers as well
+        sort_func = lambda c: (c, tuple(id(s.parent) for s in c.species))
+        complexes.sort(key = sort_func)
+
 
         polymers = [] #Original polymers stored here
         copied_polymers = [] #Polymers are copied here
@@ -887,25 +978,30 @@ class PolymerConformation(ComplexSpecies, MonomerCollection):
             c_copy.parent = self
             copied_complexes.append(c_copy)
 
-        #Sort the Polymers
+        
+        #Sort the polymers by their name
+        #polymer_sort_func = lambda p: (str(p), id(p))
         copied_polymers.sort()
         self._polymers = copied_polymers
-        #Sort the complexes
-        copied_complexes.sort() 
-        self._complexes = copied_complexes
 
+        #Sort the complexes ordered by their polymer indices then name
+        complex_sort_func = lambda c: (tuple(self.get_polymer_indices(c)), c)
+        copied_complexes.sort(key = complex_sort_func) 
+        self._complexes = copied_complexes
     
     def get_polymer_indices(self, c):
         #Takes a complex and returns a list of indices to the polymers that complex contains monomers from
-        #this complex should be in self.complexes
+        #this complex should be in self.complexes. 
+        #If a Species in the Complex is not in a Polymer, None is added to the list.
         indices = []
-        for s in c.species:
+        for j, s in enumerate(c.species):
             parent = s.parent
             for i, p in enumerate(self.polymers):
-                #print(i, p, parent)
                 if parent is p:
-                    #print("parent is p!", i, parent, p)
                     indices.append(i)
+            if len(indices) <= j:
+                indices.append(None) 
+
         return indices
 
     def get_polymer_positions(self, c, polymer_ind):
@@ -925,12 +1021,13 @@ class PolymerConformation(ComplexSpecies, MonomerCollection):
                 name += "_"+str(p)
             for c in self.complexes:
                 parent_inds = self.get_polymer_indices(c)
-                print("parent_inds", parent_inds)
+                name += "_"
                 for ind in parent_inds:
-                    print(ind)
-                    name+=f"_{ind}"
+                    if ind is None:
+                        name+="n"
+                    else:
+                        name+=f"p{ind}"
                 name += "_"+str(c)
-            print("name", name)
             return name
         else:
             return self._name
@@ -1048,43 +1145,26 @@ class Complex:
                 keywords["direction"] = prev_direction
                 new_complex = ComplexSpecies(new_species, *args, **keywords)
 
-            #Create a new OrderedPolymerSpecied which is copied from the parent with the new complex replacing bindloc.
-            ops = OrderedPolymerSpecies.from_polymer_species(parent_species, {bindloc:new_complex})
-
-
-            """
-            OLD CODE
-            prev_species = copy.copy(parent_species[bindloc])
-            prev_species.remove()
-            prev_direction = copy.deepcopy(parent_species[bindloc].direction)
-
-            # combine what was in the OrderedMonomer with the new stuff in the list
-            new_species = other_species+[prev_species]
-
-            # Create an OrderedcomplexSepcies
-            if ordered:
-                keywords["called_from_complex"] = True
-                new_complex = OrderedComplexSpecies(new_species, *args, **keywords)
-            # Create a ComplexSpecies
-            else:
-                keywords["called_from_complex"] = True
-                new_complex = ComplexSpecies(new_species, *args, **keywords)
-            # now we replace the monomer inside the parent polymer
-            parent_species.replace(bindloc, new_complex, prev_direction)
-            # set the default material
-            parent_species.material_type = OrderedPolymerSpecies.default_material"""
-
             #Case 2: OrderedPolymerSpecies has no parent
             if parent_species.parent is None:
-                return ops[bindloc]
+
+                #Create a new OrderedPolymerSpecied which is copied from the parent with the new complex replacing bindloc.
+                new_polymer_species = OrderedPolymerSpecies.from_polymer_species(parent_species, {bindloc:new_complex})
+                return new_polymer_species[bindloc]
+
             #Case 3: OrderedPolymerSpecies is inside a PolymerConformation
             elif isinstance(parent_species.parent, PolymerConformation):
-                pass
+                #TODO create a new PolymerConformation that replaces the appropriate monomer in the polymer
+                raise NotImplementedError("TODO")
 
             else:
                 #This error should never occur
                 raise TypeError(f"Unknown parent type {type(parent_species)} recieved for {parent_species} .parent {parent_species.parent}.")
         else:
-            if len(parent_species) == 1 and isinstance(parent_species[0], OrderedPolymerSpecies) and isinstance(parent_species[0], PolymerConformation):
-                pass
-            pass
+            #Case 4: the parent Species is a PolymerConformation. 
+            #This means either a PolymerSpecies is being placed into a Complex OR a ComplexSpecies in a PolymerConformation is being placed in a Complex
+
+            #Case 5: Multiple OrderedPolymerSpecies are being Complexed Together
+
+            #Case 6: Multiple OrderedPolymerNetworks are being Complexed Together
+            raise NotImplementedError("TODO")
