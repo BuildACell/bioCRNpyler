@@ -78,6 +78,9 @@ class OrderedPolymer(MonomerCollection):
     def insert(self,position,part,direction=None):
         part_copy = copy.copy(part) #OrderedMonomers are always copied when inserted into an OrderedPolymer
 
+        if(direction is None):
+            direction = part.direction
+            
         part_copy.monomer_insert(self,position,direction)
         for subsequent_part in self.polymer[position:]:
             subsequent_part.position += 1
@@ -89,6 +92,7 @@ class OrderedPolymer(MonomerCollection):
 
         if(direction is None):
             direction = part.direction
+
         self.polymer[position].remove()
         part_copy.monomer_insert(self,position,direction)
         self.polymer = self.polymer[:position]+(part_copy,)+self.polymer[position+1:]
