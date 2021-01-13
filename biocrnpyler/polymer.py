@@ -212,8 +212,6 @@ class OrderedMonomer:
     def position(self, position):
         if self.parent is None and position is not None:
             raise ValueError("{} cannot have a position if it has no parent".format(self))
-        elif self.parent is not None and position is None:
-            raise ValueError("{} is part of a polymer with no position!".format(self))
         else:
             self._position = position
 
@@ -228,8 +226,9 @@ class OrderedMonomer:
 
     def remove(self):
         self.parent = None
-        self.direction = None
         self.position = None
+        self.direction = None
+        
         return(self)
 
     def __repr__(self):

@@ -24,10 +24,6 @@ class TestOrderedMonomer(TestCase):
         with self.assertRaisesRegex(ValueError, f"parent must be an OrderedPolymer"):
             m = OrderedMonomer(parent = 1)
         
-        p = OrderedPolymer(parts = [])
-        #Parent with no position
-        with self.assertRaisesRegex(ValueError, f"OrderedMonomer"):
-            m = OrderedMonomer(parent = p)
 
         #Correct instantiation with parent and position
         m = OrderedMonomer(parent = p, position = 0)

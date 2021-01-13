@@ -5,7 +5,7 @@ import copy
 import warnings
 from typing import List, Union
 from .compartments import Compartment
-from .polymer import OrderedMonomer, OrderedPolymer
+from .polymer import OrderedMonomer, OrderedPolymer, MonomerCollection
 
 
 class Species(OrderedMonomer):
@@ -341,100 +341,6 @@ class WeightedSpecies:
 
     def __hash__(self):
         return hash(self.species)+hash(self.stoichiometry)
-
-
-class Complex:
-    """
-     !!!ComplexSpecies and OrderedComplexSpecies should ALWAYS be created with the Complex function!!!
-
-    Complex is not a class that gets instantiated - it creates ComplexSpecies and OrderedComplexSpecies.
-    The Logic encoded in the __new__ function is used to insert these classes into the binding sites of
-    OrderedPolymerSpecies.
-
-    arguments:
-    species: a list of species to put into ComplexSpecies or OrderedComplexSpecies
-
-    keywords:
-    ordered: whether to produce an OrderedComplexSpecies (default = False)
-    """
-    def __new__(cls, *args, **keywords):
-        species = []
-        # below is extracting the "species" keywords from the args
-        keywarg = None
-        if("species" in keywords):
-            keywarg = True
-            species = keywords["species"]
-            del keywords["species"]
-        elif(len(args) >= 1):
-            keywarg = False
-            species = args[0]
-            args = args[1:]
-
-        # Check whether ot make a ComplexSpecies or OrderedComplexSpecies
-        if "ordered" in keywords:
-            ordered = keywords["ordered"]
-            del keywords["ordered"]
-        else:
-            ordered = False
-
-        valent_complex = None  # valent_complex is an OrderedPolymer Species
-        bindloc = None  # bindloc is the location a Species is bound to valent_complex
-        other_species = []  # Other species in the Complex
-
-        # Below cycle through species and see if one has a parent. If it does, that means the species is
-        # in an OrderedPolymerSpecies and the Complex should be formed around it.
-        for specie in species:
-            if(hasattr(specie, "parent") and (specie.parent is not None)):
-                if(valent_complex is None):
-                    # It is very important to deepcopy here because the underlying OrderedPolymerSpecies will be modified.
-                    valent_complex = copy.deepcopy(specie.parent)
-                    bindloc = specie.position
-                else:
-                    # If valent_complex has already been found - it means there are two OrderedPolymer
-                    # or two Species in the same OrderedPolymer. This kind of binding has not been implemented.
-                    raise NotImplementedError(
-                        "binding together two OrderedPolymerSpecies or two species in the same OrderedPolymerSpecies!")
-            else:
-                other_species += [specie]
-
-        # If no OrderedPolymerSpecies is found, just call the regular constructor.
-        if(valent_complex is None):
-            if ordered:
-                # this creates an OrderedComplexSpecies
-                # pass in all the args and keywords appropriately
-                keywords["called_from_complex"] = True
-                return OrderedComplexSpecies(species, *args, **keywords)
-            else:
-                # this creates a ComplexSpecies
-                # pass in all the args and keywords appropriately
-                keywords["called_from_complex"] = True
-                return ComplexSpecies(species, *args, **keywords)
-
-        # This means the Complex is being formed inside an OrderedPolymerSpecies
-        else:
-            # this is the species around which the complex is being formed
-            # basically we want to "unclone" this and then "clone the new ComplexSpecies we will have created"
-            prev_species = copy.deepcopy(valent_complex[bindloc])
-            prev_species.remove()
-            prev_direction = copy.deepcopy(valent_complex[bindloc].direction)
-
-            # combine what was in the OrderedMonomer with the new stuff in the list
-            new_species = other_species+[prev_species]
-
-            # Create an OrderedcomplexSepcies
-            if ordered:
-                keywords["called_from_complex"] = True
-                new_complex = OrderedComplexSpecies(
-                    new_species, *args, **keywords)
-            # Create a ComplexSpecies
-            else:
-                keywords["called_from_complex"] = True
-                new_complex = ComplexSpecies(new_species, *args, **keywords)
-            # now we replace the monomer inside the parent polymer
-            valent_complex.replace(bindloc, new_complex, prev_direction)
-            # this is saying that we are now a complex
-            valent_complex.material_type = OrderedPolymerSpecies.default_material
-            return valent_complex[bindloc]
 
 
 class ComplexSpecies(Species):
@@ -791,6 +697,26 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
             raise TypeError("base_species is of type "+type(base_species) +
                             " which is not acceptable. Use Species or str")
 
+    @classmethod
+    def from_polymer_species(cls, ops, replace_dict):
+        """
+        Created a new OrderedPolymerSpecies with certain monomers replaced based upon replace_dict:
+
+        inputs: replace_dict {monomer index --> new Species}
+        outputs: OrderedPolymerSpecies
+        """
+        monomers = []
+        for i in range(len(ops.polymer)):
+            if i in replace_dict:
+                monomers.append(replace_dict[i])
+            else:
+                monomer = copy.copy(ops[i])
+                direction = monomer.direction
+                monomer.remove()
+                monomers.append([monomer, direction])
+        return cls(monomers, name = ops._name, base_species = ops.base_species, material_type = ops.default_material,
+                    compartment = ops.compartment, attributes = ops.attributes, circular = ops.circular)
+
     @property
     def species_set(self):
         return set(self.polymer)
@@ -890,28 +816,19 @@ class PolymerConformation(ComplexSpecies, MonomerCollection):
     other Species as well). Note that this class allows for multiple edges between the same sets of vertices.
     """
 
-    def __init__(self, polymers, complexes, material_type = "conformation", **keywords):
+    def __init__(self, complexes, material_type = "conformation", **keywords):
         """
         polymers: a list of OrderedPolymerSpecies
         complexes: a list of ComplexSpecies each of which must contain Monomers from the OrderedPolymerSpecies in the conformation
         """
-        self.polymers = polymers
+        
         self.complexes = complexes
-        self.check_conformation() #checks teh conformation is valid
-        ComplexSpecies.__init__(self, species = polymers+complexes, material_type = material_type, **keywords)
+
+        ComplexSpecies.__init__(self, species = self.polymers+self.complexes, material_type = material_type, **keywords)
 
     @property
     def polymers(self):
         return self._polymers
-    
-    @polymers.setter
-    def polymers(self, polymers):
-        if not isinstance(polymers, list) or len(polymers) < 1 or not all([isinstance(p, OrderedPolymerSpecies) for p in polymers]):
-            raise TypeError(f"polymers must be a list containing PolymerSpecies. Recieved {polymers}.")
-
-        self._polymers = [copy.deepcopy(p) for p in polymers]
-        #sort the list
-        self._polymers.sort()
 
     @property
     def complexes(self):
@@ -919,42 +836,87 @@ class PolymerConformation(ComplexSpecies, MonomerCollection):
 
     @complexes.setter
     def complexes(self, complexes):
+        """
+        This setter copies the complexes and the polymers they connect into the PolymerConformation.
+        This is done in such a way to preserve references between parents and children without relying on hash functions (in case two polymers are identical).
+        """
+        self._complexes = []
+        self._polymers = []
         if not isinstance(complexes, list) or len(complexes) < 1 or not all([isinstance(c, ComplexSpecies) for c in complexes]):
             raise TypeError(f"complexes must be a list containing ComplexSpecies. Recieved {complexes}.")
-        self._complexes = [copy.deepcopy(c) for c in complexes]
-        #sort the list
-        self._complexes.sort()
 
-    def check_conformation(self):
-        """
-        Checks that the conformation is valid - meaning all complexes contains monomers with parents in the polymer list and
-        all polymers in conformation have monomers which are part of a complex.
-        """
+        if any([sum([cc==c and cc.species == c.species for cc in complexes]) > 1 for c in complexes]):
+            raise ValueError("Complexes contains two identical complexes.")
 
-        #create an empty dictionary that stores polymer --> child complexes
-        parent_dict = {i:[] for i in self.polymers}
+        polymers = [] #Original polymers stored here
+        copied_polymers = [] #Polymers are copied here
+        copied_complexes = [] #Complexes are copied here
 
-        #check that each complex contains monomers from polymers
-        #and label the complexes according to their polymer index
-        for c in self.complexes:
-            parent_found = False
-            for s in c.species:
-                #Additional species are allowed in these Complexes
-                if s.parent is None:
-                    pass
-                elif s.parent not in self.polymers:
-                    raise ValueError(f"Complex {c} contains a Species {s} inside  with parent {s.parent} but this polymer is not included in self.polymers!")
-                else:
-                    parent_found = True
-                    if c not in parent_dict[s.parent]:
-                        parent_dict[s.parent].append(c)
-            if not parent_found:
-                raise ValueError(f"Complex {c} does not contain a Species with a parent polymer!")
+        #Find all the polymers in the complexes. "is" is used instead of equality to deal with the possibility of
+        #multiple instances (copies) of the same polymer being bound together.
+        for c in complexes:
+            c_copy = copy.deepcopy(c)
+            complex_contains_polymer = False
+            for i, s in enumerate(c.species):
+                parent = s.parent
 
-        for p in self.polymers:
-            if len(parent_dict[p]) == 0:
-                raise ValueError(f"Polymer {p} not connected by any complexes.")
+                if parent is not None and isinstance(parent, OrderedPolymerSpecies):
+                    complex_contains_polymer = True
+                    #parent has not been copied
+                    if not any([parent is p for p in polymers]):
+                        polymers.append(parent)
+                        parent_copy = copy.deepcopy(parent)
+                        copied_polymers.append(parent_copy)
+                        c_copy.species[i] = parent_copy[s.position] #set s to be the new version from the deep copy
+                        assert c_copy.species[i] is parent_copy[s.position]
+                    #parent has already been copied
+                    else:
+                        index = [parent is p for p in polymers].index(True) #get parent index
+                        parent_copy = copied_polymers[index]
+                        c_copy.species[i] = parent_copy[s.position] #set s to be the new version from the deep copy
+                        assert c_copy.species[i] is parent_copy[s.position]
+
+                #This edgecase should not occur.
+                elif parent is not None and not isinstance(parent, OrderedPolymerSpecies):
+                    raise ValueError("Species {s} found inside complex {c} with a parent {parent} which is not an OrderedPolymerSpecies.")
+
+            if not complex_contains_polymer:
+                raise ValueError(f"Complex {c} does not contain any Species inside of Polymers.")
+
+            #Set the parent of the ComplexSpecies to self
+            c_copy.parent = self
+            copied_complexes.append(c_copy)
+
+        #Sort the Polymers
+        copied_polymers.sort()
+        self._polymers = copied_polymers
+        #Sort the complexes
+        copied_complexes.sort() 
+        self._complexes = copied_complexes
+
     
+    def get_polymer_indices(self, c):
+        #Takes a complex and returns a list of indices to the polymers that complex contains monomers from
+        #this complex should be in self.complexes
+        indices = []
+        for s in c.species:
+            parent = s.parent
+            for i, p in enumerate(self.polymers):
+                #print(i, p, parent)
+                if parent is p:
+                    #print("parent is p!", i, parent, p)
+                    indices.append(i)
+        return indices
+
+    def get_polymer_positions(self, c, polymer_ind):
+        #Takes a complex and the index of a polymer in the conformation and returns a list of positions that ComplexSpecies is bound at
+        p = self.polymers[polymer_ind]
+        positions = []
+        for s in c.species():
+            if s.parent is p:
+                positions.append(s.position)
+        return positions
+
     @property
     def name(self):
         if self._name is None:
@@ -962,13 +924,13 @@ class PolymerConformation(ComplexSpecies, MonomerCollection):
             for p in self.polymers:
                 name += "_"+str(p)
             for c in self.complexes:
-                for s in c.species:
-                    parent = s.parent
-                    if parent is None:
-                        name += "_n"
-                    else:
-                        name += "_"+str(self.polymers.index(parent))
+                parent_inds = self.get_polymer_indices(c)
+                print("parent_inds", parent_inds)
+                for ind in parent_inds:
+                    print(ind)
+                    name+=f"_{ind}"
                 name += "_"+str(c)
+            print("name", name)
             return name
         else:
             return self._name
@@ -976,3 +938,153 @@ class PolymerConformation(ComplexSpecies, MonomerCollection):
     @name.setter
     def name(self, name: str):
         self._name = self._check_name(name)
+
+
+class Complex:
+    """
+     !!!ComplexSpecies and OrderedComplexSpecies should ALWAYS be created with the Complex function!!!
+
+    Complex is not a class that gets instantiated - it creates ComplexSpecies and OrderedComplexSpecies.
+    The Logic encoded in the __new__ function is used to insert these classes into the binding sites of
+    OrderedPolymerSpecies.
+
+    arguments:
+    species: a list of species to put into ComplexSpecies or OrderedComplexSpecies
+
+    keywords:
+    ordered: whether to produce an OrderedComplexSpecies (default = False)
+    """
+    def __new__(cls, *args, **keywords):
+        """
+        This function effectively produces the instance of the correct Species Class based upon the arguments passed in.
+
+        Cases: Here species refer to the Species in the Species list passed into the construct.
+        1.  No Species have parents. 
+            Produces: an ComplexSpecies or an OrderedComplexSepcies
+        2.  A single Species S has a parent which is an OrderedPolymerSpecies with no parent. 
+            Produces: an OrderedPolymerSpecies with a ComplexSpecies or OrderedComplexSpecies containing S in S's location in the OrderedPolymerSpecies.
+        3.  A single Species S has a parent which is an OrderedPolymerSpecies with a PolymerConformation as a parent.
+            Produces: a (Ordered)ComplexSpecies in a PolymerConformation with in the OrderedPolymerSpecies inside the PolymerConformation
+        4.  A single Species S has a parent which is an PolymerConformation. This implies S is a (Ordered)ComplexSpecies inside the PolymerConformation.
+            Produces: (Ordered)ComplexSpecies(species) in the PolymerConformation which replaces S (similar to case 2).
+        5.  Multiple Species S have parents which are OrderedPolymerSpecies without parents.
+            Produces: a (Ordered)ComplexSpecies containing all S inside a PolymerConformation
+        6.  Multiple Species S have parents which are OrderedPolymerSpecies with parents and/or PolymerConformations
+            Produces: a (Ordered)ComplexSpecies containing all S inside a PolymerConformation which merges all PolymerComformation Complexes.
+        """
+        species = []
+        # below is extracting the "species" keywords from the args
+        keywarg = None
+        if("species" in keywords):
+            keywarg = True
+            species = keywords["species"]
+            del keywords["species"]
+        elif(len(args) >= 1):
+            keywarg = False
+            species = args[0]
+            args = args[1:]
+
+        if not isinstance(species, list):
+            raise TypeError(f"First argument to Complex (or species keyword), must be a list of Species; recieved {species}.")
+
+        # Check whether ot make a ComplexSpecies or OrderedComplexSpecies
+        if "ordered" in keywords:
+            ordered = keywords["ordered"]
+            del keywords["ordered"]
+        else:
+            ordered = False
+
+        parent_species = []  # parent_species is a list of OrderedPolymerSpecies and/or PolymerConformations
+        bindloc = None  # bindloc is the location a Species is bound to parent_species
+        other_species = []  # Other species in the Complex
+
+        # Below cycle through species and see if one has a parent. If it does, that means the species is
+        # in an OrderedPolymerSpecies and the Complex should be formed around it.
+        for specie in species:
+            if(hasattr(specie, "parent") and (specie.parent is not None)):
+                if len(parent_species) == 0:
+                    # It is very important to deepcopy here because the underlying OrderedPolymerSpecies or PolymerConformation will be modified.
+                    parent_species.append(copy.deepcopy(specie.parent))
+                    bindloc = specie.position
+                else:
+                    #This adds to a growing list of parents, which will be placed in an PolymerConformation
+                    parent_species.append(copy.deepcopy(specie.parent))
+                    bindloc = None
+            else:
+                other_species += [specie]
+
+        #Case 1: If no OrderedPolymerSpecies is found, just call the regular constructor.
+        if len(parent_species) == 0:
+            if ordered:
+                # this creates an OrderedComplexSpecies
+                # pass in all the args and keywords appropriately
+                keywords["called_from_complex"] = True
+                return OrderedComplexSpecies(species, *args, **keywords)
+            else:
+                # this creates a ComplexSpecies
+                # pass in all the args and keywords appropriately
+                keywords["called_from_complex"] = True
+                return ComplexSpecies(species, *args, **keywords)
+
+        #Case 2 and 3: the Complex is being formed inside an OrderedPolymerSpecies
+        elif len(parent_species) == 1 and isinstance(parent_species[0], OrderedPolymerSpecies):
+            parent_species = parent_species[0]
+            # this is the species around which the complex is being formed
+            # basically we want to "unclone" this and then "clone the new ComplexSpecies we will have created"
+
+
+            prev_species = copy.copy(parent_species[bindloc])
+            prev_direction = prev_species.direction
+            prev_species.remove()
+            new_species = other_species + [prev_species]
+            # Create an OrderedcomplexSepcies
+            if ordered:
+                keywords["called_from_complex"] = True
+                keywords["direction"] = prev_direction
+                new_complex = OrderedComplexSpecies(new_species, *args, **keywords)
+            # Create a ComplexSpecies
+            else:
+                keywords["called_from_complex"] = True
+                keywords["direction"] = prev_direction
+                new_complex = ComplexSpecies(new_species, *args, **keywords)
+
+            #Create a new OrderedPolymerSpecied which is copied from the parent with the new complex replacing bindloc.
+            ops = OrderedPolymerSpecies.from_polymer_species(parent_species, {bindloc:new_complex})
+
+
+            """
+            OLD CODE
+            prev_species = copy.copy(parent_species[bindloc])
+            prev_species.remove()
+            prev_direction = copy.deepcopy(parent_species[bindloc].direction)
+
+            # combine what was in the OrderedMonomer with the new stuff in the list
+            new_species = other_species+[prev_species]
+
+            # Create an OrderedcomplexSepcies
+            if ordered:
+                keywords["called_from_complex"] = True
+                new_complex = OrderedComplexSpecies(new_species, *args, **keywords)
+            # Create a ComplexSpecies
+            else:
+                keywords["called_from_complex"] = True
+                new_complex = ComplexSpecies(new_species, *args, **keywords)
+            # now we replace the monomer inside the parent polymer
+            parent_species.replace(bindloc, new_complex, prev_direction)
+            # set the default material
+            parent_species.material_type = OrderedPolymerSpecies.default_material"""
+
+            #Case 2: OrderedPolymerSpecies has no parent
+            if parent_species.parent is None:
+                return ops[bindloc]
+            #Case 3: OrderedPolymerSpecies is inside a PolymerConformation
+            elif isinstance(parent_species.parent, PolymerConformation):
+                pass
+
+            else:
+                #This error should never occur
+                raise TypeError(f"Unknown parent type {type(parent_species)} recieved for {parent_species} .parent {parent_species.parent}.")
+        else:
+            if len(parent_species) == 1 and isinstance(parent_species[0], OrderedPolymerSpecies) and isinstance(parent_species[0], PolymerConformation):
+                pass
+            pass
