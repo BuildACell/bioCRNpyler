@@ -78,11 +78,61 @@ def test_complex_with_multiple_polymers():
     assert c2.parent == PolymerConformation([ComplexSpecies([Species("S"), p[0], p2[1]], called_from_complex = True)])
     assert str(c2) == str(ComplexSpecies([Species("S"), p[0], p2[1]], called_from_complex = True))
 
+    #Two polymers already bound together in a Conformation interacting at a new location
+    l1 = c2.parent.polymers[0][1]
+    print(l1, l1.parent, l1.parent.parent)
+    l2 = c2.parent.polymers[1][0]
+    print(l2, l2.parent, l2.parent.parent)
+    c3 = Complex([l1, l2], ordered = True)
+    assert c3.parent == PolymerConformation([
+        ComplexSpecies([Species("S"), p[0], p2[1]], called_from_complex = True),
+        OrderedComplexSpecies([p[1], p2[0]], called_from_complex = True)
+        ])
+    assert str(c3) == str(OrderedComplexSpecies([p[1], p2[0]], called_from_complex = True))
+
 def test_complex_with_polymer_replacement():
-    pass
+    #This occurs when a Complex is formed around a Monomer in a Polymer in a PolymerConformation which does not include any other Monomers with parents.
+    a = Species('A')
+    b = Species('B')
+    p = OrderedPolymerSpecies([a,b,a])
+    pc = Complex([p[0], p[1]]).parent #get a PolymerConformation
+    #create a Complex around an unbound element of p (from within pc)
+    c = Complex([Species("S"), pc.polymers[0][2], Species("S")], ordered = True)
+    assert str(c) == str(OrderedComplexSpecies([Species("S"), p[2], Species("S")], called_from_complex = True))
+
+    #Make the same thing with the replacement first
+    p2 = OrderedPolymerSpecies([a,b,Complex([Species("S"), a, Species("S")], ordered = True)])
+    assert str(c.parent) == str(p2)
+    assert c.parent.parent == Complex([p2[0], p2[1]]).parent
+    
 
 def test_complex_with_a_complex_in_a_conformation():
-    pass
+    #This occurs when Complexes are formed around Complexes in PolymerConformations.
+    #In these cases, the Complexes are merged to prevent nested Complexes inside of PolymerConformations.
+    a = Species('A')
+    b = Species('B')
+    p = OrderedPolymerSpecies([a,b,a])
+    pc = Complex([p[0], p[1]]).parent #get a PolymerConformation
+    c = pc.complexes[0] #get a complex from the PolymerConformation
+
+    c2 = Complex([c, Species("S")]) #Create a Complex with a Complex
+    pc2 = c2.parent
+    assert str(c2) == str(ComplexSpecies([p[0], p[1], Species("S")])) #merging done correctly
+    assert pc2 == Complex([p[0], p[1], Species("S")]).parent #check the parent PolymerConformation
+
+    #Create a PolymerConformation with two complexes
+    c3 = Complex([pc2.polymers[0][0], pc2.polymers[0][2], Species("S2")])
+    pc3 = c3.parent
+    assert len(pc3.complexes) == 2
+    assert str(c3) == str(ComplexSpecies([p[0], p[2], Species("S2")], called_from_complex = True))
+
+    #merge the two complexes in pc3
+    print("pc2.c0", pc3.complexes[0])
+    print("pc2.c1", pc3.complexes[1])
+    
+    c4 = Complex([pc3.complexes[0], pc3.complexes[1], Species("S3")])
+    assert len(c4.parent.complexes) == 1
+
     
 def test_invalid_complex():
     with pytest.raises(TypeError):
