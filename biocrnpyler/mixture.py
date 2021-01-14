@@ -413,20 +413,39 @@ class Mixture(object):
         if(recursion_depth is None):
             recursion_depth = self.recursion_depth
         assert(recursion_depth is not None)
-        new_components = []
+
         if(comps_to_enumerate is None):
-            comps_to_enumerate = self.components
+            comps_to_enumerate = self.components #these go into the ComponentEnuemrators
+
         #Recursion depth
+        enumerated_components = [] #These will be returned
+
         for a in range(recursion_depth):
-            new_components = []
+            new_comps_to_enumerate = [] #these will be added to comps_to_enumerate at the end of the iteration
+
             for global_enumerator in self.global_component_enumerators:
                 enumerated = global_enumerator.enumerate_components(comps_to_enumerate) #this should be only NEWLY CREATED components
-                new_components += enumerated
+                for c in enumerated:
+
+                    #These components are passed into the enumerator next recursion
+                    if c not in new_comps_to_enumerate and c not in comps_to_enumerate:
+                        new_comps_to_enumerate.append(c)
+
+                    #These components are returend
+                    if c not in enumerated_components:
+                        enumerated_components.append(c)
+
+            #Update comps_to_enumerate
+            comps_to_enumerate += new_comps_to_enumerate
+
+
+
             #return_components += comps_to_enumerate #components which we enumerated should be returned
-            comps_to_enumerate += new_components #new components AND the ones which were already enumerated go back into enumeration
-            comps_to_enumerate = list(set(comps_to_enumerate)) #only save unique things
-            new_components = []
-        return comps_to_enumerate
+            #comps_to_enumerate += new_components #new components AND the ones which were already enumerated go back into enumeration
+            #comps_to_enumerate = list(set(comps_to_enumerate)) #only save unique things
+            #new_components = []
+        return enumerated_components
+
     def compile_crn(self, recursion_depth = 10, initial_concentration_dict = None) -> ChemicalReactionNetwork:
         """Creates a chemical reaction network from the species and reactions associated with a mixture object.
         :param initial_concentration_dict: a dictionary to overwride initial concentrations at the end of compile time
