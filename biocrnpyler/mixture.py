@@ -410,23 +410,26 @@ class Mixture(object):
             warn("Mixture was left with unenumerated components "+str(', '.join(comps_to_enumerate)))
         return all_components
     
-    def global_component_enumeration(self,comps_to_enumerate=None, recursion_depth=4) -> List[Component]:
+    def global_component_enumeration(self,comps_to_enumerate=None, recursion_depth=None) -> List[Component]:
         """components that produce other components infinitely"""
+        if(recursion_depth is None):
+            recursion_depth = self.recursion_depth
+        assert(recursion_depth is not None)
         new_components = []
         if(comps_to_enumerate is None):
             comps_to_enumerate = self.components
         #Recursion depth
-        return_components = []
         for a in range(recursion_depth):
             new_components = []
             for global_enumerator in self.global_component_enumerators:
-                enumerated = global_enumerator.enumerate_components(comps_to_enumerate)
+                enumerated = global_enumerator.enumerate_components(comps_to_enumerate) #this should be only NEWLY CREATED components
                 new_components += enumerated
-            return_components += comps_to_enumerate
-            comps_to_enumerate = new_components
+            #return_components += comps_to_enumerate #components which we enumerated should be returned
+            comps_to_enumerate += new_components #new components AND the ones which were already enumerated go back into enumeration
+            comps_to_enumerate = list(set(comps_to_enumerate)) #only save unique things
             new_components = []
 
-        return return_components
+        return comps_to_enumerate
     def compile_crn(self, recursion_depth = 10, initial_concentration_dict = None) -> ChemicalReactionNetwork:
         """Creates a chemical reaction network from the species and reactions associated with a mixture object.
         :param initial_concentration_dict: a dictionary to overwride initial concentrations at the end of compile time
@@ -439,7 +442,7 @@ class Mixture(object):
 
         #add the extra species to the CRN
         self.add_species_to_crn(self.added_species, component = None)
-        globally_enumerated_components = self.global_component_enumeration(recursion_depth=4)
+        globally_enumerated_components = self.global_component_enumeration(recursion_depth=self.recursion_depth)
         enumerated_components = self.component_enumeration(globally_enumerated_components,recursion_depth) #This includes self.components
 
         #reset the Components' mixture to self - in case they have been added to other Mixtures
