@@ -244,7 +244,7 @@ class Species(OrderedMonomer):
                 and self.material_type == other.material_type \
                 and self.name == other.name \
                 and set(self.attributes) == set(other.attributes)\
-                and self.parent == other.parent\
+                and self.parent is other.parent\
                 and self.compartment == other.compartment\
                 and self.position == other.position:
             return True
