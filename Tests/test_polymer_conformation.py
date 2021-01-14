@@ -9,7 +9,7 @@ from biocrnpyler import OrderedPolymerSpecies, PolymerConformation, Complex, Spe
 def test_single_polymer_single_complex_instantiation():
     p = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
     c1 = ComplexSpecies([p[0], p[1], Species("S")], called_from_complex = True)
-    pc = PolymerConformation(complexes = [c1], called_from_complex = True)
+    pc = PolymerConformation(complexes = [c1])
     #Test naming convention
     assert str(pc) == f"conformation__{p}_np0p0_{c1}_"
 
@@ -19,13 +19,20 @@ def test_single_polymer_single_complex_instantiation():
     #In these cases, TypeErrors should be raised
     with pytest.raises(TypeError):
         #Emtpy complexes is not allowed
-        pc2 = PolymerConformation(complexes = [], called_from_complex = True)
+        pc2 = PolymerConformation(complexes = [])
 
     with pytest.raises(ValueError):
         #set a PolymerConformation as a parent of the Species.
         S = Species("S")
         S.parent = pc
         c3 = ComplexSpecies([p[0], S], called_from_complex = True)
+        pc2 = PolymerConformation(complexes = [c3])
+
+    with pytest.raises(ValueError):
+        #Cannot place an entire polymer into a Complex
+        S = Species("S")
+        S.parent = pc
+        c3 = ComplexSpecies([p, S], called_from_complex = True)
         pc2 = PolymerConformation(complexes = [c3])
 
 
@@ -38,53 +45,53 @@ def test_multiple_polymer_multiple_complex_instantiation():
     c3 = ComplexSpecies([Species("S1"), Species("S2")], called_from_complex = True)
     
     
-    pc1 = PolymerConformation(complexes = [c1, c2], called_from_complex = True)
+    pc1 = PolymerConformation(complexes = [c1, c2])
     
     #Check naming convention
     assert str(pc1) == f"conformation__{p1}_{p2}_p0p0_{c1}_p0p1_{c2}_"
 
     #check that order doesn't matter
-    pc1_r = PolymerConformation(complexes = [c2, c1], called_from_complex = True)
+    pc1_r = PolymerConformation(complexes = [c2, c1])
     assert pc1 == pc1_r
 
     #check that ComplexSpecies with the same string representation but different polymers are treated differently
     c1b = ComplexSpecies([p2[1], p1[0]], called_from_complex = True) #c1 and c1b have the same string representation - but connect different polymers
-    pc1b = PolymerConformation(complexes = [c1b, c2], called_from_complex = True)
+    pc1b = PolymerConformation(complexes = [c1b, c2])
     assert str(pc1b) == f"conformation__{p1}_{p2}_p0p1_{c1}_p0p1_{c2}_"
     assert pc1 != pc1b
 
     #Check that order doesn't matter for Complexes with the same string representation
-    pc1br = PolymerConformation(complexes = [c2, c1b], called_from_complex = True) #reverse case
+    pc1br = PolymerConformation(complexes = [c2, c1b]) #reverse case
     assert pc1b == pc1br
 
-    pc2 = PolymerConformation(complexes = [c1, c2], called_from_complex = True)
-    pc2b = PolymerConformation(complexes = [c1b, c2], called_from_complex = True)
+    pc2 = PolymerConformation(complexes = [c1, c2])
+    pc2b = PolymerConformation(complexes = [c1b, c2])
     assert pc2 != pc2b
 
     #In these cases, value errors should be raised
     with pytest.raises(ValueError):
         #c3 is not part of the conformation
-        pc = PolymerConformation(complexes = [c1, c3], called_from_complex = True)
+        pc = PolymerConformation(complexes = [c1, c3])
 
     #try 2 polymers with complexes that look the same
     p3 = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
     c4 = ComplexSpecies([p1[0], p3[0]])
 
-    pc3 = PolymerConformation([c1, c4], called_from_complex = True)
+    pc3 = PolymerConformation([c1, c4])
     assert str(pc3) == f"conformation__{p1}_{p1}_p0p0_{c1}_p0p1_{c4}_"
 
     #check that order doesn't matter for polymers which look the same
-    pc3r = PolymerConformation([c4, c1], called_from_complex = True)
+    pc3r = PolymerConformation([c4, c1])
     assert pc3 == pc3r
 
     with pytest.raises(ValueError):
         #duplicate Complexes are not allowed (same object case)
-        pc4 = PolymerConformation([c1, c1], called_from_complex = True)
+        pc4 = PolymerConformation([c1, c1])
 
     c1b = ComplexSpecies([p1[0], p1[1]], called_from_complex = True)
     with pytest.raises(ValueError):
         #duplicate Complexes are not allowed (identical object case)
-        pc4 = PolymerConformation([c1, c1b], called_from_complex = True)
+        pc4 = PolymerConformation([c1, c1b])
 
 
 def test_from_polymer_conformation():
@@ -93,7 +100,7 @@ def test_from_polymer_conformation():
     #Produce a PolymerConformation
     p1 = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
     c1 = ComplexSpecies([p1[0], p1[1]], called_from_complex = True)
-    pc1 = PolymerConformation(complexes = [c1], called_from_complex = True)
+    pc1 = PolymerConformation(complexes = [c1])
 
     #This Complex uses the polymer inside the pc1 so there is only a single polymer in the final PolymerConformation
     c1b = ComplexSpecies([pc1.polymers[0][0], pc1.polymers[0][2]], called_from_complex = True)
@@ -124,8 +131,7 @@ def test_from_polymer_conformation():
     #Test from multiple PolymerConformations
     p2 = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m4")])
     c2 = ComplexSpecies([p2[0], p2[1]], called_from_complex = True)
-    pc2 = PolymerConformation(complexes = [c2], called_from_complex = True)
-
+    pc2 = PolymerConformation(complexes = [c2])
     #Create a PolymerConformation that links the two Polymers together
     c3 = ComplexSpecies([p1[0], p1[1]], called_from_complex = True)
     pc3 = PolymerConformation([c3])
@@ -150,7 +156,7 @@ def test_from_polymer_replacement():
     #Produce a PolymerConformation
     p1 = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
     c1 = ComplexSpecies([p1[0], p1[1], Species("S"), Species("S")], called_from_complex = True)
-    pc1 = PolymerConformation(complexes = [c1], called_from_complex = True)
+    pc1 = PolymerConformation(complexes = [c1])
 
     #Produce a second Polymer
     p2 = OrderedPolymerSpecies([Species("m3"), Species("m2"), Species("m1")])
@@ -159,7 +165,7 @@ def test_from_polymer_replacement():
 
     #This should be equivalent to creating a new PolymerConformation
     c2 = ComplexSpecies([p2[0], p2[1], Species("S"), Species("S")], called_from_complex = True)
-    pc2 = PolymerConformation(complexes = [c2], called_from_complex = True)
+    pc2 = PolymerConformation(complexes = [c2])
     assert pc1_replaced == pc2
 
     #Replacing a Polymer with the same polymer is valid, but doesn't do anything
@@ -185,7 +191,15 @@ def test_from_polymer_replacement():
 
     with pytest.raises(TypeError):
         PolymerConformation.from_polymer_replacement(None, [pc1.polymers[0]], [p1, p2])
-    
+
+
+def test_get_complex():
+    p = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
+    c1 = ComplexSpecies([p[0], p[1], Species("S")], called_from_complex = True)
+    pc = PolymerConformation(complexes = [c1])
+
+    assert str(pc.get_complex(c1)) == str(c1) #these are not technically equal because they have different parents
+
     
     
     
