@@ -106,7 +106,7 @@ class Polymer_transformation:
                     outpart = part
                 else:
                     #this is a new part which wasn't part of a polymer (like an attL site)
-                    if(bound):
+                    if(bound and hasattr(part,"get_complexed_species")):
                         outpart = part.get_complexed_species(part.dna_species)
                     else:
                         outpart = part.dna_species
@@ -118,7 +118,8 @@ class Polymer_transformation:
             outlst += [[outpart,partdir]]
         outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular)
         return outpolymer
-    def dummify(self,in_polymer,name):
+    @classmethod
+    def dummify(cls,in_polymer,name):
         out_list = []    
         for element in in_polymer:
             out_list += [OrderedMonomer(direction=element.direction)]

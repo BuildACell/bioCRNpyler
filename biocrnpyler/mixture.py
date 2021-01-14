@@ -391,16 +391,14 @@ class Mixture(object):
         if(comps_to_enumerate is None):
             comps_to_enumerate = self.components
 
-
         #Recursion depth
         for a in range(recursion_depth):
-
             for component in comps_to_enumerate:
                 
                 component.set_mixture(self)
                 enumerated = component.enumerate_components()
                 new_components += enumerated
-
+            
 
             all_components += comps_to_enumerate
             comps_to_enumerate = new_components
@@ -428,7 +426,6 @@ class Mixture(object):
             comps_to_enumerate += new_components #new components AND the ones which were already enumerated go back into enumeration
             comps_to_enumerate = list(set(comps_to_enumerate)) #only save unique things
             new_components = []
-
         return comps_to_enumerate
     def compile_crn(self, recursion_depth = 10, initial_concentration_dict = None) -> ChemicalReactionNetwork:
         """Creates a chemical reaction network from the species and reactions associated with a mixture object.
@@ -448,16 +445,17 @@ class Mixture(object):
         #reset the Components' mixture to self - in case they have been added to other Mixtures
         for c in enumerated_components:
             c.set_mixture(self)
-
         #Append Species from each Component
+        x = 0
         for component in enumerated_components:
+            x+=1
             self.add_species_to_crn(remove_bindloc(component.update_species()), component)
-
         #Append Reactions from each Component
+        x = 0
         for component in enumerated_components:
+            x += 1
             comp_rxns = component.update_reactions()
             self.crn.add_reactions(comp_rxns)
-
         #global mechanisms are applied last and only to all the species
         #the reactions and species are added to the CRN
         self.apply_global_mechanisms(self.crn.species)
@@ -465,7 +463,6 @@ class Mixture(object):
         #Manually change/override initial conditions at compile time
         if initial_concentration_dict is not None:
             self.crn.initial_concentration_dict = initial_concentration_dict
-
         return self.crn
 
     def __str__(self):
