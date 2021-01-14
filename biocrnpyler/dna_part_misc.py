@@ -139,7 +139,7 @@ class AttachmentSite(DNABindingSite):
                                 complex_parent in self.linked_sites[site][1]):
                     #make sure that both this site and the other site are bound
                     for integrase_function in self.linked_sites[site][0]:
-                        integr = integrase_function.create_polymer(complex_parent)
+                        integr = integrase_function.create_polymer([complex_parent])
                         integrated_dnas += [integr]
                 
                     reactions += int_mech.update_reactions([complex_parent],integrated_dnas,component=self,part_id = self.integrase.name)
@@ -151,7 +151,7 @@ class AttachmentSite(DNABindingSite):
                     integrated_dnas = []
                     for integrase_function in self.linked_sites[site][0]:
                         #for every result that we could get, generate it
-                        integrated_dnas += [integrase_function.create_polymer(complex_parent,other_dna)]
+                        integrated_dnas += [integrase_function.create_polymer([complex_parent,other_dna])]
                     reactions += int_mech.update_reactions([complex_parent,other_dna],integrated_dnas,component=self,part_id = self.integrase.name)
                     populate = False #since the other site already populated us, no reason to populate it
             #next part updates the linked site

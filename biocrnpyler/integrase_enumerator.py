@@ -29,9 +29,9 @@ class Polymer_transformation:
         inputname = None
         for part in partslist:
             if(type(part)==list or type(part) ==tuple):
-                #if the part is a tuple that means it looks like [OrderedMonomer,"direction"]
-                partdir = part[1]
+                #if the part is a list that means it looks like [OrderedMonomer,"direction"]
                 part_ref = part[0]
+                partdir = part[1]
             else:
                 part_ref = part
                 partdir = part_ref.direction
@@ -60,9 +60,17 @@ class Polymer_transformation:
         self.partslist = actual_partslist
         self.circular = circular
     def inverted(self):
-        """return an "inverted" version of yourself where input1 = input2
-        WARNING: this will not work with more than 2 sites!"""
+        """return a circularly permuted version of self. That means the inputs are shuffled around
+        For example, we had input1, input2, input3. Now we will have input1=input2, input2=input3, input3=input1."""
         new_parentsdict = {}
+
+        new_name_dict = {}
+        for inputnum in range(self.number_of_inputs):
+            if(inputnum == self.number_of_inputs-1):
+                new_name_dict["input"+str(inputnum+1)]="input1"
+            else:
+                new_name_dict["input"+str(inputnum+1)]="input"+str(inputnum+2)
+            
         if(len(self.parentsdict)==1):
             #in this case we have only "input1"
             return self
@@ -70,17 +78,18 @@ class Polymer_transformation:
             for part in self.partslist:
                 if(part[0].parent is not None and part[0].parent not in new_parentsdict):
                     #this next line outputs input2 when given input1
-                    newname = ["input1","input2"][part[0].parent.name=="input1"]
+                    
+                    newname = new_name_dict[part[0].parent.name]
                     new_parentsdict[part[0].parent]=newname
             return Polymer_transformation(self.partslist,self.circular,parentsdict=new_parentsdict)
-    def create_polymer(self,*args,bound=True,**keywords):
-        inputcount = 1
-        for arg in args:
-            inputname = "input"+str(inputcount)
-            assert(inputname not in keywords)
-            keywords[inputname]=arg
-            inputcount += 1
-        assert(sum(["input" in a for a in keywords])>=self.number_of_inputs)
+    def create_polymer(self,polymer_list,bound=True,**keywords):
+        """this function creates a new polymer from the template saved inside this class.
+        A polymer_list is a list of polymers from which the resulting polymer is made. Some of
+        the parts which compose the output polymer don't have a parent, and therefore are new parts.
+        Usually, these parts will have a "bound" form, which is basically the version of them which
+        has proteins bound. if bound=False, the unbound form of these parts will be used."""
+        polymer_dict = {"input"+str(a+1):b for a,b in enumerate(polymer_list)}
+        assert(len(polymer_list)>=self.number_of_inputs)
         outlst = []
         for part_list in self.partslist:
             part = part_list[0]
@@ -88,12 +97,12 @@ class Polymer_transformation:
             outpart = None
             
             if(part.parent is not None):
-                outpart = keywords[part.parent.name][part.position] #grab the part from the proper input
+                outpart = polymer_dict[part.parent.name][part.position] #grab the part from the proper input
             else:
                 #parts that don't come from input1 or input2.
                 #they need to be either DNA_part or species objects, depending on
                 #what kind of object we are making in the end.
-                if(isinstance(keywords["input1"],Construct)):
+                if(isinstance(polymer_dict["input1"],Construct)):
                     outpart = part
                 else:
                     #this is a new part which wasn't part of a polymer (like an attL site)
@@ -107,7 +116,7 @@ class Polymer_transformation:
                 outpart.linked_sites = {} #make sure that any integrase sites we copy this way have no
                                             #linked sites, as those would not be links created by the integrate() function
             outlst += [[outpart,partdir]]
-        outpolymer = keywords["input1"].__class__(outlst,circular = self.circular)
+        outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular)
         return outpolymer
     def dummify(self,in_polymer,name):
         out_list = []    
@@ -133,7 +142,7 @@ class Polymer_transformation:
             out_txt += ")"
         return out_txt
 
-class IntegraseMechanism:
+class IntegraseRule:
     def __init__(self,name=None,reactions={("attB","attP"):"attL",("attP","attB"):"attR"}):
         """The integrase mechanism is a mechanism at the level of DNA. It creates DNA species which
         the integrase manipulations would lead to. This mechanism does not create any reaction rates.
@@ -270,7 +279,10 @@ class IntegraseMechanism:
                 integ_funcs = [Polymer_transformation(result,circ1,parentsdict=pdict)]
             elif(circ2 ==False and circ1 == True):
                 #if the sites are backwards just reverse everything
-                return self.integrate(site2,site1)
+                #this is wrong!!!!! it should return inverted polymer_transformations then
+                polymer_transformations = self.integrate(site2,site1)
+
+                return [a.inverted() for a in polymer_transformations][::-1]
             elif(circ1==False and circ1==circ2):
                 #here we are recombining two linear plasmids, so two linear plasmids are produced
 
@@ -279,7 +291,6 @@ class IntegraseMechanism:
                 integ_funcs = [Polymer_transformation(result1,parentsdict=pdict),Polymer_transformation(result2,parentsdict=pdict)]
         
         #newdna = [a.create_polymer(*dna_inputs) for a in integ_funcs]
-
         site1.linked_sites[site2] = [integ_funcs,[]]
         site2.linked_sites[site1] = [[a.inverted() for a in integ_funcs],[]]
         return integ_funcs
@@ -291,7 +302,7 @@ class IntegraseMechanism:
 class Integrase_Enumerator(GlobalComponentEnumerator):
     def __init__(self,name:str,int_mechanisms = None):
         if(int_mechanisms is None):
-            int_mechanisms={"int1":IntegraseMechanism()}
+            int_mechanisms={"int1":IntegraseRule()}
         self.int_mechanisms = int_mechanisms
         GlobalComponentEnumerator.__init__(self,name=name)
     def combine_dictionaries(self,dict1,dict2):
@@ -360,7 +371,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                         int_functions = int_mech.integrate(combo[0],combo[1])
                         new_dnas = []
                         for a in int_functions:
-                            new_dna = a.create_polymer(combo[0].parent,combo[1].parent)
+                            new_dna = a.create_polymer([combo[0].parent,combo[1].parent])
                             new_dnas += [new_dna]
                         constructlist += new_dnas
         return constructlist

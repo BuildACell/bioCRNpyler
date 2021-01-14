@@ -413,7 +413,7 @@ def make_dpl_from_construct(construct, showlabels=None):
         showlabels = []
     outdesign = []
     if(HAVE_MATPLOTLIB):
-        cmap = cm.Set1(range(len(construct.parts_list)*2))
+        cmap = cm.Set1(range(len(construct.parts_list)*2+1))
     pind = 0
     for part in construct.parts_list:
         pcolor = part.color
