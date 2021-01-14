@@ -34,7 +34,6 @@ def recursive_parent(s):
 
 def remove_bindloc(spec_list):
         """go through every species on a list and remove any "bindloc" attributes"""
-        
         out_sp_list = []
         for s in spec_list:
             #go through the species and replace species with their parents, recursively
@@ -42,11 +41,11 @@ def remove_bindloc(spec_list):
             if isinstance(s, WeightedSpecies):
                 parent = recursive_parent(s.species)
                 s.species = parent
+                out_sp_list.append(s)
             else:
                 parent = recursive_parent(s)
-
-            out_sp_list.append(parent)
-
+                out_sp_list.append(parent)
+                
         return out_sp_list
 
 #Converts a parameter to its Value
