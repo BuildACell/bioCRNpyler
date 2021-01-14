@@ -109,29 +109,31 @@ def test_complex_with_polymer_replacement():
 def test_complex_with_a_complex_in_a_conformation():
     #This occurs when Complexes are formed around Complexes in PolymerConformations.
     #In these cases, the Complexes are merged to prevent nested Complexes inside of PolymerConformations.
+    #Using ordered = True to test that order is preserved
     a = Species('A')
     b = Species('B')
-    p = OrderedPolymerSpecies([a,b,a])
-    pc = Complex([p[0], p[1]]).parent #get a PolymerConformation
+    c = Species('C')
+    p = OrderedPolymerSpecies([a,b,c])
+    pc = Complex([p[0], p[1]], ordered = True).parent #get a PolymerConformation
     c = pc.complexes[0] #get a complex from the PolymerConformation
 
-    c2 = Complex([c, Species("S")]) #Create a Complex with a Complex
+    c2 = Complex([c, Species("S")], ordered = True) #Create a Complex with a Complex
     pc2 = c2.parent
-    assert str(c2) == str(ComplexSpecies([p[0], p[1], Species("S")])) #merging done correctly
-    assert pc2 == Complex([p[0], p[1], Species("S")]).parent #check the parent PolymerConformation
+    assert str(c2) == str(OrderedComplexSpecies([p[0], p[1], Species("S")])) #merging done correctly
+    assert pc2 == Complex([p[0], p[1], Species("S")], ordered = True).parent #check the parent PolymerConformation
+    assert len(pc2.complexes) == 1
 
     #Create a PolymerConformation with two complexes
-    c3 = Complex([pc2.polymers[0][0], pc2.polymers[0][2], Species("S2")])
+    c3 = Complex([pc2.polymers[0][0], pc2.polymers[0][2], Species("S2")], ordered = True)
     pc3 = c3.parent
     assert len(pc3.complexes) == 2
-    assert str(c3) == str(ComplexSpecies([p[0], p[2], Species("S2")], called_from_complex = True))
+    assert str(c3) == str(OrderedComplexSpecies([p[0], p[2], Species("S2")], called_from_complex = True))
 
     #merge the two complexes in pc3
-    print("pc2.c0", pc3.complexes[0])
-    print("pc2.c1", pc3.complexes[1])
-    
-    c4 = Complex([pc3.complexes[0], pc3.complexes[1], Species("S3")])
+    c4 = Complex([pc3.complexes[0], pc3.complexes[1], Species("S3")], ordered = True)
     assert len(c4.parent.complexes) == 1
+    assert str(c4) == str(Complex([p[0], p[1], Species("S"), p[0], p[2], Species("S2"), Species("S3")], ordered = True))
+    assert c4.parent == Complex([p[0], p[1], Species("S"), p[0], p[2], Species("S2"), Species("S3")], ordered = True).parent
 
     
 def test_invalid_complex():
