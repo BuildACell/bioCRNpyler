@@ -172,14 +172,19 @@ class RegulatedPromoter(Promoter):
 
             #Find complexes containing DNA and the regulator
             #DNA should be *not* a part of an OrderedPolymer for this to work
-            dna_simple = copy.deepcopy(self.dna_to_bind)
-            dna_simple.remove()
+            #dna_simple = copy.deepcopy(self.dna_to_bind)
+            #dna_simple.remove()
+            dna_simple = self.dna_to_bind
+            print("dna_simple", dna_simple)
+            print("species_b", species_b)
             for s in species_b:
                 if dna_simple in s and regulator in s:
+                    print("s", s)
                     self.complexes += [s]
 
                     species += mech_tx.update_species(dna = s, transcript = self.transcript, \
                             protein = self.get_protein_for_expression(), part_id = self.name+"_"+regulator.name, component = self)
+                    print("species", species)
         return species
 
     def update_reactions(self):

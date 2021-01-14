@@ -240,11 +240,12 @@ class Species(OrderedMonomer):
         :return: boolean
         """
 
+        #Note: "==" equality between parents and children can result in loops, so string equality is used
         if isinstance(other, Species) \
                 and self.material_type == other.material_type \
                 and self.name == other.name \
                 and set(self.attributes) == set(other.attributes)\
-                and self.parent is other.parent\
+                and str(self.parent) == str(other.parent)\
                 and self.compartment == other.compartment\
                 and self.position == other.position:
             return True
