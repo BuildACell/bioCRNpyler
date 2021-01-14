@@ -26,7 +26,10 @@ def test_complex_with_polymer():
     d_c = Complex([d[1],a])
     assert(isinstance(d_c, ComplexSpecies))
     truth = OrderedPolymerSpecies([a,Complex([b,a]),a])
-    assert(d_c.parent,truth)
+    assert(d_c.parent == truth)
+    print([(s, s.parent) for s in d_c.species])
+    assert(d[1] in d_c)
+    assert(b not in d_c) #b, unbound, is not in the Complex
 
     #Ordered case
     print("d", d)

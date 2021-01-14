@@ -73,3 +73,20 @@ class TestComplexSpecies(TestCase):
         self.assertFalse(oc1 == oc2)
         #check of __contains__
         self.assertTrue(s1 in c1)
+
+
+    def test_contains(self):
+        s1 = Species(name='s1', material_type="m1")
+        s2 = Species(name='s2', material_type="m2")
+        s3 = Species("s3")
+
+        c1 = ComplexSpecies([s1, s2, s1], called_from_complex = True)
+        c2 = ComplexSpecies([c1, s3], called_from_complex = True)
+
+        self.assertTrue(s1 in c1)
+        self.assertTrue(s2 in c1)
+        self.assertFalse(c1 in c1)
+        self.assertTrue(s1 in c2)
+        self.assertTrue(s2 in c2)
+        self.assertTrue(c1 in c2)
+        self.assertTrue(s3 in c2)

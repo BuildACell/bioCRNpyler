@@ -2,7 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import OrderedPolymer, OrderedMonomer, OrderedPolymerSpecies, Species
+from biocrnpyler import OrderedPolymer, OrderedMonomer, OrderedPolymerSpecies, Species, Complex
 
 class TestOrderedMonomer(TestCase):
 
@@ -97,6 +97,7 @@ class TestOrderedPolymer(TestCase):
         y.delpart(2)
         self.assertEqual(z.parent,None)
         self.assertEqual(y,truthvalue)
+
 class TestOrderedPolymerSpecies(TestCase):
     def test_ordered_polymer_species_initialization(self):
         a = Species("A")
@@ -158,3 +159,24 @@ class TestOrderedPolymerSpecies(TestCase):
         #reverse
         reversd.reverse()
         self.assertEqual(reversd,truth)
+
+    def test_ordered_polymer_species_contains(self):
+        a = Species("A")
+        b = Species("B")
+        bf = Species("B").set_dir("forward")
+        c = Complex([a, a])
+        p = OrderedPolymerSpecies([bf, b, c])
+
+        #In these cases, parent doesn't matter
+        self.assertTrue(a in p[2])
+        self.assertTrue(a in c)
+        self.assertTrue(b in p)
+        self.assertTrue(c in p)
+
+        p2 = OrderedPolymerSpecies([bf, a, c])
+        #In these cases parents matter
+        self.assertFalse(p[0] in p2)
+        self.assertFalse(p2[0] in p)
+
+        #In this case, direciton matters
+        self.assertFalse(b in p2)

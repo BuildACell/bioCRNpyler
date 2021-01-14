@@ -691,7 +691,8 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         self.material_type = material_type
 
         if(base_species is None):
-            self.base_species = Species(self.name, material_type=material_type)
+            self.base_species = Species("NA", material_type=material_type)
+            self.base_species._name = self.name #Bipass check until base-species is removed in Andrey's PR
         elif(isinstance(base_species, Species)):
             self.base_species = base_species
         else:
@@ -726,7 +727,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         if "attributes" not in keywords:
             keywords["attributes"] = ops.attributes
 
-        return cls(monomers, **keywords)
+        return cls(monomers, **keywords) #Produces a new OrderedPolymerSpecies
 
     @property
     def species_set(self):
@@ -800,7 +801,14 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
 
     def __contains__(self, item):
         for part in self.species:
-            if((part == item) or (item == part.data) or (item in part)):
+            part = copy.copy(part) #Only compare things which aren't None
+            if item.parent is None:
+                part.parent = None
+            if item.direction is None:
+                part.direciton = None
+            if item.position is None:
+                part.position = None
+            if part == item:
                 return True
         return False
 
@@ -1163,11 +1171,17 @@ class Complex:
             parent_species = parent_species[0]
             bindloc = bindlocs[0]
 
+            #Ensure the monomer in the Complex has no parent
+            #new_species = other_species
+            #monomer = copy.copy(child_species[0]) #Copy the monomer
+            #monomer.remove()
+            #new_species.insert(insertlocs[0], monomer) #Insert the monomer back into the Species
+
             # Create an OrderedcomplexSepcies or ComplexSpecies
             new_complex = ComplexClass(species, *args, **keywords)
 
-            #Create a new OrderedPolymerSpecied which is copied from the parent with the new complex replacing bindloc.
-            new_polymer_species = OrderedPolymerSpecies.from_polymer_species(parent_species, {bindloc:new_complex})
+            #Create a new OrderedPolymerSpecied which is copied from the parent with the new complex replacing bindloc (inheriting the same direction).
+            new_polymer_species = OrderedPolymerSpecies.from_polymer_species(parent_species, {bindloc:[new_complex, child_species[0].direction]})
 
             #Case 2: OrderedPolymerSpecies has no parent
             if parent_species.parent is None:
