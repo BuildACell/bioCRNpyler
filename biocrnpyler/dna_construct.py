@@ -366,10 +366,8 @@ class Construct(Component,OrderedPolymer):
             if(isinstance(comb_specie,OrderedPolymerSpecies)):
                 for part in active_components:
                     part_pos = part.position
-                    if(isinstance(comb_specie[part_pos],ComplexSpecies)):
-                        #in this case the position of interest is already complexed. Skip!
-                        pass
-                    else:
+                    if(not isinstance(comb_specie[part_pos],ComplexSpecies)):
+                        #in this case the position of interest is not complexed. Thus, we need to update!
                         combinatorial_components += [part.update_component(comb_specie[part_pos])]
         return combinatorial_components
 
