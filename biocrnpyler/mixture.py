@@ -426,7 +426,6 @@ class Mixture(object):
             for global_enumerator in self.global_component_enumerators:
                 enumerated = global_enumerator.enumerate_components(comps_to_enumerate) #this should be only NEWLY CREATED components
                 for c in enumerated:
-
                     #These components are passed into the enumerator next recursion
                     if c not in new_comps_to_enumerate and c not in comps_to_enumerate:
                         new_comps_to_enumerate.append(c)
@@ -446,7 +445,7 @@ class Mixture(object):
             #new_components = []
         return enumerated_components
 
-    def compile_crn(self, recursion_depth = 10, initial_concentration_dict = None, return_enumerated_components = False) -> ChemicalReactionNetwork:
+    def compile_crn(self, recursion_depth = None, initial_concentration_dict = None, return_enumerated_components = False) -> ChemicalReactionNetwork:
         """Creates a chemical reaction network from the species and reactions associated with a mixture object.
         :param initial_concentration_dict: a dictionary to overwride initial concentrations at the end of compile time
         :return: ChemicalReactionNetwork
@@ -458,20 +457,24 @@ class Mixture(object):
 
         #add the extra species to the CRN
         self.add_species_to_crn(self.added_species, component = None)
-
+        
+        #get the recursion depth
+        if(recursion_depth is None):
+            recursion_depth = self.recursion_depth
+        print("====global enumeration")
         #Run global enumeration
         globally_enumerated_components = self.global_component_enumeration(recursion_depth=recursion_depth)
-
+        print("====local enumeration")
         #Run Local Enumeraton
         enumerated_components = self.component_enumeration(globally_enumerated_components, recursion_depth = recursion_depth+2) #This includes self.components
-
         #reset the Components' mixture to self - in case they have been added to other Mixtures
         for c in enumerated_components:
             c.set_mixture(self)
+        print("====adding species")
         #Append Species from each Component
         for component in enumerated_components:
             self.add_species_to_crn(remove_bindloc(component.update_species()), component)
-
+        print("====adding reactions")
         #Append Reactions from each Component
         for component in enumerated_components:
             comp_rxns = component.update_reactions()

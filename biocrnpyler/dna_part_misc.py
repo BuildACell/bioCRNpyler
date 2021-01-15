@@ -88,6 +88,10 @@ class AttachmentSite(DNABindingSite):
         if(newcomp is None):
             return None
         elif(internal_species.parent is None):
+            for othersite in self.linked_sites:
+                mystuff = copy.copy(othersite.linked_sites[self])
+                othersite.linked_sites[newcomp] = mystuff
+                del othersite.linked_sites[self]
             return newcomp
         else:
             for othersite in self.linked_sites:
@@ -100,13 +104,10 @@ class AttachmentSite(DNABindingSite):
                     if(not otherisbound):
                         populate = False
                 if(populate):
-                    if(self in othersite.linked_sites):
-                        mystuff = copy.copy(othersite.linked_sites[self])
-                    else:
-                        blank_self = copy.copy(self)
-                        blank_self.dna_to_bind = None
-                        mystuff = copy.copy(othersite.linked_sites[blank_self])
-                    othersite.linked_sites.update({newcomp:mystuff})
+                    mystuff = copy.copy(othersite.linked_sites[self])
+                    del othersite.linked_sites[self]
+                    othersite.linked_sites[newcomp]=mystuff
+
                     assert(othersite in newcomp.linked_sites)
             return newcomp
     def count_inputs(self,site):
@@ -137,6 +138,7 @@ class AttachmentSite(DNABindingSite):
             if(self.count_inputs(site)== 1):
                 #this is an intramolecular reaction so we don't care about the other site's DNAs
                 integrated_dnas = []
+                
                 if(site.integrase in complex_parent[site.position] and \
                                 complex_parent in self.linked_sites[site][1]):
                     #make sure that both this site and the other site are bound
@@ -150,15 +152,16 @@ class AttachmentSite(DNABindingSite):
                 #this is for intermolecular reactions. now "other_dna" is possible
                 #go through all possible "other" dnas then calculate for each RNA
                 for other_dna in self.linked_sites[site][1]:
+                    #I am not convinced this loop runs more than once EVER
                     integrated_dnas = []
                     for integrase_function in self.linked_sites[site][0]:
                         #for every result that we could get, generate it
+                        #the next line generates the OrderedPolymerSpecies which results from recombination
                         integrated_dnas += [integrase_function.create_polymer([complex_parent,other_dna])]
                     reactions += int_mech.update_reactions([complex_parent,other_dna],integrated_dnas,component=self,part_id = self.integrase.name)
                     populate = False #since the other site already populated us, no reason to populate it
             #next part updates the linked site
-            
-            if(populate and complex_parent is not None and complex_parent not in site.linked_sites[self][1]):
+            if(populate and (complex_parent is not None) and self in site.linked_sites and (complex_parent not in site.linked_sites[self][1])):
                 site.linked_sites[self][1] += [complex_parent]
         return reactions
             

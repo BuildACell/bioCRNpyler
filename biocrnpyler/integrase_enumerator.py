@@ -111,7 +111,7 @@ class Polymer_transformation:
                     else:
                         outpart = part.dna_species
             #assuming the stored parts have a valid direction
-            if(isinstance(outpart,AttachmentSite)):
+            if(hasattr(outpart,"linked_sites")):
                 outpart = copy.copy(outpart)
                 outpart.linked_sites = {} #make sure that any integrase sites we copy this way have no
                                             #linked sites, as those would not be links created by the integrate() function
@@ -290,8 +290,7 @@ class IntegraseRule:
                 result1 = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]
                 result2 = dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
                 integ_funcs = [Polymer_transformation(result1,parentsdict=pdict),Polymer_transformation(result2,parentsdict=pdict)]
-        
-        #newdna = [a.create_polymer(*dna_inputs) for a in integ_funcs]
+
         site1.linked_sites[site2] = [integ_funcs,[]]
         site2.linked_sites[site1] = [[a.inverted() for a in integ_funcs],[]]
         return integ_funcs
