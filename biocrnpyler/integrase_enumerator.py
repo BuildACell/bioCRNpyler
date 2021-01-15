@@ -352,6 +352,9 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         int_dict = {}
         for construct in construct_list:
             #list each integrase that exists and which sites they react with
+            for part in construct:
+                if(hasattr(part,"linked_sites")):
+                    part.linked_sites = {}
             con_dict = self.list_integrase(construct)
             
             int_dict = self.combine_dictionaries(int_dict,con_dict)
