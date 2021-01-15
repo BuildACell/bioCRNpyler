@@ -15,6 +15,7 @@ from .reaction import Reaction
 from .species import Species
 from .utils import remove_bindloc
 
+
 class Mixture(object):
     def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
                  global_mechanisms=None, species=None, initial_condition_dictionary=None, \
@@ -461,27 +462,52 @@ class Mixture(object):
         #get the recursion depth
         if(recursion_depth is None):
             recursion_depth = self.recursion_depth
-        print("====global enumeration")
+
+
+        import time as pytime
+
+        print("====global enumeration", end = ": ")
         #Run global enumeration
+        s = pytime.process_time()
         globally_enumerated_components = self.global_component_enumeration(recursion_depth=recursion_depth)
-        print("====local enumeration")
+        e = pytime.process_time()
+        print(e-s)
+
+        print("====local enumeration", end = ": ")
         #Run Local Enumeraton
-        enumerated_components = self.component_enumeration(globally_enumerated_components, recursion_depth = recursion_depth+2) #This includes self.components
+        s = pytime.process_time()
+        enumerated_components = self.component_enumeration(globally_enumerated_components, recursion_depth = recursion_depth+2) #This includes self.components 
         #reset the Components' mixture to self - in case they have been added to other Mixtures
         for c in enumerated_components:
             c.set_mixture(self)
-        print("====adding species")
+        e = pytime.process_time()
+        print(e-s)
+
+        print("====adding species", end = ": ")
+        s = pytime.process_time()
         #Append Species from each Component
         for component in enumerated_components:
             self.add_species_to_crn(remove_bindloc(component.update_species()), component)
-        print("====adding reactions")
+
+        e = pytime.process_time()
+        print(e - s)
+
+        print("====adding reactions", end = ": ")
+        s = pytime.process_time()
         #Append Reactions from each Component
         for component in enumerated_components:
-            comp_rxns = component.update_reactions()
-            self.crn.add_reactions(comp_rxns)
+            self.crn.add_reactions(component.update_reactions())
+
+        e = pytime.process_time()
+        print(e - s)
+
         #global mechanisms are applied last and only to all the species
         #the reactions and species are added to the CRN
-        self.apply_global_mechanisms(self.crn.species)
+        print("====applying global mechanisms", end = ": ")
+        s = pytime.process_time()
+        self.apply_global_mechanisms(self.crn._species)
+        e = pytime.process_time()
+        print(e-s)
 
         #Manually change/override initial conditions at compile time
         if initial_concentration_dict is not None:
