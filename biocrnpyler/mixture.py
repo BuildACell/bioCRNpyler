@@ -478,52 +478,29 @@ class Mixture(object):
         if(recursion_depth is None):
             recursion_depth = self.recursion_depth
 
-
-        import time as pytime
-
-        print("====global enumeration", end = ": ")
         #Run global enumeration
-        s = pytime.process_time()
         globally_enumerated_components = self.global_component_enumeration(recursion_depth=recursion_depth)
-        e = pytime.process_time()
-        print(e-s)
 
-        print("====local enumeration", end = ": ")
         #Run Local Enumeraton
-        s = pytime.process_time()
         enumerated_components = self.component_enumeration(globally_enumerated_components, recursion_depth = recursion_depth+2) #This includes self.components 
         #reset the Components' mixture to self - in case they have been added to other Mixtures
         for c in enumerated_components:
             c.set_mixture(self)
-        e = pytime.process_time()
-        print(e-s)
 
-        print("====adding species", end = ": ")
-        s = pytime.process_time()
         #Append Species from each Component
         species = []
         for component in enumerated_components:
             self.add_species_to_crn(component.update_species(), component, no_initial_concentrations = initial_concentrations_at_end, copy_species = copy_objects)
 
-        e = pytime.process_time()
-        print(e - s)
 
-        print("====adding reactions", end = ": ")
-        s = pytime.process_time()
         #Append Reactions from each Component
         for component in enumerated_components:
             self.crn.add_reactions(component.update_reactions(), copy_reactions = copy_objects, add_species =  add_reaction_species)
 
-        e = pytime.process_time()
-        print(e - s)
 
         #global mechanisms are applied last and only to all the species
         #the reactions and species are added to the CRN
-        print("====applying global mechanisms", end = ": ")
-        s = pytime.process_time()
         self.apply_global_mechanisms(self.crn._species)
-        e = pytime.process_time()
-        print(e-s)
 
         if initial_concentrations_at_end:
             self.crn.initial_concentration_dict = self.get_initial_concentration(self.crn._species, component = None)
