@@ -119,8 +119,11 @@ class AttachmentSite(DNABindingSite):
         return len(set(dict_inputs))
     def update_reactions(self):
         reactions = DNABindingSite.update_reactions(self)
+        if(self.linked_sites == {}):
+            return reactions
         complex_parent = self.get_complexed_species(self.dna_to_bind).parent
         int_mech = self.get_mechanism('integration')
+
         #this next part generates integrase reactions
         for site in self.linked_sites:
             if(site.dna_to_bind is None or site.dna_to_bind.parent is None):
