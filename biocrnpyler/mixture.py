@@ -389,36 +389,33 @@ class Mixture(object):
         all_components = []
         new_components = []
         if(comps_to_enumerate is None):
-            comps_to_enumerate = self.components
+            comps_to_enumerate = list(self.components)
 
         #Recursion depth
         for a in range(recursion_depth):
             for component in comps_to_enumerate:
-                
                 component.set_mixture(self)
                 enumerated = component.enumerate_components()
                 new_components += enumerated
-            
 
             all_components += comps_to_enumerate
-            comps_to_enumerate = new_components
+            comps_to_enumerate = list(new_components)
             new_components = []
 
         if(len(comps_to_enumerate) > 0):
-            warn("Mixture was left with unenumerated components "+str(', '.join(comps_to_enumerate)))
+            warn("Mixture was left with unenumerated components "+str(', '.join([str(c) for c in comps_to_enumerate])))
         return all_components
     
     def global_component_enumeration(self,comps_to_enumerate=None, recursion_depth=None) -> List[Component]:
         """components that produce other components infinitely"""
         if(recursion_depth is None):
             recursion_depth = self.recursion_depth
-        assert(recursion_depth is not None)
 
         if(comps_to_enumerate is None):
-            comps_to_enumerate = self.components #these go into the ComponentEnuemrators
+            comps_to_enumerate = list(self.components) #these go into the ComponentEnuemrators
 
         #Recursion depth
-        enumerated_components = [] #These will be returned
+        enumerated_components = list(comps_to_enumerate) #These will be returned
 
         for a in range(recursion_depth):
             new_comps_to_enumerate = [] #these will be added to comps_to_enumerate at the end of the iteration
@@ -458,21 +455,18 @@ class Mixture(object):
 
         #add the extra species to the CRN
         self.add_species_to_crn(self.added_species, component = None)
-        globally_enumerated_components = self.global_component_enumeration(recursion_depth=self.recursion_depth)
-        enumerated_components = self.component_enumeration(globally_enumerated_components,recursion_depth) #This includes self.components
+        globally_enumerated_components = self.global_component_enumeration(recursion_depth=recursion_depth)
+        enumerated_components = self.component_enumeration(globally_enumerated_components, recursion_depth) #This includes self.components
 
         #reset the Components' mixture to self - in case they have been added to other Mixtures
         for c in enumerated_components:
             c.set_mixture(self)
         #Append Species from each Component
-        x = 0
         for component in enumerated_components:
-            x+=1
             self.add_species_to_crn(remove_bindloc(component.update_species()), component)
+
         #Append Reactions from each Component
-        x = 0
         for component in enumerated_components:
-            x += 1
             comp_rxns = component.update_reactions()
             self.crn.add_reactions(comp_rxns)
         #global mechanisms are applied last and only to all the species
