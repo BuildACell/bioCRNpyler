@@ -328,6 +328,9 @@ class Mixture(object):
         if isinstance(S, Species):
             S = [S]
 
+        #flatten the species list
+        S = Species.flatten_list(S)
+
         init_conc_dict = {}
         for s in S:
             if not isinstance(s, Species):
@@ -354,7 +357,7 @@ class Mixture(object):
 
         return init_conc_dict
 
-    def add_species_to_crn(self, new_species, component):
+    def add_species_to_crn(self, new_species, component = None, no_initial_concentrations = False, copy_species = True):
 
         if self.crn is None:
             self.crn = ChemicalReactionNetwork(species = [], reactions = [])
@@ -362,13 +365,21 @@ class Mixture(object):
         if isinstance(new_species, Species):
             new_species = [new_species]
 
-        for s in new_species:
-            if isinstance(s, Species) or(isinstance(s, list) and(all(isinstance(ss, Species) for ss in s) or len(s) == 0)):
-                init_conc_dict = self.get_initial_concentration(s, component)
-                self.crn.add_species(s)
-                self.crn.initial_concentration_dict = init_conc_dict
-            elif s is not None:
-                raise ValueError(f"Invalid Species Returned in {component}.update_species(): {s}.")
+        self.crn.add_species(new_species, copy_species = copy_species)
+
+        if not no_initial_concentrations:
+            init_conc_dict = self.get_initial_concentration(remove_bindloc(new_species), component)
+            self.crn.initial_concentration_dict = init_conc_dict
+
+        #for s in new_species:
+        #    if isinstance(s, Species) or(isinstance(s, list) and(all(isinstance(ss, Species) for ss in s) or len(s) == 0)):
+        #        
+        #        self.crn.add_species(s)
+        #
+        #        
+        #
+        #    elif s is not None:
+        #        raise ValueError(f"Invalid Species Returned in {component}.update_species(): {s}.")
 
     def apply_global_mechanisms(self, species) -> (List[Species], List[Reaction]):
         # update with global mechanisms
@@ -438,17 +449,21 @@ class Mixture(object):
             #Update comps_to_enumerate
             comps_to_enumerate += new_comps_to_enumerate
 
-
-
             #return_components += comps_to_enumerate #components which we enumerated should be returned
             #comps_to_enumerate += new_components #new components AND the ones which were already enumerated go back into enumeration
             #comps_to_enumerate = list(set(comps_to_enumerate)) #only save unique things
             #new_components = []
         return enumerated_components
 
-    def compile_crn(self, recursion_depth = None, initial_concentration_dict = None, return_enumerated_components = False) -> ChemicalReactionNetwork:
+    def compile_crn(self, recursion_depth = None, initial_concentration_dict = None, return_enumerated_components = False,
+        initial_concentrations_at_end = False, copy_objects = True, add_reaction_species = True) -> ChemicalReactionNetwork:
         """Creates a chemical reaction network from the species and reactions associated with a mixture object.
         :param initial_concentration_dict: a dictionary to overwride initial concentrations at the end of compile time
+        :param recursion_depth: how deep to run the Local and Global Component Enumeration
+        :param return_enumerated_components: returns a list of all enumerated components along with the CRN
+        :param initial_concentrations_at_end: if True does not look in Components for Species' initial concentrations and only checks the Mixture database at the end.
+        :param copy_objects: Species and Reactions will be copied when placed into the CRN. Protects CRN validity at the expense of compilation speed.
+        :param add_reaction_species: Species inside reactions will be added to the CRN. Ensures no missing species as teh expense of compilation speed.
         :return: ChemicalReactionNetwork
         """
         resetwarnings()#Reset warnings - better to toggle them off manually.
@@ -457,7 +472,7 @@ class Mixture(object):
         self.crn = ChemicalReactionNetwork([], [])
 
         #add the extra species to the CRN
-        self.add_species_to_crn(self.added_species, component = None)
+        self.add_species_to_crn(self.added_species, component = None, no_initial_concentrations = initial_concentrations_at_end, copy_species = copy_objects)
         
         #get the recursion depth
         if(recursion_depth is None):
@@ -486,8 +501,9 @@ class Mixture(object):
         print("====adding species", end = ": ")
         s = pytime.process_time()
         #Append Species from each Component
+        species = []
         for component in enumerated_components:
-            self.add_species_to_crn(remove_bindloc(component.update_species()), component)
+            self.add_species_to_crn(component.update_species(), component, no_initial_concentrations = initial_concentrations_at_end, copy_species = copy_objects)
 
         e = pytime.process_time()
         print(e - s)
@@ -496,7 +512,7 @@ class Mixture(object):
         s = pytime.process_time()
         #Append Reactions from each Component
         for component in enumerated_components:
-            self.crn.add_reactions(component.update_reactions())
+            self.crn.add_reactions(component.update_reactions(), copy_reactions = copy_objects, add_species =  add_reaction_species)
 
         e = pytime.process_time()
         print(e - s)
@@ -509,6 +525,8 @@ class Mixture(object):
         e = pytime.process_time()
         print(e-s)
 
+        if initial_concentrations_at_end:
+            self.crn.initial_concentration_dict = self.get_initial_concentration(self.crn._species, component = None)
         #Manually change/override initial conditions at compile time
         if initial_concentration_dict is not None:
             self.crn.initial_concentration_dict = initial_concentration_dict

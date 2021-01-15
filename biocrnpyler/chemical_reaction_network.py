@@ -65,7 +65,13 @@ class ChemicalReactionNetwork(object):
             raise AttributeError("The reactions in a CRN cannot be removed or modified. New reactions can be added with CRN.add_reactions(...).")
 
     
-    def add_species(self, species, show_warnings=False, copy_species = True):
+    def add_species(self, species, copy_species = True):
+        """Adds a Species or a list of Species to the CRN object
+
+        :param species: Species instance or list of Species instances
+        :param copy_species: whether to deep copy Species added to the CRN. Protects CRN validity at teh expense of speed.
+
+        """
         if not isinstance(species, list):
             species = [species]
 
@@ -83,11 +89,12 @@ class ChemicalReactionNetwork(object):
                 self._species_dict[s] = True
                 self._species.append(s) #copy the species and add it to the CRN
 
-    def add_reactions(self, reactions: Union[Reaction,List[Reaction]], show_warnings=True, copy_reactions = True) -> None:
+    def add_reactions(self, reactions: Union[Reaction,List[Reaction]], copy_reactions = True, add_species = True) -> None:
         """Adds a reaction or a list of reactions to the CRN object
 
         :param reactions: Reaction instance or list of Reaction instances
-        :param show_warnings: whether to show warning when duplicated reactions/species was found
+        :param copy_reactions: whether to deep copy reactions before adding them to the CRN. Protects CRN validity at the expense of speed.
+        :param add_species: whether to add species in reactions to the CRN. Prevents errors at the expense of speed.
         :return: None
         """
         if not isinstance(reactions, list):
@@ -95,14 +102,14 @@ class ChemicalReactionNetwork(object):
 
         if copy_reactions:
             reactions = copy.deepcopy(reactions) #deep copy all the reactions
-            
+
         for r in reactions:
             if not isinstance(r, Reaction): # check reactions and Reactions
                 raise ValueError("A non-reaction object was used as a reaction!")
 
             # add all the Species in the reaction to the CRN
             reaction_species = list(set([w.species for w in r.inputs + r.outputs]))
-            self.add_species(reaction_species, show_warnings=show_warnings, copy_species = False)
+            self.add_species(reaction_species, copy_species = False)
 
             self._reactions.append(r) #copy the Reaction and add it to the CRN
 
