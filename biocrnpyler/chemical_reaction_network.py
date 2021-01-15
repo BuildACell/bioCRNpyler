@@ -100,18 +100,22 @@ class ChemicalReactionNetwork(object):
         if not isinstance(reactions, list):
             reactions = [reactions]
 
+        #It is recommended to copy reactions before adding them to the CRN, so they are "protected"
         if copy_reactions:
             reactions = copy.deepcopy(reactions) #deep copy all the reactions
 
-        for r in reactions:
-            if not isinstance(r, Reaction): # check reactions and Reactions
-                raise ValueError("A non-reaction object was used as a reaction!")
+        #Add the reactions to the CRN
+        self._reactions += reactions
 
-            # add all the Species in the reaction to the CRN
-            reaction_species = list(set([w.species for w in r.inputs + r.outputs]))
-            self.add_species(reaction_species, copy_species = False)
+        #Add species from reactions into the CRN
+        if add_species:
+            for r in reactions:
+                if not isinstance(r, Reaction): # check reactions and Reactions
+                    raise ValueError("A non-reaction object was used as a reaction!")
 
-            self._reactions.append(r) #copy the Reaction and add it to the CRN
+                # add all the Species in the reaction to the CRN
+                reaction_species = list(set([w.species for w in r.inputs + r.outputs]))
+                self.add_species(reaction_species, copy_species = copy_reactions)
 
     @property
     def initial_concentration_dict(self):
