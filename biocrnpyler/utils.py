@@ -30,7 +30,9 @@ def remove_bindloc(spec_list):
         """go through every species on a list and remove any "bindloc" attributes. This is used
         to convert monomers with a parent polymer into the correct species after combinatorial binding
         in things like DNAassembly and RNAassembly."""
-        
+        if not isinstance(spec_list, list):
+            spec_list = [spec_list]
+
         out_sp_list = []
         for specie in spec_list:
             #waited species case used in reactions
