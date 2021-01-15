@@ -156,15 +156,17 @@ class IntegraseRule:
         self.integrase_species = Species(self.name,material_type="protein")
         self.reactions = reactions
         self.attsites = []
-        for reactants in reactions:
-            self.attsites+=list(reactants)+list(reactions[reactants])
+        for reaction in reactions:
+            self.attsites+=list(reaction)+[reactions[reaction]]
+        self.attsites = list(set(self.attsites))
         self.integrations_to_do = [] #these are the reactions that will be performed at compile time
     def binds_to(self):
         return self.attsites
     def generate_products(self,site1,site2):
         """generates DNA_part objects corresponding to the products of recombination"""
         #the sites should have the same integrase and dinucleotide, otherwise it won't work
-        assert(site1.integrase == site2.integrase)
+        assert (site1.integrase == site2.integrase)
+        assert(site1.integrase==self.integrase_species), f"sites have integrase {site1.integrase} but should be {self.integrase_species}"
         assert(site1.dinucleotide == site2.dinucleotide)
         integrase = site1.integrase
         dinucleotide = site1.dinucleotide
@@ -181,11 +183,9 @@ class IntegraseRule:
             raise KeyError("{} not found to react with {} in {}".format(site2,site1,self.reactions))
         
         part_prod1 = AttachmentSite(prod1,prod1,dinucleotide=dinucleotide,
-                                    integrase=integrase,direction=site1.direction,
-                                            color=site2.color,color2=site1.color)
+                                    integrase=integrase,direction=site1.direction)
         part_prod2 = AttachmentSite(prod2,prod2,dinucleotide=dinucleotide,
-                                    integrase=integrase,direction=site2.direction,
-                                            color=site1.color,color2=site2.color)
+                                    integrase=integrase,direction=site2.direction)
         if(site1.direction=="forward"):
             return (part_prod1,part_prod2)
         else:

@@ -57,7 +57,7 @@ class DNA_part(Component, OrderedMonomer):
             OrderedMonomer.__init__(self,position=pos,parent=assembly,direction=direction)
         else:
             self.assembly = assembly
-            OrderedMonomer.__init__(self)
+            OrderedMonomer.__init__(self,position=pos,direction=direction)
 
     @property
     def dna_species(self):
