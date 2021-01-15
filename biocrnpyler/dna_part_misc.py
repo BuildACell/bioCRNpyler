@@ -56,7 +56,7 @@ class DNABindingSite(DNA_part):
             return None
 class AttachmentSite(DNABindingSite):
     def __init__(self,name, site_type = "attB",integrase = "int1", dinucleotide = 1,no_stop_codons=None,**keywords):
-        self.integrase = Component.set_species(integrase,material_type='protein')
+        self.update_integrase(integrase)
         #self.integrase = integrase
         self.dinucleotide = dinucleotide
         self.site_type = site_type
@@ -74,6 +74,8 @@ class AttachmentSite(DNABindingSite):
         else:
             warn("warning! site {} has site_type {} which is not recognized".format(self.name,self.site_type))
         return myname
+    def update_integrase(self,int_name):
+        self.integrase = Component.set_species(int_name,material_type='protein')
     def __hash__(self):
         sumhash = DNABindingSite.__hash__(self) + self.dna_to_bind.__hash__()
         return sumhash
