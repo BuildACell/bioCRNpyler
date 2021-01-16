@@ -99,6 +99,16 @@ class TestOrderedPolymer(TestCase):
         self.assertEqual(y,truthvalue)
 
 class TestOrderedPolymerSpecies(TestCase):
+
+    def test_naming_convention(self):
+        A = Species("A", material_type = "a")
+        B = Species('B', attributes = "b")
+        C = Complex([Species("S"), Species("S")])
+        p = OrderedPolymerSpecies([A, B, C], attributes = ["a"])
+        print(str(p))
+        print(f"{p.material_type}_{str(A)}_{str(B)}_{str(C)}_{p.attributes[0]}_")
+        self.assertTrue(str(p) == f"{p.material_type}_{str(A)}_{str(B)}_{str(C)}_{p.attributes[0]}_")
+
     def test_ordered_polymer_species_initialization(self):
         a = Species("A")
         x = OrderedPolymerSpecies([Species("A"),[Species("B"),"forward"],\
@@ -158,6 +168,8 @@ class TestOrderedPolymerSpecies(TestCase):
         self.assertEqual(unappended,truth)
         #reverse
         reversd.reverse()
+        print(reversd)
+        print(truth)
         self.assertEqual(reversd,truth)
 
     def test_ordered_polymer_species_contains(self):

@@ -47,13 +47,11 @@ class Species(OrderedMonomer):
         """
         removes an attribute from a Species
         """
-        if(not hasattr(self, "_attributes")):
-            self._attributes = []
+        if(not hasattr(self, "_attributes") or attribute is None):
             return
-        assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(
-        ), "Attribute: %s must be an alpha-numeric string" % attribute
-        
-        self._attributes = [a for a in self.attributes if a != attribute]
+        else:
+            assert isinstance(attribute, str) and attribute.isalnum(), f"Attribute: {attribute} must be an alpha-numeric string"
+            self._attributes = [a for a in self.attributes if a != attribute]
 
     def add_attribute(self, attribute: str):
         """
@@ -62,7 +60,7 @@ class Species(OrderedMonomer):
         if(not hasattr(self, "_attributes")):
             self._attributes = []
         assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(
-        ), "Attribute: %s must be an alpha-numeric string" % attribute
+        ), f"Attribute: {attribute} must be an alpha-numeric string"
         if attribute not in self.attributes:
             self._attributes.append(attribute)
 
@@ -76,7 +74,7 @@ class Species(OrderedMonomer):
     @name.setter
     def name(self, name: str):
         if name is None:
-            raise TypeError("Name must be a string.")
+            raise TypeError(f"Name must be a string. Recievied {name}")
         else:
             self._name = self._check_name(name)
 
@@ -98,6 +96,13 @@ class Species(OrderedMonomer):
     # Use OrderedMonomers getter
     direction = property(OrderedMonomer.direction.__get__)
 
+    @property
+    def direction(self):
+        if hasattr(self, "_direction"):
+            return self._direction
+        else:
+            return None
+    
     @direction.setter
     def direction(self, direction):
         """
@@ -105,8 +110,11 @@ class Species(OrderedMonomer):
         A species with direction will use it as an attribute as well.
         This is overwritten to make direction an attribute
         """
-
+        #Remove old direction from attributes
+        self.remove_attribute(self.direction)
+        #set the new direction
         self._direction = direction
+        #Add it to attributes
         if direction is not None:
             self.add_attribute(direction)
 
@@ -769,23 +777,12 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
     def name(self):
         if self._name is None:
             name = ""
+            for monomer in self.polymer:
+                name+=str(monomer)+"_"
+            name = name[:-1] #remove last underscore
         else:
             name = self._name
-        outlst = []
-
-        for monomer in self.polymer:
-            assert(isinstance(monomer, Species))
-            pname = monomer.name
-            pdir = None
-            if(hasattr(monomer, "direction")):
-                pdir = monomer.direction
-            if(pdir is not None):
-                outlst += [pname+"_"+str(pdir)[0]]
-            else:
-                outlst += [pname]
-        if(self.circular):
-            outlst += ["o"]
-        name = '_'.join(outlst)
+        
         return name
 
     def __hash__(self):
