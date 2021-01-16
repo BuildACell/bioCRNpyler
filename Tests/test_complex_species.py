@@ -5,7 +5,7 @@
 from unittest import TestCase
 from biocrnpyler import Species
 from biocrnpyler import ComplexSpecies
-from biocrnpyler import OrderedComplexSpecies
+from biocrnpyler import OrderedComplexSpecies, OrderedPolymerSpecies
 
 """This file tests ComplexSpecies, OrderedComplexSpecies which are all subclasses of species."""
 
@@ -90,3 +90,41 @@ class TestComplexSpecies(TestCase):
         self.assertTrue(s2 in c2)
         self.assertTrue(c1 in c2)
         self.assertTrue(s3 in c2)
+
+        #contains checks the direction, position, and parent as well.
+        p = OrderedPolymerSpecies([s1, [s2, "reverse"]])
+        p2 = OrderedPolymerSpecies([s2, [s2, "reverse"]])
+        c3 = ComplexSpecies([p[0], p[1]], called_from_complex = True)
+        assert not s1 in c3
+        assert not s2 in c3
+        assert p[0] in c3
+        assert p[1] in c3
+        assert not p2[1] in c3
+        assert p[0] not in c1
+
+    def test_contains_species_monomer(self):
+        """Checks if the ComplexSpecies has a monomer (Species) inside of it, 
+        but without checking Species.parent or Species.position. In effect, a
+        less stringent version of __contains__. This is useful for checking
+        complexes containing monomers from Polymers."""
+
+        s1 = Species(name='s1', material_type="m1")
+        s2 = Species(name='s2', material_type="m2")
+        p = OrderedPolymerSpecies([s1, [s2, "reverse"]])
+        p2 = OrderedPolymerSpecies([[s2, "reverse"], s1])
+        c2 = ComplexSpecies([p[0], p[1]], called_from_complex = True)
+
+        #Contains parent doesn't matter
+        assert c2.contains_species_monomer(s1)
+        assert c2.contains_species_monomer(p[0])
+        assert c2.contains_species_monomer(p2[0])
+
+        #position doesn't matter
+        assert c2.contains_species_monomer(p2[1])
+
+        #Direction does matter (by default)
+        assert not c2.contains_species_monomer(s2)
+
+        #Direction does matter (with keyword)
+        print("*****")
+        print(s2 is p2[0], s2, p2[0])        

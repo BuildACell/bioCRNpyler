@@ -24,18 +24,16 @@ def test_complex_with_polymer():
 
     #Complex in an OrderedPolymerSpecies
     d_c = Complex([d[1],a])
+
     assert(isinstance(d_c, ComplexSpecies))
     truth = OrderedPolymerSpecies([a,Complex([b,a]),a])
     assert(d_c.parent == truth)
-    print([(s, s.parent) for s in d_c.species])
-    assert(d[1] in d_c)
-    assert(b not in d_c) #b, unbound, is not in the Complex
+
+    assert(d[1] not in d_c) #different parents
+    assert(b in d_c) #b is unbound when put in the Complex
 
     #Ordered case
-    print("d", d)
     d_co = Complex([d[1],a], ordered = True)
-    print("d", d)
-    print("p", d_co.parent)
     assert isinstance(d_co, OrderedComplexSpecies)
     truth_o = OrderedPolymerSpecies([a, Complex([b,a], ordered = True),a])
     assert d_co.parent==truth_o
