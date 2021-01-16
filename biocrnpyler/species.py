@@ -53,9 +53,7 @@ class Species(OrderedMonomer):
         assert isinstance(attribute, str) and attribute is not None and attribute.isalnum(
         ), "Attribute: %s must be an alpha-numeric string" % attribute
         
-        print("remove attribute", attribute, "from", self.attributes)
         self._attributes = [a for a in self.attributes if a != attribute]
-        print("self.attributes", self.attributes)
 
     def add_attribute(self, attribute: str):
         """
@@ -266,7 +264,6 @@ class Species(OrderedMonomer):
         less stringent version of __contains__."""
         s_copy = copy.deepcopy(s)
         s_copy.remove()
-        print(s, s_copy, s_copy.remove())
         for ss in self.get_species(recursive = True):
             ss_copy = copy.deepcopy(ss)
             ss_copy.remove()
@@ -700,7 +697,6 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
                 # only species are acceptable
 
         OrderedPolymer.__init__(self, monomers)
-        print("polymer init", self.polymer, [m.parent for m in self.polymer])
         self.material_type = material_type
 
         if(base_species is None):
@@ -739,7 +735,6 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
             keywords["compartment"] = ops.compartment
         if "attributes" not in keywords:
             keywords["attributes"] = ops.attributes
-        print("from_polymer_species", ops, replace_dict, "monomers", monomers)
         return cls(monomers, **keywords) #Produces a new OrderedPolymerSpecies
 
     @property
@@ -1177,12 +1172,10 @@ class Complex:
 
         #Case 1: If no OrderedPolymerSpecies is found, just call the regular constructor.
         if len(parent_species) == 0:
-            print("Case 1")
             return ComplexClass(species, *args, **keywords)
 
         #Case 2 - 3: the Complex is being formed inside an OrderedPolymerSpecies (and only a single species has a parent).
         elif len(parent_species) == 1 and isinstance(parent_species[0], OrderedPolymerSpecies):
-            print("Case 2")
             parent_species = parent_species[0]
             bindloc = bindlocs[0]
 
