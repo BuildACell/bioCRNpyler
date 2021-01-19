@@ -109,7 +109,7 @@ def makeArrows2(graph_renderer, graph, positions, headsize=3, headangle=math.pi/
 
 
 def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,\
-                        posscale = 1.0,layoutfunc=None,iterations=2000,rseed=30,show_species_images=True):
+                        posscale = 1.0,layoutfunc=None,iterations=2000,rseed=30,show_species_images=False):
     """given a directed graph, plot it!
     Inputs:
     DG: a directed graph of type DiGraph
@@ -226,7 +226,8 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,\
     plot.renderers.append(species_renderer)
 
 def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_material=True,
-                                                    pp_show_rates=True,pp_show_attributes=True,
+                                                    pp_show_rates=True,pp_show_attributes=True, 
+                                                    pp_show_compartments=True, show_images=False,
                                                 colordict=None,imagedict = None):
     """generates a networkx DiGraph object that represents the CRN.
     input:
@@ -308,7 +309,7 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
         nodedict[species] = allnodenum
         CRNgraph.add_node(allnodenum)
         CRNgraph.nodes[allnodenum]["type"]=str(species.material_type)
-        if((imagedict is not None) and (species in imagedict)):
+        if((imagedict is not None) and (species in imagedict) and show_images):
             CRNgraph.nodes[allnodenum]["image"]= imagedict[species].decode()
         if(not use_pretty_print):
             CRNgraph.nodes[allnodenum]["species"] = str(species)
@@ -634,7 +635,24 @@ class CRNPlotter:
                     fig.savefig(imagestream)
                     png_str = base64.b64encode(imagestream.getvalue())
                     self.species_image_dict[species]= png_str
-
+    def renderConstruct(self,construct_obj,rna_renderer=None,dna_renderer=None,showlabels=True, render_rna=True):
+        if(rna_renderer is None and self.rna_renderer is not None):
+            rna_renderer = self.rna_renderer
+        else:
+            raise ValueError("rna_renderer cannot be None")
+        if(dna_renderer is None and self.dna_renderer is not None):
+            dna_renderer = self.dna_renderer
+        else:
+            raise ValueError("dna_renderer cannot be None")
+        a = self.make_dpls_from_construct(construct_obj)
+        outaxs = [a.renderDNA(dna_renderer)]
+        if(render_rna):
+            components = construct_obj.enumerate_constructs()
+            for component in components:
+                if(isinstance(component,RNA)):
+                    a = self.make_dpls_from_construct(component)
+                    outaxs += [a.renderDNA(rna_renderer)]
+        return outaxs
     def clear_dicts(self):
         self.part_dpl_dict = {}
         self.construct_dpl_dict = {}
@@ -649,13 +667,13 @@ class CRNPlotter:
             return out_color
         else:
             raise ValueError("No colormap set")
-    def make_dpls_from_construct(self,construct):
+    def make_dpls_from_construct(self,construct,save_in_dict=True):
         if(construct in self.construct_dpl_dict):
             return self.construct_dpl_dict[construct]
         else:
             new_parts_list = []
             for part in construct:
-                new_parts_list += [self.make_dpl_from_part(part)]
+                new_parts_list += [self.make_dpl_from_part(part,save_in_dict=save_in_dict)]
             
             if(isinstance(construct,DNA)):
                 mat_type = "dna"
@@ -665,7 +683,8 @@ class CRNPlotter:
                                                     parts_list=new_parts_list,\
                                                     circular=construct.circular,\
                                                     material_type = mat_type)
-            self.construct_dpl_dict[construct]=simple_construct
+            if(save_in_dict):
+                self.construct_dpl_dict[construct]=simple_construct
             return simple_construct
     
     def make_dpl_from_species(self,species):
@@ -728,10 +747,11 @@ class CRNPlotter:
             self.species_dpl_dict[species] = out_dpl
             return out_dpl
             
-    def make_dpl_from_part(self,part):
+    def make_dpl_from_part(self,part,set_color=None,save_in_dict=True):
         removed_part = part.get_removed()
         if(removed_part in self.part_dpl_dict):
-            return self.part_dpl_dict[removed_part]
+            
+            return self.part_dpl_dict[removed_part].get_directed(part.direction)
         else:
             dpl_type= "UserDefined"
             needs_color2 = False
@@ -755,7 +775,10 @@ class CRNPlotter:
                 elif(part.site_type == "attL" or part.site_type == "attR"):
                     dpl_type = "RecombinaseSite2"
                     needs_color2 = True
-            color = self.get_color()
+            if(set_color is None):
+                color = self.get_color()
+            else:
+                color = set_color
             color2 = None
             if(needs_color2):
                 color2 = self.get_color()
@@ -772,7 +795,7 @@ class CRNPlotter:
                 retpart = self.MultiPart(name=part.name,parts_list =[outpart]+regparts)
             else:
                 retpart = outpart
-            self.part_dpl_dict[part] = retpart
-            self.species_dpl_dict[part.dna_species] = retpart
+            if(save_in_dict):
+                self.part_dpl_dict[removed_part] = retpart
+                self.species_dpl_dict[part.dna_species] = retpart
             return retpart.get_directed(part.direction)
-
