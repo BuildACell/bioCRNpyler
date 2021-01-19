@@ -144,11 +144,13 @@ class Polymer_transformation:
         return out_txt
 
 class IntegraseRule:
-    def __init__(self,name=None,reactions={("attB","attP"):"attL",("attP","attB"):"attR"}):
+    def __init__(self,name=None,reactions=None):
         """The integrase mechanism is a mechanism at the level of DNA. It creates DNA species which
         the integrase manipulations would lead to. This mechanism does not create any reaction rates.
         We need to figure out how integrase binding will work before being able to create
         reactions and their corresponding rates"""
+        if(reactions is None):
+            reactions = {("attB","attP"):"attL",("attP","attB"):"attR"}
         if(name is None):
             self.name = "int1"
         else:
