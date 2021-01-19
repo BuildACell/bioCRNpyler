@@ -507,7 +507,6 @@ class CRNPlotter:
             part_renderers = dna_renderer.SBOL_part_renderers()
             reg_renderers = dna_renderer.std_reg_renderers()
             if(ax is None):
-                figsize = (len(self.parts_list)*.75,1.6)
                 figsize = (1,1)
                 #fig,ax = plt.subplots(constrained_layout=True)
                 fig = plt.figure(figsize=figsize)
@@ -522,17 +521,12 @@ class CRNPlotter:
             
             fig = ax.get_figure()
             ax.axis('off')
-            
             ''
             ylimits = [None,None]
             xlimits = [None,None]
             relevant_stuff = ax.patches+ax.texts
             for patch in relevant_stuff:
-                print(patch)
                 bbox = patch.get_window_extent(renderer=fig.canvas.get_renderer())
-                print(bbox)
-                print(fig.transFigure.inverted().transform((bbox.xmin,bbox.ymin)))
-                print(fig.transFigure.inverted().transform((bbox.xmax,bbox.ymax)))
                 if(ylimits == [None,None]):
                     ylimits = [bbox.ymin,bbox.ymax]
                 if(bbox.ymax > ylimits[1]):
@@ -548,13 +542,10 @@ class CRNPlotter:
             xlimits[0],ylimits[0] = fig.transFigure.inverted().transform((xlimits[0], ylimits[0]))
 
             xlimits[1],ylimits[1] = fig.transFigure.inverted().transform((xlimits[1], ylimits[1]))
-
-            rect = plt.Rectangle((xlimits[0],ylimits[0]),xlimits[1]-xlimits[0],ylimits[1]-ylimits[0], facecolor='white', alpha=.7)
-            ax.add_patch(rect)
             ax.relim()
             yheight = ylimits[1]-ylimits[0]
             xheight = xlimits[1]-xlimits[0]
-            fig.set_size_inches(xheight/30,yheight/30)
+            fig.set_size_inches(xheight/24,yheight/24)
             ax.set_aspect('equal')
             ax.autoscale_view()
             #ax.set_xlim((xlimits[0],xlimits[1]))
@@ -656,7 +647,7 @@ class CRNPlotter:
                 if(store):
                     imagestream = io.BytesIO()
                     fig = ax.get_figure()
-                    fig.savefig(imagestream)
+                    fig.savefig(imagestream,bbox_inches='tight')
                     png_str = base64.b64encode(imagestream.getvalue())
                     self.species_image_dict[species]= png_str
         return self.species_image_dict
