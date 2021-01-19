@@ -61,10 +61,9 @@ class OrderedPolymer(MonomerCollection):
             part_copy = copy.copy(part) #OrderedMonomers are always copied when inserted into an OrderedPolymer
             polymer += [part_copy]
             position = len(polymer)-1
-            direction = partdir
-            if(direction==None):
-                direction = self.default_direction
-            part_copy.monomer_insert(self,position,direction)
+            if(partdir==None):
+                partdir = self.default_direction
+            part_copy.monomer_insert(self,position,partdir)
 
         self._monomers = tuple(polymer)
 
@@ -208,7 +207,7 @@ class OrderedMonomer:
         if parent is None or isinstance(parent, MonomerCollection):
             self._parent = parent
         else:
-            raise ValueError(f"parent must be an OrderedPolymer. Recieved {parent}")
+            raise ValueError(f"parent must be an MonomerCollection. Recieved {parent}")
 
     @property
     def direction(self):

@@ -2,7 +2,35 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import OrderedPolymer, OrderedMonomer, OrderedPolymerSpecies, Species, Complex
+from biocrnpyler import OrderedPolymer, OrderedMonomer, OrderedPolymerSpecies, Species, Complex, MonomerCollection
+
+class TestMonomerCollection(TestCase):
+
+    def test_initialization(self):
+        x = OrderedMonomer()
+        y = OrderedMonomer()
+        c = MonomerCollection([x, y])
+
+        #test setter
+        assert len(c.monomers) == 2
+        assert type(c.monomers) == tuple
+        #test copying
+        assert x not in c.monomers and y not in c.monomers
+        assert x.parent is None and y.parent is None
+        assert [m.parent == c for m in c.monomers]
+
+    def test_monomers_setter_and_getter(self):
+        x = OrderedMonomer()
+        y = OrderedMonomer()
+        c = MonomerCollection([x, y])
+
+        xr = OrderedMonomer(direction = "reverse")
+
+        c.monomers = [x, xr, y]
+        assert len(c.monomers) == 3
+        assert c.monomers[1].direction == "reverse"
+        assert all([m.parent is None for m in [x, xr, y]])
+        assert all([m.parent is c for m in c.monomers])
 
 class TestOrderedMonomer(TestCase):
 

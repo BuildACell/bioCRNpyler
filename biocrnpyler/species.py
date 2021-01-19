@@ -93,9 +93,6 @@ class Species(OrderedMonomer):
             elif isinstance(compartment, Compartment):
                 self._compartment = compartment
 
-    # Use OrderedMonomers getter
-    direction = property(OrderedMonomer.direction.__get__)
-
     @property
     def direction(self):
         if hasattr(self, "_direction"):
@@ -273,7 +270,7 @@ class Species(OrderedMonomer):
         s_copy = copy.deepcopy(s)
         s_copy.remove()
         for ss in self.get_species(recursive = True):
-            ss_copy = copy.deepcopy(ss)
+            ss_copy = copy.copy(ss)
             ss_copy.remove()
             if ss_copy == s_copy:
                 return True
@@ -1160,6 +1157,7 @@ class Complex:
             if(hasattr(specie, "parent") and (specie.parent is not None)):
                 #This adds to a growing list of parents, which will be placed in an PolymerConformation
                 # It is very important to deepcopy here because the underlying OrderedPolymerSpecies or PolymerConformation will be modified.
+                # insertlocs stores the order of the species for creating OrderedComplexSpecies
                 parent_species.append(specie.parent)
                 bindlocs.append(specie.position)
                 insertlocs.append(i)
@@ -1187,7 +1185,7 @@ class Complex:
             child_direction = child_species[0].direction
             child.remove() #Remove the child species, the new_complex will replace it
             species.remove(child_species[0])
-            species.insert(insertlocs[0], child) #place the new child in the list
+            species.insert(insertlocs[0], child) #place the new child in the list in the proper location to preserve order
             new_complex = ComplexClass(species, *args, **keywords) #create the Complex
 
             #Create a new OrderedPolymerSpecied which is copied from the parent with the new complex replacing bindloc (inheriting the same direction).
