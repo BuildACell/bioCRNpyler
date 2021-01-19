@@ -223,10 +223,7 @@ class OrderedMonomer:
 
     @position.setter
     def position(self, position):
-        if self.parent is None and position is not None:
-            raise ValueError("{} cannot have a position if it has no parent".format(self))
-        else:
-            self._position = position
+        self._position = position
 
     def monomer_insert(self, parent:MonomerCollection, position=None, direction=None):
         self.parent = parent
