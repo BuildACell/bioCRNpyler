@@ -45,7 +45,7 @@ class TestOrderedMonomer(TestCase):
         self.assertEqual(OrderedMonomer(direction="reverse"),x.set_dir("reverse"))
 
         #Bad parent
-        with self.assertRaisesRegex(ValueError):
+        with self.assertRaisesRegex(ValueError, "parent must be an MonomerCollection"):
             m = OrderedMonomer(parent = 1)
         
         p = OrderedPolymer(parts = [])
