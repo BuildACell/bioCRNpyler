@@ -34,10 +34,11 @@ class Construct(Component,OrderedPolymer):
         """this represents a bunch of parts in a row.
         A parts list has [[part,direction],[part,direction],...]
         Each part must be an OrderedMonomer"""
+
         if(component_enumerators is None):
             component_enumerators = []
         self.component_enumerators = component_enumerators
-        OrderedPolymer.__init__(self,parts_list,default_direction="forward")
+        OrderedPolymer.__init__(self,parts_list, default_direction="forward")
         self.circular=circular
         if(name is None):
             name = self.make_name() #automatic naming
@@ -57,7 +58,7 @@ class Construct(Component,OrderedPolymer):
 
     @property
     def parts_list(self):
-        return self._polymer
+        return self.polymer
 
     def make_name(self):
         output = ""
