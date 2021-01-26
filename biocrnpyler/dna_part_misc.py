@@ -80,7 +80,7 @@ class AttachmentSite(DNABindingSite):
         sumhash = DNABindingSite.__hash__(self) + self.dna_to_bind.__hash__()
         return sumhash
     def get_complexed_species(self,dna):
-        recomp = Complex([dna,self.integrase,self.integrase],material_type=None)
+        recomp = Complex([dna,self.integrase,self.integrase])
         return recomp
     def update_component(self,internal_species=None,**keywords):
         """returns a copy of this component, except with the proper fields updated"""
@@ -141,10 +141,6 @@ class AttachmentSite(DNABindingSite):
             if(self.count_inputs(site)== 1):
                 #this is an intramolecular reaction so we don't care about the other site's DNAs
                 integrated_dnas = []
-                if(len(self.linked_sites[site])>0):
-                    print([a.parent for a in self.linked_sites[site][1]])
-                print(complex_parent.parent)
-                print(complex_parent in self.linked_sites[site][1])
                 if(site.integrase in complex_parent[site.position] and \
                                 complex_parent in self.linked_sites[site][1]):
                     #make sure that both this site and the other site are bound
