@@ -711,6 +711,9 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         inputs: replace_dict {monomer index --> new Species}
         outputs: OrderedPolymerSpecies
         """
+        if(replace_dict == {}):
+            #nothing to replace!
+            return copy.deepcopy(ops)
         monomers = []
         for i in range(len(ops.polymer)):
             if i in replace_dict:
@@ -1162,12 +1165,6 @@ class Complex:
         elif len(parent_species) == 1 and isinstance(parent_species[0], OrderedPolymerSpecies):
             parent_species = parent_species[0]
             bindloc = bindlocs[0]
-
-            #Ensure the monomer in the Complex has no parent
-            #new_species = other_species
-            #monomer = copy.copy(child_species[0]) #Copy the monomer
-            #monomer.remove()
-            #new_species.insert(insertlocs[0], monomer) #Insert the monomer back into the Species
 
             # Create an OrderedcomplexSepcies or ComplexSpecies
             child = copy.copy(child_species[0])

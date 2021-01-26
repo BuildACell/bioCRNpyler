@@ -113,4 +113,15 @@ def test_circular_DNAconstruct():
     assert(y[1]==e[1]) #different DNA constructs lead to the same RNA construct
     assert(y[0]==x[0]) #correct promoter is working
     assert(e[0]==z[1]) #correct promoter is working
-    
+
+def test_combinatorial_enumeration_DNAconstruct():
+    P = Promoter("pconst") #constitutive promoter
+    T = Terminator("term")
+    parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
+    mechs = {"transcription":Transcription_MM(Species("RNAP",material_type="protein"))}
+
+    #circular construct
+    x = DNA_construct([P,P,T],mechanisms = mechs,parameters=parameters,circular=True)
+    y = x.combinatorial_enumeration()
+    print(y)
+    assert(len(y)==4)

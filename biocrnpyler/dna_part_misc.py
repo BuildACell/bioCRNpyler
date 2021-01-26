@@ -87,7 +87,7 @@ class AttachmentSite(DNABindingSite):
         newcomp = DNABindingSite.update_component(self,internal_species=internal_species)
         if(newcomp is None):
             return None
-        elif(internal_species.parent is None):
+        elif("practice_run" in keywords and keywords["practice_run"]):
             for othersite in self.linked_sites:
                 mystuff = copy.copy(othersite.linked_sites[self])
                 othersite.linked_sites[newcomp] = mystuff
@@ -141,7 +141,10 @@ class AttachmentSite(DNABindingSite):
             if(self.count_inputs(site)== 1):
                 #this is an intramolecular reaction so we don't care about the other site's DNAs
                 integrated_dnas = []
-                
+                if(len(self.linked_sites[site])>0):
+                    print([a.parent for a in self.linked_sites[site][1]])
+                print(complex_parent.parent)
+                print(complex_parent in self.linked_sites[site][1])
                 if(site.integrase in complex_parent[site.position] and \
                                 complex_parent in self.linked_sites[site][1]):
                     #make sure that both this site and the other site are bound

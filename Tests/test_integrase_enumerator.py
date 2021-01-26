@@ -20,7 +20,7 @@ def test_polymer_transformation():
     construct2 = DNA_construct([cds2])
     dummy = Polymer_transformation.dummify(construct,"input1")
     assert(dummy.name == "input1") #dummy polymer has the right name
-    assert(len(dummy._polymer)==len(construct)) #dummy polymer has the right length
+    assert(len(dummy.polymer)==len(construct)) #dummy polymer has the right length
     assert([a.direction for a in dummy]==[a.direction for a in construct]) #dummy polymer monomers have the right direction
     assert([a.position for a in dummy]==[a.position for a in construct]) #dummy polymer monomers have the right position
     assert(isinstance(dummy,NamedPolymer)) #make sure the output of dummify has the right type

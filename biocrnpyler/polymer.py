@@ -143,7 +143,7 @@ class OrderedPolymer(MonomerCollection):
             return dirname
 
     def __len__(self):
-        return len(self._polymer)
+        return len(self.polymer)
 
     def __getitem__(self,ii):
         return self.polymer[ii]
