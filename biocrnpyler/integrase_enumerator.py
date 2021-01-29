@@ -3,7 +3,7 @@
 from .species import Species
 from .polymer import OrderedPolymer, OrderedMonomer, NamedPolymer
 from .dna_construct import Construct, DNA_construct
-from .dna_part_misc import AttachmentSite
+from .dna_part_misc import IntegraseSite
 from .component_enumerator import GlobalComponentEnumerator
 import itertools as it
 import copy
@@ -184,9 +184,9 @@ class IntegraseRule:
         except KeyError:
             raise KeyError("{} not found to react with {} in {}".format(site2,site1,self.reactions))
         
-        part_prod1 = AttachmentSite(prod1,prod1,dinucleotide=dinucleotide,
+        part_prod1 = IntegraseSite(prod1,prod1,dinucleotide=dinucleotide,
                                     integrase=integrase,direction=site1.direction)
-        part_prod2 = AttachmentSite(prod2,prod2,dinucleotide=dinucleotide,
+        part_prod2 = IntegraseSite(prod2,prod2,dinucleotide=dinucleotide,
                                     integrase=integrase,direction=site2.direction)
         if(site1.direction=="forward"):
             return (part_prod1,part_prod2)
@@ -322,7 +322,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         """lists all the parts that can be acted on by integrases"""
         int_dict = {}
         for part in construct.parts_list:
-            if(isinstance(part,AttachmentSite) and part.integrase is not None):
+            if(isinstance(part,IntegraseSite) and part.integrase is not None):
                 part_integrase = part.integrase.name
                 if(part_integrase in int_dict):
                     int_dict.update({part_integrase:int_dict[part_integrase]+[part]})

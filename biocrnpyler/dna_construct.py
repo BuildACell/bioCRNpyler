@@ -15,7 +15,7 @@ from warnings import warn
 from .component import Component
 from .components_basic import DNA, RNA
 from .dna_part import DNA_part
-from .dna_part_misc import AttachmentSite
+from .dna_part_misc import IntegraseSite
 from .species import ComplexSpecies, OrderedPolymer, OrderedPolymerSpecies
 from .utils import all_comb, remove_bindloc
 import logging
@@ -51,7 +51,6 @@ class Construct(Component,OrderedPolymer):
         self.transcripts = []
         if(not hasattr(self,"material_type")):
             self.material_type=None #set this when you inherit this class
-        #self.update_base_species(self.name)
         self.out_components = None
         self.predicted_rnas = None
         self.predicted_proteins = None
@@ -448,7 +447,7 @@ class DNA_construct(Construct,DNA):
                 #if the color isn't set, let's set it now!
                 part.color = pind
             if(type(part.color2)==type(None)):
-                if(isinstance(part,AttachmentSite) and part.site_type in ["attL","attR"]):
+                if(isinstance(part,IntegraseSite) and part.site_type in ["attL","attR"]):
                     #this is the only scenario in which we need a color2
                     #TODO make this more general
                     pind+=1

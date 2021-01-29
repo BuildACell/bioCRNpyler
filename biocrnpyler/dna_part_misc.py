@@ -54,7 +54,7 @@ class DNABindingSite(DNA_part):
             return out_component
         else:
             return None
-class AttachmentSite(DNABindingSite):
+class IntegraseSite(DNABindingSite):
     def __init__(self,name, site_type = "attB",integrase = "int1", dinucleotide = 1,no_stop_codons=None,**keywords):
         self.update_integrase(integrase)
         #self.integrase = integrase

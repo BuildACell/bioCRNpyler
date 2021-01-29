@@ -6,7 +6,7 @@ import pytest
 #from unittest import TestCase
 from biocrnpyler import Promoter, DNA_construct, Terminator, Transcription_MM,\
                          Species, RBS, CDS, Polymer_transformation, NamedPolymer,\
-                         OrderedPolymer, AttachmentSite, IntegraseRule
+                         OrderedPolymer, IntegraseSite, IntegraseRule
 import copy
 
 def test_polymer_transformation():
@@ -39,9 +39,9 @@ def test_integrase_rule():
     cds = CDS("GFP")
     cds2 = CDS("RFP")
     term = Terminator("t16")
-    ap = AttachmentSite("attP","attP")
-    ab = AttachmentSite("attB","attB")
-    aflp = AttachmentSite("FLP","FLP")
+    ap = IntegraseSite("attP","attP")
+    ab = IntegraseSite("attB","attB")
+    aflp = IntegraseSite("FLP","FLP")
     delete = DNA_construct([ab,cds,ap])
     flip = DNA_construct([ab,cds,[ap,"reverse"]])
 
@@ -63,8 +63,8 @@ def test_integrase_rule():
     with pytest.raises(KeyError):
         bad_rule.generate_products(delete[0],delete[2]) #attP->attB reaction is not possible with a bad rule
     
-    aL = AttachmentSite("attL","attL",integrase="Bxb1")
-    aR = AttachmentSite("attR","attR",integrase="Bxb1")
+    aL = IntegraseSite("attL","attL",integrase="Bxb1")
+    aR = IntegraseSite("attR","attR",integrase="Bxb1")
     productsites = bxb1_rule.generate_products(delete[0],delete[2])
     assert(productsites[0]==aL.set_dir("forward"))
     assert(productsites[1]==aR.set_dir("forward"))

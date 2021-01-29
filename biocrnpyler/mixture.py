@@ -371,16 +371,6 @@ class Mixture(object):
             init_conc_dict = self.get_initial_concentration(remove_bindloc(new_species), component)
             self.crn.initial_concentration_dict = init_conc_dict
 
-        #for s in new_species:
-        #    if isinstance(s, Species) or(isinstance(s, list) and(all(isinstance(ss, Species) for ss in s) or len(s) == 0)):
-        #        
-        #        self.crn.add_species(s)
-        #
-        #        
-        #
-        #    elif s is not None:
-        #        raise ValueError(f"Invalid Species Returned in {component}.update_species(): {s}.")
-
     def apply_global_mechanisms(self, species) -> (List[Species], List[Reaction]):
         # update with global mechanisms
 

@@ -13,7 +13,7 @@ from warnings import warn
 
 from .components_basic import Protein
 from .dna_part_cds import CDS
-from .dna_part_misc import AttachmentSite
+from .dna_part_misc import IntegraseSite
 from .dna_part_promoter import Promoter
 from .dna_part_rbs import RBS
 from .dna_part_terminator import Terminator
@@ -333,12 +333,14 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
                 name_str = repr(p.search_key.name).strip('\'\"')
                 new_color = reaction_color
                 if(name_str in colordict):
-                    new_color = colordict[name_str]
+                    new_color = colordict[name_str] #name of the mechanism that made the reaction
                 if(partid_str in colordict):
-                    new_color = colordict[partid_str]
+                    new_color = colordict[partid_str] #partid used to make the reaction
                 if(mech_str in colordict):
-                    new_color = colordict[mech_str]
+                    new_color = colordict[mech_str] #the type of mechanism that made the reaction
                 if(reaction_color is not None and reaction_color != new_color):
+                        #if you change the color of a reaction, the final color will be unexpected,
+                        #so there is a warning that that happened
                         warn(f"reaction color was {reaction_color} but now you want it to be {colordict[name_str]}")
                 reaction_color = new_color
 
@@ -479,7 +481,7 @@ def make_dpl_from_part(part, direction=None, color=None, color2=None, showlabel=
         dpl_type = "CDS"
     elif(isinstance(part, Terminator)):
         dpl_type = "Terminator"
-    elif(isinstance(part, AttachmentSite)):
+    elif(isinstance(part, IntegraseSite)):
         if(part.site_type == "attP" or part.site_type == "attB"):
             dpl_type = "RecombinaseSite"
         elif(part.site_type == "attL" or part.site_type == "attR"):

@@ -777,7 +777,8 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
 
     def __hash__(self):
         ophash = OrderedPolymer.__hash__(self)
-        ophash += hash(self.circular)+hash(self.name)+hash(self.material_type)
+        ophash += hash(str(self))
+        #hash(self.circular)+hash(self.name)+hash(self.material_type)+hash(self.attributes)
         return ophash
 
     def replace(self, position, part, direction=None):
