@@ -19,7 +19,7 @@ from .utils import remove_bindloc
 class Mixture(object):
     def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
                  global_mechanisms=None, species=None, initial_condition_dictionary=None, \
-                 global_component_enumerators=None,recursion_depth=4, **kwargs):
+                 global_component_enumerators=None,global_recursion_depth=4, local_recursion_depth = None, **kwargs):
         """A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
         and parameters related to the mixture itself (e.g. Transcription rate). Default components and mechanisms can be
         added as well as global mechanisms that impacts all species (e.g. cell growth).
@@ -35,8 +35,13 @@ class Mixture(object):
         # Initialize instance variables
         self.name = name  # Save the name of the mixture
 
-        #recursion depth for component enumeration
-        self.recursion_depth = recursion_depth
+        #recursion depth for global component enumeration
+        self.global_recursion_depth = global_recursion_depth
+
+        if(local_recursion_depth is None):
+            self.local_recursion_depth = self.global_recursion_depth+2
+
+        #
 
         # process the components
         if components is None and not hasattr(self, "_components"):
@@ -414,7 +419,7 @@ class Mixture(object):
     def global_component_enumeration(self,comps_to_enumerate=None, recursion_depth=None) -> List[Component]:
         """components that produce other components infinitely"""
         if(recursion_depth is None):
-            recursion_depth = self.recursion_depth
+            recursion_depth = self.global_recursion_depth
 
         if(comps_to_enumerate is None):
             comps_to_enumerate = list(self.components) #these go into the ComponentEnuemrators
@@ -466,13 +471,13 @@ class Mixture(object):
         
         #get the recursion depth
         if(recursion_depth is None):
-            recursion_depth = self.recursion_depth
+            recursion_depth = self.global_recursion_depth
 
         #Run global enumeration
         globally_enumerated_components = self.global_component_enumeration(recursion_depth=recursion_depth)
 
         #Run Local Enumeraton
-        enumerated_components = self.component_enumeration(globally_enumerated_components, recursion_depth = recursion_depth+2) #This includes self.components 
+        enumerated_components = self.component_enumeration(globally_enumerated_components, recursion_depth = self.local_recursion_depth) #This includes self.components 
         #reset the Components' mixture to self - in case they have been added to other Mixtures
         for c in enumerated_components:
             c.set_mixture(self)
