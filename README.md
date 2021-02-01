@@ -38,7 +38,7 @@ D = Species("D")
 k1 = 3.
 k2 = 1.4
 
-#Reaciton Objects
+#Reaction Objects
 R1 = Reaction.from_massaction([A], [B, B], k_forward = k1)
 R2 = Reaction.from_massaction([B], [C, D], k_forward = k2)
 
