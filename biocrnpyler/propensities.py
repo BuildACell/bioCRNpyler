@@ -365,7 +365,6 @@ class MassAction(Propensity):
             ratelaw.removeLocalParameter("k_forward") #if k_forward is a local parameter, remove it
 
         rate_formula = self._get_rate_formula(param, stochastic, reactant_species)
-        print("mass action propensity rate formula:", rate_formula)
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
         ratelaw.setMath(math_ast)
