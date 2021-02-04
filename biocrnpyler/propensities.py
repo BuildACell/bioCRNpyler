@@ -365,6 +365,7 @@ class MassAction(Propensity):
             ratelaw.removeLocalParameter("k_forward") #if k_forward is a local parameter, remove it
 
         rate_formula = self._get_rate_formula(param, stochastic, reactant_species)
+        print("mass action propensity rate formula:", rate_formula)
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
         ratelaw.setMath(math_ast)
@@ -383,6 +384,10 @@ class MassAction(Propensity):
                 ratestring += f"{species_id}"
                 ratestring += '*'
                 ratestring += '*'.join(f" ( {species_id} - {i} )" for i in range(1, weighted_species.stoichiometry))
+                
+                #Remove trailing *
+                if ratestring[len(ratestring)-1] == "*":
+                    ratestring = ratestring[:-1]
             else:
                 if weighted_species.stoichiometry > 1:
                     ratestring += f" * {species_id}^{weighted_species.stoichiometry}"
@@ -496,6 +501,8 @@ class HillPositive(Hill):
     def pretty_print_rate(self, show_parameters = True, **kwargs):
         return f' Kf = k {self.s1.pretty_print(**kwargs)}^n / ( K^n + {self.s1.pretty_print(**kwargs)}^n )'
 
+
+
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']
         n = propensity_dict['parameters']['n']
@@ -548,6 +555,7 @@ class ProportionalHillPositive(HillPositive):
 
     def pretty_print_rate(self, show_parameters = True,  **kwargs):
         return f' Kf = k {self.d.pretty_print(**kwargs)} {self.s1.pretty_print(**kwargs)}^n / ( K^n + {self.s1.pretty_print(**kwargs)}^n )'
+
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']
