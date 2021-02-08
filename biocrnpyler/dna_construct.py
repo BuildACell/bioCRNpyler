@@ -187,8 +187,7 @@ class Construct(Component,OrderedPolymer):
             partspec = copy.copy(part.dna_species)
             partspec.material_type = self.material_type
             ocomplx += [partspec.set_dir(part.direction)]
-        out_species = OrderedPolymerSpecies(ocomplx,circular = self.circular,\
-                                                    name = self.name,material_type=self.material_type)
+        out_species = OrderedPolymerSpecies(ocomplx,circular = self.circular,material_type=self.material_type)
         
         return out_species
     
@@ -267,7 +266,6 @@ class Construct(Component,OrderedPolymer):
         species_lists: list of species which are to be assembled into a polymer
         backbone: the base_species which all these polymers should have"""
         polymers = []
-        self_species = self.get_species()
         for combo in species_lists:
             #members of allcomb are now OrderedMonomers, which contain direction and position
             #there could be multiple OrderedPolymerSpecies we are making combinatorial.
