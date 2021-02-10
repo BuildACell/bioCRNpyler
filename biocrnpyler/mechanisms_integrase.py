@@ -24,7 +24,7 @@ class BasicIntegration(Mechanism):
     def update_species(self, DNA_inputs, DNA_outputs = None, **keywords):
         #this doesn't make any species because I use a Binding mechanism for that
         #maybe if we do the tetramerization mechanism then this would do something
-        return None
+        return []
 
     def update_reactions(self, DNA_inputs, DNA_outputs, component = None, part_id = None, kint = None, **keywords):
         if part_id is None and component is not None:

@@ -142,7 +142,6 @@ class Reaction(object):
             propensity_type_dict['species'][key] = prop_species.replace_species(species, new_species)
 
         new_propensity_type = self.propensity_type.from_dict(propensity_type_dict)
-        print(new_propensity_type.propensity_dict)
 
         new_r = Reaction(inputs=new_inputs, outputs=new_outputs, propensity_type=new_propensity_type)
         return new_r

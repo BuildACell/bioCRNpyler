@@ -202,9 +202,8 @@ class Construct(Component,OrderedPolymer):
         then, take the lists from comb_list and create all possible lists
         out of prototype_list that includes those elements"""
         #first we have to construct the list we are tracing paths through
-        #spec_list = [a[0] for a in spec_list]
+        
         spec_indexes = [a.position for a in spec_list] #extract all indexes
-        #print(spec_indexes)
         #the following takes apart the lists because i don't yet know how to deal
         #with multiple binders at the same time
         compacted_indexes = sorted(list(set(spec_indexes)))
@@ -267,10 +266,10 @@ class Construct(Component,OrderedPolymer):
         backbone: the base_species which all these polymers should have"""
         polymers = []
         for combo in species_lists:
-            #members of allcomb are now OrderedMonomers, which contain direction and position
-            #there could be multiple OrderedPolymerSpecies we are making combinatorial.
-            #for example, RNAs
-
+            #to make combinatorially bound versions of a species, we take the unbound species (backbone)
+            #and replace monomers of it with bound versions (combo)
+            #combo is a dictionary of the form: {number:OrderedMonomer,...}
+            #where the number is which element should be replaced and the OrderedMonomer is what will be replacing that element
             new_backbone = OrderedPolymerSpecies.from_polymer_species(backbone,combo)
             polymers += [new_backbone] #we make a new OrderedComplexSpecies
         return polymers

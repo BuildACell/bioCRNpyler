@@ -85,13 +85,36 @@ class IntegraseSite(DNABindingSite):
     def update_component(self,internal_species=None,**keywords):
         """returns a copy of this component, except with the proper fields updated"""
         newcomp = DNABindingSite.update_component(self,internal_species=internal_species)
+        #above is updating the component to take into account integrase binding (the default feature of DNABindingSite)
         if(newcomp is None):
+            #if nothing binds, then nothing else happens. Since, integrase must be bound in order for integrase sites to do anything
             return None
         elif("practice_run" in keywords and keywords["practice_run"]):
+            #combinatorial enumeration calls update_component twice.
+            #an integrase site must inform all the sites it is linked to that it has been
+            #updated. In certain cases the status of whether a site has been updated is informative
+            #intramolecular sites only output reactions if they haven't been updated
+            #intermolecular sites only output reactions if they have been updated
+            #a site can be both types, it depends on the contents of self.linked_sites[site]
+            
+            #however, during the practice run we are trying to preserve the "initial" configuration
+            #that the sites get after they are first created.
+            #schematic:
+            #site1 <===> site2
+            #  ||        /\
+            #update      /
+            #  ||       /
+            # \../     /
+            #copy(site1) 
+            # 
+            #this site is linked to site2 but site2 is not linked to the copy
+            #this is what we are trying to fix here
             for othersite in self.linked_sites:
+                #what we are doing here is swapping out the link to this site with
+                #a link to the returned component (the copied site)
                 mystuff = copy.copy(othersite.linked_sites[self])
-                othersite.linked_sites[newcomp] = mystuff
                 del othersite.linked_sites[self]
+                othersite.linked_sites[newcomp] = mystuff
             return newcomp
         else:
             for othersite in self.linked_sites:
@@ -100,14 +123,20 @@ class IntegraseSite(DNABindingSite):
                     #the reaction with the site in question is intramolecular
                     #that means we should only populate the other site if our internal_species
                     #has the proper location bound by integrase
+                    #if the reaction is intramolecular, that means that this component knows everything in order to decide
+                    #create the reaction.
+                    #the linked site is populated because then the linked site knows not to create the reaction.
+                    #after all, there is one reaction per two sites
                     otherisbound = othersite.integrase in internal_species.parent[othersite.position]
                     if(not otherisbound):
                         populate = False
                 if(populate):
+                    #if the reaction is intermolecular then the linked site is populated.
+                    #this means only a fully populated site would have all the information to create the reaction
+                    #once again this results in one out of two sites that actually outputs a "reaction" object, as required
                     mystuff = copy.copy(othersite.linked_sites[self])
                     del othersite.linked_sites[self]
                     othersite.linked_sites[newcomp]=mystuff
-
                     assert(othersite in newcomp.linked_sites)
             return newcomp
     def count_inputs(self,site):
