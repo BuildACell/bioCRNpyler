@@ -3,9 +3,10 @@
 from .species import Species
 from .polymer import OrderedPolymer, OrderedMonomer, NamedPolymer
 from .dna_construct import Construct, DNA_construct
-from .dna_part_misc import AttachmentSite
+from .dna_part_misc import IntegraseSite
 from .component_enumerator import GlobalComponentEnumerator
 import itertools as it
+from .utils import combine_dictionaries
 import copy
 
 class Polymer_transformation:
@@ -18,10 +19,24 @@ class Polymer_transformation:
         parts with parent = None are inserted into the new polymer.
 
         Also you can specify if the output should be circular or not.
+
+        example:
+
+        valid partslist:
+        partslist = [Monomer(forward,3,"input1"),Monomer(reverse,1,"input2"),Promoter(forward,None,None)]
+        
+        then, self.create_polymer([polymer1,polymer2])
+        takes element 3 from polymer1 and puts it forward, element 1 from polymer 2, and a Promoter object and creates
+        a new polymer by feeding these three monomers into a polymer constructor.
+
+        new_polymer.parts_list = [polymer1[3].setdir("forward",polymer2[1].setdir("reverse"),[Promoter,"forward"]]
         """
         if(parentsdict is None):
-            parentsdict = {} #this is a conversion of the parents of the inputted parts into "blank" dummy polymers
-                            #each unique parent becomes a different dummy polymer
+            parentsdict = {} #the input to this function is a list of monomers that belong to various parents.
+                             #each different parent that is represented in these monomers is converted into "input#" arbitrarily
+                             #to keep it consistant, a link of that parent to the appropriate "input#" is kept in this dictionary.
+                             #you can also pass a pre-populated dictionary into this function in order to control which parent gets
+                             #which "input#". This is essential if we want to properly "reverse" a transformation (input1 becomes input2 and input2 becomes input1)
         inputcount = 1
         actual_partslist = []
         partdir = -1 #-1 = not set. Valid values are "forward" "reverse" and None
@@ -59,7 +74,7 @@ class Polymer_transformation:
         self.parentsdict = parentsdict
         self.partslist = actual_partslist
         self.circular = circular
-    def inverted(self):
+    def reversed(self):
         """return a circularly permuted version of self. That means the inputs are shuffled around
         For example, we had input1, input2, input3. Now we will have input1=input2, input2=input3, input3=input1."""
         new_parentsdict = {}
@@ -120,6 +135,10 @@ class Polymer_transformation:
         return outpolymer
     @classmethod
     def dummify(cls,in_polymer,name):
+        """creates a simplified polymer that has the same number of monomers, direction of monomers,
+        and name as the input polymer, but is otherwise disconnected."""
+        #this is used specifically with polymerTransformation. Dummified version of polymers are stored in
+        #polymerTransformation as generic "slots" for monomers to be properly placed into
         out_list = []    
         for element in in_polymer:
             out_list += [OrderedMonomer(direction=element.direction)]
@@ -144,11 +163,13 @@ class Polymer_transformation:
         return out_txt
 
 class IntegraseRule:
-    def __init__(self,name=None,reactions={("attB","attP"):"attL",("attP","attB"):"attR"}):
+    def __init__(self,name=None,reactions=None):
         """The integrase mechanism is a mechanism at the level of DNA. It creates DNA species which
         the integrase manipulations would lead to. This mechanism does not create any reaction rates.
         We need to figure out how integrase binding will work before being able to create
         reactions and their corresponding rates"""
+        if(reactions is None):
+            reactions = {("attB","attP"):"attL",("attP","attB"):"attR"}
         if(name is None):
             self.name = "int1"
         else:
@@ -172,19 +193,21 @@ class IntegraseRule:
         dinucleotide = site1.dinucleotide
         rxn1 = (site1.site_type,site2.site_type)
         rxn2 = (site2.site_type,site1.site_type)
-        try:
+        #this next part checks if these parts can even react
+        if(rxn1 in self.reactions):
             prod1 = self.reactions[rxn1]
-        except KeyError:
-            #this means the reaction is not possible!!
+        else:
             raise KeyError("{} not found to react with {} in {}".format(site1,site2,self.reactions))
-        try:
-            prod2 = self.reactions[rxn2]
-        except KeyError:
-            raise KeyError("{} not found to react with {} in {}".format(site2,site1,self.reactions))
         
-        part_prod1 = AttachmentSite(prod1,prod1,dinucleotide=dinucleotide,
+        if(rxn2 in self.reactions):
+            prod2 = self.reactions[rxn2]
+        else:
+            raise KeyError("{} not found to react with {} in {}".format(site2,site1,self.reactions))
+            
+        
+        part_prod1 = IntegraseSite(prod1,prod1,dinucleotide=dinucleotide,
                                     integrase=integrase,direction=site1.direction)
-        part_prod2 = AttachmentSite(prod2,prod2,dinucleotide=dinucleotide,
+        part_prod2 = IntegraseSite(prod2,prod2,dinucleotide=dinucleotide,
                                     integrase=integrase,direction=site2.direction)
         if(site1.direction=="forward"):
             return (part_prod1,part_prod2)
@@ -194,7 +217,28 @@ class IntegraseRule:
             return(part_prod2,part_prod1)
     
     def integrate(self,site1,site2):
-        """perform an integration reaction between the chosen sites and make new DNA_constructs"""
+        """perform an integration reaction between the chosen sites and make new DNA_constructs
+        site1 and site2 are integrase site dna_parts which have parents that are DNA_constructs.
+        
+        There are four possible reactions:
+        1) inversion
+           two sites are part of the same dna construct
+           the result is another dna construct with the same circularity and the region in between the sites flipped
+        2) deletion
+           two sites are part of the same dna construct
+           the result is two dna constructs: one with the same circularity but the region between the sites deleted, and another
+           ciruclar dna construct that contains the deleted portion
+        3) integration
+           the sites are on two different dna constructs
+           the result is a single dna construct
+        4) recombination
+           the sites are on two different dna constructs
+           the results are two different dna constructs with the proper portions swapped
+        
+        after the correct dna constructs are generated, the reactions which were done to produce them
+        are encoded into polymer_transformations and "baked into" the integrase sites themselves. So,
+        each integrase site knows which specific integrase reactions it should produce when it comes
+        time to update_reactions."""
         #if one of the sites is not part of a construct then raise an error!
         if(not(isinstance(site1.parent,Construct))):
             raise ValueError("{} not part of a construct".format(site1))
@@ -218,11 +262,10 @@ class IntegraseRule:
             
             dna = site1.parent
             dna_inputs = [dna]
-            #dna = copy.deepcopy(site1.assembly)
-            #dna_list = list(range(len(dna.parts_list)))
             circularity = dna.circular
             
             if(site1.direction == site2.direction):
+                #case 2: deletion
                 #if the sites point in the same direction, then we are doing a deletion reaction
                 #direction doesn't matter so we don't need to flip anything
                 cutdna_list_parts = list(dna[:cutpos1])+[[prod1,site1.direction]]+list(dna[cutpos2+1:]) #delete
@@ -231,6 +274,7 @@ class IntegraseRule:
                 integ_funcs = [Polymer_transformation(cutdna_list_parts,circular = circularity),\
                                         Polymer_transformation(newdna_list_parts,circular=True)]
             else:
+                #case 1: inversion
                 #this means we are dealing with an inversion
                 inv_segment = []
                 
@@ -273,6 +317,7 @@ class IntegraseRule:
             #direction of everything should be forward
 
             if(circ2==True):
+                #case 3: integration
                 #in this case we are combining a circular plasmid with a circular or linear plasmid
                 #either way the result is basically the same, except the result is either linear or circular
                 #result is ONE PIECE OF DNA
@@ -280,19 +325,19 @@ class IntegraseRule:
                 integ_funcs = [Polymer_transformation(result,circ1,parentsdict=pdict)]
             elif(circ2 ==False and circ1 == True):
                 #if the sites are backwards just reverse everything
-                #this is wrong!!!!! it should return inverted polymer_transformations then
                 polymer_transformations = self.integrate(site2,site1)
 
-                return [a.inverted() for a in polymer_transformations][::-1]
+                return [a.reversed() for a in polymer_transformations][::-1]
             elif(circ1==False and circ1==circ2):
-                #here we are recombining two linear plasmids, so two linear plasmids are produced
+                #case 4: recombination
+                #here we are recombining two linear dnas, so two linear dnas are produced
 
                 result1 = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]
                 result2 = dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
                 integ_funcs = [Polymer_transformation(result1,parentsdict=pdict),Polymer_transformation(result2,parentsdict=pdict)]
 
         site1.linked_sites[site2] = [integ_funcs,[]]
-        site2.linked_sites[site1] = [[a.inverted() for a in integ_funcs],[]]
+        site2.linked_sites[site1] = [[a.reversed() for a in integ_funcs],[]]
         return integ_funcs
 
 
@@ -305,22 +350,12 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
             int_mechanisms={"int1":IntegraseRule()}
         self.int_mechanisms = int_mechanisms
         GlobalComponentEnumerator.__init__(self,name=name)
-    def combine_dictionaries(self,dict1,dict2):
-        """append lists that share the same key, and add new keys"""
-        outdict = dict1
-        for key in dict2:
-            if key in outdict:
-                assert(isinstance(dict2[key],list))
-                assert(isinstance(outdict[key],list))
-                outdict[key] += dict2[key]
-            else:
-                outdict[key] = dict2[key]
-        return outdict
+    
     def list_integrase(self,construct):
         """lists all the parts that can be acted on by integrases"""
         int_dict = {}
         for part in construct.parts_list:
-            if(isinstance(part,AttachmentSite) and part.integrase is not None):
+            if(isinstance(part,IntegraseSite) and part.integrase is not None):
                 part_integrase = part.integrase.name
                 if(part_integrase in int_dict):
                     int_dict.update({part_integrase:int_dict[part_integrase]+[part]})
@@ -357,7 +392,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                     part.linked_sites = {}
             con_dict = self.list_integrase(construct)
             
-            int_dict = self.combine_dictionaries(int_dict,con_dict)
+            int_dict = combine_dictionaries(int_dict,con_dict)
         constructlist = []
         for integrase in int_dict:
             if(integrase in self.int_mechanisms):

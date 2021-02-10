@@ -15,7 +15,7 @@ from warnings import warn
 from .component import Component
 from .components_basic import DNA, RNA
 from .dna_part import DNA_part
-from .dna_part_misc import AttachmentSite
+from .dna_part_misc import IntegraseSite
 from .species import ComplexSpecies, OrderedPolymer, OrderedPolymerSpecies
 from .utils import all_comb, remove_bindloc
 import logging
@@ -34,10 +34,11 @@ class Construct(Component,OrderedPolymer):
         """this represents a bunch of parts in a row.
         A parts list has [[part,direction],[part,direction],...]
         Each part must be an OrderedMonomer"""
+
         if(component_enumerators is None):
             component_enumerators = []
         self.component_enumerators = component_enumerators
-        OrderedPolymer.__init__(self,parts_list,default_direction="forward")
+        OrderedPolymer.__init__(self,parts_list, default_direction="forward")
         self.circular=circular
         if(name is None):
             name = self.make_name() #automatic naming
@@ -50,14 +51,13 @@ class Construct(Component,OrderedPolymer):
         self.transcripts = []
         if(not hasattr(self,"material_type")):
             self.material_type=None #set this when you inherit this class
-        #self.update_base_species(self.name)
         self.out_components = None
         self.predicted_rnas = None
         self.predicted_proteins = None
 
     @property
     def parts_list(self):
-        return self._polymer
+        return self.polymer
 
     def make_name(self):
         output = ""
@@ -187,8 +187,7 @@ class Construct(Component,OrderedPolymer):
             partspec = copy.copy(part.dna_species)
             partspec.material_type = self.material_type
             ocomplx += [partspec.set_dir(part.direction)]
-        out_species = OrderedPolymerSpecies(ocomplx,circular = self.circular,\
-                                                    name = self.name,material_type=self.material_type)
+        out_species = OrderedPolymerSpecies(ocomplx,circular = self.circular,material_type=self.material_type)
         
         return out_species
     
@@ -203,9 +202,8 @@ class Construct(Component,OrderedPolymer):
         then, take the lists from comb_list and create all possible lists
         out of prototype_list that includes those elements"""
         #first we have to construct the list we are tracing paths through
-        #spec_list = [a[0] for a in spec_list]
+        
         spec_indexes = [a.position for a in spec_list] #extract all indexes
-        #print(spec_indexes)
         #the following takes apart the lists because i don't yet know how to deal
         #with multiple binders at the same time
         compacted_indexes = sorted(list(set(spec_indexes)))
@@ -253,7 +251,13 @@ class Construct(Component,OrderedPolymer):
             for combo_index in combo:
                 combo_sublists += [prototype_list[compacted_indexes.index(combo_index)]]
             outlist+= recursive_path(combo_sublists)
-        return outlist
+        outdict_list = []
+        for combo in outlist:
+            replacedict = {}
+            for spec in combo:
+                replacedict.update({spec.position:[spec,spec.direction]})
+            outdict_list += [replacedict]
+        return outdict_list
 
     def make_polymers(self,species_lists,backbone):
         """makes polymers from lists of species
@@ -261,25 +265,13 @@ class Construct(Component,OrderedPolymer):
         species_lists: list of species which are to be assembled into a polymer
         backbone: the base_species which all these polymers should have"""
         polymers = []
-        
         for combo in species_lists:
-            #members of allcomb are now OrderedMonomers, which contain direction and position
-            #there could be multiple OrderedPolymerSpecies we are making combinatorial.
-            #for example, RNAs
-            new_backbone = copy.deepcopy(backbone)
-            new_material = backbone.material_type
-            for spec in combo:
-                new_material = OrderedPolymerSpecies.default_material
-                new_backbone.replace(spec.position,spec)
-            newname = None
-            self_species = self.get_species()
-            if(new_backbone==self_species):
-                #if we have just re-created ourselves, then make sure to call it that
-                newname = self_species.name
-                polymers += [copy.deepcopy(self_species)]
-            else:
-                new_backbone.material_type = new_material
-                polymers += [new_backbone] #we make a new OrderedComplexSpecies
+            #to make combinatorially bound versions of a species, we take the unbound species (backbone)
+            #and replace monomers of it with bound versions (combo)
+            #combo is a dictionary of the form: {number:OrderedMonomer,...}
+            #where the number is which element should be replaced and the OrderedMonomer is what will be replacing that element
+            new_backbone = OrderedPolymerSpecies.from_polymer_species(backbone,combo)
+            polymers += [new_backbone] #we make a new OrderedComplexSpecies
         return polymers
 
     def update_combinatorial_complexes(self,active_components):
@@ -311,7 +303,7 @@ class Construct(Component,OrderedPolymer):
         #unique_complexes now has a list of all the non-combinatorial complexes we can make
         combinatorial_complexes = unique_complexes
         allcomb = self.located_allcomb(combinatorial_complexes) #all possible combinations of binders are made here
-        allcomb += [[]] #unbound dna should also be used
+        allcomb += [{}] #unbound dna should also be used
         #now, all possibilities have been enumerated.
         #we construct the OrderedPolymerSpecies
         out_polymers = self.make_polymers(allcomb,self.get_species())
@@ -340,15 +332,15 @@ class Construct(Component,OrderedPolymer):
         In total two A components are returned, and two B components are returned.
         """
         #Looks at combinatorial states of constructs to generate DNA_parts
-        my_polymer = self.get_species()
+        #my_polymer = self.get_species()
         self.update_parameters()
 
         #Go through parts
         active_components = []
         for part in self.parts_list:
             if(hasattr(part,"update_component")):
-                dummy_species = my_polymer[part.position].get_orphan()
-                updated_components = part.update_component(dummy_species)
+                dummy_species = self.get_species()[part.position]
+                updated_components = part.update_component(dummy_species,practice_run=True)
                 if(updated_components is not None):
                     active_components += [updated_components]
         #this next part creates "combinatorial" bound complexes, given singly bound complexes generated above.
@@ -452,7 +444,7 @@ class DNA_construct(Construct,DNA):
                 #if the color isn't set, let's set it now!
                 part.color = pind
             if(type(part.color2)==type(None)):
-                if(isinstance(part,AttachmentSite) and part.site_type in ["attL","attR"]):
+                if(isinstance(part,IntegraseSite) and part.site_type in ["attL","attR"]):
                     #this is the only scenario in which we need a color2
                     #TODO make this more general
                     pind+=1
