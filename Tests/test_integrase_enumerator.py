@@ -6,7 +6,7 @@ import pytest
 #from unittest import TestCase
 from biocrnpyler import Promoter, DNA_construct, Terminator, Transcription_MM,\
                          Species, RBS, CDS, Polymer_transformation, NamedPolymer,\
-                         OrderedPolymer, IntegraseSite, IntegraseRule
+                         OrderedPolymer, IntegraseSite, IntegraseRule,Integrase_Enumerator, TxTlExtract
 import copy
 
 def test_polymer_transformation():
@@ -70,3 +70,59 @@ def test_integrase_rule():
     assert(productsites[1]==aR.set_dir("forward"))
     #
         
+def test_compilation():
+    #Create an infinite polymer system and compile it at different recursion depths
+
+    pconst = Promoter("pconst") #constitutive promoter
+    gfp = CDS("GFP")
+    rfp = CDS("RFP")
+    t16 = Terminator("t16") #a terminator stops transcription
+
+    #some parameters are useful also. note the "kint" parameter which determines the rate of recombination
+    parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
+    #here is where we define the integrase attachment sites
+    attP = IntegraseSite("attP","attP",integrase="Bxb1") #the first argument is the name of this attachment site, the second argument is the type of attachment site it is ("attP", "attB", "attL" or "attR") and the integrase denotes which integrase binds to this site (default is "int1")
+    attB = IntegraseSite("attB","attB",integrase="Bxb1") #we define two attachment sites, as one site doesn't do anything on its own besides bind integrases
+
+    #Create an integrase enumerator
+    bxb1_mechanism = IntegraseRule("Bxb1", reactions={("attB","attP"):"attL",("attP","attB"):"attR"})
+    bxb1 = Integrase_Enumerator("Bxb1", int_mechanisms={"Bxb1":bxb1_mechanism}) #we must also define an integrase enumerator. The default integrase is always "int1", but here we are specifying "Bxb1" as the integrase. The Integrase enumerator gets a name, and the mechanism we defined above.
+
+    #create DNA_constructs with integrase sites
+    plasmid1_construct = DNA_construct([t16,attP,attB,gfp],circular=True)
+    genome_construct = DNA_construct([pconst,attB,rfp])
+
+    #Create a Mixture
+    myMixture = TxTlExtract(name = "txtl", parameters = parameters, components = [plasmid1_construct,genome_construct],global_component_enumerators=[bxb1]) 
+
+    #Test Recursion Depth = 0
+    #Note compile directives are used to speed up the test
+    myCRN0, comps0 = myMixture.compile_crn(recursion_depth = 0, 
+                                         return_enumerated_components = True,
+                                         initial_concentrations_at_end = True,
+                                         copy_objects = False,
+                                         add_reaction_species = False)
+    assert len(comps0) == 14
+    assert len(myCRN0.species) == 14
+    assert len(myCRN0.reactions) == 12
+
+    #Test recursion depth = 1
+    myCRN1, comps1 = myMixture.compile_crn(recursion_depth = 1, 
+                                         return_enumerated_components = True,
+                                         initial_concentrations_at_end = True,
+                                         copy_objects = False,
+                                         add_reaction_species = False)
+
+    assert len(comps1) == 52
+    assert len(myCRN1.species) == 36
+    assert len(myCRN1.reactions) == 61
+
+    #Recompiling at a different length doesn't change anything
+    myCRN0b, comps0b = myMixture.compile_crn(recursion_depth = 0, 
+                                         return_enumerated_components = True,
+                                         initial_concentrations_at_end = True,
+                                         copy_objects = False,
+                                         add_reaction_species = False)
+    assert len(comps0) == len(comps0b)
+    assert all(myCRN0.species == myCRN0b.species)
+    assert all(myCRN0.reactions == myCRN0b.reactions)
