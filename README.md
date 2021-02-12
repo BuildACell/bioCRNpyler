@@ -15,6 +15,7 @@ BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, mani
 - **Mailing list:** [SBTools Google Group](https://groups.google.com/g/sbtools/) Email: sbtools@googlegroups.com
 - **Bug reports:** https://github.com/BuildACell/BioCRNPyler/issues
 - **Documentation:** Coming Soon!
+- **Video Tutorials:** [Introduction to CRN Modeling](https://www.youtube.com/watch?v=mu-9MSntd2w&list=PLb2LmjoxZO-g2vbTr3HBcnvVZur8JFiqf&index=1&t=1164s), [CRNs with BioCRNpyler Tutorial](https://www.youtube.com/watch?v=l1uVqwZwxX0&list=PLb2LmjoxZO-g2vbTr3HBcnvVZur8JFiqf&index=2), [BioCRNpyler Compilation Overview](https://www.youtube.com/watch?v=lw3DbBnsPgs&list=PLb2LmjoxZO-g2vbTr3HBcnvVZur8JFiqf&index=3), and [BioCRNpyler Compilation Tutorial](https://www.youtube.com/watch?v=eLjxCStLvsQ&list=PLb2LmjoxZO-g2vbTr3HBcnvVZur8JFiqf&index=4).
 - **Slack:** Join the #biocrnpyler channel on SBTools slack: Ask on the public SBTools Google group to be added or send a message to one of the maintainers. 
 
 # Example 1: Building Simple CRNs by Hand
