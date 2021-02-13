@@ -118,6 +118,12 @@ class Parameter(object):
     def __hash__(self):
         return hash(self._parameter_name)+hash(self._value)+hash(self._unit)
 
+    def __eq__(self, other):
+        if isinstance(other, Parameter):
+            return self.value == other.value
+        else:
+            return self.value == other
+
 
 class ParameterEntry(Parameter):
     """A class for representing parameters in a parameter stored the ParameterDatabase.
