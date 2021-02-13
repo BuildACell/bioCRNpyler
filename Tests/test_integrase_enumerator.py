@@ -112,7 +112,6 @@ def test_compilation():
                                          initial_concentrations_at_end = True,
                                          copy_objects = False,
                                          add_reaction_species = False)
-
     assert len(comps1) == 52
     assert len(myCRN1.species) == 36
     assert len(myCRN1.reactions) == 61
@@ -124,5 +123,5 @@ def test_compilation():
                                          copy_objects = False,
                                          add_reaction_species = False)
     assert len(comps0) == len(comps0b)
-    assert all(myCRN0.species == myCRN0b.species)
-    assert all(myCRN0.reactions == myCRN0b.reactions)
+    assert myCRN0.species==myCRN0b.species
+    assert all([r in myCRN0.reactions for r in myCRN0b.reactions]) and all([r in myCRN0b.reactions for r in myCRN0.reactions])

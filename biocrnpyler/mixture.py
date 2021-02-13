@@ -426,7 +426,8 @@ class Mixture(object):
 
         #Recursion depth
         enumerated_components = list(comps_to_enumerate) #These will be returned
-
+        for global_enumerator in self.global_component_enumerators:
+            global_enumerator.reset(enumerated_components) #reset the enumeration if there's any stored info
         for a in range(recursion_depth):
             new_comps_to_enumerate = [] #these will be added to comps_to_enumerate at the end of the iteration
 
@@ -444,10 +445,6 @@ class Mixture(object):
             #Update comps_to_enumerate
             comps_to_enumerate += new_comps_to_enumerate
 
-            #return_components += comps_to_enumerate #components which we enumerated should be returned
-            #comps_to_enumerate += new_components #new components AND the ones which were already enumerated go back into enumeration
-            #comps_to_enumerate = list(set(comps_to_enumerate)) #only save unique things
-            #new_components = []
         return enumerated_components
 
     def compile_crn(self, recursion_depth = None, initial_concentration_dict = None, return_enumerated_components = False,

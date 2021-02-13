@@ -362,6 +362,14 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                 else:
                     int_dict[part_integrase]=[part]
         return int_dict
+    def reset(self,components=None, **keywords):
+        """this resets the linked_sites member in any attachment sites"""
+
+        for component in components:
+            if(hasattr(component,"parts_list")):
+                for part in component:
+                    if(hasattr(part,"linked_sites")):
+                        part.linked_sites = {}
     def enumerate_components(self,components = None, **keywords):
         """this explores all the possible integrase-motivated DNA configurations. If some
         integrases aren't present, then define intnames to be a list of names of the
@@ -383,13 +391,10 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         for component in components:
             if(isinstance(component,DNA_construct)):
                 construct_list += [component]
-       
         int_dict = {}
         for construct in construct_list:
             #list each integrase that exists and which sites they react with
-            for part in construct:
-                if(hasattr(part,"linked_sites")):
-                    part.linked_sites = {}
+            
             con_dict = self.list_integrase(construct)
             
             int_dict = combine_dictionaries(int_dict,con_dict)
