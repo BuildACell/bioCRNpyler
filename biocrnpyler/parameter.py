@@ -115,6 +115,8 @@ class Parameter(object):
         return self.value == other.value
     def __str__(self):
         return f"Parameter {self.parameter_name} = {self.value}"
+    def __hash__(self):
+        return hash(self._parameter_name)+hash(self._value)+hash(self._unit)
 
 
 class ParameterEntry(Parameter):
