@@ -13,11 +13,11 @@ from .mechanism import Mechanism
 from .parameter import ParameterDatabase
 from .reaction import Reaction
 from .species import Species
-
+from .utils import remove_bindloc
 
 class Mixture(object):
     def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
-                 global_mechanisms=None, species=None, **kwargs):
+                 global_mechanisms=None, species=None, initial_condition_dictionary=None, recursion_depth=4, **kwargs):
         """A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
         and parameters related to the mixture itself (e.g. Transcription rate). Default components and mechanisms can be
         added as well as global mechanisms that impacts all species (e.g. cell growth).
@@ -32,6 +32,9 @@ class Mixture(object):
         """
         # Initialize instance variables
         self.name = name  # Save the name of the mixture
+
+        #recursion depth for component enumeration
+        self.recursion_depth = recursion_depth
 
         # process the components
         if components is None and not hasattr(self, "_components"):
@@ -373,16 +376,38 @@ class Mixture(object):
         self.add_species_to_crn(global_mech_species, component = None)
         self.crn.add_reactions(global_mech_reactions)
 
-    def compile_crn(self, initial_concentration_dict = None) -> ChemicalReactionNetwork:
+    def component_enumeration(self, recursion_depth) -> List[Component]:
+        #Components that produce components through Component Enumeration
+
+        all_components = []
+        new_components = []
+        comps_to_enumerate = self.components
+
+
+        #Recursion depth
+        for a in range(recursion_depth):
+
+            for component in comps_to_enumerate:
+                
+                component.set_mixture(self)
+                enumerated = component.enumerate_components()
+                new_components += enumerated
+
+
+            all_components += comps_to_enumerate
+            comps_to_enumerate = new_components
+            new_components = []
+
+        if(len(comps_to_enumerate) > 0):
+            warn("Mixture was left with unenumerated components "+str(', '.join(comps_to_enumerate)))
+        return all_components
+
+    def compile_crn(self, recursion_depth = 10, initial_concentration_dict = None) -> ChemicalReactionNetwork:
         """Creates a chemical reaction network from the species and reactions associated with a mixture object.
         :param initial_concentration_dict: a dictionary to overwride initial concentrations at the end of compile time
         :return: ChemicalReactionNetwork
         """
         resetwarnings()#Reset warnings - better to toggle them off manually.
-
-        #reset the Components' mixture to self - in case they have been added to other Mixtures
-        for c in self.components:
-            c.set_mixture(self)
 
         #Create a CRN to filter out duplicate species
         self.crn = ChemicalReactionNetwork([], [])
@@ -390,13 +415,20 @@ class Mixture(object):
         #add the extra species to the CRN
         self.add_species_to_crn(self.added_species, component = None)
 
+        enumerated_components = self.component_enumeration(recursion_depth) #This includes self.components
+
+        #reset the Components' mixture to self - in case they have been added to other Mixtures
+        for c in enumerated_components:
+            c.set_mixture(self)
+
         #Append Species from each Component
-        for component in self.components:
-            self.add_species_to_crn(component.update_species(), component)
+        for component in enumerated_components:
+            self.add_species_to_crn(remove_bindloc(component.update_species()), component)
 
         #Append Reactions from each Component
-        for component in self.components:
-            self.crn.add_reactions(component.update_reactions())
+        for component in enumerated_components:
+            comp_rxns = component.update_reactions()
+            self.crn.add_reactions(comp_rxns)
 
         #global mechanisms are applied last and only to all the species
         #the reactions and species are added to the CRN

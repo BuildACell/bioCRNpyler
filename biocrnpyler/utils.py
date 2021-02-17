@@ -25,22 +25,27 @@ def rev_dir(dir):
     reversedict = {"forward":"reverse","reverse":"forward"}
     return reversedict[dir]
 
+def recursive_parent(s):
+    #Recursively goes through Species and gets the top level parent
+    if hasattr(s, "parent") and s.parent is not None:
+        return recursive_parent(s.parent)
+    else:
+        return s
 
 def remove_bindloc(spec_list):
         """go through every species on a list and remove any "bindloc" attributes"""
-        #spec_list2 = copy.copy(spec_list)
         out_sp_list = []
-        for specie in spec_list:
-            #go through the species and remove the "bindloc" attribute
-            #I don't care about the binding now that I am done generating species
-            if(type(specie)==WeightedSpecies):
-                spec2 = specie.species
-                if(hasattr(spec2,"parent") and (spec2.parent is not None)):
-                    specie.species = spec2.parent
-            if(hasattr(specie,"parent") and (specie.parent is not None)):
-                out_sp_list += [specie.parent]
+        for s in spec_list:
+            #go through the species and replace species with their parents, recursively
+
+            if isinstance(s, WeightedSpecies):
+                parent = recursive_parent(s.species)
+                s.species = parent
+                out_sp_list.append(s)
             else:
-                out_sp_list+= [specie]
+                parent = recursive_parent(s)
+                out_sp_list.append(parent)
+                
         return out_sp_list
 
 #Converts a parameter to its Value

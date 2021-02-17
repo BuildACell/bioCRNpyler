@@ -12,8 +12,11 @@ from .mechanisms_binding import (Combinatorial_Cooperative_Binding,
 from .mechanisms_txtl import (NegativeHillTranscription,
                               PositiveHillTranscription)
 from .species import Species
+from .components_basic import DNA, RNA
+from .utils import remove_bindloc
 
 
+#TODO put remove_bindloc in the component instead of in dna_construct
 class Promoter(DNA_part):
     """A basic Promoter class with no regulation. Needs to be included in a DNAassembly or DNAconstruct to function.
     """
@@ -70,6 +73,7 @@ class Promoter(DNA_part):
         self._dna_bind = value
     def get_species(self):
         return None
+
     def update_reactions(self):
         mech_tx = self.get_mechanism("transcription")
         reactions = []
@@ -78,24 +82,17 @@ class Promoter(DNA_part):
                         component = self, part_id = self.name, complex = None,
                         transcript = self.transcript, protein = self.get_protein_for_expression())
         return reactions
-    def update_component(self,dna,rnas,proteins,mypos = None):
+
+    def update_component(self,internal_species=None,**keywords):
         """returns a copy of this component, except with the proper fields updated"""
-        if(dna.material_type == "rna"):
-            #Promoters only work with DNA
+        if(isinstance(self.parent,RNA)):
             return None
-        out_component = copy.deepcopy(self)
-        if(mypos is not None):
-            out_component.dna_to_bind = dna[mypos]
+        elif(isinstance(self.parent,DNA)):
+            out_component = copy.copy(self)
+            out_component.dna_to_bind = internal_species
+            return out_component
         else:
-            out_component.dna_to_bind = dna
-        myrna = rnas[self]
-        out_component.transcript = myrna.get_species()
-        rbslist = proteins[myrna]
-        proteinlist = []
-        for a in rbslist:
-            proteinlist += rbslist[a]
-        out_component.protein = proteinlist
-        return out_component
+            raise TypeError(f"Unknown parent class {type(self.parent)}, expect either DNA_construct or RNA_construct")
 
 
     #Used for expression mixtures where transcripts are replaced by proteins
@@ -175,14 +172,15 @@ class RegulatedPromoter(Promoter):
 
             #Find complexes containing DNA and the regulator
             #DNA should be *not* a part of an OrderedPolymer for this to work
-            dna_simple = copy.deepcopy(self.dna_to_bind)
-            dna_simple.remove()
+            #dna_simple = copy.deepcopy(self.dna_to_bind)
+            #dna_simple.remove()
             for s in species_b:
-                if dna_simple in s and regulator in s:
+                if s.contains_species_monomer(self.dna_to_bind) and s.contains_species_monomer(regulator):
                     self.complexes += [s]
 
                     species += mech_tx.update_species(dna = s, transcript = self.transcript, \
                             protein = self.get_protein_for_expression(), part_id = self.name+"_"+regulator.name, component = self)
+        print("regulated promoter complexes", self.complexes)
         return species
 
     def update_reactions(self):
@@ -389,8 +387,8 @@ class CombinatorialPromoter(Promoter):
         for bound_complex in bound_species: 
             species_inside = []
             for regulator in self.regulators:
-                if(regulator in bound_complex):
-                    species_inside += [regulator.name] 
+                if(bound_complex.contains_species_monomer(regulator) and bound_complex.contains_species_monomer(self.dna_to_bind)):
+                    species_inside += [regulator.name]
             if(set(species_inside) in [set(a) for a in self.tx_capable_list]):
                 #only the transcribable complexes in tx_capable_list get transcription reactions
                 tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, \

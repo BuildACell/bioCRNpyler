@@ -27,6 +27,7 @@ class Component(object):
                  mixture=None,
                  attributes=None,
                  initial_concentration = None, #This is added as a parameter ("initial concentration", None, self.name):initial_concentration
+                 initial_condition_dictionary=None,
                  **keywords  # parameter keywords
                  ):
         """Initializes a Component object.
@@ -38,6 +39,7 @@ class Component(object):
         :param mixture:
         :param attributes:
         :param initial_concentration:
+        :param initial_condition_dictionary:
         :param keywords:
         """
         if mechanisms is None:
@@ -64,6 +66,11 @@ class Component(object):
         self.parameter_database = ParameterDatabase(parameter_file=parameter_file, parameter_dictionary=parameters)
         self.initial_concentration = initial_concentration
 
+        # Components can also store initial conditions, just like Mixtures
+        if initial_condition_dictionary is None:
+            self.initial_condition_dictionary = {}
+        else:
+            self.initial_condition_dictionary = dict(initial_condition_dictionary)
     @property
     def initial_concentration(self):
         return self._initial_concentration
@@ -279,6 +286,16 @@ class Component(object):
         reactions = []
         warn("Unsubclassed update_reactions called for " + repr(self))
         return reactions
+        
+    def enumerate_components(self) -> List:
+        """this is for component enumeration. Usually you will return a list of components that are
+        copies of existing ones (first list) and new components (second list). For example,
+        A DNA_construct makes a list of copies of its parts as the first output, and a list of RNA_constructs
+        as the second output.
+        An RNA_construct will make a list of copies of its parts as the first output, and a list of Protein
+        components as its second output (if it makes any proteins)"""
+        return []
+
 
     def __repr__(self):
         return type(self).__name__ + ": " + self.name
