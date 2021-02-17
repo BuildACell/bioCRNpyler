@@ -275,7 +275,9 @@ class GeneralPropensity(Propensity):
             self.propensity_function.replace(parameter_in_crn, parameter_in_sbml)
 
         math_ast = libsbml.parseL3Formula(self.propensity_function)
-        ratelaw.setMath(math_ast)
+        flag = ratelaw.setMath(math_ast)
+        if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
+            raise ValueError("Could not write the rate law for reaction to SBML. Check the propensity functions of reactions.")
         return ratelaw 
 
 
@@ -367,7 +369,9 @@ class MassAction(Propensity):
         rate_formula = self._get_rate_formula(param, stochastic, reactant_species)
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
-        ratelaw.setMath(math_ast)
+        flag = ratelaw.setMath(math_ast)
+        if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
+            raise ValueError("Could not write the rate law for reaction to SBML. Check the propensity functions of reactions.")
         annotation_string = self._create_annotation(model, propensity_dict_in_sbml=propensity_dict_in_sbml, **kwargs)
         sbml_reaction.appendAnnotation(annotation_string)
         return ratelaw
@@ -472,7 +476,9 @@ class Hill(Propensity):
         sbml_reaction.appendAnnotation(annotation_string)
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
-        ratelaw.setMath(math_ast)
+        flag = ratelaw.setMath(math_ast)
+        if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
+            raise ValueError("Could not write the rate law for reaction to SBML. Check the propensity functions of reactions.")
 
         return ratelaw
 
