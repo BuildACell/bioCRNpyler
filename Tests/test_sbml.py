@@ -141,6 +141,7 @@ class TestSBML(TestCase):
         error_propensity = GeneralPropensity('k1*2 - k2/S1^2*', propensity_species=[S1], propensity_parameters=[k1, k2])
         with pytest.raises(ValueError, match = "Could not write the rate law for reaction to SBML. Check the propensity functions of reactions."):
             rxn = Reaction([],[S1], propensity_type = error_propensity)
+            sbml_reaction = add_reaction(model, rxn, "r_err")
     def test_add_reaction_for_bioscrape(self):
         """
         Generates models for bioscrape including the particular annotations needed.
