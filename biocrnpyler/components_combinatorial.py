@@ -12,11 +12,12 @@ class CombinatorialComplex(Component):
     A class to represent a Complex of many Species which can bind together in many different ways.
     """
     
-    def __init__(self, final_states, initial_states = None, intermediate_states = None, name = None, **keywords):
+    def __init__(self, final_states, initial_states = None, intermediate_states = None, excluded_states = None, name = None, **keywords):
         """
         Binding reactions will be generated to form all the ComplexSpecies in final_states from all the species in initial_states 
         (or, if initial_states is None, from all the individual species inside each ComplexSpecies). Intermediate states restricts
-        the binding reactions to only form species in this list. At a high level this generates the following reactions:
+        the binding reactions to only form species in this list. Excluded states are not allowed to be reactants or products. 
+        At a high level this generates the following reactions:
         
         If just final_states are given:
             final_states_internal_species <-[Combinatorial Binding]-> final_states
@@ -34,8 +35,10 @@ class CombinatorialComplex(Component):
         :param final_states: a single ComplexSpecies or a list of ComplexSpecies. 
         :param initial_states: a list of initial Species which are bound together to form the ComplexSpecies in final_states. 
                                 If None defaults to the members of the ComplexSpecies in final_states.
-        :param intermediate_states: a list of intermediate species formed when converting initial_states to final_states. 
-                                    If None, all possible intermediate ComplexSpecies are enumerated.
+        :param intermediate_states: a list of intermediate ComplexSpecies formed when converting initial_states to final_states. 
+                                    If None: all possible intermediate ComplexSpecies are enumerated.
+        :param excluded_states: a list of ComplexSpecies which are NOT allowed to form when converting initial states to final states.
+                                If None: no ComplexSpecies are excluded.
 
 
         Example 1: final_states = ComplexSpecies([A, B, C]). initial_states = None, intermediate_states = None.
@@ -79,6 +82,8 @@ class CombinatorialComplex(Component):
         self.intermediate_states = intermediate_states
         #3. set initial_states
         self.initial_states = initial_states
+        #4. set excluded_states
+        self.excluded_states = excluded_states
 
         #used to store combinations of species during update
         self.combination_dict = {}
@@ -149,7 +154,17 @@ class CombinatorialComplex(Component):
                 if not all([ss in self.sub_species for ss in intermediate_sub_species]):
                     raise ValueError(f"intermediate species {s} contains subspecies not in the final_states.")
 
-    
+    #Excluded states allows the user to exclude specific Species from being enumerated
+    @property
+    def excluded_states(self):
+        return self._excluded_states
+    @excluded_states.setter
+    def excluded_states(self, excluded_states):
+        if excluded_states is None:
+            self._excluded_states = []
+        else:
+            self._excluded_states = excluded_states
+
     def compute_species_to_add(self, s0, sf):
         #Compute Species that need to be added to s0 to get the Complex sf
 
@@ -213,8 +228,9 @@ class CombinatorialComplex(Component):
                     s_list.append(s)
                     cs = Complex(s_list)
 
-                    #append the new combination
-                    combinations.append((binder, bindee, cs))
+                    #append the new combination if it isn't excluded
+                    if binder not in self.excluded_states and bindee not in self.excluded_states and cs not in self.excluded_states:
+                        combinations.append((binder, bindee, cs))
                     #update bindee
                     bindee = cs
 

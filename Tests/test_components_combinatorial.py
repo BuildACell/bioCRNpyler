@@ -41,6 +41,9 @@ def test_CombinatorialComplex_init_and_properties():
     assert set(CC4.initial_states) == set([X, Y, Z])
     assert set(CC4.intermediate_states) == set([Complex([Z, Z])])
 
+    #Test with excluded states
+    CC5 = CombinatorialComplex(final_states = [C2], excluded_states = [C1])
+
     #Test cases that should produce errors
 
     #final_states must be ComplexSpecies
@@ -137,6 +140,20 @@ def test_CombinatorialComplex_get_combinations_between():
     assert len(combos) == 1
     assert (X, Complex([X, Z]), C2) in combos
 
+    #Test with excluded states that are ComplexSpecies
+    C3a = Complex([X, Y])
+    C3b = Complex([X, Z])
+    CC3 = CombinatorialComplex(final_states = [C1], excluded_states = [C3a, C3b])
+    combos = CC3.get_Combinations_between(X, C1)
+    combos_list = [c[0] for c in combos]+[c[1] for c in combos] + [c[2] for c in combos]
+    assert C3a not in combos and C3b not in combos
+
+    #Test with excluded states that are Species
+    CC4 = CombinatorialComplex(final_states = [C1], excluded_states = [Y, Z])
+    combos = CC4.get_Combinations_between(X, C1)
+    combos_list = [c[0] for c in combos]+[c[1] for c in combos] + [c[2] for c in combos]
+    assert Y not in combos and Z not in combos 
+
 def test_CombinatorialComplex_update_species():
     mech_b = One_Step_Binding()
 
@@ -186,6 +203,7 @@ def test_CombinatorialComplex_update_species():
     assert X in s5 and Y in s5 and Z in s5
     assert Complex([X, X]) in s5 and Complex([X, Z]) in s5 and Complex([X, Y]) in s5
     assert Complex([Y, Z]) not in s5
+
 
 def test_CombinatorialComplex_update_reactions():
     mech_b = One_Step_Binding()
