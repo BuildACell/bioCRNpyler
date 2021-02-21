@@ -143,7 +143,7 @@ class OrderedPolymer(MonomerCollection):
             return dirname
 
     def __len__(self):
-        return len(self._polymer)
+        return len(self.polymer)
 
     def __getitem__(self,ii):
         return self.polymer[ii]
@@ -185,14 +185,19 @@ class OrderedPolymer(MonomerCollection):
             part.direction = self.direction_invert(part.direction)
         self.changed()
 
-
+class NamedPolymer(OrderedPolymer):
+    """The same as an OrderedPolymer but it has a name"""
+    def __init__(self,parts,name,default_direction=None):
+        self.name = name
+        OrderedPolymer.__init__(self=self,parts=parts,default_direction=default_direction)
+        
 class OrderedMonomer:
     """a unit that belongs to an OrderedPolymer. Each unit has a direction, a location, and a link back to its parent"""
     def __init__(self,direction=None,position=None,parent=None):
         """the default is that the monomer is not part of a polymer"""
 
         self.parent = None; self.direction = None; self.position = None #Prevents weird testing errors of not having attributes
-
+        self.is_polymer_component = False #by default, we assume that an orderedmonomer is not part of a polymer
         #Set properties correctly
         self.parent = parent
         self.direction = direction
@@ -223,9 +228,37 @@ class OrderedMonomer:
 
     @position.setter
     def position(self, position):
-        self._position = position
-
-    def monomer_insert(self, parent:MonomerCollection, position=None, direction=None):
+        if self.parent is not None and position is None:
+            raise ValueError("{} is part of a polymer with no position!".format(self))
+        else:
+            self._position = position
+    def find_polymer_component(self):
+        from .species import ComplexSpecies
+        outpolymer = None
+        if(isinstance(self,ComplexSpecies)):
+            for specie in self.species:
+                if(specie.is_polymer_component):
+                    if(outpolymer is not None):
+                        raise ValueError("multiple species are part of the polymer in the same place!!")
+                    else:
+                        outpolymer = specie
+        if(self.is_polymer_component):
+            if(outpolymer is not None):
+                raise ValueError("multiple species are part of the polymer in the same place!!")
+            else:
+                outpolymer = self
+        return outpolymer
+    def monomer_insert(self,parent:OrderedPolymer,position:int,direction=None):
+        if(position is None):
+            raise ValueError("{} has no position to be inserted at!".format(self))
+        if(direction is None):
+            if(self.direction is not None):
+                direction  = self.direction
+        if(parent is None):
+            raise ValueError("{} is trying to be inserted into nothing!".format(self))
+        if(self.is_polymer_component is False):
+            if(self.find_polymer_component() is None):
+                self.is_polymer_component = True
         self.parent = parent
         self.position = position
         self.direction = direction
@@ -240,7 +273,11 @@ class OrderedMonomer:
         self.direction = None
         
         return(self)
-
+    def get_orphan(self):
+        """returns a copy of this monomer, except with no parent. But it still has a position and direction"""
+        copied_monomer = copy.copy(self)
+        copied_monomer.parent = None
+        return(copied_monomer)
     def __repr__(self):
         txt = "OrderedMonomer(direction="+str(self.direction)+",position="+\
                                 str(self.position)+")"

@@ -13,7 +13,7 @@ from warnings import warn
 
 from .components_basic import Protein
 from .dna_part_cds import CDS
-from .dna_part_misc import AttachmentSite
+from .dna_part_misc import IntegraseSite
 from .dna_part_promoter import Promoter
 from .dna_part_rbs import RBS
 from .dna_part_terminator import Terminator
@@ -186,7 +186,7 @@ def graphPlot(DG, DGspecies, DGreactions, plot, layout="force", positions=None, 
 
     # reactions
     reaction_renderer.node_renderer.glyph = Square(
-        size=8, fill_color=Spectral4[0])
+        size=8, fill_color="color")
     reaction_renderer.node_renderer.selection_glyph = Square(
         size=8, fill_color=Spectral4[2])
     reaction_renderer.node_renderer.hover_glyph = Square(
@@ -274,7 +274,8 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
     # "nothing" node. However, usually we are making degradation reactions which yield the
     # degradation enzyme, so then it doesn't go to nothing. This means actually this node
     # isn't use for anything. But i think it's good to have just in case.
-    defaultcolor = "grey"
+    default_species_color = "grey"
+    default_reaction_color = "cornflowerblue"
     nodedict["nothing"] = 0
     CRNgraph.add_node(0)
     CRNgraph.nodes[0]["type"] = "nothing"
@@ -285,18 +286,18 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
         # add all species first
 
         if repr(species) in colordict:
-            mycol = colordict[repr(species)]
+            species_color = colordict[repr(species)]
         elif species.name in colordict:
-            mycol = colordict[species.name]
+            species_color = colordict[species.name]
         elif (species.material_type, tuple(species.attributes)) in colordict:
-            mycol = colordict[(species.material_type,
+            species_color = colordict[(species.material_type,
                                tuple(species.attributes))]
         elif(species.material_type in colordict):
-            mycol = colordict[species.material_type]
+            species_color = colordict[species.material_type]
         elif tuple(species.attributes) in colordict:
-            mycol = colordict[tuple(species.attributes)]
+            species_color = colordict[tuple(species.attributes)]
         else:
-            mycol = defaultcolor
+            species_color = default_species_color
 
         nodedict[species] = allnodenum
         CRNgraph.add_node(allnodenum)
@@ -307,7 +308,7 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
             spectxt = species.pretty_print(
                 show_material=pp_show_material, show_compartment=pp_show_compartments)
             CRNgraph.nodes[allnodenum]["species"] = spectxt
-        CRNgraph.nodes[allnodenum]["color"] = mycol
+        CRNgraph.nodes[allnodenum]["color"] = species_color
         allnodenum += 1
     # reactions follow, allnodenum is not reset between these two loops
     for rxn in CRN.reactions:
@@ -322,7 +323,28 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
             CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
             CRNgraph.nodes[allnodenum]["k_r"] = ''
 
-        default_color = "blue"
+        reaction_color = None
+        if repr(rxn) in colordict:
+            reaction_color = colordict[repr(rxn)]
+        for k,p in rxn.propensity_type.propensity_dict["parameters"].items():
+            if(hasattr(p,"search_key")):
+                mech_str = repr(p.search_key.mechanism).strip('\'\"')
+                partid_str = repr(p.search_key.part_id).strip('\'\"')
+                name_str = repr(p.search_key.name).strip('\'\"')
+                new_color = reaction_color
+                if(name_str in colordict):
+                    new_color = colordict[name_str] #name of the mechanism that made the reaction
+                if(partid_str in colordict):
+                    new_color = colordict[partid_str] #partid used to make the reaction
+                if(mech_str in colordict):
+                    new_color = colordict[mech_str] #the type of mechanism that made the reaction
+                if(reaction_color is not None and reaction_color != new_color):
+                        #if you change the color of a reaction, the final color will be unexpected,
+                        #so there is a warning that that happened
+                        warn(f"reaction color was {reaction_color} but now you want it to be {colordict[name_str]}")
+                reaction_color = new_color
+
+
         # CRNgraph.nodes[allnodenum]
         if isinstance(rxn.propensity_type, MassAction):
             kval = rxn.propensity_type.k_forward
@@ -340,15 +362,15 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
         if((krev_val is not None) and (not useweights)):
             krev_val = 1
         for reactant in rxn.inputs:
-            CRNgraph.add_edge(
-                nodedict[reactant.species], allnodenum, weight=kval)
+            
+            CRNgraph.add_edge(nodedict[reactant.species],allnodenum,weight=kval)
             if(krev_val is not None):
                 # if the k is 0 then the node does not exist, right?
                 CRNgraph.add_edge(
                     allnodenum, nodedict[reactant.species], weight=krev_val)
         for product in rxn.outputs:
-            CRNgraph.add_edge(
-                allnodenum, nodedict[product.species], weight=kval)
+            #TODO species cannot find another species in the nodedict????
+            CRNgraph.add_edge(allnodenum,nodedict[product.species],weight=kval)
             if(krev_val is not None):
                 CRNgraph.add_edge(
                     nodedict[product.species], allnodenum, weight=krev_val)
@@ -362,7 +384,9 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
             CRNgraph.add_edge(0, allnodenum, weight=kval)
             if(krev_val is not None):
                 CRNgraph.add_edge(allnodenum, 0, weight=krev_val)
-        CRNgraph.nodes[allnodenum]["color"] = default_color
+        if(reaction_color is None):
+            reaction_color = default_reaction_color
+        CRNgraph.nodes[allnodenum]["color"] = reaction_color
         if(not use_pretty_print):
             CRNgraph.nodes[allnodenum]["species"] = str(rxn)
         else:
@@ -391,7 +415,7 @@ def make_dpl_from_construct(construct, showlabels=None):
         showlabels = []
     outdesign = []
     if(HAVE_MATPLOTLIB):
-        cmap = cm.Set1(range(len(construct.parts_list)*2))
+        cmap = cm.Set1(range(len(construct.parts_list)*2+1))
     pind = 0
     for part in construct.parts_list:
         pcolor = part.color
@@ -457,7 +481,7 @@ def make_dpl_from_part(part, direction=None, color=None, color2=None, showlabel=
         dpl_type = "CDS"
     elif(isinstance(part, Terminator)):
         dpl_type = "Terminator"
-    elif(isinstance(part, AttachmentSite)):
+    elif(isinstance(part, IntegraseSite)):
         if(part.site_type == "attP" or part.site_type == "attB"):
             dpl_type = "RecombinaseSite"
         elif(part.site_type == "attL" or part.site_type == "attR"):
@@ -478,9 +502,8 @@ def make_dpl_from_part(part, direction=None, color=None, color2=None, showlabel=
         outdesign = outdesign[::-1]
     return outdesign
 
-
-def plotDesign(design, renderer=None, part_renderers=None,
-               circular=False, title=None):
+def plotDesign(design,renderer = None,part_renderers=None,\
+                circular=False,title=None,outfig=None):
     """helper function for doing dnaplotlib plots. You need to set the size and min max of the
     plot, and that's what this function does"""
     if(PLOT_DNA):
@@ -498,17 +521,19 @@ def plotDesign(design, renderer=None, part_renderers=None,
         ax.axis('off')
         if title is not None:
             ax.set_title(title)
-        addedsize = 1
-        ax.set_xlim([start-addedsize, end+addedsize])
-        ax.set_ylim([-15, 15])
-        plt.show()
+        addedsize=1
+        ax.set_xlim([start-addedsize,end+addedsize])
+        ax.set_ylim([-15,15])
+        if(outfig is not None):
+            fig.savefig(outfig,format='png')
+        else:
+            plt.show()
     else:
         warn("plotting DNA has been disabled because you don't have DNAplotlib")
 
-
-def plotConstruct(DNA_construct_obj, dna_renderer=None,
-                  rna_renderer=None,
-                  plot_rnas=False, debug=False, showlabels=None, plot_dna_test=True):
+def plotConstruct(DNA_construct_obj,dna_renderer=None,\
+                                    rna_renderer=None,\
+                                    plot_rnas=False,debug=False,showlabels = None,plot_dna_test=True,outfig=None):
     """helper function for making dnaplotlib plots of a DNA_construct object. Plots the
     DNAs and the RNAs that come from that DNA, using DNA_construct.explore_txtl"""
     # TODO: make the label showing more general
@@ -518,14 +543,12 @@ def plotConstruct(DNA_construct_obj, dna_renderer=None,
         if(dna_renderer is None):
             dna_renderer = dpl.DNARenderer(scale=5, linewidth=3)
         if(rna_renderer is None):
-            rna_renderer = dpl.DNARenderer(
-                scale=5, linewidth=3, linecolor=(1, 0, 0))
-
-    design = make_dpl_from_construct(DNA_construct_obj, showlabels=showlabels)
-    circular = DNA_construct_obj.circular
+            rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0))
+    
+    design = make_dpl_from_construct(DNA_construct_obj,showlabels=showlabels)
+    circular=DNA_construct_obj.circular
     if(PLOT_DNA and plot_dna_test):
-        plotDesign(design, circular=circular,
-                   title=DNA_construct_obj.get_species())
+        plotDesign(design,circular=circular,title=DNA_construct_obj.get_species(),outfig=outfig)
         if(plot_rnas):
             rnas_and_proteins = DNA_construct_obj.enumerate_constructs()
             for component in rnas_and_proteins:
@@ -539,4 +562,4 @@ def plotConstruct(DNA_construct_obj, dna_renderer=None,
                         part['opts'].update({'edgecolor':rnacolor})
                 plotDesign(rnadesign,renderer=rna_renderer,title=component.get_species())
     else:
-        print(DNA_construct_obj.show())
+        print(DNA_construct_obj)

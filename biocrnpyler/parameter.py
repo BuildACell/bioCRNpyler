@@ -110,14 +110,9 @@ class Parameter(object):
         else:
             return float(p_value)
     def __eq__(self, other):
-        if isinstance(other,Parameter):
-            return self.value == other.value
-        else:
-            try:
-                return self.value == float(other)
-            except TypeError:
-                raise TypeError(f"Cannot compare parameter {self} with {other}.")
-        
+        if not isinstance(other,Parameter):
+            raise TypeError("Can only compare equality between Parameters.")
+        return self.value == other.value
     def __str__(self):
         return f"Parameter {self.parameter_name} = {self.value}"
     def __hash__(self):
