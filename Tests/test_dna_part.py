@@ -29,3 +29,7 @@ def test_equality_without_ordered_polymer():
     assert part1a == part1a2
     part1b = DNA_part("part", assembly = "b1")
     assert part1a != part1b
+
+    partfor = DNA_part("part",direction="forward")
+    x = part1.set_dir("forward")
+    assert partfor == x

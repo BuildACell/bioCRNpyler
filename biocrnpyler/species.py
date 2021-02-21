@@ -665,10 +665,9 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
     sometimes it is convenient to pass an internal Species. Both will work from the point of view
     of any Mechanism.
     """
-    default_material = "ordered_polymer"
-
-    def __init__(self, species, name=None, base_species=None, material_type=default_material,
-                 compartment=None, attributes=None, circular=False):
+    default_material="ordered_polymer"
+    def __init__(self,species, name=None, material_type = default_material, \
+                   compartment=None, attributes = None,circular = False):
 
         self.material_type = material_type
         self.compartment = compartment
@@ -704,15 +703,6 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         OrderedPolymer.__init__(self, monomers)
         self.material_type = material_type
 
-        if(base_species is None):
-            self.base_species = Species("NA", material_type=material_type)
-            self.base_species._name = self.name #Bipass check until base-species is removed in Andrey's PR
-        elif(isinstance(base_species, Species)):
-            self.base_species = base_species
-        else:
-            raise TypeError("base_species is of type "+type(base_species) +
-                            " which is not acceptable. Use Species or str")
-
     @classmethod
     def from_polymer_species(cls, ops, replace_dict, **keywords):
         """
@@ -721,6 +711,9 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         inputs: replace_dict {monomer index --> new Species}
         outputs: OrderedPolymerSpecies
         """
+        if(replace_dict == {}):
+            #nothing to replace!
+            return copy.deepcopy(ops)
         monomers = []
         for i in range(len(ops.polymer)):
             if i in replace_dict:
@@ -784,8 +777,8 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
 
     def __hash__(self):
         ophash = OrderedPolymer.__hash__(self)
-        ophash += hash(self.circular)+hash(self.base_species) + \
-            hash(self.name)+hash(self.material_type)
+        ophash += hash(str(self))
+        #hash(self.circular)+hash(self.name)+hash(self.material_type)+hash(self.attributes)
         return ophash
 
     def replace(self, position, part, direction=None):
@@ -1173,12 +1166,6 @@ class Complex:
         elif len(parent_species) == 1 and isinstance(parent_species[0], OrderedPolymerSpecies):
             parent_species = parent_species[0]
             bindloc = bindlocs[0]
-
-            #Ensure the monomer in the Complex has no parent
-            #new_species = other_species
-            #monomer = copy.copy(child_species[0]) #Copy the monomer
-            #monomer.remove()
-            #new_species.insert(insertlocs[0], monomer) #Insert the monomer back into the Species
 
             # Create an OrderedcomplexSepcies or ComplexSpecies
             child = copy.copy(child_species[0])

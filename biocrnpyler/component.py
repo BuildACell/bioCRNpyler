@@ -100,7 +100,7 @@ class Component(object):
         :return: None
         """
         return None
-
+    @classmethod
     def set_species(self, species: Union[Species, str], material_type=None, attributes=None) -> Species:
         """Helper function that allows species to be set from strings, species, or Components
 

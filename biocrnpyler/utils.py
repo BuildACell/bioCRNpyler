@@ -33,7 +33,12 @@ def recursive_parent(s):
         return s
 
 def remove_bindloc(spec_list):
-        """go through every species on a list and remove any "bindloc" attributes"""
+        """go through every species on a list and remove any "bindloc" attributes. This is used
+        to convert monomers with a parent polymer into the correct species after combinatorial binding
+        in things like DNAassembly and RNAassembly."""
+        if not isinstance(spec_list, list):
+            spec_list = [spec_list]
+
         out_sp_list = []
         for s in spec_list:
             #go through the species and replace species with their parents, recursively
@@ -58,3 +63,18 @@ def parameter_to_value(p):
 #Converts a dictionary of Species (or strings) --> Parameters (or Numbers) to Strings --> Numbers
 def process_initial_concentration_dict(initial_concentration_dict: Dict[Union[str, Species], Union[numbers.Real, Parameter]]) -> Dict[str, numbers.Real]:
     return {str(key): parameter_to_value(value) for (key, value) in initial_concentration_dict.items()}
+
+#combines two dictionaries by adding missing keys and appending values to existing keys so the
+#output dictionary has all the data of both inputs. ONLY WORKS FOR DICTIONARIES WHERE THE VALUES ARE LISTS!!
+def combine_dictionaries(dict1,dict2):
+        """append lists that share the same key, and add new keys
+        WARNING: this only works if the dictionaries have values that are lists"""
+        outdict = dict1
+        for key in dict2:
+            if key in outdict:
+                assert(isinstance(dict2[key],list))
+                assert(isinstance(outdict[key],list))
+                outdict[key] += dict2[key]
+            else:
+                outdict[key] = dict2[key]
+        return outdict

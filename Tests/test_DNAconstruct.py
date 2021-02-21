@@ -4,7 +4,7 @@
 
 import pytest
 #from unittest import TestCase
-from biocrnpyler import Promoter, DNA_construct, Terminator, Transcription_MM, Species, RBS, CDS
+from biocrnpyler import Promoter, DNA_construct, Terminator, Transcription_MM, Species, RBS, CDS, Complex
 import copy
 
 def test_promoter_DNAconstruct():
@@ -113,4 +113,32 @@ def test_circular_DNAconstruct():
     assert(y[1]==e[1]) #different DNA constructs lead to the same RNA construct
     assert(y[0]==x[0]) #correct promoter is working
     assert(e[0]==z[1]) #correct promoter is working
+
+def test_combinatorial_enumeration_DNAconstruct():
+    P = Promoter("pconst") #constitutive promoter
+    T = Terminator("term")
+    parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
+    mechs = {"transcription":Transcription_MM(Species("RNAP",material_type="protein"))}
+
+    #circular construct
+    x = DNA_construct([P,P,T],mechanisms = mechs,parameters=parameters,circular=True)
+    y = x.combinatorial_enumeration()
+    prom_positions = []
+    dna_species = {}
+    for prom_comp in y:
+        if(prom_comp.position not in dna_species):
+            dna_species[prom_comp.position] = [prom_comp.dna_to_bind.parent]
+        else:
+            dna_species[prom_comp.position] += [prom_comp.dna_to_bind.parent]
     
+    
+    p1_bound = Complex([x.get_species()[0],Species("RNAP",material_type="protein")]).parent
+    p2_bound = Complex([x.get_species()[1],Species("RNAP",material_type="protein")]).parent
+    both_bound = Complex([p1_bound[1],Species("RNAP",material_type="protein")]).parent
+    assert(x.get_species() in dna_species[0]) #unbound polymer found in combinatorial enumeration
+    assert(p2_bound in dna_species[0]) #proper bound polymer found in combinatorial enumeration
+    assert(x.get_species() in dna_species[1]) #unbound polymer found in combinatorial enumeration
+    assert(p1_bound in dna_species[1]) #proper bound polymer found in combinatorial enumeration
+    assert(both_bound not in dna_species[0]) #dna with both promoters bound is not in combinatorial enumeration
+    assert(both_bound not in dna_species[1]) #dna with both promoters bound is not in combinatorial enumeration
+    assert(len(y)==4)
