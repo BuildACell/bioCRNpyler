@@ -63,7 +63,43 @@ def test_CombinatorialComplex_init_and_properties():
     with pytest.raises(ValueError):
         CC = CombinatorialComplex(final_states = [C1], intermediate_states = [Complex([Species("S"), Species("S2")])])
 
+def test_CombinatorialComplex_compute_species_to_add():
+    X, Y, Z = Species("X"), Species("Y"), Species("Z")
+    C = Complex([X, X, Y, Z])
+    CC = CombinatorialComplex(final_states = [C])
 
+    #A single X, Y, and Z should be added
+    species_to_add = CC.compute_species_to_add(X, C)
+    assert set(species_to_add) == set([X, Y, Z])
+    assert species_to_add.count(X) == 1 and species_to_add.count(Y) == 1 and species_to_add.count(Z) == 1
+
+    #Two X's, and Z should be added
+    species_to_add = CC.compute_species_to_add(Y, C)
+    assert set(species_to_add) == set([X, Z])
+    assert species_to_add.count(X) == 2 and species_to_add.count(Z) == 1
+
+    #Try with s0 as a ComplexSpecies
+    species_to_add = CC.compute_species_to_add(Complex([X, X]), C)
+    assert set(species_to_add) == set([Y, Z])
+    assert species_to_add.count(Y) == 1 and species_to_add.count(Z) == 1
+
+    #If sf is not a ComplexSpecies, there is an error
+    with pytest.raises(ValueError):
+        species_to_add = CC.compute_species_to_add(C, X)
+
+    #In the following cases, sf cannot be created by adding species to s0, so None is returned
+
+    #C contains more species than Complex([X, X])
+    species_to_add = CC.compute_species_to_add(C, Complex([X, Y]))
+    assert species_to_add is None
+    #C contains more species than Complex([X, X])
+    species_to_add = CC.compute_species_to_add(C, Complex([X, X]))
+    assert species_to_add is None
+    #S is not in C
+    species_to_add = CC.compute_species_to_add(Species("S"), C)
+    assert species_to_add is None
+    species_to_add = CC.compute_species_to_add(Complex([Species("S"), X]), C)
+    assert species_to_add is None
 
 def test_CombinatorialComplex_get_combinations_between():
     X, Y, Z = Species("X"), Species("Y"), Species("Z")
@@ -173,7 +209,6 @@ def test_CombinatorialComplex_update_reactions():
     r1_true = [R([X, Y], [CXY]), R([X, Z], [CXZ]),  R([Y, Z], [CYZ]), R([CXY, Z], [CXYZ]), R([CXZ, Y], [CXYZ]), R([CYZ, X], [CXYZ])]
     assert all([r in r1_true for r in r1]) and all([r in r1 for r in r1_true])
 
-     
     #Set initial states
     CYZ = Complex([Y, Z])
     CXX = Complex([X, X])
@@ -185,15 +220,11 @@ def test_CombinatorialComplex_update_reactions():
     r2_true = [R([CXX, Y], [CXXY]), R([CXX, Z], [CXXZ]), R([CXXY, Z], [CXXYZ]), R([CXXZ, Y], [CXXYZ]), R([CYZ, X], [CXYZ]), R([CXYZ, X], [CXXYZ])]
     assert all([r in r2_true for r in r2]) and all([r in r2 for r in r2_true])
     
-    
     #set intermediate states
     CC3 = CombinatorialComplex(final_states = [CXXYZ], intermediate_states =[CXX, CYZ], mechanisms = [mech_b], parameters = params)
     r3 = CC3.update_reactions()
     r3_true = [R([X, X], [CXX]), R([Y, Z], [CYZ])] + r2_true
     assert all([r in r3_true for r in r3]) and all([r in r3 for r in r3_true])
-
-
-    
 
     #set initial and intermediate states
     CXXYYZ = Complex([X, X, Y, Y, Z])
@@ -203,7 +234,6 @@ def test_CombinatorialComplex_update_reactions():
     r4 = CC4.update_reactions()
     r4_true =  [R([CXX, Y], [CXXY]), R([CXX, Z], [CXXZ]), R([CYZ, X], [CXYZ]), R([CXYZ, X], [CXXYZ]), R([CXXZ, Y], [CXXYZ]), R([CXXY, Z], [CXXYZ]), R([CXXYZ, Y], [CXXYYZ]), R([CXXYZ, Z], [CXXYZZ]), R([CXXYYZ, Z], [CXXYYZZ]), R([CXXYZZ, Y], [CXXYYZZ])]
     assert all([r in r4_true for r in r4]) and all([r in r4 for r in r4_true])
-
 
     #multiple final states
     CC5 = CombinatorialComplex(final_states = [CXXY, CXXZ], mechanisms = [mech_b], parameters = params)

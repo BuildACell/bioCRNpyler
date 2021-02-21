@@ -2,7 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 
-from .species import Complex, ComplexSpecies, OrderedComplexSpecies
+from .species import Complex, ComplexSpecies, OrderedPolymerSpecies, PolymerConformation
 from .component import Component
 from itertools import permutations
 import copy
@@ -150,13 +150,12 @@ class CombinatorialComplex(Component):
                     raise ValueError(f"intermediate species {s} contains subspecies not in the final_states.")
 
     
+    def compute_species_to_add(self, s0, sf):
+        #Compute Species that need to be added to s0 to get the Complex sf
 
-    def get_combinations_between(self, s0, sf):
-        """
-        Returns all combinations of Species to create the Complex sf from s0.
-        """
+        if not isinstance(sf, ComplexSpecies):
+            raise ValueError(f"sf must be a ComplexSpecies. Recieved {sf}")
 
-        #Species that need to be added to s0 to get sf
         species_to_add = []
         for s in sf.species_set:
             if s == s0:
@@ -176,12 +175,24 @@ class CombinatorialComplex(Component):
             else:
                 pass #if they have the same number, do not add it
 
-        #s0 contains more or different species than sf, return []
+        #s0 contains more or different species than sf, return None
         if (not isinstance(s0, ComplexSpecies)) and s0 not in sf.species:
-            return []
+            species_to_add = None
         elif (isinstance(s0, ComplexSpecies) and not all([sf.species.count(s) >= s0.species.count(s) for s in s0.species_set])) and s0 not in sf.species:
-            return []
+            species_to_add = None
         elif len(species_to_add) == 0:
+            species_to_add = None
+
+        return species_to_add
+
+    def get_combinations_between(self, s0, sf):
+        """
+        Returns all combinations of Species to create the Complex sf from s0.
+        """
+
+        species_to_add = self.compute_species_to_add(s0, sf)
+        
+        if species_to_add is None or len(species_to_add) == 0:
             return []
         else:
             #combinations (binder, bindee, complex_species) to be returned
@@ -314,4 +325,92 @@ class CombinatorialComplex(Component):
 
 
 class CombinatorialConformation(CombinatorialComplex):
-    pass
+    """
+    A class to represent a PolymerConformation (or OrderedPolymerSpecies) with many internal Complexes which can bind and unbind in many different ways.
+    """
+    
+    def __init__(self, final_states, initial_states, intermediate_states = None, name = None, **keywords):
+        """
+        Binding reactions will be generated to form all PolymerConformations in final_states 
+        from all the OrderedPolymerSpecies or PolymerConformations in initial_states.
+        (or, if initial_states is None, from all the individual Polymers inside each PolymerConformation). 
+        Intermediate states restricts the binding reactions to first form OrderdPolymerSpecies or PolymerConformations in this list. 
+        At a high level this generates the following reactions:
+
+        intial_states <-[Combinatorial Binding]-> final_states
+
+        if  intermediate_states are given:
+            intial_states <-[Combinatorial Binding]-> intermediate_states <-[Combinatorial Binding]->final_states
+        
+
+        :param final_states: a single PolymerConformation/OrderedPolymerSpecies or a list of said classes.
+        :param initial_states: a list of initial OrderedPolymerSpecies which are bound together to form the final_states.
+        :param intermediate_states: a list of intermediate species formed when converting initial_states to final_states. 
+                                    If None, all possible intermediate OrderedPolymerSpecies and PolymerConformations are enumerated.
+        """
+        super().__init__(final_states, initial_states = initial_states, intermediate_states = intermaied_states, name = name, **keywords)
+
+    #Getters and setters
+    #Final States stores the end complexes that will be formed
+    @property
+    def final_states(self):
+        return self._final_states
+
+    @final_states.setter
+    def final_states(self, final_states):
+        if isinstance(final_states, list):
+            self._final_states = [self.set_species(s) for s in final_states]
+        else:
+            self._final_states = [self.set_species(final_states)]
+
+        #all final_states must be ComplexSpecies
+        if not all([isinstance(s, PolymerConformation) or isinstance(s, OrderedPolymerSpecies) for s in self.final_states]):
+            raise ValueError(f"final_states must be a list of PolymerConformation or OrderedPolymerSpecies. Recieved: {final_states}.")
+
+        #Then create a list of all sub-polymers included in final_states Conformations
+        self.sub_polymers = []
+        for s in self.final_states:
+            if isinstance(s, PolymerConformation):
+                for p in s.polymers:
+                    self.sub_polymers.append(p)
+            elif isinstance(s, OrderedPolymerSpecies):
+                self.sub_polymers.append(s)
+
+        self.sub_polymers = list(set(sub_polymers))
+
+    #Initial states stores the starting states used in binding reactions
+    @property
+    def initial_states(self):
+        return self._initial_states
+
+    @initial_states.setter
+    def initial_states(self, initial_states):
+        #set initial states
+        if initial_states is None:
+            self._initial_states = self.sub_species
+        else:
+            self._initial_states = [self.set_species(s) for s in initial_states]
+
+            for s in self._initial_states:
+                if not (s in self.sub_species or (isinstance(s, ComplexSpecies) and all([ss in self.sub_species for ss in s.species_set]))):
+                    raise ValueError(f"Invalid initial species {s}; initial_states must either be contained in the final_states or a {ComplexSpecies} made of Species in the final_states.")
+
+    #Intermediate states allows the user to restrict the complexes formed between the intial state and final state
+    @property
+    def intermediate_states(self):
+        return self._intermediate_states
+    @intermediate_states.setter
+    def intermediate_states(self, intermediate_states):
+        if intermediate_states is None:
+            self._intermediate_states = None
+        else:
+            self._intermediate_states = intermediate_states
+
+            #All intermediate_states must be ComplexSpecies or OrderdedComplexSpecies
+            if not all([isinstance(s, ComplexSpecies) for s in self._intermediate_states]):
+                raise ValueError(f"intermediate must be a list of {ComplexSpecies} (or subclasses thereof). Recieved: {intermediate_states}.")
+            #All intermediate_states must be made of sub_species
+            for s in self._intermediate_states:
+                intermediate_sub_species = s.species_set
+                if not all([ss in self.sub_species for ss in intermediate_sub_species]):
+                    raise ValueError(f"intermediate species {s} contains subspecies not in the final_states.")
