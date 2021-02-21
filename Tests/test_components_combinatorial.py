@@ -143,14 +143,14 @@ def test_CombinatorialComplex_get_combinations_between():
     #Test with excluded states that are ComplexSpecies
     C3a = Complex([X, Y])
     C3b = Complex([X, Z])
-    CC3 = CombinatorialComplex(final_states = [C1], excluded_states = [C3a, C3b])
-    combos = CC3.get_Combinations_between(X, C1)
+    CC3 = CombinatorialComplex(final_states = [C], excluded_states = [C3a, C3b])
+    combos = CC3.get_combinations_between(X, C)
     combos_list = [c[0] for c in combos]+[c[1] for c in combos] + [c[2] for c in combos]
     assert C3a not in combos and C3b not in combos
 
     #Test with excluded states that are Species
-    CC4 = CombinatorialComplex(final_states = [C1], excluded_states = [Y, Z])
-    combos = CC4.get_Combinations_between(X, C1)
+    CC4 = CombinatorialComplex(final_states = [C], excluded_states = [Y, Z])
+    combos = CC4.get_combinations_between(X, C)
     combos_list = [c[0] for c in combos]+[c[1] for c in combos] + [c[2] for c in combos]
     assert Y not in combos and Z not in combos 
 
