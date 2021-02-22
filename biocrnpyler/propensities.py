@@ -275,7 +275,9 @@ class GeneralPropensity(Propensity):
             self.propensity_function.replace(parameter_in_crn, parameter_in_sbml)
 
         math_ast = libsbml.parseL3Formula(self.propensity_function)
-        ratelaw.setMath(math_ast)
+        flag = ratelaw.setMath(math_ast)
+        if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
+            raise ValueError("Could not write the rate law for reaction to SBML. Check the propensity functions of reactions.")
         return ratelaw 
 
 
@@ -367,7 +369,9 @@ class MassAction(Propensity):
         rate_formula = self._get_rate_formula(param, stochastic, reactant_species)
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
-        ratelaw.setMath(math_ast)
+        flag = ratelaw.setMath(math_ast)
+        if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
+            raise ValueError("Could not write the rate law for reaction to SBML. Check the propensity functions of reactions.")
         annotation_string = self._create_annotation(model, propensity_dict_in_sbml=propensity_dict_in_sbml, **kwargs)
         sbml_reaction.appendAnnotation(annotation_string)
         return ratelaw
@@ -383,6 +387,10 @@ class MassAction(Propensity):
                 ratestring += f"{species_id}"
                 ratestring += '*'
                 ratestring += '*'.join(f" ( {species_id} - {i} )" for i in range(1, weighted_species.stoichiometry))
+                
+                #Remove trailing *
+                if ratestring[len(ratestring)-1] == "*":
+                    ratestring = ratestring[:-1]
             else:
                 if weighted_species.stoichiometry > 1:
                     ratestring += f" * {species_id}^{weighted_species.stoichiometry}"
@@ -472,7 +480,9 @@ class Hill(Propensity):
         sbml_reaction.appendAnnotation(annotation_string)
         # Set the ratelaw to the rateformula
         math_ast = libsbml.parseL3Formula(rate_formula)
-        ratelaw.setMath(math_ast)
+        flag = ratelaw.setMath(math_ast)
+        if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
+            raise ValueError("Could not write the rate law for reaction to SBML. Check the propensity functions of reactions.")
 
         return ratelaw
 
@@ -495,6 +505,8 @@ class HillPositive(Hill):
 
     def pretty_print_rate(self, show_parameters = True, **kwargs):
         return f' Kf = k {self.s1.pretty_print(**kwargs)}^n / ( K^n + {self.s1.pretty_print(**kwargs)}^n )'
+
+
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']
@@ -548,6 +560,7 @@ class ProportionalHillPositive(HillPositive):
 
     def pretty_print_rate(self, show_parameters = True,  **kwargs):
         return f' Kf = k {self.d.pretty_print(**kwargs)} {self.s1.pretty_print(**kwargs)}^n / ( K^n + {self.s1.pretty_print(**kwargs)}^n )'
+
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']

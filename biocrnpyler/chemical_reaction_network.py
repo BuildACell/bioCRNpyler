@@ -37,23 +37,24 @@ class ChemicalReactionNetwork(object):
         self.initial_concentration_dict = None #Create an unpopulated dictionary
         self.initial_concentration_dict = initial_concentration_dict #update it
 
-        ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings=show_warnings)
+        ChemicalReactionNetwork.check_crn_validity(self._reactions, self._species, show_warnings=show_warnings)
 
     @property
     def species(self):
-        return [copy.deepcopy(s) for s in self._species]
+        return copy.deepcopy(self._species)
 
     @species.setter
     def species(self, species):
         if not hasattr(self, "_species"):
             self._species = []
+            self._species_dict = {}
             self.add_species(species)
         else:
             raise AttributeError("The species in a CRN cannot be removed or modified. New Species can be added with CRN.add_species(...).")
 
     @property
     def reactions(self):
-        return  [copy.deepcopy(r) for r in self._reactions]
+        return  copy.deepcopy(self._reactions)
 
     @reactions.setter
     def reactions(self, reactions):
@@ -64,38 +65,57 @@ class ChemicalReactionNetwork(object):
             raise AttributeError("The reactions in a CRN cannot be removed or modified. New reactions can be added with CRN.add_reactions(...).")
 
     
-    def add_species(self, species, show_warnings=False):
+    def add_species(self, species, copy_species = True):
+        """Adds a Species or a list of Species to the CRN object
+
+        :param species: Species instance or list of Species instances
+        :param copy_species: whether to deep copy Species added to the CRN. Protects CRN validity at teh expense of speed.
+
+        """
         if not isinstance(species, list):
             species = [species]
 
         species = Species.flatten_list(species) #Flatten the list
         species = remove_bindloc(species)
 
+        #Deepcopy the specied list here, to preserve its structure
+        if copy_species:
+            species = copy.deepcopy(species)
+
         for s in species:
             if not isinstance(s, Species): #check species are Species
                 raise ValueError("A non-species object was used as a species!")
-            if s not in self.species: #Do not add duplicate Species
-                self._species.append(copy.deepcopy(s)) #copy the species and add it to the CRN
+            if s not in self._species_dict: #Do not add duplicate Species
+                self._species_dict[s] = True
+                self._species.append(s) #copy the species and add it to the CRN
 
-    def add_reactions(self, reactions: Union[Reaction,List[Reaction]], show_warnings=True) -> None:
+    def add_reactions(self, reactions: Union[Reaction,List[Reaction]], copy_reactions = True, add_species = True) -> None:
         """Adds a reaction or a list of reactions to the CRN object
 
         :param reactions: Reaction instance or list of Reaction instances
-        :param show_warnings: whether to show warning when duplicated reactions/species was found
+        :param copy_reactions: whether to deep copy reactions before adding them to the CRN. Protects CRN validity at the expense of speed.
+        :param add_species: whether to add species in reactions to the CRN. Prevents errors at the expense of speed.
         :return: None
         """
         if not isinstance(reactions, list):
             reactions = [reactions]
 
-        for r in reactions:
-            if not isinstance(r, Reaction): # check reactions and Reactions
-                raise ValueError("A non-reaction object was used as a reaction!")
+        #It is recommended to copy reactions before adding them to the CRN, so they are "protected"
+        if copy_reactions:
+            reactions = copy.deepcopy(reactions) #deep copy all the reactions
 
-            # add all the Species in the reaction to the CRN
-            reaction_species = list(set([w.species for w in r.inputs + r.outputs]))
-            self.add_species(reaction_species, show_warnings=show_warnings)
+        #Add the reactions to the CRN
+        self._reactions += reactions
 
-            self._reactions.append(copy.deepcopy(r)) #copy the Reaction and add it to the CRN
+        #Add species from reactions into the CRN
+        if add_species:
+            for r in reactions:
+                if not isinstance(r, Reaction): # check reactions and Reactions
+                    raise ValueError("A non-reaction object was used as a reaction!")
+
+                # add all the Species in the reaction to the CRN
+                reaction_species = list(set([w.species for w in r.inputs + r.outputs]))
+                self.add_species(reaction_species, copy_species = copy_reactions)
 
     @property
     def initial_concentration_dict(self):
@@ -107,7 +127,7 @@ class ChemicalReactionNetwork(object):
             self._initial_concentration_dict = {}
         elif isinstance(initial_concentration_dict, dict):
             for s in initial_concentration_dict:
-                if s not in self.species:
+                if s not in self._species_dict:
                     raise ValueError(f"Trying to set the initial concentration of a Species {s} not in the CRN")
                 elif parameter_to_value(initial_concentration_dict[s]) >= 0:
                     self.initial_concentration_dict[s] = initial_concentration_dict[s]
@@ -155,12 +175,12 @@ class ChemicalReactionNetwork(object):
 
     def __repr__(self):
         txt = "Species = "
-        for s in self.species:
+        for s in self._species:
             txt += repr(s) + ", "
         txt = txt[:-2] + '\n'
         txt += "Reactions = [\n"
 
-        for r in self.reactions:
+        for r in self._reactions:
             txt += "\t" + repr(r) + "\n"
         txt += "]"
         return txt
@@ -175,11 +195,11 @@ class ChemicalReactionNetwork(object):
         show_rates toggles whether reaction rate functions are printed
         """
 
-        txt = "Species"+ f"(N = {len(self.species)}) = "+"{\n"
+        txt = "Species"+ f"(N = {len(self._species)}) = "+"{\n"
         
         ics = lambda s: self.initial_concentration_dict[s] if s in self.initial_concentration_dict else 0
 
-        species_sort_list = [(parameter_to_value(ics(s)), s) for s in self.species]
+        species_sort_list = [(parameter_to_value(ics(s)), s) for s in self._species]
         species_sort_list.sort()
         species_sort_list.reverse()
         for sind, (init_conc, s) in enumerate(species_sort_list):
@@ -196,17 +216,17 @@ class ChemicalReactionNetwork(object):
 
 
         txt += '\n}\n'
-        txt += f"\nReactions ({len(self.reactions)}) = [\n"
+        txt += f"\nReactions ({len(self._reactions)}) = [\n"
 
-        for rind in range(len(self.reactions)):
-            r = self.reactions[rind]
+        for rind in range(len(self._reactions)):
+            r = self._reactions[rind]
             txt += f"{rind}. " + r.pretty_print(show_rates = show_rates, show_material = show_material, show_attributes = show_attributes, show_keys = show_keys, **kwargs) + "\n"
         txt += "]"
         return txt
 
     def initial_condition_vector(self, init_cond_dict: Union[Dict[str, float], Dict[Species, float]]):
-        x0 = [0.0] * len(self.species)
-        for idx, s in enumerate(self.species):
+        x0 = [0.0] * len(self._species)
+        for idx, s in enumerate(self._species):
             if s in init_cond_dict:
                 x0[idx] = init_cond_dict[s]
         return x0
@@ -219,7 +239,7 @@ class ChemicalReactionNetwork(object):
         if not isinstance(species, Species):
             raise ValueError('species argument must be an instance of Species!')
 
-        for s in self.species:
+        for s in self._species:
             if species in s.get_species(recursive = True):
                 if return_as_strings:
                     return_list.append(repr(s))
@@ -240,12 +260,12 @@ class ChemicalReactionNetwork(object):
             raise ValueError('species argument must be an instance of Species!')
 
         new_species_list = []
-        for s in self.species:
+        for s in self._species:
             new_s = s.replace_species(species, new_species)
             new_species_list.append(new_s)
 
         new_reaction_list = []
-        for r in self.reactions:
+        for r in self._reactions:
             new_r = r.replace_species(species, new_species)
             new_reaction_list.append(new_r)
 
@@ -260,18 +280,18 @@ class ChemicalReactionNetwork(object):
         :param keywords: extra keywords pass onto create_sbml_model() and add_all_reactions()
         :return: tuple: (document,model) SBML objects
         """
-        ChemicalReactionNetwork.check_crn_validity(self.reactions, self.species, show_warnings=show_warnings)
+        ChemicalReactionNetwork.check_crn_validity(self._reactions, self._species, show_warnings=show_warnings)
 
         document, model = create_sbml_model(**keywords)
         all_compartments = []
-        for species in self.species:
+        for species in self._species:
             if species.compartment not in all_compartments: 
                 all_compartments.append(species.compartment)
         add_all_compartments(model = model, compartments = all_compartments, **keywords)
         
-        add_all_species(model=model, species=self.species, initial_condition_dictionary = self.initial_concentration_dict)
+        add_all_species(model=model, species=self._species, initial_condition_dictionary = self.initial_concentration_dict)
 
-        add_all_reactions(model=model, reactions=self.reactions, stochastic_model=stochastic_model, **keywords)
+        add_all_reactions(model=model, reactions=self._reactions, stochastic_model=stochastic_model, **keywords)
 
         
 

@@ -27,7 +27,7 @@ BioCRNpyler allows for CRNs to be built by hand, adding Species and Reactions ma
 from biocrnpyler import *
 # let's build the following CRN
 # A -->[k1] 2B
-# B -->[k2] B+D
+# B -->[k2] C+D
 # Species
 A = Species("A")
 B = Species("B")
@@ -38,7 +38,7 @@ D = Species("D")
 k1 = 3.
 k2 = 1.4
 
-#Reaciton Objects
+#Reaction Objects
 R1 = Reaction.from_massaction([A], [B, B], k_forward = k1)
 R2 = Reaction.from_massaction([B], [C, D], k_forward = k2)
 
