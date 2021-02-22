@@ -196,3 +196,23 @@ class IntegraseSite(DNABindingSite):
                 site.linked_sites[self][1] += [complex_parent]
         return reactions
             
+class UserDefined(DNA_part):
+    def __init__(self,name, **keywords):
+        """a user defined part is a part that doesn't do anything, 
+        just exists as a label basically"""
+        DNA_part.__init__(self,name, **keywords)
+        self.name = name
+    def update_species(self):
+        return []
+    def update_reactions(self):
+        return []
+
+class Origin(DNA_part):
+    def __init__(self,name, **keywords):
+        """an origin does nothing except look right when plotted"""
+        DNA_part.__init__(self,name, **keywords)
+        self.name = name
+    def update_species(self):
+        return []
+    def update_reactions(self):
+        return []

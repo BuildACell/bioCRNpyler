@@ -44,6 +44,10 @@ def test_integrase_rule():
     aflp = IntegraseSite("FLP","FLP")
     delete = DNA_construct([ab,cds,ap])
     flip = DNA_construct([ab,cds,[ap,"reverse"]])
+    plasp = DNA_construct([cds,ap],circular=True)
+    plasb = DNA_construct([cds,ab],circular=True)
+    genp = DNA_construct([cds2,ap])
+    genb = DNA_construct([cds2,ab])
 
 
     bxb1_rule = IntegraseRule(name="Bxb1",reactions={("attB","attP"):"attL",("attP","attB"):"attR"})
@@ -68,8 +72,107 @@ def test_integrase_rule():
     productsites = bxb1_rule.generate_products(delete[0],delete[2])
     assert(productsites[0]==aL.set_dir("forward"))
     assert(productsites[1]==aR.set_dir("forward"))
+    
+
+    ap = IntegraseSite("attP","attP",integrase="Bxb1")
+    ab = IntegraseSite("attB","attB",integrase="Bxb1")
+    delete = DNA_construct([ab,cds,ap])
+    flip = DNA_construct([ab,cds,[ap,"reverse"]],circular=True)
+    plasp = DNA_construct([cds,ap],circular=True)
+    plasb = DNA_construct([cds,ab],circular=True)
+    genp = DNA_construct([cds2,ap])
+    genb = DNA_construct([cds2,ab])
+    #testing the actual integration reactions
+    #inversion
+    integ_funcs = bxb1_rule.integrate(flip[0],flip[2]) #sites forwards
+    assert(len(integ_funcs)==1)#one product is made
+    assert([a[0].position for a in integ_funcs[0].partslist]==[None,1,None])
+    assert([a[1] for a in integ_funcs[0].partslist]==["forward","reverse","reverse"])
+    integ_funcs = bxb1_rule.integrate(flip[2],flip[0]) #sites reverse
+    assert(len(integ_funcs)==1)#one product is made
+    assert([a[0].position for a in integ_funcs[0].partslist]==[None,1,None])
+    assert([a[1] for a in integ_funcs[0].partslist]==["reverse","reverse","forward"])
+
+    integ_funcs = bxb1_rule.integrate(flip[0],flip[2],also_inter=True) #allow intermolecular reactions
+    assert(len(integ_funcs)==2)#now, two products are made
+    assert(sum([a.circular for a in integ_funcs])==2) #all of them is circular
+    for prod in integ_funcs:
+        if(len(prod.partslist)==3):
+            assert([a[0].position for a in prod.partslist]==[None,1,None])
+            assert([a[1] for a in prod.partslist]==["forward","reverse","reverse"])
+        else:
+            assert([a[0].position for a in prod.partslist]==[None,1,0,None,1,2])
+            assert([a[1] for a in prod.partslist]==["forward","reverse","reverse","forward","forward","reverse"])
+    #deletion
+    integ_funcs = bxb1_rule.integrate(delete[0],delete[2]) #sites forwards
+    assert(len(integ_funcs)==2)#two product is made
+    assert(sum([a.circular for a in integ_funcs])==1) #one of them is circular
+    for prod in integ_funcs:
+        if(prod.circular):
+            assert([a[0].position for a in prod.partslist]==[None,1])
+            assert([a[1] for a in prod.partslist]==["forward","forward"])
+        else:
+            assert([a[0].position for a in prod.partslist]==[None])
+            assert([a[1] for a in prod.partslist]==["forward"])
+    #now, what if we also calculate the intermolecular reactions?
+    integ_funcs = bxb1_rule.integrate(delete[2],delete[0],also_inter=True) #sites reverse
+    print(integ_funcs)
+    assert(len(integ_funcs)==4)#four product is made
+    assert(sum([a.circular for a in integ_funcs])==2) #two of them is circular
+    for prod in integ_funcs:
+        if(prod.circular):
+            if(len(prod.partslist)==2):
+                assert([a[0].position for a in prod.partslist]==[None,1])
+                assert([a[1] for a in prod.partslist]==["forward","forward"])
+                assert(prod.number_of_inputs == 1)
+            else:
+                assert([a[0].position for a in prod.partslist]==[None,1,None,1])
+                assert([a[1] for a in prod.partslist]==["forward","forward","reverse","reverse"])
+                assert(prod.number_of_inputs == 2)
+        else:
+            assert([a[0].position for a in prod.partslist]==[None])
+            assert([a[1] for a in prod.partslist]==["forward"])
+            assert(prod.number_of_inputs == 1)
+
+
+    #integration
+    integ_funcs = bxb1_rule.integrate(plasp[1],plasb[1]) #two plasmids -> one plasmid p then b
+    assert(len(integ_funcs)==1)#one product is made
+    assert([a[0].position for a in integ_funcs[0].partslist]==[0,None,0,None])
+    assert([a[1] for a in integ_funcs[0].partslist]==["forward","forward","forward","forward"])
+    assert(integ_funcs[0].circular)
+    assert(integ_funcs[0].number_of_inputs == 2)
+
+    integ_funcs = bxb1_rule.integrate(plasb[1],plasp[1]) #two plasmids -> one plasmid b then p
+    assert(len(integ_funcs)==1)#one product is made
+    assert([a[0].position for a in integ_funcs[0].partslist]==[0,None,0,None])
+    assert([a[1] for a in integ_funcs[0].partslist]==["forward","forward","forward","forward"])
+    assert(integ_funcs[0].circular)
+    assert(integ_funcs[0].number_of_inputs == 2)
+
+    integ_funcs = bxb1_rule.integrate(genb[1],plasp[1]) #linear with circular
+    assert(len(integ_funcs)==1)#one product is made
+    assert([a[0].position for a in integ_funcs[0].partslist]==[0,None,0,None])
+    assert([a[1] for a in integ_funcs[0].partslist]==["forward","forward","forward","forward"])
+    assert(not integ_funcs[0].circular)
+    assert(integ_funcs[0].number_of_inputs == 2)
+    #reverse integration
+    integ_funcs = bxb1_rule.integrate(plasp[1],genb[1]) #circular with linear
+    assert(len(integ_funcs)==1)#one product is made
+    assert([a[0].position for a in integ_funcs[0].partslist]==[0,None,0,None])
+    assert([a[1] for a in integ_funcs[0].partslist]==["forward","forward","forward","forward"])
+    assert(not integ_funcs[0].circular)
+    assert(integ_funcs[0].number_of_inputs == 2)
+    #recombination
+    integ_funcs = bxb1_rule.integrate(genp[1],genb[1]) #linear with linear
+    assert(len(integ_funcs)==2) #two products
+    assert(sum([a.circular for a in integ_funcs])==0) #all products are linear
+    for prod in integ_funcs:
+        assert([a[0].position for a in prod.partslist]==[0,None])
+        assert([a[1] for a in prod.partslist]==["forward","forward"])
+        assert(prod.number_of_inputs == 2)
+
     #
-        
 def test_compilation():
     #Create an infinite polymer system and compile it at different recursion depths
 
