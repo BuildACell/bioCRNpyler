@@ -106,10 +106,10 @@ class CombinatorialComplex(Component):
         final_states = list(self.set_species(final_states))
 
         #all final_states must be ComplexSpecies
-        if not all([isinstance(s, ComplexSpecies) for s in self.final_states]):
+        if not all([isinstance(s, ComplexSpecies) for s in final_states]):
             raise ValueError(f"final_states must be a list of {ComplexSpecies} (or subclasses thereof). Recieved: {final_states}.")
 
-        self._final_states = finale_states
+        self._final_states = final_states
 
         #Then create a list of all sub-species included in final_states Complexes
         self.sub_species = []
