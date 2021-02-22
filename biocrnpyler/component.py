@@ -12,8 +12,7 @@ from .mechanism import Mechanism
 from .parameter import Parameter, ParameterDatabase, ParameterKey
 from .species import Species
 
-
-class Component(object):
+class Component:
     """Component class for core components.
 
     These subclasses of Component represent different kinds of biomolecules.
@@ -100,8 +99,9 @@ class Component(object):
         :return: None
         """
         return None
+        
     @classmethod
-    def set_species(self, species: Union[Species, str], material_type=None, attributes=None) -> Species:
+    def set_species(self, species: Union[Species, str, list], material_type=None, attributes=None) -> Species:
         """Helper function that allows species to be set from strings, species, or Components
 
         :param species: Species, str, Component
@@ -116,6 +116,8 @@ class Component(object):
             return Species(name=species, material_type=material_type, attributes=attributes)
         elif isinstance(species, Component) and species.get_species() is not None:
             return species.get_species()
+        elif isinstance(species, list):
+            return [self.set_species(s) for s in species]
         else:
             raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
 
