@@ -187,8 +187,9 @@ class OrderedPolymer(MonomerCollection):
 
 class NamedPolymer(OrderedPolymer):
     """The same as an OrderedPolymer but it has a name"""
-    def __init__(self,parts,name,default_direction=None):
+    def __init__(self,parts,name,default_direction=None,circular=False):
         self.name = name
+        self.circular = circular
         OrderedPolymer.__init__(self=self,parts=parts,default_direction=default_direction)
         
 class OrderedMonomer:

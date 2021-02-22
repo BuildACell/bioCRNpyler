@@ -13,7 +13,7 @@ from warnings import warn
 
 from .components_basic import Protein
 from .dna_part_cds import CDS
-from .dna_part_misc import IntegraseSite
+from .dna_part_misc import IntegraseSite, Origin
 from .dna_part_promoter import Promoter
 from .dna_part_rbs import RBS
 from .dna_part_terminator import Terminator
@@ -479,6 +479,8 @@ def make_dpl_from_part(part, direction=None, color=None, color2=None, showlabel=
         dpl_type = "CDS"
     elif(isinstance(part, Protein)):
         dpl_type = "CDS"
+    elif(isinstance(part,Origin)):
+        dpl_type = "Origin"
     elif(isinstance(part, Terminator)):
         dpl_type = "Terminator"
     elif(isinstance(part, IntegraseSite)):

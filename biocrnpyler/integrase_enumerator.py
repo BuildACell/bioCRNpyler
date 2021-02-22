@@ -142,7 +142,10 @@ class Polymer_transformation:
         out_list = []    
         for element in in_polymer:
             out_list += [OrderedMonomer(direction=element.direction)]
-        return NamedPolymer(out_list,name)
+        circular = False
+        if(hasattr(in_polymer,"circular")):
+            circular = in_polymer.circular
+        return NamedPolymer(out_list,name,circular=circular)
     def __repr__(self):
         part_texts = []
         for plist in self.partslist:
@@ -216,7 +219,7 @@ class IntegraseRule:
             part_prod1.direction = site2.direction
             return(part_prod2,part_prod1)
     
-    def integrate(self,site1,site2):
+    def integrate(self,site1,site2,also_inter=False,force_inter=False):
         """perform an integration reaction between the chosen sites and make new DNA_constructs
         site1 and site2 are integrase site dna_parts which have parents that are DNA_constructs.
         
@@ -227,7 +230,7 @@ class IntegraseRule:
         2) deletion
            two sites are part of the same dna construct
            the result is two dna constructs: one with the same circularity but the region between the sites deleted, and another
-           ciruclar dna construct that contains the deleted portion
+           circular dna construct that contains the deleted portion
         3) integration
            the sites are on two different dna constructs
            the result is a single dna construct
@@ -238,8 +241,15 @@ class IntegraseRule:
         after the correct dna constructs are generated, the reactions which were done to produce them
         are encoded into polymer_transformations and "baked into" the integrase sites themselves. So,
         each integrase site knows which specific integrase reactions it should produce when it comes
-        time to update_reactions."""
+        time to update_reactions.
+        
+        also_inter controls whether intramolecular reactions should also generate intermolecular reactions
+        that occur between two copies of the same plasmid.
+
+        force_inter forces a reaction to be intermolecular even if the two sites are on the same plasmid
+        """
         #if one of the sites is not part of a construct then raise an error!
+        integ_funcs = []
         if(not(isinstance(site1.parent,Construct))):
             raise ValueError("{} not part of a construct".format(site1))
         elif(not(isinstance(site2.parent,Construct))):
@@ -248,8 +258,11 @@ class IntegraseRule:
         cutpos2 = site2.position
         #below are the references to the sites in the products
         dna_inputs = []
-        if(site1.parent==site2.parent):
+        if(site1.parent==site2.parent and not force_inter):
             #these sites are part of the same piece of DNA, so they are going to do an intramolecular reaction
+            if(also_inter):
+                #we should generate the intermolecular reaction also!
+                integ_funcs += self.integrate(site1,site2,force_inter=True)
             if(site1.position > site2.position):
                 #we reverse which position is where
                 cutpos2 = site1.position
@@ -271,7 +284,7 @@ class IntegraseRule:
                 cutdna_list_parts = list(dna[:cutpos1])+[[prod1,site1.direction]]+list(dna[cutpos2+1:]) #delete
                 newdna_list_parts = [[prod2,site2.direction]]+list(dna[1+cutpos1:cutpos2])
 
-                integ_funcs = [Polymer_transformation(cutdna_list_parts,circular = circularity),\
+                integ_funcs += [Polymer_transformation(cutdna_list_parts,circular = circularity),\
                                         Polymer_transformation(newdna_list_parts,circular=True)]
             else:
                 #case 1: inversion
@@ -289,11 +302,16 @@ class IntegraseRule:
                                 [[prod2,site2.direction]]+\
                                 list(dna[cutpos2+1:])
 
-                integ_funcs = [Polymer_transformation(invertdna_list,circular=circularity)]
+                integ_funcs += [Polymer_transformation(invertdna_list,circular=circularity)]
         else:
             #otherwise these sites are on different pieces of DNA, so they are going to combine
             dna1 = site1.parent
             dna2 = site2.parent
+            if(dna1 == dna2):
+                #this will happen if we trying to do an intermolecular reaction between two copies of the same thing
+                dna2 = Polymer_transformation.dummify(dna2,dna2.name+"_dummy")
+                print("original dna is "+str(site2.parent))
+                print("made dummy "+str(dna2))
             dna_inputs = [dna1,dna2]
             pdict = {a[1]:"input"+str(a[0]+1) for a in enumerate(dna_inputs)}
             #make sure everyone is forwards
@@ -322,19 +340,19 @@ class IntegraseRule:
                 #either way the result is basically the same, except the result is either linear or circular
                 #result is ONE PIECE OF DNA
                 result = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]+dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
-                integ_funcs = [Polymer_transformation(result,circ1,parentsdict=pdict)]
+                integ_funcs += [Polymer_transformation(result,circ1,parentsdict=pdict)]
             elif(circ2 ==False and circ1 == True):
                 #if the sites are backwards just reverse everything
-                polymer_transformations = self.integrate(site2,site1)
+                polymer_transformations = self.integrate(site2,site1,force_inter=force_inter)
 
-                return [a.reversed() for a in polymer_transformations][::-1]
+                integ_funcs +=  [a.reversed() for a in polymer_transformations][::-1]
             elif(circ1==False and circ1==circ2):
                 #case 4: recombination
                 #here we are recombining two linear dnas, so two linear dnas are produced
 
                 result1 = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]
                 result2 = dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
-                integ_funcs = [Polymer_transformation(result1,parentsdict=pdict),Polymer_transformation(result2,parentsdict=pdict)]
+                integ_funcs += [Polymer_transformation(result1,parentsdict=pdict),Polymer_transformation(result2,parentsdict=pdict)]
 
         site1.linked_sites[site2] = [integ_funcs,[]]
         site2.linked_sites[site1] = [[a.reversed() for a in integ_funcs],[]]
