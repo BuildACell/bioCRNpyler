@@ -251,6 +251,28 @@ class Species(OrderedMonomer):
         else:
             return False
 
+    def monomer_eq(self, other):
+        """
+        Similar to equality but doesn't check parent or position. 
+        Direction doesn't matter if either has None for direction, but does matter if direction is not None for both.
+        """
+        c_other = copy.copy(other)
+        c_self = copy.copy(self)
+        other_dir = c_other.direction
+        c_other.remove_attribute(other_dir)
+        self_dir = c_self.direction
+        c_self.remove_attribute(self_dir)
+
+        if isinstance(other, Species) \
+                and c_self.material_type == c_other.material_type \
+                and c_self.name == c_other.name \
+                and set(c_self.attributes) == set(c_other.attributes)\
+                and c_self.compartment == c_other.compartment\
+                and (other_dir is None or self_dir is None or other_dir == self_dir):
+            return True
+        else:
+            return False
+
     def __gt__(self, Species2):
         return self.name > Species2.name
 
@@ -262,6 +284,8 @@ class Species(OrderedMonomer):
 
     def __contains__(self, item):
         return item in self.get_species()
+
+
 
     def contains_species_monomer(self, s):
         """Checks if the Species has a monomer (Species) inside of it, 
