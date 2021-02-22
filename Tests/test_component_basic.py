@@ -1,7 +1,7 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from biocrnpyler import Enzyme, DNA, RNA, Protein, Metabolite, ChemicalComplex, Species, Complex
+from biocrnpyler import Enzyme, DNA, RNA, Protein, Metabolite, ChemicalComplex, Species, Complex, LengthComponent
 import pytest
 
 
@@ -23,6 +23,21 @@ def test_enzyme():
     with pytest.raises(KeyError, match='Unable to find mechanism of type catalysis in Component'):
         e.update_reactions()
 
+def test_length_component():
+    c0 = LengthComponent(name = "C")
+    assert c0.length == 0
+    c1 = LengthComponent(name = "C", length = 10)
+    assert c1.length == 10
+
+    #Some lengths are not allowed
+    with pytest.raises(ValueError):
+        LengthComponent(name = "C",length = -1)
+
+    with pytest.raises(ValueError):
+        LengthComponent(name = "C",length = 0.1)
+
+    with pytest.raises(ValueError):
+        LengthComponent(name = "C",length = "10")
 
 def test_DNA():
     dna = DNA(name = "G", length = 10)

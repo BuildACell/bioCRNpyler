@@ -103,14 +103,13 @@ class CombinatorialComplex(Component):
 
     @final_states.setter
     def final_states(self, final_states):
-        if isinstance(final_states, list):
-            self._final_states = [self.set_species(s) for s in final_states]
-        else:
-            self._final_states = [self.set_species(final_states)]
+        final_states = list(self.set_species(final_states))
 
         #all final_states must be ComplexSpecies
         if not all([isinstance(s, ComplexSpecies) for s in self.final_states]):
             raise ValueError(f"final_states must be a list of {ComplexSpecies} (or subclasses thereof). Recieved: {final_states}.")
+
+        self._final_states = finale_states
 
         #Then create a list of all sub-species included in final_states Complexes
         self.sub_species = []
@@ -128,11 +127,11 @@ class CombinatorialComplex(Component):
         if initial_states is None:
             self._initial_states = self.sub_species
         else:
-            self._initial_states = [self.set_species(s) for s in initial_states]
-
-            for s in self._initial_states:
+            initial_states = list(self.set_species(initial_states))
+            for s in initial_states:
                 if not (s in self.sub_species or (isinstance(s, ComplexSpecies) and all([ss in self.sub_species for ss in s.species_set]))):
                     raise ValueError(f"Invalid initial species {s}; initial_states must either be contained in the final_states or a {ComplexSpecies} made of Species in the final_states.")
+            self._initial_states = initial_states
 
     #Intermediate states allows the user to restrict the complexes formed between the intial state and final state
     @property
@@ -143,16 +142,18 @@ class CombinatorialComplex(Component):
         if intermediate_states is None:
             self._intermediate_states = None
         else:
-            self._intermediate_states = intermediate_states
+            intermediate_states = list(self.set_species(intermediate_states))
 
             #All intermediate_states must be ComplexSpecies or OrderdedComplexSpecies
-            if not all([isinstance(s, ComplexSpecies) for s in self._intermediate_states]):
+            if not all([isinstance(s, ComplexSpecies) for s in intermediate_states]):
                 raise ValueError(f"intermediate must be a list of {ComplexSpecies} (or subclasses thereof). Recieved: {intermediate_states}.")
             #All intermediate_states must be made of sub_species
-            for s in self._intermediate_states:
+            for s in intermediate_states:
                 intermediate_sub_species = s.species_set
                 if not all([ss in self.sub_species for ss in intermediate_sub_species]):
                     raise ValueError(f"intermediate species {s} contains subspecies not in the final_states.")
+
+            self._intermediate_states = intermediate_states
 
     #Excluded states allows the user to exclude specific Species from being enumerated
     @property
@@ -163,7 +164,7 @@ class CombinatorialComplex(Component):
         if excluded_states is None:
             self._excluded_states = []
         else:
-            self._excluded_states = excluded_states
+            self._excluded_states = list(self.set_species(excluded_states))
 
     def compute_species_to_add(self, s0, sf):
         #Compute Species that need to be added to s0 to get the Complex sf
@@ -345,7 +346,7 @@ class CombinatorialConformation(CombinatorialComplex):
     A class to represent a PolymerConformation (or OrderedPolymerSpecies) with many internal Complexes which can bind and unbind in many different ways.
     """
     
-    def __init__(self, final_states, initial_states, intermediate_states = None, name = None, **keywords):
+    def __init__(self, final_states, initial_states, intermediate_states = None, excluded_states = None, excluded_complexes = None, name = None, **keywords):
         """
         Binding reactions will be generated to form all PolymerConformations in final_states 
         from all the OrderedPolymerSpecies or PolymerConformations in initial_states.
@@ -361,10 +362,22 @@ class CombinatorialConformation(CombinatorialComplex):
 
         :param final_states: a single PolymerConformation/OrderedPolymerSpecies or a list of said classes.
         :param initial_states: a list of initial OrderedPolymerSpecies which are bound together to form the final_states.
-        :param intermediate_states: a list of intermediate species formed when converting initial_states to final_states. 
+        :param intermediate_states: a list of intermediate PolymerConformation/OrderedPolymerSpecies formed when converting initial_states to final_states. 
                                     If None, all possible intermediate OrderedPolymerSpecies and PolymerConformations are enumerated.
+        :param excluded_states: a list of intermediate PolymerConformation/OrderedPolymerSpecies which will not be formed during enumeration.
+                                if None: no intermediates will be excluded.
+        :param excluded_complexes: a list of ComplexSpecies which will not be formed inside or between any OrderedPolymerSpecies.
+                                   if None: no intermediates will be excluded.
         """
-        super().__init__(final_states, initial_states = initial_states, intermediate_states = intermaied_states, name = name, **keywords)
+        self.excluded_complexes = excluded_complexes
+        super().__init__(final_states, initial_states = initial_states, intermediate_states = intermediate_states, excluded_states = excluded_states, name = name, **keywords)
+
+
+    #Helper function to assert the correct class type
+    def _assert_polymer_species_or_conformation(self, states, input_name = "states"):
+        if not all([isinstance(s, PolymerConformation) or isinstance(s, OrderedPolymerSpecies) for s in states]):
+            raise ValueError(f"{input_name} must be a list of PolymerConformation or OrderedPolymerSpecies. Recieved: {states}.")
+
 
     #Getters and setters
     #Final States stores the end complexes that will be formed
@@ -374,14 +387,11 @@ class CombinatorialConformation(CombinatorialComplex):
 
     @final_states.setter
     def final_states(self, final_states):
-        if isinstance(final_states, list):
-            self._final_states = [self.set_species(s) for s in final_states]
-        else:
-            self._final_states = [self.set_species(final_states)]
+        final_states = list(self.set_species(final_states))
 
-        #all final_states must be ComplexSpecies
-        if not all([isinstance(s, PolymerConformation) or isinstance(s, OrderedPolymerSpecies) for s in self.final_states]):
-            raise ValueError(f"final_states must be a list of PolymerConformation or OrderedPolymerSpecies. Recieved: {final_states}.")
+        #all final_states must be PolymerConformation or OrderedPolymerSpecies
+        self._assert_polymer_species_or_conformation(self._final_states, "final_states")
+        self._final_states = final_States
 
         #Then create a list of all sub-polymers included in final_states Conformations
         self.sub_polymers = []
@@ -403,13 +413,16 @@ class CombinatorialConformation(CombinatorialComplex):
     def initial_states(self, initial_states):
         #set initial states
         if initial_states is None:
-            self._initial_states = self.sub_species
+            self._initial_states = self.sub_polymers
         else:
-            self._initial_states = [self.set_species(s) for s in initial_states]
+            initial_states = list(self.set_species(initial_states))
+            #all initial_states must be PolymerConformation or OrderedPolymerSpecies
+            self._assert_polymer_species_or_conformation(initial_states, "initial_states")
 
-            for s in self._initial_states:
-                if not (s in self.sub_species or (isinstance(s, ComplexSpecies) and all([ss in self.sub_species for ss in s.species_set]))):
-                    raise ValueError(f"Invalid initial species {s}; initial_states must either be contained in the final_states or a {ComplexSpecies} made of Species in the final_states.")
+            #all initial states must have a valid route to at least one final state
+            #TODO
+
+            self._initial_states = initial_states
 
     #Intermediate states allows the user to restrict the complexes formed between the intial state and final state
     @property
@@ -420,13 +433,41 @@ class CombinatorialConformation(CombinatorialComplex):
         if intermediate_states is None:
             self._intermediate_states = None
         else:
+            intermediate_states = list(self.set_species(intermediate_states))
+
+            #All intermediate_states must be OrderedPolymerSpecies or PolymerConformations
+            self._assert_polymer_species_or_conformation(intermediate_states, "intermediate_states")
+
+            #All intermediate_states must be constructable from initial states
+            #TODO
+
+
             self._intermediate_states = intermediate_states
 
-            #All intermediate_states must be ComplexSpecies or OrderdedComplexSpecies
-            if not all([isinstance(s, ComplexSpecies) for s in self._intermediate_states]):
-                raise ValueError(f"intermediate must be a list of {ComplexSpecies} (or subclasses thereof). Recieved: {intermediate_states}.")
-            #All intermediate_states must be made of sub_species
-            for s in self._intermediate_states:
-                intermediate_sub_species = s.species_set
-                if not all([ss in self.sub_species for ss in intermediate_sub_species]):
-                    raise ValueError(f"intermediate species {s} contains subspecies not in the final_states.")
+    #excluded_states are OrderedPolymerSpecies or PolymerConformations which are not allowed to form
+    @property
+    def excluded_states(self):
+        return self._excluded_states
+    @excluded_states.setter
+    def excluded_states(self, excluded_states):
+        if excluded_states is None:
+            self._excluded_states = []
+        else:
+            #All excluded states must be OrderedPolymerSpecies or PolymerConformations
+            excluded_states = list(self.set_species(excluded_states))
+            self._assert_polymer_species_or_conformation(excluded_states, "excluded_states")
+            self._excluded_states = excluded_states
+
+    #excluded_complexes are ComplexSpecies not allowed to form inside the OrderedPolymerSpecies or PolymerConformation
+    @property
+    def excluded_complexes(self):
+        return self._excluded_complexes
+    @excluded_complexes.setter
+    def excluded_complexes(self, excluded_complexes):
+        excluded_complexes = list(self.set_species(excluded_complexes))
+        if not all([isinstance(s, ComplexSpecies) for s in excluded_complexes]):
+            raise ValueError(f"excluded_complexes may only contain ComplexSpecies. Recievied: {excluded_complexes}.")
+        self._excluded_complexes = excluded_complexes
+
+    
+
