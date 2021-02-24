@@ -505,8 +505,9 @@ class ParameterDatabase(object):
             except StopIteration:
                 # we have reached the end of the possible names
                 return_field_names[accepted_name] = None
-                warn(f"parameter file contains no {accepted_name} column! Please add a "
-                     f"column named {accepted_field_names[accepted_name]}.")
+                if accepted_name not in ["unit"]:
+                    warn(f"parameter file contains no {accepted_name} column! Please add a "
+                        f"column named {accepted_field_names[accepted_name]}.")
             else:
                 return_field_names[accepted_name] = accepted_field_names[accepted_name][loc_idx]
 
