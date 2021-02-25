@@ -762,8 +762,7 @@ class CRNPlotter:
             
             self.species_dpl_dict[species] = out_dpl
             return out_dpl
-            
-    def make_dpl_from_part(self,part,set_color=None,save_in_dict=True):
+    def make_dpl_from_part(self,part,set_color=None,save_in_dict=True,set_color2=None):
         removed_part = part.get_removed()
         if(removed_part in self.part_dpl_dict):
             
@@ -785,19 +784,41 @@ class CRNPlotter:
             elif(isinstance(part,Terminator)):
                 dpl_type = "Terminator"
             elif(isinstance(part,AttachmentSite)):
-                if(part.site_type == "attP" or part.site_type == "attB"):
+                if(part.site_type in ["attP","attB"]):
                     dpl_type = "RecombinaseSite"
-                    needs_color2 = True
-                elif(part.site_type == "attL" or part.site_type == "attR"):
+                elif(part.site_type in ["attL","attR"]):
                     dpl_type = "RecombinaseSite2"
                     needs_color2 = True
+                for key_part in self.part_dpl_dict:
+                    stored_part = self.part_dpl_dict[key_part]
+                    if(isinstance(key_part,AttachmentSite) and \
+                        key_part.integrase==part.integrase and \
+                            key_part.dinucleotide==part.dinucleotide):
+                        types_list = [key_part.site_type,part.site_type]
+                        if(types_list in [["attP","attL"],["attL","attR"],["attR","attL"], ["attB","attR"]]):
+                            if(set_color2 is None):
+                                set_color2 = stored_part.color
+                        if(types_list in [["attB","attL"],["attP","attR"],["attL","attB"],\
+                                                                                ["attR","attP"]]):
+                            if(set_color is None):
+                                set_color = stored_part.color
+                        elif(types_list in [["attL","attR"],["attR","attL"],\
+                                                                ["attL","attP"],["attR","attB"]]):
+                            if(set_color is None):
+                                set_color = stored_part.color2
+                    if(set_color is not None and set_color2 is not None):
+                        #we found all the needed colors so give up
+                        break
             if(set_color is None):
                 color = self.get_color()
             else:
                 color = set_color
             color2 = None
-            if(needs_color2):
+            if(set_color2 is not None):
+                color2 = set_color2
+            elif(set_color2 is None and needs_color2):
                 color2 = self.get_color()
+            
             
             outpart = self.SimplePart(name=part.name,\
                                       dpl_type=dpl_type,
