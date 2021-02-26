@@ -680,12 +680,10 @@ class CombinatorialConformation(CombinatorialComplex):
                     #This means cc can become cf
 
                     if cc in complex_mapping:
-                        print("second mapping found:", cc, "in", cc.parent, "to", cf, "in", cf.parent)
                         #This means that there are multiple Complexes inside the conformation which can mutually convert
                         #This more complex enumeration is not being implemented at this time
                         raise NotImplementedError("Mapping between Conformations not one-to-one.")
                     else:
-                        print("mapping found:", cc, "in", cc.parent, "to", cf, "in", cf.parent)
                         complex_mapping[cc] = cf
                         
                         for p in cc_position:
@@ -694,24 +692,86 @@ class CombinatorialConformation(CombinatorialComplex):
                             cf_additional_species.remove(s)
 
                         #add the current complex to the list if there are things to add to it
-                        if len(cf_position) > 0 and len(cf_additional_species) > 0:
-                            cf_position = [cc] + cf_position
-
+                        if len(cf_position) > 0 or len(cf_additional_species) > 0:
+                            cf_position = [(s0, cc)] + cf_position
 
             #Only add the Complex if it contains something new
-            if len(cf_position) > 0 and len(cf_additional_species) > 0:
+            if len(cf_position) > 0:
                 complexes_to_add.append((cf_position, cf_additional_species))
 
         #Ensure every complex in s0 maps to a complex in sf
-        if not all([cc in complex_mapping for cc in current_complexes]):
+        if len(current_complexes) > 0 and any([cc not in complex_mapping for cc in current_complexes]):
             return None
         else:
-            return complexes_to_add
+            return complex_mapping, complexes_to_add
 
 
     def get_combinations_between(self, s0, sf):
+        """
+        Returns a list of lists. Each sublist contains tuples of the form:
+
+            ([(p0, index)...], [additional species]): to represent the formation of a complex between the monomers in the polymers p0 at the respective indices which also includes the additional species
+            ([(s0, complex)...], [additional species]): to represent the formation of a complex between the complex in the confomrations s0 which also includes the additional species
+
+        Note: if the length of the first list is 1, it means that the Complex is formed inside an individual Polymer, not between Polymers.
+        """
+
         #A list of the polymers in s0
-        pass
+        if isinstance(s0, OrderedPolymerSpecies):
+            current_polymers = [s0]
+            current_complexes = []
+        elif isinstance(s0, PolymerConformation):
+            current_polymers = s0.polymers
+            current_complexes = s0.complexes
+        else:
+            raise ValueError(f"s0 must be an OrderedPolymerSpecies or a PolymerConformation; recievied {s0}.")
+
+        #return nothing if they are the same
+        if s0 == sf:
+            return None
+
+        #Get the mapping between polymers in s0 and sf
+        polymer_mapping = self.compute_polymer_mapping(s0, sf)
+        if polymer_mapping is None:
+            print("polymer mapping is None!")
+            return None
+        else:
+            polymer_mapping, polymers_to_add = polymer_mapping
+
+        #convert the mapping to a list
+        complexes_to_add_to_polymers = []
+        for p in current_polymers:
+            pf = polymer_mapping[p]
+            if (p, pf) in polymer_mapping and len(polymer_mapping[(p, pf)])>0:
+                complexes_to_add_to_polymers += [([(p, index)], species_list) for (index, species_list) in polymer_mapping[(p, pf)]]
+
+        print("polymers_to_add", polymers_to_add)
+        print("complexes_to_add_to_polymers", complexes_to_add_to_polymers)
+        #get the complexes to add to the conformation
+        complex_mapping = self.compute_complexes_to_add_to_conformation(s0, sf, polymer_mapping)
+        
+
+        #Create a list of all complexes to add
+        #the elements of this list will imply if they are complexes between polymers or complexes in polymers based upon their form
+        if complex_mapping is None:
+            print("complexes_to_add_to_conformation is None")
+            all_complexes_to_add = complexes_to_add_to_polymers
+        else:
+            complex_mapping, complexes_to_add_to_conformation = complex_mapping
+            all_complexes_to_add = complexes_to_add_to_conformation+complexes_to_add_to_polymers
+            print("complexes_to_add_to_conformation", complexes_to_add_to_conformation)
+
+        
+        print("all_complexes_to_add", all_complexes_to_add)
+        combos = [list(i) for i in permutations(all_complexes_to_add, len(all_complexes_to_add))]
+        print("combos", combos)
+
+        return combos
+        
+
+
+
+
                 
 
 

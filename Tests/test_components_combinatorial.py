@@ -450,17 +450,20 @@ def test_CombinatorialConformation_compute_complexes_to_add_to_conformation():
     C = Complex([X, X])
     p1 = OrderedPolymerSpecies([X, Y, Z])
     p2 = OrderedPolymerSpecies([Z, Y, X])
+    p3 = Complex([p1[0], X]).parent
     pc_c = Complex([p1[0], p1[2], S])
     pc1 = pc_c.parent #this gets the PolymerConformation
     pc2 = Complex([p1[0], p2[2], S]).parent #A polymer Conformation with two Polymers
     pc3 = Complex([pc1.polymers[0][1], p2[1], S, S]).parent #A polymer Conformation with two polymers and two Complexes
-
+    pc_c2 = Complex([pc_c, pc_c.parent.polymers[0][1], S]) #add something to a Complex inside a PolymerConformation
+    pc4 = pc_c2.parent
+    pc5 = Complex([p3[1], p3[2]]).parent #A conformation which has a complex in a p1 and a complex between two monomers in p1
 
     #Starting with an OrderedPolymer Species and Creating an OrderedPolymerSpecies should result in None
     assert CC.compute_complexes_to_add_to_conformation(p1, p2) is None
 
     #Starting with a OrderedPolymerSpecies and creating a PolymerConformation
-    complexes_to_add = CC.compute_complexes_to_add_to_conformation(p1, pc1)
+    cm, complexes_to_add = CC.compute_complexes_to_add_to_conformation(p1, pc1)
     assert complexes_to_add[0][0][0] == (p1, 0) and complexes_to_add[0][0][1] == (p1, 2) and len(complexes_to_add[0][1]) == 1 and complexes_to_add[0][1][0] == S
 
     #pc1 cannot be created from p2
@@ -468,36 +471,38 @@ def test_CombinatorialConformation_compute_complexes_to_add_to_conformation():
 
 
     #pc2 can be created from p1
-    complexes_to_add = CC.compute_complexes_to_add_to_conformation(p1, pc2)
+    cm, complexes_to_add = CC.compute_complexes_to_add_to_conformation(p1, pc2)
     assert complexes_to_add[0][0][0] == (p1, 0) and complexes_to_add[0][0][1] == (pc2.polymers[1], 2) and len(complexes_to_add[0][1]) == 1 and complexes_to_add[0][1][0] == S
 
     #pc2 cannot be created from pc1
     assert CC.compute_complexes_to_add_to_conformation(pc1, pc2) is None
 
     #pc3 can be created from p1
-    complexes_to_add = CC.compute_complexes_to_add_to_conformation(p1, pc3)
+    cm, complexes_to_add = CC.compute_complexes_to_add_to_conformation(p1, pc3)
     assert len(complexes_to_add) == 2
     assert complexes_to_add[0][0][0] == (p1, 0) and complexes_to_add[0][0][1] == (p1, 2) and len(complexes_to_add[0][1]) == 1 and complexes_to_add[0][1][0] == S
     assert complexes_to_add[1][0][0] == (p1, 1) and complexes_to_add[1][0][1] == (pc3.polymers[1], 1) and len(complexes_to_add[1][1]) == 2 and complexes_to_add[1][1][0] == S
     
 
     #pc3 can be created from pc1
-    complexes_to_add = CC.compute_complexes_to_add_to_conformation(pc1, pc3)
+    cm, complexes_to_add = CC.compute_complexes_to_add_to_conformation(pc1, pc3)
     assert complexes_to_add[0][0][0] == (pc1.polymers[0], 1) and complexes_to_add[0][0][1] == (pc3.polymers[1], 1) and len(complexes_to_add[0][1]) == 2 and complexes_to_add[0][1][0] == S
     
-    #add something to a Complex inside a PolymerConformation
-    pc_c2 = Complex([pc_c, pc_c.parent.polymers[0][1], S])
-    pc4 = pc_c2.parent
+    
+    
 
     #pc4 can be created from pc1 by adding to an existing complex
-    complexes_to_add = CC.compute_complexes_to_add_to_conformation(pc1, pc4)
+    cm, complexes_to_add = CC.compute_complexes_to_add_to_conformation(pc1, pc4)
 
-    assert complexes_to_add[0][0][0].monomer_eq(pc_c)
+    assert complexes_to_add[0][0][0][1].monomer_eq(pc_c)
     assert str(complexes_to_add[0][0][1]) == str((pc4.polymers[0], 1)) #str used to ignore parents/location
     assert len(complexes_to_add[0][1]) == 1 and complexes_to_add[0][1][0] == S
-    
-    #ValueError Cases
 
+    #In this case, a Complex has to be added to p1 and a Complex has to be added between two monomers in p1
+    cm, complexes_to_add = CC.compute_complexes_to_add_to_conformation(p1, pc5)
+    assert len(complexes_to_add) == 1 and complexes_to_add[0] == ([(p1, 1), (p1, 2)], []) 
+
+    #ValueError Cases
     with pytest.raises(ValueError):
         CC.compute_complexes_to_add_to_conformation(X, pc3)
 
@@ -507,7 +512,77 @@ def test_CombinatorialConformation_compute_complexes_to_add_to_conformation():
     #Not Implemented Errors (this happens when the Polymer Mapping is Ambigious - meaning there are multiple possible mappings)
     with pytest.raises(NotImplementedError):
         pc5 = Complex([pc1.polymers[0][1], pc4.polymers[0][1]]).parent
-        complexes_to_add = CC.compute_complexes_to_add_to_conformation(p1, pc5)
+        cm, complexes_to_add = CC.compute_complexes_to_add_to_conformation(p1, pc5)
+
+
+def test_CombinatorialConformation_get_combinations_between():
+    CC = CombinatorialConformation(initial_states = [], final_states = [])
+
+    X, Y, Z, S = Species("X"), Species("Y"), Species("Z"), Species("S")
+    p1 = OrderedPolymerSpecies([X, Y, Z])
+    p2 = OrderedPolymerSpecies([Z, Y, X])
+    p3 = Complex([p1[0], X]).parent #p1 with a Complex
+    p4 = Complex([p3[1], Y]).parent #p1 with two Complexes
+    pc_c = Complex([p1[0], p1[2], S])
+    pc1 = pc_c.parent #this gets the PolymerConformation
+    pc2 = Complex([p1[0], p2[2], S]).parent #A polymer Conformation with two Polymers
+    pc3 = Complex([pc1.polymers[0][1], p2[1], S, S]).parent #A polymer Conformation with two polymers and two Complexes
+    pc4 = Complex([p3[1], p3[2]]).parent #p1 with a Complex in the polymer and a Complex between two monomers
+    pc5 = Complex([pc_c, p2[0], X]).parent #Form a Complex around a Complex already in an PolymerConformation
+    pc6 = Complex([pc3.complexes[0], pc3.complexes[1]]).parent #Bind two complexes together from the same conformation
+
+
+    #In this case, a species are added in one place to p1 to create a new polymer p3
+    combos = CC.get_combinations_between(p1, p3)
+    assert len(combos) == 1 and len(combos[0]) == 1 and combos[0][0] == ([(p1, 0)], [X])
+
+    #In this case, species are added in two places to p1 to get a new polymer p4
+    combos = CC.get_combinations_between(p1, p4)
+    assert len(combos) == 2 and len(combos[0]) == 2 and len(combos[1]) == 2
+    assert combos[0][0] == ([(p1, 0)], [X]) and combos[0][1] == ([(p1, 1)], [Y])
+    assert combos[1][1] == ([(p1, 0)], [X]) and combos[1][0] == ([(p1, 1)], [Y])
+
+    #In this case, p1 binds to itself to create pc1
+    combos = CC.get_combinations_between(p1, pc1)
+    assert len(combos) == 1 and len(combos[0]) == 1
+    assert combos[0][0] == ([(p1, 0), (p1, 2)], [S])
+
+    #In this case, an additional polymer p2 must be added to p1 as well
+    combos = CC.get_combinations_between(p1, pc2)
+    assert len(combos) == 1 and len(combos[0]) == 1
+    assert combos[0][0] == ([(p1, 0), (pc2.polymers[1], 2)], [S])
+
+    #In this case, there are two complexes between two polymers
+    combos = CC.get_combinations_between(p1, pc3)
+    assert len(combos) == 2 and len(combos[0]) == 2 and len(combos[1]) == 2
+    assert combos[0][0] == ([(p1, 0), (p1, 2)], [S]) and combos[0][1] == ([(p1, 1), (pc3.polymers[1], 1)], [S, S])
+    assert combos[1][1] == ([(p1, 0), (p1, 2)], [S]) and combos[1][0] == ([(p1, 1), (pc3.polymers[1], 1)], [S, S])
+
+    #In this case, a PolymerConformation becomes a different PolymerConformation in a single step
+    combos = CC.get_combinations_between(pc1, pc3)
+    assert len(combos) == 1 and len(combos[0]) == 1 and combos[0][0] == ([(pc1.polymers[0], 1), (pc3.polymers[1], 1)], [S, S])
+
+    #In this case, p1 gains a complex at index 0 and index 1 and 2 bind together forming a PolymerConformation in two steps
+    combos = CC.get_combinations_between(p1, pc4)
+    assert len(combos) == 2 and len(combos[0]) == 2 and len(combos[1]) == 2
+    assert combos[0][0] == ([(p1, 1), (p1, 2)], []) and combos[0][1] == ([(p1, 0)], [X])
+    assert combos[1][1] == ([(p1, 1), (p1, 2)], []) and combos[1][0] == ([(p1, 0)], [X])
+    
+
+    #In this case, a Polymer is bound to a complex already in a polymer conformation
+    combos = CC.get_combinations_between(pc1, pc5)
+    assert len(combos) == 1 and len(combos[0]) == 1 and combos[0][0] == ([(pc1, pc_c), (pc5.polymers[1], 0)], [X])
+
+    #Bind two complexes together in conformations
+    combos = CC.get_combinations_between(pc3, pc6)
+    assert len(combos) == 1 and len(combos[0]) == 1 and combos[0][0] == ([(pc3, pc3.complexes[1]), (pc3, pc3.complexes[0])], [])
+    
+    assert CC.get_combinations_between(p1, p1) is None
+    assert CC.get_combinations_between(p1, p2) is None
+    assert CC.get_combinations_between(p2, pc1) is None
+    assert CC.get_combinations_between(pc1, Complex([p2[0], p2[1]]).parent) is None
+
+
 
 
 
