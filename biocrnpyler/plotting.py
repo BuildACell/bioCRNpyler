@@ -626,7 +626,7 @@ class CRNPlotter:
         else:
             raise ValueError("dna_renderer cannot be None")
         self.clear_dicts()
-        for component in mixture.component_enumeration(10):
+        for component in mixture.component_enumeration():
             if(isinstance(component,Construct)):
                 a = self.make_dpls_from_construct(component)
         plt.ioff()
@@ -783,7 +783,7 @@ class CRNPlotter:
                 dpl_type = "CDS"
             elif(isinstance(part,Terminator)):
                 dpl_type = "Terminator"
-            elif(isinstance(part,AttachmentSite)):
+            elif(isinstance(part,IntegraseSite)):
                 if(part.site_type in ["attP","attB"]):
                     dpl_type = "RecombinaseSite"
                 elif(part.site_type in ["attL","attR"]):
@@ -791,7 +791,7 @@ class CRNPlotter:
                     needs_color2 = True
                 for key_part in self.part_dpl_dict:
                     stored_part = self.part_dpl_dict[key_part]
-                    if(isinstance(key_part,AttachmentSite) and \
+                    if(isinstance(key_part,IntegraseSite) and \
                         key_part.integrase==part.integrase and \
                             key_part.dinucleotide==part.dinucleotide):
                         types_list = [key_part.site_type,part.site_type]
