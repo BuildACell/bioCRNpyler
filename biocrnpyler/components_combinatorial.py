@@ -78,10 +78,10 @@ class CombinatorialComplex(Component):
 
         #1. set final_states
         self.final_states = final_states
-        #2. set intermidiate_states
-        self.intermediate_states = intermediate_states
-        #3. set initial_states
+        #2. set initial_states
         self.initial_states = initial_states
+        #3. set intermidiate_states
+        self.intermediate_states = intermediate_states
         #4. set excluded_states
         self.excluded_states = excluded_states
 
@@ -174,27 +174,27 @@ class CombinatorialComplex(Component):
 
         species_to_add = []
         for s in sf.species_set:
-            if s == s0:
+            if s.monomer_eq(s0): #this is used instead of == to deal with the potential for different parents
                 s0_count = 1
-            elif s in s0:
-                s0_count = s0.species.count(s)
+            elif any([ss.monomer_eq(s) for ss in s0.species]): #this is used instead of in to deal with the potential for different parents
+                s0_count = s0.monomer_count(s)#This is used instead of .count to deal with species with different parents
             else:
                 s0_count = 0
 
             #Add the correct number of s to the list
-            sf_count = sf.species.count(s)
+            sf_count = sf.monomer_count(s)
             if s0_count < sf_count:
                 species_to_add += (sf_count-s0_count)*[s]
             elif s0_count > sf_count:
-                species_to_add = [] #In this case, s0 contains more stuff than sf, so nothing should be returned
+                species_to_add = None #In this case, s0 contains more stuff than sf, so nothing should be returned
                 break
             else:
                 pass #if they have the same number, do not add it
 
         #s0 contains more or different species than sf, return None
-        if (not isinstance(s0, ComplexSpecies)) and s0 not in sf.species:
+        if (not isinstance(s0, ComplexSpecies)) and (sf.monomer_count(s0) == 0):
             species_to_add = None
-        elif (isinstance(s0, ComplexSpecies) and not all([sf.species.count(s) >= s0.species.count(s) for s in s0.species_set])) and s0 not in sf.species:
+        elif isinstance(s0, ComplexSpecies) and any([s0.monomer_count(s) > sf.monomer_count(s) for s in s0.species_set]) and sf.monomer_count(s0) == 0:
             species_to_add = None
         elif len(species_to_add) == 0:
             species_to_add = None
@@ -359,6 +359,8 @@ class CombinatorialConformation(CombinatorialComplex):
         if  intermediate_states are given:
             intial_states <-[Combinatorial Binding]-> intermediate_states <-[Combinatorial Binding]->final_states
         
+        
+        Unlike CombinatorialComplex where Species are added individual, in CombinatorialConformation, groups of Species are added in single steps to produce the appropriate Complexes.
 
         :param final_states: a single PolymerConformation/OrderedPolymerSpecies or a list of said classes.
         :param initial_states: a list of initial OrderedPolymerSpecies which are bound together to form the final_states.
@@ -390,8 +392,8 @@ class CombinatorialConformation(CombinatorialComplex):
         final_states = list(self.set_species(final_states))
 
         #all final_states must be PolymerConformation or OrderedPolymerSpecies
-        self._assert_polymer_species_or_conformation(self._final_states, "final_states")
-        self._final_states = final_States
+        self._assert_polymer_species_or_conformation(final_states, "final_states")
+        self._final_states = final_states
 
         #Then create a list of all sub-polymers included in final_states Conformations
         self.sub_polymers = []
@@ -402,7 +404,7 @@ class CombinatorialConformation(CombinatorialComplex):
             elif isinstance(s, OrderedPolymerSpecies):
                 self.sub_polymers.append(s)
 
-        self.sub_polymers = list(set(sub_polymers))
+        self.sub_polymers = list(set(self.sub_polymers))
 
     #Initial states stores the starting states used in binding reactions
     @property
@@ -438,7 +440,7 @@ class CombinatorialConformation(CombinatorialComplex):
             #All intermediate_states must be OrderedPolymerSpecies or PolymerConformations
             self._assert_polymer_species_or_conformation(intermediate_states, "intermediate_states")
 
-            #All intermediate_states must be constructable from initial states
+            #All intermediate_states must be constructable from at least one initial states
             #TODO
 
 
@@ -464,10 +466,259 @@ class CombinatorialConformation(CombinatorialComplex):
         return self._excluded_complexes
     @excluded_complexes.setter
     def excluded_complexes(self, excluded_complexes):
-        excluded_complexes = list(self.set_species(excluded_complexes))
-        if not all([isinstance(s, ComplexSpecies) for s in excluded_complexes]):
-            raise ValueError(f"excluded_complexes may only contain ComplexSpecies. Recievied: {excluded_complexes}.")
-        self._excluded_complexes = excluded_complexes
+        if excluded_complexes is None:
+            self._excluded_complexes = []
+        else:
+            excluded_complexes = list(self.set_species(excluded_complexes))
+            if not all([isinstance(s, ComplexSpecies) for s in excluded_complexes]):
+                raise ValueError(f"excluded_complexes may only contain ComplexSpecies. Recievied: {excluded_complexes}.")
+            self._excluded_complexes = excluded_complexes
+
+
+    def compute_polymer_mapping(self, s0, sf):
+        """
+        Returns a mapping of the polymers in s0 to those in sf. 
+        Also figures out which OrderedPolymerSpecies need to s0 be added to get a final PolymerConformation sf.
+
+        WARNING: currently it is required that there be a unique mapping between polymers in s0 and polymers in sf. 
+        If multiple polymers in s0 could become the same polymer in sf or one polymer in s0 can become multiple polymers in sf
+        an error is thrown. A future version of the software will cover this more complex kind of enumeration.
+
+        returns a tuple (polymer_mapping, polymers_to_add):
+            polymer_mapping: dictionary {p0 : [list of new complexes], p0 : final polymers pf, pf : initial polymers p0} 
+                             of initial polymers, the final polymer they become, and a list of complexes needed to create them
+            polymers_to_add: a list of polymers in sf not in s0.
+        """
+        
+        polymer_mapping = {} #
+        polymers_to_add = [] #stores polymers not in s0 that are in sf
+
+        #Case 1: s0 and sf are OrderedPolymerSpecies
+        if isinstance(s0, OrderedPolymerSpecies) and isinstance(sf, OrderedPolymerSpecies):
+            polymer_complexes_to_add = self.compute_complexes_to_add_to_polymer(s0, sf)
+            if polymer_complexes_to_add is not None:
+                polymer_mapping[s0] = sf
+                polymer_mapping[sf] = s0
+                polymer_mapping[s0, sf] = polymer_complexes_to_add
+
+        #Case 2: s0 is an OrderedPolymerSpecies and sf is a PolymerConformation
+        elif isinstance(s0, OrderedPolymerSpecies) and isinstance(sf, PolymerConformation):
+
+            #Compare s0 to all other polymers in p
+            for pf in sf.polymers:
+                #p is different from s0 and cannot be created from s0
+                polymer_complexes_to_add = self.compute_complexes_to_add_to_polymer(s0, pf)
+
+                #If there is no mapping
+                if polymer_complexes_to_add is None:
+                    polymers_to_add.append(copy.copy(pf).remove()) #remove p from any PolymerConformation it is part of before returning.
+
+                #p is the same as s0 or can be created from s0
+                elif s0 not in polymer_mapping and pf not in polymer_mapping:
+                    polymer_mapping[pf] = s0
+                    polymer_mapping[s0] = pf #keep track of the polymers s0 can become
+                    polymer_mapping[s0, pf] = polymer_complexes_to_add #keep track of a "recipe" to go from s0 to pf
+                else:
+                    #This means there are multiple copies of s0 or a polymer constructable from s0 in the conformation
+                    #This will require an additional combinatorial search.
+                    #TODO
+                    raise NotImplementedError("Mapping between polymers is not one-to-one.")
+
+        #Case 3: s0 and sf are PolymerConformations
+        elif isinstance(s0, PolymerConformation) and isinstance(sf, PolymerConformation):
+            #Compare each polymer in s0 to each polymer in sf
+            for pf in sf.polymers:
+                #pf is not equal to or constructable from any p0 in s0.polymers
+                mapping_found = False
+                for p0 in s0.polymers:
+                    polymer_complexes_to_add = self.compute_complexes_to_add_to_polymer(p0, pf)
+
+                    #Toggle that a mapping to pf has been found
+                    if polymer_complexes_to_add is not None:
+                        mapping_found = True
+
+                        if p0 not in polymer_mapping and pf not in polymer_mapping:
+                            polymer_mapping[pf] = p0
+                            polymer_mapping[p0] = pf #keep track of the polymers s0 can become
+                            polymer_mapping[p0, pf] = polymer_complexes_to_add #keep track of a "recipe" to go from s0 to pf
+                        else:
+                            #This means there are multiple pf in sf.polymers which can be constructed from the same p0 in s0.polymers
+                            #This will require additional combinatorial search
+                            #TODO
+                            raise NotImplementedError("Mapping between polymers is not one-to-one.")
+
+                #If there is no mapping, pf will need to be added as a seperate polymer
+                if not mapping_found:
+                    polymers_to_add.append(pf)
+        else:
+            raise ValueError(f"s0 and sf must be OrderedPolymerSpecies or PolymerConformations. Received {s0} and {sf}.")
+
+        if len(polymer_mapping) == 0:
+            return None #This indicates there is no mapping between s0 and sf
+        else:
+            return polymer_mapping, polymers_to_add
+
+
+    def compute_complexes_to_add_to_polymer(self, p0, pf):
+        """
+        similar to CombinatorialComplex.compute_species_to_add 
+        figures out which ComplexSpecies need to be added to a convert OrderedPolymerSpecies s0 to sf
+        """
+        if not isinstance(p0, OrderedPolymerSpecies) or not isinstance(pf, OrderedPolymerSpecies):
+            raise ValueError(f"p0 and pf must be OrderedPolymerSpecies; recieved p0 = {p0}, pf = {pf}")
+
+        #Polymers must be the same length
+        if len(p0) != len(pf):
+            return None
+        #Nothing to add because they are teh same
+        elif p0.monomer_eq(pf):
+            return []
+        #Compare monomer by monomer
+        else:
+            complexes_to_add = [] #will be a list of tuples (index, [Species to add])
+            for i in range(len(p0)):
+                mi = p0[i]
+                mf = pf[i]
+
+                
+                if isinstance(mf, ComplexSpecies):
+                    species_to_add = self.compute_species_to_add(mi, mf)
+
+                    if species_to_add is not None and len(species_to_add)>0:
+                        complexes_to_add.append((i, species_to_add))
+                    elif species_to_add is None: #mi cannot become mf, no mapping exists
+                        complexes_to_add = None 
+                        break
+                elif not mi.monomer_eq(mf): #mi cannot become mf, no mapping exists
+                    complexes_to_add = None 
+                    break
+
+                print(mi, mf, complexes_to_add)
+
+            return complexes_to_add
+
+    def compute_complexes_to_add_to_conformation(self, s0, sf, polymer_mapping = None):
+        """
+        similar to CombinatorialComplex.compute_species_to_add 
+        figures out which ComplexSpecies need to be added to a convert PolymerConformation/OrderedPolymerSpecies s0 to PolymerConformation sf
+        polymer_mapping is a mapping between polymers in sf and polymers in s0. Computed via compute_polymer_mapping.
+
+        returns a list of lists of tuples.
+        [   
+            lists of complexes in the conformation in the form of:
+            [list of elements in a complex: (p0, species index in p0)]
+        ]
+        """
+
+        if polymer_mapping is None:
+            mapping = self.compute_polymer_mapping(s0, sf)
+            if mapping is not None:
+                polymer_mapping, polymers_to_add = mapping
+            else: #If there is no mapping, return None
+                return None
+
+        #A list of the polymers in s0
+        if isinstance(s0, OrderedPolymerSpecies):
+            current_polymers = [s0]
+            current_complexes = []
+        elif isinstance(s0, PolymerConformation):
+            current_polymers = s0.polymers
+            current_complexes = s0.complexes
+        else:
+            raise ValueError(f"s0 must be an OrderedPolymerSpecies or a PolymerConformation; recievied {s0}.")
+
+        #a list of polymers in sf
+        if isinstance(sf, OrderedPolymerSpecies):
+            return None #If sf is an OrderedPolymerSpecies, there are no Complexes to add
+        elif isinstance(sf, PolymerConformation):
+            final_polymers = sf.polymers
+            final_complexes = sf.complexes
+        else:
+            raise ValueError(f"sf must be an OrderedPolymerSpecies or a PolymerConformation; recievied {sf}.")
+
+
+        complexes_to_add = []
+        complex_mapping = {}
+
+        #cycle through final complexes
+        for cf in final_complexes:
+            #Compute complex position
+            cf_position = [] #[(polymer, index)....]
+            cf_additional_species = [] #[Species]
+            pf_inds = sf.get_polymer_indices(cf) #computes the indices polymer index (or None) of each species in the complex
+            pf_positions = sf.get_polymer_positions(cf)
+
+            for i in range(len(cf.species)):
+                if pf_inds[i] is not None:
+                    if sf.polymers[pf_inds[i]]  in polymer_mapping:
+                        p = polymer_mapping[sf.polymers[pf_inds[i]]] #the initial polymer mapped to the final polymer if possible
+                    else:
+                        p = sf.polymers[pf_inds[i]] #otherwise use the final polymer (these means that polymer is in the polymers_to_add list)
+
+                    cf_position.append((p, pf_positions[i]))
+
+                else: #this means the species isn't part of a Polymer
+                    cf_additional_species.append(cf.species[i])
+
+            #cycle through current_complexes - if a current complex can become a final complex
+            #the species need to be added to the current_complex
+            for cc in current_complexes:
+                #Compute complex position
+                cc_position = [] #[(polymer, index)....]
+                cc_additional_species = [] #[Species]
+                pc_inds = s0.get_polymer_indices(cc) #computes the indices polymer index (or None) of each species in the complex
+                cc_positions = s0.get_polymer_positions(cc)
+
+                for i in range(len(cc.species)):
+                    if pc_inds[i] is not None:
+                        cc_position.append((s0.polymers[pc_inds[i]], cc_positions[i]))
+
+                    else: #this means the species isn't part of a Polymer
+                        cc_additional_species.append(cc.species[i])
+
+                if all([p in cf_position for p in cc_position]) and all([cf.monomer_count(s) >= cc.monomer_count(s) for s in cc_additional_species]):
+                    #This means cc can become cf
+
+                    if cc in complex_mapping:
+                        print("second mapping found:", cc, "in", cc.parent, "to", cf, "in", cf.parent)
+                        #This means that there are multiple Complexes inside the conformation which can mutually convert
+                        #This more complex enumeration is not being implemented at this time
+                        raise NotImplementedError("Mapping between Conformations not one-to-one.")
+                    else:
+                        print("mapping found:", cc, "in", cc.parent, "to", cf, "in", cf.parent)
+                        complex_mapping[cc] = cf
+                        
+                        for p in cc_position:
+                            cf_position.remove(p)
+                        for s in cc_additional_species:
+                            cf_additional_species.remove(s)
+
+                        #add the current complex to the list if there are things to add to it
+                        if len(cf_position) > 0 and len(cf_additional_species) > 0:
+                            cf_position = [cc] + cf_position
+
+
+            #Only add the Complex if it contains something new
+            if len(cf_position) > 0 and len(cf_additional_species) > 0:
+                complexes_to_add.append((cf_position, cf_additional_species))
+
+        #Ensure every complex in s0 maps to a complex in sf
+        if not all([cc in complex_mapping for cc in current_complexes]):
+            return None
+        else:
+            return complexes_to_add
+
+
+    def get_combinations_between(self, s0, sf):
+        #A list of the polymers in s0
+        pass
+                
+
+
+
+
 
     
+    
+
 
