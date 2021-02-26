@@ -95,16 +95,26 @@ def test_complex_with_polymer_replacement():
     #This occurs when a Complex is formed around a Monomer in a Polymer in a PolymerConformation which does not include any other Monomers with parents.
     a = Species('A')
     b = Species('B')
+    s = Species("S")
     p = OrderedPolymerSpecies([a,b,a])
     pc = Complex([p[0], p[1]]).parent #get a PolymerConformation
     #create a Complex around an unbound element of p (from within pc)
-    c = Complex([Species("S"), pc.polymers[0][2], Species("S")], ordered = True)
-    assert str(c) == str(OrderedComplexSpecies([Species("S"), p[2], Species("S")], called_from_complex = True))
+    c = Complex([s, pc.polymers[0][2], s], ordered = True)
+    assert str(c) == str(OrderedComplexSpecies([s, p[2], s], called_from_complex = True))
 
     #Make the same thing with the replacement first
-    p2 = OrderedPolymerSpecies([a,b,Complex([Species("S"), a, Species("S")], ordered = True)])
+    p2 = OrderedPolymerSpecies([a,b,Complex([s, a, s], ordered = True)])
     assert str(c.parent) == str(p2)
     assert c.parent.parent == Complex([p2[0], p2[1]]).parent
+
+    #test a more complicated case where the monomer is also in a complex
+    #the underlying polymer should change and the ComplexSpecies containing it should also change
+    c2 = Complex([pc.polymers[0][0], s])
+    assert str(c2) == str(Complex([a, s]))
+
+    p2 = OrderedPolymerSpecies([Complex([a, s]), b, a])
+    assert str(c2.parent) == str(p2)
+    assert c2.parent.parent == Complex([p2[0], p2[1]]).parent
     
 
 def test_complex_with_a_complex_in_a_conformation():
