@@ -12,7 +12,7 @@ import numbers
 from typing import Dict, Union
 from .species import WeightedSpecies, Species
 from .parameter import Parameter
-
+from warnings import warn
 
 def all_comb(input_list):
     out_list = []
@@ -78,3 +78,52 @@ def combine_dictionaries(dict1,dict2):
             else:
                 outdict[key] = dict2[key]
         return outdict
+    
+def member_dictionary_search(member,dictionary):
+    """searches through a dictionary for keys relevant to the given data member.
+    Order of returning:
+    repr
+    name
+    material_type
+    propensity name
+    propensity partid
+    propensity mechanism
+    """
+    if(repr(member) in dictionary):
+        return dictionary[repr(member)]
+    elif(hasattr(member,"name") and member.name in dictionary):
+        return dictionary[member.name]
+    elif(hasattr(member,"integrase") and hasattr(member,"site_type") and (member.integrase,member.site_type) in dictionary):
+        return dictionary[(member.integrase,member.site_type)]
+    elif(hasattr(member,"site_type") and member.site_type in dictionary):
+        return dictionary[member.site_type]
+    elif(hasattr(member,"material_type") and hasattr(member,"attributes") and \
+                    (member.material_type, tuple(member.attributes)) in dictionary):
+        return dictionary[(member.material_type, tuple(member.attributes))]
+    elif(hasattr(member,"material_type") and member.material_type in dictionary):
+        return dictionary[member.material_type]
+    elif(hasattr(member,"attributes") and tuple(member.attributes) in dictionary):
+        return dictionary[tuple(member.attributes)]
+    elif(hasattr(member,"propensity_type")):
+        out_value = None
+        try:
+            for k,p in member.propensity_type.propensity_dict["parameters"].items():
+                if(hasattr(p,"search_key")):
+                    mech_str = repr(p.search_key.mechanism).strip('\'\"')
+                    partid_str = repr(p.search_key.part_id).strip('\'\"')
+                    name_str = repr(p.search_key.name).strip('\'\"')
+                    cur_value = out_value
+                    if(name_str in dictionary):
+                        cur_value = dictionary[name_str] #name of the mechanism that made the reaction
+                    if(partid_str in dictionary):
+                        cur_value = dictionary[partid_str] #partid used to make the reaction
+                    if(mech_str in dictionary):
+                        cur_value = dictionary[mech_str] #the type of mechanism that made the reaction
+                    if(out_value is not None and cur_value != out_value):
+                        warn(f"dictionary search output was {out_value} but now it will be {cur_value}")
+                    out_value = cur_value
+
+        except KeyError:
+            pass
+        return out_value
+    return None

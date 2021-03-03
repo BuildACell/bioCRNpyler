@@ -21,6 +21,7 @@ from .propensities import MassAction
 from .species import ComplexSpecies, Species
 from .polymer import OrderedPolymer
 from .dna_construct import Construct
+from .utils import member_dictionary_search
 import io
 import base64
 
@@ -57,6 +58,7 @@ try:
 except ModuleNotFoundError:
     pass
 
+empty_set_base64 = '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'
 
 def updateLimits(limits, xvalues):
     for value in xvalues:
@@ -269,7 +271,7 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     if(not PLOT_NETWORK):
         warn("network plotting disabled because some libraries are not found")
         return None, None, None
-    if not colordict:
+    if (colordict is None):
         colordict = {"complex": "cyan", "protein": "green",
                      "dna": "grey", "rna": "orange",
                      "ligand": "pink", "phosphate": "yellow", "nothing": "purple"}
@@ -284,29 +286,20 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     # "nothing" node. However, usually we are making degradation reactions which yield the
     # degradation enzyme, so then it doesn't go to nothing. This means actually this node
     # isn't use for anything. But i think it's good to have just in case.
+    
     default_species_color = "grey"
     default_reaction_color = "cornflowerblue"
     nodedict["nothing"] = 0
     CRNgraph.add_node(0)
     CRNgraph.nodes[0]["type"] = "nothing"
     CRNgraph.nodes[0]["species"] = "nothing"
+    CRNgraph.nodes[0]["image"] = empty_set_base64
     if("nothing" in colordict):
         CRNgraph.nodes[0]["color"] = colordict["nothing"]
     for species in CRN.species:
         # add all species first
-
-        if repr(species) in colordict:
-            species_color = colordict[repr(species)]
-        elif species.name in colordict:
-            species_color = colordict[species.name]
-        elif (species.material_type, tuple(species.attributes)) in colordict:
-            species_color = colordict[(species.material_type,
-                               tuple(species.attributes))]
-        elif(species.material_type in colordict):
-            species_color = colordict[species.material_type]
-        elif tuple(species.attributes) in colordict:
-            species_color = colordict[tuple(species.attributes)]
-        else:
+        species_color = member_dictionary_search(species,colordict)
+        if(species_color is None):
             species_color = default_species_color
 
         nodedict[species] = allnodenum
@@ -335,28 +328,9 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
             CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
             CRNgraph.nodes[allnodenum]["k_r"] = ''
 
-        reaction_color = None
-        if repr(rxn) in colordict:
-            reaction_color = colordict[repr(rxn)]
-        for k,p in rxn.propensity_type.propensity_dict["parameters"].items():
-            if(hasattr(p,"search_key")):
-                mech_str = repr(p.search_key.mechanism).strip('\'\"')
-                partid_str = repr(p.search_key.part_id).strip('\'\"')
-                name_str = repr(p.search_key.name).strip('\'\"')
-                new_color = reaction_color
-                if(name_str in colordict):
-                    new_color = colordict[name_str] #name of the mechanism that made the reaction
-                if(partid_str in colordict):
-                    new_color = colordict[partid_str] #partid used to make the reaction
-                if(mech_str in colordict):
-                    new_color = colordict[mech_str] #the type of mechanism that made the reaction
-                if(reaction_color is not None and reaction_color != new_color):
-                        #if you change the color of a reaction, the final color will be unexpected,
-                        #so there is a warning that that happened
-                        warn(f"reaction color was {reaction_color} but now you want it to be {colordict[name_str]}")
-                reaction_color = new_color
-
-
+        reaction_color = member_dictionary_search(rxn,colordict)
+        if(reaction_color is None):
+            reaction_color = default_reaction_color
         # CRNgraph.nodes[allnodenum]
         if isinstance(rxn.propensity_type, MassAction):
             kval = rxn.propensity_type.k_forward
@@ -396,8 +370,7 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
             CRNgraph.add_edge(0, allnodenum, weight=kval)
             if(krev_val is not None):
                 CRNgraph.add_edge(allnodenum, 0, weight=krev_val)
-        if(reaction_color is None):
-            reaction_color = default_reaction_color
+        
         CRNgraph.nodes[allnodenum]["color"] = reaction_color
         if(not use_pretty_print):
             CRNgraph.nodes[allnodenum]["species"] = str(rxn)
@@ -424,8 +397,13 @@ class CRNPlotter:
             self.parts_list = parts_list
             self.bound = None
         def get_directed(self,direction,bound=None,non_binder=None):
-
+            """returns a copy of itself with the direction changed to the value of 'direction'.
+            In the case of MultiPart it also means reversing the order of the subparts.
+            A MultiPart binds to things differently from a normal part. the binding is distributed among
+            the subparts. "non_binder" indicates a dpl_type which should not be shown binding to things."""
             if(non_binder is None):
+                #by default we assume that promoters that are part of MultiParts don't bind to things
+                #that's because MultiPart is currently only used for repressible Promoters with Operators
                 non_binder = ["Promoter"]
             new_multipart = copy.deepcopy(self)
             bound_for_distribution = None
@@ -434,6 +412,7 @@ class CRNPlotter:
             elif(self.bound is not None):
                 bound_for_distribution = copy.copy(self.bound)
             if(bound_for_distribution is not None):
+                #distribute the "bound" items among the parts contained within the MultiPart
                 recursion = 10
                 while(len(bound_for_distribution)>0 and recursion > 0):
                     for part in new_multipart.parts_list:
@@ -446,8 +425,9 @@ class CRNPlotter:
                                 break
                     recursion -= 1
                 if(recursion == 0):
+                    #this is likely to happen if everything in the multipart is marked as "non binding"
                     raise ValueError(f"reached maximum recursion when trying to populate multipart {self}")
-                
+            #actually changing the direction of each part inside the MultiPart
             new_multipart.parts_list = [a.get_directed(direction) for a in new_multipart.parts_list]
             if(direction=="reverse"):
                 new_multipart.parts_list = new_multipart.parts_list[::-1]
@@ -455,6 +435,8 @@ class CRNPlotter:
             else:
                 return new_multipart
         def get_dpl(self):
+            """dnaplotlib takes these dictionaries as input. So this converts the MultiPart object
+            into a list of dictionaries that matplotlib can understand"""
             outlist = []
             for part in self.parts_list:
                 outlist+= part.get_dpl()
@@ -464,6 +446,7 @@ class CRNPlotter:
           
     class SimpleConstruct:
         def __init__(self,name,parts_list,circular=False,material_type="dna",label_size=13,added_opts = None):
+            """this is a simplified version of a DNAconstruct which mostly only has information relevant to plotting"""
             self.name = name
             self.parts_list = parts_list
             self.circular = circular
@@ -472,6 +455,7 @@ class CRNPlotter:
             if(added_opts is None):
                 self.added_opts = {}
         def get_dpl(self):
+            """output a list of dictionaries suitable for dnaplotlib"""
             outlist = []
             for part in self.parts_list:
                 part_dpl = part.get_dpl()
@@ -480,6 +464,8 @@ class CRNPlotter:
                 outlist+= part_dpl
             return outlist
         def get_dpl_binders(self):
+            """output a dnaplotlib dictionary list to represent the "binders". 
+            Binders are "regulation" arcs modified to draw a SBOL glyph instead of a line. """
             my_dpl_output = self.get_dpl()
             out_regs = []
             for design in my_dpl_output:
@@ -548,8 +534,6 @@ class CRNPlotter:
             fig.set_size_inches(xheight/24,yheight/24)
             ax.set_aspect('equal')
             ax.autoscale_view()
-            #ax.set_xlim((xlimits[0],xlimits[1]))
-            #ax.set_ylim((ylimits[0],ylimits[1]))
             return ax
     
     class SimplePart:
@@ -599,7 +583,7 @@ class CRNPlotter:
         def __repr__(self):
             return "SimplePart("+str(self.name)+"-"+str(self.direction)[0]+")"
 
-    def __init__(self,dna_renderer=None,rna_renderer=None,cmap = "Set3"):
+    def __init__(self,dna_renderer=None,rna_renderer=None,cmap = "Set3",colordict=None):
         if(dna_renderer is None):
             self.dna_renderer=dpl.DNARenderer(scale = 5,linewidth=3)
         else:
@@ -608,6 +592,9 @@ class CRNPlotter:
             self.rna_renderer=dpl.DNARenderer(scale = 5,linewidth=3,linecolor=(1,0,0))
         else:
             self.rna_renderer = rna_renderer
+        if(colordict is None):
+            colordict = {}
+        self.colordict = colordict
         self.cmap = plt.get_cmap(cmap).colors
         self.color_counter = 0
         self.clear_dicts()
@@ -636,6 +623,7 @@ class CRNPlotter:
                 plot_bb = True
                 if(not isinstance(a,self.SimpleConstruct)):
                     plot_bb = False
+                    #if we aren't looking at a construct then don't plot the backbone
                     newcon = self.SimpleConstruct(a.name,[a],material_type=a.material_type)
                 else:
                     newcon = a
@@ -645,13 +633,14 @@ class CRNPlotter:
                 else:
                     ax = newcon.renderDNA(dna_renderer,plot_backbone=plot_bb)
                 if(store):
+                    #this part converts the matplotlibplot into a base64-encoded image
                     imagestream = io.BytesIO()
                     fig = ax.get_figure()
                     fig.savefig(imagestream,bbox_inches='tight')
                     png_str = base64.b64encode(imagestream.getvalue())
                     self.species_image_dict[species]= png_str
         return self.species_image_dict
-    def renderConstruct(self,construct_obj,rna_renderer=None,dna_renderer=None,showlabels=True, render_rna=True):
+    def renderConstruct(self,construct_obj,rna_renderer=None,dna_renderer=None,showlabels=True, render_rna=False):
         if(rna_renderer is None and self.rna_renderer is not None):
             rna_renderer = self.rna_renderer
         else:
@@ -810,14 +799,50 @@ class CRNPlotter:
                         #we found all the needed colors so give up
                         break
             if(set_color is None):
-                color = self.get_color()
+                dictcolor = None
+                if(self.colordict is not None):
+                    dictcolor = member_dictionary_search(part,self.colordict)
+                if(dictcolor is None):
+                    if(hasattr(part,"site_type") and part.site_type ==  "attL"):
+                        #then we can search for attB color
+                        attBpart = copy.deepcopy(removed_part)
+                        attBpart.site_type = "attB"
+                        attBpart.name = "attB"
+                        dictcolor = member_dictionary_search(attBpart,self.colordict)
+                    elif(hasattr(part,"site_type") and part.site_type == "attR"):
+                        #then we can search for attP color
+                        attPpart = copy.deepcopy(removed_part)
+                        attPpart.site_type = "attP"
+                        attPpart.name = "attP"
+                        dictcolor = member_dictionary_search(attPpart,self.colordict)
+                if(dictcolor is None):
+                    #dictcolor can still be none if the secondary searches for attB and attP failed too
+                    color = self.get_color()
+                else:
+                    color = dictcolor
             else:
                 color = set_color
             color2 = None
             if(set_color2 is not None):
                 color2 = set_color2
             elif(set_color2 is None and needs_color2):
-                color2 = self.get_color()
+                dictcolor = None
+                if(hasattr(part,"site_type") and part.site_type ==  "attR"):
+                    #then we can search for attB color
+                    attBpart = copy.deepcopy(removed_part)
+                    attBpart.site_type = "attB"
+                    attBpart.name = "attB"
+                    dictcolor = member_dictionary_search(attBpart,self.colordict)
+                elif(hasattr(part,"site_type") and part.site_type == "attL"):
+                    #then we can search for attP color
+                    attPpart = copy.deepcopy(removed_part)
+                    attPpart.site_type = "attP"
+                    attPpart.name = "attP"
+                    dictcolor = member_dictionary_search(attPpart,self.colordict)
+                if(dictcolor is None):
+                    color2 = self.get_color()
+                else:
+                    color2 = dictcolor
             
             
             outpart = self.SimplePart(name=part.name,\
@@ -836,3 +861,25 @@ class CRNPlotter:
                 self.part_dpl_dict[removed_part] = retpart
                 self.species_dpl_dict[part.dna_species] = retpart
             return retpart.get_directed(part.direction)
+
+def render_constructs(constructs,color_dictionary=None):
+    """wrapper around CRNPlotter class to make a bunch of constructs which are color coordinated"""
+    plotter = CRNPlotter(colordict=color_dictionary)
+    axes = []
+    for construct in constructs:
+        axes += [plotter.renderConstruct(construct)]
+    return axes
+
+def render_mixture(mixture,crn,color_dictionary=None):
+    plotter = CRNPlotter(colordict=color_dictionary)
+    return plotter.renderMixture(mixture,crn)
+def render_network_bokeh(CRN,layout="force",\
+                        iterations=2000,rseed=30,posscale=1,**keywords):
+    DG, DGspec, DGrxn = generate_networkx_graph(CRN,**keywords) #this creates the networkx objects
+    plot = Plot(plot_width=500, plot_height=500, x_range=Range1d(-500, 500), y_range=Range1d(-500, 500)) #this generates a 
+    show_im = False
+    images = None
+    if("imagedict" in keywords and keywords["imagedict"] is not None):
+        show_im = True
+    graphPlot(DG,DGspec,DGrxn,plot,layout=layout,posscale=posscale,iterations=iterations,rseed=rseed,show_species_images=show_im) 
+    return plot
