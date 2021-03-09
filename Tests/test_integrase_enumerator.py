@@ -84,11 +84,11 @@ def test_integrase_rule():
     genb = DNA_construct([cds2,ab])
     #testing the actual integration reactions
     #inversion
-    integ_funcs = bxb1_rule.integrate(flip[0],flip[2]) #sites forwards
+    integ_funcs = bxb1_rule.integrate(flip[0],flip[2],also_inter=False) #sites forwards
     assert(len(integ_funcs)==1)#one product is made
     assert([a[0].position for a in integ_funcs[0].partslist]==[None,1,None])
     assert([a[1] for a in integ_funcs[0].partslist]==["forward","reverse","reverse"])
-    integ_funcs = bxb1_rule.integrate(flip[2],flip[0]) #sites reverse
+    integ_funcs = bxb1_rule.integrate(flip[2],flip[0],also_inter=False) #sites reverse
     assert(len(integ_funcs)==1)#one product is made
     assert([a[0].position for a in integ_funcs[0].partslist]==[None,1,None])
     assert([a[1] for a in integ_funcs[0].partslist]==["reverse","reverse","forward"])
@@ -104,7 +104,7 @@ def test_integrase_rule():
             assert([a[0].position for a in prod.partslist]==[None,1,0,None,1,2])
             assert([a[1] for a in prod.partslist]==["forward","reverse","reverse","forward","forward","reverse"])
     #deletion
-    integ_funcs = bxb1_rule.integrate(delete[0],delete[2]) #sites forwards
+    integ_funcs = bxb1_rule.integrate(delete[0],delete[2],also_inter=False) #sites forwards
     assert(len(integ_funcs)==2)#two product is made
     assert(sum([a.circular for a in integ_funcs])==1) #one of them is circular
     for prod in integ_funcs:
@@ -118,7 +118,7 @@ def test_integrase_rule():
     integ_funcs = bxb1_rule.integrate(delete[2],delete[0],also_inter=True) #sites reverse
     print(integ_funcs)
     assert(len(integ_funcs)==4)#four product is made
-    assert(sum([a.circular for a in integ_funcs])==2) #two of them is circular
+    assert(sum([a.circular for a in integ_funcs])==1) #one of them is circular
     for prod in integ_funcs:
         if(prod.circular):
             if(len(prod.partslist)==2):
@@ -129,10 +129,14 @@ def test_integrase_rule():
                 assert([a[0].position for a in prod.partslist]==[None,1,None,1])
                 assert([a[1] for a in prod.partslist]==["forward","forward","reverse","reverse"])
                 assert(prod.number_of_inputs == 2)
-        else:
+        elif(len(prod.partslist)==1):
             assert([a[0].position for a in prod.partslist]==[None])
             assert([a[1] for a in prod.partslist]==["forward"])
-            assert(prod.number_of_inputs == 1)
+            assert(prod.number_of_inputs == 0) #polymer transformation that makes attL needs no inputs
+        elif(len(prod.partslist)==5):
+            assert([a[0].position for a in prod.partslist]==[0,1,None,1,2])
+            assert([a[1] for a in prod.partslist]==["forward"]*5)
+            assert(prod.number_of_inputs == 2) #for intermolecular reaction there are two inputs!
 
 
     #integration
@@ -170,7 +174,11 @@ def test_integrase_rule():
     for prod in integ_funcs:
         assert([a[0].position for a in prod.partslist]==[0,None])
         assert([a[1] for a in prod.partslist]==["forward","forward"])
-        assert(prod.number_of_inputs == 2)
+        assert(prod.number_of_inputs == 1) # actually in all cases here we are making a product 
+                                           # that includes attL or attR as the only remnant from 
+                                           # one of the two inputs, and that means that the actual 
+                                           # number of inputs you need for a two molecule reaction 
+                                           # is only one
 
     #
 def test_compilation():
@@ -215,9 +223,9 @@ def test_compilation():
                                          initial_concentrations_at_end = True,
                                          copy_objects = False,
                                          add_reaction_species = False)
-    assert len(comps1) == 52
-    assert len(myCRN1.species) == 36
-    assert len(myCRN1.reactions) == 61
+    assert len(comps1) == 85
+    assert len(myCRN1.species) == 52
+    assert len(myCRN1.reactions) == 97
 
     #Recompiling at a different length doesn't change anything
     myCRN0b, comps0b = myMixture.compile_crn(recursion_depth = 0, 

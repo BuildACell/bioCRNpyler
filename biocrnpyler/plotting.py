@@ -422,11 +422,11 @@ def make_dpl_from_construct(construct, showlabels=None):
         pcolor2 = part.color2
         if(HAVE_MATPLOTLIB):
             if(type(pcolor) == int):
-                c1 = cmap[pcolor][:-1]
+                c1 = cmap[pcolor%(len(cmap)-1)][:-1]
             else:
-                c1 = cmap[pind][:-1]
+                c1 = cmap[pind%(len(cmap)-1)][:-1]
             if(type(pcolor2) == int):
-                c2 = cmap[pcolor2][:-1]
+                c2 = cmap[pcolor2%(len(cmap)-1)][:-1]
             else:
                 c2 = cmap[random.choice(
                     list(range(len(construct.parts_list))))][:-1]
@@ -436,6 +436,8 @@ def make_dpl_from_construct(construct, showlabels=None):
         outdesign += make_dpl_from_part(part, direction=part.direction == "forward",
                                         color=c1, color2=c2, showlabel=showlabel)
         pind += 1
+        if(pind>=len(cmap)):
+            pind = 0
     return outdesign
 
 
