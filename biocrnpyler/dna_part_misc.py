@@ -109,17 +109,22 @@ class IntegraseSite(DNABindingSite):
             # 
             #this site is linked to site2 but site2 is not linked to the copy
             #this is what we are trying to fix here
-            for othersite in self.linked_sites:
+            for othersite_tpl in self.linked_sites:
+                othersite = othersite_tpl[0]
+                intermolecular = othersite_tpl[1]
                 #what we are doing here is swapping out the link to this site with
                 #a link to the returned component (the copied site)
-                mystuff = copy.copy(othersite.linked_sites[self])
-                del othersite.linked_sites[self]
-                othersite.linked_sites[newcomp] = mystuff
+                self_tuple = (self,intermolecular)
+                mystuff = copy.copy(othersite.linked_sites[self_tuple])
+                del othersite.linked_sites[self_tuple]
+                othersite.linked_sites[(newcomp,intermolecular)] = mystuff
             return newcomp
         else:
-            for othersite in self.linked_sites:
+            for othersite_tpl in self.linked_sites:
+                othersite = othersite_tpl[0]
+                intermolecular = othersite_tpl[1]
                 populate = True #by default, add the appropriate data members to the other site
-                if(self.count_inputs(othersite)==1):
+                if(intermolecular==0):
                     #the reaction with the site in question is intramolecular
                     #that means we should only populate the other site if our internal_species
                     #has the proper location bound by integrase
@@ -134,10 +139,10 @@ class IntegraseSite(DNABindingSite):
                     #if the reaction is intermolecular then the linked site is populated.
                     #this means only a fully populated site would have all the information to create the reaction
                     #once again this results in one out of two sites that actually outputs a "reaction" object, as required
-                    mystuff = copy.copy(othersite.linked_sites[self])
-                    del othersite.linked_sites[self]
-                    othersite.linked_sites[newcomp]=mystuff
-                    assert(othersite in newcomp.linked_sites)
+                    mystuff = copy.copy(othersite.linked_sites[(self,intermolecular)])
+                    del othersite.linked_sites[(self,intermolecular)]
+                    othersite.linked_sites[(newcomp,intermolecular)]=mystuff
+                    assert((othersite,intermolecular) in newcomp.linked_sites)
             return newcomp
     def count_inputs(self,site):
         assert(site in self.linked_sites)
@@ -154,7 +159,9 @@ class IntegraseSite(DNABindingSite):
         int_mech = self.get_mechanism('integration')
 
         #this next part generates integrase reactions
-        for site in self.linked_sites:
+        for site_tpl in self.linked_sites:
+            site = site_tpl[0]
+            intermolecular = site_tpl[1]
             if(site.dna_to_bind is None or site.dna_to_bind.parent is None):
                 #skip sites which do not know who they bind to
                 continue
@@ -167,33 +174,33 @@ class IntegraseSite(DNABindingSite):
             #however, if we are dealing with an intramolecular reaction, then
             #only return the reaction if the pair HASN'T been processed
             populate = True
-            if(self.count_inputs(site)== 1):
+            if(intermolecular== 0):
                 #this is an intramolecular reaction so we don't care about the other site's DNAs
                 integrated_dnas = []
                 if(site.integrase in complex_parent[site.position] and \
-                                complex_parent in self.linked_sites[site][1]):
+                                complex_parent in self.linked_sites[site_tpl][1]):
                     #make sure that both this site and the other site are bound
-                    for integrase_function in self.linked_sites[site][0]:
+                    for integrase_function in self.linked_sites[site_tpl][0]:
                         integr = integrase_function.create_polymer([complex_parent])
                         integrated_dnas += [integr]
-                
                     reactions += int_mech.update_reactions([complex_parent],integrated_dnas,component=self,part_id = self.integrase.name)
                     populate = False
             else:
                 #this is for intermolecular reactions. now "other_dna" is possible
                 #go through all possible "other" dnas then calculate for each RNA
-                for other_dna in self.linked_sites[site][1]:
+                for other_dna in self.linked_sites[site_tpl][1]:
                     #I am not convinced this loop runs more than once EVER
                     integrated_dnas = []
-                    for integrase_function in self.linked_sites[site][0]:
+                    for integrase_function in self.linked_sites[site_tpl][0]:
                         #for every result that we could get, generate it
                         #the next line generates the OrderedPolymerSpecies which results from recombination
                         integrated_dnas += [integrase_function.create_polymer([complex_parent,other_dna])]
                     reactions += int_mech.update_reactions([complex_parent,other_dna],integrated_dnas,component=self,part_id = self.integrase.name)
-                    populate = False #since the other site already populated us, no reason to populate it
+                    #populate = False #since the other site already populated us, no reason to populate it
             #next part updates the linked site
-            if(populate and (complex_parent is not None) and self in site.linked_sites and (complex_parent not in site.linked_sites[self][1])):
-                site.linked_sites[self][1] += [complex_parent]
+            if(populate and (complex_parent is not None) and (self,intermolecular) in site.linked_sites and\
+                 (complex_parent not in site.linked_sites[(self,intermolecular)][1])):
+                site.linked_sites[(self,intermolecular)][1] += [complex_parent]
         return reactions
             
 class UserDefined(DNA_part):
