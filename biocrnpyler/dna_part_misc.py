@@ -144,13 +144,6 @@ class IntegraseSite(DNABindingSite):
                     othersite.linked_sites[(newcomp,intermolecular)]=mystuff
                     assert((othersite,intermolecular) in newcomp.linked_sites)
             return newcomp
-    def count_inputs(self,site):
-        assert(site in self.linked_sites)
-        dict_inputs = []
-        for transformation in self.linked_sites[site][0]:
-            for pspec in transformation.parentsdict:
-                dict_inputs += [transformation.parentsdict[pspec]]
-        return len(set(dict_inputs))
     def update_reactions(self):
         reactions = DNABindingSite.update_reactions(self)
         if(self.linked_sites == {}):
