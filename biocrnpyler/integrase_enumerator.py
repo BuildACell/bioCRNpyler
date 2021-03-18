@@ -328,7 +328,8 @@ class IntegraseRule:
             dna2 = site2.parent
             if(dna1 == dna2):
                 #this will happen if we trying to do an intermolecular reaction between two copies of the same thing
-                dna2 = Polymer_transformation.dummify(dna2,dna2.name+"_dummy")
+                dna2 = copy.copy(dna1)
+                dna2.name = dna2.name+"_duplicate"
             dna_inputs = [dna1,dna2]
             pdict = {a[1]:"input"+str(a[0]+1) for a in enumerate(dna_inputs)}
             #make sure everyone is forwards
@@ -347,8 +348,11 @@ class IntegraseRule:
 
             circ1 = dna1.circular
             circ2 = dna2.circular
-            prod1,prod2 = self.generate_products(site1,site2)
-
+            
+            if(site1.direction=="reverse" and site2.direction=="reverse"):
+                prod1,prod2 = self.generate_products(site2,site1)
+            else:
+                prod1,prod2 = self.generate_products(site1,site2)
             #direction of everything should be forward
 
             if(circ2==True):
@@ -452,6 +456,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                         for a in int_functions:
                             new_dna = a.create_polymer([combo[0].parent,combo[1].parent])
                             new_dnas += [new_dna]
+                            #TODO: make sure that duplicate dna constructs are not stored seperately!!!!
                         constructlist += new_dnas
         return constructlist
 
