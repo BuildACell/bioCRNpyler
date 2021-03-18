@@ -350,7 +350,7 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
             kval = rxn.propensity_type.k_forward
             CRNgraph.nodes[allnodenum]["k"] = str(kval)
         else:
-            kval = rxn.k
+            kval = rxn.propensity_type.k
             CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
 
         if(not useweights):

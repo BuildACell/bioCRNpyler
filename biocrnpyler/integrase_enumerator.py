@@ -139,7 +139,10 @@ class Polymer_transformation:
                 outpart.linked_sites = {} #make sure that any integrase sites we copy this way have no
                                             #linked sites, as those would not be links created by the integrate() function
             outlst += [[outpart,partdir]]
-        outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular)
+        if(hasattr(outlst[0][0],"material_type") and all([a[0].material_type=="part" for a in outlst])):
+            outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular,material_type = polymer_dict["input1"].material_type)
+        else:
+            outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular)
         return outpolymer
     @classmethod
     def dummify(cls,in_polymer,name):
@@ -219,9 +222,9 @@ class IntegraseRule:
             
         
         part_prod1 = IntegraseSite(prod1,prod1,dinucleotide=dinucleotide,
-                                    integrase=integrase,direction=site1.direction)
+                                    integrase=integrase,direction=site1.direction,integrase_binding=site1.integrase_binding)
         part_prod2 = IntegraseSite(prod2,prod2,dinucleotide=dinucleotide,
-                                    integrase=integrase,direction=site2.direction)
+                                    integrase=integrase,direction=site2.direction,integrase_binding=site1.integrase_binding)
         if(site1.direction=="forward"):
             return (part_prod1,part_prod2)
         else:
