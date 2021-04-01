@@ -405,7 +405,7 @@ class Mixture(object):
             for a in range(recursion_depth):
                 for component in comps_to_enumerate:
                     component.set_mixture(self)
-                    enumerated = component.enumerate_components()
+                    enumerated = component.enumerate_components(previously_enumerated=all_components+new_components)
                     new_components += enumerated
 
                 all_components += comps_to_enumerate
@@ -432,7 +432,8 @@ class Mixture(object):
             new_comps_to_enumerate = [] #these will be added to comps_to_enumerate at the end of the iteration
 
             for global_enumerator in self.global_component_enumerators:
-                enumerated = global_enumerator.enumerate_components(comps_to_enumerate) #this should be only NEWLY CREATED components
+                enumerated = global_enumerator.enumerate_components(comps_to_enumerate,\
+                                            previously_enumerated=enumerated_components) #this should be only NEWLY CREATED components
                 for c in enumerated:
                     #These components are passed into the enumerator next recursion
                     if c not in new_comps_to_enumerate and c not in comps_to_enumerate:
@@ -469,10 +470,8 @@ class Mixture(object):
         #get the recursion depth
         if(recursion_depth is None):
             recursion_depth = self.global_recursion_depth
-
         #Run global enumeration
         globally_enumerated_components = self.global_component_enumeration(recursion_depth=recursion_depth)
-
         #Run Local Enumeraton
         enumerated_components = self.component_enumeration(globally_enumerated_components, recursion_depth = self.local_recursion_depth) #This includes self.components 
         #reset the Components' mixture to self - in case they have been added to other Mixtures

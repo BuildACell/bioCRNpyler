@@ -82,6 +82,23 @@ class Polymer_transformation:
         self.parentsdict = new_parentsdict
         self.partslist = actual_partslist
         self.circular = circular
+    def renumber_output(self,output_renumbering_function):
+        """change the ordering of the output list, using the output_renumbering_function which takes
+        in an int and returns an int which is the new index of the part"""
+        new_partslist = list(range(len(self.partslist)))
+        for i,part in enumerate(self.partslist):
+            new_i,direc = output_renumbering_function(i)
+            if(direc == "r"):
+                new_partslist[new_i] = [part[0],["forward","reverse"][part[1]=="forward"]]
+            else:
+                new_partslist[new_i] = part
+        self.partslist = new_partslist
+
+    def get_renumbered(self,output_renumbering_function):
+        """return a copy of this transformation, but the output indexes are renumbered"""
+        rxn_copied = copy.copy(self)
+        rxn_copied.renumber_output(output_renumbering_function)
+        return rxn_copied
     def reversed(self):
         """return a circularly permuted version of self. That means the inputs are shuffled around
         For example, we had input1, input2, input3. Now we will have input1=input2, input2=input3, input3=input1."""
@@ -139,8 +156,10 @@ class Polymer_transformation:
                 outpart.linked_sites = {} #make sure that any integrase sites we copy this way have no
                                             #linked sites, as those would not be links created by the integrate() function
             outlst += [[outpart,partdir]]
-        if(hasattr(outlst[0][0],"material_type") and all([a[0].material_type=="part" for a in outlst])):
-            outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular,material_type = polymer_dict["input1"].material_type)
+        if(hasattr(outlst[0][0],"material_type") and all([a[0].material_type=="dna" for a in outlst])):
+            outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular,material_type = "dna")
+        elif(hasattr(outlst[0][0],"material_type") and all([a[0].material_type=="rna" for a in outlst])):
+            outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular,material_type = "rna")
         else:
             outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular)
         return outpolymer
@@ -232,7 +251,7 @@ class IntegraseRule:
             part_prod1.direction = site2.direction
             return(part_prod2,part_prod1)
     
-    def integrate(self,site1,site2,also_inter=True,force_inter=False):
+    def integrate(self,site1,site2,also_inter=True,force_inter=False, existing_dna_constructs = None):
         """perform an integration reaction between the chosen sites and make new DNA_constructs
         site1 and site2 are integrase site dna_parts which have parents that are DNA_constructs.
         
@@ -264,7 +283,9 @@ class IntegraseRule:
         intermolecular = 1 #by default, the reaction is intermolecular
         #if one of the sites is not part of a construct then raise an error!
         integ_funcs = []
-        added_integ_funcs = [] #these won't get added to the linked_sites but they will be returned
+        new_dna_constructs = [] #new dna constructs made by this function!
+        if(existing_dna_constructs is None):
+            existing_dna_constructs = []
         if(not(isinstance(site1.parent,Construct))):
             raise ValueError("{} not part of a construct".format(site1))
         elif(not(isinstance(site2.parent,Construct))):
@@ -281,7 +302,7 @@ class IntegraseRule:
                 #we should generate the intermolecular reaction also!
                 #in this case we are generating multiple integration reactions at the same time
                 #i think the right thing to do is NOT return it?
-                added_integ_funcs += self.integrate(site1,site2,force_inter=True)
+                new_dna_constructs += self.integrate(site1,site2,force_inter=True)
             if(site1.position > site2.position):
                 #we reverse which position is where
                 cutpos2 = site1.position
@@ -364,21 +385,31 @@ class IntegraseRule:
                 integ_funcs += [Polymer_transformation(result,circ1,parentsdict=pdict)]
             elif(circ2 ==False and circ1 == True):
                 #if the sites are backwards just reverse everything
-                polymer_transformations = self.integrate(site2,site1,force_inter=force_inter)
+                new_dna_constructs += self.integrate(site2,site1,force_inter=force_inter)
                 #the above already populates the sites, so then we don't need to
-                added_integ_funcs +=  [a.reversed() for a in polymer_transformations][::-1]
             elif(circ1==False and circ1==circ2):
                 #case 4: recombination
                 #here we are recombining two linear dnas, so two linear dnas are produced
                 result1 = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]
                 result2 = dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
                 integ_funcs += [Polymer_transformation(result1,parentsdict=pdict),Polymer_transformation(result2,parentsdict=pdict)]
-        #include the fact that the site is intermolecular or intramolecular into the key
+        
         if(len(integ_funcs)>0):
+            for integ_func in integ_funcs:
+                #generate new dna constructs and check if we already made them before
+                created_dna = integ_func.create_polymer([site1.parent,site2.parent])
+                output = Integrase_Enumerator.find_dna_construct(created_dna,existing_dna_constructs+new_dna_constructs)
+                if(output is not None):
+                    #if the construct has already been made, then fix the integ_func so it outputs the right thing
+                    integ_func.renumber_output(output[1])
+                else:
+                    #otherwise, add it to the list
+                    new_dna_constructs += [created_dna]
+            #link the two sites and give them the adjusted integ_funcs
             site1.linked_sites[(site2,intermolecular)] = [integ_funcs,[]]
             site2.linked_sites[(site1,intermolecular)] = [[a.reversed() for a in integ_funcs],[]]
         #the return value of this function is used mostly only for generating constructs
-        return integ_funcs+added_integ_funcs
+        return new_dna_constructs
 
 
 
@@ -404,13 +435,37 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         return int_dict
     def reset(self,components=None, **keywords):
         """this resets the linked_sites member in any attachment sites"""
-
         for component in components:
             if(hasattr(component,"parts_list")):
                 for part in component:
                     if(hasattr(part,"linked_sites")):
                         part.linked_sites = {}
-    def enumerate_components(self,components = None, **keywords):
+    @classmethod
+    def find_dna_construct(cls,construct,conlist):
+        """find a construct that matches the input "construct", but can be reverse or circularly permuted
+        returns: found_construct, index_function(index) => (new_index,"f" or "r" if it must be reversed)
+        or,
+        None, if no matching construct is found"""
+        for other_construct in conlist:
+            if(not isinstance(other_construct,type(construct))):
+                continue
+            other_indexes = list(range(len(other_construct)))
+            if(construct.get_species() == other_construct.get_species()):
+                return other_construct, (lambda a: (a,"f"))
+            elif(construct.get_reversed().get_species() == other_construct.get_species()):
+                return other_construct, (lambda a: (other_indexes[::-1][a],"r"))
+            elif(construct.circular and other_construct.circular and len(construct)==len(other_construct)):
+                
+                for pos,_ in enumerate(construct):
+                    cp_construct = construct.get_circularly_permuted(pos)
+                    
+                    if(cp_construct.get_species() == other_construct.get_species()):
+                        return other_construct, (lambda a:((other_indexes[pos:]+other_indexes[:pos])[a],"f"))
+                    elif(cp_construct.get_reversed().get_species()==other_construct.get_species()):
+                        return other_construct, (lambda a:((other_indexes[pos:]+other_indexes[:pos])[::-1][a],"r"))
+        return None
+
+    def enumerate_components(self,components = None,previously_enumerated = None, **keywords):
         """this explores all the possible integrase-motivated DNA configurations. If some
         integrases aren't present, then define intnames to be a list of names of the
         integrases which are present.
@@ -446,17 +501,12 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                 attsites = int_dict[integrase]
                 #but now we need to know what kind of integrase reactions are possible
                 attcombos = [a for a in it.combinations(attsites,2)]
-                #print(attcombos)
                 for combo in attcombos:
                     #first question: is this combo legal?
                     if(tuple([a.site_type for a in combo]) in int_mech.reactions):
                         #this means the reaction can exist
-                        int_functions = int_mech.integrate(combo[0],combo[1])
-                        new_dnas = []
-                        for a in int_functions:
-                            new_dna = a.create_polymer([combo[0].parent,combo[1].parent])
-                            new_dnas += [new_dna]
-                            #TODO: make sure that duplicate dna constructs are not stored seperately!!!!
+                        #integrate now
+                        new_dnas = int_mech.integrate(combo[0],combo[1],existing_dna_constructs = previously_enumerated+constructlist)
                         constructlist += new_dnas
         return constructlist
 

@@ -199,12 +199,13 @@ class IntegraseSite(DNABindingSite):
                 #this is for intermolecular reactions. now "other_dna" is possible
                 #go through all possible "other" dnas then calculate for each RNA
                 for other_dna in self.linked_sites[site_tpl][1]:
-                    #I am not convinced this loop runs more than once EVER
+                    #other_dna are placed there by other sites that already got evaluated
                     integrated_dnas = []
                     for integrase_function in self.linked_sites[site_tpl][0]:
                         #for every result that we could get, generate it
                         #the next line generates the OrderedPolymerSpecies which results from recombination
                         integrated_dnas += [integrase_function.create_polymer([complex_parent,other_dna],bound = self.integrase_binding)]
+                    
                     reactions += int_mech.update_reactions([complex_parent,other_dna],integrated_dnas,component=self,part_id = self.integrase.name)
             #next part updates the linked site
             if(populate and (complex_parent is not None) and (self,intermolecular) in site.linked_sites and\
