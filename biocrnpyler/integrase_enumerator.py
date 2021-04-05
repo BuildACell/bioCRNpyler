@@ -10,7 +10,7 @@ from .utils import combine_dictionaries
 import copy
 
 class Polymer_transformation:
-    def __init__(self,partslist,circular=False,parentsdict = None):
+    def __init__(self,partslist,circular=False,parentsdict = None,material_type="dna"):
         """A Polymer transformation is like a generic transformation of a polymer sequence.
         You specify a parts list that would make up the output polymer. This list can contain:
         parts from ordered polymers
@@ -82,6 +82,7 @@ class Polymer_transformation:
         self.parentsdict = new_parentsdict
         self.partslist = actual_partslist
         self.circular = circular
+        self.material_type = material_type
     def renumber_output(self,output_renumbering_function):
         """change the ordering of the output list, using the output_renumbering_function which takes
         in an int and returns an int which is the new index of the part"""
@@ -156,12 +157,10 @@ class Polymer_transformation:
                 outpart.linked_sites = {} #make sure that any integrase sites we copy this way have no
                                             #linked sites, as those would not be links created by the integrate() function
             outlst += [[outpart,partdir]]
-        if(hasattr(outlst[0][0],"material_type") and all([a[0].material_type=="dna" for a in outlst])):
-            outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular,material_type = "dna")
-        elif(hasattr(outlst[0][0],"material_type") and all([a[0].material_type=="rna" for a in outlst])):
-            outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular,material_type = "rna")
+        if(hasattr(outlst[0][0],"material_type") and any(["complex" in a[0].material_type for a in outlst])):
+            outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular,material_type = "ordered_polymer")
         else:
-            outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular)
+            outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular,material_type=self.material_type)
         return outpolymer
     @classmethod
     def dummify(cls,in_polymer,name):
@@ -240,10 +239,12 @@ class IntegraseRule:
             raise KeyError("{} not found to react with {} in {}".format(site2,site1,self.reactions))
             
         
-        part_prod1 = IntegraseSite(prod1,prod1,dinucleotide=dinucleotide,
-                                    integrase=integrase,direction=site1.direction,integrase_binding=site1.integrase_binding)
-        part_prod2 = IntegraseSite(prod2,prod2,dinucleotide=dinucleotide,
-                                    integrase=integrase,direction=site2.direction,integrase_binding=site1.integrase_binding)
+        part_prod1 = IntegraseSite(prod1,prod1,dinucleotide=dinucleotide,integrase=integrase,
+                            direction=site1.direction,integrase_binding=site1.integrase_binding,
+                            material_type = site1.material_type)
+        part_prod2 = IntegraseSite(prod2,prod2,dinucleotide=dinucleotide,integrase=integrase,
+                            direction=site2.direction,integrase_binding=site1.integrase_binding,
+                            material_type = site2.material_type)
         if(site1.direction=="forward"):
             return (part_prod1,part_prod2)
         else:

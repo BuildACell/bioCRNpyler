@@ -35,7 +35,7 @@ class DNA_part(Component, OrderedMonomer):
         #most parts have stop codons
         #if you want your part to not have stop codons, put "forward" and/or "reverse"
         self.no_stop_codons = [] #some parts will set this, others won't. Default is that it has stop codons
-        
+        self.material_type = "part"
         for key, value in keywords.items():
             #goes through any extra parameters and sets them!
             if(key=="assembly"):
@@ -53,6 +53,8 @@ class DNA_part(Component, OrderedMonomer):
             elif(key=="no_stop_codons"):
                 if(value is not None):
                     self.no_stop_codons = value
+            elif(key=="material_type"):
+                self.material_type = value
         if(isinstance(assembly,OrderedPolymer)):
             OrderedMonomer.__init__(self,position=pos,parent=assembly,direction=direction)
         else:
@@ -61,7 +63,7 @@ class DNA_part(Component, OrderedMonomer):
 
     @property
     def dna_species(self):
-        return Species(self.name, material_type="dna")
+        return Species(self.name, material_type=self.material_type)
 
     def __repr__(self):
         myname = self.name
