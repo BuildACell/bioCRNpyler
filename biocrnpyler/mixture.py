@@ -483,7 +483,6 @@ class Mixture(object):
         for component in enumerated_components:
             self.add_species_to_crn(component.update_species(), component, no_initial_concentrations = initial_concentrations_at_end, copy_species = copy_objects)
 
-
         #Append Reactions from each Component
         for component in enumerated_components:
             self.crn.add_reactions(component.update_reactions(), copy_reactions = copy_objects, add_species =  add_reaction_species)
