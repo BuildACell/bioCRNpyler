@@ -256,8 +256,22 @@ class IntegraseRule:
         assert(isinstance(site2,IntegraseSite))
         assert site1.integrase==site2.integrase
         assert site1.integrase==self.integrase_species
-        if(tuple([site1.site_type,site2.site_type]) in self.reactions):
-            return True
+        if(tuple(site1.site_type,site2.site_type) in self.reactions):
+            #this means these site types can react
+            if(site1.parent==site2.parent):
+                #this means the sites are on the same piece of DNA
+                if(site1.direction==site2.direction):
+                    #this is a deletion reaction
+                    if(self.allow_deletion):
+                        return True
+                else:
+                    #this is an inversion reaction
+                    if(self.allow_inversion):
+                        return True
+            else:
+                #these sites are on a different piece of DNA. That means it's integration
+                if(self.allow_integration):
+                    return True
         return False
     def generate_products(self,site1,site2):
         """generates DNA_part objects corresponding to the products of recombination"""
