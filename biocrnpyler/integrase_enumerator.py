@@ -86,13 +86,14 @@ class Polymer_transformation:
     def renumber_output(self,output_renumbering_function):
         """change the ordering of the output list, using the output_renumbering_function which takes
         in an int and returns an int which is the new index of the part"""
-        new_partslist = list(range(len(self.partslist)))
-        for i,part in enumerate(self.partslist):
+        new_partslist = []
+        for i in range(len(self.partslist)):
             new_i,direc = output_renumbering_function(i)
+            part = self.partslist[new_i]
             if(direc == "r"):
-                new_partslist[new_i] = [part[0],["forward","reverse"][part[1]=="forward"]]
+                new_partslist+= [[part[0],["forward","reverse"][part[1]=="forward"]]]
             else:
-                new_partslist[new_i] = part
+                new_partslist+= [part]
         self.partslist = new_partslist
 
     def get_renumbered(self,output_renumbering_function):
@@ -197,7 +198,7 @@ class Polymer_transformation:
         return out_txt
 
 class IntegraseRule:
-    def __init__(self,name=None,reactions=None):
+    def __init__(self,name=None,reactions=None,allow_deletion=True,allow_integration=True,allow_inversion=True):
         """The integrase mechanism is a mechanism at the level of DNA. It creates DNA species which
         the integrase manipulations would lead to. This mechanism does not create any reaction rates.
         We need to figure out how integrase binding will work before being able to create
@@ -208,6 +209,9 @@ class IntegraseRule:
             self.name = "int1"
         else:
             self.name = name
+        self.allow_deletion = allow_deletion
+        self.allow_integration = allow_integration
+        self.allow_inversion = allow_inversion
         self.integrase_species = Species(self.name,material_type="protein")
         self.reactions = reactions
         self.attsites = []
@@ -217,6 +221,28 @@ class IntegraseRule:
         self.integrations_to_do = [] #these are the reactions that will be performed at compile time
     def binds_to(self):
         return self.attsites
+    def reaction_allowed(self,site1,site2):
+        assert(isinstance(site1,IntegraseSite))
+        assert(isinstance(site2,IntegraseSite))
+        assert site1.integrase==site2.integrase
+        assert site1.integrase==self.integrase_species
+        if(tuple(site1.site_type,site2.site_type) in self.reactions):
+            #this means these site types can react
+            if(site1.parent==site2.parent):
+                #this means the sites are on the same piece of DNA
+                if(site1.direction==site2.direction):
+                    #this is a deletion reaction
+                    if(self.allow_deletion):
+                        return True
+                else:
+                    #this is an inversion reaction
+                    if(self.allow_inversion):
+                        return True
+            else:
+                #these sites are on a different piece of DNA. That means it's integration
+                if(self.allow_integration):
+                    return True
+        return False
     def generate_products(self,site1,site2):
         """generates DNA_part objects corresponding to the products of recombination"""
         #the sites should have the same integrase and dinucleotide, otherwise it won't work
@@ -504,7 +530,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                 attcombos = [a for a in it.combinations(attsites,2)]
                 for combo in attcombos:
                     #first question: is this combo legal?
-                    if(tuple([a.site_type for a in combo]) in int_mech.reactions):
+                    if(int_mech.reaction_allowed(combo[0],combo[1])):
                         #this means the reaction can exist
                         #integrate now
                         new_dnas = int_mech.integrate(combo[0],combo[1],existing_dna_constructs = previously_enumerated+constructlist)

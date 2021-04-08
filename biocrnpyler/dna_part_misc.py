@@ -36,7 +36,7 @@ class DNABindingSite(DNA_part):
         if(self.dna_to_bind is not None):
             mech_b = self.mechanisms["binding"]
             for binder in self.binders:
-                spec += mech_b.update_species(binder,self.dna_to_bind,component=self,part_id = self.name)
+                spec += mech_b.update_species(binder,self.dna_to_bind,component=self,part_id = binder.name)
                 #TODO: different proteins probably have different affinity to bind this sequence
         return spec
     def update_reactions(self):
@@ -44,7 +44,7 @@ class DNABindingSite(DNA_part):
         if(self.dna_to_bind is not None):
             mech_b = self.mechanisms["binding"]
             for binder in self.binders:
-                rxns += mech_b.update_reactions(binder,self.dna_to_bind,component=self,part_id = self.name)
+                rxns += mech_b.update_reactions(binder,self.dna_to_bind,component=self,part_id = binder.name)
         return rxns
     def update_component(self,internal_species=None,**keywords):
         """returns a copy of this component, except with the proper fields updated"""
