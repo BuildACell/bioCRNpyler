@@ -226,22 +226,8 @@ class IntegraseRule:
         assert(isinstance(site2,IntegraseSite))
         assert site1.integrase==site2.integrase
         assert site1.integrase==self.integrase_species
-        if(tuple(site1.site_type,site2.site_type) in self.reactions):
-            #this means these site types can react
-            if(site1.parent==site2.parent):
-                #this means the sites are on the same piece of DNA
-                if(site1.direction==site2.direction):
-                    #this is a deletion reaction
-                    if(self.allow_deletion):
-                        return True
-                else:
-                    #this is an inversion reaction
-                    if(self.allow_inversion):
-                        return True
-            else:
-                #these sites are on a different piece of DNA. That means it's integration
-                if(self.allow_integration):
-                    return True
+        if(tuple([site1.site_type,site2.site_type]) in self.reactions):
+            return True
         return False
     def generate_products(self,site1,site2):
         """generates DNA_part objects corresponding to the products of recombination"""
@@ -345,81 +331,84 @@ class IntegraseRule:
             circularity = dna.circular
             
             if(site1.direction == site2.direction):
-                #case 2: deletion
-                #if the sites point in the same direction, then we are doing a deletion reaction
-                #direction doesn't matter so we don't need to flip anything
-                cutdna_list_parts = list(dna[:cutpos1])+[[prod1,site1.direction]]+list(dna[cutpos2+1:]) #delete
-                newdna_list_parts = [[prod2,site2.direction]]+list(dna[1+cutpos1:cutpos2])
+                if(self.allow_deletion):
+                    #case 2: deletion
+                    #if the sites point in the same direction, then we are doing a deletion reaction
+                    #direction doesn't matter so we don't need to flip anything
+                    cutdna_list_parts = list(dna[:cutpos1])+[[prod1,site1.direction]]+list(dna[cutpos2+1:]) #delete
+                    newdna_list_parts = [[prod2,site2.direction]]+list(dna[1+cutpos1:cutpos2])
 
-                integ_funcs += [Polymer_transformation(cutdna_list_parts,circular = circularity),\
-                                        Polymer_transformation(newdna_list_parts,circular=True)]
+                    integ_funcs += [Polymer_transformation(cutdna_list_parts,circular = circularity),\
+                                            Polymer_transformation(newdna_list_parts,circular=True)]
             else:
-                #case 1: inversion
-                #this means we are dealing with an inversion
-                inv_segment = []
-                
-                [[a,] for a in dna[cutpos1+1:cutpos2][::-1]]
-                for a in dna[cutpos1+1:cutpos2][::-1]:
-                    inv_segment += [[a,["forward","reverse"][a.direction=="forward"]]]
-                #the inverted segment is reversed
-                
-                invertdna_list = list(dna[:cutpos1])+\
-                                [[prod1,site1.direction]]+\
-                                inv_segment+ \
-                                [[prod2,site2.direction]]+\
-                                list(dna[cutpos2+1:])
+                if(self.allow_inversion):
+                    #case 1: inversion
+                    #this means we are dealing with an inversion
+                    inv_segment = []
+                    
+                    [[a,] for a in dna[cutpos1+1:cutpos2][::-1]]
+                    for a in dna[cutpos1+1:cutpos2][::-1]:
+                        inv_segment += [[a,["forward","reverse"][a.direction=="forward"]]]
+                    #the inverted segment is reversed
+                    
+                    invertdna_list = list(dna[:cutpos1])+\
+                                    [[prod1,site1.direction]]+\
+                                    inv_segment+ \
+                                    [[prod2,site2.direction]]+\
+                                    list(dna[cutpos2+1:])
 
-                integ_funcs += [Polymer_transformation(invertdna_list,circular=circularity)]
+                    integ_funcs += [Polymer_transformation(invertdna_list,circular=circularity)]
         else:
-            #otherwise these sites are on different pieces of DNA, so they are going to combine
-            dna1 = site1.parent
-            dna2 = site2.parent
-            if(dna1 == dna2):
-                #this will happen if we trying to do an intermolecular reaction between two copies of the same thing
-                dna2 = copy.copy(dna1)
-                dna2.name = dna2.name+"_duplicate"
-            dna_inputs = [dna1,dna2]
-            pdict = {a[1]:"input"+str(a[0]+1) for a in enumerate(dna_inputs)}
-            #make sure everyone is forwards
-            sites = [site1,site2]
-            site_halves = []
-            for dna_num,site_num in zip(dna_inputs,sites):
-                if(site_num.direction=="reverse"):
-                    dnanum_beginning = [[a,["forward","reverse"][a.direction=="forward"]] for a in dna_num[site_num.position+1:][::-1]]
-                    dnanum_end = [[a,["forward","reverse"][a.direction=="forward"]] for a in dna_num[:site_num.position][::-1]]
+            if(self.allow_integration):
+                #otherwise these sites are on different pieces of DNA, so they are going to combine
+                dna1 = site1.parent
+                dna2 = site2.parent
+                if(dna1 == dna2):
+                    #this will happen if we trying to do an intermolecular reaction between two copies of the same thing
+                    dna2 = copy.copy(dna1)
+                    dna2.name = dna2.name+"_duplicate"
+                dna_inputs = [dna1,dna2]
+                pdict = {a[1]:"input"+str(a[0]+1) for a in enumerate(dna_inputs)}
+                #make sure everyone is forwards
+                sites = [site1,site2]
+                site_halves = []
+                for dna_num,site_num in zip(dna_inputs,sites):
+                    if(site_num.direction=="reverse"):
+                        dnanum_beginning = [[a,["forward","reverse"][a.direction=="forward"]] for a in dna_num[site_num.position+1:][::-1]]
+                        dnanum_end = [[a,["forward","reverse"][a.direction=="forward"]] for a in dna_num[:site_num.position][::-1]]
+                    else:
+                        dnanum_beginning = dna_num[:site_num.position]
+                        dnanum_end = dna_num[site_num.position+1:]
+                    site_halves += [[list(dnanum_beginning),list(dnanum_end)]]
+                dna1_halves = site_halves[0]
+                dna2_halves = site_halves[1]
+
+                circ1 = dna1.circular
+                circ2 = dna2.circular
+                
+                if(site1.direction=="reverse" and site2.direction=="reverse"):
+                    prod1,prod2 = self.generate_products(site2,site1)
                 else:
-                    dnanum_beginning = dna_num[:site_num.position]
-                    dnanum_end = dna_num[site_num.position+1:]
-                site_halves += [[list(dnanum_beginning),list(dnanum_end)]]
-            dna1_halves = site_halves[0]
-            dna2_halves = site_halves[1]
+                    prod1,prod2 = self.generate_products(site1,site2)
+                #direction of everything should be forward
 
-            circ1 = dna1.circular
-            circ2 = dna2.circular
-            
-            if(site1.direction=="reverse" and site2.direction=="reverse"):
-                prod1,prod2 = self.generate_products(site2,site1)
-            else:
-                prod1,prod2 = self.generate_products(site1,site2)
-            #direction of everything should be forward
-
-            if(circ2==True):
-                #case 3: integration
-                #in this case we are combining a circular plasmid with a circular or linear plasmid
-                #either way the result is basically the same, except the result is either linear or circular
-                #result is ONE PIECE OF DNA
-                result = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]+dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
-                integ_funcs += [Polymer_transformation(result,circ1,parentsdict=pdict)]
-            elif(circ2 ==False and circ1 == True):
-                #if the sites are backwards just reverse everything
-                new_dna_constructs += self.integrate(site2,site1,force_inter=force_inter)
-                #the above already populates the sites, so then we don't need to
-            elif(circ1==False and circ1==circ2):
-                #case 4: recombination
-                #here we are recombining two linear dnas, so two linear dnas are produced
-                result1 = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]
-                result2 = dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
-                integ_funcs += [Polymer_transformation(result1,parentsdict=pdict),Polymer_transformation(result2,parentsdict=pdict)]
+                if(circ2==True):
+                    #case 3: integration
+                    #in this case we are combining a circular plasmid with a circular or linear plasmid
+                    #either way the result is basically the same, except the result is either linear or circular
+                    #result is ONE PIECE OF DNA
+                    result = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]+dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
+                    integ_funcs += [Polymer_transformation(result,circ1,parentsdict=pdict)]
+                elif(circ2 ==False and circ1 == True):
+                    #if the sites are backwards just reverse everything
+                    new_dna_constructs += self.integrate(site2,site1,force_inter=force_inter)
+                    #the above already populates the sites, so then we don't need to
+                elif(circ1==False and circ1==circ2):
+                    #case 4: recombination
+                    #here we are recombining two linear dnas, so two linear dnas are produced
+                    result1 = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]
+                    result2 = dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
+                    integ_funcs += [Polymer_transformation(result1,parentsdict=pdict),Polymer_transformation(result2,parentsdict=pdict)]
         
         if(len(integ_funcs)>0):
             for integ_func in integ_funcs:
