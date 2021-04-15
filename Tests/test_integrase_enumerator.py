@@ -78,107 +78,111 @@ def test_integrase_rule():
     ab = IntegraseSite("attB","attB",integrase="Bxb1")
     delete = DNA_construct([ab,cds,ap])
     flip = DNA_construct([ab,cds,[ap,"reverse"]],circular=True)
+    flipr = flip.get_reversed()
     plasp = DNA_construct([cds,ap],circular=True)
     plasb = DNA_construct([cds,ab],circular=True)
     genp = DNA_construct([cds2,ap])
     genb = DNA_construct([cds2,ab])
     #testing the actual integration reactions
     #inversion
-    integ_funcs = bxb1_rule.integrate(flip[0],flip[2],also_inter=False) #sites forwards
-    assert(len(integ_funcs)==1)#one product is made
-    assert([a[0].position for a in integ_funcs[0].partslist]==[None,1,None])
-    assert([a[1] for a in integ_funcs[0].partslist]==["forward","reverse","reverse"])
-    integ_funcs = bxb1_rule.integrate(flip[2],flip[0],also_inter=False) #sites reverse
-    assert(len(integ_funcs)==1)#one product is made
-    assert([a[0].position for a in integ_funcs[0].partslist]==[None,1,None])
-    assert([a[1] for a in integ_funcs[0].partslist]==["reverse","reverse","forward"])
+    new_constructs = bxb1_rule.integrate(flip[0],flip[2],also_inter=False) #sites forwards
+    assert(len(new_constructs)==1)#one product is made
+    assert([part.name for part in new_constructs[0]]==["attL","GFP","attR"])
+    assert([part.direction for part in new_constructs[0]]==["forward","reverse","reverse"])
 
-    integ_funcs = bxb1_rule.integrate(flip[0],flip[2],also_inter=True) #allow intermolecular reactions
-    assert(len(integ_funcs)==2)#now, two products are made
-    assert(sum([a.circular for a in integ_funcs])==2) #all of them is circular
-    for prod in integ_funcs:
-        if(len(prod.partslist)==3):
-            assert([a[0].position for a in prod.partslist]==[None,1,None])
-            assert([a[1] for a in prod.partslist]==["forward","reverse","reverse"])
+    new_constructs = bxb1_rule.integrate(flip[2],flip[0],also_inter=False) #sites reverse
+    assert(len(new_constructs)==1)#one product is made
+    assert([part.name for part in new_constructs[0]]==["attL","GFP","attR"])
+    assert([part.direction for part in new_constructs[0]]==["forward","reverse","reverse"])
+
+    new_constructs = bxb1_rule.integrate(flipr[2],flipr[0],also_inter=False) #sites forwards
+    assert(len(new_constructs)==1)#one product is made
+    assert([part.name for part in new_constructs[0]]==["attR","GFP","attL"])
+    assert([part.direction for part in new_constructs[0]]==["forward","forward","reverse"])
+    
+    new_constructs = bxb1_rule.integrate(flip[0],flip[2],also_inter=True) #allow intermolecular reactions
+    assert(len(new_constructs)==2)#now, two products are made
+    assert(sum([a.circular for a in new_constructs])==2) #all of them is circular
+    for prod in new_constructs:
+        if(len(prod)==3):
+            assert([part.name for part in prod]==["attL","GFP","attR"])
+            assert([part.direction for part in prod]==["forward","reverse","reverse"])
         else:
-            assert([a[0].position for a in prod.partslist]==[None,1,0,None,1,2])
-            assert([a[1] for a in prod.partslist]==["forward","reverse","reverse","forward","forward","reverse"])
+            assert([part.name for part in prod]==['attL', 'GFP', 'attB', 'attR', 'GFP', 'attP'])
+            assert([part.direction for part in prod]==["forward","reverse","reverse","forward","forward","reverse"])
     #deletion
-    integ_funcs = bxb1_rule.integrate(delete[0],delete[2],also_inter=False) #sites forwards
-    assert(len(integ_funcs)==2)#two product is made
-    assert(sum([a.circular for a in integ_funcs])==1) #one of them is circular
-    for prod in integ_funcs:
+    new_constructs = bxb1_rule.integrate(delete[0],delete[2],also_inter=False) #sites forwards
+    assert(len(new_constructs)==2)#two product is made
+    assert(sum([a.circular for a in new_constructs])==1) #one of them is circular
+    for prod in new_constructs:
         if(prod.circular):
-            assert([a[0].position for a in prod.partslist]==[None,1])
-            assert([a[1] for a in prod.partslist]==["forward","forward"])
+            assert([part.name for part in prod]==["attR","GFP"])
+            assert([part.direction for part in prod]==["forward","forward"])
         else:
-            assert([a[0].position for a in prod.partslist]==[None])
-            assert([a[1] for a in prod.partslist]==["forward"])
+            assert([part.name for part in prod]==["attL"])
+            assert([part.direction for part in prod]==["forward"])
     #now, what if we also calculate the intermolecular reactions?
-    integ_funcs = bxb1_rule.integrate(delete[2],delete[0],also_inter=True) #sites reverse
-    print(integ_funcs)
-    assert(len(integ_funcs)==4)#four product is made
-    assert(sum([a.circular for a in integ_funcs])==1) #one of them is circular
-    for prod in integ_funcs:
+    new_constructs = bxb1_rule.integrate(delete[2],delete[0],also_inter=True) #sites reverse
+    assert(len(new_constructs)==3)#four product is made
+    assert(sum([a.circular for a in new_constructs])==1) #one of them is circular
+    for prod in new_constructs:
         if(prod.circular):
-            if(len(prod.partslist)==2):
-                assert([a[0].position for a in prod.partslist]==[None,1])
-                assert([a[1] for a in prod.partslist]==["forward","forward"])
-                assert(prod.number_of_inputs == 1)
-            else:
-                assert([a[0].position for a in prod.partslist]==[None,1,None,1])
-                assert([a[1] for a in prod.partslist]==["forward","forward","reverse","reverse"])
-                assert(prod.number_of_inputs == 2)
-        elif(len(prod.partslist)==1):
-            assert([a[0].position for a in prod.partslist]==[None])
-            assert([a[1] for a in prod.partslist]==["forward"])
-            assert(prod.number_of_inputs == 0) #polymer transformation that makes attL needs no inputs
-        elif(len(prod.partslist)==5):
-            assert([a[0].position for a in prod.partslist]==[0,1,None,1,2])
-            assert([a[1] for a in prod.partslist]==["forward"]*5)
-            assert(prod.number_of_inputs == 2) #for intermolecular reaction there are two inputs!
+            if(len(prod)==2):
+                print(prod)
+                assert([part.name for part in prod]==["attR","GFP"])
+                assert([part.direction for part in prod]==["forward","forward"])
+        elif(len(prod)==1):
+            assert([part.name for part in prod]==["attL"])
+            assert([part.direction for part in prod]==["forward"])
+        elif(len(prod)==5):
+            assert([part.name for part in prod]==["attB","GFP","attR","GFP","attP"])
+            assert([part.direction for part in prod]==["forward"]*5)
 
 
     #integration
-    integ_funcs = bxb1_rule.integrate(plasp[1],plasb[1]) #two plasmids -> one plasmid p then b
-    assert(len(integ_funcs)==1)#one product is made
-    assert([a[0].position for a in integ_funcs[0].partslist]==[0,None,0,None])
-    assert([a[1] for a in integ_funcs[0].partslist]==["forward","forward","forward","forward"])
-    assert(integ_funcs[0].circular)
-    assert(integ_funcs[0].number_of_inputs == 2)
+    new_constructs = bxb1_rule.integrate(plasp[1],plasb[1]) #two plasmids -> one plasmid p then b
+    assert(len(new_constructs)==1)#one product is made
+    prod = new_constructs[0]
+    assert([part.name for part in prod]==["GFP","attR","GFP","attL"])
+    assert([part.direction for part in prod]==["forward","forward","forward","forward"])
+    assert(new_constructs[0].circular)
 
-    integ_funcs = bxb1_rule.integrate(plasb[1],plasp[1]) #two plasmids -> one plasmid b then p
-    assert(len(integ_funcs)==1)#one product is made
-    assert([a[0].position for a in integ_funcs[0].partslist]==[0,None,0,None])
-    assert([a[1] for a in integ_funcs[0].partslist]==["forward","forward","forward","forward"])
-    assert(integ_funcs[0].circular)
-    assert(integ_funcs[0].number_of_inputs == 2)
+    new_constructs = bxb1_rule.integrate(plasb[1],plasp[1]) #two plasmids -> one plasmid b then p
+    assert(len(new_constructs)==1)#one product is made
+    prod = new_constructs[0]
+    assert([part.name for part in prod]==["GFP","attL","GFP","attR"])
+    assert([part.direction for part in prod]==["forward","forward","forward","forward"])
+    assert(new_constructs[0].circular)
 
-    integ_funcs = bxb1_rule.integrate(genb[1],plasp[1]) #linear with circular
-    assert(len(integ_funcs)==1)#one product is made
-    assert([a[0].position for a in integ_funcs[0].partslist]==[0,None,0,None])
-    assert([a[1] for a in integ_funcs[0].partslist]==["forward","forward","forward","forward"])
-    assert(not integ_funcs[0].circular)
-    assert(integ_funcs[0].number_of_inputs == 2)
+    #including circularly permuted existing construct
+    permuted_construct = DNA_construct([cds,aR,cds,aL],circular=True)
+    new_constructs = bxb1_rule.integrate(plasb[1],plasp[1], existing_dna_constructs=[permuted_construct]) #two plasmids -> one plasmid b then p
+    assert(len(new_constructs)==0)#no new products are made, only the existing one
+    assert(plasb[1].linked_sites )
+
+
+    new_constructs = bxb1_rule.integrate(genb[1],plasp[1]) #linear with circular
+    assert(len(new_constructs)==1)#one product is made
+    prod = new_constructs[0]
+    assert([part.name for part in prod]==['RFP', 'attL', 'GFP', 'attR'])
+    assert([part.direction for part in prod]==["forward","forward","forward","forward"])
+    assert(not new_constructs[0].circular)
+
+
     #reverse integration
-    integ_funcs = bxb1_rule.integrate(plasp[1],genb[1]) #circular with linear
-    assert(len(integ_funcs)==1)#one product is made
-    assert([a[0].position for a in integ_funcs[0].partslist]==[0,None,0,None])
-    assert([a[1] for a in integ_funcs[0].partslist]==["forward","forward","forward","forward"])
-    assert(not integ_funcs[0].circular)
-    assert(integ_funcs[0].number_of_inputs == 2)
+    new_constructs = bxb1_rule.integrate(plasp[1],genb[1]) #circular with linear
+    assert(len(new_constructs)==1)#one product is made
+    prod = new_constructs[0]
+    assert([part.name for part in prod]==['RFP', 'attL', 'GFP', 'attR'])
+    assert([part.direction for part in prod]==["forward","forward","forward","forward"])
+    assert(not new_constructs[0].circular)
     #recombination
-    integ_funcs = bxb1_rule.integrate(genp[1],genb[1]) #linear with linear
-    assert(len(integ_funcs)==2) #two products
-    assert(sum([a.circular for a in integ_funcs])==0) #all products are linear
-    for prod in integ_funcs:
-        assert([a[0].position for a in prod.partslist]==[0,None])
-        assert([a[1] for a in prod.partslist]==["forward","forward"])
-        assert(prod.number_of_inputs == 1) # actually in all cases here we are making a product 
-                                           # that includes attL or attR as the only remnant from 
-                                           # one of the two inputs, and that means that the actual 
-                                           # number of inputs you need for a two molecule reaction 
-                                           # is only one
+    new_constructs = bxb1_rule.integrate(genp[1],genb[1]) #linear with linear
+    assert(len(new_constructs)==2) #two products
+    assert(sum([a.circular for a in new_constructs])==0) #all products are linear
+    for prod in new_constructs:
+        assert([part.name for part in prod] in [['RFP', 'attL'],['RFP', 'attR']])
+        assert([part.direction for part in prod]==["forward","forward"])
 
     #
 def test_compilation():
