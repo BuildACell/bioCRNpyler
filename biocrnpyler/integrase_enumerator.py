@@ -335,8 +335,8 @@ class IntegraseRule:
                     #case 2: deletion
                     #if the sites point in the same direction, then we are doing a deletion reaction
                     #direction doesn't matter so we don't need to flip anything
-                    cutdna_list_parts = list(dna[:cutpos1])+[[prod1,site1.direction]]+list(dna[cutpos2+1:]) #delete
-                    newdna_list_parts = [[prod2,site2.direction]]+list(dna[1+cutpos1:cutpos2])
+                    cutdna_list_parts = list(dna[:cutpos1])+[[prod1,dna[cutpos1].direction]]+list(dna[cutpos2+1:]) #delete
+                    newdna_list_parts = [[prod2,dna[cutpos2].direction]]+list(dna[1+cutpos1:cutpos2])
 
                     integ_funcs += [Polymer_transformation(cutdna_list_parts,circular = circularity),\
                                             Polymer_transformation(newdna_list_parts,circular=True)]
@@ -352,9 +352,9 @@ class IntegraseRule:
                     #the inverted segment is reversed
                     
                     invertdna_list = list(dna[:cutpos1])+\
-                                    [[prod1,site1.direction]]+\
+                                    [[prod1,dna[cutpos1].direction]]+\
                                     inv_segment+ \
-                                    [[prod2,site2.direction]]+\
+                                    [[prod2,dna[cutpos2].direction]]+\
                                     list(dna[cutpos2+1:])
 
                     integ_funcs += [Polymer_transformation(invertdna_list,circular=circularity)]
@@ -363,6 +363,8 @@ class IntegraseRule:
                 #otherwise these sites are on different pieces of DNA, so they are going to combine
                 dna1 = site1.parent
                 dna2 = site2.parent
+                circ1 = dna1.circular
+                circ2 = dna2.circular
                 if(dna1 == dna2):
                     #this will happen if we trying to do an intermolecular reaction between two copies of the same thing
                     dna2 = copy.copy(dna1)
@@ -383,8 +385,7 @@ class IntegraseRule:
                 dna1_halves = site_halves[0]
                 dna2_halves = site_halves[1]
 
-                circ1 = dna1.circular
-                circ2 = dna2.circular
+                
                 
                 if(site1.direction=="reverse" and site2.direction=="reverse"):
                     prod1,prod2 = self.generate_products(site2,site1)
