@@ -125,7 +125,7 @@ class IntegraseSite(DNABindingSite):
                 othersite = othersite_tpl[0]
                 intermolecular = othersite_tpl[1]
                 populate = True #by default, add the appropriate data members to the other site
-                if(intermolecular==0):
+                if(not intermolecular):
                     #the reaction with the site in question is intramolecular
                     #that means we should only populate the other site if our internal_species
                     #has the proper location bound by integrase
@@ -182,7 +182,7 @@ class IntegraseSite(DNABindingSite):
             #however, if we are dealing with an intramolecular reaction, then
             #only return the reaction if the pair HASN'T been processed
             populate = True
-            if(intermolecular== 0):
+            if(not intermolecular):
                 #this is an intramolecular reaction so we don't care about the other site's DNAs
                 integrated_dnas = []
                 site_is_bound = site.integrase in complex_parent[site.position]
