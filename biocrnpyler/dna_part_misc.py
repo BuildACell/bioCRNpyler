@@ -214,10 +214,11 @@ class IntegraseSite(DNABindingSite):
         return reactions
 
 class UserDefined(DNA_part):
-    def __init__(self,name, **keywords):
+    def __init__(self,name,dpl_type=None, **keywords):
         """a user defined part is a part that doesn't do anything, 
         just exists as a label basically"""
         DNA_part.__init__(self,name, **keywords)
+        self.dpl_type = dpl_type
         self.name = name
     def update_species(self):
         return []
@@ -228,6 +229,19 @@ class Origin(DNA_part):
     def __init__(self,name, **keywords):
         """an origin does nothing except look right when plotted"""
         DNA_part.__init__(self,name, **keywords)
+        self.name = name
+    def update_species(self):
+        return []
+    def update_reactions(self):
+        return []
+class Operator(DNA_part):
+    def __init__(self,name,binder=None, **keywords):
+        """an operator does nothing except look right when plotted"""
+        DNA_part.__init__(self,name, **keywords)
+        self.binder = []
+        if(binder is not None):
+            for bind in binder:
+                self.binder += [Component.set_species(bind)]
         self.name = name
     def update_species(self):
         return []
