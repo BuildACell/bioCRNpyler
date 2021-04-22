@@ -19,7 +19,6 @@ class BasicIntegration(Mechanism):
         :param mechanism_type: type of the Mechanism, default: integration
         :param keywords:
         """
-        # TODO ZAT: remove unused keywords argument
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(self, DNA_inputs, DNA_outputs = None, **keywords):
@@ -64,11 +63,9 @@ class EnzymeIntegration(Mechanism):
 
         if kint is None and component is None:
             raise ValueError("Must pass in either a component or kint.")
+        
         elif kint is None:
             kint = component.get_parameter("kint", part_id = part_id, mechanism = self)
-        #ku = component.get_parameter("ku",part_id=part_id,mechanism = self)
-
-        #prop_hill = ProportionalHillPositive(k=kint, K=ku, s1=self.integrase, n=2, d=DNA_inputs[0])
 
         return [Reaction.from_massaction(inputs=[self.integrase]*4+DNA_inputs,\
                                         outputs=[self.integrase]*4+DNA_outputs, k_forward=kint)]

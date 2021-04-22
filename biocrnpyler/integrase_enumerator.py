@@ -293,7 +293,7 @@ class IntegraseRule:
 
         force_inter forces a reaction to be intermolecular even if the two sites are on the same plasmid
         """
-        intermolecular = 1 #by default, the reaction is intermolecular
+        intermolecular = True #by default, the reaction is intermolecular
         #if one of the sites is not part of a construct then raise an error!
         integ_funcs = []
         new_dna_constructs = [] #new dna constructs made by this function!
@@ -308,7 +308,7 @@ class IntegraseRule:
         #below are the references to the sites in the products
         dna_inputs = []
         if(site1.parent==site2.parent and not force_inter):
-            intermolecular = 0
+            intermolecular = False
             #these sites are part of the same piece of DNA, so they are going to do an intramolecular reaction
             contains_no_inter = any(['no_inter' in a.attributes for a in site1.parent])
             if(also_inter and not contains_no_inter):
