@@ -1,6 +1,6 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
-from .species import Species
+from .species import Species, ComplexSpecies
 from .polymer import OrderedPolymer, OrderedMonomer, NamedPolymer
 from .dna_construct import Construct, DNA_construct
 from .dna_part_misc import IntegraseSite
@@ -74,7 +74,14 @@ class Polymer_transformation:
                     inputname = new_parentsdict[part_ref.parent]
                     dummyPolymer = self.dummify(part_ref.parent,inputname)
                 #this variable is the actual parts list that will be stored. It has mostly dummy parts
-                actual_partslist += [[dummyPolymer[part_ref.position],partdir]]
+                if(part_ref.parent[part_ref.position]!=part_ref):
+                    #this will be true only for situations where a component needs to be transformed into
+                    #another component but still needs to keep a reference to where it was in the parent
+                    copied_part = part_ref.get_orphan()
+                    copied_part.parent = dummyPolymer
+                    actual_partslist += [[copied_part,partdir]]
+                else:
+                    actual_partslist += [[dummyPolymer[part_ref.position],partdir]]
             else:
                 #if the part has no parent, copy it and put it in
                 actual_partslist += [[copy.deepcopy(part_ref),partdir]]
@@ -124,7 +131,7 @@ class Polymer_transformation:
                     newname = new_name_dict[part[0].parent.name]
                     new_parentsdict[part[0].parent]=newname
             return Polymer_transformation(self.partslist,self.circular,parentsdict=new_parentsdict)
-    def create_polymer(self,polymer_list,bound=True,**keywords):
+    def create_polymer(self,polymer_list,**keywords):
         """this function creates a new polymer from the template saved inside this class.
         A polymer_list is a list of polymers from which the resulting polymer is made. Some of
         the parts which compose the output polymer don't have a parent, and therefore are new parts.
@@ -138,8 +145,35 @@ class Polymer_transformation:
             partdir = part_list[1]
             outpart = None
             
-            if(part.parent is not None):
+            if((part.parent is not None) and not hasattr(part,"name")):
                 outpart = polymer_dict[part.parent.name][part.position] #grab the part from the proper input
+            elif((part.parent is not None) and hasattr(part,"name")):
+                #in this case we are transforming a part into a different part, taking the complexes from
+                #the previous position
+                
+                if(isinstance(polymer_dict["input1"],Construct)):
+                    outpart = part.get_orphan()
+                else:
+                    template_part = polymer_dict[part.parent.name][part.position]
+                    if(isinstance(template_part,ComplexSpecies)):
+                        #in this case we have to replace the thing inside the complex with the new part, but leave
+                        #everything else the same.
+                        old_species = template_part.get_species(recursive=True)
+                        core_parts = []
+                        for spec in old_species:
+                            if(spec.material_type=="part" and not spec == template_part):#if you have a material type of part then you are
+                                                           #part of a polymer and thus will be replaced
+                                core_parts += [spec]
+                        #now we should have found only one core part. If there are multiple core parts then
+                        #we might have to get crazy.
+                        new_part = part.dna_species
+                        if(len(core_parts)==1):
+                            new_part = template_part.replace_species(core_parts[0],part.dna_species)
+                        else:
+                            raise KeyError(f"{template_part} contained more than one species with material_type=\"part\", they were {core_parts}")
+                        outpart = new_part
+                    else:
+                        outpart = part.dna_species
             else:
                 #parts that don't come from input1 or input2.
                 #they need to be either DNA_part or species objects, depending on
@@ -147,11 +181,7 @@ class Polymer_transformation:
                 if(isinstance(polymer_dict["input1"],Construct)):
                     outpart = part
                 else:
-                    #this is a new part which wasn't part of a polymer (like an attL site)
-                    if(bound and hasattr(part,"get_complexed_species")):
-                        outpart = part.get_complexed_species(part.dna_species)
-                    else:
-                        outpart = part.dna_species
+                    outpart = part.dna_species
             #assuming the stored parts have a valid direction
             if(hasattr(outpart,"linked_sites")):
                 outpart = copy.copy(outpart)
@@ -254,14 +284,24 @@ class IntegraseRule:
         part_prod1 = IntegraseSite(prod1,prod1,dinucleotide=dinucleotide,integrase=integrase,
                             direction=site1.direction,integrase_binding=site1.integrase_binding,
                             material_type = site1.material_type)
+        
         part_prod2 = IntegraseSite(prod2,prod2,dinucleotide=dinucleotide,integrase=integrase,
                             direction=site2.direction,integrase_binding=site1.integrase_binding,
                             material_type = site2.material_type)
         if(site1.direction=="forward"):
+            part_prod1.position = site1.position
+            part_prod1.parent = site1.parent
+            part_prod2.position = site2.position
+            part_prod2.parent = site2.parent
             return (part_prod1,part_prod2)
         else:
             part_prod2.direction = site1.direction
+            part_prod2.position = site1.position
+            part_prod2.parent = site1.parent
             part_prod1.direction = site2.direction
+            part_prod1.position = site2.position
+            part_prod1.parent = site2.parent
+            
             return(part_prod2,part_prod1)
     
     def integrate(self,site1,site2,also_inter=True,force_inter=False, existing_dna_constructs = None):
@@ -500,6 +540,8 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         """
         
         construct_list = []
+        if(previously_enumerated is None):
+            previously_enumerated = []
         for component in components:
             if(isinstance(component,DNA_construct)):
                 construct_list += [component]

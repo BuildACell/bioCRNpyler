@@ -94,36 +94,13 @@ class DNA_part(Component, OrderedMonomer):
         """this defines where the part is in what piece of DNA"""
         #TODO add warning if DNA_part is not cloned
         self.insert(parent_dna,position,direction)
-        #if(self.assembly is not None):
-        #    warn(str(self) + " already belongs to "+str(self.assembly.name)+"! It will now be part of the new assembly")
-        #    self.unclone()
-
-        #self.pos = position
-        #self.direction = direction
-        #self.assembly = parent_dna
         return self
 
     def unclone(self):
         """removes the current part from anything"""
         self.remove()
-        #if(self.assembly is not None):
-        #    rightparts = self.assembly.parts_list[self.pos+1:]
-        #    for part in rightparts:
-        #        part.pos -= 1
-        #    self.assembly.parts_list = self.assembly.parts_list[:self.pos]+rightparts
-        #self.pos = None
-        #self.direction = None
-        #self.assembly = None
         return self
         
     def reverse(self):
         OrderedMonomer.reverse(self)
-        #if(self.direction=="forward"):
-        #    self.direction = "reverse"
-        #elif(self.direction=="reverse"):
-        #    self.direction = "forward"
-        #elif(self.direction==None):
-        #    warn(str(self)+" has no direction. Perhaps it wasn't cloned?")
-        #else:
-        #    raise ValueError("direction is not forward or reverse! It's "+self.direction)
         return self
