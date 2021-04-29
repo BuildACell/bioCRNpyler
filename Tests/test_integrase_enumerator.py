@@ -68,7 +68,9 @@ def test_integrase_rule():
         bad_rule.generate_products(delete[0],delete[2]) #attP->attB reaction is not possible with a bad rule
     
     aL = IntegraseSite("attL","attL",integrase="Bxb1")
+    aL.direction= "forward"
     aR = IntegraseSite("attR","attR",integrase="Bxb1")
+    aR.direction = "forward"
     productsites = bxb1_rule.generate_products(delete[0],delete[2])
 
     testaL = copy.copy(aL)
