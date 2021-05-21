@@ -30,6 +30,7 @@ class Construct(Component,OrderedPolymer):
                 attributes=None,
                 initial_concentration=None, 
                 component_enumerators = None,
+                make_dirless_hash = True,
                 **keywords):
         """this represents a bunch of parts in a row.
         A parts list has [[part,direction],[part,direction],...]
@@ -54,6 +55,9 @@ class Construct(Component,OrderedPolymer):
         self.out_components = None
         self.predicted_rnas = None
         self.predicted_proteins = None
+        self.directionless_hash = None
+        if(make_dirless_hash):
+            self.update_permutation_hash()
 
     @property
     def parts_list(self):
@@ -143,7 +147,8 @@ class Construct(Component,OrderedPolymer):
         self.mixture = mixture
         for part in self.parts_list:
             part.set_mixture(mixture)
-
+    def update_permutation_hash(self):
+        self.directionless_hash = Construct.omnihash(self)
     def update_base_species(self, base_name=None, attributes = None):
         if base_name is None:
             self.base_species = self.set_species(self.name, material_type = self.material_type, attributes = attributes)
@@ -397,12 +402,150 @@ class Construct(Component,OrderedPolymer):
         combinatorial_components = self.combinatorial_enumeration()
 
         return combinatorial_components+new_constructs
+    @classmethod
+    def get_partstring(cls,part):
+        """a string name of a part including its name and direction (and not position)"""
+        orphan = part.get_orphan()
+        orphan.direction = None
+        orphan.position = None
+        curname = str(orphan)
+        curdir = part.direction
+        return curname+curdir
+    @classmethod
+    def get_partlist_hash(cls,partlist):
+        """creates a string containing the name and direction of all parts in a list of parts (but not their position)"""
+        partlist_str = '_'.join([str(a[0])+str(b) for a,b in zip(partlist,range(len(partlist)))])
+        return partlist_str
+    @classmethod
+    def hashless_reverse(cls,construct):
+        """create a reverse construct but don't calculate its hash (because that would make an infinite loop)"""
+        rev_con = [a.get_orphan() for a in construct]
+        for rev_part,origpart in zip(rev_con,construct):
+            rev_part.direction = {"forward":"reverse","reverse":"forward"}[origpart.direction]
+        rev_con = rev_con[::-1]
+        rev_con = Construct(rev_con,make_dirless_hash=False,circular = construct.circular)
+        return rev_con
+    @classmethod
+    def rotation_free_hash(cls,construct,return_rotation=False):
+        """calculates a unique circular permutation that is the most alphabetically ordered. Every part is considered as a potential starting
+        point, and the most alphabetically ordered order is then chosen as the best permutation"""
+        def circular_next(part,construct):
+            if(isinstance(part,int)):
+                part_pos = part
+            else:
+                part_pos = part.position+1
+            part_pos = part_pos%(len(construct))
+            return construct[part_pos]
+        best_partlist = [(None,None)]
+        for part in construct:
+            parthash = Construct.get_partstring(part)
+            if(best_partlist[0][0] is None):
+                best_partlist = [(parthash,part)]
+            elif(parthash > best_partlist[0][0]):
+                best_partlist = [(parthash,part)]
+            elif(parthash == best_partlist[0][0]):
+                test_partlist = [(parthash,part)]
+                testpos = part.position
 
+                while test_partlist[-1][0] == best_partlist[-1][0]:
+                    if(testpos-part.position>= len(construct)):
+                        #this means we tested every part and the hashes are the same
+                        break
+                    testpos += 1
+                    next_testpart = circular_next(testpos,construct)
+                    test_partlist += [(Construct.get_partstring(next_testpart),next_testpart)]
 
+                    if(len(best_partlist)<len(test_partlist)):
+                        #this means we haven't calculated the hash for the next part down the line
+                        next_part = circular_next(best_partlist[-1][1],construct)
+                        next_parthash = Construct.get_partstring(next_part)
+                        best_partlist += [(next_parthash,next_part)]
+                if(test_partlist[-1][0] > best_partlist[-1][0]):
+                    best_partlist = test_partlist
+        while(len(best_partlist)<len(construct)):
+            nextpart = circular_next(best_partlist[-1][1],construct)
+            best_partlist += [(Construct.get_partstring(nextpart),nextpart)]
+        if(return_rotation):
+            return Construct.get_partlist_hash(best_partlist),best_partlist[0][1].position
+        else:
+            return Construct.get_partlist_hash(best_partlist)
+    @classmethod
+    def direction_rotation_free_hash(cls,construct,return_transform = False):
+        """computes the best circular permutation of a construct, forward and reverse. Then returns whichever one of those comes alphabetically first"""
+        rev_con = Construct.hashless_reverse(construct)
+        forward_hash,pos = Construct.rotation_free_hash(construct,return_rotation=True)
+        reverse_hash,posrev = Construct.rotation_free_hash(rev_con,return_rotation=True)
+        if(forward_hash>reverse_hash):
+            if(return_transform):
+                return forward_hash,1,pos
+            else:
+                return forward_hash
+        else:
+            if(return_transform):
+                return reverse_hash,-1,posrev
+            else:
+                return reverse_hash
+    @classmethod
+    def linear_direction_free_hash(cls,construct,return_transform = False):
+        """creates a string representing the construct forward or reverse, and returns whichever of those is alphabetically first"""
+        rev_con = Construct.hashless_reverse(construct)
+
+        test_partlist = []
+        test_reverse_partlist = []
+        winner = None
+        for part,revpart in zip(construct,rev_con):
+            if(winner is None):
+                parthash = Construct.get_partstring(part)
+                rev_parthash = Construct.get_partstring(revpart)
+                if(parthash>rev_parthash):
+                    winner = "forward"
+                elif(parthash<rev_parthash):
+                    winner = "reverse"
+                test_partlist += [(parthash,part)]
+                test_reverse_partlist += [(rev_parthash,revpart)]
+            elif(winner=="forward"):
+                test_partlist += [(Construct.get_partstring(part),part)]
+            elif(winner=="reverse"):
+                test_reverse_partlist += [(Construct.get_partstring(revpart),revpart)]
+        if(winner=="forward"):
+            rethash = Construct.get_partlist_hash(test_partlist)
+            if(return_transform):
+                return rethash,1,0
+            return rethash
+        elif(winner == "reverse"):
+            rethash = Construct.get_partlist_hash(test_reverse_partlist)
+            if(return_transform):
+                return rethash,-1,0
+            return rethash
+    @classmethod
+    def omnihash(cls,construct,return_transform=False):
+        """a construct can exist forwards or backwards, and circularly permuted. This function creates the "best" circular permutation and ordering of a construct.
+        Best is calculated based on which orientation/ permutation has the most part names in alphabetical order"""
+        if(construct.circular):
+            #print("circular hash")
+            rhash,flip,posit = Construct.direction_rotation_free_hash(construct,True)
+            if(return_transform):
+                return rhash+"circular",flip,posit
+            else:
+                return rhash+"circular"
+        else:
+            #print("linear hash")
+            rhash,flip,posit = Construct.linear_direction_free_hash(construct,True)
+            if(return_transform):
+                return rhash+"linear",flip,posit
+            else:
+                return rhash+"linear"
     def __hash__(self):
         return OrderedPolymer.__hash__(self)
+    def same_construct(self,construct2):
+        """equality means comparing the parts list in a way that is not too deep. This function is to be used instead of __eq__ in places where the object comparison is not appropriate"""
+        if(self.__repr__()==construct2.__repr__()):
+            return True
+        else:
+            return False
     def __eq__(self,construct2):
         """equality means comparing the parts list in a way that is not too deep"""
+        #TODO: make this be a python object comparison
         if(self.__repr__()==construct2.__repr__()):
             return True
         else:
