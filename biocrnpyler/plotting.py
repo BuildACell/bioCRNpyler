@@ -754,7 +754,6 @@ class CRNPlotter:
     def make_dpl_from_part(self,part,set_color=None,save_in_dict=True,set_color2=None):
         removed_part = part.get_removed()
         if(removed_part in self.part_dpl_dict):
-            
             return self.part_dpl_dict[removed_part].get_directed(part.direction)
         else:
             dpl_type= "UserDefined"
@@ -799,50 +798,14 @@ class CRNPlotter:
                         #we found all the needed colors so give up
                         break
             if(set_color is None):
-                dictcolor = None
-                if(self.colordict is not None):
-                    dictcolor = member_dictionary_search(part,self.colordict)
-                if(dictcolor is None):
-                    if(hasattr(part,"site_type") and part.site_type ==  "attL"):
-                        #then we can search for attB color
-                        attBpart = copy.deepcopy(removed_part)
-                        attBpart.site_type = "attB"
-                        attBpart.name = "attB"
-                        dictcolor = member_dictionary_search(attBpart,self.colordict)
-                    elif(hasattr(part,"site_type") and part.site_type == "attR"):
-                        #then we can search for attP color
-                        attPpart = copy.deepcopy(removed_part)
-                        attPpart.site_type = "attP"
-                        attPpart.name = "attP"
-                        dictcolor = member_dictionary_search(attPpart,self.colordict)
-                if(dictcolor is None):
-                    #dictcolor can still be none if the secondary searches for attB and attP failed too
-                    color = self.get_color()
-                else:
-                    color = dictcolor
+                color = self.get_color()
             else:
                 color = set_color
             color2 = None
             if(set_color2 is not None):
                 color2 = set_color2
             elif(set_color2 is None and needs_color2):
-                dictcolor = None
-                if(hasattr(part,"site_type") and part.site_type ==  "attR"):
-                    #then we can search for attB color
-                    attBpart = copy.deepcopy(removed_part)
-                    attBpart.site_type = "attB"
-                    attBpart.name = "attB"
-                    dictcolor = member_dictionary_search(attBpart,self.colordict)
-                elif(hasattr(part,"site_type") and part.site_type == "attL"):
-                    #then we can search for attP color
-                    attPpart = copy.deepcopy(removed_part)
-                    attPpart.site_type = "attP"
-                    attPpart.name = "attP"
-                    dictcolor = member_dictionary_search(attPpart,self.colordict)
-                if(dictcolor is None):
-                    color2 = self.get_color()
-                else:
-                    color2 = dictcolor
+                color2 = self.get_color()
             
             
             outpart = self.SimplePart(name=part.name,\
