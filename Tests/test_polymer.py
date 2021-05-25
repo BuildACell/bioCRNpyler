@@ -1,6 +1,7 @@
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
+from _typeshed import NoneType
 from unittest import TestCase
 from biocrnpyler import OrderedPolymer, OrderedMonomer, OrderedPolymerSpecies, Species, Complex, MonomerCollection
 
@@ -121,6 +122,18 @@ class TestOrderedPolymer(TestCase):
         y.delpart(2)
         self.assertEqual(z.parent,None)
         self.assertEqual(y,truthvalue)
+
+        #get_removed
+        y = OrderedPolymer([OrderedMonomer(direction="reverse"),\
+                            OrderedMonomer(direction="forward"),\
+                            OrderedMonomer(direction="reverse"),\
+                            OrderedMonomer()])
+        z = y[2]
+        w = z.get_removed()
+        self.assertEqual(w.parent,None) #removed part has no parent
+        self.assertEqual(w.direction,None) #removed part has no direction
+        self.assertEqual(w.position,None) #removed part has no position
+
 
 class TestOrderedPolymerSpecies(TestCase):
 
