@@ -595,7 +595,12 @@ class CRNPlotter:
         if(colordict is None):
             colordict = {}
         self.colordict = colordict
-        self.cmap = plt.get_cmap(cmap).colors
+        if(isinstance(cmap,str)):
+            self.cmap = plt.get_cmap(cmap).colors
+        elif(isinstance(cmap,list)):
+            self.cmap = cmap
+        else:
+            self.cmap = None
         self.color_counter = 0
         self.clear_dicts()
     def renderMixture(self,mixture,crn = None,rna_renderer=None,dna_renderer=None,store=True):
