@@ -26,7 +26,7 @@ def test_CRNPlotter():
             return(0,100)
     
     d_r = dummy_renderer()
-    test_plotter = CRNPlotter(dna_renderer=dummy_renderer(),rna_renderer=dummy_renderer())
+    test_plotter = CRNPlotter(dna_renderer=dummy_renderer(),rna_renderer=dummy_renderer(),cmap=[0,1,2,3,4,5,6])
 
     test_construct = DNA_construct([Promoter("p1"),IntegraseSite("attP","attP"),Terminator("t1")])
     test_construct2 = DNA_construct([RBS("utr1"),IntegraseSite("attB","attB"),Terminator("t1")])
