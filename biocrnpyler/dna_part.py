@@ -35,7 +35,7 @@ class DNA_part(Component, OrderedMonomer):
         #most parts have stop codons
         #if you want your part to not have stop codons, put "forward" and/or "reverse"
         self.no_stop_codons = [] #some parts will set this, others won't. Default is that it has stop codons
-        
+        self.material_type = "part"
         for key, value in keywords.items():
             #goes through any extra parameters and sets them!
             if(key=="assembly"):
@@ -53,6 +53,8 @@ class DNA_part(Component, OrderedMonomer):
             elif(key=="no_stop_codons"):
                 if(value is not None):
                     self.no_stop_codons = value
+            elif(key=="material_type"):
+                self.material_type = value
         if(isinstance(assembly,OrderedPolymer)):
             OrderedMonomer.__init__(self,position=pos,parent=assembly,direction=direction)
         else:
@@ -61,7 +63,7 @@ class DNA_part(Component, OrderedMonomer):
 
     @property
     def dna_species(self):
-        return Species(self.name, material_type="dna")
+        return Species(self.name, material_type=self.material_type)
 
     def __repr__(self):
         myname = self.name
@@ -92,36 +94,13 @@ class DNA_part(Component, OrderedMonomer):
         """this defines where the part is in what piece of DNA"""
         #TODO add warning if DNA_part is not cloned
         self.insert(parent_dna,position,direction)
-        #if(self.assembly is not None):
-        #    warn(str(self) + " already belongs to "+str(self.assembly.name)+"! It will now be part of the new assembly")
-        #    self.unclone()
-
-        #self.pos = position
-        #self.direction = direction
-        #self.assembly = parent_dna
         return self
 
     def unclone(self):
         """removes the current part from anything"""
         self.remove()
-        #if(self.assembly is not None):
-        #    rightparts = self.assembly.parts_list[self.pos+1:]
-        #    for part in rightparts:
-        #        part.pos -= 1
-        #    self.assembly.parts_list = self.assembly.parts_list[:self.pos]+rightparts
-        #self.pos = None
-        #self.direction = None
-        #self.assembly = None
         return self
         
     def reverse(self):
         OrderedMonomer.reverse(self)
-        #if(self.direction=="forward"):
-        #    self.direction = "reverse"
-        #elif(self.direction=="reverse"):
-        #    self.direction = "forward"
-        #elif(self.direction==None):
-        #    warn(str(self)+" has no direction. Perhaps it wasn't cloned?")
-        #else:
-        #    raise ValueError("direction is not forward or reverse! It's "+self.direction)
         return self
