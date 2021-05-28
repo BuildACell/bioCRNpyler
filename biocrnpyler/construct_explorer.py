@@ -33,11 +33,10 @@ class ConstructExplorer(LocalComponentEnumerator):
         """clear accumulator variables from the numerator. MUST BE SUBCLASSED"""
         pass
 
-    def enumerate_components(self, component):
+    def enumerate_components(self, component, previously_enumerated = None):
         #Only works on Constructs!
         self.reset_enumerator()
         if isinstance(component, Construct):
-
             #if we are circular, then we can go around twice
             #otherwise, once is the correct amount
             if(component.circular):
@@ -65,7 +64,7 @@ class ConstructExplorer(LocalComponentEnumerator):
                 #must stop before switching directions
                 self.terminate_loop()
 
-            return self.return_components(component)
+            return self.return_components(component, previously_enumerated)
         else:
             return []
 
@@ -98,7 +97,7 @@ class ConstructExplorer(LocalComponentEnumerator):
         pass
         #MUST SUBCLASS
 
-    def return_components(self,component):
+    def return_components(self,component, previously_enumerated = None):
         #returns components at the end of the loop
         #MUST SUBCLASS
         return []
@@ -165,8 +164,14 @@ class TxExplorer(ConstructExplorer):
         self.initialize_loop()
 
     #Returns a list of RNAconstructs
-    def return_components(self,component):
-        return self.all_rnas.values()
+    def return_components(self,component, previously_enumerated = None):
+        return_rnas = []
+        for rna in self.all_rnas.values():
+            if((previously_enumerated is None) or (rna not in previously_enumerated)):
+                return_rnas+=[rna]
+            else:
+                pass
+        return return_rnas
 
 class TlExplorer(ConstructExplorer):
     def __init__(self, name = "TlExplorer", direction="forward",possible_directions=("forward",)):
@@ -234,7 +239,7 @@ class TlExplorer(ConstructExplorer):
         self.all_proteins.update(self.current_proteins)
         self.initialize_loop()
 
-    def return_components(self,component):
+    def return_components(self,component, previously_enumerated = None):
         returnable_proteins = []
         for rbs in self.all_proteins:
             proteins = [a[0] for a in self.all_proteins[rbs]]

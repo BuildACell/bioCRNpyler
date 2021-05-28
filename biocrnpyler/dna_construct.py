@@ -58,7 +58,6 @@ class Construct(Component,OrderedPolymer):
     @property
     def parts_list(self):
         return self.polymer
-
     def make_name(self):
         output = ""
         outlst = []
@@ -128,7 +127,18 @@ class Construct(Component,OrderedPolymer):
         self.name = self.make_name()
         #self.update_base_species()
         return self
-
+    def get_reversed(self):
+        """returns a reversed version of this construct without changing this construct"""
+        outcon = copy.deepcopy(self)
+        outcon.reverse()
+        return outcon
+    def get_circularly_permuted(self,new_first_position):
+        """returns a new construct which has the first position changed to new_first_position"""
+        if(not self.circular):
+            return ValueError("cannot circularly permute linear construct")
+        else:
+            return DNA_construct(self.parts_list[new_first_position:]+self.parts_list[:new_first_position], circular=True, 
+                            component_enumerators = self.component_enumerators, attributes=self.attributes,mechanisms=self.mechanisms, mixture=self.mixture)
     def set_mixture(self, mixture):
         self.mixture = mixture
         for part in self.parts_list:
@@ -185,7 +195,7 @@ class Construct(Component,OrderedPolymer):
         ocomplx = []
         for part in self.parts_list:
             partspec = copy.copy(part.dna_species)
-            partspec.material_type = self.material_type
+            partspec.material_type = "part"
             ocomplx += [partspec.set_dir(part.direction)]
         out_species = OrderedPolymerSpecies(ocomplx,circular = self.circular,material_type=self.material_type)
         
@@ -310,11 +320,11 @@ class Construct(Component,OrderedPolymer):
         return out_polymers
 
     #Overwrite Component.enumerate_components 
-    def enumerate_constructs(self):
+    def enumerate_constructs(self,previously_enumerated=None):
         """Runs all our component enumerators to generate new constructs"""
         new_constructs = []
         for enumerator in self.component_enumerators:
-            new_comp = enumerator.enumerate_components(component=self)
+            new_comp = enumerator.enumerate_components(component=self,previously_enumerated=previously_enumerated)
             new_constructs += new_comp
         return new_constructs
 
@@ -362,7 +372,7 @@ class Construct(Component,OrderedPolymer):
                         combinatorial_components += [part.update_component(comb_specie[part_pos])]
         return combinatorial_components
 
-    def enumerate_components(self):
+    def enumerate_components(self,previously_enumerated=None):
         """returns a list of new components and constructs.
         New components are generated if:
         - a component creates a species which results in binding to part of the construct
@@ -381,7 +391,7 @@ class Construct(Component,OrderedPolymer):
             For example, in <A,B,C>, A is a promoter and makes an RNA_construct containing <B,C>
         """
         #Runs component enumerator to generate new constructs
-        new_constructs = self.enumerate_constructs()
+        new_constructs = self.enumerate_constructs(previously_enumerated=previously_enumerated)
 
         #Looks at combinatorial states of constructs to generate DNA_parts
         combinatorial_components = self.combinatorial_enumeration()

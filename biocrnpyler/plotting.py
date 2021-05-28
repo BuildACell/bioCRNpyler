@@ -13,7 +13,7 @@ from warnings import warn
 
 from .components_basic import Protein
 from .dna_part_cds import CDS
-from .dna_part_misc import IntegraseSite
+from .dna_part_misc import IntegraseSite, Origin
 from .dna_part_promoter import Promoter
 from .dna_part_rbs import RBS
 from .dna_part_terminator import Terminator
@@ -350,7 +350,7 @@ def generate_networkx_graph(CRN, useweights=False, use_pretty_print=False, pp_sh
             kval = rxn.propensity_type.k_forward
             CRNgraph.nodes[allnodenum]["k"] = str(kval)
         else:
-            kval = rxn.k
+            kval = rxn.propensity_type.k
             CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
 
         if(not useweights):
@@ -422,11 +422,11 @@ def make_dpl_from_construct(construct, showlabels=None):
         pcolor2 = part.color2
         if(HAVE_MATPLOTLIB):
             if(type(pcolor) == int):
-                c1 = cmap[pcolor][:-1]
+                c1 = cmap[pcolor%(len(cmap)-1)][:-1]
             else:
-                c1 = cmap[pind][:-1]
+                c1 = cmap[pind%(len(cmap)-1)][:-1]
             if(type(pcolor2) == int):
-                c2 = cmap[pcolor2][:-1]
+                c2 = cmap[pcolor2%(len(cmap)-1)][:-1]
             else:
                 c2 = cmap[random.choice(
                     list(range(len(construct.parts_list))))][:-1]
@@ -436,6 +436,8 @@ def make_dpl_from_construct(construct, showlabels=None):
         outdesign += make_dpl_from_part(part, direction=part.direction == "forward",
                                         color=c1, color2=c2, showlabel=showlabel)
         pind += 1
+        if(pind>=len(cmap)):
+            pind = 0
     return outdesign
 
 
@@ -479,6 +481,8 @@ def make_dpl_from_part(part, direction=None, color=None, color2=None, showlabel=
         dpl_type = "CDS"
     elif(isinstance(part, Protein)):
         dpl_type = "CDS"
+    elif(isinstance(part,Origin)):
+        dpl_type = "Origin"
     elif(isinstance(part, Terminator)):
         dpl_type = "Terminator"
     elif(isinstance(part, IntegraseSite)):
