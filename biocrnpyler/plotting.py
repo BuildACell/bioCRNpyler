@@ -758,6 +758,10 @@ class CRNPlotter:
             return out_dpl
     def make_dpl_from_part(self,part,set_color=None,save_in_dict=True,set_color2=None):
         removed_part = part.get_removed()
+        if(len(self.colordict)>0 and set_color is None):
+            search_color = member_dictionary_search(removed_part,self.colordict)
+            if(search_color is not None):
+                set_color = search_color
         if(removed_part in self.part_dpl_dict):
             return self.part_dpl_dict[removed_part].get_directed(part.direction)
         else:

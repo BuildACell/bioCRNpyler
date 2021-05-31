@@ -97,6 +97,10 @@ def member_dictionary_search(member,dictionary):
         return dictionary[(member.integrase,member.site_type)]
     elif(hasattr(member,"site_type") and member.site_type in dictionary):
         return dictionary[member.site_type]
+    elif(hasattr(member,"assembly")):
+        typename = type(member).__name__
+        if(typename in dictionary):
+            return dictionary[typename]
     elif(hasattr(member,"material_type") and hasattr(member,"attributes") and \
                     (member.material_type, tuple(member.attributes)) in dictionary):
         return dictionary[(member.material_type, tuple(member.attributes))]
