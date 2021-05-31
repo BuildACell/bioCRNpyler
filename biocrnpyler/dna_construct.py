@@ -192,10 +192,10 @@ class Construct(Component,OrderedPolymer):
             return obj2 in str(self)
 
     def get_species(self):
+        """returns the species of this dna construct, using OrderedPolymerSpecies"""
         ocomplx = []
         for part in self.parts_list:
             partspec = copy.copy(part.dna_species)
-            partspec.material_type = "part"
             ocomplx += [partspec.set_dir(part.direction)]
         out_species = OrderedPolymerSpecies(ocomplx,circular = self.circular,material_type=self.material_type)
         
@@ -447,19 +447,6 @@ class DNA_construct(Construct,DNA):
                             initial_concentration=initial_concentration, \
                             component_enumerators = component_enumerators, **keywords)
         DNA.__init__(self=self,name=self.name)
-
-        pind = 0
-        for part in self.parts_list:
-            if(type(part.color)==type(None)):
-                #if the color isn't set, let's set it now!
-                part.color = pind
-            if(type(part.color2)==type(None)):
-                if(isinstance(part,IntegraseSite) and part.site_type in ["attL","attR"]):
-                    #this is the only scenario in which we need a color2
-                    #TODO make this more general
-                    pind+=1
-                    part.color2 = pind
-            pind+=1
     def __repr__(self):
         return "DNA_construct = "+ self.make_name()
     

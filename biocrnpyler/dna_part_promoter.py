@@ -180,7 +180,6 @@ class RegulatedPromoter(Promoter):
 
                     species += mech_tx.update_species(dna = s, transcript = self.transcript, \
                             protein = self.get_protein_for_expression(), part_id = self.name+"_"+regulator.name, component = self)
-        print("regulated promoter complexes", self.complexes)
         return species
 
     def update_reactions(self):
