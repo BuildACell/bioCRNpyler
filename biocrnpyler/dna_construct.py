@@ -192,10 +192,10 @@ class Construct(Component,OrderedPolymer):
             return obj2 in str(self)
 
     def get_species(self):
+        """returns the species of this dna construct, using OrderedPolymerSpecies"""
         ocomplx = []
         for part in self.parts_list:
             partspec = copy.copy(part.dna_species)
-            #partspec.material_type = self.material_type+"_part"
             ocomplx += [partspec.set_dir(part.direction)]
         out_species = OrderedPolymerSpecies(ocomplx,circular = self.circular,material_type=self.material_type)
         
