@@ -163,8 +163,18 @@ def test_integrase_rule():
     assert([part.direction for part in prod]==["forward","forward","forward","forward"])
     assert(new_constructs[0].circular)
 
+    #include result construct
+    result_construct = DNA_construct([cds,aL,cds,aR],circular=True)
+    print(f"result has hash = {result_construct.directionless_hash}")
+    new_constructs = bxb1_rule.integrate(plasb[1],plasp[1], existing_dna_constructs=[result_construct]) #two plasmids -> one plasmid b then p
+    assert(len(new_constructs)==0)#no new products are made, only the existing one
+    assert(plasb[1].linked_sites )
+
     #including circularly permuted existing construct
+    #reaction is:
+    #[cds,ab] + [cds,ap] =[cds, aL, cds, aR]
     permuted_construct = DNA_construct([cds,aR,cds,aL],circular=True)
+    print(f"permuted result has hash = {permuted_construct.directionless_hash}")
     new_constructs = bxb1_rule.integrate(plasb[1],plasp[1], existing_dna_constructs=[permuted_construct]) #two plasmids -> one plasmid b then p
     assert(len(new_constructs)==0)#no new products are made, only the existing one
     assert(plasb[1].linked_sites )

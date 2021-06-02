@@ -1,5 +1,6 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
+from typing import Dict, List
 from .species import Species, ComplexSpecies
 from .polymer import OrderedPolymer, OrderedMonomer, NamedPolymer
 from .dna_construct import Construct, DNA_construct
@@ -8,7 +9,7 @@ from .component_enumerator import GlobalComponentEnumerator
 import itertools as it
 from .utils import combine_dictionaries
 import copy
-
+import time
 class Polymer_transformation:
     def __init__(self,partslist,circular=False,parentsdict = None,material_type="dna"):
         """A Polymer transformation is like a generic transformation of a polymer sequence.
@@ -259,6 +260,13 @@ class IntegraseRule:
         if(tuple([site1.site_type,site2.site_type]) in self.reactions):
             return True
         return False
+    def reactive_sites(self):
+        """returns a list of attachment sites (strings) that participate in integrase reactions"""
+        attsites = []
+        for reaction in self.reactions:
+            attsites+=list(reaction)
+        attsites = list(set(attsites))
+        return attsites
     def generate_products(self,site1,site2):
         """generates DNA_part objects corresponding to the products of recombination"""
         #the sites should have the same integrase and dinucleotide, otherwise it won't work
@@ -355,7 +363,7 @@ class IntegraseRule:
                 #we should generate the intermolecular reaction also!
                 #in this case we are generating multiple integration reactions at the same time
                 #i think the right thing to do is NOT return it?
-                new_dna_constructs += self.integrate(site1,site2,force_inter=True)
+                new_dna_constructs += self.integrate(site1,site2,force_inter=True,existing_dna_constructs = existing_dna_constructs)
             if(site1.position > site2.position):
                 #we reverse which position is where
                 cutpos2 = site1.position
@@ -442,7 +450,7 @@ class IntegraseRule:
                     integ_funcs += [Polymer_transformation(result,circ1,parentsdict=pdict)]
                 elif(circ2 ==False and circ1 == True):
                     #if the sites are backwards just reverse everything
-                    new_dna_constructs += self.integrate(site2,site1,force_inter=force_inter)
+                    new_dna_constructs += self.integrate(site2,site1,force_inter=force_inter,existing_dna_constructs=existing_dna_constructs)
                     #the above already populates the sites, so then we don't need to
                 elif(circ1==False and circ1==circ2):
                     #case 4: recombination
@@ -450,7 +458,6 @@ class IntegraseRule:
                     result1 = dna1_halves[0]+[[prod1,"forward"]]+dna2_halves[1]
                     result2 = dna2_halves[0]+[[prod2,"forward"]]+dna1_halves[1]
                     integ_funcs += [Polymer_transformation(result1,parentsdict=pdict),Polymer_transformation(result2,parentsdict=pdict)]
-        
         if(len(integ_funcs)>0):
             for integ_func in integ_funcs:
                 #generate new dna constructs and check if we already made them before
@@ -498,29 +505,37 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                     if(hasattr(part,"linked_sites")):
                         part.linked_sites = {}
     @classmethod
-    def find_dna_construct(cls,construct,conlist):
+    def find_dna_construct(cls,construct:Construct,conlist:List[Construct]):
         """find a construct that matches the input "construct", but can be reverse or circularly permuted
         returns: found_construct, index_function(index) => (new_index,"f" or "r" if it must be reversed)
         or,
         None, if no matching construct is found"""
+        matched_construct = None
         for other_construct in conlist:
-            if(not isinstance(other_construct,type(construct))):
+            if(not isinstance(other_construct,Construct)):
                 continue
-            other_indexes = list(range(len(other_construct)))
+            if(construct.directionless_hash==other_construct.directionless_hash):
+                if(matched_construct is not None):
+                    #a construct must not match two constructs, since they are generated and checked in order
+                    raise KeyError(f"{construct} matches with {matched_construct} but also {other_construct}")
+                matched_construct = other_construct
+        if(matched_construct is None):
+            return None
+        other_construct = matched_construct
+        other_indexes = list(range(len(other_construct)))
+        if(construct.circular):
+            for pos,_ in enumerate(construct):
+                cp_construct = construct.get_circularly_permuted(pos)
+                
+                if(cp_construct.get_species() == other_construct.get_species()):
+                    return other_construct, (lambda a:((other_indexes[pos:]+other_indexes[:pos])[a],"f"))
+                elif(cp_construct.get_reversed().get_species()==other_construct.get_species()):
+                    return other_construct, (lambda a:((other_indexes[pos:]+other_indexes[:pos])[::-1][a],"r"))
+        else:
             if(construct.get_species() == other_construct.get_species()):
                 return other_construct, (lambda a: (a,"f"))
             elif(construct.get_reversed().get_species() == other_construct.get_species()):
                 return other_construct, (lambda a: (other_indexes[::-1][a],"r"))
-            elif(construct.circular and other_construct.circular and len(construct)==len(other_construct)):
-                
-                for pos,_ in enumerate(construct):
-                    cp_construct = construct.get_circularly_permuted(pos)
-                    
-                    if(cp_construct.get_species() == other_construct.get_species()):
-                        return other_construct, (lambda a:((other_indexes[pos:]+other_indexes[:pos])[a],"f"))
-                    elif(cp_construct.get_reversed().get_species()==other_construct.get_species()):
-                        return other_construct, (lambda a:((other_indexes[pos:]+other_indexes[:pos])[::-1][a],"r"))
-        return None
 
     def enumerate_components(self,components = None,previously_enumerated = None, **keywords):
         """this explores all the possible integrase-motivated DNA configurations. If some
@@ -538,7 +553,8 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                     example, a CRE type 1 or a CRE type 2 site. The sites can also be palindromic,
                     which means that they can react in either direction.
         """
-        
+        if(previously_enumerated is None):
+            previously_enumerated = []
         construct_list = []
         if(previously_enumerated is None):
             previously_enumerated = []
@@ -559,13 +575,15 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                 #now, going through each one, generate the reactions and species that arise
                 attsites = int_dict[integrase]
                 #but now we need to know what kind of integrase reactions are possible
-                attcombos = [a for a in it.combinations(attsites,2)]
+                reactive_sites = int_mech.reactive_sites()
+                attcombos = [a for a in it.combinations(attsites,2) if ((a[0].site_type in reactive_sites) and (a[1].site_type in reactive_sites))]
                 for combo in attcombos:
                     #first question: is this combo legal?
                     if(int_mech.reaction_allowed(combo[0],combo[1])):
                         #this means the reaction can exist
                         #integrate now
-                        new_dnas = int_mech.integrate(combo[0],combo[1],existing_dna_constructs = previously_enumerated+constructlist)
+                        new_dnas = int_mech.integrate(combo[0],combo[1],existing_dna_constructs = (previously_enumerated+constructlist))
                         constructlist += new_dnas
+                
         return constructlist
 
