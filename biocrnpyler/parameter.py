@@ -59,6 +59,10 @@ class Parameter(object):
         self.value = parameter_value
         self.unit = unit
 
+    def bad_functionAAA(self,arg1):
+        a=12
+        return False
+
     @property
     def parameter_name(self) -> str:
         return self._parameter_name
