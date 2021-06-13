@@ -9,7 +9,6 @@ from .component_enumerator import GlobalComponentEnumerator
 import itertools as it
 from .utils import combine_dictionaries
 import copy
-import time
 class Polymer_transformation:
     def __init__(self,partslist,circular=False,parentsdict = None,material_type="dna"):
         """A Polymer transformation is like a generic transformation of a polymer sequence.

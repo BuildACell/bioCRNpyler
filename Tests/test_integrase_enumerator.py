@@ -3,7 +3,6 @@
 #  See LICENSE file in the project root directory for details.
 
 import pytest
-#from unittest import TestCase
 from biocrnpyler import Promoter, DNA_construct, Terminator, Transcription_MM,\
                          Species, RBS, CDS, Polymer_transformation, NamedPolymer,\
                          OrderedPolymer, IntegraseSite, IntegraseRule,Integrase_Enumerator, TxTlExtract
@@ -48,12 +47,15 @@ def test_integrase_rule():
     plasb = DNA_construct([cds,ab],circular=True)
     genp = DNA_construct([cds2,ap])
     genb = DNA_construct([cds2,ab])
+    
 
 
     bxb1_rule = IntegraseRule(name="Bxb1",reactions={("attB","attP"):"attL",("attP","attB"):"attR"})
     assert(set(["attP","attB","attL","attR"])==set(bxb1_rule.attsites))
     assert(set(["attP","attB","attL","attR"])==set(bxb1_rule.binds_to()))
     assert(bxb1_rule.integrase_species == Species("Bxb1",material_type="protein"))
+
+    bxb1_enumerator = Integrase_Enumerator("Bxb1", int_mechanisms={"Bxb1":bxb1_rule}) 
 
     
     flp_rule = IntegraseRule(name="FLP",reactions={("FLP","FLP"):"FLP"})
@@ -165,23 +167,30 @@ def test_integrase_rule():
     assert([part.direction for part in prod]==["forward","forward","forward","forward"])
     assert(new_constructs[0].circular)
 
+
+    bxb1_enumerator.reset([plasb,plasp])
+    assert(len(plasb[1].linked_sites)==0) #linked sites are nonexistant if it is reset
+    assert(len(plasp[1].linked_sites)==0) #linked sites are nonexistant if it is reset
+
     #include result construct
     result_construct = DNA_construct([cds,aL,cds,aR],circular=True)
-    print(f"result has hash = {result_construct.directionless_hash}")
     new_constructs = bxb1_rule.integrate(plasb[1],plasp[1], existing_dna_constructs=[result_construct]) #two plasmids -> one plasmid b then p
     assert(len(new_constructs)==0)#no new products are made, only the existing one
-    assert(plasb[1].linked_sites )
+    assert((plasp[1],True) in plasb[1].linked_sites) #proper reaction found inside integrase site
+    assert((plasb[1],True) in plasp[1].linked_sites ) #proper reaction found inside integrase site
 
     #including circularly permuted existing construct
     #reaction is:
     #[cds,ab] + [cds,ap] =[cds, aL, cds, aR]
+    bxb1_enumerator.reset([plasb,plasp])
     permuted_construct = DNA_construct([cds,aR,cds,aL],circular=True)
-    print(f"permuted result has hash = {permuted_construct.directionless_hash}")
     new_constructs = bxb1_rule.integrate(plasb[1],plasp[1], existing_dna_constructs=[permuted_construct]) #two plasmids -> one plasmid b then p
     assert(len(new_constructs)==0)#no new products are made, only the existing one
-    assert(plasb[1].linked_sites )
+    assert((plasp[1],True) in plasb[1].linked_sites ) #proper reaction found inside integrase site
+    assert((plasb[1],True) in plasp[1].linked_sites ) #proper reaction found inside integrase site
 
 
+    bxb1_enumerator.reset([plasb,plasp])
     new_constructs = bxb1_rule.integrate(genb[1],plasp[1]) #linear with circular
     assert(len(new_constructs)==1)#one product is made
     prod = new_constructs[0]
@@ -191,6 +200,7 @@ def test_integrase_rule():
 
 
     #reverse integration
+    bxb1_enumerator.reset([plasb,plasp])
     new_constructs = bxb1_rule.integrate(plasp[1],genb[1]) #circular with linear
     assert(len(new_constructs)==1)#one product is made
     prod = new_constructs[0]
@@ -198,6 +208,7 @@ def test_integrase_rule():
     assert([part.direction for part in prod]==["forward","forward","forward","forward"])
     assert(not new_constructs[0].circular)
     #recombination
+    bxb1_enumerator.reset([plasb,plasp])
     new_constructs = bxb1_rule.integrate(genp[1],genb[1]) #linear with linear
     assert(len(new_constructs)==2) #two products
     assert(sum([a.circular for a in new_constructs])==0) #all products are linear
@@ -206,6 +217,82 @@ def test_integrase_rule():
         assert([part.direction for part in prod]==["forward","forward"])
 
     #
+
+def test_integrase_enumerator():
+    prom = Promoter("p1")
+    utr = RBS("utr")
+    cds = CDS("GFP")
+    cds2 = CDS("RFP")
+    term = Terminator("t16")
+    ap = IntegraseSite("attP","attP",integrase="Bxb1")
+    ab = IntegraseSite("attB","attB",integrase="Bxb1")
+    al = IntegraseSite("attL","attL",integrase="Bxb1")
+    ar = IntegraseSite("attR","attR",integrase="Bxb1")
+
+    aflp = IntegraseSite("FLP","FLP")
+    delete = DNA_construct([ab,cds,ap])
+    flip = DNA_construct([ab,cds,[ap,"reverse"]])
+    plasp = DNA_construct([cds,ap],circular=True)
+    plasb = DNA_construct([cds,ab],circular=True)
+
+
+
+    genp = DNA_construct([cds2,ap])
+    genb = DNA_construct([cds2,ab])
+    
+
+
+    bxb1_rule = IntegraseRule(name="Bxb1",reactions={("attB","attP"):"attL",("attP","attB"):"attR"})
+
+    bxb1_enumerator = Integrase_Enumerator("Bxb1", int_mechanisms={"Bxb1":bxb1_rule}) 
+
+    int_dict = bxb1_enumerator.list_integrase(flip)
+    assert("Bxb1" in int_dict) #the correct integrase is listed
+    assert(flip[0] in int_dict["Bxb1"]) #both sites are found in the dictionary
+    assert(flip[2] in int_dict["Bxb1"])  #both sites are found in the dictionary
+
+    x = bxb1_rule.integrate(flip[0],flip[2])
+    assert((flip[2],False) in flip[0].linked_sites) #sites are properly integrated
+
+    bxb1_enumerator.reset([flip])
+    assert(len(flip[0].linked_sites)==0)
+    assert(len(flip[2].linked_sites)==0)
+
+    permuted_plasp = DNA_construct([ap,cds],circular=True)
+    assert(plasp != permuted_plasp) #normal equality doesn't cut it
+    found,perm_func = bxb1_enumerator.find_dna_construct(plasp,[plasp])
+    assert([perm_func(a) for a in range(len(plasp))] == [(lambda a: (a,"f"))(a) for a in range(len(plasp))]) #1:1 find matching
+    assert(found == plasp) #found the same construct we put in
+
+    found,perm_func = bxb1_enumerator.find_dna_construct(plasp,[permuted_plasp])
+    assert([perm_func(a) for a in range(len(plasp))] == [(1,"f"),(0,"f")]) #find permuted mapping
+    assert(found == permuted_plasp) #found the same construct we put in
+    assert(bxb1_enumerator.find_dna_construct(plasp,[plasb]) is None) #we don't find anything
+
+    reversed_plasp = DNA_construct([(ap,"reverse"),(cds,"reverse")],circular=True)
+    reversed_permuted_plasp = DNA_construct([(cds,"reverse"),(ap,"reverse")],circular=True)
+    found,perm_func = bxb1_enumerator.find_dna_construct(plasp,[reversed_plasp])
+    assert(found == reversed_plasp) #found the same construct we put in
+    assert([perm_func(a) for a in range(len(plasp))] == [(1,"r"),(0,"r")]) #find permuted mapping
+
+    found,perm_func = bxb1_enumerator.find_dna_construct(plasp,[reversed_permuted_plasp])
+    assert(found == reversed_permuted_plasp) #found the same construct we put in
+    assert([perm_func(a) for a in range(len(plasp))] == [(0,"r"),(1,"r")]) #find permuted mapping
+
+    reversed_genp = DNA_construct([(ap,"reverse"),(cds2,"reverse")])
+    found,perm_func = bxb1_enumerator.find_dna_construct(genp,[reversed_genp])
+    assert(found == reversed_genp) #found the same construct we put in
+    assert([perm_func(a) for a in range(len(genp))] == [(1,"r"),(0,"r")]) #find permuted mapping
+
+    plaspb = DNA_construct([cds,ar,cds,al],circular=True)
+    x = bxb1_enumerator.enumerate_components([plasp,plasb])
+    assert(plaspb in x) #the proper construct is made
+
+    y = bxb1_enumerator.enumerate_components([plasp,plasb],previously_enumerated=[plaspb])
+    assert (y == []) #nothing new is made since the proper construct has been "previously enumerated"
+
+
+
 def test_compilation():
     #Create an infinite polymer system and compile it at different recursion depths
 
