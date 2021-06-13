@@ -14,14 +14,16 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: grantmcconnaughey/lintly-flake8-github-action@v1.0
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          # The GitHub API token to create reviews with
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # Fail if "new" violations detected or "any", default "new"
-          failIf: new
-          # Additional arguments to pass to flake8, default "." (current directory)
-          args: "--ignore=E121,E123 ."
+          python-version: 3.8
+      - name: Install dependencies
+        run: pip install flake8 lintly
+      - name: Lint with flake8
+        run: flake8 | lintly  --exit-zero --no-request-changes
+        env:
+          LINTLY_API_KEY: ${{ secrets.GITHUB_TOKEN }}
