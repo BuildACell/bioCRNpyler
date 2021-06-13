@@ -43,6 +43,7 @@ import re
 from collections import namedtuple  # Used for the parameter keys
 from typing import Dict, List, Union
 from warnings import warn
+import time
 
 ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')  # This could later be extended
 
