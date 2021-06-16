@@ -1,5 +1,5 @@
 import pytest
-from biocrnpyler import DNA_part
+from biocrnpyler import DNA_part, Operator, UserDefined
 
 def test_instantiation():
 
@@ -33,3 +33,15 @@ def test_equality_without_ordered_polymer():
     partfor = DNA_part("part",direction="forward")
     x = part1.set_dir("forward")
     assert partfor == x
+
+def test_misc_parts():
+    p1 = Operator("op1",binder=["b1"])
+
+    assert(p1.name=="op1")
+    assert(len(p1.binder)==1)
+    assert(p1.binder[0].name=="b1")
+
+    u1 = UserDefined("op2",dpl_type="Origin")
+
+    assert(u1.name=="op2")
+    assert(u1.dpl_type=="Origin")
