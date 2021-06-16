@@ -282,6 +282,7 @@ class ChemicalReactionNetwork(object):
         """
         if(check_validity):
             ChemicalReactionNetwork.check_crn_validity(self._reactions, self._species, show_warnings=show_warnings)
+        
         document, model = create_sbml_model(**keywords)
         all_compartments = []
         for species in self._species:
@@ -369,7 +370,7 @@ class ChemicalReactionNetwork(object):
         else:
             return result
 
-    def simulate_with_roadrunner(self, timepoints: List[float], initial_condition_dict: Dict[str,float]=None, return_roadrunner=False):
+    def simulate_with_roadrunner(self, timepoints: List[float], initial_condition_dict: Dict[str,float]=None, return_roadrunner=False, check_validity=True):
         """To simulate using roadrunner.
         Arguments:
         timepoints: The array of time points to run the simulation for.
@@ -385,7 +386,7 @@ class ChemicalReactionNetwork(object):
         try:
             import roadrunner
             import io
-            document, _ = self.generate_sbml_model(stochastic_model=False)
+            document, _ = self.generate_sbml_model(stochastic_model=False, check_validity=check_validity)
             sbml_string = libsbml.writeSBMLToString(document)
             # write the sbml_string into a temporary file in memory instead of a file
             string_out = io.StringIO()

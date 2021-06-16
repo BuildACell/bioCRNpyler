@@ -228,6 +228,10 @@ def test_generate_sbml_model():
     # all reactions from the CRN are accounted for
     assert len(model.getListOfReactions()) == len(crn.reactions)
 
+    document2, model2 = crn.generate_sbml_model(check_validity=False)
+    assert(model==model2) #the same model is made if you dont check validity
+    assert(document==document2) #the same model is made if you dont check validity
+    
     # reversible needs to be off!
     # assert not model.getListOfReactions()[0].isSetReversible()
 
@@ -354,7 +358,6 @@ def test_sbml_basics():
     S2 = Species("S2")
     compartment = add_compartment(model, S1.compartment)
     check(compartment, 'add compartment')
-    print(trans.getValidIdForName(str(S1)))
     sbml_species = add_species(
         model, compartment, str(S1.name),trans.getValidIdForName(str(S1)), initial_concentration=10)
     sbml_species2 = add_species(
