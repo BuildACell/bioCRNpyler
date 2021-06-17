@@ -93,8 +93,8 @@ def member_dictionary_search(member,dictionary):
         return dictionary[repr(member)]
     elif(hasattr(member,"name") and member.name in dictionary):
         return dictionary[member.name]
-    elif(hasattr(member,"integrase") and hasattr(member,"site_type") and (member.integrase,member.site_type) in dictionary):
-        return dictionary[(member.integrase,member.site_type)]
+    elif(hasattr(member,"integrase") and hasattr(member,"site_type") and (str(member.integrase.name),member.site_type) in dictionary):
+        return dictionary[(str(member.integrase.name),member.site_type)]
     elif(hasattr(member,"site_type") and member.site_type in dictionary):
         return dictionary[member.site_type]
     elif(hasattr(member,"assembly")):
