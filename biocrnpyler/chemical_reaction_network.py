@@ -271,7 +271,7 @@ class ChemicalReactionNetwork(object):
 
         return ChemicalReactionNetwork(new_species_list, new_reaction_list)
 
-    def generate_sbml_model(self, stochastic_model=False, show_warnings = False, **keywords):
+    def generate_sbml_model(self, stochastic_model=False, show_warnings = False, check_validity = True,**keywords):
         """Creates an new SBML model and populates with the species and
         reactions in the ChemicalReactionNetwork object
 
@@ -280,8 +280,9 @@ class ChemicalReactionNetwork(object):
         :param keywords: extra keywords pass onto create_sbml_model() and add_all_reactions()
         :return: tuple: (document,model) SBML objects
         """
-        ChemicalReactionNetwork.check_crn_validity(self._reactions, self._species, show_warnings=show_warnings)
-
+        if(check_validity):
+            ChemicalReactionNetwork.check_crn_validity(self._reactions, self._species, show_warnings=show_warnings)
+        
         document, model = create_sbml_model(**keywords)
         all_compartments = []
         for species in self._species:
@@ -290,16 +291,14 @@ class ChemicalReactionNetwork(object):
         add_all_compartments(model = model, compartments = all_compartments, **keywords)
         
         add_all_species(model=model, species=self._species, initial_condition_dictionary = self.initial_concentration_dict)
-
         add_all_reactions(model=model, reactions=self._reactions, stochastic_model=stochastic_model, **keywords)
-
         
 
         if document.getNumErrors():
             warn('SBML model generated has errors. Use document.getErrorLog() to print all errors.')
         return document, model
 
-    def write_sbml_file(self, file_name=None, stochastic_model = False, **keywords) -> bool:
+    def write_sbml_file(self, file_name=None, stochastic_model = False, check_validity = True, **keywords) -> bool:
         """"Writes CRN object to a SBML file
 
         :param file_name: name of the file where the SBML model gets written
@@ -307,8 +306,7 @@ class ChemicalReactionNetwork(object):
         :param keywords: keywords that passed into generate_sbml_model()
         :return: bool, show whether the writing process was successful
         """
-
-        document, _ = self.generate_sbml_model(stochastic_model = stochastic_model, **keywords)
+        document, _ = self.generate_sbml_model(stochastic_model = stochastic_model, check_validity = check_validity,**keywords)
         sbml_string = libsbml.writeSBMLToString(document)
         with open(file_name, 'w') as f:
             f.write(sbml_string)
@@ -332,7 +330,7 @@ class ChemicalReactionNetwork(object):
 
     def simulate_with_bioscrape_via_sbml(self, timepoints, filename = None,
                 initial_condition_dict = None, return_dataframe = True,
-                stochastic = False, safe = False, return_model = False, **kwargs):
+                stochastic = False, safe = False, return_model = False, check_validity=True, **kwargs):
 
         """Simulate CRN model with bioscrape via writing a SBML file temporarily.
         [Bioscrape on GitHub](https://github.com/biocircuits/bioscrape).
@@ -346,7 +344,7 @@ class ChemicalReactionNetwork(object):
             from bioscrape.types import Model
 
             if filename is None:
-                self.write_sbml_file(file_name ="temp_sbml_file.xml", stochastic_model = stochastic, for_bioscrape = True)
+                self.write_sbml_file(file_name ="temp_sbml_file.xml", stochastic_model = stochastic, for_bioscrape = True,check_validity=check_validity)
                 file_name = "temp_sbml_file.xml"
             elif isinstance(filename, str):
                 file_name = filename
@@ -372,7 +370,7 @@ class ChemicalReactionNetwork(object):
         else:
             return result
 
-    def simulate_with_roadrunner(self, timepoints: List[float], initial_condition_dict: Dict[str,float]=None, return_roadrunner=False):
+    def simulate_with_roadrunner(self, timepoints: List[float], initial_condition_dict: Dict[str,float]=None, return_roadrunner=False, check_validity=True):
         """To simulate using roadrunner.
         Arguments:
         timepoints: The array of time points to run the simulation for.
@@ -388,7 +386,7 @@ class ChemicalReactionNetwork(object):
         try:
             import roadrunner
             import io
-            document, _ = self.generate_sbml_model(stochastic_model=False)
+            document, _ = self.generate_sbml_model(stochastic_model=False, check_validity=check_validity)
             sbml_string = libsbml.writeSBMLToString(document)
             # write the sbml_string into a temporary file in memory instead of a file
             string_out = io.StringIO()
