@@ -13,7 +13,7 @@ from warnings import warn
 
 from .components_basic import Protein, DNA, RNA
 from .dna_part_cds import CDS
-from .dna_part_misc import IntegraseSite, Origin
+from .dna_part_misc import IntegraseSite, Origin, Operator, UserDefined
 from .dna_part_promoter import Promoter
 from .dna_part_rbs import RBS
 from .dna_part_terminator import Terminator
@@ -774,6 +774,13 @@ class CRNPlotter:
                 dpl_type = "CDS"
             elif(isinstance(part,Protein)):
                 dpl_type = "CDS"
+            elif(isinstance(part,Operator)):
+                dpl_type="Operator"
+            elif(isinstance(part,Origin)):
+                dpl_type = "Origin"
+            elif(isinstance(part,UserDefined)):
+                if(part.dpl_type is not None):
+                    dpl_type = part.dpl_type
             elif(isinstance(part,Terminator)):
                 dpl_type = "Terminator"
             elif(isinstance(part,IntegraseSite)):
