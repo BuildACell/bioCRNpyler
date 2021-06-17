@@ -67,7 +67,7 @@ class DNA_part(Component, OrderedMonomer):
             myname += "_r"
         return myname
     def __hash__(self):
-        return OrderedMonomer.__hash__(self)
+        return OrderedMonomer.__hash__(self)+hash(self.name)
     def __eq__(self,other):
         if(type(other)==type(self)):
             if(self.name==other.name):

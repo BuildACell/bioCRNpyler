@@ -74,6 +74,10 @@ class IntegraseSite(DNABindingSite):
                 myname += "_"+str(self.dinucleotide) 
         else:
             warn("warning! site {} has site_type {} which is not recognized".format(self.name,self.site_type))
+        if(self.position is not None):
+            myname+="_"+str(self.position)
+        if(self.direction is not None):
+            myname+="_"+str(self.direction[0])
         return myname
     def update_integrase(self,int_name):
         self.integrase = Component.set_species(int_name,material_type='protein')
