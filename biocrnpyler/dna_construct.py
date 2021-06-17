@@ -149,7 +149,7 @@ class Construct(Component,OrderedPolymer):
             part.set_mixture(mixture)
     def update_permutation_hash(self):
         """update the unique string generated to represent the content of this dna construct regardless of orientation and rotation"""
-        self.directionless_hash = Construct.omnihash(self)
+        self.directionless_hash,_,_ = Construct.omnihash(self)
     def update_base_species(self, base_name=None, attributes = None):
         if base_name is None:
             self.base_species = self.set_species(self.name, material_type = self.material_type, attributes = attributes)
@@ -418,7 +418,7 @@ class Construct(Component,OrderedPolymer):
         partlist_str = '_'.join([str(a[0])+str(b) for a,b in zip(partlist,range(len(partlist)))])
         return partlist_str
     @classmethod
-    def hashless_reverse(cls,construct):
+    def create_hashless_reverse(cls,construct):
         """create a reverse construct but don't calculate its hash (because that would make an infinite loop)"""
         rev_con = [a.get_orphan() for a in construct]
         for rev_part,origpart in zip(rev_con,construct):
@@ -427,9 +427,16 @@ class Construct(Component,OrderedPolymer):
         rev_con = Construct(rev_con,make_dirless_hash=False,circular = construct.circular)
         return rev_con
     @classmethod
-    def rotation_free_hash(cls,construct,return_rotation=False):
+    def rotation_free_hash(cls,construct): 
         """calculates a unique circular permutation that is the most alphabetically ordered. Every part is considered as a potential starting
-        point, and the most alphabetically ordered order is then chosen as the best permutation"""
+        point, and the most alphabetically ordered order is then chosen as the best permutation
+        
+        returns:
+        hash of the most alphabetical ordering, direction of the ordering (always 1), first position of the best rotation
+        
+        thus, to recreate the conformation of the construct used to make this hash you would have to 
+        1) invert the construct (or not), then 
+        2) use the indicated position as the first position"""
         def circular_next(part,construct):
             if(isinstance(part,int)):
                 part_pos = part
@@ -466,35 +473,41 @@ class Construct(Component,OrderedPolymer):
         while(len(best_partlist)<len(construct)):
             nextpart = circular_next(best_partlist[-1][1],construct)
             best_partlist += [(Construct.get_partstring(nextpart),nextpart)]
-        if(return_rotation):
-            return Construct.get_partlist_hash(best_partlist),best_partlist[0][1].position
-        else:
-            return Construct.get_partlist_hash(best_partlist)
+        return Construct.get_partlist_hash(best_partlist),1,best_partlist[0][1].position
     @classmethod
-    def direction_rotation_free_hash(cls,construct,return_transform = False):
-        """computes the best circular permutation of a construct, forward and reverse. Then returns whichever one of those comes alphabetically first"""
-        rev_con = Construct.hashless_reverse(construct)
-        forward_hash,pos = Construct.rotation_free_hash(construct,return_rotation=True)
-        reverse_hash,posrev = Construct.rotation_free_hash(rev_con,return_rotation=True)
+    def direction_rotation_free_hash(cls,construct):
+        """computes the best circular permutation of a construct, forward and reverse. Then returns whichever one of those comes alphabetically first
+        
+        returns:
+        hash of the most alphabetical ordering, direction of the ordering (1 or -1), first position of the best rotation
+        
+        thus, to recreate the conformation of the construct used to make this hash you would have to 
+        1) invert the construct (or not), then 
+        2) use the indicated position as the first position"""
+        rev_con = Construct.create_hashless_reverse(construct)
+        forward_hash,_,pos = Construct.rotation_free_hash(construct)
+        reverse_hash,_,posrev = Construct.rotation_free_hash(rev_con)
         if(forward_hash>reverse_hash):
-            if(return_transform):
-                return forward_hash,1,pos
-            else:
-                return forward_hash
+            return forward_hash,1,pos
         else:
-            if(return_transform):
-                return reverse_hash,-1,posrev
-            else:
-                return reverse_hash
+            return reverse_hash,-1,posrev
     @classmethod
-    def linear_direction_free_hash(cls,construct,return_transform = False):
-        """creates a string representing the construct forward or reverse, and returns whichever of those is alphabetically first"""
-        rev_con = Construct.hashless_reverse(construct)
+    def linear_direction_free_hash(cls,construct):
+        """creates a string representing the construct forward or reverse, and returns whichever of those is alphabetically first
+        
+         returns:
+        hash of the most alphabetical ordering, direction of the ordering (1 or -1), first position of the best rotation (always 0)
+        
+        thus, to recreate the conformation of the construct used to make this hash you would have to 
+        1) invert the construct (or not), then 
+        2) use the indicated position as the first position"""
+        rev_con = Construct.create_hashless_reverse(construct)
 
         test_partlist = []
         test_reverse_partlist = []
         winner = None
         for part,revpart in zip(construct,rev_con):
+            #test both forward and reverse at the same time
             if(winner is None):
                 parthash = Construct.get_partstring(part)
                 rev_parthash = Construct.get_partstring(revpart)
@@ -505,35 +518,36 @@ class Construct(Component,OrderedPolymer):
                 test_partlist += [(parthash,part)]
                 test_reverse_partlist += [(rev_parthash,revpart)]
             elif(winner=="forward"):
+                #as soon as one of the two directions comes out on top just go with that one
                 test_partlist += [(Construct.get_partstring(part),part)]
             elif(winner=="reverse"):
+                #as soon as one of the two directions comes out on top just go with that one
                 test_reverse_partlist += [(Construct.get_partstring(revpart),revpart)]
         if(winner=="forward"):
             rethash = Construct.get_partlist_hash(test_partlist)
-            if(return_transform):
-                return rethash,1,0
-            return rethash
+            return rethash,1,0
         elif(winner == "reverse"):
             rethash = Construct.get_partlist_hash(test_reverse_partlist)
-            if(return_transform):
-                return rethash,-1,0
-            return rethash
+            return rethash,-1,0
     @classmethod
-    def omnihash(cls,construct,return_transform=False):
-        """a construct can exist forwards or backwards, and circularly permuted. This function creates the "best" circular permutation and ordering of a construct.
-        Best is calculated based on which orientation/ permutation has the most part names in alphabetical order"""
+    def omnihash(cls,construct):
+        """a construct can exist forwards or backwards, and circularly permuted (but only if it's a circular construct). 
+        This function creates the "best" circular permutation and ordering of a construct. But the circular permutation 
+        is only calculated if the construct is circular. Best is calculated based on which orientation/ permutation has 
+        the most part names in alphabetical order.
+        
+        returns:
+        hash of the most alphabetical ordering (string), direction of the ordering (1 or -1), first position of the best rotation
+        
+        thus, to recreate the conformation of the construct used to make this hash you would have to 
+        1) invert the construct (or not), then 
+        2) use the indicated position as the first position"""
         if(construct.circular):
-            rhash,flip,posit = Construct.direction_rotation_free_hash(construct,True)
-            if(return_transform):
-                return rhash+"circular",flip,posit
-            else:
-                return rhash+"circular"
+            rhash,flip,posit = Construct.direction_rotation_free_hash(construct)
+            return rhash+"circular",flip,posit
         else:
-            rhash,flip,posit = Construct.linear_direction_free_hash(construct,True)
-            if(return_transform):
-                return rhash+"linear",flip,posit
-            else:
-                return rhash+"linear"
+            rhash,flip,posit = Construct.linear_direction_free_hash(construct)
+            return rhash+"linear",flip,posit
     def __hash__(self):
         return OrderedPolymer.__hash__(self)
     def __eq__(self,construct2):
