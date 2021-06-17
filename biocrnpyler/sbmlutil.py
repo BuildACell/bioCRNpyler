@@ -79,7 +79,22 @@ def add_all_species(model, species: List, initial_condition_dictionary: dict, co
     :param initial_concentration_dict: a dictionary s --> initial_concentration
     :return: None
     """
-    for s in species:
+
+
+    elementlist = model.getSBMLDocument().getListOfAllElements()
+
+    all_ids = getAllIds(elementlist)
+
+    trans = SetIdFromNames(all_ids)
+
+    all_ids = [str(s) for s in species]
+    all_sbml_ids = [trans.getValidIdForName(species_id) for species_id in all_ids]
+    
+
+
+
+    for s_ind,s in enumerate( species):
+        s_id = all_sbml_ids[s_ind]
         if compartment is None or s.compartment is not None:
             # If no compartment was passed in or if species (s) has its own compartment set:
             compartment = get_compartment_by_name(model, s.compartment.name)
@@ -90,10 +105,10 @@ def add_all_species(model, species: List, initial_condition_dictionary: dict, co
                 initial_condition_dictionary[s])
         else:
             initial_concentration = 0
-        add_species(model=model, compartment=compartment,
-                    species=s, initial_concentration=initial_concentration)
+        add_species(model=model, compartment=compartment, species_name=str(s.name), 
+                            species_id=s_id, initial_concentration=initial_concentration)
 
-def add_species(model, compartment, species, initial_concentration=None, **kwargs):
+def add_species(model, compartment, species_name, species_id, initial_concentration=None,  **kwargs):
     """Helper function to add a species to the sbml model.
     :param model:
     :param compartment: a compartment in the SBML model
@@ -102,17 +117,11 @@ def add_species(model, compartment, species, initial_concentration=None, **kwarg
     :return: SBML species object
     """
 
-    model = model  # Get the model where we will store results
-
-    # Construct the species name
-    species_name = repr(species)
-
     # Construct the species ID
-    species_id = valid_sbml_id(species, model.getSBMLDocument())
 
     logger.debug(f'Adding species: {species_name}, id: {species_id}')
     sbml_species = model.createSpecies()
-    sbml_species.setName(species.name)
+    sbml_species.setName(species_name)
     sbml_species.setId(species_id)
     sbml_species.setCompartment(compartment.getId())
     sbml_species.setConstant(False)
@@ -194,18 +203,25 @@ def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
     :return: None
     """
 
-    for rxn_count, r in enumerate(reactions):
-        rxn_id = f'r{rxn_count}'
-        add_reaction(model=model, crn_reaction=r,
-                     reaction_id=rxn_id, stochastic=stochastic, **kwargs)
+    elementlist = model.getSBMLDocument().getListOfAllElements()
 
+    all_ids = getAllIds(elementlist)
+
+    trans = SetIdFromNames(all_ids)
+
+    all_ids = [f"r{i}" for i in range(len(reactions))]
+    all_ids_rev = [f"r{i}rev" for i in range(len(reactions))]
+    all_sbml_ids = [trans.getValidIdForName(reaction_id) for reaction_id in all_ids]
+    all_sbml_ids_rev = [trans.getValidIdForName(reaction_id) for reaction_id in all_ids_rev]
+
+    for rxn_count, r in enumerate(reactions):
+
+        add_reaction(model=model, crn_reaction=r,
+                     reaction_id=all_sbml_ids[rxn_count], stochastic=stochastic, **kwargs)
         # Reversible reactions are always seperated into two seperate reactions
         if r.is_reversible:
-            rxn_id = f'r{rxn_count}rev'
-            add_reaction(model=model, crn_reaction=r, reaction_id=rxn_id,
+            add_reaction(model=model, crn_reaction=r, reaction_id=all_sbml_ids_rev[rxn_count],
                          stochastic=stochastic, reverse_reaction=True, **kwargs)
-
-
 def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool = False, reverse_reaction: bool = False, **kwargs):
     """adds a sbml_reaction to an sbml model.
     :param model: an sbml model created by create_sbml_model()
@@ -215,16 +231,13 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool = False
     :param reverse_reaction: 
     :return: SBML Reaction object
     """
-
     # Create the sbml_reaction in SBML
     sbml_reaction = model.createReaction()
-    all_ids = getAllIds(model.getSBMLDocument().getListOfAllElements())
-    trans = SetIdFromNames(all_ids)
-    sbml_reaction.setId(trans.getValidIdForName(reaction_id))
+    
+    sbml_reaction.setId(reaction_id)
     sbml_reaction.setName(sbml_reaction.getId())
     # all reactions are set to be non-reversible in BioCRNpyler because this is correct in deterministic and stochastic simulation.
     sbml_reaction.setReversible(False)
-
     # Create the reactants and products for the sbml_reaction
     if not reverse_reaction:
         _create_reactants(reactant_list=crn_reaction.inputs,
@@ -236,7 +249,7 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool = False
                           sbml_reaction=sbml_reaction, model=model)
         _create_products(product_list=crn_reaction.inputs,
                          sbml_reaction=sbml_reaction, model=model)
-
+    
     # Create the kinetic law and corresponding local propensity parameters
     crn_reaction.propensity_type.create_kinetic_law(model=model,
                                                     sbml_reaction=sbml_reaction,
@@ -244,10 +257,13 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool = False
                                                     crn_reaction=crn_reaction,
                                                     reverse_reaction=reverse_reaction,
                                                     **kwargs)
+    
     # Create SpeciesModifierReference in SBML for species that are referred by the
     # KineticLaw but not in reactants or products
     _create_modifiers(crn_reaction=crn_reaction,
                       sbml_reaction=sbml_reaction, model=model)
+    
+
 
     return sbml_reaction
 
