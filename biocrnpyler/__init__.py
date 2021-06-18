@@ -5,8 +5,6 @@ from .chemical_reaction_network import *
 from .component import *
 # Core components
 from .components_basic import *
-#CRNlab imports
-from .crnlab import *
 from .dna_assembly import *
 from .dna_construct import *
 from .dna_part import *
@@ -15,6 +13,8 @@ from .dna_part_misc import *
 from .dna_part_promoter import *
 from .dna_part_rbs import *
 from .dna_part_terminator import *
+from .construct_explorer import *
+from .integrase_enumerator import *
 
 from .global_mechanism import *
 from .mechanism import *
@@ -22,6 +22,7 @@ from .mechanism import *
 from .mechanisms_binding import *
 from .mechanisms_enzyme import *
 from .mechanisms_txtl import *
+from .mechanisms_integrase import *
 # Core classes
 from .mixture import *
 from .mixtures_cell import *
@@ -34,6 +35,8 @@ from .reaction import *
 
 from .sbmlutil import *
 from .species import *
+from .compartments import *
 from .utils import *
 
 #checking for nonexistant plotting-related modules now happens in plotting.py
+from .component_enumerator import *

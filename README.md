@@ -6,17 +6,18 @@
 [![PyPI version](https://badge.fury.io/py/biocrnpyler.svg)](https://badge.fury.io/py/biocrnpyler)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/BuildACell/BioCRNPyler/master?filepath=%2Fexamples%2F)
 
-
-BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, manipulation, and study of the structure, dynamics, and functions of complex biochemical networks.
+BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, manipulation,
+and study of the structure, dynamics, and functions
+of complex biochemical networks.
 
 - **Website:** http://buildacell.io/BioCRNPyler
+- **Mailing list:** [SBTools Google Group](https://groups.google.com/g/sbtools/) Email: sbtools@googlegroups.com
 - **Source:** https://github.com/BuildACell/BioCRNPyler
 - **Paper:** - [BioCRNpyler: Compiling Chemical Reaction Networks from Biomolecular Parts in Diverse Contexts](https://www.biorxiv.org/content/10.1101/2020.08.02.233478v1)
 - **Mailing list:** [SBTools Google Group](https://groups.google.com/g/sbtools/) Email: sbtools@googlegroups.com
 - **Bug reports:** https://github.com/BuildACell/BioCRNPyler/issues
-- **Documentation:** Coming Soon!
-- **Video Tutorials:** [Introduction to CRN Modeling](https://www.youtube.com/watch?v=mu-9MSntd2w&list=PLb2LmjoxZO-g2vbTr3HBcnvVZur8JFiqf&index=1&t=1164s), [CRNs with BioCRNpyler Tutorial](https://www.youtube.com/watch?v=l1uVqwZwxX0&list=PLb2LmjoxZO-g2vbTr3HBcnvVZur8JFiqf&index=2), [BioCRNpyler Compilation Overview](https://www.youtube.com/watch?v=lw3DbBnsPgs&list=PLb2LmjoxZO-g2vbTr3HBcnvVZur8JFiqf&index=3), and [BioCRNpyler Compilation Tutorial](https://www.youtube.com/watch?v=eLjxCStLvsQ&list=PLb2LmjoxZO-g2vbTr3HBcnvVZur8JFiqf&index=4).
-- **Slack:** Join the #biocrnpyler channel on SBTools slack: Ask on the public SBTools Google group to be added or send a message to one of the maintainers. 
+- **Documentation** https://github.com/BuildACell/BioCRNPyler/
+- **Slack** Join the #biocrnpyler channel on SBTools slack: Ask on the public SBTools Google group to be added or send a message to one of the maintainers. 
 
 # Example 1: Building Simple CRNs by Hand
 
@@ -26,7 +27,7 @@ BioCRNpyler allows for CRNs to be built by hand, adding Species and Reactions ma
 from biocrnpyler import *
 # let's build the following CRN
 # A -->[k1] 2B
-# B -->[k2] B+D
+# B -->[k2] C+D
 # Species
 A = Species("A")
 B = Species("B")
@@ -37,7 +38,7 @@ D = Species("D")
 k1 = 3.
 k2 = 1.4
 
-#Reaciton Objects
+#Reaction Objects
 R1 = Reaction.from_massaction([A], [B, B], k_forward = k1)
 R2 = Reaction.from_massaction([B], [C, D], k_forward = k2)
 

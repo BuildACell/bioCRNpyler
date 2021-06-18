@@ -36,7 +36,7 @@ class TestCombinatorialPromoter(TestCase):
 
     def test_update_species(self):
         from biocrnpyler import CombinatorialPromoter, Protein, Species, Combinatorial_Cooperative_Binding, \
-                                    DNAassembly,Transcription_MM, Translation_MM, Multimer, Complex
+                                    DNAassembly,Transcription_MM, Translation_MM, Complex
         #make a complicated promoter
         newprom = CombinatorialPromoter("testprom",["treg1",Species("treg2",material_type="rna")],\
                                 tx_capable_list = [["treg1","treg2"]],cooperativity={"testprom_treg2":1},leak=True)
@@ -54,7 +54,6 @@ class TestCombinatorialPromoter(TestCase):
 
         sp_treg1 = Species("treg1",material_type="protein")
         sp_treg2 = Species("treg2",material_type="rna")
-        #mu_treg2 = Multimer(sp_treg2,2)
 
         sp_dna = Species("testDNA",material_type="dna")
         
@@ -92,7 +91,7 @@ class TestCombinatorialPromoter(TestCase):
         """this function tests the CombinatorialPromoter for the ability to make
         reactions with the proper inputs and outputs."""
         from biocrnpyler import CombinatorialPromoter, Protein, Species, Combinatorial_Cooperative_Binding, \
-                                    DNAassembly,Transcription_MM, Translation_MM, Complex, Multimer, ParameterKey
+                                    DNAassembly,Transcription_MM, Translation_MM, Complex, ParameterKey
         
         #make a relatively simple combinatorial promoter
         parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, 

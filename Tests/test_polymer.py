@@ -2,7 +2,35 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import OrderedPolymer, OrderedMonomer, OrderedPolymerSpecies, Species
+from biocrnpyler import OrderedPolymer, OrderedMonomer, OrderedPolymerSpecies, Species, Complex, MonomerCollection
+
+class TestMonomerCollection(TestCase):
+
+    def test_initialization(self):
+        x = OrderedMonomer()
+        y = OrderedMonomer()
+        c = MonomerCollection([x, y])
+
+        #test setter
+        assert len(c.monomers) == 2
+        assert type(c.monomers) == tuple
+        #test copying
+        assert x not in c.monomers and y not in c.monomers
+        assert x.parent is None and y.parent is None
+        assert [m.parent == c for m in c.monomers]
+
+    def test_monomers_setter_and_getter(self):
+        x = OrderedMonomer()
+        y = OrderedMonomer()
+        c = MonomerCollection([x, y])
+
+        xr = OrderedMonomer(direction = "reverse")
+
+        c.monomers = [x, xr, y]
+        assert len(c.monomers) == 3
+        assert c.monomers[1].direction == "reverse"
+        assert all([m.parent is None for m in [x, xr, y]])
+        assert all([m.parent is c for m in c.monomers])
 
 class TestOrderedMonomer(TestCase):
 
@@ -16,18 +44,11 @@ class TestOrderedMonomer(TestCase):
         self.assertEqual(x.parent,None)
         self.assertEqual(OrderedMonomer(direction="reverse"),x.set_dir("reverse"))
 
-        #Position with no parent
-        with self.assertRaisesRegex(ValueError, f"OrderedMonomer"):
-            m = OrderedMonomer(position = 1)
-
         #Bad parent
-        with self.assertRaisesRegex(ValueError, f"parent must be an OrderedPolymer"):
+        with self.assertRaisesRegex(ValueError, "parent must be an MonomerCollection"):
             m = OrderedMonomer(parent = 1)
         
         p = OrderedPolymer(parts = [])
-        #Parent with no position
-        with self.assertRaisesRegex(ValueError, f"OrderedMonomer"):
-            m = OrderedMonomer(parent = p)
 
         #Correct instantiation with parent and position
         m = OrderedMonomer(parent = p, position = 0)
@@ -100,7 +121,30 @@ class TestOrderedPolymer(TestCase):
         y.delpart(2)
         self.assertEqual(z.parent,None)
         self.assertEqual(y,truthvalue)
+
+        #get_removed
+        y = OrderedPolymer([OrderedMonomer(direction="reverse"),\
+                            OrderedMonomer(direction="forward"),\
+                            OrderedMonomer(direction="reverse"),\
+                            OrderedMonomer()])
+        z = y[2]
+        w = z.get_removed()
+        self.assertEqual(w.parent,None) #removed part has no parent
+        self.assertEqual(w.direction,None) #removed part has no direction
+        self.assertEqual(w.position,None) #removed part has no position
+
+
 class TestOrderedPolymerSpecies(TestCase):
+
+    def test_naming_convention(self):
+        A = Species("A", material_type = "a")
+        B = Species('B', attributes = "b")
+        C = Complex([Species("S"), Species("S")])
+        p = OrderedPolymerSpecies([A, B, C], attributes = ["a"])
+        print(str(p))
+        print(f"{p.material_type}_{str(A)}_{str(B)}_{str(C)}_{p.attributes[0]}_")
+        self.assertTrue(str(p) == f"{p.material_type}_{str(A)}_{str(B)}_{str(C)}_{p.attributes[0]}_")
+
     def test_ordered_polymer_species_initialization(self):
         a = Species("A")
         x = OrderedPolymerSpecies([Species("A"),[Species("B"),"forward"],\
@@ -160,4 +204,27 @@ class TestOrderedPolymerSpecies(TestCase):
         self.assertEqual(unappended,truth)
         #reverse
         reversd.reverse()
+        print(reversd)
+        print(truth)
         self.assertEqual(reversd,truth)
+
+    def test_ordered_polymer_species_contains(self):
+        a = Species("A")
+        b = Species("B")
+        bf = Species("B").set_dir("forward")
+        c = Complex([a, a])
+        p = OrderedPolymerSpecies([bf, b, c])
+
+        #In these cases, parent doesn't matter
+        self.assertTrue(a in p[2])
+        self.assertTrue(a in c)
+        self.assertTrue(b in p)
+        self.assertTrue(c in p)
+
+        p2 = OrderedPolymerSpecies([bf, a, c])
+        #In these cases parents matter
+        self.assertFalse(p[0] in p2)
+        self.assertFalse(p2[0] in p)
+
+        #In this case, direciton matters
+        self.assertFalse(b in p2)

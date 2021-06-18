@@ -1,7 +1,6 @@
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-import copy
 from typing import List, Union
 
 from .component import Component
@@ -20,7 +19,7 @@ class DNAassembly(DNA):
 
     def __init__(self, name: str, dna=None, promoter=None, transcript=None,
                  rbs=None, protein=None, length=None,
-                 attributes=None, mechanisms=None, parameters=None, initial_conc=None, **keywords):
+                 attributes=None, mechanisms=None, parameters=None, initial_concentration=None, **keywords):
         """
             Note:
         If transcript is None and protein is not None,
@@ -36,18 +35,16 @@ class DNAassembly(DNA):
         :param attributes:
         :param mechanisms:
         :param parameters:
-        :param initial_conc:
+        :param initial_concentration:
         :param keywords: passed into the parent object (DNA)
         """
         self.promoter = None
         self.rbs = None
         self.transcript = None
-        self.initial_concentration = initial_conc
-        self.name = name
         
         # This has to be called at the end so mechanisms are set for the promoter, RBS, etc.
         DNA.__init__(self, name, length=length, mechanisms=mechanisms,
-                     parameters=parameters, initial_conc=initial_conc,
+                     parameters=parameters, initial_concentration=initial_concentration,
                      attributes=attributes, **keywords)
 
         self.update_dna(dna, attributes=attributes)
@@ -134,19 +131,10 @@ class DNAassembly(DNA):
         if transcript is not None:
             self.update_transcript(transcript)
 
-        if isinstance(promoter, str):
-            self.promoter = Promoter(assembly=self, name=promoter,
-                                     transcript=self.transcript,
-                                     protein=protein)
-        elif isinstance(promoter, Promoter):
-            self.promoter = copy.deepcopy(promoter)
-            self.promoter.assembly = self
-            self.promoter.transcript = self.transcript
-            self.promoter.protein = protein
-        elif promoter is not None:
-            raise ValueError("Improper promoter type received by DNAassembly. "
-                             "Expected string or promoter object. "
-                             f"Received {repr(promoter)}.")
+        if promoter is not None:
+            self.promoter = Promoter.from_promoter(name=promoter, assembly=self,
+                                                   transcript=self.transcript,
+                                                   protein=protein)
         else:
             self.promoter = None
 
@@ -169,16 +157,9 @@ class DNAassembly(DNA):
         if transcript is not None:
             self.update_transcript(transcript)
 
-        if isinstance(rbs, str):
-            self.rbs = RBS(assembly=self, name=rbs, protein=self.protein,
-                           transcript=self.transcript)
-        elif isinstance(rbs, RBS):
-            self.rbs = copy.deepcopy(rbs)
-            self.rbs.assembly = self
-            self.rbs.transcript = self.transcript
-            self.rbs.protein = self.protein
-        elif rbs is not None:
-            raise ValueError(f"Improper rbs type received by DNAassemby. Expected string or RBS object. Received {repr(rbs)}.")
+        if rbs is not None:
+            self.rbs = RBS.from_rbs(name=rbs, assembly=self, protein=self.protein,
+                                    transcript=self.transcript)
         else:
             self.rbs = None
 

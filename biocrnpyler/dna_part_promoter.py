@@ -12,8 +12,11 @@ from .mechanisms_binding import (Combinatorial_Cooperative_Binding,
 from .mechanisms_txtl import (NegativeHillTranscription,
                               PositiveHillTranscription)
 from .species import Species
+from .components_basic import DNA, RNA
+from .utils import remove_bindloc
 
 
+#TODO put remove_bindloc in the component instead of in dna_construct
 class Promoter(DNA_part):
     """A basic Promoter class with no regulation. Needs to be included in a DNAassembly or DNAconstruct to function.
     """
@@ -41,8 +44,8 @@ class Promoter(DNA_part):
         else:
             self.protein = None
         #Promoter should not have initial conditions. These need to be in DNAAssembly or DNAConstruct
-        if "initial_conc" in keywords.values() and keywords["initial_conc"] is not None:
-            raise AttributeError("Cannot set initial_conc of a Promoter. Must set initial_conc for the DNAassembly or DNAConstruct.")
+        if "initial_concentration" in keywords.values() and keywords["initial_concentration"] is not None:
+            raise AttributeError("Cannot set initial_concentration of a Promoter. Must set initial_concentration for the DNAassembly or DNAConstruct.")
         if "initial_condition_dictionary" in keywords.values() and keywords["initial_condition_dictionary"] is not None:
             raise AttributeError("Cannot set initial_condition_dictionary of a Promoter. Must set initial_condition_dictionary for the DNAassembly or DNAconstruct.")
 
@@ -70,6 +73,7 @@ class Promoter(DNA_part):
         self._dna_bind = value
     def get_species(self):
         return None
+
     def update_reactions(self):
         mech_tx = self.get_mechanism("transcription")
         reactions = []
@@ -78,24 +82,17 @@ class Promoter(DNA_part):
                         component = self, part_id = self.name, complex = None,
                         transcript = self.transcript, protein = self.get_protein_for_expression())
         return reactions
-    def update_component(self,dna,rnas,proteins,mypos = None):
+
+    def update_component(self,internal_species=None,**keywords):
         """returns a copy of this component, except with the proper fields updated"""
-        if(dna.material_type == "rna"):
-            #Promoters only work with DNA
+        if(isinstance(self.parent,RNA)):
             return None
-        out_component = copy.deepcopy(self)
-        if(mypos is not None):
-            out_component.dna_to_bind = dna[mypos]
+        elif(isinstance(self.parent,DNA)):
+            out_component = copy.copy(self)
+            out_component.dna_to_bind = internal_species
+            return out_component
         else:
-            out_component.dna_to_bind = dna
-        myrna = rnas[self]
-        out_component.transcript = myrna.get_species()
-        rbslist = proteins[myrna]
-        proteinlist = []
-        for a in rbslist:
-            proteinlist += rbslist[a]
-        out_component.protein = proteinlist
-        return out_component
+            raise TypeError(f"Unknown parent class {type(self.parent)}, expect either DNA_construct or RNA_construct")
 
 
     #Used for expression mixtures where transcripts are replaced by proteins
@@ -104,6 +101,29 @@ class Promoter(DNA_part):
             return self.protein
         else:
             return None
+
+    @classmethod
+    def from_promoter(cls, name, assembly, transcript, protein):
+        """Helper function to initialize a promoter instance from another promoter or str.
+
+        :param name: either string or an other promoter instance
+        :param assembly:
+        :param transcript:
+        :param protein:
+        :return: Promoter instance
+        """
+        if isinstance(name, Promoter):
+            promoter_instance = copy.deepcopy(name)
+            promoter_instance.assembly = assembly
+            promoter_instance.transcript = transcript
+            promoter_instance.protein = protein
+        elif isinstance(name, str):
+            promoter_instance = cls(name=name, assembly=assembly,
+                                    transcript=transcript, protein=protein)
+        else:
+            raise TypeError(f'Promoter can be initialized from string or another promoter! We got {type(name)}')
+        return promoter_instance
+
 
 class RegulatedPromoter(Promoter):
     """
@@ -152,10 +172,10 @@ class RegulatedPromoter(Promoter):
 
             #Find complexes containing DNA and the regulator
             #DNA should be *not* a part of an OrderedPolymer for this to work
-            dna_simple = copy.deepcopy(self.dna_to_bind)
-            dna_simple.remove()
+            #dna_simple = copy.deepcopy(self.dna_to_bind)
+            #dna_simple.remove()
             for s in species_b:
-                if dna_simple in s and regulator in s:
+                if s.contains_species_monomer(self.dna_to_bind) and s.contains_species_monomer(regulator):
                     self.complexes += [s]
 
                     species += mech_tx.update_species(dna = s, transcript = self.transcript, \
@@ -366,8 +386,8 @@ class CombinatorialPromoter(Promoter):
         for bound_complex in bound_species: 
             species_inside = []
             for regulator in self.regulators:
-                if(regulator in bound_complex):
-                    species_inside += [regulator.name] 
+                if(bound_complex.contains_species_monomer(regulator) and bound_complex.contains_species_monomer(self.dna_to_bind)):
+                    species_inside += [regulator.name]
             if(set(species_inside) in [set(a) for a in self.tx_capable_list]):
                 #only the transcribable complexes in tx_capable_list get transcription reactions
                 tx_capable_species = mech_tx.update_species(dna = bound_complex, transcript = self.transcript, \

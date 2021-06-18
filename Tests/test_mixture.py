@@ -218,8 +218,62 @@ class TestMixture(TestCase):
         crn_from_mixture = mixture.compile_crn()
         # test that the mixture has the same species as the manually build CRN object
         self.assertEqual(set(CRN.species), set(crn_from_mixture.species))
+        #test that species are copied
+        self.assertTrue(all([not s is ss for s in CRN.species for ss in crn_from_mixture.species]))
         # test that the mixture has the same reactions as the manually build CRN object
         self.assertEqual(CRN.reactions, crn_from_mixture.reactions)
+        #test that species are copied
+        self.assertTrue(all([not r is rr for r in CRN.reactions for rr in crn_from_mixture.reactions]))
+
+    def test_compile_crn_directives(self):
+        a = Species(name='a')
+        b = Species(name='b')
+
+        species_list = [a, b]
+
+        rxn = Reaction.from_massaction(inputs=[a], outputs=[b], k_forward=0.1)
+
+        CRN = ChemicalReactionNetwork(species_list, [rxn])
+
+        # create a component
+        component = Component("comp")
+
+        # creating a mock update function to decouple the update process from the rest of the code
+        def mock_update_reactions():
+            rxn = Reaction.from_massaction(inputs=[a], outputs=[b], k_forward=0.1)
+            return [rxn]
+
+        def mock_update_species():
+            return [a, b]
+
+        component.update_species = mock_update_species
+        component.update_reactions = mock_update_reactions
+
+        mixture = Mixture(components=[component])
+
+        #All the directives used below should not change the CRN. 
+        #They just remove some checks and safegaurds, but compilation should work the same in this simple case.
+        #directives are best used in specific cases to compile very large models where speed is essential
+
+        crn_from_mixture1 = mixture.compile_crn(copy_objects = False)
+        # test that the mixture has the same species as the manually build CRN object
+        self.assertEqual(set(CRN.species), set(crn_from_mixture1.species))
+        # test that the mixture has the same reactions as the manually build CRN object
+        self.assertEqual(CRN.reactions, crn_from_mixture1.reactions)
+
+
+        crn_from_mixture2 = mixture.compile_crn(add_reaction_species = False)
+        # test that the mixture has the same species as the manually build CRN object
+        self.assertEqual(set(CRN.species), set(crn_from_mixture2.species))
+        # test that the mixture has the same reactions as the manually build CRN object
+        self.assertEqual(CRN.reactions, crn_from_mixture2.reactions)
+
+        crn_from_mixture3 = mixture.compile_crn(initial_concentrations_at_end = True)
+        # test that the mixture has the same species as the manually build CRN object
+        self.assertEqual(set(CRN.species), set(crn_from_mixture3.species))
+        # test that the mixture has the same reactions as the manually build CRN object
+        self.assertEqual(CRN.reactions, crn_from_mixture3.reactions)
+
 
 
     def test_compoents_in_multiple_mixtures(self):

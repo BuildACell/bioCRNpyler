@@ -8,11 +8,10 @@ from .dna_part import DNA_part
 
 
 class CDS(DNA_part):
-    def __init__(self,name,protein,no_stop_codons=None, **keywords):
+    def __init__(self,name,protein=None,no_stop_codons=None, **keywords):
         """a CDS is a sequence of DNA that codes for a protein"""
         self.name = name
-        DNA_part.__init__(self,name,no_stop_codons=no_stop_codons,protein=None, **keywords)
-        #TODO make this contain a species and not a component
+        DNA_part.__init__(self,name,no_stop_codons=no_stop_codons, **keywords)
         #TODO use set_species()
         if(protein is None):
             self.protein = Species(name,material_type="protein")

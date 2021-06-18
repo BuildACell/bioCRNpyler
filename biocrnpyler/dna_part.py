@@ -13,34 +13,33 @@
 from .component import Component
 from .polymer import OrderedMonomer, OrderedPolymer
 from .species import Species
+import copy
 
 
 class DNA_part(Component, OrderedMonomer):
-    def __init__(self,name,mechanisms=None,parameters=None,**keywords):
+    def __init__(self,name, **keywords):
         """this represents a modular component sequence. These get compiled into working components"""
-        Component.__init__(self=self, name = name, mechanisms = mechanisms,
-                           parameters = parameters, **keywords)
+
+        if "initial_concentration" in keywords:
+            raise AttributeError("DNA_part should not recieve initial_concentration keyword. Pass this into the DNAassembly or DNA_construct instead.")
+
+        Component.__init__(self=self, name = name, **keywords)
         
         self.name = name
-        #self.assembly = property(self._get_assembly,self._set_assembly)
         assembly = None #this is already covered in self.assembly. Is this needed?
         direction = None #orientation
-        self.color = None #this will be taken from higher up
-        self.color2 = None #this will be taken from higher up and only defined for attL/R sites
         pos = None #position in the dna_construct
         self.sequence = None #nucleotide sequence
+        #most parts have stop codons
+        #if you want your part to not have stop codons, put "forward" and/or "reverse"
         self.no_stop_codons = [] #some parts will set this, others won't. Default is that it has stop codons
-        
+        self.material_type = "part"
         for key, value in keywords.items():
             #goes through any extra parameters and sets them!
             if(key=="assembly"):
                 assembly = value
             elif(key=="direction"):
                 direction = value
-            elif(key=="color"):
-                self.color = value
-            elif(key=="color2"):
-                self.color2 = value
             elif(key=="pos"):
                 pos = value
             elif(key=="sequence"):
@@ -48,14 +47,18 @@ class DNA_part(Component, OrderedMonomer):
             elif(key=="no_stop_codons"):
                 if(value is not None):
                     self.no_stop_codons = value
+            elif(key=="material_type"):
+                self.material_type = value
         if(isinstance(assembly,OrderedPolymer)):
             OrderedMonomer.__init__(self,position=pos,parent=assembly,direction=direction)
         else:
             self.assembly = assembly
-            OrderedMonomer.__init__(self)
+            OrderedMonomer.__init__(self,position=pos,direction=direction)
+
     @property
     def dna_species(self):
-        return Species(self.name, material_type="dna")
+        return Species(self.name, material_type="part")
+
     def __repr__(self):
         myname = self.name
         if(self.position is not None):
@@ -64,18 +67,7 @@ class DNA_part(Component, OrderedMonomer):
             myname += "_r"
         return myname
     def __hash__(self):
-        hval = 0
-        if(hasattr(self,"assembly")):
-            if(self.assembly is None):
-                hval += hash(None)
-            else:
-                hval += hash(str(self.assembly))
-        hval += hash(self.name)
-        if(self.parent is not None):
-            hval+= hash(str(self.parent))
-        hval+= hash(self.position)
-        hval += hash(self.direction)
-        return hval
+        return OrderedMonomer.__hash__(self)+hash(self.name)
     def __eq__(self,other):
         if(type(other)==type(self)):
             if(self.name==other.name):
@@ -96,34 +88,13 @@ class DNA_part(Component, OrderedMonomer):
         """this defines where the part is in what piece of DNA"""
         #TODO add warning if DNA_part is not cloned
         self.insert(parent_dna,position,direction)
-        #if(self.assembly is not None):
-        #    warn(str(self) + " already belongs to "+str(self.assembly.name)+"! It will now be part of the new assembly")
-        #    self.unclone()
-
-        #self.pos = position
-        #self.direction = direction
-        #self.assembly = parent_dna
         return self
+
     def unclone(self):
         """removes the current part from anything"""
         self.remove()
-        #if(self.assembly is not None):
-        #    rightparts = self.assembly.parts_list[self.pos+1:]
-        #    for part in rightparts:
-        #        part.pos -= 1
-        #    self.assembly.parts_list = self.assembly.parts_list[:self.pos]+rightparts
-        #self.pos = None
-        #self.direction = None
-        #self.assembly = None
         return self
+        
     def reverse(self):
         OrderedMonomer.reverse(self)
-        #if(self.direction=="forward"):
-        #    self.direction = "reverse"
-        #elif(self.direction=="reverse"):
-        #    self.direction = "forward"
-        #elif(self.direction==None):
-        #    warn(str(self)+" has no direction. Perhaps it wasn't cloned?")
-        #else:
-        #    raise ValueError("direction is not forward or reverse! It's "+self.direction)
         return self
