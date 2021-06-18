@@ -2,6 +2,7 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
+from biocrnpyler.dna_construct import RNA_construct
 import pytest
 #from unittest import TestCase
 from biocrnpyler import CRNPlotter, DNA_construct, Promoter,IntegraseSite,\
@@ -77,6 +78,15 @@ def test_CRNPlotter():
     revpart = test_plotter.part_dpl_dict[RegulatedPromoter("p1",regulators=["r1","r2"])].get_directed("reverse",bound=[boundspec]) #return reverse promoter with things bound
     assert(revpart.get_dpl()[0]["type"]=="Operator") #reverse promoter has operators on the left
     
+
+    test_plotter.colordict = {"Promoter":"purple"}
+    prom_dpl = test_plotter.make_dpl_from_part(Promoter("pconst")) #make a promoter part
+    assert(prom_dpl.color == "purple") #found the proper color
+    prom_dpl2 = test_plotter.make_dpl_from_part(Promoter("funkbeast")) #make a different promoter part
+    assert(prom_dpl2.color=="purple")
+
+    rnadpl = test_plotter.make_dpl_from_species(Species("testrna",material_type="rna"))
+    assert(rnadpl.dpl_type == "NCRNA")
     #something is bound to the operator closest to the reversed promoter
     assert(revpart.parts_list[1].bound is not None)
 
@@ -85,7 +95,13 @@ def test_CRNPlotter():
     test_plotter.make_dpl_from_species(test_construct4.get_species())
     assert(test_construct4.get_species() in test_plotter.species_dpl_dict) #construct is in the dictionary
     
-    
+    rna_construct = RNA_construct([RBS("ooga"),CDS("booga")])
+    condpl1 = test_plotter.make_dpls_from_construct(rna_construct)
+    assert(condpl1.material_type == "rna") #material type is set correctly
+
+    rna_construct2 = RNA_construct([RBS("ooga"),CDS("booga")])
+    condpl2 = test_plotter.make_dpls_from_construct(rna_construct2)
+    assert(condpl2==condpl1) #this construct is already in the dictionary! Just return it
 
     
 

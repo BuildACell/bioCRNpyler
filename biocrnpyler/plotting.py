@@ -53,6 +53,7 @@ try:
                               WheelZoomTool)
     from bokeh.plotting import from_networkx
     from bokeh.palettes import Spectral4
+    from bokeh.io import export_svgs, output_notebook
     from fa2 import ForceAtlas2
     PLOT_NETWORK = True
 except ModuleNotFoundError:
@@ -603,10 +604,13 @@ class CRNPlotter:
             self.cmap = None
         self.color_counter = 0
         self.clear_dicts()
-    def renderMixture(self,mixture,crn = None,rna_renderer=None,dna_renderer=None,store=True):
+    def renderMixture(self,mixture,crn = None,rna_renderer=None,dna_renderer=None,store=True,output=None,recursion_depth = 4,compiled_components=None):
         """creates dnaplotlib images for all relevant species in a mixture"""
         if(crn is None):
-            mycrn = mixture.compile_crn()
+            mycrn,compiled_components = mixture.compile_crn(return_enumerated_components = True,
+                                         initial_concentrations_at_end = True,
+                                         copy_objects = False,
+                                         add_reaction_species = False,recursion_depth=recursion_depth)
         else:
             mycrn = crn
         if(rna_renderer is None and self.rna_renderer is not None):
@@ -618,7 +622,13 @@ class CRNPlotter:
         else:
             raise ValueError("dna_renderer cannot be None")
         self.clear_dicts()
-        for component in mixture.component_enumeration():
+        if(compiled_components is None):
+            #this only happens if CRN and mixture are both given
+            _,compiled_components =  mixture.compile_crn(return_enumerated_components = True,
+                                            initial_concentrations_at_end = True,
+                                            copy_objects = False,
+                                            add_reaction_species = False,recursion_depth=recursion_depth)
+        for component in compiled_components:
             if(isinstance(component,Construct)):
                 a = self.make_dpls_from_construct(component)
         plt.ioff()
@@ -641,6 +651,8 @@ class CRNPlotter:
                     #this part converts the matplotlibplot into a base64-encoded image
                     imagestream = io.BytesIO()
                     fig = ax.get_figure()
+                    if(output is not None):
+                        fig.savefig(output+"_"+str(species).replace("_","").replace("forward","f").replace("reverse","r").replace("part","")+".pdf",bbox_inches='tight')
                     fig.savefig(imagestream,bbox_inches='tight')
                     png_str = base64.b64encode(imagestream.getvalue())
                     self.species_image_dict[species]= png_str
@@ -758,6 +770,10 @@ class CRNPlotter:
             return out_dpl
     def make_dpl_from_part(self,part,set_color=None,save_in_dict=True,set_color2=None):
         removed_part = part.get_removed()
+        if(len(self.colordict)>0 and set_color is None):
+            search_color = member_dictionary_search(removed_part,self.colordict)
+            if(search_color is not None):
+                set_color = search_color
         if(removed_part in self.part_dpl_dict):
             return self.part_dpl_dict[removed_part].get_directed(part.direction)
         else:
@@ -845,16 +861,20 @@ def render_constructs(constructs,color_dictionary=None):
         axes += [plotter.renderConstruct(construct)]
     return axes
 
-def render_mixture(mixture,crn,color_dictionary=None):
+def render_mixture(mixture,crn,color_dictionary=None,output = None,compiled_components=None):
     plotter = CRNPlotter(colordict=color_dictionary)
-    return plotter.renderMixture(mixture,crn)
+    return plotter.renderMixture(mixture,crn,output=output,compiled_components=compiled_components)
 def render_network_bokeh(CRN,layout="force",\
-                        iterations=2000,rseed=30,posscale=1,**keywords):
+                        iterations=2000,rseed=30,posscale=1,export=False,**keywords):
     DG, DGspec, DGrxn = generate_networkx_graph(CRN,**keywords) #this creates the networkx objects
     plot = Plot(plot_width=500, plot_height=500, x_range=Range1d(-500, 500), y_range=Range1d(-500, 500)) #this generates a 
     show_im = False
     images = None
     if("imagedict" in keywords and keywords["imagedict"] is not None):
         show_im = True
+    if(export):
+        plot.output_backend = "svg"
     graphPlot(DG,DGspec,DGrxn,plot,layout=layout,posscale=posscale,iterations=iterations,rseed=rseed,show_species_images=show_im) 
+    if(export):
+        export_svgs(plot,filename=CRN.name+".svg")
     return plot
