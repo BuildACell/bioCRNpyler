@@ -122,6 +122,18 @@ class TestOrderedPolymer(TestCase):
         self.assertEqual(z.parent,None)
         self.assertEqual(y,truthvalue)
 
+        #get_removed
+        y = OrderedPolymer([OrderedMonomer(direction="reverse"),\
+                            OrderedMonomer(direction="forward"),\
+                            OrderedMonomer(direction="reverse"),\
+                            OrderedMonomer()])
+        z = y[2]
+        w = z.get_removed()
+        self.assertEqual(w.parent,None) #removed part has no parent
+        self.assertEqual(w.direction,None) #removed part has no direction
+        self.assertEqual(w.position,None) #removed part has no position
+
+
 class TestOrderedPolymerSpecies(TestCase):
 
     def test_naming_convention(self):
@@ -216,29 +228,3 @@ class TestOrderedPolymerSpecies(TestCase):
 
         #In this case, direciton matters
         self.assertFalse(b in p2)
-
-    def test_ordered_polymer_monomer_eq(self):
-        a = Species("A")
-        b = Species("B")
-        bf = Species("B").set_dir("forward")
-        br = Species("B").set_dir("reverse")
-        c = Complex([a, a])
-        p = OrderedPolymerSpecies([bf, b, c, br])
-
-        self.assertFalse(b == p[1]) #Equality depends on the position and parent
-
-        #monomer_equality does not depend on parent or position (direction still matters if they are different)
-        self.assertTrue(b.monomer_eq(p[0])) 
-        self.assertTrue(b.monomer_eq(p[1]))
-        self.assertTrue(bf.monomer_eq(p[0])) 
-        self.assertTrue(bf.monomer_eq(p[1]))
-
-        #Also works for things in the same Parent
-        self.assertTrue(p[0].monomer_eq(p[1]))
-
-        #Also works for Complexes
-        self.assertTrue(c.monomer_eq(p[2]))
-        
-        #In this case, direction will matter because it is not None in both Monomers
-        self.assertFalse(p[0].monomer_eq(p[3]))
-        

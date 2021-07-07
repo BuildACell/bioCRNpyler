@@ -115,6 +115,7 @@ def test_complex_with_polymer_replacement():
     p2 = OrderedPolymerSpecies([Complex([a, s]), b, a])
     assert str(c2.parent) == str(p2)
     assert c2.parent.parent == Complex([p2[0], p2[1]]).parent
+
     
 
 def test_complex_with_a_complex_in_a_conformation():

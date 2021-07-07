@@ -5,7 +5,6 @@ from .chemical_reaction_network import *
 from .component import *
 # Core components
 from .components_basic import *
-from .components_combinatorial import *
 from .dna_assembly import *
 from .dna_construct import *
 from .dna_part import *

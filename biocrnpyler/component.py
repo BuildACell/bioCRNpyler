@@ -12,7 +12,8 @@ from .mechanism import Mechanism
 from .parameter import Parameter, ParameterDatabase, ParameterKey
 from .species import Species
 
-class Component:
+
+class Component(object):
     """Component class for core components.
 
     These subclasses of Component represent different kinds of biomolecules.
@@ -99,9 +100,8 @@ class Component:
         :return: None
         """
         return None
-        
     @classmethod
-    def set_species(self, species: Union[Species, str, list], material_type=None, attributes=None) -> Species:
+    def set_species(self, species: Union[Species, str], material_type=None, attributes=None) -> Species:
         """Helper function that allows species to be set from strings, species, or Components
 
         :param species: Species, str, Component
@@ -116,8 +116,6 @@ class Component:
             return Species(name=species, material_type=material_type, attributes=attributes)
         elif isinstance(species, Component) and species.get_species() is not None:
             return species.get_species()
-        elif isinstance(species, list):
-            return [self.set_species(s) for s in species]
         else:
             raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
 
@@ -289,7 +287,7 @@ class Component:
         warn("Unsubclassed update_reactions called for " + repr(self))
         return reactions
         
-    def enumerate_components(self) -> List:
+    def enumerate_components(self,**keywords) -> List:
         """this is for component enumeration. Usually you will return a list of components that are
         copies of existing ones (first list) and new components (second list). For example,
         A DNA_construct makes a list of copies of its parts as the first output, and a list of RNA_constructs

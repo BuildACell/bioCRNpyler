@@ -228,6 +228,10 @@ def test_generate_sbml_model():
     # all reactions from the CRN are accounted for
     assert len(model.getListOfReactions()) == len(crn.reactions)
 
+    document2, model2 = crn.generate_sbml_model(check_validity=False)
+    assert len(model2.getListOfSpecies()) == len(crn.species) #the same model is made if you dont check validity
+    assert len(model2.getListOfReactions()) == len(crn.reactions) #the same model is made if you dont check validity
+    
     # reversible needs to be off!
     # assert not model.getListOfReactions()[0].isSetReversible()
 
@@ -338,6 +342,14 @@ def test_sbml_basics():
     # generate an sbml model
     document, model = create_sbml_model()
 
+
+    elementlist = model.getSBMLDocument().getListOfAllElements()
+
+    all_ids = getAllIds(elementlist)
+
+    trans = SetIdFromNames(all_ids)
+
+
     # If the document/model creation failed the following two lines
     # will catch it:
     check(document, 'create SBMLDocument object')
@@ -347,9 +359,9 @@ def test_sbml_basics():
     compartment = add_compartment(model, S1.compartment)
     check(compartment, 'add compartment')
     sbml_species = add_species(
-        model, compartment, S1, initial_concentration=10)
+        model, compartment, str(S1.name),trans.getValidIdForName(str(S1)), initial_concentration=10)
     sbml_species2 = add_species(
-        model, compartment, S2, initial_concentration=10)
+        model, compartment, str(S2.name),trans.getValidIdForName(str(S2)), initial_concentration=10)
     check(sbml_species.getId(), 'get ID for SBML species')
     check(sbml_species.getInitialConcentration(),
           'get concentration for SBML species')

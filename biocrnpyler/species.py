@@ -199,11 +199,6 @@ class Species(OrderedMonomer):
         """
         return [self]
 
-
-    @property
-    def species(self):
-        return [self]
-    
     def pretty_print(self, show_material=True, show_compartment=False, show_attributes=True,
                      show_initial_condition=False, **kwargs):
         """
@@ -256,31 +251,6 @@ class Species(OrderedMonomer):
         else:
             return False
 
-    def monomer_eq(self, other):
-        """
-        Similar to equality but doesn't check parent or position. 
-        Direction doesn't matter if either has None for direction, but does matter if direction is not None for both.
-        """
-        c_other = copy.copy(other)
-        c_self = copy.copy(self)
-        other_dir = c_other.direction
-        c_other.remove_attribute(other_dir)
-        self_dir = c_self.direction
-        c_self.remove_attribute(self_dir)
-
-        if isinstance(other, Species) \
-                and c_self.material_type == c_other.material_type \
-                and c_self.name == c_other.name \
-                and set(c_self.attributes) == set(c_other.attributes)\
-                and c_self.compartment == c_other.compartment\
-                and (other_dir is None or self_dir is None or other_dir == self_dir):
-            return True
-        else:
-            return False
-
-    def monomer_count(self, other):
-        return sum([s.monomer_eq(other) for s in self.species])
-
     def __gt__(self, Species2):
         return self.name > Species2.name
 
@@ -292,8 +262,6 @@ class Species(OrderedMonomer):
 
     def __contains__(self, item):
         return item in self.get_species()
-
-
 
     def contains_species_monomer(self, s):
         """Checks if the Species has a monomer (Species) inside of it, 
@@ -868,13 +836,12 @@ class PolymerConformation(Species, MonomerCollection):
         self.complexes = complexes
 
     @classmethod
-    def from_polymer_conformation(cls, pcs, complexes, complexes_to_remove = None, **keywords):
+    def from_polymer_conformation(cls, pcs, complexes, **keywords):
         """
         This function produces a new PolymerConformation from previously existing PolymerConformations and new Complexes.
 
         pcs: a list of PolymerConformations
         complexes: a list of complexes to add to the polymer conformation
-        complexes_to_remove: a list of complexes to remove from the polymer conformation
         """
 
         if not isinstance(pcs, list) or not any([isinstance(pc, PolymerConformation) for pc in pcs]):
@@ -883,12 +850,6 @@ class PolymerConformation(Species, MonomerCollection):
         #generate a list of all complexes
         for pc in pcs:
             complexes += pc.complexes
-
-        #remove complexes
-        if complexes_to_remove is not None:
-            for c in complexes_to_remove:
-                if c in complexes:
-                    complexes.remove(c)
 
         return cls(complexes, **keywords)
 
@@ -1032,7 +993,7 @@ class PolymerConformation(Species, MonomerCollection):
         self._polymers = copied_polymers
 
         #Sort the complexes ordered by their polymer indices then name
-        complex_sort_func = lambda c: (tuple([i for i in self.get_polymer_indices(c) if i is not None]), c)
+        complex_sort_func = lambda c: (tuple(self.get_polymer_indices(c)), c)
         copied_complexes.sort(key = complex_sort_func) 
         self._complexes = copied_complexes
     
@@ -1051,14 +1012,13 @@ class PolymerConformation(Species, MonomerCollection):
 
         return indices
 
-    def get_polymer_positions(self, c):
+    def get_polymer_positions(self, c, polymer_ind):
         #Takes a complex and the index of a polymer in the conformation and returns a list of positions that ComplexSpecies is bound at
+        p = self.polymers[polymer_ind]
         positions = []
-        for s in c.species:
-            if s.parent is not None:
+        for s in c.species():
+            if s.parent is p:
                 positions.append(s.position)
-            else:
-                positions.append(None)
         return positions
 
     def get_polymer(self, p):
@@ -1085,7 +1045,6 @@ class PolymerConformation(Species, MonomerCollection):
         #Removes a copy of this complex from PolymerConformation if possible
         if c in self.complexes:
             self.complexes.remove(c)
-            c.remove()
         else:
             raise ValueError(f"Complex {c} not in PolymerConformation {self}.")
 
@@ -1245,8 +1204,7 @@ class Complex:
 
             #Case 5: Multiple species in one more more PolymerConformations are being Complexed Together
             else:
-                pcs = [] #store the original polymerConformations
-                complexes_to_remove = [] #stores complexes to be removed from teh conformation
+                pcs = []
                 merged_species = other_species #these Species will go inside the ComplexSpecies later
 
                 #Cycle through Species with parents
@@ -1261,17 +1219,15 @@ class Complex:
                         #if the Polymer is already in a Conformation...
                         if p.parent is not None and not any([p.parent is pp for pp in pcs]):
                             pcs.append(p.parent)
-                            #pcs_copies.append(p.parent)
 
                     #if the parent is a PolymerConformation and child is a ComplexSpecies
                     elif isinstance(p, PolymerConformation) and isinstance(s, ComplexSpecies) and not isinstance(s, OrderedPolymerSpecies):
                         #Store all the unique PolymerConformations
                         if not any([p is pp for pp in pcs]):
+                            p = copy.copy(p)
+                            p.remove_complex(s)
                             pcs.append(p)
-                            #pcs_copies.append(p_copy)
 
-                        #s will be removed from the future conformation
-                        complexes_to_remove.append(s)
                         #Merge the species lists
                         merged_species = merged_species[:insertlocs[i]+insert_loc_offset]+s.species+merged_species[insertlocs[i]+insert_loc_offset:]
                         insert_loc_offset += len(s.species)-1 #this takes care of ordering offsets during the merge
@@ -1280,6 +1236,6 @@ class Complex:
 
                 # Create a Complex and merged PolymerConformation
                 new_complex = ComplexClass(merged_species, *args, **keywords)
-                new_pc = PolymerConformation.from_polymer_conformation(pcs, [new_complex], complexes_to_remove = complexes_to_remove)
+                new_pc = PolymerConformation.from_polymer_conformation(pcs, [new_complex])
                 return new_pc.get_complex(new_complex)
 

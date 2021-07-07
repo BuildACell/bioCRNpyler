@@ -118,12 +118,6 @@ class Parameter(object):
     def __hash__(self):
         return hash(self._parameter_name)+hash(self._value)+hash(self._unit)
 
-    def __eq__(self, other):
-        if isinstance(other, Parameter):
-            return self.value == other.value
-        else:
-            return self.value == other
-
 
 class ParameterEntry(Parameter):
     """A class for representing parameters in a parameter stored the ParameterDatabase.
@@ -505,9 +499,8 @@ class ParameterDatabase(object):
             except StopIteration:
                 # we have reached the end of the possible names
                 return_field_names[accepted_name] = None
-                if accepted_name not in ["unit"]:
-                    warn(f"parameter file contains no {accepted_name} column! Please add a "
-                        f"column named {accepted_field_names[accepted_name]}.")
+                warn(f"parameter file contains no {accepted_name} column! Please add a "
+                     f"column named {accepted_field_names[accepted_name]}.")
             else:
                 return_field_names[accepted_name] = accepted_field_names[accepted_name][loc_idx]
 
