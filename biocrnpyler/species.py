@@ -251,6 +251,19 @@ class Species(OrderedMonomer):
         else:
             return False
 
+    def monomer_eq(self, other):
+        """
+        Same as normal equality, but does not check for parents or positions.
+        """
+        if isinstance(other, Species) \
+                and self.material_type == other.material_type \
+                and self.name == other.name \
+                and set(self.attributes) == set(other.attributes)\
+                and self.compartment == other.compartment:
+            return True
+        else:
+            return False
+
     def __gt__(self, Species2):
         return self.name > Species2.name
 
@@ -530,6 +543,11 @@ class ComplexSpecies(Species):
 
         return txt
 
+    def monomer_count(self, m):
+        """
+        Effectively self.species.count(m) using monomer_eq for equality
+        """
+        return sum([s.monomer_eq(m) for s in self.species])
     
 
 
@@ -833,6 +851,9 @@ class PolymerConformation(Species, MonomerCollection):
         """
         Species.__init__(self, name = name, material_type = material_type, **keywords)
 
+        if isinstance(complexes, list) and len(complexes) == 0:
+            complexes = None
+
         if (complexes is not None and polymer is not None) or (complexes is None and polymer is None):
             raise ValueError("PolymerConformation requires either: a list of ComplexSpecies which contain monomers from OrderedPolymerSpecies or a single OrderedPolymerSpecies in its constructor.")
         elif complexes is not None:
@@ -1002,7 +1023,7 @@ class PolymerConformation(Species, MonomerCollection):
             c_copy.parent = self
             copied_complexes.append(c_copy)
 
-        self._polymers = copied_polymers
+        self.polymers = copied_polymers
 
         #Sort the complexes ordered by their polymer indices then name
         if len(copied_complexes)>0:
@@ -1030,9 +1051,11 @@ class PolymerConformation(Species, MonomerCollection):
         #Takes a complex and the index of a polymer in the conformation and returns a list of positions that ComplexSpecies is bound at
         p = self.polymers[polymer_ind]
         positions = []
-        for s in c.species():
+        for s in c.species:
             if s.parent is p:
                 positions.append(s.position)
+            else:
+                positions.append(None)
         return positions
 
     def get_polymer(self, p):
@@ -1044,6 +1067,15 @@ class PolymerConformation(Species, MonomerCollection):
             return self.polymers[i]
         else:
             return None
+
+    def count_polymer(self, p):
+        p = copy.copy(p)
+        p.parent = self
+        count = 0
+        for pp in self.polymers:
+            if p == pp:
+                count += 1
+        return count
 
     def get_complex(self, c):
         #takes a ComplexSpecies and returns the instance of this Species in the PolymerConformation (or None)
@@ -1065,19 +1097,24 @@ class PolymerConformation(Species, MonomerCollection):
     @property
     def name(self):
         if self._name is None:
-            name = ""
-            for p in self.polymers:
-                name += "_"+str(p)
-            for c in self.complexes:
-                parent_inds = self.get_polymer_indices(c)
-                name += "_"
-                for ind in parent_inds:
-                    if ind is None:
-                        name+="n"
-                    else:
-                        name+=f"p{ind}"
-                name += "_"+str(c)
-            return name
+            #If there is nothing in the PolymerConformation, use the name of the internal OrderedPolymerSpecies
+            if len(self.complexes) == 0 and len(self.polymers) == 1:
+                return str(self.polymers[0])
+            else:
+
+                name = ""
+                for p in self.polymers:
+                    name += "_"+str(p)
+                for c in self.complexes:
+                    parent_inds = self.get_polymer_indices(c)
+                    name += "_"
+                    for ind in parent_inds:
+                        if ind is None:
+                            name+="n"
+                        else:
+                            name+=f"p{ind}"
+                    name += "_"+str(c)
+                return name
         else:
             return self._name
 
@@ -1089,9 +1126,15 @@ class PolymerConformation(Species, MonomerCollection):
         """
         PolymerConformations add an additional "_" onto the end of their string representation
         This ensures that some edge cases are differentiated.
+
+        A PolymerConformation with no attributes or complexes consisting of just one OrderedPolymerSpecies uses the same representation as the OrderedPolymerSpecies.
         """
-        txt = Species.__repr__(self)
-        txt += "_"
+        if len(self.complexes) == 0 and len(self.polymers) == 1:
+            txt = Species.__repr__(self)
+            txt = txt.replace("conformation_", "")
+        else: 
+            txt = Species.__repr__(self)
+            txt += "_"
         return txt
 
 

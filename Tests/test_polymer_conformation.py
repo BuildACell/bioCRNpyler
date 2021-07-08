@@ -6,6 +6,24 @@ from biocrnpyler import *
 
 from biocrnpyler import OrderedPolymerSpecies, PolymerConformation, Complex, Species
 
+def test_polymer_conformation_no_complex_instantiation():
+    p = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
+    pc = PolymerConformation(polymer = p)
+    c1 = ComplexSpecies([p[0], p[1], Species("S")], called_from_complex = True)
+
+    assert str(pc) == str(p) #these should have the same name!
+    assert str(p) == str(pc.polymers[0])
+    assert len(pc.complexes) == 0
+
+    with pytest.raises(AssertionError):
+        pc = PolymerConformation(polymer = [p, p])
+
+    with pytest.raises(ValueError):
+        pc = PolymerConformation(polymer = p, complexes = [c1])
+
+    with pytest.raises(ValueError):
+        pc = PolymerConformation()
+
 def test_single_polymer_single_complex_instantiation():
     p = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
     c1 = ComplexSpecies([p[0], p[1], Species("S")], called_from_complex = True)
@@ -17,7 +35,7 @@ def test_single_polymer_single_complex_instantiation():
     c2 = ComplexSpecies([p[0], p2[0]], called_from_complex = True)
 
     #In these cases, TypeErrors should be raised
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         #Emtpy complexes is not allowed
         pc2 = PolymerConformation(complexes = [])
 
@@ -201,7 +219,10 @@ def test_get_complex():
     assert str(pc.get_complex(c1)) == str(c1) #these are not technically equal because they have different parents
 
     
-    
+def test_polymer_conformation_ordered_polymer_species_name_equality():
+    p = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
+    pc = PolymerConformation(polymer = p)
+    assert str(p) == str(pc)
     
 
 
