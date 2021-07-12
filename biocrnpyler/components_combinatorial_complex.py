@@ -238,7 +238,6 @@ class CombinatorialComplex(Component):
 
             return combinations
             
-
     def update_species(self):
         mech_b = self.get_mechanism("binding")
         species = []
@@ -305,7 +304,7 @@ class CombinatorialComplex(Component):
 
                     #iterate through combinations of species between s0 and si
                     for binder, bindee, cs in self.combination_dict[s0, si]:
-                        if (binder, bindee, cs) not in reactions_added_dict:
+                        if (binder, bindee, cs) not in reactions_added_dict and (bindee, binder, cs) not in reactions_added_dict:
                             reactions_added_dict[binder, bindee, cs] = True
                             reactions += mech_b.update_reactions(binder = binder, bindee = bindee, complex_species = cs, 
                             component = self, part_id = self.name+"_"+str(binder)+"_"+str(bindee))
@@ -318,7 +317,7 @@ class CombinatorialComplex(Component):
 
                     #iterate through combinations of species between si and sf
                     for binder, bindee, cs in self.combination_dict[si, sf]:
-                        if (binder, bindee, cs) not in reactions_added_dict:
+                        if (binder, bindee, cs) not in reactions_added_dict and (bindee, binder, cs) not in reactions_added_dict:
                             reactions_added_dict[binder, bindee, cs] = True
                             reactions += mech_b.update_reactions(binder = binder, bindee = bindee, complex_species = cs, 
                             component = self, part_id = self.name+"_"+str(binder)+"_"+str(bindee))
@@ -333,7 +332,7 @@ class CombinatorialComplex(Component):
                         
                     #iterate through combinations of species between s0 and sf
                     for binder, bindee, cs in self.combination_dict[s0, sf]:
-                        if (binder, bindee, cs) not in reactions_added_dict:
+                        if (binder, bindee, cs) not in reactions_added_dict and (bindee, binder, cs) not in reactions_added_dict:
                             reactions_added_dict[binder, bindee, cs] = True
                             reactions += mech_b.update_reactions(binder = binder, bindee = bindee, complex_species = cs, 
                             component = self, part_id = self.name+"_"+str(binder)+"_"+str(bindee))

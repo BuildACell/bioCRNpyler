@@ -706,13 +706,13 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         #self.species = []
         monomers = []
         for specie in species:
-            if isinstance(specie, Species) and isinstance(specie, OrderedMonomer):
+            if isinstance(specie, OrderedPolymer) or isinstance(specie, PolymerConformation):
+                raise NotImplementedError(
+                    f"OrderedPolymer and PolymerConformation cannot be used as a Monomer at this time.")
+            elif isinstance(specie, Species) and isinstance(specie, OrderedMonomer):
                 monomers += [specie]
             elif (isinstance(specie, tuple) or isinstance(specie, list)) and (isinstance(specie[0], Species) and isinstance(specie[0], OrderedMonomer)):
                 monomers += [specie]
-            elif isinstance(specie, OrderedPolymer):
-                raise NotImplementedError(
-                    f"OrderedPolymer cannot be used as a Monomer at this time.")
             else:
                 raise ValueError(
                     "{} should be a Species or list [Species, 'direction']".format(specie))
@@ -861,11 +861,16 @@ class PolymerConformation(Species, MonomerCollection):
         elif polymer is not None:
             #This order matters because complexes resets polymers
             self.complexes = []
-            self.polymers = [copy.deepcopy(polymer)]
+            if isinstance(polymer, OrderedPolymerSpecies):
+                self.polymers = [copy.deepcopy(polymer)]
+            elif isinstance(polymer, list) and [isinstance(m, Species) for m in polymer]:
+                self.polymers = [OrderedPolymerSpecies(polymer)]
+            else:
+                raise ValueError(f'polymer must be an OrderedPolymerSpecies or a list of Species. Received: {polymer}.')
 
 
     @classmethod
-    def from_polymer_conformation(cls, pcs, complexes, **keywords):
+    def from_polymer_conformation(cls, pcs, complexes = None, complexes_to_remove = None, **keywords):
         """
         This function produces a new PolymerConformation from previously existing PolymerConformations and new Complexes.
 
@@ -876,9 +881,16 @@ class PolymerConformation(Species, MonomerCollection):
         if not isinstance(pcs, list) or not any([isinstance(pc, PolymerConformation) for pc in pcs]):
             raise TypeError(f"pcs must be a list of PolymerConformations. Recieved {pcs}.")
 
+        if complexes is None:
+            complexes = []
+        if complexes_to_remove is None:
+            complexes_to_remove = []
+
         #generate a list of all complexes
         for pc in pcs:
-            complexes += pc.complexes
+            for c in pc.complexes:
+                if not any([c == cc for cc in complexes_to_remove]):
+                    complexes.append(c)
 
         return cls(complexes, **keywords)
 
@@ -940,6 +952,23 @@ class PolymerConformation(Species, MonomerCollection):
             keywords["attributes"] = pc.attributes
 
         return cls(new_complexes, **keywords)
+
+    def remove_complexes(self, complexes):
+        """
+        Returns a new PolymerConformation without these complexes
+        """
+
+        if not isinstance(complexes, list):
+            complexes = [complexes]
+
+        #Check if the complexes are in the PolymerConformation
+        for c in complexes:
+            if c not in self.complexes:
+                raise ValueError(f"Complex {c} not in PolymerConformation {self}.")
+
+        new_complexes = [c for c in self.complexes if c not in complexes]
+
+        return PolymerConformation(complexes = new_complexes)
 
     #To be a valid MonomerCollection
     @property
@@ -1108,11 +1137,14 @@ class PolymerConformation(Species, MonomerCollection):
                 for c in self.complexes:
                     parent_inds = self.get_polymer_indices(c)
                     name += "_"
-                    for ind in parent_inds:
+                    for i, ind in enumerate(parent_inds):
                         if ind is None:
                             name+="n"
                         else:
-                            name+=f"p{ind}"
+                            locs = self.get_polymer_positions(c, ind)
+                            loc = locs[i]
+
+                            name+=f"p{ind}l{loc}"
                     name += "_"+str(c)
                 return name
         else:
