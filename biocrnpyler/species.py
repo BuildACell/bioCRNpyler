@@ -1085,7 +1085,7 @@ class PolymerConformation(Species, MonomerCollection):
                 positions.append(s.position)
             else:
                 positions.append(None)
-        return positions
+        return tuple(positions)
 
     def get_polymer(self, p):
         #Takes a polymer and returns a matching instance inside self.polymers (or None)
