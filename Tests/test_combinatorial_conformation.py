@@ -110,12 +110,16 @@ def test_compute_species_changes():
     pc0 = PolymerConformation(polymer = p0)
     c1 = Complex([pc0.polymers[0][0], pc0.polymers[0][1]])
     pc1 = c1.parent
+    ind_c1 = pc1.get_polymer_positions(c1, 0)
     c2 = Complex([pc0.polymers[0][0], pc0.polymers[0][1], pc0.polymers[0][2], S, S])
     pc2 = c2.parent
+    ind_c2 = pc2.get_polymer_positions(c2, 0)
     c3 = Complex([pc1.polymers[0][2], pc1.polymers[0][3], Z])
     pc3 = c3.parent
+    ind_c3 = pc3.get_polymer_positions(c3, 0)
     c4 = Complex([pc0.polymers[0][0], pc0.polymers[0][1], pc0.polymers[0][2], pc0.polymers[0][3], Z])
     pc4 = c4.parent
+    ind_c4 = pc4.get_polymer_positions(c4, 0)
 
 
     print("pc0", pc0, "\npc1", pc1, "\npc2", pc2, "\npc3", pc3, "\npc4", pc4)
@@ -125,47 +129,46 @@ def test_compute_species_changes():
 
     #No additional species added
     SC, MC = CC.compute_species_changes(s0 = pc0, sf = pc1)
-    assert c1 in SC
-    assert len(SC[c1]) == 0
-    assert c1 in MC
-    assert len(MC[c1]) == 0
+    assert (c1, ind_c1) in SC
+    assert len(SC[(c1, ind_c1)]) == 0
+    assert (c1, ind_c1) in MC
+    assert len(MC[(c1, ind_c1)]) == 0
 
     #External Species added
     SC, MC = CC.compute_species_changes(s0 = pc0, sf = pc2)
-    assert c2 in SC
-    assert len(SC[c2]) == 2 and S in SC[c2]
+    assert (c2, ind_c2) in SC
+    assert len(SC[(c2, ind_c2)]) == 2 and S in SC[(c2, ind_c2)]
     assert all([len(MC[cf]) == 0 for cf in MC])
 
     #Multiple Complexes created
     SC, MC = CC.compute_species_changes(s0 = pc0, sf = pc3)
-    assert pc3.complexes[0] in SC and pc3.complexes[1] in SC
-    assert len(SC[pc3.complexes[0]]) == 0
-    assert len(SC[pc3.complexes[1]]) == 1 and Z in SC[pc3.complexes[1]]
+    assert (pc3.complexes[0], ind_c1) in SC and (pc3.complexes[1], ind_c3) in SC
+    assert len(SC[pc3.complexes[0], ind_c1]) == 0
+    assert len(SC[pc3.complexes[1], ind_c3]) == 1 and Z in SC[pc3.complexes[1], ind_c3]
     assert all([len(MC[cf]) == 0 for cf in MC])
 
     #A single complex created, from a conformation with complexes
     SC, MC = CC.compute_species_changes(s0 = pc1, sf = pc3)
-    assert pc3.complexes[0] not in SC and pc3.complexes[1] in SC
-    assert len(SC[pc3.complexes[1]]) == 1 and Z in SC[pc3.complexes[1]]
-    assert tuple(MC[pc3.complexes[0]]) == tuple([pc1.complexes[0]]) and len(MC[pc3.complexes[1]]) == 0
+    assert (pc3.complexes[0], ind_c1) not in SC and (pc3.complexes[1], ind_c3) in SC
+    assert len(SC[pc3.complexes[1], ind_c3]) == 1 and Z in SC[pc3.complexes[1], ind_c3]
+    assert len(MC[pc3.complexes[1], ind_c3]) == 0
 
     #Adding species to an existing Complex
     SC, MC = CC.compute_species_changes(s0 = pc1, sf = pc2)
-    assert pc1.complexes[0] not in SC and pc2.complexes[0] in SC
-    assert len(SC[pc2.complexes[0]]) == 2 and S in SC[pc2.complexes[0]]
-    print("MC", MC)
-    assert pc1.complexes[0] in MC[pc2.complexes[0]]
+    assert (pc1.complexes[0], ind_c1) not in SC and (pc2.complexes[0], ind_c2) in SC
+    assert len(SC[pc2.complexes[0], ind_c2]) == 2 and S in SC[pc2.complexes[0], ind_c2]
+    assert pc1.complexes[0] in MC[pc2.complexes[0], ind_c2]
 
     #adding species (including inside the polymer) to an existing complex
     SC, MC = CC.compute_species_changes(s0 = pc1, sf = pc4)
-    assert pc1.complexes[0] not in SC and pc4.complexes[0] in SC
-    assert Z in SC[pc4.complexes[0]] and len(SC[pc4.complexes[0]]) == 1
-    assert pc1.complexes[0] in MC[pc4.complexes[0]]
+    assert (pc1.complexes[0], ind_c1) not in SC and (pc4.complexes[0], ind_c4) in SC
+    assert Z in SC[pc4.complexes[0], ind_c4] and len(SC[pc4.complexes[0], ind_c4]) == 1
+    assert pc1.complexes[0] in MC[pc4.complexes[0], ind_c4]
 
     #merging two complexes
     SC, MC = CC.compute_species_changes(s0 = pc3, sf = pc4)
-    assert pc3.complexes[0] not in SC and pc3.complexes[1] not in SC and pc4.complexes[0] not in SC
-    assert pc3.complexes[0] in MC[pc4.complexes[0]] and pc3.complexes[1] in MC[pc4.complexes[0]]
+    assert (pc3.complexes[0], ind_c1) not in SC and (pc3.complexes[1], ind_c3) not in SC and (pc4.complexes[0], ind_c4) not in SC
+    assert pc3.complexes[0] in MC[pc4.complexes[0], ind_c4] and pc3.complexes[1] in MC[pc4.complexes[0], ind_c4]
 
     #Cases where compute_species_changes should return False
 

@@ -51,6 +51,7 @@ class Promoter(DNA_part):
 
         DNA_part.__init__(self, name = name, mechanisms = mechanisms,
                            parameters = parameters, assembly=assembly, **keywords)
+
     def update_species(self):
         mech_tx = self.get_mechanism("transcription")
         species = []
@@ -60,6 +61,7 @@ class Promoter(DNA_part):
             component = self, part_id = self.name)
 
         return species
+
     @property
     def dna_to_bind(self):
         if(self._dna_bind is None):
@@ -68,9 +70,11 @@ class Promoter(DNA_part):
             else:
                 self._dna_bind = self.assembly.dna
         return self._dna_bind
+
     @dna_to_bind.setter
     def dna_to_bind(self,value):
         self._dna_bind = value
+        
     def get_species(self):
         return None
 

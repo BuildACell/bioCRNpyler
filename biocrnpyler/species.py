@@ -953,7 +953,7 @@ class PolymerConformation(Species, MonomerCollection):
 
         return cls(new_complexes, **keywords)
 
-    def remove_complexes(self, complexes):
+    def copy_remove_complexes(self, complexes):
         """
         Returns a new PolymerConformation without these complexes
         """
@@ -1004,9 +1004,9 @@ class PolymerConformation(Species, MonomerCollection):
         if not isinstance(complexes, list) or not all([isinstance(c, ComplexSpecies) for c in complexes]):
             raise TypeError(f"complexes must be a list containing ComplexSpecies. Recieved {complexes}.")
 
-        if any([sum([cc==c and cc.species == c.species for cc in complexes]) > 1 for c in complexes]):
-            raise ValueError("Complexes contains two identical complexes.")
-
+        complex_counts = [(sum([cc==c and cc.species == c.species for cc in complexes]), c) for c in complexes]
+        if any([i[0] > 1 for i in complex_counts]):
+            raise ValueError(f"Complexes contains two or more identical complexes. Recieved: {[c[1] for c in complex_counts if c[0]>1]}.")
 
         #Sort the complexes by their name, and the ids of the polymers inside of them to get a unique ordering for identically named Complexes and Polymers
         #this will produce a unique ordering of the internal polymers as well
@@ -1123,6 +1123,15 @@ class PolymerConformation(Species, MonomerCollection):
         else:
             raise ValueError(f"Complex {c} not in PolymerConformation {self}.")
 
+    def get_complexes_at(self, p_ind, p_pos):
+        #returns all complexes in polymer p_ind bound to location p_pos
+        found_complexes = []
+        for c in self.complexes:
+            for s in c.species:
+                if s.parent == self.polymers[p_ind] and s.position == p_pos:
+                    found_complexes.append(c)
+        return found_complexes
+
     @property
     def name(self):
         if self._name is None:
@@ -1141,7 +1150,7 @@ class PolymerConformation(Species, MonomerCollection):
                         if ind is None:
                             name+="n"
                         else:
-                            locs = self.get_polymer_positions(c, ind)
+                            locs = list(self.get_polymer_positions(c, ind))
                             loc = locs[i]
 
                             name+=f"p{ind}l{loc}"
