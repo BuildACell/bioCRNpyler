@@ -170,7 +170,7 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,\
     edges_renderer.node_renderer.glyph = Circle(
         size=12, line_alpha=0, fill_alpha=0, fill_color="color")
     edges_renderer.edge_renderer.glyph = MultiLine(
-        line_alpha=0.2, line_width=4, line_join="round")
+        line_alpha=0.2, line_width=4, line_join="round", line_color="color")
     edges_renderer.edge_renderer.selection_glyph = MultiLine(
         line_color=Spectral4[2], line_width=5, line_join="round")
     edges_renderer.edge_renderer.hover_glyph = MultiLine(
@@ -366,34 +366,34 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
         for reactant in rxn.inputs:
             
             CRNgraph.add_edge(nodedict[reactant.species],allnodenum,weight=kval)
-            CRNgraph.edges[nodedict[reactant.species],allnodenum]['color'] = edge_color
+            CRNgraph.edges[nodedict[reactant.species],allnodenum]['color'] = reaction_color
             if(krev_val is not None):
                 # if the k is 0 then the node does not exist, right?
                 CRNgraph.add_edge(
                     allnodenum, nodedict[reactant.species], weight=krev_val)
-                CRNgraph.edges[allnodenum, nodedict[reactant.species]]['color'] = edge_color
+                CRNgraph.edges[allnodenum, nodedict[reactant.species]]['color'] = reaction_color
         for product in rxn.outputs:
             #TODO species cannot find another species in the nodedict????
             CRNgraph.add_edge(allnodenum,nodedict[product.species],weight=kval)
-            CRNgraph.edges[allnodenum,nodedict[product.species]]['color'] = edge_color
+            CRNgraph.edges[allnodenum,nodedict[product.species]]['color'] = reaction_color
             if(krev_val is not None):
                 CRNgraph.add_edge(
                     nodedict[product.species], allnodenum, weight=krev_val)
-                CRNgraph.edges[nodedict[product.species], allnodenum]['color'] = edge_color
+                CRNgraph.edges[nodedict[product.species], allnodenum]['color'] = reaction_color
         if(len(rxn.outputs) == 0):
             # this adds an edge to the "nothing" node we made in the beginning
             CRNgraph.add_edge(allnodenum, 0, weight=kval)
-            CRNgraph.edges[allnodenum, 0]['color'] = edge_color
+            CRNgraph.edges[allnodenum, 0]['color'] = reaction_color
             if(krev_val is not None):
                 CRNgraph.add_edge(0, allnodenum, weight=krev_val)
-                CRNgraph.edges[0, allnodenum]['color'] = edge_color
+                CRNgraph.edges[0, allnodenum]['color'] = reaction_color
         elif(len(rxn.inputs) == 0):
             # this adds an edge from the "nothing" node we made in the beginning
             CRNgraph.add_edge(0, allnodenum, weight=kval)
-            CRNgraph.edges[0, allnodenum]['color'] = edge_color
+            CRNgraph.edges[0, allnodenum]['color'] = reaction_color
             if(krev_val is not None):
                 CRNgraph.add_edge(allnodenum, 0, weight=krev_val)
-                CRNgraph.edges[allnodenum, 0]['color'] = edge_color
+                CRNgraph.edges[allnodenum, 0]['color'] = reaction_color
         
         CRNgraph.nodes[allnodenum]["color"] = reaction_color
         if(not use_pretty_print):
