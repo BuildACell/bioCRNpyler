@@ -127,6 +127,9 @@ def member_dictionary_search(member,dictionary):
                         warn(f"dictionary search output was {out_value} but now it will be {cur_value}")
                     out_value = cur_value
 
+            if 'reaction' in dictionary:
+                out_value = dictionary['reaction']
+
         except KeyError:
             pass
         return out_value

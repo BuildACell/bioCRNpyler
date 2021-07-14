@@ -278,6 +278,7 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
                      "ligand": "pink", "phosphate": "yellow", "nothing": "purple"}
     CRNgraph = nx.DiGraph()
     allnodenum = 1  # every node has an index
+    alledgenum = 0 #every edge has an index
     # this starts at 1 because "nothing" is node 0
     nodedict = {}  # this is so that we can write out the reactions in
     # the reaction "species" field
@@ -289,7 +290,16 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     # isn't use for anything. But i think it's good to have just in case.
     
     default_species_color = "grey"
-    default_reaction_color = "cornflowerblue"
+    if colordict is None or 'reaction' not in colordict:
+        default_reaction_color = "cornflowerblue"
+    else:
+        default_reaction_color = colordict['reaction']
+
+    if colordict is None or 'edge' not in colordict:
+        edge_color = 'gray'
+    else:
+        edge_color = colordict['edge']
+
     nodedict["nothing"] = 0
     CRNgraph.add_node(0)
     CRNgraph.nodes[0]["type"] = "nothing"
@@ -325,8 +335,11 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
                 rxn.propensity_type.k_forward)
             CRNgraph.nodes[allnodenum]["k_r"] = str(
                 rxn.propensity_type.k_reverse)
-        else:
+        elif hasattr(rxn.propensity_type, "k"):
             CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
+            CRNgraph.nodes[allnodenum]["k_r"] = ''
+        else:
+            CRNgraph.nodes[allnodenum]["k"] = ''
             CRNgraph.nodes[allnodenum]["k_r"] = ''
 
         reaction_color = member_dictionary_search(rxn,colordict)
@@ -336,9 +349,11 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
         if isinstance(rxn.propensity_type, MassAction):
             kval = rxn.propensity_type.k_forward
             CRNgraph.nodes[allnodenum]["k"] = str(kval)
-        else:
+        elif hasattr(rxn.propensity_type, "k"):
             kval = rxn.propensity_type.k
             CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
+        else:
+            CRNgraph.nodes[allnodenum]["k"] = ''
 
         if(not useweights):
             kval = 1
@@ -351,26 +366,34 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
         for reactant in rxn.inputs:
             
             CRNgraph.add_edge(nodedict[reactant.species],allnodenum,weight=kval)
+            CRNgraph.edges[nodedict[reactant.species],allnodenum]['color'] = edge_color
             if(krev_val is not None):
                 # if the k is 0 then the node does not exist, right?
                 CRNgraph.add_edge(
                     allnodenum, nodedict[reactant.species], weight=krev_val)
+                CRNgraph.edges[allnodenum, nodedict[reactant.species]]['color'] = edge_color
         for product in rxn.outputs:
             #TODO species cannot find another species in the nodedict????
             CRNgraph.add_edge(allnodenum,nodedict[product.species],weight=kval)
+            CRNgraph.edges[allnodenum,nodedict[product.species]]['color'] = edge_color
             if(krev_val is not None):
                 CRNgraph.add_edge(
                     nodedict[product.species], allnodenum, weight=krev_val)
+                CRNgraph.edges[nodedict[product.species], allnodenum]['color'] = edge_color
         if(len(rxn.outputs) == 0):
             # this adds an edge to the "nothing" node we made in the beginning
             CRNgraph.add_edge(allnodenum, 0, weight=kval)
+            CRNgraph.edges[allnodenum, 0]['color'] = edge_color
             if(krev_val is not None):
                 CRNgraph.add_edge(0, allnodenum, weight=krev_val)
+                CRNgraph.edges[0, allnodenum]['color'] = edge_color
         elif(len(rxn.inputs) == 0):
             # this adds an edge from the "nothing" node we made in the beginning
             CRNgraph.add_edge(0, allnodenum, weight=kval)
+            CRNgraph.edges[0, allnodenum]['color'] = edge_color
             if(krev_val is not None):
                 CRNgraph.add_edge(allnodenum, 0, weight=krev_val)
+                CRNgraph.edges[allnodenum, 0]['color'] = edge_color
         
         CRNgraph.nodes[allnodenum]["color"] = reaction_color
         if(not use_pretty_print):
@@ -864,7 +887,7 @@ def render_constructs(constructs,color_dictionary=None):
 def render_mixture(mixture,crn,color_dictionary=None,output = None,compiled_components=None):
     plotter = CRNPlotter(colordict=color_dictionary)
     return plotter.renderMixture(mixture,crn,output=output,compiled_components=compiled_components)
-def render_network_bokeh(CRN,layout="force",\
+def render_network_bokeh(CRN,layout="force", layoutfunc = None,
                         iterations=2000,rseed=30,posscale=1,export=False,**keywords):
     DG, DGspec, DGrxn = generate_networkx_graph(CRN,**keywords) #this creates the networkx objects
     plot = Plot(plot_width=500, plot_height=500, x_range=Range1d(-500, 500), y_range=Range1d(-500, 500)) #this generates a 
@@ -874,7 +897,7 @@ def render_network_bokeh(CRN,layout="force",\
         show_im = True
     if(export):
         plot.output_backend = "svg"
-    graphPlot(DG,DGspec,DGrxn,plot,layout=layout,posscale=posscale,iterations=iterations,rseed=rseed,show_species_images=show_im) 
+    graphPlot(DG,DGspec,DGrxn,plot,layout=layout,posscale=posscale,iterations=iterations,rseed=rseed,show_species_images=show_im,layoutfunc=layoutfunc) 
     if(export):
         export_svgs(plot,filename=CRN.name+".svg")
     return plot

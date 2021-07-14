@@ -9,6 +9,7 @@ from . mechanisms_conformation import One_Step_Reversible_Conformation_Change
 from .dna_part_promoter import Promoter
 from itertools import permutations
 import copy
+import warnings
 
 class CombinatorialConformation(Component):
     """
@@ -130,7 +131,7 @@ class CombinatorialConformation(Component):
             self._excluded_states = excluded_states
 
     def compute_species_changes(self, s0, sf):
-        print("computing species changes between", s0, "and", sf)
+        #print("computing species changes between", s0, "and", sf)
         #Compute Species that need to be added to s0 to get the PolymerConformation sf
         #Assumes the underlying internal polymer is the same
         #Computes a list of moves to go from s0 --> sf. Each move produces one of the Complexes in SF
@@ -182,11 +183,11 @@ class CombinatorialConformation(Component):
                     species_changes[cf, pf_inds] = [cf_species_and_inds[i][0] for i in range(len(cf_species_and_inds_str)) if (cf_species_and_inds_str[i] not in sub_complex_species_and_inds_str and cf_species_and_inds[i][1] is None)]
         #If any complex cannot be created, return False
         if species_changes == False or any([species_changes[k] is False for k in species_changes]) or (len(species_changes) == 0 and len(merged_complexes) == 0):
-            print("cannot convert.")
+            #print("cannot convert.")
             return False
         else:
-            print("species_changes =", species_changes)
-            print("merged_complexes =", merged_complexes)
+            #print("species_changes =", species_changes)
+            #print("merged_complexes =", merged_complexes)
             return species_changes, merged_complexes
 
 
@@ -195,7 +196,7 @@ class CombinatorialConformation(Component):
         """
         Returns a list of 
         """
-        print("geting combinations between", s0, "and", sf)
+        #print("geting combinations between", s0, "and", sf)
         X = self.compute_species_changes(s0, sf)
 
 
@@ -206,7 +207,7 @@ class CombinatorialConformation(Component):
             changes_list = []
             for cf in sf.complexes:
                 inds = sf.get_polymer_positions(cf, 0)
-                print("checking ", cf, "inds =", inds, "in species_changes", (cf, inds) in species_changes, "in merged_complexes", (cf, inds) in merged_complexes)
+                #print("checking ", cf, "inds =", inds, "in species_changes", (cf, inds) in species_changes, "in merged_complexes", (cf, inds) in merged_complexes)
 
                 if ((cf, inds) in merged_complexes and len(merged_complexes[(cf, inds)]) == 1 and merged_complexes[(cf, inds)][0].monomer_eq(cf)) or (cf, inds) not in merged_complexes:
                     complexes_to_merge = None
@@ -218,7 +219,7 @@ class CombinatorialConformation(Component):
                 else:
                     species_to_add = species_changes.get((cf, inds))
 
-                print("(cf, inds, species_to_add, complexes_to_merge)=", (cf, inds, species_to_add, complexes_to_merge))
+                #print("(cf, inds, species_to_add, complexes_to_merge)=", (cf, inds, species_to_add, complexes_to_merge))
                 if species_to_add is not None or complexes_to_merge is not None:
                     changes_list.append((cf, inds, species_to_add, complexes_to_merge))
 
@@ -262,7 +263,7 @@ class CombinatorialConformation(Component):
 
                     #update bindee
                     old_state = new_state
-            print("combinations = ", combinations)
+            #print("combinations = ", combinations)
             return combinations
 
     def _get_part_id(self, state):
@@ -393,15 +394,31 @@ class CombinatorialConformationPromoter(CombinatorialConformation, Promoter):
         :param excluded_states: a list of intermediate PolymerConformations which will not be formed during enumeration.
                                 if None: no intermediates will be excluded.
         :param state_part_ids: a dictionary {PolymerConformation : str} used to generate shorter part-ids for this conformation
+        :param activating_complexes: a list of ComplexSpecies which activate PolymerConformations allowing them to be transcribed.
+        :param inactivating_complexes: a list of ComplexSpecies which innactive the PolymerConformation, preventing transcription.
 
     """
-    def __init__(self, promoter_states, promoter_location, promoter_states_on = True, name = "CombinatorialConformationPromoter", **keywords):
+    def __init__(self, promoter_states, promoter_location, promoter_states_on = True, activating_complexes = None, inactivating_complexes = None,
+        name = "CombinatorialConformationPromoter", **keywords):
         
         Promoter.__init__(self, name, **keywords)
         CombinatorialConformation.__init__(self, name = name, **keywords)
 
         self.promoter_states = promoter_states
         self.promoter_states_on = promoter_states_on
+
+        if activating_complexes is None:
+            self.activating_complexes = []
+        else:
+            self.activating_complexes = activating_complexes
+
+        if inactivating_complexes is None:
+            self.inactivating_complexes = []
+        else:
+            self.inactivating_complexes = inactivating_complexes
+
+        assert all([isinstance(c, ComplexSpecies) for c in self.activating_complexes])
+        assert all([isinstance(c, ComplexSpecies) for c in self.inactivating_complexes])
 
         if promoter_location not in range(len(self.internal_polymer)):
             raise ValueError(f"promoter_location must be an index of the polymer {self.internal_polymer}. Recieved {promoter_location}.")
@@ -429,10 +446,28 @@ class CombinatorialConformationPromoter(CombinatorialConformation, Promoter):
     def update_species(self):
         self.conformation_species = CombinatorialConformation.update_species(self)
         promoter_species = []
+        old_name = self.name
         for s in self.conformation_species:
-            if isinstance(s, PolymerConformation) and ((s in self.promoter_states and self.promoter_states_on) or (s not in self.promoter_states and not self.promoter_states_on)):
-                self.dna_to_bind = s.polymers[0][self.promoter_location]
-                promoter_species += Promoter.update_species(self)
+            if isinstance(s, PolymerConformation):
+                active_state = False
+                if  (s in self.promoter_states and self.promoter_states_on) or (s not in self.promoter_states and not self.promoter_states_on):
+                    active_state = True
+
+                active_complex = False
+                if any([s.get_complex(c) is not None for c in self.activating_complexes]):
+                    active_complex = True
+
+                innactive_complex = False
+                if any([s.get_complex(c) is not None for c in self.inactivating_complexes]):
+                    innactive_complex = True
+                    if (active_state and len(self.promoter_states)>0) or active_complex:
+                        warnings.warn("innactive_complex conflicts with active_complex or active_state in CombinatorialConformationPromoter. Defaulting to innactive.")
+                        
+                if (active_state or active_complex) and not innactive_complex:
+                    self.dna_to_bind = s.polymers[0][self.promoter_location]
+                    self.name = self._get_part_id(s) #Reset name for unique addressable promoter states
+                    promoter_species += Promoter.update_species(self)
+        
         return list(set(promoter_species+self.conformation_species))
 
     def update_reactions(self):
@@ -440,11 +475,27 @@ class CombinatorialConformationPromoter(CombinatorialConformation, Promoter):
             self.update_species
 
         conformation_reactions = CombinatorialConformation.update_reactions(self)
-
         promoter_reactions = []
+        old_name = self.name
         for s in self.conformation_species:
-            if isinstance(s, PolymerConformation) and ((s in self.promoter_states and self.promoter_states_on) or (s not in self.promoter_states and not self.promoter_states_on)):
-                self.dna_to_bind = s.polymers[0][self.promoter_location]
-                promoter_reactions += Promoter.update_reactions(self)
+            if isinstance(s, PolymerConformation):
+                active_state = False
+                if  (s in self.promoter_states and self.promoter_states_on) or (s not in self.promoter_states and not self.promoter_states_on):
+                    active_state = True
 
+                active_complex = False
+                if any([s.get_complex(c) is not None for c in self.activating_complexes]):
+                    active_complex = True
+
+                innactive_complex = False
+                if any([s.get_complex(c) is not None for c in self.inactivating_complexes]):
+                    innactive_complex = True
+                    if (active_state and len(self.promoter_states)>0) or active_complex:
+                        warnings.warn("innactive_complex conflicts with active_complex or active_state in CombinatorialConformationPromoter. Defaulting to innactive.")
+                        
+                if (active_state or active_complex) and not innactive_complex:
+                    self.dna_to_bind = s.polymers[0][self.promoter_location]
+                    self.name = self._get_part_id(s) #Reset name for unique addressable promoter states
+                    promoter_reactions += Promoter.update_reactions(self)
+        self.name = old_name
         return promoter_reactions + conformation_reactions
