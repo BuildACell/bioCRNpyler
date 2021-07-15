@@ -1110,11 +1110,13 @@ class PolymerConformation(Species, MonomerCollection):
         #takes a ComplexSpecies and returns the instance of this Species in the PolymerConformation (or None)
         c = copy.copy(c)
         c.parent = self
-        if c in self.complexes:
-            i = self.complexes.index(c)
-            return self.complexes[i]
-        else:
-            return None
+        #if c in self.complexes:
+        #    i = self.complexes.index(c)
+        #    return self.complexes[i]
+        for cc in self.complexes:
+            if cc == c and [(s.position, str(s.parent)) for s in c.species] == [(s.position, str(s.parent)) for s in cc.species]:
+                return cc
+        return None
 
     def remove_complex(self, c):
         #Removes a copy of this complex from PolymerConformation if possible

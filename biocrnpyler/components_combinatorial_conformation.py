@@ -70,6 +70,9 @@ class CombinatorialConformation(Component):
         if not all([str(p) == str(self.internal_polymer) for s in states for p in s.polymers]):
             raise ValueError(f"All PolymerConformations in {input_name} must contain a single unique internal OrderedPolymerSpecies. Recieved: {states}.")
 
+    def get_species(self):
+        return PolymerConformation(polymer = self.internal_polymer)
+
     #Getters and setters
     #Final States stores the end complexes that will be formed
     @property

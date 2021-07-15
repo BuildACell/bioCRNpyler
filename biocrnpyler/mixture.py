@@ -62,7 +62,7 @@ class Mixture(object):
         # usecase is degradation via dilution.
         if global_mechanisms is None and not hasattr(self, "_global_mechanisms"):
             self.global_mechanisms = {}
-        else:
+        elif global_mechanisms is not None:
             self.add_mechanisms(global_mechanisms)
 
         # global component enumerators

@@ -31,7 +31,7 @@ class One_Step_Reversible_Conformation_Change(Mechanism):
         if additional_species is None:
             additional_species = []
 
-        kf = component.get_parameter("kf", part_id = part_id, mechanism = self, return_numerical = True)
-        kr = component.get_parameter("kr", part_id = part_id, mechanism = self, return_numerical = True)
+        kf = component.get_parameter("kf", part_id = part_id, mechanism = self)
+        kr = component.get_parameter("kr", part_id = part_id, mechanism = self)
 
         return [Reaction.from_massaction(inputs=[s0]+additional_species, outputs=[sf], k_forward=kf, k_reverse=kr)]

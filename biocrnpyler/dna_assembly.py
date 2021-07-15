@@ -53,6 +53,9 @@ class DNAassembly(DNA):
         self.update_promoter(promoter, transcript=self.transcript, protein=self.protein)
         self.update_rbs(rbs, transcript=self.transcript, protein=self.protein)
 
+    def get_species(self):
+        return self.dna
+        
     def set_mixture(self, mixture: Mixture) -> None:
         """Set the mixture the Component is in.
 
