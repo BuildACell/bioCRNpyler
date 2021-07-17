@@ -176,6 +176,12 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,plot_s
         ybounds[0] = min([ybounds[0], positions[n][1]])
         ybounds[1] = max([ybounds[1], positions[n][1]])
 
+    max_glyph = max([reaction_glyph_size, species_glyph_size])
+    xbounds[0] -= max_glyph
+    xbounds[1] += max_glyph
+    ybounds[0] -= max_glyph
+    ybounds[1] += max_glyph
+
     # edges
     edges_renderer.node_renderer.glyph = Circle(
         size=species_glyph_size, line_alpha=0, fill_alpha=0, fill_color="color")
@@ -912,7 +918,7 @@ def render_mixture(mixture,crn,color_dictionary=None,output = None,compiled_comp
     plotter = CRNPlotter(colordict=color_dictionary)
     return plotter.renderMixture(mixture,crn,output=output,compiled_components=compiled_components)
 def render_network_bokeh(CRN,layout="force", layoutfunc = None, plot_reactions = True, plot_species = True, plot_edges = True, plot_arrows = True,
-                        iterations=2000,rseed=30,posscale=1,export=False,species_glyph_size = 12, reaction_glyph_size = 8, **keywords):
+                        iterations=2000,rseed=30,posscale=1,export=False,species_glyph_size = 12, reaction_glyph_size = 8, export_name = None, **keywords):
     DG, DGspec, DGrxn = generate_networkx_graph(CRN,**keywords) #this creates the networkx objects
     plot = Plot(plot_width=500, plot_height=500, x_range=Range1d(-500, 500), y_range=Range1d(-500, 500)) #this generates a 
     show_im = False
@@ -925,5 +931,7 @@ def render_network_bokeh(CRN,layout="force", layoutfunc = None, plot_reactions =
         layoutfunc=layoutfunc, plot_reactions = plot_reactions, plot_species = plot_species, plot_edges = plot_edges, plot_arrows = plot_arrows,
         species_glyph_size = species_glyph_size, reaction_glyph_size = reaction_glyph_size) 
     if(export):
-        export_svgs(plot,filename=CRN.name+".svg")
+        if export_name is None:
+            raise ValueError("To export you must supply export_name keyword.")
+        export_svgs(plot,filename=export_name+".svg")
     return plot
