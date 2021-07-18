@@ -135,8 +135,7 @@ class Polymer_transformation:
         """this function creates a new polymer from the template saved inside this class.
         A polymer_list is a list of polymers from which the resulting polymer is made. Some of
         the parts which compose the output polymer don't have a parent, and therefore are new parts.
-        Usually, these parts will have a "bound" form, which is basically the version of them which
-        has proteins bound. if bound=False, the unbound form of these parts will be used."""
+        In these cases anything bound to the previous location of these parts will be bound to the new ones as well."""
         polymer_dict = {"input"+str(a+1):b for a,b in enumerate(polymer_list)}
         assert(len(polymer_list)>=self.number_of_inputs)
         outlst = []
@@ -212,7 +211,10 @@ class Polymer_transformation:
             part = plist[0]
             part_dir = plist[1]
             if(part.parent is not None):
-                part_texts += [[part.parent.name,part.position,part_dir]]
+                if(part.parent[part.position]!=part):
+                    part_texts += [[part.name,part.position,part_dir]]
+                else:
+                    part_texts += [[part.parent.name,part.position,part_dir]]
             else:
                 part_texts += [[part.name,part_dir]]
         out_txt = "Polymer transformation = "
@@ -266,7 +268,7 @@ class IntegraseRule:
             attsites+=list(reaction)
         attsites = list(set(attsites))
         return attsites
-    def generate_products(self,site1,site2):
+    def generate_products(self,site1,site2,site2_parent=None):
         """generates DNA_part objects corresponding to the products of recombination"""
         #the sites should have the same integrase and dinucleotide, otherwise it won't work
         assert (site1.integrase == site2.integrase)
@@ -299,7 +301,10 @@ class IntegraseRule:
             part_prod1.position = site1.position
             part_prod1.parent = site1.parent
             part_prod2.position = site2.position
-            part_prod2.parent = site2.parent
+            if(site2_parent is not None):
+                part_prod2.parent = site2_parent
+            else:
+                part_prod2.parent = site2.parent
             return (part_prod1,part_prod2)
         else:
             part_prod2.direction = site1.direction
@@ -307,7 +312,10 @@ class IntegraseRule:
             part_prod2.parent = site1.parent
             part_prod1.direction = site2.direction
             part_prod1.position = site2.position
-            part_prod1.parent = site2.parent
+            if(site2_parent is not None):
+                part_prod1.parent = site2_parent
+            else:
+                part_prod1.parent = site2.parent
             
             return(part_prod2,part_prod1)
     
@@ -414,8 +422,7 @@ class IntegraseRule:
                 circ2 = dna2.circular
                 if(dna1 == dna2):
                     #this will happen if we trying to do an intermolecular reaction between two copies of the same thing
-                    dna2 = copy.copy(dna1)
-                    dna2.name = dna2.name+"_duplicate"
+                    dna2 = dna1.__class__(dna1.parts_list,dna1.name+"_duplicate",dna1.circular)
                 dna_inputs = [dna1,dna2]
                 pdict = {a[1]:"input"+str(a[0]+1) for a in enumerate(dna_inputs)}
                 #make sure everyone is forwards
@@ -435,9 +442,9 @@ class IntegraseRule:
                 
                 
                 if(site1.direction=="reverse" and site2.direction=="reverse"):
-                    prod1,prod2 = self.generate_products(site2,site1)
+                    prod1,prod2 = self.generate_products(site2,site1,site2_parent=dna2)
                 else:
-                    prod1,prod2 = self.generate_products(site1,site2)
+                    prod1,prod2 = self.generate_products(site1,site2,site2_parent=dna2)
                 #direction of everything should be forward
 
                 if(circ2==True):

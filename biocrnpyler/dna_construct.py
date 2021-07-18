@@ -553,7 +553,7 @@ class Construct(Component,OrderedPolymer):
     def __eq__(self,construct2):
         """equality means comparing the parts list in a way that is not too deep"""
         #TODO: make this be a python object comparison
-        if(self.__repr__()==construct2.__repr__()):
+        if((self.__repr__()==construct2.__repr__()) and (self.name == construct2.name)):
             return True
         else:
             return False
