@@ -33,7 +33,7 @@ setup(
             "fa2",
             "jupyter"
             ],
-        "test": ["pytest", "pytest-cov", "nbval", "jupyter"]
+        "test": ["pytest", "pytest-cov", "jupyter"] #,"nbval"]
         },
     setup_requires=["pytest-runner"],
     python_requires='>=3.6',
