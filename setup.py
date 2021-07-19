@@ -26,9 +26,9 @@ setup(
           ],
     extras_require = { 
         "all": [
-            "numpy",
+            #"numpy",
             #"matplotlib",
-            "networkx",
+            #"networkx",
             #"bokeh>=1.4.0",
             #"fa2",
             #"jupyter"
