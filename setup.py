@@ -37,7 +37,7 @@ setup(
         },
     setup_requires=["pytest-runner"],
     python_requires='>=3.6',
-    keywords="SBML synthetic biology modeling Chemical Reaction Network CRN model",
+    keywords="SBML synthetic systems biology modeling Chemical Reaction Network CRN model",
     tests_require=["pytest", "pytest-cov", "nbval", "jupyter"],
     project_urls={
     'Documentation': 'https://readthedocs.org/projects/biocrnpyler/',
