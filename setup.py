@@ -33,12 +33,12 @@ setup(
             #"fa2",
             #"jupyter"
             ],
-        "test": ["pytest", "pytest-cov"]#, "jupyter"] #,"nbval"]
+        "test": ["pytest"]#, "pytest-cov"]#, "jupyter"] #,"nbval"]
         },
+    tests_require=["pytest"],#, "pytest-cov"]#, "nbval", "jupyter"],
     setup_requires=["pytest-runner"],
     python_requires='>=3.6',
     keywords="SBML synthetic systems biology modeling Chemical Reaction Network CRN model",
-    tests_require=["pytest", "pytest-cov"]#, "nbval", "jupyter"],
     project_urls={
     'Documentation': 'https://readthedocs.org/projects/biocrnpyler/',
     'Funding': 'http://www.cds.caltech.edu/~murray/wiki/index.php?title=Developing_Standardized_Cell-Free_Platforms_for_Rapid_Prototyping_of_Synthetic_Biology_Circuits_and_Pathways',
