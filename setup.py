@@ -31,9 +31,9 @@ setup(
             "networkx",
             "bokeh>=1.4.0",
             "fa2",
-            "jupyter"
+            #"jupyter"
             ],
-        "test": ["pytest", "pytest-cov", "jupyter"] #,"nbval"]
+        "test": ["pytest", "pytest-cov"]#, "jupyter"] #,"nbval"]
         },
     setup_requires=["pytest-runner"],
     python_requires='>=3.6',
