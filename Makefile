@@ -6,15 +6,15 @@
 # test the core functionality of the toolbox
 test :
 	#pip install .[test]
-	python setup.py test
+	python setup.py install
 	#python setup.py install
 	#pytest tests/
 
 # run the test suite with all dependencies
 test_all :
 	pip install .[all]
-	python setup.py test
-	#python setup.py install
+	#python setup.py test
+	python setup.py install
 	#pytest
 
 # test for default mutable arguments in the code
