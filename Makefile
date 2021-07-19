@@ -5,7 +5,7 @@
 .PHONY: docs
 # test the core functionality of the toolbox
 test :
-	python setup.py test
+	python setup.py test --ignore examples/
 
 # run the test suite with all dependencies
 test_all :
