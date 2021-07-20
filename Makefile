@@ -13,7 +13,7 @@ test_all :
 	pip install .[all]
 	#python setup.py test
 	#python setup.py install
-	pytest
+	pytest Tests
 
 # test for default mutable arguments in the code
 flake8-mutable:
