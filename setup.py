@@ -32,6 +32,9 @@ setup(
             "bokeh>=1.4.0",
             "fa2",
             "jupyter",
+            "pytest",
+            "pytest-cov",
+            "nbconvert"
             ],
         "test": ["pytest", "pytest-cov", "jupyter", "nbconvert"]
         },
