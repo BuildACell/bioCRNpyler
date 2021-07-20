@@ -33,6 +33,7 @@ setup(
             "fa2",
             "jupyter",
             ],
+        "test": ["pytest", "pytest-cov", "jupyter", "nbconvert"]
         },
     tests_require=["pytest", "pytest-cov", "jupyter", "nbconvert"],
     setup_requires=["pytest-runner"],
