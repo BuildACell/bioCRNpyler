@@ -38,7 +38,7 @@ setup(
             ],
         "test": ["pytest", "pytest-cov", "jupyter", "nbconvert"]
         },
-    tests_require=["pytest", "pytest-cov", "jupyter", "nbconvert"],
+    tests_require=["pytest", "pytest-cov"],
     setup_requires=["pytest-runner"],
     python_requires='>=3.6',
     keywords="SBML synthetic systems biology modeling Chemical Reaction Network CRN model",
