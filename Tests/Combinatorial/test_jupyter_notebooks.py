@@ -1,6 +1,10 @@
 import pytest
-import nbformat
-from nbconvert.preprocessors import ExecutePreprocessor
+nb_not_installed = False
+try:
+    import nbformat
+    from nbconvert.preprocessors import ExecutePreprocessor
+except ModuleNotFoundError:
+    nb_not_installed = True
 from os import listdir, getcwd, pardir
 from os.path import join, abspath
 
@@ -26,6 +30,7 @@ for p in paths:
 
 #create an iterative test to make sure each notebook runs without any errors.
 @pytest.mark.parametrize("nb", nb_names)
+@pytest.mark.skipif(nb_not_installed, reason = "requires jupyter to be installed")
 def test_jupyter_notebooks(nb):
     path = abspath(join(nb, pardir))
     run_notebook(nb, path)

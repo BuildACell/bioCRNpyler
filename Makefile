@@ -5,15 +5,15 @@
 .PHONY: docs
 # test the core functionality of the toolbox
 test :
-	pip install .[test]
-	#python setup.py test
-	pytest Tests/Unit
+	#pip install .[test]
+	python setup.py test
+	#pytest Tests/Unit
 # run the test suite with all dependencies
 test_all :
 	pip install .[all]
-	#python setup.py test
+	python setup.py test
 	#python setup.py install
-	pytest Tests
+	#pytest Tests
 
 # test for default mutable arguments in the code
 flake8-mutable:
