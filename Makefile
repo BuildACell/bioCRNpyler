@@ -16,7 +16,7 @@ test_all :
 	#pytest Tests
 
 # test for default mutable arguments in the code
-flake8-mutable:
+flake8-mutable :
 	flake8  --select M biocrnpyler
 	if [[ `flake8  --select M biocrnpyler` ]]; then >&2 echo "default mutable argument detected"; exit 1 ; fi
 
