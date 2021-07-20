@@ -36,7 +36,6 @@ setup(
             "pytest-cov",
             "nbconvert"
             ],
-        "test": ["pytest", "pytest-cov", "jupyter", "nbconvert"]
         },
     tests_require=["pytest", "pytest-cov"],
     setup_requires=["pytest-runner"],
