@@ -5,15 +5,18 @@
 .PHONY: docs
 # test the core functionality of the toolbox
 test :
+	#pip install .[test]
 	python setup.py test
-
+	#pytest Tests/Unit
 # run the test suite with all dependencies
 test_all :
 	pip install .[all]
 	python setup.py test
+	#python setup.py install
+	#pytest Tests
 
 # test for default mutable arguments in the code
-flake8-mutable:
+flake8-mutable :
 	flake8  --select M biocrnpyler
 	if [[ `flake8  --select M biocrnpyler` ]]; then >&2 echo "default mutable argument detected"; exit 1 ; fi
 
