@@ -189,13 +189,13 @@ class IntegraseSite(DNABindingSite):
             if(not intermolecular):
                 #this is an intramolecular reaction so we don't care about the other site's DNAs
                 integrated_dnas = []
-                site_is_bound = site.integrase in complex_parent[site.position]
-                site_isnt_bound = not isinstance(complex_parent[site.position],ComplexSpecies)
+                site_is_bound = site.integrase in complex_parent[site.position] #site is bound by integrase
+                site_isnt_bound = not isinstance(complex_parent[site.position],ComplexSpecies) #site isnt bound by anything
                 if(( (self.integrase_binding and site_is_bound) or (not self.integrase_binding and site_isnt_bound)) 
                                                                     and complex_parent in self.linked_sites[site_tpl][1]):
-                    #make sure that both this site and the other site are bound
+                    #make sure that both this site and the other site are bound, or not depending on the value of "integrase_binding"
                     for integrase_function in self.linked_sites[site_tpl][0]:
-                        integr = integrase_function.create_polymer([complex_parent],bound=self.integrase_binding)
+                        integr = integrase_function.create_polymer([complex_parent])
                         integrated_dnas += [integr]
                     reactions += int_mech.update_reactions([complex_parent],integrated_dnas,component=self,part_id = self.integrase.name)
                     populate = False
@@ -208,7 +208,7 @@ class IntegraseSite(DNABindingSite):
                     for integrase_function in self.linked_sites[site_tpl][0]:
                         #for every result that we could get, generate it
                         #the next line generates the OrderedPolymerSpecies which results from recombination
-                        integrated_dnas += [integrase_function.create_polymer([complex_parent,other_dna],bound = self.integrase_binding)]
+                        integrated_dnas += [integrase_function.create_polymer([complex_parent,other_dna])]
                     
                     reactions += int_mech.update_reactions([complex_parent,other_dna],integrated_dnas,component=self,part_id = self.integrase.name)
             #next part updates the linked site
