@@ -425,7 +425,7 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
                 CRNgraph.add_edge(allnodenum, 0, weight=krev_val)
                 CRNgraph.edges[allnodenum, 0]['color'] = edge_color
         
-        CRNgraph.nodes[allnodenum]["color"] = edge_color
+        CRNgraph.nodes[allnodenum]["color"] = reaction_color
         if(not use_pretty_print):
             CRNgraph.nodes[allnodenum]["species"] = str(rxn)
         else:
