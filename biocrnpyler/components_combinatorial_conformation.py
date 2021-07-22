@@ -464,7 +464,7 @@ class CombinatorialConformationPromoter(CombinatorialConformation, Promoter):
                 if any([s.get_complex(c) is not None for c in self.inactivating_complexes]):
                     innactive_complex = True
                     if (active_state and len(self.promoter_states)>0) or active_complex:
-                        warnings.warn("innactive_complex conflicts with active_complex or active_state in CombinatorialConformationPromoter. Defaulting to innactive.")
+                        warnings.warn("Inactive_complex conflicts with active_complex or active_state in CombinatorialConformationPromoter. Defaulting to inactive.")
                         
                 if (active_state or active_complex) and not innactive_complex:
                     self.dna_to_bind = s.polymers[0][self.promoter_location]
