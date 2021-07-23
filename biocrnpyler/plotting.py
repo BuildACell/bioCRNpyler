@@ -70,7 +70,7 @@ def updateLimits(limits, xvalues):
     return limits
 
 
-def makeArrows2(graph_renderer, graph, positions, headsize=3, headangle=math.pi/6):
+def makeArrows2(graph_renderer, graph, positions, headsize=3, headangle=math.pi/6, make_arrows = True):
     """this function draws an arrow shape at the end of graph lines"""
     xs, ys = [], []
     xbounds = [0, 0]
@@ -106,13 +106,14 @@ def makeArrows2(graph_renderer, graph, positions, headsize=3, headangle=math.pi/
         # 'ys' is the same thing except the y positions
         ys.append([from_y, p3y, p1y, to_y, p2y, p3y])
     # this part replaces the lines with the ones made by this function
-    graph_renderer.edge_renderer.data_source.data['xs'] = xs
-    graph_renderer.edge_renderer.data_source.data['ys'] = ys
+    if make_arrows:
+        graph_renderer.edge_renderer.data_source.data['xs'] = xs
+        graph_renderer.edge_renderer.data_source.data['ys'] = ys
     return xbounds, ybounds
 
 
-def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,\
-                        posscale = 1.0,layoutfunc=None,iterations=2000,rseed=30,show_species_images=False):
+def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,plot_species = True, plot_reactions = True, plot_edges = True, plot_arrows = True,\
+              species_glyph_size = 12, reaction_glyph_size = 8, posscale = 1.0,layoutfunc=None,iterations=2000,rseed=30,show_species_images=False):
     """given a directed graph, plot it!
     Inputs:
     DG: a directed graph of type DiGraph
@@ -166,17 +167,37 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,\
     species_renderer = from_networkx(DGspecies, positions, center=(0, 0))
     edges_renderer = from_networkx(DG, positions, center=(0, 0))
 
+    #Set xbounds and ybounds:
+    xbounds = [0, 0]
+    ybounds = [0, 0]
+    for n in positions:
+        xbounds[0] = min([xbounds[0], positions[n][0]])
+        xbounds[1] = max([xbounds[1], positions[n][0]])
+        ybounds[0] = min([ybounds[0], positions[n][1]])
+        ybounds[1] = max([ybounds[1], positions[n][1]])
+
+    max_glyph = max([reaction_glyph_size, species_glyph_size])
+    xbounds[0] -= max_glyph
+    xbounds[1] += max_glyph
+    ybounds[0] -= max_glyph
+    ybounds[1] += max_glyph
+
     # edges
     edges_renderer.node_renderer.glyph = Circle(
-        size=12, line_alpha=0, fill_alpha=0, fill_color="color")
+        size=species_glyph_size, line_alpha=0, fill_alpha=0, fill_color="color")
     edges_renderer.edge_renderer.glyph = MultiLine(
-        line_alpha=0.2, line_width=4, line_join="round")
+        line_alpha=0.2, line_width=4, line_join="round", line_color="color")
     edges_renderer.edge_renderer.selection_glyph = MultiLine(
         line_color=Spectral4[2], line_width=5, line_join="round")
     edges_renderer.edge_renderer.hover_glyph = MultiLine(
         line_color=Spectral4[1], line_width=5, line_join="round")
-    xbounds, ybounds = makeArrows2(
-        edges_renderer, DG, positions, headsize=5)  # make the arrows!
+    if plot_arrows:
+        xbounds_a, ybounds_a = makeArrows2(
+            edges_renderer, DG, positions, headsize=5)  # make the arrows!
+        xbounds[0] = min([xbounds[0], xbounds_a[0]])
+        xbounds[1] = max([xbounds[1], xbounds_a[1]])
+        ybounds[0] = min([ybounds[0], ybounds_a[0]])
+        ybounds[1] = max([ybounds[1], ybounds_a[1]])
 
     # we want to find the middle of the graph and plot a square that is 1:1 aspect ratio
 
@@ -196,11 +217,11 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,\
 
     # reactions
     reaction_renderer.node_renderer.glyph = Square(
-        size=8, fill_color="color")
+        size=reaction_glyph_size, fill_color="color")
     reaction_renderer.node_renderer.selection_glyph = Square(
-        size=8, fill_color=Spectral4[2])
+        size=reaction_glyph_size, fill_color=Spectral4[2])
     reaction_renderer.node_renderer.hover_glyph = Square(
-        size=8, fill_color=Spectral4[1])
+        size=reaction_glyph_size, fill_color=Spectral4[1])
 
     # nodes
     species_renderer.node_renderer.glyph = Circle(size=12, fill_color="color")
@@ -224,14 +245,16 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,\
     edges_renderer.selection_policy = NodesAndLinkedEdges()
     edges_renderer.inspection_policy = EdgesAndLinkedNodes()
 
-    plot.renderers.append(edges_renderer)
-    plot.renderers.append(reaction_renderer)
-    plot.renderers.append(species_renderer)
+    if plot_edges:
+        plot.renderers.append(edges_renderer)
+    if plot_reactions:
+        plot.renderers.append(reaction_renderer)
+    if plot_species:
+        plot.renderers.append(species_renderer)
 
 def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_material=True,
-                                                    pp_show_rates=True,pp_show_attributes=True, 
-                                                    pp_show_compartments=True,
-                                                colordict=None,imagedict = None):
+                            pp_show_rates=True,pp_show_attributes=True, pp_show_compartments=True,
+                            colordict=None,reactioncolordict = None, imagedict = None):
     """generates a networkx DiGraph object that represents the CRN.
     input:
     ==========================
@@ -278,6 +301,7 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
                      "ligand": "pink", "phosphate": "yellow", "nothing": "purple"}
     CRNgraph = nx.DiGraph()
     allnodenum = 1  # every node has an index
+    alledgenum = 0 #every edge has an index
     # this starts at 1 because "nothing" is node 0
     nodedict = {}  # this is so that we can write out the reactions in
     # the reaction "species" field
@@ -289,7 +313,20 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
     # isn't use for anything. But i think it's good to have just in case.
     
     default_species_color = "grey"
-    default_reaction_color = "cornflowerblue"
+    if (reactioncolordict is None or 'reaction' not in reactioncolordict) and 'reaction' not in colordict:
+        default_reaction_color = "cornflowerblue"
+    elif 'reaction' in colordict:
+        default_reaction_color = colordict['reaction']
+    else:
+        default_reaction_color = reactioncolordict['reaction']
+
+    if (reactioncolordict is None or 'edge' not in reactioncolordict) and 'edge' not in colordict:
+        default_edge_color = 'gray'
+    elif 'edge' in colordict:
+        default_edge_color = colordict['edge']
+    else:
+        default_edge_color = reactioncolordict['edge']
+
     nodedict["nothing"] = 0
     CRNgraph.add_node(0)
     CRNgraph.nodes[0]["type"] = "nothing"
@@ -325,20 +362,25 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
                 rxn.propensity_type.k_forward)
             CRNgraph.nodes[allnodenum]["k_r"] = str(
                 rxn.propensity_type.k_reverse)
-        else:
+        elif hasattr(rxn.propensity_type, "k"):
             CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
             CRNgraph.nodes[allnodenum]["k_r"] = ''
+        else:
+            CRNgraph.nodes[allnodenum]["k"] = ''
+            CRNgraph.nodes[allnodenum]["k_r"] = ''
 
-        reaction_color = member_dictionary_search(rxn,colordict)
+        reaction_color = member_dictionary_search(rxn,reactioncolordict)
         if(reaction_color is None):
             reaction_color = default_reaction_color
         # CRNgraph.nodes[allnodenum]
         if isinstance(rxn.propensity_type, MassAction):
             kval = rxn.propensity_type.k_forward
             CRNgraph.nodes[allnodenum]["k"] = str(kval)
-        else:
+        elif hasattr(rxn.propensity_type, "k"):
             kval = rxn.propensity_type.k
             CRNgraph.nodes[allnodenum]["k"] = str(rxn.propensity_type.k)
+        else:
+            CRNgraph.nodes[allnodenum]["k"] = ''
 
         if(not useweights):
             kval = 1
@@ -349,28 +391,39 @@ def generate_networkx_graph(CRN,useweights=False,use_pretty_print=False,pp_show_
         if((krev_val is not None) and (not useweights)):
             krev_val = 1
         for reactant in rxn.inputs:
-            
+            #Set edge color
+            edge_color = member_dictionary_search(rxn,reactioncolordict)
+            if edge_color is None:
+                edge_color = default_edge_color
             CRNgraph.add_edge(nodedict[reactant.species],allnodenum,weight=kval)
+            CRNgraph.edges[nodedict[reactant.species],allnodenum]['color'] = edge_color
             if(krev_val is not None):
                 # if the k is 0 then the node does not exist, right?
                 CRNgraph.add_edge(
                     allnodenum, nodedict[reactant.species], weight=krev_val)
+                CRNgraph.edges[allnodenum, nodedict[reactant.species]]['color'] = edge_color
         for product in rxn.outputs:
             #TODO species cannot find another species in the nodedict????
             CRNgraph.add_edge(allnodenum,nodedict[product.species],weight=kval)
+            CRNgraph.edges[allnodenum,nodedict[product.species]]['color'] = edge_color
             if(krev_val is not None):
                 CRNgraph.add_edge(
                     nodedict[product.species], allnodenum, weight=krev_val)
+                CRNgraph.edges[nodedict[product.species], allnodenum]['color'] = edge_color
         if(len(rxn.outputs) == 0):
             # this adds an edge to the "nothing" node we made in the beginning
             CRNgraph.add_edge(allnodenum, 0, weight=kval)
+            CRNgraph.edges[allnodenum, 0]['color'] = edge_color
             if(krev_val is not None):
                 CRNgraph.add_edge(0, allnodenum, weight=krev_val)
+                CRNgraph.edges[0, allnodenum]['color'] = edge_color
         elif(len(rxn.inputs) == 0):
             # this adds an edge from the "nothing" node we made in the beginning
             CRNgraph.add_edge(0, allnodenum, weight=kval)
+            CRNgraph.edges[0, allnodenum]['color'] = edge_color
             if(krev_val is not None):
                 CRNgraph.add_edge(allnodenum, 0, weight=krev_val)
+                CRNgraph.edges[allnodenum, 0]['color'] = edge_color
         
         CRNgraph.nodes[allnodenum]["color"] = reaction_color
         if(not use_pretty_print):
@@ -864,8 +917,8 @@ def render_constructs(constructs,color_dictionary=None):
 def render_mixture(mixture,crn,color_dictionary=None,output = None,compiled_components=None):
     plotter = CRNPlotter(colordict=color_dictionary)
     return plotter.renderMixture(mixture,crn,output=output,compiled_components=compiled_components)
-def render_network_bokeh(CRN,layout="force",\
-                        iterations=2000,rseed=30,posscale=1,export=False,**keywords):
+def render_network_bokeh(CRN,layout="force", layoutfunc = None, plot_reactions = True, plot_species = True, plot_edges = True, plot_arrows = True,
+                        iterations=2000,rseed=30,posscale=1,export=False,species_glyph_size = 12, reaction_glyph_size = 8, export_name = None, **keywords):
     DG, DGspec, DGrxn = generate_networkx_graph(CRN,**keywords) #this creates the networkx objects
     plot = Plot(plot_width=500, plot_height=500, x_range=Range1d(-500, 500), y_range=Range1d(-500, 500)) #this generates a 
     show_im = False
@@ -874,7 +927,11 @@ def render_network_bokeh(CRN,layout="force",\
         show_im = True
     if(export):
         plot.output_backend = "svg"
-    graphPlot(DG,DGspec,DGrxn,plot,layout=layout,posscale=posscale,iterations=iterations,rseed=rseed,show_species_images=show_im) 
+    graphPlot(DG,DGspec,DGrxn,plot,layout=layout,posscale=posscale,iterations=iterations,rseed=rseed,show_species_images=show_im,
+        layoutfunc=layoutfunc, plot_reactions = plot_reactions, plot_species = plot_species, plot_edges = plot_edges, plot_arrows = plot_arrows,
+        species_glyph_size = species_glyph_size, reaction_glyph_size = reaction_glyph_size) 
     if(export):
-        export_svgs(plot,filename=CRN.name+".svg")
+        if export_name is None:
+            raise ValueError("To export you must supply export_name keyword.")
+        export_svgs(plot,filename=export_name+".svg")
     return plot

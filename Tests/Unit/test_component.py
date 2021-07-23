@@ -3,7 +3,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import Component, DNA, ParameterDatabase, Mixture, Mechanism
+from biocrnpyler import Component, DNA, ParameterDatabase, Mixture, Mechanism, Species
 from biocrnpyler import SimpleTranscription, SimpleTranslation
 
 
@@ -230,4 +230,31 @@ class TestComponent(TestCase):
         #test get_mechanism with no_key_error = True
         self.assertTrue(C_copy.get_mechanism("DNE", optional_mechanism = True) is None)
 
+    def test_set_species(self):
+        C = Component(name = "comp")
+
+        dna_string = "dna_S"
+        dna_species = Species(name = "S", material_type = "dna")
+        dna_comp = DNA(name = "S")
+
+        #add_species can take a string, Species, or Component
+        s1 = C.set_species(dna_species)
+        s2 = C.set_species(dna_string)
+        s3 = C.set_species(dna_comp)
+        self.assertEqual(str(s1), str(s2)) #A Species derived from a string will have no material_type
+        self.assertFalse(s1 == s2)
+        self.assertEqual(s1, s3)
+        self.assertEqual(s1, dna_species)
+
+        #add_species can also take a list
+        s_list = C.set_species([dna_string, dna_species, dna_comp])
+        self.assertTrue(len(s_list) == 3)
+        self.assertTrue(str(s_list[0]) == str(s_list[1]) == str(s_list[2]))
+
+        #The following cases should raise errors
+        with self.assertRaisesRegex(ValueError, ""):
+            C.set_species(None)
+
+        with self.assertRaisesRegex(ValueError, ""):
+            C.set_species([dna_species, None])
 
