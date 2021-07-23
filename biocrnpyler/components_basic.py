@@ -8,35 +8,8 @@ from .component import Component
 from .reaction import Reaction
 from .species import Complex, Species
 
-class LengthComponent(Component):
-    """
-    A high level class for Components with Length
-    """
-    def __init__(self, name, length=0, **keywords):
-        """Initialize a DNA object to store DNA related information.
 
-        :param name: Name of the sequence (str)
-        :param length: length of the basepairs (int)
-        :param attributes: Species attribute
-        :param keywords: pass into the parent's (Component) initializer
-        """
-        self.length = length
-        Component.__init__(name = name, self=self, **keywords)
-
-    @property
-    def length(self):
-        return self._length
-
-    @length.setter
-    def length(self, length):
-        if length is None:
-            self._length = length
-        elif isinstance(length, int) and length >= 0:
-            self._length = length
-        else:
-            raise ValueError("Length must be a non-negative integer!")
-
-class DNA(LengthComponent):
+class DNA(Component):
     """The DNA class is used to represent a DNA sequence that has a given length.
 
     Produces no reactions.
@@ -66,7 +39,7 @@ class DNA(LengthComponent):
    
 
 
-class RNA(LengthComponent):
+class RNA(Component):
     """A class to represent Components made of RNA. Produces no reactions."""
 
     def __init__(self, name: str, length=0, attributes=None, **keywords):
@@ -92,7 +65,7 @@ class RNA(LengthComponent):
     def update_reactions(self) -> List:
         return []
 
-class Protein(LengthComponent):
+class Protein(Component):
     """A class to represent Components made of Protein. Produces no reactions."""
 
     def __init__(self, name: str, length=0, attributes=None, **keywords):
