@@ -17,6 +17,7 @@ from .construct_explorer import *
 from .integrase_enumerator import *
 from .components_combinatorial_complex import *
 from .components_combinatorial_conformation import *
+from .components_membrane_protein import *
 
 from .global_mechanism import *
 from .mechanism import *
@@ -25,6 +26,8 @@ from .mechanisms_binding import *
 from .mechanisms_enzyme import *
 from .mechanisms_txtl import *
 from .mechanisms_integrase import *
+from .mechanisms_transport import *
+
 # Core classes
 from .mixture import *
 from .mixtures_cell import *
