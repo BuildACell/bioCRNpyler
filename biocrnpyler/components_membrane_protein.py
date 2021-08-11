@@ -8,7 +8,6 @@ from .component import Component
 from .reaction import Reaction
 from .species import Complex, Species
 
-
 class MembraneChannel(Component):
     """A class to represent Membrane Channels.
     This membrane class is to classify a membrane channel that will intergrate into the membrane.
@@ -17,27 +16,37 @@ class MembraneChannel(Component):
     """
     def __init__(self, membrane_protein: Union[Species, str, Component],
                  product: Union[Species,str, Component],
-                 size=None, attributes=None, **keywords):   
+                 direction= None, size=None, attributes=None, **keywords):       
         """Initialize a MembraneChannel object to store membrane channel related information.
         :param product: name of the membrane channel, reference to an Species or Component
+        :param direction: transport direction, taken as "Passive"-undirectional unless specified 
         :param size: number of monomers needed for channel
         :param attributes: Species attribute
         :param keywords: pass into the parent's (Component) initializer
-        """    
+        """
         
         # PROTEIN
         self.membrane_protein = self.set_species(membrane_protein, material_type='protein', attributes=attributes)
     
         # PRODUCT
         if product is None:
-            self.product = self.set_species('membrane_channel')
+            if direction is None:
+                self.product = self.set_species('membrane_channel', material_type= 'Passive')
+            else:
+                self.product = self.set_species('membrane_channel', material_type= direction)
+
         else:
-            self.product = self.set_species(product)
+            if direction is None:
+                self.product = self.set_species('membrane_channel', material_type= 'Passive')
+            else:
+                self.product = self.set_species('membrane_channel', material_type= direction)
         
         if size is None:
             self.membrane_protein.size = 1
         else:
             self.membrane_protein.size = size
+        
+#         self.product.direction = None
         
         Component.__init__(self=self, name=self.membrane_protein.name, **keywords)
         
@@ -55,6 +64,7 @@ class MembraneChannel(Component):
         
         return mech_cat.update_reactions(self.membrane_protein, self.product, component=self,  part_id=self.name)
 
+
 class Transporter(Component):
     """A class to represent Membrane Channels.
     Assumes the membrane channel transport substrates in a specific direction across the membrane
@@ -62,9 +72,10 @@ class Transporter(Component):
     """
     def __init__(self, membrane_channel: Union[Species, str, Component],
                  substrate: Union[Species, str, Component],
-                 attributes=None, direction= None, **keywords):
+                 attributes=None, **keywords):
         """Initialize a Transporter object to store Transport membrane related information.
         :param substrate: name of the substrate, reference to an Species or Component
+        :param direction: give direction of transport ref to vesicle
         :param attributes: Species attribute
         :param keywords: pass into the parent's (Component) initializer
         """
@@ -76,19 +87,14 @@ class Transporter(Component):
             product=substrate
             self.substrate = self.set_species(substrate, compartment='Internal',attributes=attributes)
             self.product= self.set_species(product, compartment='External',attributes=attributes)
-      
-        if direction is None:
-            # Protein NAME
+        
+        if membrane_channel.material_type == 'Passive':
             self.membrane_channel = self.set_species(membrane_channel, material_type='Passive', attributes=attributes)
-
-        elif direction== 'Exporter':
-            # Protein NAME
+        elif membrane_channel.material_type == 'Exporter':
             self.membrane_channel = self.set_species(membrane_channel, material_type='Exporter', attributes=attributes)
-
-        elif direction== 'Importer':
-            # Protein NAME
+        elif membrane_channel.material_type == 'Importer':
             self.membrane_channel = self.set_species(membrane_channel, material_type='Importer', attributes=attributes)
-            
+
             if substrate is None:
                 self.substrate = None
             else:
@@ -97,10 +103,10 @@ class Transporter(Component):
                 self.product= self.set_species(product, compartment='Internal',attributes=attributes)
         
         else:
-            print('help')
+            print('Membrane channel direction not found.')
 
 
-        Component.__init__(self=self, name=self.membrane_channel.name, **keywords)
+        Component.__init__(self=self, name=membrane_channel.name, **keywords)
         
         #######################
         print(self.attributes)
@@ -110,10 +116,8 @@ class Transporter(Component):
 
     def update_species(self):
         mech_cat = self.get_mechanism('catalysis')
-
         return mech_cat.update_species(self.membrane_channel, self.substrate, self.product) 
 
     def update_reactions(self):
         mech_cat = self.get_mechanism('catalysis')
-
-        return mech_cat.update_reactions(self.membrane_channel, self.substrate, self.product, component=self,  part_id=self.name)      
+        return mech_cat.update_reactions(self.membrane_channel, self.substrate, self.product, component=self,  part_id=self.name)    

@@ -7,7 +7,7 @@ import itertools as it
 from .mechanism import Mechanism
 from .reaction import Reaction
 from .species import Complex, Species, WeightedSpecies
-
+from .propensities import ProportionalHillNegative, ProportionalHillPositive
 
 class Membrane_Protein_Integration(Mechanism):
     """A Mechanism to integrate into the mebrane."""
@@ -21,20 +21,20 @@ class Membrane_Protein_Integration(Mechanism):
         
         Mechanism.__init__(self, name, mechanism_type)
     
-    def update_species(self, membrane_protein, product, complex=None, complex2=None, **keywords):
+    def update_species(self, membrane_channel, product, complex=None, complex2=None, **keywords):
         if complex is None:
-            size=membrane_protein.size
-            complex1=Complex([membrane_protein]*size)
+            size=membrane_channel.size
+            complex1=Complex([membrane_channel]*size)
         else: complex1=complex
                         
         if complex2 is None:
             complex2= None 
         else: complex2=complex2
             
-        return [membrane_protein,  product, complex1, complex2]
+        return [membrane_channel,  product, complex1, complex2]
     
     
-    def update_reactions(self, membrane_protein, product, component=None, part_id=None, complex=None, complex2 = None, kd=None, kb=None, ku=None,
+    def update_reactions(self, membrane_channel, product, component=None, part_id=None, complex=None, complex2 = None, kd=None, kb=None, ku=None,
                          kcat=None, kex=None, **keywords):
         #Get Parameters
         if part_id is None and component is not None:
@@ -70,22 +70,24 @@ class Membrane_Protein_Integration(Mechanism):
             
         else:
             kex = kex
-        ##############################    
+            
+        ##############################   
+
         if complex is None:
-            size=membrane_protein.size
-            complex1=Complex([membrane_protein]*size)
+            size=membrane_channel.size
+            complex1=Complex([membrane_channel]*size)
         else:
             complex1 = complex
         
         #CREATE OLIGOMER!!!
         
         # homo-->0
-        binding_rxn0 = Reaction.from_massaction(inputs=[membrane_protein],
+        binding_rxn0 = Reaction.from_massaction(inputs=[membrane_channel],
                                                 outputs=[],
                                                 k_forward=kd1)
         
         # homo: monomer --> polymer
-        binding_rxn1 = Reaction.from_massaction(inputs=[membrane_protein]*size,
+        binding_rxn1 = Reaction.from_massaction(inputs=[membrane_channel]*size,
                                                 outputs=[complex1],
                                                 k_forward=kb1,
                                                 k_reverse=ku1)
@@ -96,11 +98,11 @@ class Membrane_Protein_Integration(Mechanism):
                                                 k_forward=kd2)
         
         #Hill Negative
-        print(membrane_protein)
         prophill_negative = ProportionalHillNegative(k=kex, d=complex1, K=kcat, n=4, s1=product )
         integration_rxn1 = Reaction([complex1], [product], propensity_type=prophill_negative)
         
         return [binding_rxn0, binding_rxn1, binding_rxn2, integration_rxn1]
+
 
 class Passive_Membrane_Protein_Transport(Mechanism):
     """A Mechanism to model the transport of a substrate through a membrane protein"""
@@ -164,7 +166,7 @@ class Passive_Membrane_Protein_Transport(Mechanism):
                                                 k_forward=kb1,
                                                 k_reverse=ku1)
         
-        if membrane_channel.direction == 'Passive':
+        if membrane_channel.material_type == 'Passive':
             # Sub:Protein <--> Protein:Prod
             cat_rxn = Reaction.from_massaction(inputs=[complex1],
                                                outputs=[complex2],
@@ -176,7 +178,7 @@ class Passive_Membrane_Protein_Transport(Mechanism):
                                                     k_forward=ku2,
                                                     k_reverse=kb2)
 
-        else:
+        elif membrane_channel.material_type == 'Importer' or 'Exporter':
             # Sub:Protein --> Protein:Prod
             cat_rxn = Reaction.from_massaction(inputs=[complex1],
                                                outputs=[complex2],
@@ -185,7 +187,8 @@ class Passive_Membrane_Protein_Transport(Mechanism):
             binding_rxn2 = Reaction.from_massaction(inputs=[complex2],
                                                     outputs=[membrane_channel, product],
                                                     k_forward=ku2)
-            
+        else:
+            print('Membrane channel direction not identified.')
             
         
         return [binding_rxn1, binding_rxn2, cat_rxn]
