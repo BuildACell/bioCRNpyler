@@ -17,7 +17,7 @@ from .construct_explorer import *
 from .integrase_enumerator import *
 from .components_combinatorial_complex import *
 from .components_combinatorial_conformation import *
-from .components_membrane_protein import *
+from .components_membrane import *
 
 from .global_mechanism import *
 from .mechanism import *
