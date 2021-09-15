@@ -1,4 +1,4 @@
-name: install_and_test_package
+name: install_and_unit_tests
 on: [push, pull_request]
 jobs:
   build:
@@ -21,11 +21,6 @@ jobs:
           pip install pytest-cov
       - name: install biocrnpyler
         run: pip install -e .[extra]
-      - name: test biocrnpyler with pytest
+      - name: unit tests with pytest
         run: pytest Tests/Unit/ --cov=./
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          files: .coverage
-          fail_ci_if_error: true
-          verbose: true
+      
