@@ -16,8 +16,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: |
-#          python -m pip install --upgrade pip
+        run:
           pip install pytest-cov
       - name: install biocrnpyler
         run: pip install -e .[extra]
