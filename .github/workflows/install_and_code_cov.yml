@@ -19,7 +19,7 @@ jobs:
         run:
           pip install pytest-cov
       - name: install biocrnpyler
-        run: pip install -e .[extra]
+        run: pip install -e .[all]
       - name: test biocrnpyler with pytest
         run: pytest
       - name: Upload coverage to Codecov
