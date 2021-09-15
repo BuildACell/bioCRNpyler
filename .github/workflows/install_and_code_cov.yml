@@ -1,4 +1,4 @@
-name: install_and_unit_tests
+name: install_unit_tests
 on: [pull_request]
 jobs:
   build:
@@ -8,7 +8,6 @@ jobs:
         matrix:
           os: [windows-latest, ubuntu-latest, macos-latest]
           python-version: [3.6, 3.7, 3.8]
-
       steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -21,10 +20,10 @@ jobs:
       - name: install biocrnpyler
         run: pip install -e .[all]
       - name: test biocrnpyler with pytest
-        run: pytest
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          files: .coverage
-          fail_ci_if_error: true
-          verbose: true
+        run: pytest --cov biocrnpyler
+- name: Upload coverage to Codecov
+  uses: codecov/codecov-action@v2
+  with:
+    files: .coverage
+    fail_ci_if_error: true
+    verbose: true
