@@ -1,5 +1,5 @@
 name: install_unit_tests_and_coverage
-on: [pull_request, push]
+on: [push]
 jobs:
   build:
       runs-on: ${{ matrix.os }}
