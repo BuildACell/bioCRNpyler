@@ -24,7 +24,5 @@ jobs:
       - name: test biocrnpyler with pytest
         run: pytest Tests/Unit/ --cov=./
       - name: Upload coverage to Codecov
-          directory: ./coverage/reports/
           fail_ci_if_error: true
-          path_to_write_report: ./coverage/codecov_report.txt
           verbose: true
