@@ -1,5 +1,5 @@
 name: install_and_test_package
-on: [push]
+on: [push, pull_request]
 jobs:
   build:
       runs-on: ${{ matrix.os }}
@@ -26,5 +26,6 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
+          files: .coverage
           fail_ci_if_error: true
           verbose: true
