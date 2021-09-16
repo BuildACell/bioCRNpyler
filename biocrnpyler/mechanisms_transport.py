@@ -149,7 +149,7 @@ class Passive_Transport(Mechanism):
         if part_id is None and component is not None:
             part_id = component.name
         ##############################
-        if component is None and (kb is None or ku is None or kcat is None):
+        if component is None and (k_channel is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
         if k_channel is None:
             k_transport = component.get_parameter("kb1", part_id = part_id, mechanism = self)
@@ -199,6 +199,7 @@ class Facilitated_Passive_Transport(Mechanism):
             complex2 = Complex([Prod, membrane_carrier])
         else:
             complex2 = complex2
+
         return [membrane_carrier, Sub, Prod, complex1, complex2]
 
     def update_reactions(self, membrane_carrier, Sub, Prod, component = None, part_id = None, complex=None, complex2 = None, kb=None, ku=None,
@@ -207,7 +208,7 @@ class Facilitated_Passive_Transport(Mechanism):
         if part_id is None and component is not None:
             part_id = component.name
 
-        if component is None and (kb is None or ku is None or kcat is None):
+        if component is None and (kb is None or ku is None or k1 is None):
             raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
         if kb is None:
             kb1 = component.get_parameter("kb1", part_id = part_id, mechanism = self)
@@ -215,8 +216,10 @@ class Facilitated_Passive_Transport(Mechanism):
             kb1= kb
             
         if ku is None:
+            ku1 = component.get_parameter("ku2", part_id = part_id, mechanism = self)
             ku2 = component.get_parameter("ku2", part_id = part_id, mechanism = self)
         else:
+            ku1 = ku
             ku2 = ku
             
 
@@ -228,24 +231,29 @@ class Facilitated_Passive_Transport(Mechanism):
             complex2 = Complex([Prod, membrane_carrier])
             
 
-        # Sub + MC <--> Sub:MC
+        # Sub + MC --> Sub:MC
         k1 = ParameterEntry("k1", 1e-1)
         general = GeneralPropensity(f'k1*{Sub}*{membrane_carrier}-k1*{Prod}*{membrane_carrier}', propensity_species=[Prod,Sub,membrane_carrier], propensity_parameters=[k1])
         cat_rxn = Reaction([Sub, membrane_carrier], [complex1], propensity_type = general)
 
-        # Sub:MC <--> Prod:MC
+        # Sub:MC --> Sub + MC
         binding_rxn1 = Reaction.from_massaction(inputs=[complex1],
+                                                outputs=[membrane_carrier, Sub],
+                                                k_forward=ku1)
+
+        # Sub:MC --> Prod:MC
+        binding_rxn2 = Reaction.from_massaction(inputs=[complex1],
                                                 outputs=[complex2],
                                                 k_forward=kb1)
         
         # MC:Prod --> MC + Prod
-        binding_rxn2 = Reaction.from_massaction(inputs=[complex2],
+        binding_rxn3 = Reaction.from_massaction(inputs=[complex2],
                                                 outputs=[Prod, membrane_carrier],
                                                 k_forward=ku2)
 
 
         
-        return [cat_rxn, binding_rxn1, binding_rxn2]
+        return [cat_rxn, binding_rxn1, binding_rxn2, binding_rxn3]
 
 class Primary_Active_Transport(Mechanism):
     """A Mechanism to model the transport of a substrate through a membrane carrier.
@@ -304,7 +312,7 @@ class Primary_Active_Transport(Mechanism):
             kb3 = component.get_parameter("kb2", part_id = part_id, mechanism = self)
             kb4 = component.get_parameter("kb4", part_id = part_id, mechanism = self)
         else:
-            kb1, kb2, kb3, kb4= kb
+            kb1, kb2, kb3, kb4= kb*np.ones(4)
             
         if ku is None:
             ku1 = component.get_parameter("ku1", part_id = part_id, mechanism = self)
@@ -314,7 +322,7 @@ class Primary_Active_Transport(Mechanism):
             ku5 = component.get_parameter("ku5", part_id = part_id, mechanism = self)
             ku6 = component.get_parameter("ku6", part_id = part_id, mechanism = self)
         else:
-            ku1, ku2,ku3, ku4, ku5, ku6= ku
+            ku1, ku2,ku3, ku4, ku5, ku6= ku*np.ones(6)
             
         if kcat is None:
             kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
