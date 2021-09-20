@@ -455,7 +455,7 @@ class Construct(Component,OrderedPolymer):
                 test_partlist = [(parthash,part)]
                 testpos = part.position
 
-                while test_partlist[-1][0] == best_partlist[-1][0]:
+                while test_partlist[-1][0] == best_partlist[len(test_partlist)-1][0]:
                     if(testpos-part.position>= len(construct)):
                         #this means we tested every part and they would come in at the same alphabetical position
                         break
@@ -468,7 +468,8 @@ class Construct(Component,OrderedPolymer):
                         next_part = circular_next(best_partlist[-1][1],construct)
                         next_parthash = Construct.get_partstring(next_part)
                         best_partlist += [(next_parthash,next_part)]
-                if(test_partlist[-1][0] > best_partlist[-1][0]):
+                
+                if(test_partlist[-1][0] > best_partlist[len(test_partlist)-1][0]):
                     best_partlist = test_partlist
         while(len(best_partlist)<len(construct)):
             nextpart = circular_next(best_partlist[-1][1],construct)
