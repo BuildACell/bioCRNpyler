@@ -530,14 +530,14 @@ class HillNegative(Hill):
         self.name = 'hillnegative'
 
     def pretty_print_rate(self, show_parameters = True, **kwargs):
-        return f' Kf = k / ( K^n + {self.s1.pretty_print(**kwargs)}^n )'
+        return f' Kf = k / ( 1 + ({self.s1.pretty_print(**kwargs)}/K)^n )'
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']
         n = propensity_dict['parameters']['n']
         K = propensity_dict['parameters']['K']
         s1 = propensity_dict['species']['s1']
-        rate_formula = f"{k} / ( {K}^{n} + {s1}^{n} )"
+        rate_formula = f"{k} / ( 1 + ({s1}/{K})^{n} )"
         return rate_formula
 
 
@@ -584,7 +584,7 @@ class ProportionalHillNegative(HillNegative):
         self.name = 'proportionalhillnegative'
 
     def pretty_print_rate(self, show_parameters=True, **kwargs):
-        return f' Kf = k {self.d.pretty_print(**kwargs)} / ( K^n + {self.s1.pretty_print(**kwargs)}^{self.n} )'
+        return f' Kf = k {self.d.pretty_print(**kwargs)} / ( 1 + ({self.s1.pretty_print(**kwargs)}/K)^{self.n} )'
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']
@@ -592,4 +592,4 @@ class ProportionalHillNegative(HillNegative):
         K = propensity_dict['parameters']['K']
         s1 = propensity_dict['species']['s1']
         d = propensity_dict['species']['d']
-        return f"{k}*{d} / ( {K}^{n} + {s1}^{n} )"
+        return f"{k}*{d} / ( 1 + ({s1}/{K})^{n} )"
