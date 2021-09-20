@@ -822,6 +822,7 @@ class CRNPlotter:
             self.species_dpl_dict[species] = out_dpl
             return out_dpl
     def make_dpl_from_part(self,part,set_color=None,save_in_dict=True,set_color2=None):
+        """create a DNAplotlib dictionary from a part"""
         removed_part = part.get_removed()
         if(len(self.colordict)>0 and set_color is None):
             search_color = member_dictionary_search(removed_part,self.colordict)
