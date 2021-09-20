@@ -15,7 +15,7 @@ class DNA(Component):
     Produces no reactions.
     """
 
-    def __init__(self, name: str, length=0, attributes=None, **keywords):
+    def __init__(self, name, length=0, attributes=None, **keywords):
         """Initialize a DNA object to store DNA related information.
 
         :param name: Name of the sequence (str)
@@ -24,8 +24,7 @@ class DNA(Component):
         :param keywords: pass into the parent's (Component) initializer
         """
         self.species = self.set_species(name, material_type="dna", attributes=attributes)
-        self.length = length
-        Component.__init__(self=self, name=name, **keywords)
+        super().__init__(name=name, length = length, **keywords)
 
     def get_species(self) -> Species:
         return self.species
@@ -37,18 +36,7 @@ class DNA(Component):
     def update_reactions(self) -> List:
         return []
 
-    @property
-    def length(self):
-        return self._length
-
-    @length.setter
-    def length(self, dna_length):
-        if dna_length is None:
-            self._length = dna_length
-        elif dna_length >= 0 and isinstance(dna_length, int):
-            self._length = dna_length
-        else:
-            raise ValueError("Length cannot be negative!")
+   
 
 
 class RNA(Component):
@@ -63,10 +51,9 @@ class RNA(Component):
         :param keywords: pass into the parent's (Component) initializer
         """
 
-        self.length = length
         self.species = self.set_species(name, material_type="rna",
                                         attributes=attributes)
-        Component.__init__(self=self, name=name, **keywords)
+        super().__init__(name=name, length = length, **keywords)
 
     def get_species(self) -> Species:
         return self.species
@@ -77,7 +64,6 @@ class RNA(Component):
 
     def update_reactions(self) -> List:
         return []
-
 
 class Protein(Component):
     """A class to represent Components made of Protein. Produces no reactions."""
@@ -90,12 +76,10 @@ class Protein(Component):
         :param attributes: Species attribute
         :param keywords: pass into the parent's (Component) initializer
         """
-
-        self.length = length
         self.species = self.set_species(name, material_type="protein",
                                         attributes=attributes)
 
-        Component.__init__(self=self, name=name, **keywords)
+        super().__init__(name=name, length = length, **keywords)
 
     def get_species(self) -> Species:
         return self.species

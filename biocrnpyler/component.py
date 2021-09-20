@@ -109,15 +109,16 @@ class Component(object):
         :param attributes:
         :return: Species
         """
-
         if isinstance(species, Species):
-                return species
+            return species
         elif isinstance(species, str):
             return Species(name=species, material_type=material_type, attributes=attributes)
         elif isinstance(species, Component) and species.get_species() is not None:
             return species.get_species()
+        elif isinstance(species, list):
+            return [self.set_species(s, material_type = material_type, attributes = attributes) for s in species]
         else:
-            raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
+            raise ValueError(f"Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input. Recieved {species}")
 
     def __hash__(self):
         return str.__hash__(repr(self.get_species()))

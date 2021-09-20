@@ -89,7 +89,9 @@ def member_dictionary_search(member,dictionary):
     propensity partid
     propensity mechanism
     """
-    if(repr(member) in dictionary):
+    if dictionary is None:
+        return None
+    elif(repr(member) in dictionary):
         return dictionary[repr(member)]
     elif(hasattr(member,"name") and member.name in dictionary):
         return dictionary[member.name]

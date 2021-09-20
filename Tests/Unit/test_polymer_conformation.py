@@ -6,18 +6,42 @@ from biocrnpyler import *
 
 from biocrnpyler import OrderedPolymerSpecies, PolymerConformation, Complex, Species
 
+def test_polymer_conformation_no_complex_instantiation():
+    p = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
+    pc = PolymerConformation(polymer = p)
+    c1 = ComplexSpecies([p[0], p[1], Species("S")], called_from_complex = True)
+
+    assert str(pc) == str(p) #these should have the same name!
+    assert str(p) == str(pc.polymers[0])
+    assert len(pc.complexes) == 0
+
+    pc2 = PolymerConformation(polymer = [Species("m1"), Species("m2"), Species("m3")])
+    assert pc2 == pc
+
+    with pytest.raises(ValueError):
+        pc = PolymerConformation(polymer = ["A", None])
+
+    with pytest.raises(NotImplementedError):
+        pc = PolymerConformation(polymer = [p, p])
+
+    with pytest.raises(ValueError):
+        pc = PolymerConformation(polymer = p, complexes = [c1])
+
+    with pytest.raises(ValueError):
+        pc = PolymerConformation()
+
 def test_single_polymer_single_complex_instantiation():
     p = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
     c1 = ComplexSpecies([p[0], p[1], Species("S")], called_from_complex = True)
     pc = PolymerConformation(complexes = [c1])
     #Test naming convention
-    assert str(pc) == f"conformation__{p}_np0p0_{c1}_"
+    assert str(pc) == f"conformation__{p}_np0l0p0l1_{c1}_"
 
     p2 = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m4")])
     c2 = ComplexSpecies([p[0], p2[0]], called_from_complex = True)
 
     #In these cases, TypeErrors should be raised
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         #Emtpy complexes is not allowed
         pc2 = PolymerConformation(complexes = [])
 
@@ -48,7 +72,7 @@ def test_multiple_polymer_multiple_complex_instantiation():
     pc1 = PolymerConformation(complexes = [c1, c2])
     
     #Check naming convention
-    assert str(pc1) == f"conformation__{p1}_{p2}_p0p0_{c1}_p0p1_{c2}_"
+    assert str(pc1) == f"conformation__{p1}_{p2}_p0l0p0l1_{c1}_p0l0p1l2_{c2}_"
 
     #check that order doesn't matter
     pc1_r = PolymerConformation(complexes = [c2, c1])
@@ -57,7 +81,7 @@ def test_multiple_polymer_multiple_complex_instantiation():
     #check that ComplexSpecies with the same string representation but different polymers are treated differently
     c1b = ComplexSpecies([p2[1], p1[0]], called_from_complex = True) #c1 and c1b have the same string representation - but connect different polymers
     pc1b = PolymerConformation(complexes = [c1b, c2])
-    assert str(pc1b) == f"conformation__{p1}_{p2}_p0p1_{c1}_p0p1_{c2}_"
+    assert str(pc1b) == f"conformation__{p1}_{p2}_p0l0p1l1_{c1}_p0l0p1l2_{c2}_"
     assert pc1 != pc1b
 
     #Check that order doesn't matter for Complexes with the same string representation
@@ -78,7 +102,7 @@ def test_multiple_polymer_multiple_complex_instantiation():
     c4 = ComplexSpecies([p1[0], p3[0]])
 
     pc3 = PolymerConformation([c1, c4])
-    assert str(pc3) == f"conformation__{p1}_{p1}_p0p0_{c1}_p0p1_{c4}_"
+    assert str(pc3) == f"conformation__{p1}_{p1}_p0l0p0l1_{c1}_p0l0p1l0_{c4}_"
 
     #check that order doesn't matter for polymers which look the same
     pc3r = PolymerConformation([c4, c1])
@@ -92,6 +116,22 @@ def test_multiple_polymer_multiple_complex_instantiation():
     with pytest.raises(ValueError):
         #duplicate Complexes are not allowed (identical object case)
         pc4 = PolymerConformation([c1, c1b])
+
+def test_degenerate_polymer_conformation():
+    S = Species("S")
+    p = OrderedPolymerSpecies([S, S, S])
+    pc = PolymerConformation(polymer=p)
+
+    c1 = Complex([pc.polymers[0][0], pc.polymers[0][1]])
+    pc1 = c1.parent
+
+    c2 = Complex([pc.polymers[0][1], pc.polymers[0][2]])
+    pc2 = c2.parent
+
+    c3 = Complex([pc.polymers[0][0], pc.polymers[0][2]])
+    pc3 = c3.parent
+
+    assert pc1 != pc2 != pc3
 
 
 def test_from_polymer_conformation():
@@ -201,7 +241,10 @@ def test_get_complex():
     assert str(pc.get_complex(c1)) == str(c1) #these are not technically equal because they have different parents
 
     
-    
+def test_polymer_conformation_ordered_polymer_species_name_equality():
+    p = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
+    pc = PolymerConformation(polymer = p)
+    assert str(p) == str(pc)
     
 
 
