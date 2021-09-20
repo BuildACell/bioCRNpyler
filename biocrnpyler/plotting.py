@@ -707,6 +707,7 @@ class CRNPlotter:
                     if(output is not None):
                         fig.savefig(output+"_"+str(species).replace("_","").replace("forward","f").replace("reverse","r").replace("part","")+".pdf",bbox_inches='tight')
                     fig.savefig(imagestream,bbox_inches='tight')
+                    plt.close()
                     png_str = base64.b64encode(imagestream.getvalue())
                     self.species_image_dict[species]= png_str
         return self.species_image_dict
