@@ -707,6 +707,7 @@ class CRNPlotter:
                     if(output is not None):
                         fig.savefig(output+"_"+str(species).replace("_","").replace("forward","f").replace("reverse","r").replace("part","")+".pdf",bbox_inches='tight')
                     fig.savefig(imagestream,bbox_inches='tight')
+                    plt.close()
                     png_str = base64.b64encode(imagestream.getvalue())
                     self.species_image_dict[species]= png_str
         return self.species_image_dict
@@ -822,6 +823,7 @@ class CRNPlotter:
             self.species_dpl_dict[species] = out_dpl
             return out_dpl
     def make_dpl_from_part(self,part,set_color=None,save_in_dict=True,set_color2=None):
+        """create a DNAplotlib dictionary from a part"""
         removed_part = part.get_removed()
         if(len(self.colordict)>0 and set_color is None):
             search_color = member_dictionary_search(removed_part,self.colordict)
