@@ -219,18 +219,14 @@ def test_integrase_rule():
     #
 
 def test_integrase_enumerator():
-    prom = Promoter("p1")
-    utr = RBS("utr")
     cds = CDS("GFP")
     cds2 = CDS("RFP")
-    term = Terminator("t16")
     ap = IntegraseSite("attP","attP",integrase="Bxb1")
     ab = IntegraseSite("attB","attB",integrase="Bxb1")
     al = IntegraseSite("attL","attL",integrase="Bxb1")
     ar = IntegraseSite("attR","attR",integrase="Bxb1")
 
-    aflp = IntegraseSite("FLP","FLP")
-    delete = DNA_construct([ab,cds,ap])
+
     flip = DNA_construct([ab,cds,[ap,"reverse"]])
     plasp = DNA_construct([cds,ap],circular=True)
     plasb = DNA_construct([cds,ab],circular=True)
@@ -290,6 +286,14 @@ def test_integrase_enumerator():
 
     y = bxb1_enumerator.enumerate_components([plasp,plasb],previously_enumerated=[plaspb])
     assert (y == []) #nothing new is made since the proper construct has been "previously enumerated"
+
+    plaspb = DNA_construct([ar,cds,al,cds,ar,cds,ar,cds],circular=True)
+    for i in range(1,len(plaspb)):
+        #test all circular permutations of this repetitive plasmid. They should all  yield the same hash!
+        plasperm = plaspb.get_circularly_permuted(i)
+        h1 = DNA_construct.omnihash(plaspb)
+        h2 = DNA_construct.omnihash(plasperm)
+        assert(h1[0]==h2[0])
 
 
 
