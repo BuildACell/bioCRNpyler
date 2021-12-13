@@ -62,7 +62,7 @@ class IntegralMembraneProtein(Component):
         
         return mech_cat.update_reactions(self.membrane_protein, self.product, component=self,  part_id=self.name)
 
-  class MembraneChannel(Component):
+class MembraneChannel(Component):
     """A class to represent Membrane Channels.
     Assumes the membrane channel transport substrates in a specific direction across the membrane
     Uses a mechanism called "catalysis"
