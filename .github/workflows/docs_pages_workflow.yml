@@ -21,6 +21,13 @@ jobs:
           apt-get install -y git
           git clone --depth 1 "https://token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" .
         shell: bash
+        
+      - name: Set up Python 
+        uses: actions/setup-python@v2
+        
+      - name: Install python dependencies
+        run: |
+          pip install -r docs/requirements.txt 
 
       - name: Execute script to build our documentation and update pages
         env:
