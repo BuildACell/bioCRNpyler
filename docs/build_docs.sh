@@ -31,6 +31,9 @@ export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
 # BUILD DOCS #
 ##############
 
+# installing the BioCRNPyler package
+pip3 install -e .[all]
+
 # build our documentation with sphinx (see docs/conf.py)
 # * https://www.sphinx-doc.org/en/master/usage/quickstart.html#running-the-build
 echo "Running Sphinx docs generator";
