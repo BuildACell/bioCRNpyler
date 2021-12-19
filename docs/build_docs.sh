@@ -17,7 +17,7 @@ set -x
 ###################
 
 apt-get update
-apt-get -y install git rsync python3 python3-pip libffi-dev libssl-dev pandoc build-essential cmake libsbml swig zlib
+apt-get -y install git rsync python3 python3-pip libffi-dev libssl-dev pandoc build-essential cmake libsbml swig zlib1g
 
 #####################
 # DECLARE VARIABLES #
