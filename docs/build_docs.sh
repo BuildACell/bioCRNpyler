@@ -17,7 +17,7 @@ set -x
 ###################
 
 apt-get update
-apt-get -y install git rsync python3-sphinx python3-sphinx-rtd-theme
+apt-get -y install git rsync python3 python3-pip
 
 #####################
 # DECLARE VARIABLES #
@@ -35,6 +35,7 @@ export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
 # * https://www.sphinx-doc.org/en/master/usage/quickstart.html#running-the-build
 echo "Running Sphinx docs generator";
 cd docs
+pip install -r requirements.txt
 sphinx-apidoc -o source/ ../biocrnpyler
 # this step is needed to generate the jupyter notebooks files
 python generate_nblinks.py
