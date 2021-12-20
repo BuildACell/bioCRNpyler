@@ -237,18 +237,24 @@ class TestComponent(TestCase):
         dna_species = Species(name = "S", material_type = "dna")
         dna_comp = DNA(name = "S")
 
+        compartment1="Internal"
+        dna_species_internal = Species(name = "S", material_type = "dna", compartment = compartment1)
+
         #add_species can take a string, Species, or Component
         s1 = C.set_species(dna_species)
         s2 = C.set_species(dna_string)
         s3 = C.set_species(dna_comp)
+        s4 = C.set_species(dna_species)
         self.assertEqual(str(s1), str(s2)) #A Species derived from a string will have no material_type
+        self.assertFalse(str(s1), str(s4)) #A Species with a compartment will not have same string as a Species without one
         self.assertFalse(s1 == s2)
+        self.assertFalse(s1 == s4)
         self.assertEqual(s1, s3)
         self.assertEqual(s1, dna_species)
 
         #add_species can also take a list
-        s_list = C.set_species([dna_string, dna_species, dna_comp])
-        self.assertTrue(len(s_list) == 3)
+        s_list = C.set_species([dna_string, dna_species, dna_comp, dna_species_internal])
+        self.assertTrue(len(s_list) == 4)
         self.assertTrue(str(s_list[0]) == str(s_list[1]) == str(s_list[2]))
 
         #The following cases should raise errors
