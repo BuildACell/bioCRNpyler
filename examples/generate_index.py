@@ -47,13 +47,12 @@ first_used = {c[0]: None for c in all_objs}
 # paths to search through
 paths = [".", "Specialized Tutorials"]
 for path in paths:
-    
     # find .ipynb files
     ipynb_files = [
         f for f in listdir(path)
         if isfile(join(path, f)) and f.split(".")[-1] == "ipynb"
     ]
-    
+    # iterate through files in path
     for fname in ipynb_files:
         f = open(join(path, fname))
         for line in f:
