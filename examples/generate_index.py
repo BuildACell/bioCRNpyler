@@ -36,9 +36,7 @@ core_objs = species+propensities+components+mechanisms+mixtures
 # Find miscellanious objects
 other_objs = []
 for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"]):
-    if inspect.isclass(o)
-    and (n, o) not in core_objs
-    and "biocrn" in str(o):
+    if inspect.isclass(o) and (n, o) not in core_objs and "biocrn" in str(o):
         other_objs.append((n, o))
 
 all_objs = core_objs + other_objs
