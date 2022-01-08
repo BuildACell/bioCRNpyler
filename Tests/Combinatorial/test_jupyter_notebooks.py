@@ -23,7 +23,7 @@ def run_notebook(filename, path):
 #Create a list of all notebooks to run
 #ADD NEW EXAMPLE FOLDERS HERE IF NEEDED
 cwd = getcwd()
-paths = [join(cwd, "examples"), join(cwd, "examples", "Specialized Component Tutorials")]
+paths = [join(cwd, "examples"), join(cwd, "examples", "Specialized Tutorials")]
 nb_names = []
 for p in paths:
     nb_names += [join(p, f) for f in listdir(p) if f[-6:] == ".ipynb"]
