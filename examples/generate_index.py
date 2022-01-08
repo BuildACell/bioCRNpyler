@@ -14,8 +14,18 @@ mechanisms = [(n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"]
 
 mixtures = [(n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"]) if inspect.isclass(o) and issubclass(o, biocrnpyler.Mixture)]
 
+core_objs = species+propensities+components+mechanisms+mixtures
+
+#Find miscellanious objects
+other_objs = []
+for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"]):
+    if inspect.isclass(o) and (n, o) not in core_objs and "biocrnpyler" in str(o):
+        other_objs.append((n, o))
+
+all_objs = core_objs + other_objs
+
 #dictionary stores the first .ipynb the object appears in
-first_used = {c[0]:None for c in species+propensities+components+mechanisms+mixtures}
+first_used = {c[0]:None for c in all_objs}
 
 #paths to search through
 paths = [".", "Specialized Tutorials"]
@@ -54,7 +64,7 @@ for n, o in propensities:
         
 for n, o in components:
     if first_used[n] is not None:
-        txt+=f"{n}\tComponenet\t{first_used[n]}\n"
+        txt+=f"{n}\tComponent\t{first_used[n]}\n"
         written[n] = True
         
 for n, o in mechanisms:
