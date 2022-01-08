@@ -1,31 +1,33 @@
-import sys, inspect
+import sys
+import inspect
 import biocrnpyler
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile
+from os.path import join
 
 # Get lists of bioCRNpyler objects of different types
 species = [
-    (n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"]) 
+    (n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"])
     if inspect.isclass(o) and issubclass(o, biocrnpyler.Species)
 ]
 
 propensities = [
-    (n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"]) 
+    (n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"])
     if inspect.isclass(o) and issubclass(o, biocrnpyler.Propensity)
 ]
 
 components = [
-    (n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"]) 
+    (n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"])
     if inspect.isclass(o) and issubclass(o, biocrnpyler.Component)
 ]
 
 mechanisms = [
-    (n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"]) 
+    (n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"])
     if inspect.isclass(o) and issubclass(o, biocrnpyler.Mechanism)
 ]
 
 mixtures = [
-    (n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"]) 
+    (n, o) for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"])
     if inspect.isclass(o) and issubclass(o, biocrnpyler.Mixture)
 ]
 
@@ -40,17 +42,17 @@ for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"]):
 all_objs = core_objs + other_objs
 
 # dictionary stores the first .ipynb the object appears in
-first_used = {c[0]:None for c in all_objs}
+first_used = {c[0] : None for c in all_objs}
 
-#paths to search through
+# paths to search through
 paths = [".", "Specialized Tutorials"]
 for path in paths:
-    #find .ipynb files
+    # find .ipynb files
     ipynb_files = [f for f in listdir(path) if isfile(join(path, f)) and f.split(".")[-1]=="ipynb"]
     for fname in ipynb_files:
         f = open(join(path, fname))
         for line in f:
-            #cross references with biocrnpyler classes
+            # cross references with biocrnpyler classes
             for c in first_used:
                 if c in line and first_used[c] is None:
                     if path == ".":
@@ -68,32 +70,32 @@ written = {}
 # Iterate through different object types
 for n, o in species:
     if first_used[n] is not None:
-        txt+=f"{n}\tSpecies\t{first_used[n]}\n"
+        txt += f"{n}\tSpecies\t{first_used[n]}\n"
         written[n] = True
-        
+
 for n, o in propensities:
     if first_used[n] is not None:
-        txt+=f"{n}\tPropensity\t{first_used[n]}\n"
+        txt += f"{n}\tPropensity\t{first_used[n]}\n"
         written[n] = True
-        
+
 for n, o in components:
     if first_used[n] is not None:
-        txt+=f"{n}\tComponent\t{first_used[n]}\n"
+        txt += f"{n}\tComponent\t{first_used[n]}\n"
         written[n] = True
-        
+
 for n, o in mechanisms:
     if first_used[n] is not None:
-        txt+=f"{n}\tMechanism\t{first_used[n]}\n"
+        txt += f"{n}\tMechanism\t{first_used[n]}\n"
         written[n] = True
-        
+
 for n, o in mixtures:
     if first_used[n] is not None:
-        txt+=f"{n}\tMixture\t{first_used[n]}\n"
+        txt += f"{n}\tMixture\t{first_used[n]}\n"
         written[n] = True
-        
+
 for n in first_used:
     if n not in written and first_used[n] is not None:
-        txt+=f"{n}\tOther\t{first_used[n]}\n"
+        txt += f"{n}\tOther\t{first_used[n]}\n"
         written[n] = True
 
 # Write the file
