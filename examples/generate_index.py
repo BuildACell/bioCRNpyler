@@ -36,19 +36,26 @@ core_objs = species+propensities+components+mechanisms+mixtures
 # Find miscellanious objects
 other_objs = []
 for (n, o) in inspect.getmembers(sys.modules["biocrnpyler"]):
-    if inspect.isclass(o) and (n, o) not in core_objs and "biocrnpyler" in str(o):
+    if inspect.isclass(o)
+    and (n, o) not in core_objs
+    and "biocrn" in str(o):
         other_objs.append((n, o))
 
 all_objs = core_objs + other_objs
 
 # dictionary stores the first .ipynb the object appears in
-first_used = {c[0] : None for c in all_objs}
+first_used = {c[0]: None for c in all_objs}
 
 # paths to search through
 paths = [".", "Specialized Tutorials"]
 for path in paths:
+    
     # find .ipynb files
-    ipynb_files = [f for f in listdir(path) if isfile(join(path, f)) and f.split(".")[-1]=="ipynb"]
+    ipynb_files = [
+        f for f in listdir(path)
+        if isfile(join(path, f)) and f.split(".")[-1] == "ipynb"
+    ]
+    
     for fname in ipynb_files:
         f = open(join(path, fname))
         for line in f:
