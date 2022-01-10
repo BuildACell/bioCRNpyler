@@ -1,0 +1,76 @@
+BioCRNpyler Class	Object Type	Example Notebook
+ComplexSpecies	Species	1. Building CRNs Directly.ipynb
+OrderedComplexSpecies	Species	1. Building CRNs Directly.ipynb
+OrderedPolymerSpecies	Species	1. Building CRNs Directly.ipynb
+PolymerConformation	Species	Specialized Tutorials/4. PolymerConformation and CombinatorialConformation.ipynb
+Species	Species	1. Building CRNs Directly.ipynb
+GeneralPropensity	Propensity	1. Building CRNs Directly.ipynb
+Hill	Propensity	1. Building CRNs Directly.ipynb
+HillNegative	Propensity	1. Building CRNs Directly.ipynb
+HillPositive	Propensity	1. Building CRNs Directly.ipynb
+MassAction	Propensity	7. Network Plotting Examples.ipynb
+Propensity	Propensity	1. Building CRNs Directly.ipynb
+ProportionalHillNegative	Propensity	1. Building CRNs Directly.ipynb
+ProportionalHillPositive	Propensity	1. Building CRNs Directly.ipynb
+ActivatablePromoter	Component	4. Promoters Transcriptional Regulation and Gene Regulatory Networks.ipynb
+CDS	Component	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+ChemicalComplex	Component	1. Building CRNs Directly.ipynb
+CombinatorialComplex	Component	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+CombinatorialConformation	Component	Specialized Tutorials/4. PolymerConformation and CombinatorialConformation.ipynb
+CombinatorialConformationPromoter	Component	Specialized Tutorials/4. PolymerConformation and CombinatorialConformation.ipynb
+CombinatorialPromoter	Component	4. Promoters Transcriptional Regulation and Gene Regulatory Networks.ipynb
+Component	Component	1. Building CRNs Directly.ipynb
+Construct	Component	8. Developer Overview.ipynb
+DNA	Component	3. DNA Assemblies gene expression transcription and translation.ipynb
+DNA_construct	Component	7. Network Plotting Examples.ipynb
+DNA_part	Component	9. DNA_construct Examples.ipynb
+DNAassembly	Component	3. DNA Assemblies gene expression transcription and translation.ipynb
+Enzyme	Component	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+IntegraseSite	Component	9. DNA_construct Examples.ipynb
+Origin	Component	7. Network Plotting Examples.ipynb
+Promoter	Component	3. DNA Assemblies gene expression transcription and translation.ipynb
+Protein	Component	3. DNA Assemblies gene expression transcription and translation.ipynb
+RBS	Component	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+RNA	Component	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+RNA_construct	Component	9. DNA_construct Examples.ipynb
+RegulatedPromoter	Component	4. Promoters Transcriptional Regulation and Gene Regulatory Networks.ipynb
+RepressiblePromoter	Component	4. Promoters Transcriptional Regulation and Gene Regulatory Networks.ipynb
+Terminator	Component	7. Network Plotting Examples.ipynb
+BasicCatalysis	Mechanism	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+Combinatorial_Cooperative_Binding	Mechanism	Specialized Tutorials/1. CombinatorialPromoter Details.ipynb
+Deg_Tagged_Degredation	Mechanism	6. Global Mechanisms.ipynb
+Degredation_mRNA_MM	Mechanism	3. DNA Assemblies gene expression transcription and translation.ipynb
+Dilution	Mechanism	3. DNA Assemblies gene expression transcription and translation.ipynb
+Mechanism	Mechanism	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+MichaelisMenten	Mechanism	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+MichaelisMentenReversible	Mechanism	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+OneStepGeneExpression	Mechanism	3. DNA Assemblies gene expression transcription and translation.ipynb
+One_Step_Binding	Mechanism	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+One_Step_Cooperative_Binding	Mechanism	9. DNA_construct Examples.ipynb
+SimpleTranscription	Mechanism	3. DNA Assemblies gene expression transcription and translation.ipynb
+SimpleTranslation	Mechanism	3. DNA Assemblies gene expression transcription and translation.ipynb
+Transcription_MM	Mechanism	3. DNA Assemblies gene expression transcription and translation.ipynb
+Translation_MM	Mechanism	3. DNA Assemblies gene expression transcription and translation.ipynb
+multi_tl	Mechanism	Specialized Tutorials/3, MultiOccupancyTxTl_Demo.ipynb
+multi_tx	Mechanism	Specialized Tutorials/3, MultiOccupancyTxTl_Demo.ipynb
+EnergyTxTlExtract	Mixture	Specialized Tutorials/5. TxTl Toolbox.ipynb
+ExpressionDilutionMixture	Mixture	3. DNA Assemblies gene expression transcription and translation.ipynb
+ExpressionExtract	Mixture	3. DNA Assemblies gene expression transcription and translation.ipynb
+Mixture	Mixture	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+SimpleTxTlDilutionMixture	Mixture	3. DNA Assemblies gene expression transcription and translation.ipynb
+SimpleTxTlExtract	Mixture	3. DNA Assemblies gene expression transcription and translation.ipynb
+TxTlDilutionMixture	Mixture	3. DNA Assemblies gene expression transcription and translation.ipynb
+TxTlExtract	Mixture	3. DNA Assemblies gene expression transcription and translation.ipynb
+CRNPlotter	Other	Specialized Tutorials/6. Integrase Examples.ipynb
+ChemicalReactionNetwork	Other	1. Building CRNs Directly.ipynb
+Compartment	Other	Specialized Tutorials/2. Membrane Models .ipynb
+Complex	Other	1. Building CRNs Directly.ipynb
+IntegraseRule	Other	9. DNA_construct Examples.ipynb
+Integrase_Enumerator	Other	9. DNA_construct Examples.ipynb
+OrderedMonomer	Other	9. DNA_construct Examples.ipynb
+OrderedPolymer	Other	1. Building CRNs Directly.ipynb
+Parameter	Other	1. Building CRNs Directly.ipynb
+ParameterDatabase	Other	5. Parameters.ipynb
+ParameterEntry	Other	1. Building CRNs Directly.ipynb
+ParameterKey	Other	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
+Reaction	Other	1. Building CRNs Directly.ipynb

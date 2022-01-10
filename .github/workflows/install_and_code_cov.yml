@@ -27,4 +27,4 @@ jobs:
         with:
           files: .coverage
           verbose: true
-          fail_ci_if_error: true
+          fail_ci_if_error: false
