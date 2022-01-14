@@ -11,7 +11,7 @@ from .propensities import ProportionalHillNegative, ProportionalHillPositive, Ge
 from .parameter import ModelParameter, Parameter, ParameterEntry
 
 class Membrane_Protein_Integration(Mechanism):
-    """A Mechanism to integrate into the membrane."""
+    """A simple Mchanism to integrate into the membrane protein in the membrane."""
     def __init__(self, name= "membrane_protein_integration", mechanism_type="catalysis", **keywords):
         
         """Initializes the integration of protein into membrane based on the negative hill coefficient.
@@ -36,7 +36,6 @@ class Membrane_Protein_Integration(Mechanism):
         else: complex2=complex2
             
         return [integral_membrane_protein,  product, complex1, complex2]
-    
     
     def update_reactions(self, integral_membrane_protein, product, component=None, part_id=None, complex=None, complex2 = None, kd=None, kb=None, ku=None,
                          kcat=None, kex=None, **keywords):
@@ -121,7 +120,7 @@ class Membrane_Protein_Integration(Mechanism):
 
 class Passive_Transport(Mechanism):
     """A Mechanism to model the transport of a substrate through a membrane channel.
-    Does not require energy and has undirectional transport, following diffusion rules."""
+    Does not require energy and has unidirectional transport, following diffusion rules."""
     
     def __init__(self, name= "passive_membrane_protein_transport", mechanism_type="catalysis", **keywords):
         """Initializes a Passive_Membrane_Protein_Transport instance
@@ -141,7 +140,6 @@ class Passive_Transport(Mechanism):
         else: complex2=complex2
             
         return [membrane_channel, substrate, product, complex1, complex2]
-    
     
     def update_reactions(self, membrane_channel, substrate, product, component=None, part_id=None, complex=None, complex2 = None, 
                          k_channel=None, **keywords):
@@ -165,13 +163,11 @@ class Passive_Transport(Mechanism):
             complex2=complex2
         else: complex2=complex2
         
-     
         # Sub (Internal) <--> Product (External)
         diffusion_rxn = Reaction.from_massaction(inputs=[substrate, membrane_channel],
                                            outputs=[product, membrane_channel],
                                            k_forward=k_transport,
                                            k_reverse=k_transport)            
-        
         return [diffusion_rxn]
 
 class Facilitated_Passive_Transport(Mechanism):
@@ -222,7 +218,6 @@ class Facilitated_Passive_Transport(Mechanism):
             ku1 = ku
             ku2 = ku
             
-
         if complex is None:
             complex1 = Complex([Sub, membrane_carrier])
         else:
@@ -230,7 +225,6 @@ class Facilitated_Passive_Transport(Mechanism):
         if complex2 == None:
             complex2 = Complex([Prod, membrane_carrier])
             
-
         # Sub + MC --> Sub:MC
         k1 = ParameterEntry("k1", 1e-1)
         general = GeneralPropensity(f'k1*{Sub}*{membrane_carrier}-k1*{Prod}*{membrane_carrier}', propensity_species=[Prod,Sub,membrane_carrier], propensity_parameters=[k1])
@@ -250,8 +244,6 @@ class Facilitated_Passive_Transport(Mechanism):
         binding_rxn3 = Reaction.from_massaction(inputs=[complex2],
                                                 outputs=[Prod, membrane_carrier],
                                                 k_forward=ku2)
-
-
         
         return [cat_rxn, binding_rxn1, binding_rxn2, binding_rxn3]
 
@@ -334,7 +326,6 @@ class Primary_Active_Transport(Mechanism):
         else:
             kex = kex
         
-
         if complex is None:
             complex1 = Complex([Sub, membrane_pump])
         else:
