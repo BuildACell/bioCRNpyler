@@ -116,7 +116,6 @@ class MembraneChannel(Component):
             else:
                 print('Membrane channel direction not found.')
 
-
         Component.__init__(self=self, name=self.integral_membrane_protein.name, **keywords)
         
         #######################
@@ -133,7 +132,6 @@ class MembraneChannel(Component):
         mech_cat = self.get_mechanism('catalysis')
         return mech_cat.update_reactions(self.integral_membrane_protein, self.substrate, self.product, component=self,  part_id=self.name)    
 
-
 class MembranePump(Component):
     """A class to represent Membrane Channels.
     Assumes the membrane channel transport substrates in a specific direction across the membrane
@@ -141,7 +139,7 @@ class MembranePump(Component):
     """
     def __init__(self, membrane_pump: Union[Species, str, Component],
                  substrate: Union[Species, str, Component],
-                 direction=None, ATP=None,
+                 ATP=None,
                  attributes=None, **keywords):
         """Initialize a Transporter object to store Transport membrane related information.
         :param substrate: name of the substrate, reference to an Species or Component
@@ -149,7 +147,9 @@ class MembranePump(Component):
         :param attributes: Species attribute
         :param keywords: pass into the parent's (Component) initializer
         """
-   
+   # PROTEIN
+        self.membrane_pump = self.set_species(membrane_pump, material_type='protein', attributes=attributes)
+    
    # SUBSTRATE
         if substrate is None:
             self.substrate = None
@@ -157,58 +157,31 @@ class MembranePump(Component):
             product=substrate
             self.substrate = self.set_species(substrate, compartment='Internal',attributes=attributes)
             self.product= self.set_species(product, compartment='External',attributes=attributes)
+        
+        if ATP is None:
+            self.membrane_pump.ATP= 1
+        else: 
+            self.membrane_pump.ATP = ATP
 
-# PROTEIN
-        if type(membrane_pump) == str:
-            if ATP is None:
-                ATP= 1
-            else: 
-                ATP = ATP
-                
-            if direction is  None:
-                print('None')
-                self.membrane_pump = self.set_species(membrane_pump, material_type='Passive', attributes=attributes)
-                self.membrane_pump.ATP= ATP
-            else:
-                self.membrane_pump = self.set_species(membrane_pump, material_type=direction, attributes=attributes)
-                self.membrane_pump.ATP= ATP
-                if direction == 'Importer':
-                    if substrate is None:
-                        self.substrate = None
-                    else:
-                        product=substrate
-                        self.substrate = self.set_species(substrate, compartment='External',attributes=attributes)
-                        self.product= self.set_species(product, compartment='Internal',attributes=attributes)
-
-                
-        else:
-            if integral_membrane_protein.material_type == 'Passive':
-                self.integral_membrane_protein = self.set_species(integral_membrane_protein, material_type='Passive', attributes=attributes)
-            elif membrane_pump.material_type == 'Exporter':
-                self.membrane_pump = self.set_species(membrane_pump, material_type='Exporter', attributes=attributes)
-            elif membrane_pump.material_type == 'Importer':
-                self.membrane_pump = self.set_species(membrane_pump, material_type='Importer', attributes=attributes)
-
-                if substrate is None:
-                    self.substrate = None
-                else:
-                    product=substrate
-                    self.substrate = self.set_species(substrate, compartment='External',attributes=attributes)
-                    self.product= self.set_species(product, compartment='Internal',attributes=attributes)
-
-            else:
-                print('Membrane channel direction not found.')
-                
-            if ATP is None:
-                self.membrane_pump.ATP= 1
-            else: 
-                self.membrane_pump.ATP = ATP
-
-            
         self.energy = self.set_species('ATP',  material_type='small_molecule', compartment='Internal',attributes=attributes)
         self.waste = self.set_species('ADP',  material_type='small_molecule', compartment='Internal',attributes=attributes)
 
-        Component.__init__(self=self, name=self.membrane_pump.name, **keywords)
+        if membrane_pump.material_type == 'Exporter':
+            self.membrane_pump = self.set_species(membrane_pump, material_type='Exporter', attributes=attributes)
+        elif membrane_pump.material_type == 'Importer':
+            self.membrane_pump = self.set_species(membrane_pump, material_type='Importer', attributes=attributes)
+
+            if substrate is None:
+                self.substrate = None
+            else:
+                product=substrate
+                self.substrate = self.set_species(substrate, compartment='External',attributes=attributes)
+                self.product= self.set_species(product, compartment='Internal',attributes=attributes)
+        
+        else:
+            print('Membrane channel direction not found.')
+
+        Component.__init__(self=self, name=membrane_pump.name, **keywords)
         
         #######################
         print(self.attributes)
