@@ -15,11 +15,16 @@ class Compartment():
      documentation to find a list of supported units. Add your own custom units in units.py if needed.
     """
 
-    def __init__(self, name: str, size = 1e-6, spatial_dimensions = 3, unit = None, **keywords):
+    def __init__(self, name: str, size = 1e-6, spatial_dimensions = 3, unit = None, compartment_dict=None, **keywords):
         self.name = name
         self.spatial_dimensions = spatial_dimensions 
         self.size = size 
         self.unit = unit 
+        if compartment_dict == None:
+            self.compartment_dict = {}
+        else:
+            self.compartment_dict = compartment_dict
+        self.IDCount = 1
 
     @property
     def name(self):
@@ -37,6 +42,47 @@ class Compartment():
                 raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character.")
         else:
             raise ValueError('Compartment name must be a string.')
+            
+      # This method adds to the list already existing in the dictionary     
+    def add_compartment(self, relationship, compartment):
+        if not isinstance(relationship, str):
+            raise ValueError("Relationship must be a string!")
+            
+        if relationship not in self.compartment_dict:
+            if isinstance(compartment, Compartment):
+                self.compartment_dict[relationship] = [compartment]
+            elif isinstance(compartment, List):
+                self.compartment_dict[relationship] = compartment
+            else:
+                raise ValueError("You did not input a valid Compartment or list of Compartment objects") 
+        elif:
+            if isinstance(compartment, Compartment):
+                (self.compartment_dict[relationship]).append(compartment)
+            elif isinstance(compartment, List):
+                for item in compartment:
+                    (self.compartment_dict[relationship]).append(item)
+            else:
+                raise ValueError("You did not input a valid Compartment or list of Compartment objects") 
+        
+           
+    
+    # This method resets a value in the dictionary 
+    def set_compartment(self, compartment_name, compartment):
+        if not isinstance(compartment_name, str):
+            raise ValueError("Relationship must be a string!")
+        if isinstance(compartment, Compartment):
+            self.compartment_dict[compartment_name] = [compartment]
+        elif isinstance(compartment, List):
+            self.compartment_dict[compartment_name] = compartment
+        else:
+            raise ValueError("You did not input a valid Compartment or list of Compartment objects") 
+        
+    def get_compartment(self, compartment_name):
+        if compartment_name not in self.compartment_dict:
+            raise KeyError("No compartment exists by that name!")
+        return self.compartment_dict[compartment_name]
+    def get_compartment_dict(self):
+        return self.compartment_dict
 
     @property
     def spatial_dimensions(self):

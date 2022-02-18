@@ -14,12 +14,13 @@ from .parameter import ParameterDatabase
 from .reaction import Reaction
 from .species import Species
 from .utils import remove_bindloc
+from .compartments import Compartment
 
 
 class Mixture(object):
     def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
                  global_mechanisms=None, species=None, initial_condition_dictionary=None, \
-                 global_component_enumerators=None,global_recursion_depth=4, local_recursion_depth = None, **kwargs):
+                 global_component_enumerators=None,global_recursion_depth=4, local_recursion_depth = None, compartment = None **kwargs):
         """A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
         and parameters related to the mixture itself (e.g. Transcription rate). Default components and mechanisms can be
         added as well as global mechanisms that impacts all species (e.g. cell growth).
@@ -70,6 +71,10 @@ class Mixture(object):
             self.global_component_enumerators = []
         else:
             self.global_component_enumerators = global_component_enumerators
+        
+        if compartment not None:
+            if isinstance(compartment, Compartment):
+                self.compartment = compartment
 
         # process the species
         self.add_species(species)
@@ -110,7 +115,22 @@ class Mixture(object):
             return species.get_species()
         else:
             raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
+    
+    @property
+    def compartment(self):
+        return self._compartment
 
+    @compartment.setter
+    def compartment(self, compartment):
+        if compartment is None:
+            self._compartment = Compartment(name="default")
+        else:
+            if isinstance(compartment, str):
+                self._compartment = Compartment(
+                    name=self._check_name(compartment))
+            elif isinstance(compartment, Compartment):
+                self._compartment = compartment
+                
     @property
     def components(self):
         return self._components
@@ -520,5 +540,6 @@ class Mixture(object):
             txt+=" }\nGlobal Mechanisms = {"
             for mech in self.global_mechanisms:
                 txt+="\n\t"+mech+":"+self.global_mechanisms[mech].name
-        txt+=" }"
+        txt+=" }\nCompartment = {" + self.compartment.name + " }"
+      
         return txt
