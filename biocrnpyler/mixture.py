@@ -72,7 +72,7 @@ class Mixture(object):
         else:
             self.global_component_enumerators = global_component_enumerators
         
-        if compartment not None:
+        if not compartment is None:
             if isinstance(compartment, Compartment):
                 self.compartment = compartment
 
