@@ -55,7 +55,7 @@ class Compartment():
                 self.compartment_dict[relationship] = compartment
             else:
                 raise ValueError("You did not input a valid Compartment or list of Compartment objects") 
-        elif:
+        else:
             if isinstance(compartment, Compartment):
                 (self.compartment_dict[relationship]).append(compartment)
             elif isinstance(compartment, List):
