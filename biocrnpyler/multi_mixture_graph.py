@@ -210,6 +210,7 @@ class MultiMixtureGraph(object):
             # adding the compartment to each species
             for species in specs:
                 species.compartment = mixture.compartment
+            # TODO: add a test case 
             crn_species.append(specs) 
          
         self.crn = ChemicalReactionNetwork(crn_species, crn_reactions)
