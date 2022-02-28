@@ -1,7 +1,9 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-import warnings
+import copy
+from typing import List
+from warnings import resetwarnings, warn
 
 class Compartment():
 
@@ -80,7 +82,8 @@ class Compartment():
     def get_compartment(self, compartment_name):
         if compartment_name not in self.compartment_dict:
             raise KeyError("No compartment exists by that name!")
-        return self.compartment_dict[compartment_name]
+        else:
+            return self.compartment_dict[compartment_name]
     def get_compartment_dict(self):
         return self.compartment_dict
 

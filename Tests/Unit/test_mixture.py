@@ -3,6 +3,7 @@
 
 from unittest import TestCase
 from biocrnpyler import Mixture, Species, DNA, Reaction, ChemicalReactionNetwork, Component, SimpleTranscription, SimpleTranslation, GlobalMechanism
+import pytest
 
 
 class TestMixture(TestCase):
@@ -293,3 +294,6 @@ class TestMixture(TestCase):
         self.assertTrue(type(M2.get_component(component = C))  == Component)
         self.assertTrue(M2.get_component(component = C).mixture is M2)
         self.assertTrue(M1.get_component(component = C) != M2.get_component(component = C))
+        
+        
+        

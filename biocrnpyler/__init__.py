@@ -34,6 +34,8 @@ from .plotting import *
 from .polymer import *
 from .propensities import *
 from .reaction import *
+from .multi_mixture_graph import *
+from .compartments import *
 
 from .sbmlutil import *
 from .species import *

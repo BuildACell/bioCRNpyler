@@ -69,15 +69,16 @@ class TestSpecies(TestCase):
         c2 = Compartment("c2")
         c1.add_compartment("internal", c2)
         
-        assertTrue(c2 in c1.compartment_dict["internal"])
+        self.assertTrue(c2 in c1.compartment_dict["internal"])
         
         # testing errors
        
-        with self.assertRaisesRegex(ValueError,'Compartment name must be a string.'):
+        with self.assertRaisesRegex(ValueError,'Relationship must be a string!'):
             c1.add_compartment(None, c2)
             
         with self.assertRaisesRegex(ValueError,"You did not input a valid Compartment or list of Compartment objects"):
             c1.add_compartment("random", "I am not a compartment")
+            
         with self.assertRaisesRegex(ValueError,"You did not input a valid Compartment or list of Compartment objects"):
             c1.add_compartment("internal", "I am not a compartment")
         
@@ -89,12 +90,13 @@ class TestSpecies(TestCase):
         c1.add_compartment("internal", c3)
         
         c1.set_compartment("internal", c3)
-        
-        assertTrue(c1.get_compartment("internal") is c3)
+      
+        self.assertTrue(c3 in c1.get_compartment("internal"))
+        self.assertTrue(1 == len( c1.get_compartment("internal")))
         
         with self.assertRaisesRegex(ValueError,"You did not input a valid Compartment or list of Compartment objects"):
             c1.set_compartment("internal", "external")
-        with self.assertRaisesRegex(ValueError,'Compartment name must be a string.'):
+        with self.assertRaisesRegex(ValueError,'Relationship must be a string!'):
             c1.set_compartment(None, c2)
     def test_get_compartment(self):
         c1 = Compartment("c1")
@@ -104,13 +106,16 @@ class TestSpecies(TestCase):
         c1.add_compartment("internal", c3)
         
         result = c1.get_compartment("internal")
-        assertTrue(c1.get_compartment("internal") is [c2, c3])
-        with self.assertRaisesRegex(ValueError,"No compartment exists by that name!"):
+        self.assertTrue(c2 in c1.get_compartment("internal") and c3 in c1.get_compartment("internal") and len(c1.get_compartment("internal")) == 2)
+        
+        with self.assertRaisesRegex(KeyError,"No compartment exists by that name!"):
             c1.get_compartment("external")
 
     def test_get_compartment_dict(self):
-        c1 = Compartment("c1")
+        c1_new = Compartment("c1")
         c2 = Compartment("c2")
-        c1.add_compartment("internal", c2)
-           
-        assertTrue(c1.get_compartment_dict is {"internal": c2})
+        c1_new.add_compartment("internal", c2)
+    
+        self.assertTrue(len((c1_new.get_compartment_dict()).keys()) is 1)
+        self.assertTrue("internal" in c1_new.get_compartment_dict())
+        self.assertTrue(c2 in( c1_new.get_compartment_dict())["internal"] )

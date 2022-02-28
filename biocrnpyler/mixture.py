@@ -20,7 +20,7 @@ from .compartments import Compartment
 class Mixture(object):
     def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
                  global_mechanisms=None, species=None, initial_condition_dictionary=None, \
-                 global_component_enumerators=None,global_recursion_depth=4, local_recursion_depth = None, compartment = None **kwargs):
+                 global_component_enumerators=None,global_recursion_depth=4, local_recursion_depth = None, compartment = None, **kwargs):
         """A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
         and parameters related to the mixture itself (e.g. Transcription rate). Default components and mechanisms can be
         added as well as global mechanisms that impacts all species (e.g. cell growth).

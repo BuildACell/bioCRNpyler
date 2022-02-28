@@ -1,10 +1,17 @@
 import copy
 from typing import List, Union
 from warnings import resetwarnings, warn
+
 from .chemical_reaction_network import ChemicalReactionNetwork
+from .component import Component
+from .global_mechanism import GlobalMechanism
+from .mechanism import Mechanism
+from .parameter import ParameterDatabase
 from .reaction import Reaction
 from .species import Species
+from .utils import remove_bindloc
 from .compartments import Compartment
+from .mixture import Mixture
 
 class MultiMixtureGraph(object):
     def __init__(self, name="",
@@ -63,11 +70,8 @@ class MultiMixtureGraph(object):
                 else:
                     raise ValueError("You did not input a valid compartment. You need to input a Compartment object or string name, or nothing so MultiMixtureGraph can self-generate")
             else:
-                if compartment.name in compartment_name_map:
+                if compartment.name in self.compartment_name_map:
                     raise ValueError("This compartment has a name that is already associated with a mixture. Rename the compartment")
-            
-            # set global compartments 
-            
             
             # Add compartment to compartment map 
             self.compartment_mixture_map[compartment.name] = mixture_copy
@@ -92,13 +96,16 @@ class MultiMixtureGraph(object):
             return self.add_mixture(mixtures, compartments)
         elif isinstance(mixtures, List):
             if compartments is None or (isinstance(compartments, List) and len(compartments) is len(mixtures)):
+                if compartments is None:
+                    compartments = [None] * len(mixtures)
                 mixtures_list = []
                 compartments_list = []
                 compartments_name_list = []
-                for i in len(mixtures):
-                    mixtures_list.append(self.add_mixture(mixtures[i], compartments[i])[0])
-                    compartments_list.append(self.add_mixture(mixtures[i], compartments[i])[1])
-                    compartments_name_list.append(self.add_mixture(mixtures[i], compartments[i])[2])
+                for i in range(len(mixtures)):
+                    mix, comp_name, comp = self.add_mixture(mixtures[i], compartments[i])
+                    mixtures_list.append(mix)
+                    compartments_list.append(comp)
+                    compartments_name_list.append(comp_name)
                 return mixtures_list, compartments_name_list, compartments_list 
             else: 
                 raise ValueError("You did not input a list of compartments for each item in your list of mixtures") 
@@ -113,11 +120,11 @@ class MultiMixtureGraph(object):
     
         if not compartment_name_1 in self.compartment_name_map:
             raise ValueError("The first compartment you inputted was not added to the graph!") 
-        if not compart2ent_name_1 in self.compartment_name_map:
+        if not compartment_name_2 in self.compartment_name_map:
             raise ValueError("The second compartment you inputted was not added to the graph!") 
 
-        self.mixture_graph[compartment_mixture_graph[compartment_name_1]].append(compartment_mixture_graph[compartment_name_2])
-        self.mixture_graph[compartment_mixture_graph[compartment_name_2]].append(compartment_mixture_graph[compartment_name_1])
+        self.mixture_graph[self.compartment_mixture_map[compartment_name_1]].append(self.compartment_mixture_map[compartment_name_2])
+        self.mixture_graph[self.compartment_mixture_map[compartment_name_2]].append(self.compartment_mixture_map[compartment_name_1])
         
         # adding relationships in compartments
         self.compartment_name_map[compartment_name_1].add_compartment(key_1, self.compartment_name_map[compartment_name_2])
