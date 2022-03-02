@@ -69,9 +69,7 @@ class MultiMixtureGraph(object):
                     raise ValueError("You provided a list for compartment when mixture is one item")
                 else:
                     raise ValueError("You did not input a valid compartment. You need to input a Compartment object or string name, or nothing so MultiMixtureGraph can self-generate")
-            else:
-                if compartment.name in self.compartment_name_map:
-                    raise ValueError("This compartment has a name that is already associated with a mixture. Rename the compartment")
+
             
             # Add compartment to compartment map 
             self.compartment_mixture_map[compartment.name] = mixture_copy
@@ -113,9 +111,6 @@ class MultiMixtureGraph(object):
             raise ValueError("You did not input a Mixture or list of Mixtures, or for 1 mixture, you had more than 1 compartment.")
                 
     
-
-    # use keys to define relationship between mix1 and mix2 
-    # instead of mixtures, use strings as keys which are stored in a dictionary 
     def connect(self, compartment_name_1, compartment_name_2, key_1, key_2):
     
         if not compartment_name_1 in self.compartment_name_map:
@@ -130,47 +125,57 @@ class MultiMixtureGraph(object):
         self.compartment_name_map[compartment_name_1].add_compartment(key_1, self.compartment_name_map[compartment_name_2])
         self.compartment_name_map[compartment_name_2].add_compartment(key_2, self.compartment_name_map[compartment_name_1])
 
-    def duplicate_structure(self, compartment_name, shared_compartments, n ):
+    def duplicate_structure(self, compartment_name, n, shared_compartments= [] ):
         
-        if not compartment_name in compartment_name_map:
+        if not compartment_name in self.compartment_name_map:
             raise ValueError("The compartment you are trying to duplicate is not in the graph yet!")
-            
+        added_mixtures = []
+        added_compartment_names = []
+        added_compartments = []
         for i in range(n):
-            added_mixture, added_compartment_name, added_compartment = add_mixture(self.compartment_mixture_map[compartment_name])
+            added_mixture, added_compartment_name, added_compartment = self.add_mixture(self.compartment_mixture_map[compartment_name])
+            added_mixtures.append(added_mixture)
+            added_compartment_names.append(added_compartment_name)
+            added_compartments.append(added_compartment)
             
-            # When we add_mixture above, the compartment connections are created, but the corresponding 
-            # mixtures are not, so we create new ones for each here
-            # --- 
-            # The issue with this is that if these newly created mixtures also have other mixtures that need to be copied, they won't be
-            # This originates from the fact that compartments don't know the mixtures they relate to. 
-            #^ This would be an easy change, but I'm not sure if it defeats the purpose of having a compartment class. Why don't we just store this 
-            # local map in the mmg? 
+            # When we add_mixture above, the corresponding compartments and their mixtures are not created, so we create new ones for each here. The issue with this is that if these newly created mixtures also have other mixtures that need to be copied, they won't be. Should we implement this recusively so all layers get taken care of?
             new_compartment_dict = self.compartment_name_map[added_compartment_name].get_compartment_dict()
             old_compartment_dict = self.compartment_name_map[compartment_name].get_compartment_dict()
-            for item in new_compartment_dict :
-                # making a new mixture by copying 
+            
+            for item in old_compartment_dict.keys() :
+                cmp_list = []
                 if not item in shared_compartments:
                     # there could be many compartments under the same label 
-                    for compartment in new_compartment_dict[item]:
-                        mixture_to_copy = self.compartment_mixture_map[compartment]
-                        mx, cmp_name, cmp = self.add_mixture(mixture_to_copy, compartment)
+                    for compartment in old_compartment_dict[item]:
+                        mixture_to_copy = self.compartment_mixture_map[compartment.name]
+                        comp_to_add = copy.deepcopy(compartment)
+                        comp_to_add.name = comp_to_add.name + str(self.idCounter)
+                        self.idCounter+=1
+                        mx, cmp_name, cmp = self.add_mixture(mixture_to_copy, comp_to_add)
+                        cmp_list.append(cmp)
                 else: 
-                    added_compartment.set_compartment(item, old_compartment_dict[item])
-               
-                
-                # getting keys for connection 
-                # gets the compartment of the original, and gets what it connected to with this keyword
-                # then, searches for what keyword had the original compartment in that corresponding compartment
+                    cmp_list.append(old_compartment_dict[item])
+                # cmp is the compartment that is related that is to be added 
             
-                for related_compartment in new_compartment_dict[item]:
-                    other_comp_dict = self.compartment_name_map[related_compartment].get_compartment_dict()
+                # Finds they relationships between each pair and adds connections 
+                for related_compartment in old_compartment_dict[item]:
+                    other_comp_dict = related_compartment.get_compartment_dict()
                     key_of_interest = ""
-                    for key in other_comp_dict:
-                        if compartment_name in other_comp_dict[key]:
+                    for key in other_comp_dict.keys():
+                        if self.compartment_name_map[compartment_name] in other_comp_dict[key]:
                             key_of_interest = key 
-                            break; 
-                    self.connect(added_compartment, related_compartment, item, key_of_interest)
-            return added_mixture, added_compartment_name, added_compartment
+                        elif self.compartment_name_map[compartment_name] is other_comp_dict[key]:
+                            key_of_interest = key 
+                    for cmp_sub in cmp_list:
+                        if isinstance(cmp_sub, List):
+                            for sub in cmp_sub:
+                                self.connect(added_compartment.name, sub.name, item, key_of_interest)
+                        else:
+                            self.connect(added_compartment.name, cmp_sub.name, item, key_of_interest)
+               
+
+                    
+        return added_mixtures, added_compartment_names, added_compartments
     
     def remove_mixture(self,mixture):
         # TODO 
@@ -189,11 +194,11 @@ class MultiMixtureGraph(object):
         initial_concentrations_at_end = False, copy_objects = True, add_reaction_species = True) -> ChemicalReactionNetwork:
         crn_species = []
         crn_reactions = []
-        for mixture in self.mixture_graph.keys():
+        for mixture in self.mixtures:
             
             # Checking for shared species
             for connection in self.mixture_graph[mixture]:
-                # added_species may not be the best method for this 
+                # added_species may not be the best method for this!!! REVISIT  
                 mixture_species = mixture.added_species 
                 connection_species = connection.added_species
                 if not bool((set(mixture_species)).intersection(set(connection_species))):
@@ -207,10 +212,10 @@ class MultiMixtureGraph(object):
             for item in rxns:
                 if isinstance(item, Reaction):
                     crn_reactions.append(item)
-            # adding the compartment to each species
+            # adding the compartment to each species.
             for species in specs:
                 species.compartment = mixture.compartment
-            # TODO: add a test case 
+                
             crn_species.append(specs) 
          
         self.crn = ChemicalReactionNetwork(crn_species, crn_reactions)

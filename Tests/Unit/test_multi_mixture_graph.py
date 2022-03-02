@@ -38,8 +38,7 @@ class TestMultiMixtureGraph(TestCase):
         self.assertEqual(False, mixture2 in mmg.mixture_graph and mixture2 in mmg.mixture_graph)
         self.assertEqual(True, mixture_copy_list[0] in mmg.mixture_graph and mixture_copy_list[1] in mmg.mixture_graph)
         
-        with self.assertRaisesRegex(ValueError,"This compartment has a name that is already associated with a mixture. Rename the compartment"):
-             mmg2.add_mixture(mixture3, compartment = test_compartment)
+   
                 
         bad_compartment = mixture2
         with self.assertRaisesRegex(ValueError,"You did not input a valid compartment. You need to input a Compartment object or string name, or nothing so MultiMixtureGraph can self-generate"):
@@ -121,6 +120,54 @@ class TestMultiMixtureGraph(TestCase):
         with self.assertRaisesRegex(ValueError,"The second compartment you inputted was not added to the graph!"):
             mmg.connect(compartment1_name, mixture2_cpy, "internal", "external")
             
+    def test_duplicate_structure(self):
+        mmg = MultiMixtureGraph("name") 
+        c1 = Compartment("test1")
+        m1 = Mixture("mixture1")
+        c2 = Compartment("test2")
+        m2 = Mixture("mixture2")
+        with self.assertRaisesRegex(ValueError,"The compartment you are trying to duplicate is not in the graph yet!"):
+            mmg.duplicate_structure(c1.name, 1)
+        
+        added_mixt1, c1_name, c1_returned = mmg.add_mixture(m1, c1)
+        added_mixt2, c2_name, c2_returned = mmg.add_mixture(m2, c2)
+        
+        mmg.connect(c1_name, c2_name, "internal","external") 
+        self.assertTrue(len(mmg.mixtures) is 2)
+        
+        mix_list, comp_name_list, comp_list= mmg.duplicate_structure(c1_name, 2)
+        
+        self.assertTrue(len(mmg.mixtures) is 6)
+        
+        self.assertTrue(len(mmg.compartment_name_map) is 6)
+       
+        
+        self.assertTrue(len(mix_list[0].compartment.compartment_dict.keys())is 1)
+        for item in mix_list:
+            self.assertTrue(len(item.compartment.compartment_dict.keys()) is 1)
+            self.assertTrue("internal" in item.compartment.compartment_dict or "external" in item.compartment.compartment_dict)
+        
+        mmg2 = MultiMixtureGraph("name2") 
+        c3 = Compartment("test3")
+        m3 = Mixture("mixture3")
+        c4 = Compartment("test4")
+        m4 = Mixture("mixture4")
+        
+        added_mixt3, c3_name, c3_returned = mmg2.add_mixture(m3, c3)
+        added_mixt4, c4_name, c4_returned = mmg2.add_mixture(m4, c4)
+        mmg2.connect(c3_name, c4_name, "internal","external") 
+        
+        # do something where you have shared 
+        mix_list2, comp_name_list2, comp_list2= mmg2.duplicate_structure(c3_name, 1, shared_compartments =["internal"])
+       
+        self.assertTrue(len(mmg2.mixtures) is 3)
+        self.assertTrue(len(mmg2.compartment_name_map) is 3)
+        for item in mmg2.mixtures:
+            if "internal" in item.compartment.get_compartment_dict().keys():
+                self.assertTrue(not item.compartment.compartment_dict["internal"] is c4 or not item.compartment.compartment_dict["internal"] is c3 )
+           
+      
+        
     def test_remove_mixture(self): 
         pass
     
@@ -149,5 +196,25 @@ class TestMultiMixtureGraph(TestCase):
         pass 
     
     def test_compile_crn(self):
-        pass
-    # TODO -- will write once my compile_crn is finished
+        mmg = MultiMixtureGraph("test")
+        mixture1 = Mixture('test_mixture1')
+        mixture2 = Mixture('test_mixture2')
+        
+        # This is just to appease the test while we are figuring out the best way to check the species 
+        s= Species("s")
+        t= Species("t")
+        r= Species("r")
+        mixture1.add_species([s, t])
+        mixture2.add_species([s, r])
+        
+        mx_cpy, comp_name, comp = mmg.add_mixture(mixture1)
+        mx_cpy2, comp_name2, comp2 = mmg.add_mixture(mixture2)
+        
+        mmg.connect(comp_name, comp_name2, "diffusion1", "diffusion2")
+        
+        crn = mmg.compile_crn()
+        for sp in crn.species:
+            self.assertTrue(sp.compartment.name is comp_name or sp.compartment.name is comp_name2) 
+            
+        
+        
