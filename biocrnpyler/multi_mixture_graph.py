@@ -196,27 +196,21 @@ class MultiMixtureGraph(object):
         crn_reactions = []
         for mixture in self.mixtures:
             
-            # Checking for shared species
-            for connection in self.mixture_graph[mixture]:
-                # added_species may not be the best method for this!!! REVISIT  
-                mixture_species = mixture.added_species 
-                connection_species = connection.added_species
-                if not bool((set(mixture_species)).intersection(set(connection_species))):
-                    raise ValueError("There are no shared species between at least one of the mixtures you have connected in the graph!")
+            #TODO: Move this to a debug UTIL function?
+            #Seems like below warnings might be too much as models are being built iteratively...
 
-            
+            # Checking for shared species
+            #for connection in self.mixture_graph[mixture]:
+                # added_species may not be the best method for this!!! REVISIT  
+                #mixture_species = mixture.added_species 
+                #connection_species = connection.added_species
+                #intersection = [ms.comp_ind_eq(cs) for ms in mixture_species for cs in connection_species]
+                #if len(intersection)<1:
+                #    raise warn(f"There are no shared species between the connected Mixtures: {mixture.name} and {connection.name}.")
+
             temp = mixture.compile_crn()
-            specs = temp.species
-            rxns = temp.reactions
-            
-            for item in rxns:
-                if isinstance(item, Reaction):
-                    crn_reactions.append(item)
-            # adding the compartment to each species.
-            for species in specs:
-                species.compartment = mixture.compartment
-                
-            crn_species.append(specs) 
+            crn_species += temp.species
+            crn_reactions+= temp.reactions
          
         self.crn = ChemicalReactionNetwork(crn_species, crn_reactions)
         return self.crn

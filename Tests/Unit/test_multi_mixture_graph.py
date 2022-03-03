@@ -201,9 +201,10 @@ class TestMultiMixtureGraph(TestCase):
         mixture2 = Mixture('test_mixture2')
         
         # This is just to appease the test while we are figuring out the best way to check the species 
-        s= Species("s")
-        t= Species("t")
-        r= Species("r")
+        s = Species("s")
+        t = Species("t")
+        r = Species("r")
+
         mixture1.add_species([s, t])
         mixture2.add_species([s, r])
         
@@ -213,8 +214,23 @@ class TestMultiMixtureGraph(TestCase):
         mmg.connect(comp_name, comp_name2, "diffusion1", "diffusion2")
         
         crn = mmg.compile_crn()
-        for sp in crn.species:
-            self.assertTrue(sp.compartment.name is comp_name or sp.compartment.name is comp_name2) 
+
+        #True answer
+        s_m1 = Species("s", compartment = comp_name)
+        s_m2 = Species('s', compartment = comp_name2)
+        t_m1 = Species("t", compartment = comp_name)
+        r_m2 = Species("r", compartment = comp_name2)
+
+        assert len(crn.species) == 4
+        assert s_m1 in crn.species
+        assert s_m2 in crn.species
+        assert t_m1 in crn.species
+        assert r_m2 in crn.species
+
+        #Assert proper renaming
+        assert s not in crn.species
+        assert t not in crn.species
+        assert r not in crn.species
             
         
         

@@ -66,8 +66,6 @@ class Compartment():
             else:
                 raise ValueError("You did not input a valid Compartment or list of Compartment objects") 
         
-           
-    
     # This method resets a value in the dictionary 
     def set_compartment(self, compartment_name, compartment):
         if not isinstance(compartment_name, str):

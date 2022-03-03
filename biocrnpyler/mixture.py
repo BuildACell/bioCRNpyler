@@ -391,12 +391,35 @@ class Mixture(object):
 
         if isinstance(new_species, Species):
             new_species = [new_species]
+        else:
+            new_species = Species.flatten_list(new_species)
+
+        #Set Compartments
+        for species in new_species:
+            if species._compartment is None:
+                species.compartment = self.compartment
 
         self.crn.add_species(new_species, copy_species = copy_species)
 
         if not no_initial_concentrations:
             init_conc_dict = self.get_initial_concentration(remove_bindloc(new_species), component)
             self.crn.initial_concentration_dict = init_conc_dict
+
+    def add_reactions_to_crn(self, new_reactions):
+
+        if self.crn is None:
+            self.crn = ChemicalReactionNetwork(species = [], reactions = [])
+
+        if isinstance(new_reactions, Reaction):
+            new_reactions = [new_reactions]
+
+        #Set Compartments for Species in the Reaction
+        for reaction in new_reactions:
+            species = reaction.species
+            for s in species:
+                if s._compartment is None:
+                    s.compartment = self.compartment
+
 
     def apply_global_mechanisms(self, species) -> (List[Species], List[Reaction]):
         # update with global mechanisms
