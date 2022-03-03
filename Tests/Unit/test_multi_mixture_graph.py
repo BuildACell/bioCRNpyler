@@ -38,7 +38,18 @@ class TestMultiMixtureGraph(TestCase):
         self.assertEqual(False, mixture2 in mmg.mixture_graph and mixture2 in mmg.mixture_graph)
         self.assertEqual(True, mixture_copy_list[0] in mmg.mixture_graph and mixture_copy_list[1] in mmg.mixture_graph)
         
-   
+        #Test naming convention
+        m1 = Mixture("A")
+        m2 = Mixture("B")
+        m1_cpy1, name1, c1 = mmg.add_mixture(m1)
+        m1_cpy2, name2, c2 = mmg.add_mixture(m1)
+        m2_cpy1, name3, c3 = mmg.add_mixture(m2)
+        m2_cpy2, name4, c4 = mmg.add_mixture(m2)
+        
+        assert name1 == m1.name + "1"
+        assert name2 == m1.name + "2"
+        assert name3 == m2.name + "1"
+        assert name4 == m2.name + "2"
                 
         bad_compartment = mixture2
         with self.assertRaisesRegex(ValueError,"You did not input a valid compartment. You need to input a Compartment object or string name, or nothing so MultiMixtureGraph can self-generate"):
@@ -101,24 +112,34 @@ class TestMultiMixtureGraph(TestCase):
     def test_connect(self):
 
         mmg = MultiMixtureGraph("name") 
-        mixture1 = Mixture('test_mixture1')
-        mixture2 = Mixture('test_mixture2')
-        mixture1_cpy, compartment1_name, compartment1 = mmg.add_mixture(mixture1)
-        mixture2_cpy, compartment2_name, compartment2 = mmg.add_mixture(mixture2)
+        mixture = Mixture('M')
+
+        mixture_cpy1, compartment1_name, compartment1 = mmg.add_mixture(mixture)
+        mixture_cpy2, compartment2_name, compartment2 = mmg.add_mixture(mixture)
+        mixture_cpy3, compartment3_name, compartment3 = mmg.add_mixture(mixture)
+
+        #Bidirectional connection
         mmg.connect(compartment1_name, compartment2_name, "internal", "external")
-    
+        
         # test adding with no mixtures in there
-        self.assertEqual(True, mixture1_cpy in mmg.mixture_graph[mixture2_cpy])
-        self.assertEqual(True, mixture2_cpy in mmg.mixture_graph[mixture1_cpy])
-        self.assertTrue(compartment2 in  mixture1_cpy.compartment.get_compartment("internal"))
-        self.assertTrue(compartment1 in mixture2_cpy.compartment.get_compartment("external"))
+        self.assertTrue(len(mmg.mixture_graph[mixture_cpy1]) == len(mmg.mixture_graph[mixture_cpy2]) == 1)
+        self.assertEqual(True, mixture_cpy1 in mmg.mixture_graph[mixture_cpy2])
+        self.assertEqual(True, mixture_cpy2 in mmg.mixture_graph[mixture_cpy1])
+        self.assertTrue(compartment2 ==  mixture_cpy1.compartment.get_compartment("internal"))
+        self.assertTrue(compartment1 == mixture_cpy2.compartment.get_compartment("external"))
+
+        #1 directional connection
+        mmg.connect(compartment3_name, compartment1_name, "oneway")
+        self.assertTrue(len(mmg.mixture_graph[mixture_cpy1]) == len(mmg.mixture_graph[mixture_cpy2]) == len(mmg.mixture_graph[mixture_cpy3]) == 1)
+        self.assertTrue(mixture_cpy1 in mmg.mixture_graph[mixture_cpy3])
+        self.assertFalse(mixture_cpy3 in mmg.mixture_graph[mixture_cpy1])
+
         
         # testing error messages
-        
         with self.assertRaisesRegex(ValueError,"The first compartment you inputted was not added to the graph!"):
-            mmg.connect(mixture1_cpy, mixture2_cpy, "internal", "external")
+            mmg.connect(mixture_cpy1, mixture_cpy2, "internal", "external")
         with self.assertRaisesRegex(ValueError,"The second compartment you inputted was not added to the graph!"):
-            mmg.connect(compartment1_name, mixture2_cpy, "internal", "external")
+            mmg.connect(compartment1_name, mixture_cpy2, "internal", "external")
             
     def test_duplicate_structure(self):
         mmg = MultiMixtureGraph("name") 

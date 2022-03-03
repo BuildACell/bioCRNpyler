@@ -20,7 +20,7 @@ class MultiMixtureGraph(object):
                   parameter_file=None,
                   **kwargs):
         self.name = name
-        self.idCounter = 0
+        self.idCounter = {}
         
         # adjacency dictionary for graph 
         self.mixture_graph = {}
@@ -51,7 +51,15 @@ class MultiMixtureGraph(object):
         else:
             raise ValueError('MultiMixtureGraph name must be a string.')
             
-            
+    
+    def get_mixture_id_counter(self, mixture_name):
+        if mixture_name in self.idCounter:
+            self.idCounter[mixture_name] += 1
+        else:
+            self.idCounter[mixture_name] = 1
+
+        return self.idCounter[mixture_name]
+
     def add_mixture(self, mixture, compartment = None):
         if isinstance(mixture, Mixture): 
             # Copying the input mixture 
@@ -60,16 +68,15 @@ class MultiMixtureGraph(object):
             # Using given compartment, or creating a new one for the mixture.  
             if not isinstance(compartment, Compartment):
                 if compartment == None:
-                    compartment = Compartment(name = mixture.name + str(self.idCounter))
-                    self.idCounter += 1            
+                    compartment = Compartment(name = mixture.name + str(self.get_mixture_id_counter(mixture.name)))
                 elif isinstance(compartment, str):
-                    compartment = Compartment(name = compartment + str(self.idCounter))
-                    self.idCounter += 1
+                    compartment = Compartment(name = compartment + str(self.get_mixture_id_counter(compartment)))
                 elif isinstance(compartment, List):
                     raise ValueError("You provided a list for compartment when mixture is one item")
                 else:
                     raise ValueError("You did not input a valid compartment. You need to input a Compartment object or string name, or nothing so MultiMixtureGraph can self-generate")
-
+            elif compartment.name in self.compartment_mixture_map:
+                raise ValueError(f"A compartment called {compartment.name} is already part of the MultiMixtureGraph.")
             
             # Add compartment to compartment map 
             self.compartment_mixture_map[compartment.name] = mixture_copy
@@ -111,7 +118,7 @@ class MultiMixtureGraph(object):
             raise ValueError("You did not input a Mixture or list of Mixtures, or for 1 mixture, you had more than 1 compartment.")
                 
     
-    def connect(self, compartment_name_1, compartment_name_2, key_1, key_2):
+    def connect(self, compartment_name_1, compartment_name_2, relationship_1, relationship_2 = None):
     
         if not compartment_name_1 in self.compartment_name_map:
             raise ValueError("The first compartment you inputted was not added to the graph!") 
@@ -119,11 +126,14 @@ class MultiMixtureGraph(object):
             raise ValueError("The second compartment you inputted was not added to the graph!") 
 
         self.mixture_graph[self.compartment_mixture_map[compartment_name_1]].append(self.compartment_mixture_map[compartment_name_2])
-        self.mixture_graph[self.compartment_mixture_map[compartment_name_2]].append(self.compartment_mixture_map[compartment_name_1])
         
         # adding relationships in compartments
-        self.compartment_name_map[compartment_name_1].add_compartment(key_1, self.compartment_name_map[compartment_name_2])
-        self.compartment_name_map[compartment_name_2].add_compartment(key_2, self.compartment_name_map[compartment_name_1])
+        self.compartment_name_map[compartment_name_1].add_relationship(relationship_1, self.compartment_name_map[compartment_name_2])
+
+        if relationship_2 is not None:
+            self.compartment_name_map[compartment_name_2].add_relationship(relationship_2, self.compartment_name_map[compartment_name_1])
+            self.mixture_graph[self.compartment_mixture_map[compartment_name_2]].append(self.compartment_mixture_map[compartment_name_1])
+
 
     def duplicate_structure(self, compartment_name, n, shared_compartments= [] ):
         

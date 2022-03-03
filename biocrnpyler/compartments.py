@@ -15,6 +15,9 @@ class Compartment():
      The unit attribute for Compartment can be used to set unit for the Compartment size. Make sure
      that the string identifier used for the unit is a supported unit in BioCRNpyler. Check the 
      documentation to find a list of supported units. Add your own custom units in units.py if needed.
+
+     Compartments contain a compartment_dict dictionary which contains their relationship (string) to other 
+     compartments as key-value pairs: Compartment.compartment_dict[relationship] = another_compartment
     """
 
     def __init__(self, name: str, size = 1e-6, spatial_dimensions = 3, unit = None, compartment_dict=None, **keywords):
@@ -43,45 +46,27 @@ class Compartment():
             else:
                 raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character.")
         else:
-            raise ValueError('Compartment name must be a string.')
+            raise ValueError(f'Compartment name must be a string. Recieved {name}.')
             
-      # This method adds to the list already existing in the dictionary     
-    def add_compartment(self, relationship, compartment):
+    # This method adds to the list already existing in the dictionary     
+    def add_relationship(self, relationship, compartment, overwrite = False):
         if not isinstance(relationship, str):
-            raise ValueError("Relationship must be a string!")
+            raise ValueError(f"relationship must be a string! Recieved {relationship}")
+
+        if not isinstance(compartment, Compartment):
+            raise ValueError(f"compartment must be a Compartment! Recieved {compartment}") 
             
+        if relationship not in self.compartment_dict or overwrite:
+            self.compartment_dict[relationship] = compartment
+        else:
+            raise ValueError(f"Relationship {relationship} has already been added to compartment {compartment}. To overwrite, use keyword overwrite = True")
+        
+    def get_compartment(self, relationship):
         if relationship not in self.compartment_dict:
-            if isinstance(compartment, Compartment):
-                self.compartment_dict[relationship] = [compartment]
-            elif isinstance(compartment, List):
-                self.compartment_dict[relationship] = compartment
-            else:
-                raise ValueError("You did not input a valid Compartment or list of Compartment objects") 
+            raise KeyError(f"No compartment exists with relationship {relationship}.")
         else:
-            if isinstance(compartment, Compartment):
-                (self.compartment_dict[relationship]).append(compartment)
-            elif isinstance(compartment, List):
-                for item in compartment:
-                    (self.compartment_dict[relationship]).append(item)
-            else:
-                raise ValueError("You did not input a valid Compartment or list of Compartment objects") 
-        
-    # This method resets a value in the dictionary 
-    def set_compartment(self, compartment_name, compartment):
-        if not isinstance(compartment_name, str):
-            raise ValueError("Relationship must be a string!")
-        if isinstance(compartment, Compartment):
-            self.compartment_dict[compartment_name] = [compartment]
-        elif isinstance(compartment, List):
-            self.compartment_dict[compartment_name] = compartment
-        else:
-            raise ValueError("You did not input a valid Compartment or list of Compartment objects") 
-        
-    def get_compartment(self, compartment_name):
-        if compartment_name not in self.compartment_dict:
-            raise KeyError("No compartment exists by that name!")
-        else:
-            return self.compartment_dict[compartment_name]
+            return self.compartment_dict[relationship]
+
     def get_compartment_dict(self):
         return self.compartment_dict
 
