@@ -132,6 +132,12 @@ class Mixture(object):
                 self._compartment = compartment
             else:
                 raise ValueError(f"compartment must be of type string or Compartment. Recieved {compartment}")
+
+    def get_compartment(self, relationship = None):
+        if relationship is None:
+            return self.compartment
+        else:
+            return self._compartment.get_compartment(relationship)
                 
     @property
     def components(self):

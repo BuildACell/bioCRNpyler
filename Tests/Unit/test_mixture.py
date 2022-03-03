@@ -34,6 +34,19 @@ class TestMixture(TestCase):
         with self.assertRaisesRegex(ValueError,"compartment must be of type string or Compartment."):
             mixture = Mixture(compartment = Mixture("not compartment"))
 
+    def test_get_compartment(self):
+        cA = Compartment("A")
+        cB = Compartment("B")
+        cA.add_relationship("ab", cB)
+
+        mixture = Mixture(compartment = cA)
+
+        self.assertTrue(mixture.get_compartment() == cA)
+        self.assertTrue(mixture.get_compartment("ab") == cB)
+
+        with self.assertRaisesRegex(KeyError,"No compartment exists with relationship"):
+            mixture.get_compartment("other")
+
     def test_add_components(self):
 
         mixture = Mixture()

@@ -186,8 +186,6 @@ class TestMultiMixtureGraph(TestCase):
         for item in mmg2.mixtures:
             if "internal" in item.compartment.get_compartment_dict().keys():
                 self.assertTrue(not item.compartment.compartment_dict["internal"] is c4 or not item.compartment.compartment_dict["internal"] is c3 )
-           
-      
         
     def test_remove_mixture(self): 
         pass
