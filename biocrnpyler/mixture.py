@@ -568,3 +568,5 @@ class Mixture(object):
         txt+=" }\nCompartment = {" + self.compartment.name + " }"
       
         return txt
+
+        
