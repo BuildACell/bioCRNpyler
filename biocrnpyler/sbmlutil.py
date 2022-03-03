@@ -18,7 +18,6 @@ reaction_id = 0
 
 logger = logging.getLogger(__name__)
 
-
 def create_sbml_model(compartment_id="default", time_units='second', extent_units='mole', substance_units='mole',
                       length_units='metre', area_units='square_metre', volume_units='litre', volume=1e-6, model_id=None, **kwargs):
     """Creates an SBML Level 3 Version 2 model with some fixed standard settings.
