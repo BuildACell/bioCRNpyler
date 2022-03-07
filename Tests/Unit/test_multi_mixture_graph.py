@@ -166,7 +166,6 @@ class TestMultiMixtureGraph(TestCase):
         self.assertTrue(len(mix_list[0].compartment.compartment_dict.keys())is 1)
         for item in mix_list:
             self.assertTrue(len(item.compartment.compartment_dict.keys()) is 1)
-            self.assertTrue("internal" in item.compartment.compartment_dict or "external" in item.compartment.compartment_dict)
         
         mmg2 = MultiMixtureGraph("name2") 
         c3 = Compartment("test3")
@@ -178,14 +177,14 @@ class TestMultiMixtureGraph(TestCase):
         added_mixt4, c4_name, c4_returned = mmg2.add_mixture(m4, c4)
         mmg2.connect(c3_name, c4_name, "internal","external") 
         
-        # do something where you have shared 
+        
         mix_list2, comp_name_list2, comp_list2= mmg2.duplicate_structure(c3_name, 1, shared_compartments =["internal"])
        
         self.assertTrue(len(mmg2.mixtures) is 3)
         self.assertTrue(len(mmg2.compartment_name_map) is 3)
         for item in mmg2.mixtures:
             if "internal" in item.compartment.get_compartment_dict().keys():
-                self.assertTrue(not item.compartment.compartment_dict["internal"] is c4 or not item.compartment.compartment_dict["internal"] is c3 )
+                self.assertTrue(item.compartment.compartment_dict["internal"] is c4 )
         
     def test_remove_mixture(self): 
         pass

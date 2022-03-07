@@ -59,6 +59,7 @@ class MultiMixtureGraph(object):
             self.idCounter[mixture_name] = 1
 
         return self.idCounter[mixture_name]
+    
 
     def add_mixture(self, mixture, compartment = None):
         if isinstance(mixture, Mixture): 
@@ -153,38 +154,30 @@ class MultiMixtureGraph(object):
             old_compartment_dict = self.compartment_name_map[compartment_name].get_compartment_dict()
             
             for item in old_compartment_dict.keys() :
-                cmp_list = []
+                compartment = old_compartment_dict[item];
                 if not item in shared_compartments:
-                    # there could be many compartments under the same label 
-                    for compartment in old_compartment_dict[item]:
-                        mixture_to_copy = self.compartment_mixture_map[compartment.name]
-                        comp_to_add = copy.deepcopy(compartment)
-                        comp_to_add.name = comp_to_add.name + str(self.idCounter)
-                        self.idCounter+=1
-                        mx, cmp_name, cmp = self.add_mixture(mixture_to_copy, comp_to_add)
-                        cmp_list.append(cmp)
+                    mixture_to_copy = self.compartment_mixture_map[compartment.name]
+                    comp_to_cpy = copy.deepcopy(compartment)
+                    comp_to_cpy.name = "temp"
+                    mx, cmp_name, cmp = self.add_mixture(mixture_to_copy, comp_to_cpy)
+                    cmp.name = cmp.name + str(self.get_mixture_id_counter(compartment_name))
+                    self.compartment_name_map[cmp.name] = cmp
+                    self.compartment_mixture_map[cmp.name] = mx
+                    del self.compartment_mixture_map["temp"]
+                    del self.compartment_name_map["temp"]
                 else: 
-                    cmp_list.append(old_compartment_dict[item])
+                    cmp= compartment
                 # cmp is the compartment that is related that is to be added 
             
                 # Finds they relationships between each pair and adds connections 
-                for related_compartment in old_compartment_dict[item]:
-                    other_comp_dict = related_compartment.get_compartment_dict()
-                    key_of_interest = ""
-                    for key in other_comp_dict.keys():
-                        if self.compartment_name_map[compartment_name] in other_comp_dict[key]:
-                            key_of_interest = key 
-                        elif self.compartment_name_map[compartment_name] is other_comp_dict[key]:
-                            key_of_interest = key 
-                    for cmp_sub in cmp_list:
-                        if isinstance(cmp_sub, List):
-                            for sub in cmp_sub:
-                                self.connect(added_compartment.name, sub.name, item, key_of_interest)
-                        else:
-                            self.connect(added_compartment.name, cmp_sub.name, item, key_of_interest)
-               
+                related_compartment = compartment
+                other_comp_dict = related_compartment.get_compartment_dict()
+                key_of_interest = ""
+                for key in other_comp_dict.keys():
+                    if self.compartment_name_map[compartment_name] is other_comp_dict[key]:
+                        key_of_interest = key 
+                self.connect(added_compartment.name, cmp.name, item + str(self.get_mixture_id_counter(str(added_compartment.name) + str(item))), str(self.get_mixture_id_counter(str(cmp.name) + str(key_of_interest))))
 
-                    
         return added_mixtures, added_compartment_names, added_compartments
     
     def remove_mixture(self,mixture):
@@ -217,7 +210,7 @@ class MultiMixtureGraph(object):
                 #intersection = [ms.comp_ind_eq(cs) for ms in mixture_species for cs in connection_species]
                 #if len(intersection)<1:
                 #    raise warn(f"There are no shared species between the connected Mixtures: {mixture.name} and {connection.name}.")
-
+                
             temp = mixture.compile_crn()
             crn_species += temp.species
             crn_reactions+= temp.reactions
