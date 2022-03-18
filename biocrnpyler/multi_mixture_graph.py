@@ -34,6 +34,8 @@ class MultiMixtureGraph(object):
             self.mixtures = []
         else:
             self.add_mixture(mixtures)
+        self.diffusion_rxns = []
+     
     @property
     def name(self):
         return self._name
@@ -69,9 +71,9 @@ class MultiMixtureGraph(object):
             # Using given compartment, or creating a new one for the mixture.  
             if not isinstance(compartment, Compartment):
                 if compartment == None:
-                    compartment = Compartment(name = mixture.name + str(self.get_mixture_id_counter(mixture.name)))
+                    compartment = Compartment(name = mixture.name + "_" + str(self.get_mixture_id_counter(mixture.name)))
                 elif isinstance(compartment, str):
-                    compartment = Compartment(name = compartment + str(self.get_mixture_id_counter(compartment)))
+                    compartment = Compartment(name = compartment + "_" + str(self.get_mixture_id_counter(compartment)))
                 elif isinstance(compartment, List):
                     raise ValueError("You provided a list for compartment when mixture is one item")
                 else:
@@ -125,7 +127,7 @@ class MultiMixtureGraph(object):
             raise ValueError("The first compartment you inputted was not added to the graph!") 
         if not compartment_name_2 in self.compartment_name_map:
             raise ValueError("The second compartment you inputted was not added to the graph!") 
-
+        
         self.mixture_graph[self.compartment_mixture_map[compartment_name_1]].append(self.compartment_mixture_map[compartment_name_2])
         
         # adding relationships in compartments
@@ -194,9 +196,10 @@ class MultiMixtureGraph(object):
     def print_graph(self):
         pass 
     def compile_crn(self,recursion_depth = None, initial_concentration_dict = None, return_enumerated_components = False,
-        initial_concentrations_at_end = False, copy_objects = True, add_reaction_species = True) -> ChemicalReactionNetwork:
+        initial_concentrations_at_end = False, copy_objects = True, add_reaction_species = True, add_passive_diffusion = True, df = 0.1) -> ChemicalReactionNetwork:
         crn_species = []
         crn_reactions = []
+        mixture_crns = {}
         for mixture in self.mixtures:
             
             #TODO: Move this to a debug UTIL function?
@@ -214,6 +217,21 @@ class MultiMixtureGraph(object):
             temp = mixture.compile_crn()
             crn_species += temp.species
             crn_reactions+= temp.reactions
+            mixture_crns[mixture] = temp
+            
+          
+        if add_passive_diffusion:
+            for key in self.mixture_graph.keys():
+                for value in self.mixture_graph[key]:
+                    mixture_1_species = mixture_crns[key].species
+                    mixture_2_species = mixture_crns[value].species
+                    for species1 in mixture_1_species:
+                        for species2 in mixture_2_species:
+                            if species1.comp_ind_eq(species2):
+                                rxn = Reaction.from_massaction(inputs = [species1], outputs= [species2], k_forward = df, k_reverse = df)
+                                crn_reactions.append(rxn)
+            print("passive diffusion added")
+                    
          
         self.crn = ChemicalReactionNetwork(crn_species, crn_reactions)
         return self.crn
