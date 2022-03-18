@@ -46,10 +46,10 @@ class TestMultiMixtureGraph(TestCase):
         m2_cpy1, name3, c3 = mmg.add_mixture(m2)
         m2_cpy2, name4, c4 = mmg.add_mixture(m2)
         
-        assert name1 == m1.name + "1"
-        assert name2 == m1.name + "2"
-        assert name3 == m2.name + "1"
-        assert name4 == m2.name + "2"
+        assert name1 == m1.name + "_1"
+        assert name2 == m1.name + "_2"
+        assert name3 == m2.name + "_1"
+        assert name4 == m2.name + "_2"
                 
         bad_compartment = mixture2
         with self.assertRaisesRegex(ValueError,"You did not input a valid compartment. You need to input a Compartment object or string name, or nothing so MultiMixtureGraph can self-generate"):
@@ -249,6 +249,14 @@ class TestMultiMixtureGraph(TestCase):
         assert s not in crn.species
         assert t not in crn.species
         assert r not in crn.species
+        
+        assert len(crn.reactions) != 0 
+
+        
+       
+
+
+
             
         
         
