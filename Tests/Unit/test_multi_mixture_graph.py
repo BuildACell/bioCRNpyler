@@ -3,6 +3,45 @@ from unittest import TestCase
 from biocrnpyler import  Mixture, Species, DNA, Reaction, ChemicalReactionNetwork, Component, SimpleTranscription, SimpleTranslation, GlobalMechanism, Compartment, MultiMixtureGraph
 
 class TestMultiMixtureGraph(TestCase):
+    def test_name(self):
+        mmg = MultiMixtureGraph("test_my_name")
+        self.assertEqual(mmg.name, "test_my_name")
+
+    def test_check_consistency(self):
+        """
+        The point of this function is checking if any mixture or compartment
+        is "unregistered". This is expecially important when merging two 
+        multimixture graphs. 
+        """
+        mixture1 = Mixture("m1")
+        mixture2 = Mixture("m2")
+        mmg = MultiMixtureGraph("name")
+        m1, cn1, c1 = mmg.add_mixture(mixture1)
+
+        try:
+            mmg.check_consistency()
+        except ValueError as exc:
+            assert False,  f"{exc}"
+        
+        mmg.mixtures.append(mixture2)
+        with self.assertRaisesRegex(ValueError):
+            mmg.check_consistency()
+        mmg.mixtures.remove(mixture2)
+        c = Compartment("dummy_compartment")
+        mmg.compartment_mixture_map[c.name] = mixture2
+        with self.assertRaisesRegex(ValueError):
+            mmg.check_consistency()
+
+        mmg2 = MultiMixtureGraph("combine_mmg1")
+        m1, cn1, c1 = mmg2.add_mixture(mixture1)
+        mmg3 = MultiMixtureGraph("combine_mmg2")
+        m2, cn2, c2 = mmg3.add_mixture(mixture2)
+
+        combined = MultiMixtureGraph.combine_multi_mixture_graph([mmg2, mmg3], shared = {}, new_name = "combined")
+        try:
+            combined.check_consistency()
+        except ValueError as exc:
+            assert False,  f"{exc}"
 
     def test_add_mixture(self):
         mmg = MultiMixtureGraph("name") 
@@ -140,52 +179,28 @@ class TestMultiMixtureGraph(TestCase):
             mmg.connect(mixture_cpy1, mixture_cpy2, "internal", "external")
         with self.assertRaisesRegex(ValueError,"The second compartment you inputted was not added to the graph!"):
             mmg.connect(compartment1_name, mixture_cpy2, "internal", "external")
-            
-    def test_duplicate_structure(self):
-        mmg = MultiMixtureGraph("name") 
-        c1 = Compartment("test1")
-        m1 = Mixture("mixture1")
-        c2 = Compartment("test2")
-        m2 = Mixture("mixture2")
-        with self.assertRaisesRegex(ValueError,"The compartment you are trying to duplicate is not in the graph yet!"):
-            mmg.duplicate_structure(c1.name, 1)
-        
-        added_mixt1, c1_name, c1_returned = mmg.add_mixture(m1, c1)
-        added_mixt2, c2_name, c2_returned = mmg.add_mixture(m2, c2)
-        
-        mmg.connect(c1_name, c2_name, "internal","external") 
-        self.assertTrue(len(mmg.mixtures) is 2)
-        
-        mix_list, comp_name_list, comp_list= mmg.duplicate_structure(c1_name, 2)
-        
-        self.assertTrue(len(mmg.mixtures) is 6)
-        
-        self.assertTrue(len(mmg.compartment_name_map) is 6)
-       
-        
-        self.assertTrue(len(mix_list[0].compartment.compartment_dict.keys())is 1)
-        for item in mix_list:
-            self.assertTrue(len(item.compartment.compartment_dict.keys()) is 1)
-        
-        mmg2 = MultiMixtureGraph("name2") 
-        c3 = Compartment("test3")
-        m3 = Mixture("mixture3")
-        c4 = Compartment("test4")
-        m4 = Mixture("mixture4")
-        
-        added_mixt3, c3_name, c3_returned = mmg2.add_mixture(m3, c3)
-        added_mixt4, c4_name, c4_returned = mmg2.add_mixture(m4, c4)
-        mmg2.connect(c3_name, c4_name, "internal","external") 
-        
-        
-        mix_list2, comp_name_list2, comp_list2= mmg2.duplicate_structure(c3_name, 1, shared_compartments =["internal"])
-       
-        self.assertTrue(len(mmg2.mixtures) is 3)
-        self.assertTrue(len(mmg2.compartment_name_map) is 3)
-        for item in mmg2.mixtures:
-            if "internal" in item.compartment.get_compartment_dict().keys():
-                self.assertTrue(item.compartment.compartment_dict["internal"] is c4 )
-        
+
+    def test_combine_multi_mixture_graph(self):
+        mixture1 = Mixture("m1")
+        mixture2 = Mixture("m2")
+
+        mmg1 = MultiMixtureGraph("combine_mmg1")
+        m1, cn1, c1 = mmg1.add_mixture(mixture1)
+        mmg2 = MultiMixtureGraph("combine_mmg2")
+        m2, cn2, c2 = mmg2.add_mixture(mixture2)
+        m3, cn3, c3  = mmg2.add_mixture(mixture1)
+        mmg2.connect(cn2, cn3, "internal", "external")
+        shared = {"shared_mixture": [cn1, cn3]}
+        combined = MultiMixtureGraph.combine_multi_mixture_graph([mmg1, mmg2], shared, new_name = "combined")
+
+        self.assertTrue(combined.name == "combined")
+        self.assertTrue(len(combined.mixtures) == 2)
+        self.assertTrue(m1 in combined.mixtures )
+        self.assertTrue(m2 in combined.mixtures )
+        self.assertTrue(len(m1.compartment.get_compartment_dict().keys()) == 1)
+        self.assertTrue("internal" in m1.compartment.get_compartment_dict().keys())
+
+
     def test_remove_mixture(self): 
         pass
     
@@ -193,18 +208,15 @@ class TestMultiMixtureGraph(TestCase):
         mmg = MultiMixtureGraph("name") 
         mixture1 = Mixture('test_mixture1')
         mixture2 = Mixture('test_mixture2')
-        
         mixtures_list, c_name_list, c_list = mmg.add_mixtures([mixture1, mixture2])
-        
         self.assertTrue(mixtures_list[0] in mmg.get_mixtures())
         self.assertTrue(mixtures_list[1] in mmg.get_mixtures())
+
     def test_get_graph(self):
         mmg = MultiMixtureGraph("name") 
         mixture1 = Mixture('test_mixture1')
         mixture2 = Mixture('test_mixture2')
         g = {}
-        
-        
         mixtures_list, c_name_list, c_list= mmg.add_mixtures([mixture1, mixture2])
         g[mixtures_list[0]] = []
         g[mixtures_list[1]] = []
@@ -240,6 +252,7 @@ class TestMultiMixtureGraph(TestCase):
         r_m2 = Species("r", compartment = comp_name2)
 
         assert len(crn.species) == 4
+        assert len(crn.reactions) == 0
         assert s_m1 in crn.species
         assert s_m2 in crn.species
         assert t_m1 in crn.species
@@ -251,6 +264,52 @@ class TestMultiMixtureGraph(TestCase):
         assert r not in crn.species
         
         assert len(crn.reactions) != 0 
+
+
+        # Testing adding passive diffusion 
+        mmg2 = MultiMixtureGraph("test2")
+        m1 = Mixture('m1')
+        m2= Mixture('m2')
+
+        m1.add_species([s, t])
+        m2.add_species([s, r])
+
+        crn2 = mmg.compile_crn(add_passive_diffusion = True, passive_diffusion_dict = {s: 0.2})
+        print("PROPENSITY DICT")
+        print(crn2.reactions[0].propensity_type.propensity_dict)
+        assert len(crn2.reactions) > 0
+    
+
+        # FILL THIS IN WHEN YOU KNOW WHAT PROPENSITY DICT LOOKS LIKE 
+
+def test_create_diffusion_lattice():
+    lattice = MultiMixtureGraph.create_diffusion_lattice(n = 3, 
+    diffusion_species = [Species("spec")], mmg_name = "lattice")
+
+    assert len(lattice.mixtures) is 9
+
+    connections  = {}
+    for mixture in lattice.mixtures:
+        n = len(lattice.mixture_graph[mixture])
+        if n in connections.keys():
+            connections[n] +=1 
+        else: 
+            connections[n] = 1
+    assert connections[2] is 4
+    assert connections[3] is 4
+    assert connections[4] is 1 
+
+
+
+
+
+
+
+
+        
+
+
+
 
         
        

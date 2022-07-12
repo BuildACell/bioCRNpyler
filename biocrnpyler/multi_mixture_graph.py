@@ -1,4 +1,5 @@
 import copy
+import numpy as np
 from typing import List, Union
 from warnings import resetwarnings, warn
 
@@ -13,29 +14,42 @@ from .utils import remove_bindloc
 from .compartments import Compartment
 from .mixture import Mixture
 
+
 class MultiMixtureGraph(object):
     def __init__(self, name="",
-                  mixtures=None, 
+                  mixtures=[], 
                   parameters=None, 
                   parameter_file=None,
+                  compartment_mixture_map = {},
+                  compartment_name_map = {},
+                  mixture_graph = {},
+                  mixtures_no_copy = [],
                   **kwargs):
         self.name = name
-        self.idCounter = {}
+        self.idCounter = {} 
         
         # adjacency dictionary for graph 
-        self.mixture_graph = {}
+        self.mixture_graph = mixture_graph
         
-        # maps mixtures to compartments 
-        self.compartment_mixture_map = {} 
-        self.compartment_name_map = {} 
-        
-        # list of mixtures in the graph 
-        if mixtures is None:
-            self.mixtures = []
-        else:
+        # maps compartment names to mixtures
+        self.compartment_mixture_map = compartment_mixture_map
+        # maps compartment names to compartments 
+        self.compartment_name_map = compartment_name_map
+
+        # mixtures to add without creating a copy 
+        if mixtures_no_copy :
+            self.mixtures = mixtures_no_copy
+        elif mixtures:
             self.add_mixture(mixtures)
-        self.diffusion_rxns = []
-     
+        else:
+            self.mixtures = []
+        for item in self.mixtures:
+            if item not in mixture_graph.keys():
+                mixture_graph[item] = []
+        print("I DID IT")
+        self.check_consistency()
+    
+    
     @property
     def name(self):
         return self._name
@@ -54,6 +68,8 @@ class MultiMixtureGraph(object):
             raise ValueError('MultiMixtureGraph name must be a string.')
             
     
+
+
     def get_mixture_id_counter(self, mixture_name):
         if mixture_name in self.idCounter:
             self.idCounter[mixture_name] += 1
@@ -62,13 +78,34 @@ class MultiMixtureGraph(object):
 
         return self.idCounter[mixture_name]
     
+    def check_consistency(self):
+        """
+        Checks that across the different substructures in the multimixture graph,
+        all things that should be consistent are consistent. 
+        """
+        for mixture in self.mixture_graph.keys():
+            if mixture not in self.mixtures:
+                raise ValueError("mixture in mixture graph that isn't in mixtures")
+        for mixture in self.mixtures:
+            if mixture not in self.mixture_graph.keys():
+                raise ValueError("mixture in mixtures and not in mixture graph")
+        for compartment in self.compartment_mixture_map.keys():
+            if self.compartment_mixture_map[compartment] not in self.mixtures:
+                raise ValueError("compartment not in compartment_mixture_map")
+        for compartment_name in self.compartment_mixture_map.keys():
+            if compartment_name not in self.compartment_name_map.keys():
+                raise ValueError("compartment not in compartment_name_map")
+    
 
     def add_mixture(self, mixture, compartment = None):
+        """
+        Makes the MultiMixtureGraph aware of a mixture. It copies the inputted
+        mixture so that it may be reused by the user. An associated compartment 
+        is added unless passed in. It is added to relevant data structures in 
+        the MultiMixtureGraph. 
+        """
         if isinstance(mixture, Mixture): 
-            # Copying the input mixture 
             mixture_copy = copy.deepcopy(mixture)
-        
-            # Using given compartment, or creating a new one for the mixture.  
             if not isinstance(compartment, Compartment):
                 if compartment == None:
                     compartment = Compartment(name = mixture.name + "_" + str(self.get_mixture_id_counter(mixture.name)))
@@ -81,25 +118,22 @@ class MultiMixtureGraph(object):
             elif compartment.name in self.compartment_mixture_map:
                 raise ValueError(f"A compartment called {compartment.name} is already part of the MultiMixtureGraph.")
             
-            # Add compartment to compartment map 
             self.compartment_mixture_map[compartment.name] = mixture_copy
             self.compartment_name_map[compartment.name] = compartment
             mixture_copy.compartment = compartment 
-            
-            # Updating mixture_graph and list of mixtures
             self.mixture_graph[mixture_copy] = [] # mixture will not have connections already. 
             self.mixtures.append(mixture_copy)
-            
-            # Returns new mixture and it's compartment name
+
             return mixture_copy, mixture_copy.compartment.name, mixture_copy.compartment
-        
         elif isinstance(mixture, List):
             return self.add_mixtures(mixture)
-        
         else:
             raise ValueError("You did not input a Mixture or list of Mixtures")
             
     def add_mixtures(self, mixtures, compartments= None):
+        """
+        Calls add_mixture. 
+        """
         if isinstance(mixtures, Mixture) and (compartments is None or isinstance(compartments, Compartment)):
             return self.add_mixture(mixtures, compartments)
         elif isinstance(mixtures, List):
@@ -122,67 +156,121 @@ class MultiMixtureGraph(object):
                 
     
     def connect(self, compartment_name_1, compartment_name_2, relationship_1, relationship_2 = None):
-    
+        """
+        Connects two things in the internal representation of the graph. 
+        relationship_2 being None represents a one-directional edge. 
+        """
         if not compartment_name_1 in self.compartment_name_map:
             raise ValueError("The first compartment you inputted was not added to the graph!") 
         if not compartment_name_2 in self.compartment_name_map:
             raise ValueError("The second compartment you inputted was not added to the graph!") 
-        
         self.mixture_graph[self.compartment_mixture_map[compartment_name_1]].append(self.compartment_mixture_map[compartment_name_2])
-        
-        # adding relationships in compartments
         self.compartment_name_map[compartment_name_1].add_relationship(relationship_1, self.compartment_name_map[compartment_name_2])
-
         if relationship_2 is not None:
             self.compartment_name_map[compartment_name_2].add_relationship(relationship_2, self.compartment_name_map[compartment_name_1])
             self.mixture_graph[self.compartment_mixture_map[compartment_name_2]].append(self.compartment_mixture_map[compartment_name_1])
 
+    
+    @classmethod
+    def combine_multi_mixture_graph(cls, mmgs = [], shared ={}, new_name = "defaultName"):
+        '''
+        Combines two MultiMixtureGraphs into one and returns the new version. 
+        Inputs:
+            mmgs: list of MultiMixtureGraphs you want to combine
+            shared: dictionary with the form {new_compartment_name_of_combined: 
+            [list of compartment names, matching indicies of mmgs. Lists may 
+            contain None to match indices ]}
+        '''
+        new_mixtures =[]
+        new_compartment_mixture_map = {}
+        new_compartment_name_map = {} 
+        new_mixture_graph = {}
+        compartment_collision_counter = {}
+        compartments_removed = {} 
 
-    def duplicate_structure(self, compartment_name, n, shared_compartments= [] ):
-        
-        if not compartment_name in self.compartment_name_map:
-            raise ValueError("The compartment you are trying to duplicate is not in the graph yet!")
-        added_mixtures = []
-        added_compartment_names = []
-        added_compartments = []
-        for i in range(n):
-            added_mixture, added_compartment_name, added_compartment = self.add_mixture(self.compartment_mixture_map[compartment_name])
-            added_mixtures.append(added_mixture)
-            added_compartment_names.append(added_compartment_name)
-            added_compartments.append(added_compartment)
-            
-            # When we add_mixture above, the corresponding compartments and their mixtures are not created, so we create new ones for each here. The issue with this is that if these newly created mixtures also have other mixtures that need to be copied, they won't be. Should we implement this recusively so all layers get taken care of?
-            new_compartment_dict = self.compartment_name_map[added_compartment_name].get_compartment_dict()
-            old_compartment_dict = self.compartment_name_map[compartment_name].get_compartment_dict()
-            
-            for item in old_compartment_dict.keys() :
-                compartment = old_compartment_dict[item];
-                if not item in shared_compartments:
-                    mixture_to_copy = self.compartment_mixture_map[compartment.name]
-                    comp_to_cpy = copy.deepcopy(compartment)
-                    comp_to_cpy.name = "temp"
-                    mx, cmp_name, cmp = self.add_mixture(mixture_to_copy, comp_to_cpy)
-                    cmp.name = cmp.name + str(self.get_mixture_id_counter(compartment_name))
-                    self.compartment_name_map[cmp.name] = cmp
-                    self.compartment_mixture_map[cmp.name] = mx
-                    del self.compartment_mixture_map["temp"]
-                    del self.compartment_name_map["temp"]
-                else: 
-                    cmp= compartment
-                # cmp is the compartment that is related that is to be added 
-            
-                # Finds they relationships between each pair and adds connections 
-                related_compartment = compartment
-                other_comp_dict = related_compartment.get_compartment_dict()
-                key_of_interest = ""
-                for key in other_comp_dict.keys():
-                    if self.compartment_name_map[compartment_name] is other_comp_dict[key]:
-                        key_of_interest = key 
-                self.connect(added_compartment.name, cmp.name, item + str(self.get_mixture_id_counter(str(added_compartment.name) + str(item))), str(self.get_mixture_id_counter(str(cmp.name) + str(key_of_interest))))
-
-        return added_mixtures, added_compartment_names, added_compartments
+        for new_compartment_name in shared.keys():
+            keys_counter = {} 
+            compartment_collision_counter[new_compartment_name] = 1
+            comp_list = shared[new_compartment_name]
+            base_compartment = mmgs[0].get_compartment(comp_list[0])
+            base_dict = base_compartment.get_compartment_dict().copy()
+            base_keys = base_dict.keys()
+            base_mixture = (mmgs[0].get_compartment_mixture_map())[comp_list[0]]
+            for base_key in base_keys:
+                keys_counter[base_key] = 1
+            to_remove = []
+            for i, val in comp_list[1::]:
+                compartment = mmgs[i].get_compartment(val)
+                to_remove.append(compartment.name)
+                comp_dict = compartment.get_compartment_dict()
+                for key in comp_dict.keys():
+                    if key in keys_counter.keys(): 
+                        keys_counter[key] += 1
+                        num = keys_counter[key]
+                        new_key = key + "_" + str(num)
+                        base_dict[new_key] = comp_dict.get(key)
+                        keys_counter[new_key] = 1
+                    else: 
+                        base_dict[key] = comp_dict[key]
+                        keys_couner[key] = 1
+           
+            c = Compartment(name = new_compartment_name, comparment_dict = base_dict )
+            new_compartment_name_map[new_compartment_name] = c 
+            new_compartment_mixture_map[c.name] = base_mixture
+            new_mixtures.append(base_mixture)
+            for thing in to_remove:
+                compartments_removed[thing] = c
+                
+        # now we want to add the non-shared things. must check if they are in shared, but otherwise, add
+        mmg_shared_comps = {}
+        for k, mmg in mmgs:
+            mmg_shared_comps[k] = []
+            for shared_key in shared.keys():
+                mmg_shared_comps[k].append(shared[shared_key][k]) 
+            temp_cmm = mmg.get_compartment_mixture_map()
+            temp_cnm = mmg.get_compartment_name_map()
+            for comp_name in temp_cnm.keys():
+                if comp_name not in mmg_shared_comps[k]: 
+                    if comp_name in compartment_collision_counter.keys():
+                        num = compartment_collision_counter[comp_name]
+                        compartment_collision_counter[comp_name] += 1
+                        new_comp_name = comp_name + "_" +  str(num)
+               
+                    else:
+                        new_comp_name = comp_name
+                    compartment_collision_counter[new_comp_name] = 1
+                    new_compartment_name_map[new_comp_name] = temp_cnm[comp_name]
+                    new_compartment_mixture_map[new_comp_name] = temp_cmm[comp_name]
+                    new_mixtures.append(temp_cmm[comp_name]) 
+        #  redirect 
+        for name in new_compartment_name_map.keys():
+            cmpt = new_compartment_name_map[name]
+            d = cmpt.get_compartment_dict()
+            for link in d.keys():
+                if (d[link].name in compartments_removed.keys()):
+                    d[link] = compartments_removed[d[link].name]
+        for name in new_compartment_name_map:
+            compartment = new_compartment_name_map[name]
+            d = compartment.get_compartment_dict()
+            mixture = new_compartment_mixture_map[name]
+            new_mixture_graph[mixture] =[]
+            for link in d.keys():
+                link_mixture = new_compartment_mixture_map[(d[link].name)]
+                new_mixture_graph[mixture].append(link_mixture)
+                if(link_mixture in new_mixture_graph.keys()):
+                    new_mixture_graph[link_mixture].append(mixture)
+                else:
+                    new_mixture_graph[link_mixture] = [mixture]
+                    
+        return cls(name = new_name, mixtures_no_copy = new_mixtures,
+         compartment_mixture_map = new_compartment_mixture_map, 
+         compartment_name_map = new_compartment_name_map, 
+         mixture_graph= new_mixture_graph)
     
     def remove_mixture(self,mixture):
+        '''
+        This should be a "backdoor" funciton that is not to be used regularly. 
+        '''
         # TODO 
         pass
     def get_mixtures(self):
@@ -193,10 +281,20 @@ class MultiMixtureGraph(object):
         return self.compartment_mixture_map
     def get_compartment_name_map(self):
         return self.compartment_name_map
+    def get_compartment(self, name):
+        return self.compartment_name_map[name]
     def print_graph(self):
+        '''
+        This should give a way to visualize the graph. 
+        '''
+        # TODO 
         pass 
-    def compile_crn(self,recursion_depth = None, initial_concentration_dict = None, return_enumerated_components = False,
-        initial_concentrations_at_end = False, copy_objects = True, add_reaction_species = True, add_passive_diffusion = True, df = 0.1) -> ChemicalReactionNetwork:
+
+
+    def compile_crn(self,recursion_depth = None, initial_concentration_dict = None, 
+    return_enumerated_components = False, initial_concentrations_at_end = False, 
+    copy_objects = True, add_reaction_species = True, add_passive_diffusion = True, 
+    df = 0.1, passive_diffusion_dict = {}) -> ChemicalReactionNetwork:
         crn_species = []
         crn_reactions = []
         mixture_crns = {}
@@ -204,7 +302,7 @@ class MultiMixtureGraph(object):
             
             #TODO: Move this to a debug UTIL function?
             #Seems like below warnings might be too much as models are being built iteratively...
-
+        
             # Checking for shared species
             #for connection in self.mixture_graph[mixture]:
                 # added_species may not be the best method for this!!! REVISIT  
@@ -217,22 +315,77 @@ class MultiMixtureGraph(object):
             temp = mixture.compile_crn()
             crn_species += temp.species
             crn_reactions+= temp.reactions
-            mixture_crns[mixture] = temp
-            
-          
+            mixture_crns[mixture.name] = temp
+                                 
         if add_passive_diffusion:
             for key in self.mixture_graph.keys():
-                for value in self.mixture_graph[key]:
-                    mixture_1_species = mixture_crns[key].species
-                    mixture_2_species = mixture_crns[value].species
+                values = self.mixture_graph[key]
+                for value in values:
+                    mixture_1_species = mixture_crns[key.name].species
+                    mixture_2_species = mixture_crns[value.name].species
                     for species1 in mixture_1_species:
                         for species2 in mixture_2_species:
                             if species1.comp_ind_eq(species2):
-                                rxn = Reaction.from_massaction(inputs = [species1], outputs= [species2], k_forward = df, k_reverse = df)
+                                diff_rate = df
+                                for item in passive_diffusion_dict:
+                                    if item.comp_ind_eq(species1):
+                                        diff_rate = passive_diffusion_dict[item]
+                                rxn = Reaction.from_massaction(inputs = [species1], 
+                                outputs= [species2], k_forward = diff_rate, k_reverse = diff_rate)
                                 crn_reactions.append(rxn)
-            print("passive diffusion added")
-                    
-         
+
+
         self.crn = ChemicalReactionNetwork(crn_species, crn_reactions)
         return self.crn
+    
+    @classmethod
+    def create_diffusion_lattice(cls, n: int, diffusion_species: List[Species],
+     mmg_name: str = "mmg"): 
+        '''
+        Generates a lattice of basic mixtures with diffusive species. Diffusion
+        rates can be specified when the CRN is compiled. 
+        '''
+        new_mixtures = []
+        compartment_names= []
+        for i in range(n * n):
+            new_mixtures.append(Mixture("m" + str(i+1)))
+        mmg = cls(mmg_name)
+        mmg.mixture_graph = {}
+        mmg.compartment_mixture_map = {}
+        mmg.mixtures = []
+        mmg.compartment_name_map = {}
+        for mixture in new_mixtures:
+            for specs in diffusion_species:
+                mixture.add_species(specs) # this should be added in zoila's component when integrated
+            m, cn, c = mmg.add_mixture(mixture)
+            compartment_names.append(cn)
+
+        name_counter = np.zeros((n, n)) # counter for names of diffusion compartments. 
+        # connecting horizontally 
+        for i in range(n):
+            for j in range(n-1):
+                mmg.connect(compartment_names[n * i + j], 
+                compartment_names[n * i + j + 1], "diffusion" + 
+                str(cc[i, j]), "diffusion" + str(cc[i, j+1]))
+                name_counter[i, j] += 1
+                name_counter[i, j + 1] += 1
+        # connecting vertically 
+        for i in range(n):
+            for j in range(n-1):
+                mmg.connect(compartment_names[n * j + i], 
+                compartment_names[n * (j+1) + i ], "diffusion" + 
+                str(cc[j, i]), "diffusion" + str(cc[j +1, i]))
+                name_counter[j, i] += 1
+                name_counter[j + 1, i] += 1
+        return mmg
+
+   
+
+
+    
+
+        
+        
+
+
         
