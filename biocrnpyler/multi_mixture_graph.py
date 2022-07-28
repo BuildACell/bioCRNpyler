@@ -17,36 +17,47 @@ from .mixture import Mixture
 
 class MultiMixtureGraph(object):
     def __init__(self, name="",
-                  mixtures=[], 
+                  mixtures=None, 
                   parameters=None, 
                   parameter_file=None,
-                  compartment_mixture_map = {},
-                  compartment_name_map = {},
-                  mixture_graph = {},
-                  mixtures_no_copy = [],
+                  compartment_mixture_map=None,
+                  compartment_name_map=None,
+                  mixture_graph_start=None,
+                  mixtures_no_copy=None,
                   **kwargs):
         self.name = name
         self.idCounter = {} 
-        
-        # adjacency dictionary for graph 
-        self.mixture_graph = mixture_graph
-        
-        # maps compartment names to mixtures
-        self.compartment_mixture_map = compartment_mixture_map
-        # maps compartment names to compartments 
-        self.compartment_name_map = compartment_name_map
+        self.mixtures = []
+        # if mixtures is None:
+        #     self.mixtures = []
+        if compartment_mixture_map is None:
+            self.compartment_mixture_map = {}
+        else: 
+            self.compartment_mixture_map = compartment_mixture_map
+        if compartment_name_map is None:
+            self.compartment_name_map = {}
+        else:
+            self.compartment_name_map = compartment_name_map
+        if mixture_graph_start is None:
+            self.mixture_graph = {}
+        else:
+            self.mixture_graph = mixture_graph_start
+        if mixtures_no_copy is None:
+            mixtures_no_copy = []
 
         # mixtures to add without creating a copy 
-        if mixtures_no_copy :
-            self.mixtures = mixtures_no_copy
-        elif mixtures:
+        if not mixtures_no_copy is None :
+            if not isinstance(mixtures_no_copy, List):
+                raise TypeError("mixtures_no_copy must be a list!")
+            for item in mixtures_no_copy:
+                self.mixtures.append(item)
+        if mixtures:
             self.add_mixture(mixtures)
-        else:
-            self.mixtures = []
+        # else:
+        #     self.mixtures = []
         for item in self.mixtures:
-            if item not in mixture_graph.keys():
-                mixture_graph[item] = []
-        print("I DID IT")
+            if item not in self.mixture_graph.keys():
+                self.mixture_graph[item] = []
         self.check_consistency()
     
     
@@ -83,12 +94,15 @@ class MultiMixtureGraph(object):
         Checks that across the different substructures in the multimixture graph,
         all things that should be consistent are consistent. 
         """
+
         for mixture in self.mixture_graph.keys():
             if mixture not in self.mixtures:
+                # print(mixture)
                 raise ValueError("mixture in mixture graph that isn't in mixtures")
         for mixture in self.mixtures:
             if mixture not in self.mixture_graph.keys():
                 raise ValueError("mixture in mixtures and not in mixture graph")
+    
         for compartment in self.compartment_mixture_map.keys():
             if self.compartment_mixture_map[compartment] not in self.mixtures:
                 raise ValueError("compartment not in compartment_mixture_map")
@@ -172,7 +186,7 @@ class MultiMixtureGraph(object):
 
     
     @classmethod
-    def combine_multi_mixture_graph(cls, mmgs = [], shared ={}, new_name = "defaultName"):
+    def combine_multi_mixture_graph(cls, mmgs = None, shared =None, new_name = "defaultName"):
         '''
         Combines two MultiMixtureGraphs into one and returns the new version. 
         Inputs:
@@ -181,17 +195,23 @@ class MultiMixtureGraph(object):
             [list of compartment names, matching indicies of mmgs. Lists may 
             contain None to match indices ]}
         '''
+        if mmgs is None:
+            mmgs = []
+        if shared is None:
+            shared = {}
+
         new_mixtures =[]
         new_compartment_mixture_map = {}
         new_compartment_name_map = {} 
         new_mixture_graph = {}
         compartment_collision_counter = {}
         compartments_removed = {} 
-
+        
         for new_compartment_name in shared.keys():
             keys_counter = {} 
             compartment_collision_counter[new_compartment_name] = 1
             comp_list = shared[new_compartment_name]
+       
             base_compartment = mmgs[0].get_compartment(comp_list[0])
             base_dict = base_compartment.get_compartment_dict().copy()
             base_keys = base_dict.keys()
@@ -199,31 +219,34 @@ class MultiMixtureGraph(object):
             for base_key in base_keys:
                 keys_counter[base_key] = 1
             to_remove = []
-            for i, val in comp_list[1::]:
-                compartment = mmgs[i].get_compartment(val)
+            for i, val in enumerate(comp_list[1::]):
+                
+                compartment = mmgs[i+1].get_compartment(val)
                 to_remove.append(compartment.name)
                 comp_dict = compartment.get_compartment_dict()
                 for key in comp_dict.keys():
+                  
                     if key in keys_counter.keys(): 
                         keys_counter[key] += 1
                         num = keys_counter[key]
                         new_key = key + "_" + str(num)
-                        base_dict[new_key] = comp_dict.get(key)
+                        base_dict[new_key] = comp_dict[key]
                         keys_counter[new_key] = 1
                     else: 
                         base_dict[key] = comp_dict[key]
-                        keys_couner[key] = 1
-           
-            c = Compartment(name = new_compartment_name, comparment_dict = base_dict )
+                        keys_counter[key] = 1
+            c = Compartment(name = new_compartment_name, compartment_dict = base_dict) 
             new_compartment_name_map[new_compartment_name] = c 
             new_compartment_mixture_map[c.name] = base_mixture
             new_mixtures.append(base_mixture)
+            base_mixture.compartment = c
             for thing in to_remove:
                 compartments_removed[thing] = c
                 
         # now we want to add the non-shared things. must check if they are in shared, but otherwise, add
         mmg_shared_comps = {}
-        for k, mmg in mmgs:
+    
+        for k, mmg in enumerate(mmgs):
             mmg_shared_comps[k] = []
             for shared_key in shared.keys():
                 mmg_shared_comps[k].append(shared[shared_key][k]) 
@@ -234,7 +257,7 @@ class MultiMixtureGraph(object):
                     if comp_name in compartment_collision_counter.keys():
                         num = compartment_collision_counter[comp_name]
                         compartment_collision_counter[comp_name] += 1
-                        new_comp_name = comp_name + "_" +  str(num)
+                        new_comp_name = comp_name + "_" + str(num)
                
                     else:
                         new_comp_name = comp_name
@@ -243,10 +266,12 @@ class MultiMixtureGraph(object):
                     new_compartment_mixture_map[new_comp_name] = temp_cmm[comp_name]
                     new_mixtures.append(temp_cmm[comp_name]) 
         #  redirect 
+
+  
         for name in new_compartment_name_map.keys():
             cmpt = new_compartment_name_map[name]
             d = cmpt.get_compartment_dict()
-            for link in d.keys():
+            for link in d.keys(): # this could be problematic because two could have the same name 
                 if (d[link].name in compartments_removed.keys()):
                     d[link] = compartments_removed[d[link].name]
         for name in new_compartment_name_map:
@@ -261,7 +286,7 @@ class MultiMixtureGraph(object):
                     new_mixture_graph[link_mixture].append(mixture)
                 else:
                     new_mixture_graph[link_mixture] = [mixture]
-                    
+        
         return cls(name = new_name, mixtures_no_copy = new_mixtures,
          compartment_mixture_map = new_compartment_mixture_map, 
          compartment_name_map = new_compartment_name_map, 
@@ -366,7 +391,7 @@ class MultiMixtureGraph(object):
             for j in range(n-1):
                 mmg.connect(compartment_names[n * i + j], 
                 compartment_names[n * i + j + 1], "diffusion" + 
-                str(cc[i, j]), "diffusion" + str(cc[i, j+1]))
+                str(name_counter[i, j]), "diffusion" + str(name_counter[i, j+1]))
                 name_counter[i, j] += 1
                 name_counter[i, j + 1] += 1
         # connecting vertically 
@@ -374,7 +399,7 @@ class MultiMixtureGraph(object):
             for j in range(n-1):
                 mmg.connect(compartment_names[n * j + i], 
                 compartment_names[n * (j+1) + i ], "diffusion" + 
-                str(cc[j, i]), "diffusion" + str(cc[j +1, i]))
+                str(name_counter[j, i]), "diffusion" + str(name_counter[j +1, i]))
                 name_counter[j, i] += 1
                 name_counter[j + 1, i] += 1
         return mmg
