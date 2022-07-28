@@ -63,3 +63,46 @@ class TestSpecies(TestCase):
 
         compartment = Compartment(name="test_compartment")
         self.assertEqual(compartment.unit, None)
+        
+    def test_add_relationship(self):
+        c1 = Compartment("c1")
+        c2 = Compartment("c2")
+        c3 = Compartment("c3")
+
+        c1.add_relationship("internal", c2)
+        self.assertTrue(c1.compartment_dict['internal'] == c2)
+
+        with self.assertRaisesRegex(ValueError,"Relationship"):
+            c1.add_relationship("internal", c3)
+        
+        c1.add_relationship("internal", c3, overwrite = True)
+        self.assertTrue(c1.compartment_dict['internal'] == c3)
+        
+        with self.assertRaisesRegex(ValueError,"compartment must be a Compartment"):
+            c1.add_relationship("internal", "external")
+        with self.assertRaisesRegex(ValueError,'relationship must be a string'):
+            c1.add_relationship(None, c2)
+
+
+    def test_get_compartment(self):
+        c1 = Compartment("c1")
+        c2 = Compartment("c2")
+        c1.add_relationship("internal", c2)
+        
+        self.assertTrue(c1.get_compartment('internal') == c2)
+        
+        with self.assertRaisesRegex(KeyError,"No compartment exists"):
+            c1.get_compartment("external")
+
+    def test_get_compartment_dict(self):
+        c1 = Compartment("c1")
+        c2 = Compartment("c2")
+        c1.add_relationship("internal", c2)
+
+        cd = c1.get_compartment_dict()
+
+        self.assertTrue('internal' in cd)
+        self.assertTrue(cd['internal'] == c2)
+        self.assertTrue(len(cd) == 1)
+    
+        

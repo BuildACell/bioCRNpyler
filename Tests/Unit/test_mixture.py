@@ -2,7 +2,8 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import Mixture, Species, DNA, Reaction, ChemicalReactionNetwork, Component, SimpleTranscription, SimpleTranslation, GlobalMechanism
+from biocrnpyler import Mixture, Species, DNA, Reaction, ChemicalReactionNetwork, Component, SimpleTranscription, SimpleTranslation, GlobalMechanism, Compartment
+import pytest
 
 
 class TestMixture(TestCase):
@@ -18,6 +19,33 @@ class TestMixture(TestCase):
         # adding invalid species
         with self.assertRaisesRegex(AssertionError,'only Species type is accepted!'):
             mixture.add_species(['ok', 'ok'])
+            
+    def test_set_compartment(self):
+        mixture = Mixture(compartment = None)
+        self.assertTrue(mixture.compartment.name == "default")
+        
+        mixture = Mixture(compartment = "test")
+        self.assertTrue(mixture.compartment.name == "test")
+        
+        c1 = Compartment("compartment")
+        mixture = Mixture(compartment = c1)
+        self.assertTrue(mixture.compartment == c1)
+        
+        with self.assertRaisesRegex(ValueError,"compartment must be of type string or Compartment."):
+            mixture = Mixture(compartment = Mixture("not compartment"))
+
+    def test_get_compartment(self):
+        cA = Compartment("A")
+        cB = Compartment("B")
+        cA.add_relationship("ab", cB)
+
+        mixture = Mixture(compartment = cA)
+
+        self.assertTrue(mixture.get_compartment() == cA)
+        self.assertTrue(mixture.get_compartment("ab") == cB)
+
+        with self.assertRaisesRegex(KeyError,"No compartment exists with relationship"):
+            mixture.get_compartment("other")
 
     def test_add_components(self):
 
@@ -293,3 +321,6 @@ class TestMixture(TestCase):
         self.assertTrue(type(M2.get_component(component = C))  == Component)
         self.assertTrue(M2.get_component(component = C).mixture is M2)
         self.assertTrue(M1.get_component(component = C) != M2.get_component(component = C))
+        
+        
+        

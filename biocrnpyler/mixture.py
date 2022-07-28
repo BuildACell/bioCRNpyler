@@ -14,12 +14,14 @@ from .parameter import ParameterDatabase
 from .reaction import Reaction
 from .species import Species
 from .utils import remove_bindloc
+from .compartments import Compartment
 
 
 class Mixture(object):
     def __init__(self, name="", mechanisms=None, components=None, parameters=None, parameter_file=None,
                  global_mechanisms=None, species=None, initial_condition_dictionary=None, \
-                 global_component_enumerators=None,global_recursion_depth=4, local_recursion_depth = None, **kwargs):
+                 global_component_enumerators=None,global_recursion_depth=4, local_recursion_depth = None, 
+                 compartment = None, **kwargs):
         """A Mixture object holds together all the components (DNA,Protein, etc), mechanisms (Transcription, Translation),
         and parameters related to the mixture itself (e.g. Transcription rate). Default components and mechanisms can be
         added as well as global mechanisms that impacts all species (e.g. cell growth).
@@ -70,6 +72,9 @@ class Mixture(object):
             self.global_component_enumerators = []
         else:
             self.global_component_enumerators = global_component_enumerators
+        
+        # set compartment 
+        self.compartment = compartment
 
         # process the species
         self.add_species(species)
@@ -110,7 +115,30 @@ class Mixture(object):
             return species.get_species()
         else:
             raise ValueError("Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input.")
+    
+    @property
+    def compartment(self):
+        return self._compartment
 
+    @compartment.setter
+    def compartment(self, compartment):
+        if compartment is None:
+            self._compartment = Compartment(name="default")
+        else:
+            if isinstance(compartment, str):
+                self._compartment = Compartment(
+                    name= compartment)
+            elif isinstance(compartment, Compartment):
+                self._compartment = compartment
+            else:
+                raise ValueError(f"compartment must be of type string or Compartment. Recieved {compartment}")
+
+    def get_compartment(self, relationship = None):
+        if relationship is None:
+            return self.compartment
+        else:
+            return self._compartment.get_compartment(relationship)
+                
     @property
     def components(self):
         return self._components
@@ -369,12 +397,35 @@ class Mixture(object):
 
         if isinstance(new_species, Species):
             new_species = [new_species]
+        else:
+            new_species = Species.flatten_list(new_species)
+
+        #Set Compartments
+        for species in new_species:
+            if species._compartment is None:
+                species.compartment = self.compartment
 
         self.crn.add_species(new_species, copy_species = copy_species)
 
         if not no_initial_concentrations:
             init_conc_dict = self.get_initial_concentration(remove_bindloc(new_species), component)
             self.crn.initial_concentration_dict = init_conc_dict
+
+    def add_reactions_to_crn(self, new_reactions):
+
+        if self.crn is None:
+            self.crn = ChemicalReactionNetwork(species = [], reactions = [])
+
+        if isinstance(new_reactions, Reaction):
+            new_reactions = [new_reactions]
+
+        #Set Compartments for Species in the Reaction
+        for reaction in new_reactions:
+            species = reaction.species
+            for s in species:
+                if s._compartment is None:
+                    s.compartment = self.compartment
+
 
     def apply_global_mechanisms(self, species) -> (List[Species], List[Reaction]):
         # update with global mechanisms
@@ -520,5 +571,8 @@ class Mixture(object):
             txt+=" }\nGlobal Mechanisms = {"
             for mech in self.global_mechanisms:
                 txt+="\n\t"+mech+":"+self.global_mechanisms[mech].name
-        txt+=" }"
+        txt+=" }\nCompartment = {" + self.compartment.name + " }"
+      
         return txt
+
+        

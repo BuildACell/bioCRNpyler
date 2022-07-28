@@ -89,17 +89,18 @@ def add_all_species(model, species: List, initial_condition_dictionary: dict, co
 
     all_ids = [str(s) for s in species]
     all_sbml_ids = [trans.getValidIdForName(species_id) for species_id in all_ids]
-    
-
-
 
     for s_ind,s in enumerate( species):
         s_id = all_sbml_ids[s_ind]
-        if compartment is None or s.compartment is not None:
-            # If no compartment was passed in or if species (s) has its own compartment set:
-            compartment = get_compartment_by_name(model, s.compartment.name)
-            if compartment is None:
-                compartment = add_compartment(model, s.compartment)
+        if compartment is None:
+            if s.compartment is not None:
+                # If no compartment was passed in or if species (s) has its own compartment set:
+                compartment = get_compartment_by_name(model, s.compartment.name)
+                if compartment is None:
+                    compartment = add_compartment(model, s.compartment)
+            else:
+                raise ValueError(f"Species {s} has no Compartment!")
+
         if s in initial_condition_dictionary:
             initial_concentration = parameter_to_value(
                 initial_condition_dictionary[s])

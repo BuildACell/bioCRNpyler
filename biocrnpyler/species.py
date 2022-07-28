@@ -80,18 +80,24 @@ class Species(OrderedMonomer):
 
     @property
     def compartment(self):
-        return self._compartment
+        if self._compartment is not None:
+            return self._compartment
+        else:
+            if self.parent:
+                return self.parent.compartment
+            else:
+                return Compartment("default")
 
     @compartment.setter
     def compartment(self, compartment):
         if compartment is None:
-            self._compartment = Compartment(name="default")
+            self._compartment = None #Compartment(name="default")
+        elif isinstance(compartment, str):
+            self._compartment = Compartment(name=self._check_name(compartment))
+        elif isinstance(compartment, Compartment):
+            self._compartment = compartment
         else:
-            if isinstance(compartment, str):
-                self._compartment = Compartment(
-                    name=self._check_name(compartment))
-            elif isinstance(compartment, Compartment):
-                self._compartment = compartment
+            raise TypeError(f"Species.compartment must be a string or Compartment. Recieved {compartment}.")
 
     @property
     def direction(self):
@@ -173,9 +179,10 @@ class Species(OrderedMonomer):
             for i in self.attributes:
                 if i is not None:
                     txt += "_" + str(i)
-        if self.compartment.name != 'default':
-            # Only add a compartment name if it is not the default one.
-            txt += "_" + self.compartment.name
+        if self.compartment is not None:
+            if self.compartment.name != "default":
+                # Only add a compartment name if it is not the default one.
+                txt += "_" + self.compartment.name
         txt.replace("'", "")
         return txt
 
@@ -263,6 +270,22 @@ class Species(OrderedMonomer):
             return True
         else:
             return False
+
+    def comp_ind_eq(self, other):
+        """
+        Compartment-Independent-Equality
+        Same as normal equality, but does not check for compartments
+        """
+        if isinstance(other, Species) \
+                and self.material_type == other.material_type \
+                and self.name == other.name \
+                and set(self.attributes) == set(other.attributes)\
+                and str(self.parent) == str(other.parent)\
+                and self.position == other.position:
+            return True
+        else:
+            return False
+
 
     def __gt__(self, Species2):
         return self.name > Species2.name
