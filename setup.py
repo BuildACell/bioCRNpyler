@@ -26,11 +26,11 @@ setup(
           ],
     extras_require = { 
         "all": [
-            "numpy",
+            "numpy<2.0",
             "matplotlib",
             "networkx",
             "bokeh>=1.4.0",
-            "fa2",
+            "fa2_modified",
             "jupyter",
             "pytest",
             "pytest-cov",
