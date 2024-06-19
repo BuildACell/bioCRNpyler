@@ -2,7 +2,7 @@ import pytest
 nb_not_installed = False
 try:
     import nbformat
-    from nbconvert.preprocessors import ExecutePreprocessor
+    from nbconvert.preprocessors import ExecutePreprocessor, CellExecutionError
 except ModuleNotFoundError:
     nb_not_installed = True
 from os import listdir, getcwd, pardir
