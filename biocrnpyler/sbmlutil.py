@@ -37,7 +37,7 @@ def create_sbml_model(compartment_id="default", time_units='second', extent_unit
     document = libsbml.SBMLDocument(3, 2)
     model = document.createModel()
     if model_id is None:
-        model_id = 'biocrnpyler_'+str(randint(1, 1e6))
+        model_id = 'biocrnpyler_'+str(randint(1, int(1e6)))
     model.setId(model_id)
     model.setName(model_id)
     # Define units for area (not used, but keeps COPASI from complaining)
