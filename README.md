@@ -95,6 +95,8 @@ Install with all optional dependencies::
 
     $ pip install biocrnpyler[all]
 
+(Note that on some operating systems you made need to use "\[all\]" to avoid shell errors.)
+
 Further details about the installation process can be found in the [BioCRNPyler wiki](https://github.com/BuildACell/BioCRNPyler/wiki#installation).
 
 # Bugs
