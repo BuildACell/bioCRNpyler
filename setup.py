@@ -6,7 +6,7 @@ with open('README.md') as fp:
 
 setup(
     name='biocrnpyler',
-    version='1.1.1',
+    version='1.1.2',
     author='BuildACell',
     url='https://github.com/BuildACell/biocrnpyler/',
     description='A chemical reaction network compiler for generating large biological circuit models',
