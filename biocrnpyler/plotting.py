@@ -49,8 +49,9 @@ try:
     import networkx as nx
     from bokeh.models import (BoxSelectTool, Circle, EdgesAndLinkedNodes,
                               HoverTool, MultiLine, NodesAndLinkedEdges,
-                              PanTool, Plot, Range1d, Square, TapTool,
+                              PanTool, Plot, Range1d, TapTool,
                               WheelZoomTool)
+    from bokeh.models.markers import Square
     from bokeh.plotting import from_networkx
     from bokeh.palettes import Spectral4
     from bokeh.io import export_svgs, output_notebook
@@ -922,7 +923,7 @@ def render_mixture(mixture,crn,color_dictionary=None,output = None,compiled_comp
 def render_network_bokeh(CRN,layout="force", layoutfunc = None, plot_reactions = True, plot_species = True, plot_edges = True, plot_arrows = True,
                         iterations=2000,rseed=30,posscale=1,export=False,species_glyph_size = 12, reaction_glyph_size = 8, export_name = None, **keywords):
     DG, DGspec, DGrxn = generate_networkx_graph(CRN,**keywords) #this creates the networkx objects
-    plot = Plot(plot_width=500, plot_height=500, x_range=Range1d(-500, 500), y_range=Range1d(-500, 500)) #this generates a 
+    plot = Plot(width=500, height=500, x_range=Range1d(-500, 500), y_range=Range1d(-500, 500)) #this generates a
     show_im = False
     images = None
     if("imagedict" in keywords and keywords["imagedict"] is not None):

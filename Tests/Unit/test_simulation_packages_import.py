@@ -1,6 +1,7 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
+import warnings
 import pytest
 
 
@@ -11,7 +12,7 @@ def test_bioscrape_import_simulate():
 
         X = Species("X")
         CRN = ChemicalReactionNetwork(species=[X],reactions=[])
-        with pytest.warns(None) as record:
+        with pytest.warns() as record:
             sim_result = CRN.simulate_with_bioscrape(timepoints=np.linspace(0, 10, 100), initial_condition_dict = {str(X):1})
 
 
@@ -33,7 +34,7 @@ def test_bioscrape_import_simulate_via_sbml():
 
         X = Species("X")
         CRN = ChemicalReactionNetwork(species=[X],reactions=[])
-        with pytest.warns(None) as record:
+        with warnings.catch_warnings(record=True) as record:
             sim_result, bioscrape_model = CRN.simulate_with_bioscrape_via_sbml(timepoints=np.linspace(0, 10, 100), initial_condition_dict={str(X):1}, return_model=True)
 
 
