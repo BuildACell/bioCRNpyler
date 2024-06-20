@@ -21,7 +21,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest pytest-cov python-libsbml
-      - name: Tnstall biocrnpyler
+      - name: Install biocrnpyler
         run: pip install -e .[all]
       - name: Test biocrnpyler
         run: pytest --cov biocrnpyler
