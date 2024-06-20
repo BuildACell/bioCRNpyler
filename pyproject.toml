@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "python-libsbml", "wheel"]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.distutils.bdist_wheel]
@@ -30,6 +30,7 @@ readme = "README.md"
 keywords=["SBML", "synthetic biology", "modeling",
           "Chemical Reaction Network", "CRN"]
 dependencies = [
+    "python-libsbml",
     "numpy<2.0",
     "matplotlib",
     "networkx",
