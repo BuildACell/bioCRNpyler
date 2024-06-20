@@ -1,7 +1,7 @@
 # BioCRNPyler &mdash; Biomolecular Chemical Reaction Network Compiler
 ## Python toolbox to create CRN models in SBML for biomolecular mechanisms
 
-[![Build Status](https://travis-ci.com/BuildACell/BioCRNPyler.svg?branch=master)](https://travis-ci.com/BuildACell/BioCRNPyler)
+[![Build Status](https://github.com/buildacell/biocrnpyler/actions/workflows/deploy.yml/badge.svg)](https://github.com/biocircuits/bioscrape/actions/workflows/deploy_bioscrape.yml)
 [![codecov](https://codecov.io/gh/BuildACell/BioCRNPyler/branch/master/graph/badge.svg)](https://codecov.io/gh/BuildACell/BioCRNPyler)
 [![PyPI version](https://badge.fury.io/py/biocrnpyler.svg)](https://badge.fury.io/py/biocrnpyler)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/BuildACell/BioCRNPyler/master?filepath=%2Fexamples%2F)
@@ -111,12 +111,13 @@ see [contribution guidelines](https://github.com/BuildACell/BioCRNPyler/blob/mas
 
 BioCRNpyler versions:
 
-* 1.0.2 (latest stable release): To install run `pip install biocrnpyler` 
+* 1.1.2 (latest stable release): To install run `pip install biocrnpyler` 
+* 1.1.1 (previous stable release, compatible only with python <= 3.10): To install run `pip install biocrnpyler==1.1.1` 
 * 0.9.0 (beta release): To install run `pip install biocrnpyler==0.9.0`
 * 0.2.1 (alpha release): To install run `pip install biocrnpyler==0.2.1`
 
 # License
 Released under the BSD 3-Clause License (see `LICENSE`)
 
-Copyright (c) 2020, Build-A-Cell. All rights reserved.
+Copyright (c) 2024, Build-A-Cell. All rights reserved.
 
