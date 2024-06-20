@@ -1,4 +1,4 @@
-name: test_bioscrape
+name: BioCRNpyler Test
 on:
   push:
     branches: ["*","!master"]
