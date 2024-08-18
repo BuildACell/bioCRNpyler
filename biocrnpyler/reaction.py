@@ -15,7 +15,7 @@ from .utils import remove_bindloc
 
 
 class Reaction(object):
-    """An abstract representation of a chemical reaction in a CRN.
+    r"""An abstract representation of a chemical reaction in a CRN.
 
     A reaction has the form:
     .. math::
