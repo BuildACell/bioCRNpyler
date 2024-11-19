@@ -27,6 +27,7 @@ from .mechanisms_enzyme import *
 from .mechanisms_txtl import *
 from .mechanisms_integrase import *
 from .mechanisms_transport import *
+from .multi_mixture_graph import *
 
 # Core classes
 from .mixture import *
