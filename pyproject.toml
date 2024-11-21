@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.distutils.bdist_wheel]
+universal = true
+
+[project]
+name = "BioCRNpyler"
+version = "1.1.2"
+description = "A chemical reaction network compiler for generating large biological circuit models"
+authors = [{name='Build-A-Cell'}]
+classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: BSD License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Topic :: Software Development',
+        'Topic :: Scientific/Engineering',
+        'Operating System :: OS Independent',
+    ]
+license = {file = "LICENSE"}
+readme = "README.md"
+keywords=["SBML", "synthetic biology", "modeling",
+          "Chemical Reaction Network", "CRN"]
+dependencies = [
+    "python-libsbml",
+    "numpy<2.0",
+    "matplotlib",
+    "networkx",
+    "bokeh>=1.4.0",
+    "fa2_modified",
+    "jupyter",
+    "pytest",
+    "pytest-cov",
+    "nbconvert"
+]
+requires-python = ">=3.7"
+
+[project.optional-dependencies]
+test = [
+  "pytest"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/buildacell/biocrnpyler/"
+"Bug Tracker" = "https://github.com/buildacell/biocrnpyler/issues"
+
+[tool.setuptools]
+packages = ["biocrnpyler"]
+include-package-data = true
+package-dir = {"biocrnpyler"="biocrnpyler"}

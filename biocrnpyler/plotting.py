@@ -47,14 +47,14 @@ if(PLOT_DNA and not HAVE_MATPLOTLIB):
 PLOT_NETWORK = False
 try:
     import networkx as nx
-    from bokeh.models import (BoxSelectTool, Circle, EdgesAndLinkedNodes,
+    from bokeh.models import (BoxSelectTool, EdgesAndLinkedNodes,
                               HoverTool, MultiLine, NodesAndLinkedEdges,
-                              PanTool, Plot, Range1d, Square, TapTool,
+                              PanTool, Plot, Range1d, Scatter, TapTool,
                               WheelZoomTool)
     from bokeh.plotting import from_networkx
     from bokeh.palettes import Spectral4
     from bokeh.io import export_svgs, output_notebook
-    from fa2 import ForceAtlas2
+    from fa2_modified import ForceAtlas2
     PLOT_NETWORK = True
 except ModuleNotFoundError:
     pass
@@ -183,8 +183,9 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,plot_s
     ybounds[1] += max_glyph
 
     # edges
-    edges_renderer.node_renderer.glyph = Circle(
-        size=species_glyph_size, line_alpha=0, fill_alpha=0, fill_color="color")
+    edges_renderer.node_renderer.glyph = Scatter(
+        marker="circle", size=species_glyph_size, line_alpha=0,
+        fill_alpha=0, fill_color="color")
     edges_renderer.edge_renderer.glyph = MultiLine(
         line_alpha=0.2, line_width=4, line_join="round", line_color="color")
     edges_renderer.edge_renderer.selection_glyph = MultiLine(
@@ -216,17 +217,20 @@ def graphPlot(DG,DGspecies,DGreactions,plot,layout="force",positions=None,plot_s
     plot.y_range = Range1d(ylim[0], ylim[1])
 
     # reactions
-    reaction_renderer.node_renderer.glyph = Square(
-        size=reaction_glyph_size, fill_color="color")
-    reaction_renderer.node_renderer.selection_glyph = Square(
-        size=reaction_glyph_size, fill_color=Spectral4[2])
-    reaction_renderer.node_renderer.hover_glyph = Square(
-        size=reaction_glyph_size, fill_color=Spectral4[1])
+    reaction_renderer.node_renderer.glyph = Scatter(
+        marker="square", size=reaction_glyph_size, fill_color="color")
+    reaction_renderer.node_renderer.selection_glyph = Scatter(
+        marker="square", size=reaction_glyph_size, fill_color=Spectral4[2])
+    reaction_renderer.node_renderer.hover_glyph = Scatter(
+        marker="square", size=reaction_glyph_size, fill_color=Spectral4[1])
 
     # nodes
-    species_renderer.node_renderer.glyph = Circle(size=12, fill_color="color")
-    species_renderer.node_renderer.selection_glyph = Circle(size=15, fill_color=Spectral4[2])
-    species_renderer.node_renderer.hover_glyph = Circle(size=15, fill_color=Spectral4[1])
+    species_renderer.node_renderer.glyph = Scatter(
+        marker="circle", size=12, fill_color="color")
+    species_renderer.node_renderer.selection_glyph = Scatter(
+        marker="circle", size=15, fill_color=Spectral4[2])
+    species_renderer.node_renderer.hover_glyph = Scatter(
+        marker="circle", size=15, fill_color=Spectral4[1])
     
     #this part adds the interactive elements that make it so that the lines are highlighted 
     #when you mouse over and click
@@ -922,7 +926,7 @@ def render_mixture(mixture,crn,color_dictionary=None,output = None,compiled_comp
 def render_network_bokeh(CRN,layout="force", layoutfunc = None, plot_reactions = True, plot_species = True, plot_edges = True, plot_arrows = True,
                         iterations=2000,rseed=30,posscale=1,export=False,species_glyph_size = 12, reaction_glyph_size = 8, export_name = None, **keywords):
     DG, DGspec, DGrxn = generate_networkx_graph(CRN,**keywords) #this creates the networkx objects
-    plot = Plot(plot_width=500, plot_height=500, x_range=Range1d(-500, 500), y_range=Range1d(-500, 500)) #this generates a 
+    plot = Plot(width=500, height=500, x_range=Range1d(-500, 500), y_range=Range1d(-500, 500)) #this generates a
     show_im = False
     images = None
     if("imagedict" in keywords and keywords["imagedict"] is not None):
