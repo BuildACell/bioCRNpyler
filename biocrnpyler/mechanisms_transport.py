@@ -102,7 +102,7 @@ class Simple_Transport(Mechanism):
     Does not require energy and has unidirectional transport, following diffusion rules.
     Reaction schema: membrane_channel + substrate <-> membrane_channel + product"""
     
-    def __init__(self, name= "passive_membrane_protein_transport", 
+    def __init__(self, name= "simple_membrane_protein_transport", 
                  mechanism_type="transport", **keywords):
         Mechanism.__init__(self, name, mechanism_type)
     
@@ -137,7 +137,7 @@ class Facilitated_Transport_MM(Mechanism):
     Mechanism for the schema: Sub+MC <--> Sub:MC --> Prod:MC --> Prod + MC
     """
 
-    def __init__(self, name= "passive_membrane_protein_transport", 
+    def __init__(self, name= "facilitated_membrane_protein_transport", 
                  mechanism_type="transport", **keywords):
         Mechanism.__init__(self, name, mechanism_type)
      
@@ -165,7 +165,7 @@ class Facilitated_Transport_MM(Mechanism):
         if k1 is None:
             k1 = component.get_parameter("k1", part_id = part_id, mechanism = self)
         else:
-            k1= k1
+            k1= ParameterEntry("k1", k1)
             
         if ku1 is None:
             ku1 = component.get_parameter("ku1", part_id = part_id, mechanism = self)
@@ -257,7 +257,7 @@ class Primary_Active_Transport_MM(Mechanism):
         if k1 is None:
             k1 = component.get_parameter("k1", part_id = part_id, mechanism = self)
         else:
-            k1 = k1
+            k1 = ParameterEntry("k1", k1)
             
         if ku1 is None:
             ku1 = component.get_parameter("ku1", part_id = part_id, mechanism = self)
@@ -267,7 +267,7 @@ class Primary_Active_Transport_MM(Mechanism):
         if k2 is None:
             k2 = component.get_parameter("k2", part_id = part_id, mechanism = self)
         else:
-            k2 = k2
+            k2 = ParameterEntry("k2", k2)
             
         if ku2 is None:
             ku2 = component.get_parameter("ku2", part_id = part_id, mechanism = self)
