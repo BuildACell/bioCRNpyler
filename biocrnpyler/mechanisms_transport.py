@@ -10,10 +10,42 @@ from .species import Complex, Species, WeightedSpecies
 from .propensities import ProportionalHillNegative, ProportionalHillPositive, GeneralPropensity, ParameterEntry
 from .parameter import ModelParameter, Parameter, ParameterEntry
 
+class Simple_Diffusion(Mechanism):
+    """A mechanism to model the diffusion of a substrate through a membrane channel.
+    Does not require energy and follows diffusion rules.
+    Reaction schema: substrate <-> product
+    """
+    def __init__(self, name= "simple_diffusion", 
+                 mechanism_type="diffusion", **keywords):
+        Mechanism.__init__(self, name, mechanism_type)
+    
+    def update_species(self, substrate, product, **keywords):
+        return [substrate, product]
+    def update_reactions(self, substrate, product, component=None, part_id=None,
+                         k_diff=None, **keywords):
+        #Get Parameters
+        if part_id is None and component is not None:
+            part_id = component.name
+
+        if component is None and (k_diff is None):
+            raise ValueError("Must pass in a Component or values for k_diff.")
+        if k_diff is None:
+            k_diff = component.get_parameter("k_diff", part_id = part_id, mechanism = self)
+        else:
+            k_diff = k_diff
+       
+        # Sub (Internal) <--> Product (External)
+        diffusion_rxn = Reaction.from_massaction(inputs=[substrate],
+                                           outputs=[product],
+                                           k_forward=k_diff,
+                                           k_reverse=k_diff)            
+        return [diffusion_rxn]
+
 class Membrane_Protein_Integration(Mechanism):
-    """A simple Mchanism to integrate into the membrane protein in the membrane.
+    """A simple mehanism to integrate into the membrane protein in the membrane.
     Reaction schema for monomers: monomer -> intergral membrane protein
-    Reaction schema for oligomer: monomer*[size] -> oligomer -> intergral membrane protein"""
+    Reaction schema for oligomer: monomer*[size] -> oligomer -> intergral membrane protein
+    """
     def __init__(self, name= "membrane_protein_integration", 
                  mechanism_type="membrane_insertion", **keywords):
         Mechanism.__init__(self, name, mechanism_type)
@@ -98,10 +130,10 @@ class Membrane_Protein_Integration(Mechanism):
             return [integration_rxn1]
 
 class Simple_Transport(Mechanism):
-    """A Mechanism to model the transport of a substrate through a membrane channel.
+    """A mechanism to model the transport of a substrate through a membrane channel.
     Does not require energy and has unidirectional transport, following diffusion rules.
-    Reaction schema: membrane_channel + substrate <-> membrane_channel + product"""
-    
+    Reaction schema: membrane_channel + substrate <-> membrane_channel + product
+    """
     def __init__(self, name= "simple_membrane_protein_transport", 
                  mechanism_type="transport", **keywords):
         Mechanism.__init__(self, name, mechanism_type)
@@ -132,11 +164,10 @@ class Simple_Transport(Mechanism):
         return [diffusion_rxn]
 
 class Facilitated_Transport_MM(Mechanism):
-    """A Mechanism to model the transport of a substrate through a membrane carrier.
+    """A mechanism to model the transport of a substrate through a membrane carrier.
     Mechanism follows Michaelis-Menten Type Reactions with products that can bind to membrane carriers.
     Mechanism for the schema: Sub+MC <--> Sub:MC --> Prod:MC --> Prod + MC
     """
-
     def __init__(self, name= "facilitated_membrane_protein_transport", 
                  mechanism_type="transport", **keywords):
         Mechanism.__init__(self, name, mechanism_type)
@@ -209,34 +240,32 @@ class Facilitated_Transport_MM(Mechanism):
                                                 k_forward=ku2)
         
 class Primary_Active_Transport_MM(Mechanism):
-    """A Mechanism to model the transport of a substrate through a membrane carrier.
+    """A mechanism to model the transport of a substrate through a membrane carrier.
     Mechanism follows Michaelis-Menten Type Reactions with products that can bind to membrane carriers.
-    Mechanism for the schema: Sub+MT <--> Sub:MT + E --> Sub:MT:E --> MT:Prod:W --> Prod + MT + W
+    Mechanism for the schema: Sub+MT <--> Sub:MT + E --> Sub:MT:E --> MT:Prod:E --> Prod + MT:W --> Prod + MT+ W
     """
-
     def __init__(self, name= "active_membrane_protein_transport", 
                  mechanism_type="transport", **keywords):
         Mechanism.__init__(self, name, mechanism_type)
      
     def update_species(self, membrane_pump, substrate, product, energy , waste, complex=None, complex2 = None, complex3 = None, complex4 = None, **keywords):
               
+        nATP=membrane_pump.ATP
+
         if complex is None:
             complex1 = Complex([substrate, membrane_pump])
         else:
             complex1 = complex
         if complex2 is None:
-            complex2 = Complex([product, membrane_pump])
+            complex2 = Complex([nATP*[energy], complex1])
         else:
-            complex2 = complex2
-        
-        nATP=membrane_pump.ATP
-        
+            complex2 = complex2        
         if complex3 is None:
-            complex3 = Complex([nATP*[energy], complex1])
+            complex3 = Complex([nATP*[energy], product, membrane_pump])
         else:
             complex3 = complex3
         if complex4 is None:
-            complex4 = Complex([nATP*[waste], complex2])
+            complex4 = Complex([nATP*[waste], membrane_pump])
         else:
             complex4 = complex4
             
@@ -294,13 +323,13 @@ class Primary_Active_Transport_MM(Mechanism):
         else:
             complex1 = complex
         if complex2 == None:
-            complex2 = Complex([product, membrane_pump])
+            complex2 = Complex([nATP*[energy], complex1])   
              
         if complex3 is None:
-            complex3 = Complex([nATP*[energy], complex1])
+            complex3 = Complex([nATP*[energy], product, membrane_pump])
             
         if complex4 is None:
-            complex4 = Complex([nATP*[waste], complex2])
+            complex4 = Complex([nATP*[waste], membrane_pump])
 
         # Sub + MT<--> Sub:MT
         general1 = GeneralPropensity(f'k1*{substrate}*{membrane_pump}*Heaviside({membrane_pump})', propensity_species=[substrate,membrane_pump], propensity_parameters=[k1])
@@ -312,23 +341,23 @@ class Primary_Active_Transport_MM(Mechanism):
         
         # Sub:MT + E <--> Sub:MT:E
         general2 = GeneralPropensity(f'k2*{complex1}*{energy}*Heaviside({complex1})', propensity_species=[complex1,energy], propensity_parameters=[k2])
-        binding_rxn2 = Reaction([complex1, nATP*[energy]], [complex3], propensity_type = general2)
+        binding_rxn2 = Reaction([complex1, nATP*[energy]], [complex2], propensity_type = general2)
          
-        unbinding_rxn2 = Reaction.from_massaction(inputs=[complex3],
+        unbinding_rxn2 = Reaction.from_massaction(inputs=[complex2],
                                                 outputs=[complex1, nATP*[energy]],
                                                 k_forward=ku2)
         
-         # Sub:MT:E --> Prod:MT:W
-        transport_rxn = Reaction.from_massaction(inputs=[complex3],
-                                                outputs=[complex4],
+         # Sub:MT:E --> Prod:MT:E
+        transport_rxn = Reaction.from_massaction(inputs=[complex2],
+                                                outputs=[complex3],
                                                 k_forward=k_trnsp)
-        # Prod:MT:W --> Prod:MT+W
-        unbinding_rxn3 = Reaction.from_massaction(inputs=[complex4],
-                                                outputs=[complex2, nATP*[waste]],
+        # Prod:MT:E--> Prod+MT:W
+        unbinding_rxn3 = Reaction.from_massaction(inputs=[complex3],
+                                                outputs=[complex4, product],
                                                 k_forward=ku3)
-        # Prod:MT --> Prod + MT
-        unbinding_rxn4 = Reaction.from_massaction(inputs=[complex2],
-                                                outputs=[product, membrane_pump],
+        # MT:W --> MT+W
+        unbinding_rxn4 = Reaction.from_massaction(inputs=[complex4],
+                                                outputs=[nATP*[waste], membrane_pump],
                                                 k_forward=ku4)
 
         return [binding_rxn1, unbinding_rxn1, binding_rxn2, unbinding_rxn2, transport_rxn, unbinding_rxn3, unbinding_rxn4]
