@@ -1,8 +1,8 @@
 from setuptools import setup
 
 # Get the long description from the README file
-# with open('README.md') as fp:
-#     long_description = fp.read()
+with open('README.md') as fp:
+    long_description = fp.read()
 
 setup(
     name='biocrnpyler',
