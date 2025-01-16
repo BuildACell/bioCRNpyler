@@ -25,7 +25,7 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
         Mechanism.__init__(self, name, mechanism_type)
     
     def update_species(self, membrane_sensor_protein, response_protein, 
-                       assigned_substrate='P', signal_substrate, energy, waste,
+                       assigned_substrate, signal_substrate, energy, waste,
                        complex=None, complex2=None, complex3=None, 
                        complex4=None, complex5=None, complex6=None,
                        complex7=None,**keywords):
