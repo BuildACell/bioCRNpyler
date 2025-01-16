@@ -238,6 +238,8 @@ class Facilitated_Transport_MM(Mechanism):
         unbinding_rxn2 = Reaction.from_massaction(inputs=[complex2],
                                                 outputs=[product, membrane_carrier],
                                                 k_forward=ku2)
+                
+        return [binding_rxn1,unbinding_rxn1, transport_rxn, unbinding_rxn2]
         
 class Primary_Active_Transport_MM(Mechanism):
     """A mechanism to model the transport of a substrate through a membrane carrier.
