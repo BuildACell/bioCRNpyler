@@ -5,7 +5,21 @@
 from biocrnpyler import Species, Complex
 
 #Test Membrane Transport Mechanisms
-from biocrnpyler import Membrane_Protein_Integration, Simple_Transport, Facilitated_Transport_MM, Primary_Active_Transport_MM
+from biocrnpyler import Simple_Diffusion, Membrane_Protein_Integration, Simple_Transport, Facilitated_Transport_MM, Primary_Active_Transport_MM
+
+class test_simple_diffusion():
+    sd = Simple_Diffusion()
+    substrate = Species("DMi")
+    product = Species("DMo")
+    c_fake = Species("C")
+
+    #Test Update Species
+    assert len(sd.update_species(substrate, product))==2
+    assert c1 in sd.update_species(substrate, product)
+
+    #Test Update Reactions
+    assert len(sd.update_reactions(substrate, product, k_diff = 1.0,)) == 1
+    assert len(sd.update_reactions(substrate, product, k_diff = 1.0, complex_species = c_fake,)) == 1
 
 class test_membrane_integration():
     mpi = Membrane_Protein_Integration()
@@ -85,4 +99,3 @@ class test_active_transport_MM():
     #Test Update Reactions
     assert len(pat.update_reactions(MP, substrate, product, energy, waste, k1 = 1.0, ku1 = 1.0, k2 = 1.0, ku2 = 1.0, k_trnsp = 1.0, ku3= 1.0, ku4= 1.0)) == 7
     assert len(pat.update_reactions(MP, substrate, product, energy, waste, k1 = 1.0, ku1 = 1.0, k2 = 1.0, ku2 = 1.0, k_trnsp = 1.0, ku3= 1.0, ku4= 1.0, complex_species = c_fake,)) == 7
-

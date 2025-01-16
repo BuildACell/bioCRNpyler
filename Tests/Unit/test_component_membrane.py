@@ -1,9 +1,23 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from biocrnpyler import IntegralMembraneProtein, MembraneChannel, MembranePump
+from biocrnpyler import DiffusibleMolecule, IntegralMembraneProtein, MembraneChannel, MembranePump, MembraneSensor
 import pytest
 
+def test_DiffusibleMolecule():
+    diffusion_molecule = 'DP'
+
+    dm = DiffusibleMolecule(substrate=diffusion_molecule)
+    assert diffusion_molecule == dm.substrate.name
+    assert diffusion_molecule== dm.product.name
+
+    assert dm.get_species().name == 'DP'
+
+    with pytest.raises(KeyError, match='Unable to find mechanism of type diffusion in Component'):
+        mp.update_species()
+
+    with pytest.raises(KeyError, match='Unable to find mechanism of type diffusion in Component'):
+        mp.update_reactions()
 
 def test_IntegralMembraneProtein():
     membrane_protein = 'MP1'
@@ -15,10 +29,10 @@ def test_IntegralMembraneProtein():
 
     assert mp.get_species().name == 'MP1'
 
-    with pytest.raises(KeyError, match='Unable to find mechanism of type catalysis in Component'):
+    with pytest.raises(KeyError, match='Unable to find mechanism of type membrane_insertion in Component'):
         mp.update_species()
 
-    with pytest.raises(KeyError, match='Unable to find mechanism of type catalysis in Component'):
+    with pytest.raises(KeyError, match='Unable to find mechanism of type membrane_insertion in Component'):
         mp.update_reactions()
 
 def test_MembraneChannel():
@@ -32,10 +46,10 @@ def test_MembraneChannel():
 
     assert imp.get_species().name == 'IMP1'
 
-    with pytest.raises(KeyError, match='Unable to find mechanism of type catalysis in Component'):
+    with pytest.raises(KeyError, match='Unable to find mechanism of type transport in Component'):
         imp.update_species()
 
-    with pytest.raises(KeyError, match='Unable to find mechanism of type catalysis in Component'):
+    with pytest.raises(KeyError, match='Unable to find mechanism of type transport in Component'):
         imp.update_reactions()
 
 def test_MembranePump(): 
@@ -49,8 +63,28 @@ def test_MembranePump():
 
     assert imp.get_species().name == 'MPump1'
 
-    with pytest.raises(KeyError, match='Unable to find mechanism of type catalysis in Component'):
+    with pytest.raises(KeyError, match='Unable to find mechanism of type transport in Component'):
         imp.update_species()
 
-    with pytest.raises(KeyError, match='Unable to find mechanism of type catalysis in Component'):
+    with pytest.raises(KeyError, match='Unable to find mechanism of type transport in Component'):
         imp.update_reactions()
+
+def test_MembraneSensor():
+    membrane_sensor = 'MSensor1'
+    response_protein = 'RP1'
+    assigned_substrate = 'Sub_A1'
+    signal_substrate = 'Sub_S1'
+
+    ms = MembraneSensor(membrane_sensor, response_protein=response_protein, 
+                        assigned_substrate=assigned_substrate, signal_substrate=signal_substrate)
+    assert response_protein == ms.response_protein.name
+    assert assigned_substrate == ms.assigned_substrate.name
+    assert signal_substrate == ms.signal_substrate.name
+
+    assert ms.get_species().name == 'MSensor1'
+
+    with pytest.raises(KeyError, match='Unable to find mechanism of type membrane_sensor in Component'):
+            ms.update_species()
+
+    with pytest.raises(KeyError, match='Unable to find mechanism of type membrane_sensor in Component'):
+            ms.update_reactions()

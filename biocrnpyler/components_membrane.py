@@ -8,7 +8,7 @@ from .component import Component
 from .reaction import Reaction
 from .species import Complex, Species
 
-class Diffusible_Molecule(Component):
+class DiffusibleMolecule(Component):
     """A class to represent transmembrane proteins or integral membrane proteins.
     This membrane class is to classify a membrane channel that will intergrate into the membrane.
     Uses a mechanism called "diffusion".
@@ -16,7 +16,7 @@ class Diffusible_Molecule(Component):
     def __init__(self, substrate: Union[Species,str, Component], 
                  internal_compartment='Internal', external_compartment='External',
                  cell=None, attributes=None, **keywords):       
-        """Initialize a Diffusible_Molecule object to store molecule/substance related information.
+        """Initialize a DiffusibleMolecule object to store molecule/substance related information.
         :param substrate: name of the diffusible substrate, reference to an Species or Component
         :param internal_compartment: name of internal compartment 
         :param external_compartment: name of external compartment 

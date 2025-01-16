@@ -71,8 +71,8 @@ class Membrane_Protein_Integration(Mechanism):
         if part_id is None and component is not None:
             part_id = component.name
     
-        if component is None and (kb is None or ku is None or kcat is None):
-            raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
+        if component is None and (kb1 is None or ku1 is None or kb2 is None or ku2 is None or kcat is None or kex is None):
+            raise ValueError("Must pass in a Component or values for kb1, ku1, kb2, ku2, kcat, and kex.")
         
         if kb1 is None:
             kb1 = component.get_parameter("kb1", part_id = part_id, mechanism = self)
@@ -150,7 +150,7 @@ class Simple_Transport(Mechanism):
             part_id = component.name
 
         if component is None and (k_trnsp is None):
-            raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
+            raise ValueError("Must pass in a Component or values for k_trnsp.")
         if k_trnsp is None:
             k_trnsp = component.get_parameter("k_trnsp", part_id = part_id, mechanism = self)
         else:
@@ -190,8 +190,8 @@ class Facilitated_Transport_MM(Mechanism):
         if part_id is None and component is not None:
             part_id = component.name
 
-        if component is None and (kb is None or ku is None or k1 is None):
-            raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
+        if component is None and (k1 is None or ku1 is None or ku2 is None or k_trnsp is None):
+            raise ValueError("Must pass in a Component or values for k1, ku1, ku2, and k_trnsp.")
         
         if k1 is None:
             k1 = component.get_parameter("k1", part_id = part_id, mechanism = self)

@@ -80,8 +80,10 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
         if part_id is None and component is not None:
             part_id = component.name
     
-        if component is None and (kb1 is None or ku1 is None or kb2 is None or kex is None or kcat is None):
-            raise ValueError("Must pass in a Component or values for kb1, ku1, kb2, kex, and kcat.")
+        if component is None and (kb1 is None or ku1 is None or kb2 is None or ku2 is None or k_hydro is None 
+                                  or ku3 is None or kb4 is None or  ku4 is None or k_phosph is None 
+                                  or ku5 is None or ku6 is None):
+            raise ValueError("Must pass in a Component or values for kb1, ku1, kb2, ku2, k_hydro, ku3, kb4, ku4, k_phosph, ku5 and ku6.")
         
         if kb1 is None:
             kb1 = component.get_parameter("kb1", part_id = part_id, mechanism = self)
