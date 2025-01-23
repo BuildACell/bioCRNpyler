@@ -101,7 +101,9 @@ class Component(object):
         """
         return None
     @classmethod
-    def set_species(self, species: Union[Species, str], material_type=None, compartment=None, attributes=None) -> Species:
+    def set_species(self, species: Union[Species, str], 
+                    material_type=None, compartment=None, 
+                    attributes=None) -> Species:
         """Helper function that allows species to be set from strings, species, or Components
 
         :param species: Species, str, Component

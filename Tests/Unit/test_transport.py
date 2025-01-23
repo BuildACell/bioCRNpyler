@@ -12,10 +12,10 @@ class test_simple_diffusion():
     substrate = Species("DMi")
     product = Species("DMo")
     c_fake = Species("C")
-
     #Test Update Species
     assert len(sd.update_species(substrate, product))==2
-    assert c1 in sd.update_species(substrate, product)
+    assert substrate in sd.update_species(substrate, product)
+    assert product in sd.update_species(substrate, product)
 
     #Test Update Reactions
     assert len(sd.update_reactions(substrate, product, k_diff = 1.0,)) == 1
@@ -65,11 +65,11 @@ class test_facilitated_transport_MM():
     assert len(ft.update_species(MC, substrate, product)) == 5
     assert c1 in ft.update_species(MC, substrate, product)
     assert c2 in ft.update_species(MC, substrate, product)
-    assert c_fake in fpt.update_species(MC, substrate, product, complex = c_fake)
+    assert c_fake in ft.update_species(MC, substrate, product, complex = c_fake)
     
     #Test Update Reactions
-    assert len(fpt.update_reactions(MC, substrate, product, k1 = 1.0, ku1 = 1.0, ku2 = 1.0, k_trnsp = 1.0)) == 4
-    assert len(fpt.update_reactions(MC, substrate, product, k1 = 1.0, ku1 = 1.0, ku2 = 1.0, k_trnsp = 1.0, complex_species = c_fake,)) == 4
+    assert len(ft.update_reactions(MC, substrate, product, k1 = 1.0, ku1 = 1.0, ku2 = 1.0, k_trnsp = 1.0)) == 4
+    assert len(ft.update_reactions(MC, substrate, product, k1 = 1.0, ku1 = 1.0, ku2 = 1.0, k_trnsp = 1.0, complex_species = c_fake,)) == 4
 
 class test_active_transport_MM():
     pat = Primary_Active_Transport_MM()
