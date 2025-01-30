@@ -2,13 +2,10 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-import itertools as it
-
 from .mechanism import Mechanism
 from .reaction import Reaction
-from .species import Complex, Species, WeightedSpecies
-from .propensities import ProportionalHillNegative, ProportionalHillPositive, GeneralPropensity, ParameterEntry
-from .parameter import ModelParameter, Parameter, ParameterEntry
+from .species import Complex
+from .parameter import Parameter
 
 
 class Membrane_Signaling_Pathway_MM(Mechanism):

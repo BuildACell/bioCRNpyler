@@ -2,13 +2,11 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-import itertools as it
-
 from .mechanism import Mechanism
 from .reaction import Reaction
-from .species import Complex, Species, WeightedSpecies
-from .propensities import ProportionalHillNegative, ProportionalHillPositive, GeneralPropensity, ParameterEntry
-from .parameter import ModelParameter, Parameter, ParameterEntry
+from .species import Complex
+from .propensities import ProportionalHillNegative, GeneralPropensity
+from .parameter import Parameter, ParameterEntry
 
 class Simple_Diffusion(Mechanism):
     """A mechanism to model the diffusion of a substrate through a membrane channel.
@@ -71,8 +69,8 @@ class Membrane_Protein_Integration(Mechanism):
         if part_id is None and component is not None:
             part_id = component.name
     
-        if component is None and (kb1 is None or ku1 is None or kb2 is None or ku2 is None or kcat is None or kex is None):
-            raise ValueError("Must pass in a Component or values for kb1, ku1, kb2, ku2, kcat, and kex.")
+        if component is None and (kb1 is None or ku1 is None or kb2 is None or kcat is None or kex is None):
+            raise ValueError("Must pass in a Component or values for kb1, ku1, kb2, kcat, and kex.")
         
         if kb1 is None:
             kb1 = component.get_parameter("kb1", part_id = part_id, mechanism = self)
