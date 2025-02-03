@@ -35,8 +35,8 @@ class test_membrane_integration():
     assert c_fake in mpi.update_species(MP, IMP, complex = c_fake)
     
     #Test Update Reactions
-    assert len(mpi.update_reactions(MP, IMP, kb1 = 1.0, ku1 = 1.0, kb2 = 1.0, ku2 = 1.0, kcat = 1.0, kex = 1.0)) == 2
-    assert len(mpi.update_reactions(MP, IMP, kb1 = 1.0, ku1 = 1.0, kb2 = 1.0, ku2 = 1.0, kcat = 1.0, kex = 1.0, complex_species = c_fake,)) == 2
+    assert len(mpi.update_reactions(MP, IMP, kb1 = 1.0, ku1 = 1.0, kb2 = 1.0, kcat = 1.0, kex = 1.0)) == 2
+    assert len(mpi.update_reactions(MP, IMP, kb1 = 1.0, ku1 = 1.0, kb2 = 1.0, kcat = 1.0, kex = 1.0, complex_species = c_fake,)) == 2
 
 class test_simple_transport():
     st = Simple_Transport()
@@ -49,7 +49,7 @@ class test_simple_transport():
     assert len(st.update_species(MC, substrate, product)) == 3
     
     #Test Update Reactions
-    assert len(st.update_reactions(MC, substrate, product, k_channel = 1.0)) == 1
+    assert len(st.update_reactions(MC, substrate, product, k_channel = 1.0, k_trnsp = 1.0)) == 1
 
 class test_facilitated_transport_MM():
     ft = Facilitated_Transport_MM()
@@ -81,9 +81,9 @@ class test_active_transport_MM():
     energy = Species("E1")
     waste = Species("W1")
     c1 =  Complex([substrate, MP])
-    c2 =  Complex([product, MP])
-    c3 =  Complex([MP.ATP*[energy], c1])
-    c4 =  Complex([MP.ATP*[waste], c2])
+    c2 =  Complex([MP.ATP*[energy], c1])
+    c3 =  Complex([MP.ATP*[energy], product, MP])
+    c4 =  Complex([MP.ATP*[waste], MP])
     
     c_fake = Species("C")
     
