@@ -21,199 +21,110 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
                  mechanism_type="membrane_sensor", **keywords):
         Mechanism.__init__(self, name, mechanism_type)
     
-    def update_species(self, membrane_sensor_protein, response_protein, 
-                       assigned_substrate, signal_substrate, energy, waste,
-                       complex=None, complex2=None, complex3=None, 
-                       complex4=None, complex5=None, complex6=None,
-                       complex7=None,**keywords):
+    def update_species(self, membrane_sensor_protein, response_protein, assigned_substrate, 
+                       signal_substrate, product, energy, waste, complex_dict=None,
+                       **keywords):
         
-        if complex is None:
-            complex1 = Complex([signal_substrate, membrane_sensor_protein])
-        else:
-            complex1 = complex
-
         nATP=membrane_sensor_protein.ATP
+
+        if complex_dict is None:
+            #Create empty dictionary for complexes
+            complex_dict={}
+            #Complex1
+            complex_dict['Activated_MP']=Complex([signal_substrate, membrane_sensor_protein])
+            #Complex2
+            complex_dict['ATP:Activated_MP']=Complex([nATP*[energy], complex_dict['Activated_MP']])
+            #Complex3
+            complex_dict['ADP:Activated_MP:Sub']=Complex([complex_dict['Activated_MP'], nATP*[waste], assigned_substrate])
+            #Complex4
+            complex_dict['Activated_MP:Sub']=Complex([complex_dict['Activated_MP'], assigned_substrate])
+            #Complex5
+            complex_dict['Activated_MP:Sub:RP']=Complex([complex_dict['Activated_MP:Sub'], response_protein])
+            #Complex6
+            complex_dict['Activated_MP:RP:Sub']=Complex([complex_dict['Activated_MP'], response_protein, assigned_substrate])
         
-        if complex2 is None:
-            complex2 = Complex([nATP*[energy], complex1])
-        else:
-            complex2 = complex2
-        
-        if complex3 is None:
-            complex3 = Complex([complex1, nATP*[waste], assigned_substrate])
-        else:
-            complex3 = complex3
+        #Make dictionary into array
+        complex_array = [value for value in complex_dict.values()]
 
-        if complex4 is None:
-            complex4 = Complex([complex1, assigned_substrate])
-        else:
-            complex4 = complex4
-
-        if complex5 is None:
-            complex5 = Complex([complex4, response_protein])
-        else:
-            complex5 = complex5
-
-        if complex6 is None:
-            complex6 = Complex([complex1, response_protein, assigned_substrate])
-        else:
-            complex6 = complex6
-
-        if complex7 is None:
-            complex7 = Complex([response_protein, assigned_substrate])
-        else:
-            complex7 = complex7
-            
-        return [membrane_sensor_protein, response_protein, assigned_substrate, signal_substrate, energy, waste,
-                complex1, complex2, complex3, complex4, complex5, complex6, complex7]
+        return [membrane_sensor_protein, response_protein, assigned_substrate, signal_substrate, energy, waste, complex_array]
     
-    def update_reactions(self, membrane_sensor_protein, response_protein, assigned_substrate, signal_substrate, 
-                         energy, waste, component=None, part_id=None, 
-                         complex=None, complex2 = None, complex3 = None, complex4 = None,
-                         complex5 = None, complex6 = None, complex7 = None,
-                         kb1=None, ku1=None, kb2=None, ku2=None, k_hydro=None, ku3=None,  kb4=None, ku4=None,
-                         k_phosph=None, ku5=None, ku6=None, **keywords):
+    def update_reactions(self, membrane_sensor_protein, response_protein, assigned_substrate, 
+                         signal_substrate, product, energy, waste, complex_dict = None,
+                         component=None, part_id=None, **keywords):        
+        """This always requires the inputs component and part_id to find the relevant parameters"""
+
         #Get Parameters
-        if part_id is None and component is not None:
-            part_id = component.name
-    
-        if component is None and (kb1 is None or ku1 is None or kb2 is None or ku2 is None or k_hydro is None 
-                                  or ku3 is None or kb4 is None or  ku4 is None or k_phosph is None 
-                                  or ku5 is None or ku6 is None):
-            raise ValueError("Must pass in a Component or values for kb1, ku1, kb2, ku2, k_hydro, ku3, kb4, ku4, k_phosph, ku5 and ku6.")
-        
-        if kb1 is None:
-            kb1 = component.get_parameter("kb1", part_id = part_id, mechanism = self)
-        else:
-            kb1 = kb1
+        kb_sigMS = component.get_parameter("kb_sigMS", part_id = part_id, mechanism = self)
+        ku_sigMS = component.get_parameter("ku_sigMS", part_id = part_id, mechanism = self)
+        kb_autoPhos = component.get_parameter("kb_autoPhos", part_id = part_id, mechanism = self)
+        ku_autoPhos = component.get_parameter("ku_autoPhos", part_id = part_id, mechanism = self)
+        k_hydro = component.get_parameter("k_hydro", part_id = part_id, mechanism = self)
+        ku_waste = component.get_parameter("ku_waste", part_id = part_id, mechanism = self)
+        kb_phosRP = component.get_parameter("kb_phosRP", part_id = part_id, mechanism = self)
+        ku_phosRP = component.get_parameter("ku_phosRP", part_id = part_id, mechanism = self)
+        k_phosph = component.get_parameter("k_phosph", part_id = part_id, mechanism = self)
+        ku_activeRP = component.get_parameter("ku_activeRP", part_id = part_id, mechanism = self)
+        ku_dephos = component.get_parameter("ku_dephos", part_id = part_id, mechanism = self)
 
-        if ku1 is None:
-            ku1 = component.get_parameter("ku1", part_id = part_id, mechanism = self)
-        else:
-            ku1= ku1
-
-        if kb2 is None:
-            kb2 = component.get_parameter("kb2", part_id = part_id, mechanism = self)
-        else:
-            kb2 = kb2
-
-        if ku2 is None:
-            ku2 = component.get_parameter("ku2", part_id = part_id, mechanism = self)
-        else:
-            ku2= ku2
-
-        if k_hydro is None:
-            k_hydro = component.get_parameter("k_hydro", part_id = part_id, mechanism = self)
-        else:
-            k_hydro= k_hydro
-
-        if ku3 is None:
-            ku3 = component.get_parameter("ku3", part_id = part_id, mechanism = self)
-        else:
-            ku3= ku3
-
-        if kb4 is None:
-            kb4 = component.get_parameter("kb4", part_id = part_id, mechanism = self)
-        else:
-            kb4 = kb4
-
-        if ku4 is None:
-            ku4 = component.get_parameter("ku4", part_id = part_id, mechanism = self)
-        else:
-            ku4= ku4
-
-        if k_phosph is None:
-            k_phosph = component.get_parameter("k_phosph", part_id = part_id, mechanism = self)
-        else:
-            k_phosph= k_phosph
-
-        if ku5 is None:
-            ku5 = component.get_parameter("ku5", part_id = part_id, mechanism = self)
-        else:
-            ku5= ku5
-        if ku6 is None:
-            ku6 = component.get_parameter("ku6", part_id = part_id, mechanism = self)
-        else:
-            ku6 = ku6
-            
-        #Complexes
-        if complex is None:
-            complex1 = Complex([signal_substrate, membrane_sensor_protein])
-        else:
-            complex1 = complex
-
+        #Complexes 
         nATP=membrane_sensor_protein.ATP
         
-        if complex2 is None:
-            complex2 = Complex([nATP*[energy], complex1])
-        else:
-            complex2 = complex2
-        
-        if complex3 is None:
-            complex3 = Complex([complex1, nATP*[waste], assigned_substrate])
-        else:
-            complex3 = complex3
+        if complex_dict is None:
+            #Create empty dictionary for complexes
+            complex_dict={}
+            #Complex1
+            complex_dict['Activated_MP']=Complex([signal_substrate, membrane_sensor_protein])
+            #Complex2
+            complex_dict['ATP:Activated_MP']=Complex([nATP*[energy], complex_dict['Activated_MP']])
+            #Complex3
+            complex_dict['ADP:Activated_MP:Sub']=Complex([complex_dict['Activated_MP'], nATP*[waste], assigned_substrate])
+            #Complex4
+            complex_dict['Activated_MP:Sub']=Complex([complex_dict['Activated_MP'], assigned_substrate])
+            #Complex5
+            complex_dict['Activated_MP:Sub:RP']=Complex([complex_dict['Activated_MP:Sub'], response_protein])
+            #Complex6
+            complex_dict['Activated_MP:RP:Sub']=Complex([complex_dict['Activated_MP'], response_protein, assigned_substrate])
 
-        if complex4 is None:
-            complex4 = Complex([complex1, assigned_substrate])
-        else:
-            complex4 = complex4
-
-        if complex5 is None:
-            complex5 = Complex([complex4, response_protein])
-        else:
-            complex5 = complex5
-
-        if complex6 is None:
-            complex6 = Complex([complex1, response_protein, assigned_substrate])
-        else:
-            complex6 = complex6
-
-        if complex7 is None:
-            complex7 = Complex([response_protein, assigned_substrate])
-        else:
-            complex7 = complex7
-        
     #Two-component signal transduction  
-        # Activation of membrane sensor: S + P--> P*
+        # Activation of membrane sensor: S + P<--> P*
         binding_rxn1 = Reaction.from_massaction(inputs=[signal_substrate, membrane_sensor_protein],
-                                            outputs=[complex1],
-                                            k_forward=kb1,
-                                            k_reverse=ku1)
-        
+                                            outputs=[complex_dict['Activated_MP']],
+                                            k_forward=kb_sigMS,
+                                            k_reverse=ku_sigMS)
+
         # Auto-phosphorylation membrane sensor:
-        ## P* + ATP--> P*:ATP
-        binding_rxn2 = Reaction.from_massaction(inputs=[complex1, 2*[energy]],
-                                            outputs=[complex2],
-                                            k_forward=kb2,
-                                            k_reverse=ku2)
+        ## P* + ATP<--> P*:ATP
+        binding_rxn2 = Reaction.from_massaction(inputs=[complex_dict['Activated_MP'], nATP*[energy]],
+                                            outputs=[complex_dict['ATP:Activated_MP']],
+                                            k_forward=kb_autoPhos,
+                                            k_reverse=ku_autoPhos)
         ## P*:ATP--> P*:Pi:ADP
-        hydrolysis_rxn1 = Reaction.from_massaction(inputs=[complex2],
-                                            outputs=[complex3],
+        hydrolysis_rxn1 = Reaction.from_massaction(inputs=[complex_dict['ATP:Activated_MP']],
+                                            outputs=[complex_dict['ADP:Activated_MP:Sub'] ],
                                             k_forward=k_hydro)
         ## P*:Pi:ADP--> P*:Pi +ADP
-        unbinding_rxn3 = Reaction.from_massaction(inputs=[complex3],
-                                            outputs=[complex4, 2*[waste]],
-                                            k_forward=ku3)
-        
+        unbinding_rxn3 = Reaction.from_massaction(inputs=[complex_dict['ADP:Activated_MP:Sub']],
+                                            outputs=[complex_dict['Activated_MP:Sub'], nATP*[waste]],
+                                            k_forward=ku_waste)
+
         #Phosphorylation of response protein:
-        ## P*:Pi + RP --> P*:Pi:RP
-        binding_rxn4 = Reaction.from_massaction(inputs=[complex4, response_protein],
-                                            outputs=[complex5],
-                                            k_forward=kb4,
-                                            k_reverse=ku4)
+        ## P*:Pi + RP <--> P*:Pi:RP
+        binding_rxn4 = Reaction.from_massaction(inputs=[complex_dict['Activated_MP:Sub'] , response_protein],
+                                            outputs=[complex_dict['Activated_MP:Sub:RP']],
+                                            k_forward=kb_phosRP,
+                                            k_reverse=ku_phosRP)
         ## P*:Pi:RP --> P*:RP:Pi
-        Phosph_rxn1 = Reaction.from_massaction(inputs=[complex5],
-                                            outputs=[complex6],
+        Phosph_rxn1 = Reaction.from_massaction(inputs=[complex_dict['Activated_MP:Sub:RP']],
+                                            outputs=[complex_dict['Activated_MP:RP:Sub']],
                                             k_forward=k_phosph)
         ## P*:RP:Pi--> P* + RP:Pi
-        unbinding_rxn5 = Reaction.from_massaction(inputs=[complex6],
-                                            outputs=[complex7, complex1],
-                                            k_forward=ku5)
+        unbinding_rxn5 = Reaction.from_massaction(inputs=[complex_dict['Activated_MP:RP:Sub']],
+                                            outputs=[product, complex_dict['Activated_MP'],],
+                                            k_forward=ku_activeRP)
         ##Dephosphorylation: RP:Pi--> RP + Pi
-        unbinding_rxn6 = Reaction.from_massaction(inputs=[complex7],
+        unbinding_rxn6 = Reaction.from_massaction(inputs=[product],
                                             outputs=[response_protein, assigned_substrate],
-                                            k_forward=ku6)
+                                            k_forward=ku_dephos)
         
         return [binding_rxn1, binding_rxn2, hydrolysis_rxn1, unbinding_rxn3,
                 binding_rxn4, Phosph_rxn1, unbinding_rxn5, unbinding_rxn6]

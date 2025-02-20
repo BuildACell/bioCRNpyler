@@ -25,7 +25,7 @@ class DiffusibleMolecule(Component):
         :param keywords: pass into the parent's (Component) initializer
         """
 
-        #Additional information on the identity of the specific cell/vesicle (if needed).
+        # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
                 internal_compartment=internal_compartment+'_'+cell
@@ -71,8 +71,8 @@ class IntegralMembraneProtein(Component):
         :param attributes: Species attribute.
         :param keywords: pass into the parent's (Component) initializer
         """
-        
-    #Additional information on the identity of the specific cell/vesicle (if needed).
+
+    # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
                 compartment=compartment+'_'+cell
@@ -80,32 +80,46 @@ class IntegralMembraneProtein(Component):
             else:
                 compartment=compartment+'_'+str(cell)
                 membrane_compartment=membrane_compartment+'_'+str(cell)
+        else:
+            self.membrane_protein = self.set_species(membrane_protein)
+            membrane_compartment= self.membrane_protein.compartment.name
+
+            if len(membrane_compartment.split('_')) == 2:
+                cell = membrane_compartment.split('_')[-1]
+                internal_compartment=internal_compartment+'_'+cell
 
     # PROTEIN
-        self.membrane_protein = self.set_species(membrane_protein, material_type='protein', compartment=compartment,
-            attributes=attributes)
+        self.membrane_protein = self.set_species(membrane_protein, material_type='protein', 
+                                                 compartment=compartment,
+                                                 attributes=attributes)
 
     # PRODUCT is an integrated membrane protein (transmembrane_protein)
         if product is None:
             if direction is None:
-                self.product = self.set_species(product, material_type= 'protein', compartment=membrane_compartment, attributes=['Passive'])
-                # self.product.cell= cell
+                self.product = self.set_species(product, material_type= 'protein', 
+                                                compartment=membrane_compartment, 
+                                                attributes=['Passive'])
             else:
-                self.product = self.set_species(product, material_type= 'protein', compartment=membrane_compartment, attributes=[direction])
-
+                self.product = self.set_species(product, material_type= 'protein', 
+                                                compartment=membrane_compartment, 
+                                                attributes=[direction])
         else:
             if direction is None:
-                self.product = self.set_species(product, material_type='protein', compartment=membrane_compartment, attributes=['Passive'])
+                self.product = self.set_species(product, material_type='protein', 
+                                                compartment=membrane_compartment, 
+                                                attributes=['Passive'])
             else:
-                self.product = self.set_species(product, material_type= 'protein', compartment=membrane_compartment, attributes=[direction])
+                self.product = self.set_species(product, material_type= 'protein', 
+                                                compartment=membrane_compartment, 
+                                                attributes=[direction])
 
-    #Indicates the number of monomers that compose the channel, will be used in Membrane_Protein_Integration(Mechanism)
+    # Indicates the number of monomers that compose the channel, will be used in Membrane_Protein_Integration(Mechanism)
         if size is None:
             self.membrane_protein.size = 1
         else:
             self.membrane_protein.size = size
         
-    #Indicates cell
+    # Indicates cell
         self.product.cell= cell
         Component.__init__(self=self, name=self.membrane_protein.name, **keywords)
         
@@ -139,7 +153,8 @@ class MembraneChannel(Component):
         :param attributes: Species attribute
         :param keywords: pass into the parent's (Component) initializer
         """
-    #Additional information on the identity of the specific cell/vesicle (if needed).
+
+    # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
                 internal_compartment=internal_compartment+'_'+cell
@@ -153,14 +168,7 @@ class MembraneChannel(Component):
                 cell = membrane_compartment.split('_')[-1]
                 internal_compartment=internal_compartment+'_'+cell
 
-            # if self.integral_membrane_protein.cell is not None:
-            #     cell=self.integral_membrane_protein.cell
-            #     if type(cell) is str:
-            #         internal_compartment=internal_compartment+'_'+cell
-            #     else:
-            #         internal_compartment=internal_compartment+'_'+str(cell)
-
-    #Substrate and product assignments.
+    # Substrate and product assignments.
         """In the case of membrane components, the substrate is the substance on which the transporter/channel acts without distinction of compartment. 
         The substrate and product are the same substance and the substance does not change as a result except for the compartment.
         Therefore, the product here is based on the action of the transporter."""
@@ -203,14 +211,16 @@ class MembraneChannel(Component):
                 self.integral_membrane_protein = self.set_species(integral_membrane_protein, 
                                                                   material_type='protein', 
                                                                   attributes='Importer')
-
                 if substrate is None:
                     self.substrate = None
                 else:
                     product=substrate
-                    self.substrate = self.set_species(substrate, compartment=external_compartment,attributes=attributes)
-                    self.product= self.set_species(product, compartment=internal_compartment,attributes=attributes)
-
+                    self.substrate = self.set_species(substrate, 
+                                                      compartment=external_compartment,
+                                                      attributes=attributes)
+                    self.product= self.set_species(product,
+                                                   compartment=internal_compartment,
+                                                   attributes=attributes)
             else:
                 print('Membrane channel direction not found.')
 
@@ -225,7 +235,8 @@ class MembraneChannel(Component):
 
     def update_reactions(self):
         mech_tra = self.get_mechanism('transport')
-        return mech_tra.update_reactions(self.integral_membrane_protein, self.substrate, self.product, component=self,  part_id=self.name)    
+        return mech_tra.update_reactions(self.integral_membrane_protein, self.substrate, self.product, 
+                                         component=self,  part_id=self.name)    
 
 class MembranePump(Component):
     """A class to represent membrane pumps or transporters that require ATP.
@@ -246,7 +257,8 @@ class MembranePump(Component):
         :param attributes: Species attribute
         :param keywords: pass into the parent's (Component) initializer
         """
-    #Additional information on the identity of the specific cell/vesicle (if needed).
+
+    # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
                 internal_compartment=internal_compartment+'_'+cell
@@ -259,24 +271,26 @@ class MembranePump(Component):
             if len(membrane_compartment.split('_')) == 2:
                 cell = membrane_compartment.split('_')[-1]
                 internal_compartment=internal_compartment+'_'+cell
-            # if self.membrane_pump.cell is not None:
-            #     cell=self.membrane_pump.cell
-            #     if type(cell) is str:
-            #         internal_compartment=internal_compartment+'_'+cell
-            #     else:
-            #         internal_compartment=internal_compartment+'_'+str(cell)
-   
+
     # SUBSTRATE
         if substrate is None:
             self.substrate = None
         else:
             product=substrate
-            self.substrate = self.set_species(substrate, compartment=internal_compartment,attributes=attributes)
-            self.product= self.set_species(product, compartment=external_compartment,attributes=attributes)
+            self.substrate = self.set_species(substrate, 
+                                              compartment=internal_compartment,
+                                              attributes=attributes)
+            self.product= self.set_species(product,
+                                           compartment=external_compartment,
+                                           attributes=attributes)
 
-    #ENERGY and WASTE
-        self.energy = self.set_species('ATP',  material_type='small_molecule', compartment=internal_compartment,attributes=attributes)
-        self.waste = self.set_species('ADP',  material_type='small_molecule', compartment=internal_compartment,attributes=attributes)
+    # ENERGY and WASTE
+        self.energy = self.set_species('ATP',  material_type='small_molecule', 
+                                       compartment=internal_compartment,
+                                       attributes=attributes)
+        self.waste = self.set_species('ADP',  material_type='small_molecule', 
+                                       compartment=internal_compartment,
+                                       attributes=attributes)
 
     # PROTEIN
         if type(membrane_pump) == str:
@@ -286,35 +300,50 @@ class MembranePump(Component):
                 ATP = ATP
                 
             if direction is  None:
-                self.membrane_pump = self.set_species(membrane_pump, material_type='protein', attributes='Passive')
+                self.membrane_pump = self.set_species(membrane_pump, material_type='protein', 
+                                                      attributes='Passive')
                 self.membrane_pump.ATP= ATP
             else:
-                self.membrane_pump = self.set_species(membrane_pump, material_type='protein', attributes=direction)
+                self.membrane_pump = self.set_species(membrane_pump, material_type='protein', 
+                                                      attributes=direction)
                 self.membrane_pump.ATP= ATP
                 if direction == 'Importer':
                     if substrate is None:
                         self.substrate = None
                     else:
                         product=substrate
-                        self.substrate = self.set_species(substrate, compartment=external_compartment,attributes=attributes)
-                        self.product= self.set_species(product, compartment=internal_compartment,attributes=attributes)
-
+                        self.substrate = self.set_species(substrate, 
+                                                          compartment=external_compartment,
+                                                          attributes=attributes)
+                        self.product= self.set_species(product,
+                                                       compartment=internal_compartment,
+                                                       attributes=attributes)
         else:
             if membrane_pump.attributes[0] == 'Passive':
-                self.integral_membrane_protein = self.set_species(membrane_pump, material_type='protein', attributes='Passive')
+                self.integral_membrane_protein = self.set_species(membrane_pump, material_type='protein', 
+                                                                  attributes='Passive')
             elif membrane_pump.attributes[0] == 'Exporter':
-                self.membrane_pump = self.set_species(membrane_pump, material_type='protein', attributes='Exporter')
+                self.membrane_pump = self.set_species(membrane_pump, material_type='protein',
+                                                      attributes='Exporter')
             elif membrane_pump.attributes[0] == 'Importer':
-                self.membrane_pump = self.set_species(membrane_pump, material_type='protein', attributes='Importer')
-                self.energy = self.set_species('ATP',  material_type='small_molecule', compartment=external_compartment,attributes=attributes)
-                self.waste = self.set_species('ADP',  material_type='small_molecule', compartment=external_compartment,attributes=attributes)
+                self.membrane_pump = self.set_species(membrane_pump, material_type='protein',
+                                                      attributes='Importer')
+                self.energy = self.set_species('ATP',  material_type='small_molecule', 
+                                                compartment=external_compartment,
+                                                attributes=attributes)
+                self.waste = self.set_species('ADP',  material_type='small_molecule', 
+                                                compartment=external_compartment,
+                                                attributes=attributes)
                 if substrate is None:
                     self.substrate = None
                 else:
                     product=substrate
-                    self.substrate = self.set_species(substrate, compartment=external_compartment,attributes=attributes)
-                    self.product= self.set_species(product, compartment=internal_compartment,attributes=attributes)
-
+                    self.substrate = self.set_species(substrate, 
+                                                      compartment=external_compartment,
+                                                      attributes=attributes)
+                    self.product= self.set_species(product, 
+                                                   compartment=internal_compartment,
+                                                   attributes=attributes)
             else:
                 print('Membrane channel direction not found.')
                 
@@ -334,7 +363,8 @@ class MembranePump(Component):
 
     def update_reactions(self):
         mech_cat = self.get_mechanism('transport')
-        return mech_cat.update_reactions(self.membrane_pump, self.substrate, self.product, self.energy, self.waste, component=self,  part_id=self.name)    
+        return mech_cat.update_reactions(self.membrane_pump, self.substrate, self.product, self.energy, self.waste, 
+                                         component=self,  part_id=self.name)    
 
 class MembraneSensor(Component):
     """A class to represent a two-component system (TCS) membrane sensor.
@@ -345,13 +375,15 @@ class MembraneSensor(Component):
                  response_protein: Union[Species, str, Component],
                  assigned_substrate: Union[Species, str, Component],
                  signal_substrate: Union[Species, str, Component],
+                 product: Union[Species, str, Component]=None,
                  internal_compartment:str='Internal', external_compartment:str='External',
-                 ATP:int=None, cell:Union[int, str]=None, attributes=None, **keywords):
+                 ATP:int=2, cell:Union[int, str]=None, attributes=None, **keywords):
         """Initialize a MembraneSensor object to store Transport membrane related information.
         :param membrane_sensor_protein: name of the membrane protein in the TCS, reference to an Species or Component
         :param response_protein: name of the response protein in the TCS, reference to an Species or Component
         :param assigned_substrate: name of the assigned substrate in the TCS, reference to an Species or Component
         :param signal_substrate: name of the signal substrate in the TCS, reference to an Species or Component
+        :param product: name of the product in the TCS, reference to an Species or Component
         :param internal_compartment: name of internal compartment 
         :param external_compartment: name of external compartment 
         :parm cell: indicated the cell, identifier can be name or number
@@ -359,7 +391,8 @@ class MembraneSensor(Component):
         :param attributes: Species attribute
         :param keywords: pass into the parent's (Component) initializer
         """
-    #Additional information on the identity of the specific cell/vesicle (if needed).
+
+    # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
                 internal_compartment=internal_compartment+'_'+cell
@@ -372,27 +405,29 @@ class MembraneSensor(Component):
             if len(membrane_compartment.split('_')) == 2:
                 cell = membrane_compartment.split('_')[-1]
                 internal_compartment=internal_compartment+'_'+cell
-
-            # if self.membrane_sensor_protein.cell is not None:
-            #     cell=self.membrane_sensor_protein.cell
-            #     if type(cell) is str:
-            #         internal_compartment=internal_compartment+'_'+cell
-            #     else:
-            #         internal_compartment=internal_compartment+'_'+str(cell)
-   
-    #RESPONSE PROTEIN
+                    
+    # RESPONSE PROTEIN
         if response_protein is None:
             self.response_protein = None
         else:
             self.response_protein = self.set_species(response_protein, compartment=internal_compartment,
                                                      attributes=attributes)
+
+    # PRODUCT PROTEIN
+        if product is None:
+            self.product = self.set_species(str(response_protein)+'active', compartment=internal_compartment,
+                                            attributes=attributes)
+        else:
+            self.product = self.set_species(product, compartment=internal_compartment,
+                                            attributes=attributes)
+
     # ASSIGNED SUBSTRATE
         if assigned_substrate is None:
             self.assigned_substrate = None
         else:
             self.assigned_substrate = self.set_species(assigned_substrate, compartment=internal_compartment,
                                                        attributes=attributes)
-    #SIGNAL SUBSTRATE
+    # SIGNAL SUBSTRATE
         if signal_substrate is None:
             self.signal_substrate = None
         else:
@@ -405,7 +440,7 @@ class MembraneSensor(Component):
         else:
             self.membrane_sensor_protein = self.set_species(membrane_sensor_protein, material_type='protein', 
                                                             attributes=attributes)
-    #ATP
+    # ENERGY: ATP
         if ATP is None:
             self.membrane_sensor_protein.ATP= 1
         else: 
@@ -424,11 +459,11 @@ class MembraneSensor(Component):
     def update_species(self):
         mech_sen = self.get_mechanism('membrane_sensor')
         return mech_sen.update_species(self.membrane_sensor_protein, self.response_protein, 
-                                       self.assigned_substrate, self.signal_substrate, 
+                                       self.assigned_substrate, self.signal_substrate, self.product,
                                        self.energy, self.waste) 
 
     def update_reactions(self):
         mech_sen = self.get_mechanism('membrane_sensor')
         return mech_sen.update_reactions(self.membrane_sensor_protein, self.response_protein, 
-                                         self.assigned_substrate, self.signal_substrate, 
+                                         self.assigned_substrate, self.signal_substrate, self.product,
                                          self.energy, self.waste, component=self,  part_id=self.name)   
