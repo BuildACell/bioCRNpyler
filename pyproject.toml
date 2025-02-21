@@ -7,7 +7,7 @@ universal = true
 
 [project]
 name = "BioCRNpyler"
-version = "1.1.2"
+version = "1.2.0"
 description = "A chemical reaction network compiler for generating large biological circuit models"
 authors = [{name='Build-A-Cell'}]
 classifiers=[

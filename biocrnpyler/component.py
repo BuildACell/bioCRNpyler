@@ -101,22 +101,25 @@ class Component(object):
         """
         return None
     @classmethod
-    def set_species(self, species: Union[Species, str], material_type=None, attributes=None) -> Species:
+    def set_species(self, species: Union[Species, str], 
+                    material_type=None, compartment=None, 
+                    attributes=None) -> Species:
         """Helper function that allows species to be set from strings, species, or Components
 
         :param species: Species, str, Component
         :param material_type:
+        :param compartment:
         :param attributes:
         :return: Species
         """
         if isinstance(species, Species):
             return species
         elif isinstance(species, str):
-            return Species(name=species, material_type=material_type, attributes=attributes)
+            return Species(name=species, material_type=material_type, compartment=compartment, attributes=attributes)
         elif isinstance(species, Component) and species.get_species() is not None:
             return species.get_species()
         elif isinstance(species, list):
-            return [self.set_species(s, material_type = material_type, attributes = attributes) for s in species]
+            return [self.set_species(s, material_type = material_type, compartment=compartment, attributes = attributes) for s in species]
         else:
             raise ValueError(f"Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input. Recieved {species}")
 

@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
     - name: Install dependencies
       run: pip install flake8
     - name: Run flake8 linter
@@ -21,7 +21,7 @@ jobs:
         echo ${{ github.event.pull_request.head.sha }} > ./linter_output/head_sha
         flake8 . | tee ./linter_output/flake8.out
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: linter_output
         path: linter_output
