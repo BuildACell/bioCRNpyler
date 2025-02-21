@@ -2,9 +2,9 @@
 ## Python toolbox to create CRN models in SBML for biomolecular mechanisms
 
 [![Build Status](https://github.com/buildacell/biocrnpyler/actions/workflows/deploy.yml/badge.svg)](https://github.com/biocircuits/bioscrape/actions/workflows/deploy_bioscrape.yml)
-<!-- [![codecov](https://codecov.io/gh/BuildACell/BioCRNPyler/branch/master/graph/badge.svg)](https://codecov.io/gh/BuildACell/BioCRNPyler) -->
 [![PyPI version](https://badge.fury.io/py/biocrnpyler.svg)](https://badge.fury.io/py/biocrnpyler)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/BuildACell/BioCRNPyler/master?filepath=%2Fexamples%2F)
+<!-- [![codecov](https://codecov.io/gh/BuildACell/BioCRNPyler/branch/master/graph/badge.svg)](https://codecov.io/gh/BuildACell/BioCRNPyler) -->
 
 BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, manipulation,
 and study of the structure, dynamics, and functions
