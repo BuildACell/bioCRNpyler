@@ -2,9 +2,6 @@
 requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.distutils.bdist_wheel]
-universal = true
-
 [project]
 name = "BioCRNpyler"
 version = "1.2.0"
