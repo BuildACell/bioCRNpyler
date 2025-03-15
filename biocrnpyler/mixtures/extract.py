@@ -5,7 +5,7 @@
 from .chemical_reaction_network import ChemicalReactionNetwork
 from .components_basic import Protein, Metabolite
 from .dna_assembly import DNAassembly
-from .global_mechanism import Degredation_mRNA_MM, Dilution
+from .mechanisms.global_mechanism import Degredation_mRNA_MM, Dilution
 from .mechanism import EmptyMechanism
 from .mechanisms_binding import One_Step_Binding
 from .mechanisms_enzyme import BasicCatalysis, MichaelisMenten

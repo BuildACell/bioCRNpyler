@@ -6,7 +6,7 @@ import copy
 
 from .dna_part import DNA_part
 from .species import Species
-from .components_basic import DNA, RNA
+from .basic import DNA, RNA
 
 class RBS(DNA_part):
     """

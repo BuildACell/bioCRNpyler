@@ -1,5 +1,5 @@
 from .mechanism import Mechanism
-from .mechanisms_enzyme import MichaelisMentenCopy
+from .enzyme import MichaelisMentenCopy
 from .propensities import ProportionalHillNegative, ProportionalHillPositive
 from .reaction import Reaction
 from .species import Complex, Species

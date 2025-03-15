@@ -2,7 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 
-from .species import Complex, ComplexSpecies
+from ..species import Complex, ComplexSpecies
 from .component import Component
 from itertools import permutations
 import copy

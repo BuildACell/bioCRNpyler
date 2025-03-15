@@ -2,7 +2,7 @@
 # RMM, 11 Aug 2018
 
 from .chemical_reaction_network import *
-from .component import *
+from .components.component import *
 # Core components
 from .components_basic import *
 from .dna_assembly import *
@@ -14,12 +14,12 @@ from .dna_part_promoter import *
 from .dna_part_rbs import *
 from .dna_part_terminator import *
 from .construct_explorer import *
-from .integrase_enumerator import *
-from .components_combinatorial_complex import *
-from .components_combinatorial_conformation import *
-from .components_membrane import *
+from .components.integrase_enumerator import *
+from .components.combinatorial_complex import *
+from .components.combinatorial_conformation import *
+from .components.membrane import *
 
-from .global_mechanism import *
+from .mechanisms.global import *
 from .mechanism import *
 #core mechanisms
 from .mechanisms_binding import *
@@ -44,4 +44,4 @@ from .compartments import *
 from .utils import *
 
 #checking for nonexistant plotting-related modules now happens in plotting.py
-from .component_enumerator import *
+from .enumerator import *

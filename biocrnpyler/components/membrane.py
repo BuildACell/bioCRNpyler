@@ -5,8 +5,8 @@
 from typing import List, Union
 
 from .component import Component
-from .reaction import Reaction
-from .species import Complex, Species
+from ..reaction import Reaction
+from ..species import Complex, Species
 
 class DiffusibleMolecule(Component):
     """A class to represent transmembrane proteins or integral membrane proteins.

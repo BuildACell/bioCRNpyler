@@ -12,10 +12,10 @@
 import copy
 from warnings import warn
 
-from .component import Component
-from .components_basic import DNA, RNA
+from .components.component import Component
+from .basic import DNA, RNA
 from .dna_part import DNA_part
-from .dna_part_misc import IntegraseSite
+from .misc import IntegraseSite
 from .species import ComplexSpecies, OrderedPolymer, OrderedPolymerSpecies
 from .utils import all_comb, remove_bindloc
 import logging
@@ -589,7 +589,7 @@ class DNA_construct(Construct,DNA):
 
         self.material_type = "dna"
         if component_enumerators is None:
-            from .construct_explorer import TxExplorer
+            from .explorer import TxExplorer
             component_enumerators = [TxExplorer()]
         
         Construct.__init__(self=self, parts_list =parts_list, name = name, \
@@ -612,7 +612,7 @@ class RNA_construct(Construct,RNA):
         self.material_type = "rna"
         self.promoter = promoter
         if component_enumerators is None:
-            from .construct_explorer import TlExplorer
+            from .explorer import TlExplorer
             component_enumerators = [TlExplorer()]
 
         Construct.__init__(self=self,parts_list=parts_list,circular=False,name=name,\

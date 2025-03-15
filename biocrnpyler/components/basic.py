@@ -4,7 +4,7 @@
 
 from typing import List, Union
 
-from .component import Component
+from .components.component import Component
 from .reaction import Reaction
 from .species import Complex, Species
 

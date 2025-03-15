@@ -12,7 +12,7 @@ from .mechanisms_binding import (Combinatorial_Cooperative_Binding,
 from .mechanisms_txtl import (NegativeHillTranscription,
                               PositiveHillTranscription)
 from .species import Species
-from .components_basic import DNA, RNA
+from .basic import DNA, RNA
 from .utils import remove_bindloc
 
 

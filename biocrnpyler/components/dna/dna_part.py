@@ -10,7 +10,7 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-from .component import Component
+from .components.component import Component
 from .polymer import OrderedMonomer, OrderedPolymer
 from .species import Species
 import copy

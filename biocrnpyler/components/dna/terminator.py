@@ -2,7 +2,7 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.from .dna_part import DNA_part
 
-from .dna_part_misc import DNA_part
+from .misc import DNA_part
 
 
 class Terminator(DNA_part):

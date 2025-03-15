@@ -3,10 +3,10 @@
 
 from typing import List, Union
 
-from .component import Component
-from .components_basic import DNA, RNA, Protein
-from .dna_part_promoter import Promoter
-from .dna_part_rbs import RBS
+from .components.component import Component
+from .basic import DNA, RNA, Protein
+from .promoters import Promoter
+from .rbs import RBS
 from .mechanism import Mechanism
 from .mixture import Mixture
 from .parameter import ParameterDatabase

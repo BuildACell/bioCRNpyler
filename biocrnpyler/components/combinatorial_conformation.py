@@ -2,11 +2,11 @@
 #  See LICENSE file in the project root directory for details.
 
 
-from .species import Complex, ComplexSpecies, OrderedPolymerSpecies, PolymerConformation
+from ..species import Complex, ComplexSpecies, OrderedPolymerSpecies, PolymerConformation
 from .component import Component
-from .components_combinatorial_complex import CombinatorialComplex
-from . mechanisms_conformation import One_Step_Reversible_Conformation_Change
-from .dna_part_promoter import Promoter
+from .combinatorial_complex import CombinatorialComplex
+from ..mechanisms_conformation import One_Step_Reversible_Conformation_Change
+from ..dna_part_promoter import Promoter
 from itertools import permutations
 import copy
 import warnings

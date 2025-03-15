@@ -7,10 +7,10 @@ from numbers import Real
 from typing import List, Union
 from warnings import warn
 
-from .global_mechanism import GlobalMechanism
-from .mechanism import Mechanism
-from .parameter import Parameter, ParameterDatabase, ParameterKey
-from .species import Species
+from ..mechanisms.global import GlobalMechanism
+from ..mechanism import Mechanism
+from ..parameter import Parameter, ParameterDatabase, ParameterKey
+from ..species import Species
 
 
 class Component(object):

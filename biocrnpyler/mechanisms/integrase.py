@@ -5,7 +5,7 @@
 from .mechanism import Mechanism
 from .reaction import Reaction
 from .species import Complex
-from .component import Component
+from .components.component import Component
 from .propensities import ProportionalHillPositive
 
 

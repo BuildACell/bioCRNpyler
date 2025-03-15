@@ -3,7 +3,7 @@
 # See LICENSE file in the project root directory for details.
 
 from .chemical_reaction_network import Species
-from .component import Component
+from .components.component import Component
 from .dna_part import DNA_part
 
 

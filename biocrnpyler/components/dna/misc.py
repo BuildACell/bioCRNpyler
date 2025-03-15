@@ -9,8 +9,8 @@ from .dna_part import DNA_part
 from .mechanisms_binding import One_Step_Cooperative_Binding
 from .species import Species, ComplexSpecies, Complex
 from .mechanisms_integrase import BasicIntegration
-from .component import Component
-from .components_basic import DNA
+from .components.component import Component
+from .basic import DNA
 
 integrase_sites = ["attB","attP","attL","attR","FLP","CRE"]
 class DNABindingSite(DNA_part):

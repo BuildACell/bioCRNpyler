@@ -7,8 +7,8 @@ from typing import List, Union
 from warnings import resetwarnings, warn
 
 from .chemical_reaction_network import ChemicalReactionNetwork
-from .component import Component
-from .global_mechanism import GlobalMechanism
+from .components.component import Component
+from .mechanisms.global_mechanism import GlobalMechanism
 from .mechanism import Mechanism
 from .parameter import ParameterDatabase
 from .reaction import Reaction

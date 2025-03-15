@@ -6,9 +6,9 @@ from typing import Dict, List
 from warnings import warn
 
 from .mechanism import Mechanism
-from .mechanisms_enzyme import MichaelisMenten
-from .reaction import Reaction
-from .species import ComplexSpecies, OrderedPolymerSpecies, Species
+from .enzyme import MichaelisMenten
+from ..reaction import Reaction
+from ..species import ComplexSpecies, OrderedPolymerSpecies, Species
 
 """
 Global mechanisms are a lot like mechanisms. They are called only by mixtures
