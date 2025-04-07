@@ -14,7 +14,7 @@ from .sbmlutil import (_create_global_parameter, _create_local_parameter,
 from .species import Species
 
 
-class Propensity(object):
+class Propensity:
     def __init__(self):
         self.propensity_dict = {'species': {}, 'parameters': {}}
         self.name = None

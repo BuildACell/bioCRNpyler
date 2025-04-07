@@ -6,7 +6,7 @@ from biocrnpyler import GeneralPropensity
 from biocrnpyler import ParameterEntry
 from biocrnpyler import Species
 import pytest
-from biocrnpyler import sbmlutil
+from biocrnpyler.utils import sbmlutil
 
 
 def test_massaction_forward_rate():

@@ -11,7 +11,7 @@ import numbers
 import libsbml
 
 from .reaction import Reaction
-from .sbmlutil import add_all_reactions, add_all_species, add_all_compartments, create_sbml_model
+from .utils.sbmlutil import add_all_reactions, add_all_species, add_all_compartments, create_sbml_model
 from .species import Species
 from .utils import process_initial_concentration_dict, parameter_to_value, remove_bindloc
 from .parameter import ModelParameter, Parameter

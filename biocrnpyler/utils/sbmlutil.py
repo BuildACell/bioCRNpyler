@@ -9,7 +9,7 @@ import warnings
 from random import randint
 from typing import List
 from warnings import warn
-from .utils import parameter_to_value
+from . import parameter_to_value
 from .units import create_new_unit_definition
 import libsbml
 

@@ -47,7 +47,7 @@ from warnings import warn
 ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')  # This could later be extended
 
 
-class Parameter(object):
+class Parameter:
     def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real], unit=None):
         """A class for representing parameters in general. Only the below subclasses are ever used.
 

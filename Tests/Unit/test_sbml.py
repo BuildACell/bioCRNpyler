@@ -1,7 +1,7 @@
 import pytest
 import warnings
 from unittest import TestCase
-from biocrnpyler.sbmlutil import *
+from biocrnpyler.utils.sbmlutil import *
 from biocrnpyler.species import Species, Complex
 from biocrnpyler.compartments import Compartment
 from biocrnpyler.propensities import MassAction, HillPositive, HillNegative, ProportionalHillPositive, ProportionalHillNegative, GeneralPropensity
@@ -337,8 +337,8 @@ def test_sbml_basics():
         else:
             return
 
-    from biocrnpyler.sbmlutil import _create_global_parameter, _create_local_parameter
-    from biocrnpyler.sbmlutil import _create_modifiers, _create_products, _create_reactants
+    from biocrnpyler.utils.sbmlutil import _create_global_parameter, _create_local_parameter
+    from biocrnpyler.utils.sbmlutil import _create_modifiers, _create_products, _create_reactants
     # generate an sbml model
     document, model = create_sbml_model()
 

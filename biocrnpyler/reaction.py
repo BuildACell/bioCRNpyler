@@ -14,7 +14,7 @@ from warnings import warn
 from .utils import remove_bindloc
 
 
-class Reaction(object):
+class Reaction:
     r"""An abstract representation of a chemical reaction in a CRN.
 
     A reaction has the form:
