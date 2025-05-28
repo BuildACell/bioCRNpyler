@@ -67,6 +67,7 @@ or the GitHub site: https://github.com/BuildACell/BioCRNPyler.
 
    intro
    tutorial
+   membrane_features
    Reference Manual <reference>
 
 
