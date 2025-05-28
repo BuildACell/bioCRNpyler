@@ -5,3 +5,4 @@ sphinx-toggleprompt
 nbsphinx
 nbsphinx-link
 recommonmark
+pandoc

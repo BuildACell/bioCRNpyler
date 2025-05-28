@@ -1,0 +1,31 @@
+mechanism	part_id	param_name	value	comments
+membrane_protein_integration		kb_oligmor	2E-3	Arbitrary value for the binding integration step if protein is an oligomer
+membrane_protein_integration		ku_oligmor	2E-10	Arbitrary value for the unbinding integration steps if protein is an oligomer 
+membrane_protein_integration		kex	1E1	Arbitrary value for the integration of protein into membrane
+membrane_protein_integration		kcat	5E-1	Arbitrary value for the integration of protein into membrane
+simple_diffusion		k_diff	2E-4	Arbitrary value for the diffusion of molecule through membrane
+simple_membrane_protein_transport		k_trnsp	1E-1	Arbitrary value for the simple transport of molecule through membrane pore 
+facilitated_membrane_protein_transport		kb_subMC	1E-1	Arbitrary value for the binding of signal substrate and membrane carrier
+facilitated_membrane_protein_transport		ku_subMC	1E-1	Arbitrary value for the unbinding of signal substrate and membrane carrier
+facilitated_membrane_protein_transport		k_trnspMC	1E-2	Arbitrary value for the facilitated transport of molecule using membrane carrier
+facilitated_membrane_protein_transport		ku_prodMC	1E-1	Arbitrary value for the unbinding of product and membrane pump
+active_membrane_protein_transport		kb_subMP	1E-1	Arbitrary value for the binding of signal substrate and membrane pump
+active_membrane_protein_transport		ku_subMP	1E-1	Arbitrary value for the unbinding of signal substrate and membrane pump
+active_membrane_protein_transport		kb_subMPnATP	1E-1	Arbitrary value for the binding of signal substrate and membrane pump to energy
+active_membrane_protein_transport		ku_subMPnATP	1E-2	Arbitrary value for the unbinding of signal substrate and membrane pump to energy
+active_membrane_protein_transport		k_trnspMP	1E-2	Arbitrary value for the active transport of molecule using membrane pump
+active_membrane_protein_transport		ku_prodMP	1E-1	Arbitrary value for the unbinding of product and membrane pump
+active_membrane_protein_transport		ku_MP	1E-1	Arbitrary value for the unbinding of waste and membrane pump
+two_component_membrane_signaling		kb_sigMS	2E-3	Arbitrary value for the binding of signal substrate and membrane sensor
+two_component_membrane_signaling		ku_sigMS	2E-10	Arbitrary value for the unbinding of signal substrate and membrane sensor
+two_component_membrane_signaling		kb_autoPhos	2E-03	Arbitrary value for the binding of ATP and membrane sensor
+two_component_membrane_signaling		ku_autoPhos	2E-10	Arbitrary value for the unbinding of ATP and membrane sensor
+two_component_membrane_signaling		k_hydro	1E-1	Arbitrary value for the hydrolysis
+two_component_membrane_signaling		ku_waste	8E-1	Arbitrary value for the unbinding of waste product from hydrolyzed membrane sensor
+two_component_membrane_signaling		kb_phosRP	2E-3	Arbitrary value for the binding of phosphorylated membrane sensor and response protein
+two_component_membrane_signaling		ku_phosRP	1E-10	Arbitrary value for the unbinding of phosphorylated membrane sensor and response protein
+two_component_membrane_signaling		k_phosph	1E-1	Arbitrary value for the phosphorylation of response protein
+two_component_membrane_signaling		ku_activeRP	2E-1	Arbitrary value for the unbinding of response protein and membrane sensor
+two_component_membrane_signaling		ku_dephos	2E-10	Arbitrary value for the dephosphorylation of response protein
+
+

@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -42,7 +42,18 @@ extensions = [
     'recommonmark'
 ]
 
-source_suffix = ['.rst', '.md', '.ipynb']
+source_suffix = ['.rst']
+
+# scan documents for autosummary directives and generate stub pages for each.
+autosummary_generate = True
+
+# list of autodoc directive flags that should be automatically applied
+# to all autodoc directives.
+autodoc_default_options = {
+    'members': True,
+    'inherited-members': True,
+    'exclude-members': '__init__, __weakref__, __repr__, __str__'
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

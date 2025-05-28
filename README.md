@@ -2,9 +2,9 @@
 ## Python toolbox to create CRN models in SBML for biomolecular mechanisms
 
 [![Build Status](https://github.com/buildacell/biocrnpyler/actions/workflows/deploy.yml/badge.svg)](https://github.com/biocircuits/bioscrape/actions/workflows/deploy_bioscrape.yml)
-[![codecov](https://codecov.io/gh/BuildACell/BioCRNPyler/branch/master/graph/badge.svg)](https://codecov.io/gh/BuildACell/BioCRNPyler)
 [![PyPI version](https://badge.fury.io/py/biocrnpyler.svg)](https://badge.fury.io/py/biocrnpyler)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/BuildACell/BioCRNPyler/master?filepath=%2Fexamples%2F)
+<!-- [![codecov](https://codecov.io/gh/BuildACell/BioCRNPyler/branch/master/graph/badge.svg)](https://codecov.io/gh/BuildACell/BioCRNPyler) -->
 
 BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, manipulation,
 and study of the structure, dynamics, and functions
@@ -12,7 +12,7 @@ of complex biochemical networks.
 
 - **Mailing list:** [SBTools Google Group](https://groups.google.com/g/sbtools/) Email: sbtools@googlegroups.com
 - **Source:** https://github.com/BuildACell/BioCRNPyler
-- **Paper:** - [BioCRNpyler: Compiling Chemical Reaction Networks from Biomolecular Parts in Diverse Contexts](https://www.biorxiv.org/content/10.1101/2020.08.02.233478v1)
+- **Paper:** - [BioCRNpyler: Compiling Chemical Reaction Networks from Biomolecular Parts in Diverse Contexts](https://doi.org/10.1371/journal.pcbi.1009987)
 - **Bug reports:** https://github.com/BuildACell/BioCRNPyler/issues
 - **Slack** Join the #biocrnpyler channel on SBTools slack: Ask on the public SBTools Google group to be added or send a message to one of the maintainers. 
 
@@ -21,7 +21,7 @@ of complex biochemical networks.
 BioCRNpyler allows for CRNs to be built by hand, adding Species and Reactions manually.
 
 ```python
-from biocrnpyler import *
+from biocrnpyler import Species, Reaction, ChemicalReactionNetwork
 # let's build the following CRN
 # A -->[k1] 2B
 # B -->[k2] C+D
@@ -111,13 +111,14 @@ see [contribution guidelines](https://github.com/BuildACell/BioCRNPyler/blob/mas
 
 BioCRNpyler versions:
 
-* 1.1.2 (latest stable release): To install run `pip install biocrnpyler` 
-* 1.1.1 (previous stable release, compatible only with python <= 3.10): To install run `pip install biocrnpyler==1.1.1` 
+* 1.2.0 (latest release): To install run `pip install biocrnpyler`
+* 1.1.2 (previous stable release): To install run `pip install biocrnpyler==1.1.2` 
+* 1.1.1 (compatible only with python <= 3.10): To install run `pip install biocrnpyler==1.1.1` 
 * 0.9.0 (beta release): To install run `pip install biocrnpyler==0.9.0`
 * 0.2.1 (alpha release): To install run `pip install biocrnpyler==0.2.1`
 
 # License
 Released under the BSD 3-Clause License (see `LICENSE`)
 
-Copyright (c) 2024, Build-A-Cell. All rights reserved.
+Copyright (c) 2025, Build-A-Cell. All rights reserved.
 
