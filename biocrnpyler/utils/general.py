@@ -56,7 +56,9 @@ def parameter_to_value(p):
         return p
 
 def process_initial_concentration_dict(initial_concentration_dict: Dict[Union[str, Species], Union[numbers.Real, Parameter]]) -> Dict[str, numbers.Real]:
-    return {str(key): parameter_to_value(value) for (key, value) in initial_concentration_dict.items()}
+    processed_x0_dict = {str(key): parameter_to_value(value) for (key, value) in initial_concentration_dict.items()}
+    print(f"Processed initial concentration dictionary: {processed_x0_dict}")
+    return processed_x0_dict
 
 def combine_dictionaries(dict1,dict2):
     """append lists that share the same key, and add new keys

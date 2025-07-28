@@ -369,6 +369,7 @@ class ChemicalReactionNetwork(object):
             if initial_condition_dict is not None:
                 processed = process_initial_concentration_dict(initial_condition_dict)
                 m.set_species(processed)
+                print(f"The initial conditions in the model are now: {m.get_species_dictionary()}")
             result = py_simulate_model(timepoints, Model = m, stochastic = stochastic, safe = safe,
                                                 return_dataframe = return_dataframe)
         except ModuleNotFoundError:

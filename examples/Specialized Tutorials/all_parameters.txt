@@ -1,0 +1,50 @@
+mechanism	part_id	param_name	value	unit	comments
+energy_transcription_mm		ktx	3.25	None	Tx_cat from Singhal et al.
+energy_transcription_mm		kb	4.48	None	For the promoter tested in Singhal et al Supplemental Table S2
+energy_transcription_mm		ku	2.48889E-06	None	For the promoter tested in Singhal et al Supplemental Table S2
+energy_transcription_mm		length	300	bp	"This is a default length, gene specific ones should be set"
+energy_translation_mm		ktl	19.2	None	TL_cat from Singhal et al.
+energy_translation_mm		kb	0.819	None	For the RBS tested in Singhal et al Supplemental Table S2
+energy_translation_mm		ku	0.002853659	None	For the RBS tested in Singhal et al Supplemental Table S2
+energy_translation_mm		length	100	bp	"This is a default length, transcript specific ones should be set"
+rna_degredation_mm		kdeg	1.01	None	The values from Singhal et al Supplemental Table S2
+rna_degredation_mm		kb	1	None	The values from Singhal et al Supplemental Table S2
+rna_degredation_mm		ku	1.26582E-06	None	The values from Singhal et al Supplemental Table S2
+one_step_pathway	NTPs_production	k	0.02	None	alpha_atp fron Singhal et al.
+one_step_pathway	NTPs_degredation	k	0.0000177	None	Delta_ATP from Singhal et a.
+initial concentration		NTPs	5	mM	(total NTPs in standard energy buffer)
+initial concentration		amino_acids	30	mM	(total amino acids in standard energy buffer)
+initial concentration		Fuel_3PGA	30	mM	(standard energy buffer amount)
+initial concentration		RNAase	20.2	mM	The values from Singhal et al Supplemental Table S2
+initial concentration		protein_Ribo	0.0273	mM	The values from Singhal et al Supplemental Table S2
+initial concentration		RNAP	0.00933	mM	The values from Singhal et al Supplemental Table S2
+membrane_protein_integration		kb_oligomer	2E-3	None	Arbitrary value for the binding integration step if protein is an oligomer
+membrane_protein_integration		ku_oligomer	2E-10	None	Arbitrary value for the unbinding integration steps if protein is an oligomer 
+membrane_protein_integration		kex	1E1	None	Arbitrary value for the integration of protein into membrane
+membrane_protein_integration		kcat	5E-1	None	Arbitrary value for the integration of protein into membrane
+simple_diffusion		k_diff	2E-4	None	Arbitrary value for the diffusion of molecule through membrane
+simple_membrane_protein_transport		k_trnsp	1E-1	None	Arbitrary value for the simple transport of molecule through membrane pore 
+facilitated_membrane_protein_transport		kb_subMC	1E-1	None	Arbitrary value for the binding of signal substrate and membrane carrier
+facilitated_membrane_protein_transport		ku_subMC	1E-1	None	Arbitrary value for the unbinding of signal substrate and membrane carrier
+facilitated_membrane_protein_transport		k_trnspMC	1E-2	None	Arbitrary value for the facilitated transport of molecule using membrane carrier
+facilitated_membrane_protein_transport		ku_prodMC	1E-1	None	Arbitrary value for the unbinding of product and membrane pump
+active_membrane_protein_transport		kb_subMP	1E-1	None	Arbitrary value for the binding of signal substrate and membrane pump
+active_membrane_protein_transport		ku_subMP	1E-1	None	Arbitrary value for the unbinding of signal substrate and membrane pump
+active_membrane_protein_transport		kb_subMPnATP	1E-1	None	Arbitrary value for the binding of signal substrate and membrane pump to energy
+active_membrane_protein_transport		ku_subMPnATP	1E-2	None	Arbitrary value for the unbinding of signal substrate and membrane pump to energy
+active_membrane_protein_transport		k_trnspMP	1E-2	None	Arbitrary value for the active transport of molecule using membrane pump
+active_membrane_protein_transport		ku_prodMP	1E-1	None	Arbitrary value for the unbinding of product and membrane pump
+active_membrane_protein_transport		ku_MP	1E-1	None	Arbitrary value for the unbinding of waste and membrane pump
+two_component_membrane_signaling		kb_sigMS	2E-3	None	Arbitrary value for the binding of signal substrate and membrane sensor
+two_component_membrane_signaling		ku_sigMS	2E-10	None	Arbitrary value for the unbinding of signal substrate and membrane sensor
+two_component_membrane_signaling		kb_autoPhos	2E-03	None	Arbitrary value for the binding of ATP and membrane sensor
+two_component_membrane_signaling		ku_autoPhos	2E-10	None	Arbitrary value for the unbinding of ATP and membrane sensor
+two_component_membrane_signaling		k_hydro	1E-1	None	Arbitrary value for the hydrolysis
+two_component_membrane_signaling		ku_waste	8E-1	None	Arbitrary value for the unbinding of waste product from hydrolyzed membrane sensor
+two_component_membrane_signaling		kb_phosRP	2E-3	None	Arbitrary value for the binding of phosphorylated membrane sensor and response protein
+two_component_membrane_signaling		ku_phosRP	1E-10	None	Arbitrary value for the unbinding of phosphorylated membrane sensor and response protein
+two_component_membrane_signaling		k_phosph	1E-1	None	Arbitrary value for the phosphorylation of response protein
+two_component_membrane_signaling		ku_activeRP	2E-1	None	Arbitrary value for the unbinding of response protein and membrane sensor
+two_component_membrane_signaling		ku_dephos	2E-10	None	Arbitrary value for the dephosphorylation of response protein
+
+

@@ -262,9 +262,6 @@ def add_reaction(model, crn_reaction, reaction_id: str, stochastic: bool = False
     # KineticLaw but not in reactants or products
     _create_modifiers(crn_reaction=crn_reaction,
                       sbml_reaction=sbml_reaction, model=model)
-    
-
-
     return sbml_reaction
 
 
