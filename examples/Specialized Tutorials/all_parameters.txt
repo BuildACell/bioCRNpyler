@@ -16,7 +16,7 @@ initial concentration		NTPs	5	mM	(total NTPs in standard energy buffer)
 initial concentration		amino_acids	30	mM	(total amino acids in standard energy buffer)
 initial concentration		Fuel_3PGA	30	mM	(standard energy buffer amount)
 initial concentration		RNAase	20.2	mM	The values from Singhal et al Supplemental Table S2
-initial concentration		protein_Ribo	0.0273	mM	The values from Singhal et al Supplemental Table S2
+initial concentration		Ribo	0.0273	mM	The values from Singhal et al Supplemental Table S2
 initial concentration		RNAP	0.00933	mM	The values from Singhal et al Supplemental Table S2
 membrane_protein_integration		kb_oligomer	2E-3	None	Arbitrary value for the binding integration step if protein is an oligomer
 membrane_protein_integration		ku_oligomer	2E-10	None	Arbitrary value for the unbinding integration steps if protein is an oligomer 

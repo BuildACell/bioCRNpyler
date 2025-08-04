@@ -221,7 +221,13 @@ class Propensity(object):
             propensity_dict_in_sbml['parameters'][param_name] = parameter_in_sbml.getId()
 
         for species_name, species in propensity_dict_in_sbml['species'].items():
-            propensity_dict_in_sbml['species'][species_name] = str(species)
+            # Use the species ID from the SBML model to ensure correct naming convention
+            sbml_species = getSpeciesByName(model, str(species))
+            if sbml_species is not None:
+                propensity_dict_in_sbml['species'][species_name] = sbml_species.getId()
+            else:
+                # Fallback to string representation if species not found in model
+                propensity_dict_in_sbml['species'][species_name] = str(species)
 
         return propensity_dict_in_sbml
 

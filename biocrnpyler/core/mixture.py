@@ -583,13 +583,17 @@ class Mixture(object):
         # component species
         for comp in enumerated:
             sp_list = comp.update_species()
-            self.add_species_to_crn(
-                sp_list,
-                component=comp,
-                no_initial_concentrations=initial_concentrations_at_end,
-                copy_species=copy_objects,
-                compartment=compartment
-            )
+            # Use _filter_new_by_eq to prevent duplicates, just like for reaction species
+            existing = list(self.crn._species_set)
+            fresh = _filter_new_by_eq(sp_list, existing)
+            if fresh:
+                self.add_species_to_crn(
+                    fresh,
+                    component=comp,
+                    no_initial_concentrations=initial_concentrations_at_end,
+                    copy_species=copy_objects,
+                    compartment=compartment
+                )
 
         # component reactions & their species
         for comp in enumerated:
