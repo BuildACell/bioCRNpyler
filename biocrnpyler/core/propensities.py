@@ -217,17 +217,11 @@ class Propensity(object):
         # get copy of the propensity_dict and fill with sbml names
         propensity_dict_in_sbml = copy.deepcopy(self.propensity_dict)
         for param_name in propensity_dict_in_sbml['parameters'].keys():
-            parameter_in_sbml  =self._create_sbml_parameter(param_name, model, ratelaw)
+            parameter_in_sbml = self._create_sbml_parameter(param_name, model, ratelaw)
             propensity_dict_in_sbml['parameters'][param_name] = parameter_in_sbml.getId()
 
         for species_name, species in propensity_dict_in_sbml['species'].items():
-            # Use the species ID from the SBML model to ensure correct naming convention
-            sbml_species = getSpeciesByName(model, str(species))
-            if sbml_species is not None:
-                propensity_dict_in_sbml['species'][species_name] = sbml_species.getId()
-            else:
-                # Fallback to string representation if species not found in model
-                propensity_dict_in_sbml['species'][species_name] = str(species)
+            propensity_dict_in_sbml['species'][species_name] = str(species)
 
         return propensity_dict_in_sbml
 
@@ -274,11 +268,11 @@ class GeneralPropensity(Propensity):
 
         # replacing the species defined in CRN with valid SBML names
         for species_in_crn, species_in_sbml in propensity_dict_in_sbml['species'].items():
-            self.propensity_function.replace(species_in_crn, species_in_sbml)
+            self.propensity_function = self.propensity_function.replace(species_in_crn, species_in_sbml)
 
         # replacing the parameters defined in CRN with valid SBML names
         for parameter_in_crn, parameter_in_sbml in propensity_dict_in_sbml['parameters'].items():
-            self.propensity_function.replace(parameter_in_crn, parameter_in_sbml)
+            self.propensity_function = self.propensity_function.replace(parameter_in_crn, parameter_in_sbml)
 
         math_ast = libsbml.parseL3Formula(self.propensity_function)
         flag = ratelaw.setMath(math_ast)

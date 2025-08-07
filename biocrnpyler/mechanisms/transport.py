@@ -258,7 +258,6 @@ class Primary_Active_Transport_MM(Mechanism):
 
             #Complex2
             complex_dict['Pump:Sub:ATP']=Complex([nATP*[energy],complex_dict['Pump:Sub']])
-
             #Complex3
             complex_dict['Pump:Prod:ATP']=Complex([nATP*[energy], product, membrane_pump])
 
@@ -275,6 +274,7 @@ class Primary_Active_Transport_MM(Mechanism):
                                                 k_forward=ku_subMP)
         
         # Sub:MP + E <--> Sub:MP:E
+
         prop_subMPnATP = GeneralPropensity(f'kb_subMPnATP*{complex1}*{energy}*Heaviside({complex1})', propensity_species=[complex1,energy], propensity_parameters=[kb_subMPnATP])
         binding_rxn2 = Reaction([complex1, nATP*[energy]], [complex_dict['Pump:Sub:ATP']], propensity_type = prop_subMPnATP)
          
