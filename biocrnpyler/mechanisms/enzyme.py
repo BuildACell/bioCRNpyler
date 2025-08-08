@@ -9,7 +9,8 @@ from ..core.species import Complex
 
 class BasicCatalysis(Mechanism):
     """Mechanism for the schema S + C --> P + C."""
-    def __init__(self, name: str="basic_catalysis", mechanism_type: str="catalysis", **keywords):
+
+    def __init__(self, name: str = "basic_catalysis", mechanism_type: str = "catalysis", **keywords):
         """Initializes a BasicCatalysis instance.
 
         :param name: name of the Mechanism, default: basic_catalysis
@@ -19,26 +20,28 @@ class BasicCatalysis(Mechanism):
         # TODO ZAT: remove unused keywords argument
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, Enzyme, Sub, Prod = None, **keywords):
+    def update_species(self, Enzyme, Sub, Prod=None, **keywords):
         if Prod is None:
             return [Enzyme, Sub]
         else:
             return [Enzyme, Sub, Prod]
 
-    def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, kcat = None, **keywords):
+    def update_reactions(self, Enzyme, Sub, Prod, component=None, part_id=None, kcat=None, **keywords):
         if part_id is None and component is not None:
             part_id = component.name
 
         if kcat is None and component is None:
             raise ValueError("Must pass in either a component or kcat.")
         elif kcat is None:
-            kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
+            kcat = component.get_parameter(
+                "kcat", part_id=part_id, mechanism=self)
 
         return [Reaction.from_massaction(inputs=[Enzyme, Sub], outputs=[Enzyme, Prod], k_forward=kcat)]
 
 
 class BasicProduction(Mechanism):
     """Mechanism for the schema C --> P + C."""
+
     def __init__(self, name="basic_production", mechanism_type="catalysis", **keywords):
         """Initializes a BasicProduction instance.
 
@@ -49,7 +52,7 @@ class BasicProduction(Mechanism):
         # TODO ZAT: remove unused keywords argument
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, Enzyme, Sub = None, Prod = None, **keywords):
+    def update_species(self, Enzyme, Sub=None, Prod=None, **keywords):
         species = [Enzyme]
         if Prod is not None:
             species += [Prod]
@@ -58,14 +61,15 @@ class BasicProduction(Mechanism):
 
         return species
 
-    def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, kcat = None, **keywords):
+    def update_reactions(self, Enzyme, Sub, Prod, component=None, part_id=None, kcat=None, **keywords):
         if part_id is None and component is not None:
             part_id = component.name
 
         if kcat is None and component is None:
             raise ValueError("Must pass in either a component or kcat.")
         elif kcat is None:
-            kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
+            kcat = component.get_parameter(
+                "kcat", part_id=part_id, mechanism=self)
 
         inputs = [Enzyme]
         outputs = [Enzyme]
@@ -94,7 +98,7 @@ class MichaelisMenten(Mechanism):
         # TODO ZAT: remove unused keywords argument
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, Enzyme, Sub, Prod = None, complex=None, **keywords):
+    def update_species(self, Enzyme, Sub, Prod=None, complex=None, **keywords):
         if complex is None:
             complexS = Complex([Sub, Enzyme])
         else:
@@ -104,20 +108,22 @@ class MichaelisMenten(Mechanism):
         else:
             return [Enzyme, Sub, Prod, complexS]
 
-    def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, complex=None, kb=None, ku=None,
+    def update_reactions(self, Enzyme, Sub, Prod, component=None, part_id=None, complex=None, kb=None, ku=None,
                          kcat=None, **keywords):
         # Get Parameters
         if part_id is None and component is not None:
             part_id = component.name
 
         if component is None and (kb is None or ku is None or kcat is None):
-            raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
+            raise ValueError(
+                "Must pass in a Component or values for kb, ku, and kcat.")
         if kb is None:
-            kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+            kb = component.get_parameter("kb", part_id=part_id, mechanism=self)
         if ku is None:
-            ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+            ku = component.get_parameter("ku", part_id=part_id, mechanism=self)
         if kcat is None:
-            kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
+            kcat = component.get_parameter(
+                "kcat", part_id=part_id, mechanism=self)
 
         if complex is None:
             complexS = Complex([Sub, Enzyme])
@@ -159,7 +165,7 @@ class MichaelisMentenReversible(Mechanism):
         # TODO ZAT: remove unused keywords argument
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, Enzyme, Sub, Prod, complex=None, complex2 = None, **keywords):
+    def update_species(self, Enzyme, Sub, Prod, complex=None, complex2=None, **keywords):
         if complex is None:
             complex1 = Complex([Sub, Enzyme])
         else:
@@ -170,30 +176,36 @@ class MichaelisMentenReversible(Mechanism):
             complex2 = complex2
         return [Enzyme, Sub, Prod, complex1, complex2]
 
-    def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, complex=None, complex2 = None, kb=None, ku=None,
+    def update_reactions(self, Enzyme, Sub, Prod, component=None, part_id=None, complex=None, complex2=None, kb=None, ku=None,
                          kcat=None, **keywords):
-        #Get Parameters
+        # Get Parameters
         if part_id is None and component is not None:
             part_id = component.name
 
         if component is None and (kb is None or ku is None or kcat is None):
-            raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
+            raise ValueError(
+                "Must pass in a Component or values for kb, ku, and kcat.")
         if kb is None:
-            kb1 = component.get_parameter("kb1", part_id = part_id, mechanism = self)
-            kb2 = component.get_parameter("kb2", part_id = part_id, mechanism = self)
+            kb1 = component.get_parameter(
+                "kb1", part_id=part_id, mechanism=self)
+            kb2 = component.get_parameter(
+                "kb2", part_id=part_id, mechanism=self)
         else:
             kb1, kb2 = kb
         if ku is None:
-            ku1 = component.get_parameter("ku1", part_id = part_id, mechanism = self)
-            ku2 = component.get_parameter("ku2", part_id = part_id, mechanism = self)
+            ku1 = component.get_parameter(
+                "ku1", part_id=part_id, mechanism=self)
+            ku2 = component.get_parameter(
+                "ku2", part_id=part_id, mechanism=self)
         else:
             ku1, ku2 = ku
         if kcat is None:
-            kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
-            kcat_rev = component.get_parameter("kcat_rev", part_id = part_id, mechanism = self)
+            kcat = component.get_parameter(
+                "kcat", part_id=part_id, mechanism=self)
+            kcat_rev = component.get_parameter(
+                "kcat_rev", part_id=part_id, mechanism=self)
         else:
             kcat, kcat_rev = kcat
-        
 
         if complex is None:
             complex1 = Complex([Sub, Enzyme])
@@ -218,7 +230,7 @@ class MichaelisMentenReversible(Mechanism):
                                            outputs=[complex2],
                                            k_forward=kcat,
                                            k_reverse=kcat_rev)
-        
+
         return [binding_rxn1, binding_rxn2, cat_rxn]
 
 
@@ -227,6 +239,7 @@ class MichaelisMentenCopy(Mechanism):
 
        Sub+Enz <--> Sub:Enz --> Sub+Enz+Prod
     """
+
     def __init__(self, name="michalis_menten_copy", mechanism_type="copy", **keywords):
         """Initializes a MichaelisMentenCopy instance.
 
@@ -237,20 +250,20 @@ class MichaelisMentenCopy(Mechanism):
         # TODO ZAT: remove unused keywords argument
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, Enzyme, Sub, complex=None, Prod = None, **keywords):
+    def update_species(self, Enzyme, Sub, complex=None, Prod=None, **keywords):
         if complex is None:
             complexS = Complex([Sub, Enzyme])
         else:
             complexS = complex
-            
+
         if Prod is None:
             return [Enzyme, Sub, complexS]
-        elif(type(Prod)==list):
-            return [Enzyme,Sub,complexS]+Prod
+        elif (type(Prod) == list):
+            return [Enzyme, Sub, complexS]+Prod
         else:
             return [Enzyme, Sub, Prod, complexS]
 
-    def update_reactions(self, Enzyme, Sub, Prod, component = None, part_id = None, complex=None, kb=None, ku=None,
+    def update_reactions(self, Enzyme, Sub, Prod, component=None, part_id=None, complex=None, kb=None, ku=None,
                          kcat=None, **keywords):
         if complex is None:
             complexS = Complex([Sub, Enzyme])
@@ -262,13 +275,15 @@ class MichaelisMentenCopy(Mechanism):
             part_id = component.name
 
         if kb is None and component is not None:
-            kb = component.get_parameter("kb", part_id = part_id, mechanism = self)
+            kb = component.get_parameter("kb", part_id=part_id, mechanism=self)
         if ku is None and component is not None:
-            ku = component.get_parameter("ku", part_id = part_id, mechanism = self)
+            ku = component.get_parameter("ku", part_id=part_id, mechanism=self)
         if kcat is None and component is not None:
-            kcat = component.get_parameter("kcat", part_id = part_id, mechanism = self)
+            kcat = component.get_parameter(
+                "kcat", part_id=part_id, mechanism=self)
         if component is None and (kb is None or ku is None or kcat is None):
-            raise ValueError("Must pass in a Component or values for kb, ku, and kcat.")
+            raise ValueError(
+                "Must pass in a Component or values for kb, ku, and kcat.")
         # Sub + Enz <--> Sub:Enz
         binding_rxn = Reaction.from_massaction(inputs=[Sub, Enzyme],
                                                outputs=[complexS],

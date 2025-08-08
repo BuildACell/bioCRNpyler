@@ -3,6 +3,7 @@
 
 import warnings
 
+
 class Compartment:
 
     """ A formal Compartment object for a Species in a CRN.
@@ -15,11 +16,11 @@ class Compartment:
      documentation to find a list of supported units. Add your own custom units in units.py if needed.
     """
 
-    def __init__(self, name: str, size = 1e-6, spatial_dimensions = 3, unit = None, **keywords):
+    def __init__(self, name: str, size=1e-6, spatial_dimensions=3, unit=None, **keywords):
         self.name = name
-        self.spatial_dimensions = spatial_dimensions 
-        self.size = size 
-        self.unit = unit 
+        self.spatial_dimensions = spatial_dimensions
+        self.size = size
+        self.unit = unit
 
     @property
     def name(self):
@@ -34,7 +35,8 @@ class Compartment:
             if no_underscore_string.isalnum() and "__" not in name and name[len(name)-1] != "_" and name[0].isalpha():
                 self._name = name
             else:
-                raise ValueError(f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character.")
+                raise ValueError(
+                    f"name attribute {name} must consist of letters, numbers, or underscores and cannot contained double underscores or begin/end with a special character.")
         else:
             raise ValueError('Compartment name must be a string.')
 
@@ -45,9 +47,11 @@ class Compartment:
     @spatial_dimensions.setter
     def spatial_dimensions(self, spatial_dimensions: int):
         if type(spatial_dimensions) is not int:
-            raise ValueError('Compartment spatial dimension must be an integer.')
+            raise ValueError(
+                'Compartment spatial dimension must be an integer.')
         elif spatial_dimensions < 0:
-            raise ValueError('Compartment spatial dimension must be non-negative.')
+            raise ValueError(
+                'Compartment spatial dimension must be non-negative.')
         else:
             self._spatial_dimensions = spatial_dimensions
 
@@ -63,7 +67,7 @@ class Compartment:
             raise ValueError('Compartment size must be non-negative.')
         else:
             self._size = size
-    
+
     @property
     def unit(self):
         return self._unit
@@ -72,8 +76,9 @@ class Compartment:
     def unit(self, unit: str):
         if unit is not None:
             if not isinstance(unit, str):
-                raise ValueError("Unit of compartment must be a string representing compartment size.")
-            self._unit = unit 
+                raise ValueError(
+                    "Unit of compartment must be a string representing compartment size.")
+            self._unit = unit
         else:
             self._unit = None
 
@@ -87,7 +92,8 @@ class Compartment:
         if isinstance(other, Compartment) and self.name == other.name:
             # Now if two compartments have same name but other attributes are different, throw an error:
             if self.size != other.size or self.spatial_dimensions != other.spatial_dimensions:
-                raise ValueError('Compartments with same names must have the same size and spatial dimensions.')
+                raise ValueError(
+                    'Compartments with same names must have the same size and spatial dimensions.')
             return True
         else:
             return False

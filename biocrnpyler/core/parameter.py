@@ -44,7 +44,8 @@ from collections import namedtuple  # Used for the parameter keys
 from typing import Dict, List, Union
 from warnings import warn
 
-ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')  # This could later be extended
+# This could later be extended
+ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')
 
 
 class Parameter(object):
@@ -66,9 +67,11 @@ class Parameter(object):
     @parameter_name.setter
     def parameter_name(self, new_parameter_name: str):
         if not isinstance(new_parameter_name, str):
-            raise ValueError(f"parameter_name must be a string: received {type(new_parameter_name)}.")
+            raise ValueError(
+                f"parameter_name must be a string: received {type(new_parameter_name)}.")
         if not re.search('^[a-z]+', new_parameter_name, re.IGNORECASE):
-            raise ValueError(f'parameter_name should be at least one character and cannot start with a number!')
+            raise ValueError(
+                f'parameter_name should be at least one character and cannot start with a number!')
 
         self._parameter_name = new_parameter_name
 
@@ -79,11 +82,13 @@ class Parameter(object):
     @value.setter
     def value(self, new_parameter_value: Union[str, numbers.Real]):
         if not (isinstance(new_parameter_value, numbers.Real) or isinstance(new_parameter_value, str)):
-            raise ValueError(f"parameter_value must be a float or int: received {type(new_parameter_value)}.")
+            raise ValueError(
+                f"parameter_value must be a float or int: received {type(new_parameter_value)}.")
         if isinstance(new_parameter_value, str):
             if re.search('[a-df-z]', new_parameter_value, re.I) \
                     or re.search('(^[1-9]+/[1-9]+)|(^[1-9]+e-?[0-9]+)|(^.?[0-9])', new_parameter_value, re.I) is None:
-                raise ValueError(f'No valid parameter value! Accepted formats: 1.00 or 1e4 or 2/5, we got {new_parameter_value} ')
+                raise ValueError(
+                    f'No valid parameter value! Accepted formats: 1.00 or 1e4 or 2/5, we got {new_parameter_value} ')
 
             self._value = Parameter._convert_rational(new_parameter_value)
         else:
@@ -92,13 +97,14 @@ class Parameter(object):
     @property
     def unit(self) -> str:
         return self._unit
-    
+
     @unit.setter
     def unit(self, new_unit: str):
         if new_unit is None:
             self._unit = ""
         elif type(new_unit) is not str:
-            raise ValueError(f"All units must be strings. Recieved {new_unit}.")
+            raise ValueError(
+                f"All units must be strings. Recieved {new_unit}.")
         else:
             self._unit = new_unit
 
@@ -109,17 +115,20 @@ class Parameter(object):
             return float(nom)/float(denom)
         else:
             return float(p_value)
+
     def __eq__(self, other):
-        if isinstance(other,Parameter):
+        if isinstance(other, Parameter):
             return self.value == other.value
         else:
             try:
                 return self.value == float(other)
             except TypeError:
-                raise TypeError(f"Cannot compare parameter {self} with {other}.")
-        
+                raise TypeError(
+                    f"Cannot compare parameter {self} with {other}.")
+
     def __str__(self):
         return f"Parameter {self.parameter_name} = {self.value}"
+
     def __hash__(self):
         return hash(self._parameter_name)+hash(self._value)+hash(self._unit)
 
@@ -131,7 +140,8 @@ class ParameterEntry(Parameter):
      parameter_info is a dictionary {key:value} of additional information about the parameter. 
          For example: additional columns in the parameter file or the parameter file name.
     """
-    def __init__(self, parameter_name: str, parameter_value: Union[str,numbers.Real], parameter_key=None, parameter_info=None, **keywords):
+
+    def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real], parameter_key=None, parameter_info=None, **keywords):
         Parameter.__init__(self, parameter_name, parameter_value, **keywords)
 
         self.parameter_key = parameter_key
@@ -148,19 +158,22 @@ class ParameterEntry(Parameter):
             for k in ParameterKey._fields:
                 if k not in new_key:
                     new_key[k] = None
-            return ParameterKey(**new_key) #automatically unpack the keywords
+            return ParameterKey(**new_key)  # automatically unpack the keywords
         elif isinstance(new_key, ParameterKey):
             return new_key
         elif isinstance(new_key, tuple) and len(list(new_key)) == len(ParameterKey._fields):
             # make a dictionary assuming correct ordering
-            keywords = {ParameterKey._fields[i]:new_key[i] for i in range(len(ParameterKey._fields))}
-            return ParameterKey(**keywords) #automatically unpack the keywords
+            keywords = {ParameterKey._fields[i]: new_key[i]
+                        for i in range(len(ParameterKey._fields))}
+            # automatically unpack the keywords
+            return ParameterKey(**keywords)
         elif isinstance(new_key, str):
-            return ParameterKey(mechanism = None, part_id = None, name = new_key)
+            return ParameterKey(mechanism=None, part_id=None, name=new_key)
         elif new_key is None and parameter_name is not None:
-            return ParameterKey(mechanism = None, part_id = None, name = parameter_name)
+            return ParameterKey(mechanism=None, part_id=None, name=parameter_name)
         else:
-            raise ValueError(f"parameter_key must be None, a dictionary, a ParameterKey, a {len(ParameterKey._fields)}-tuple, or a string (parameter name): received {new_key}.")
+            raise ValueError(
+                f"parameter_key must be None, a dictionary, a ParameterKey, a {len(ParameterKey._fields)}-tuple, or a string (parameter name): received {new_key}.")
 
     @property
     def parameter_key(self) -> ParameterKey:
@@ -168,7 +181,8 @@ class ParameterEntry(Parameter):
 
     @parameter_key.setter
     def parameter_key(self, parameter_key: Union[Dict, ParameterKey, str]):
-        self._parameter_key = self.create_parameter_key(parameter_key, self.parameter_name)
+        self._parameter_key = self.create_parameter_key(
+            parameter_key, self.parameter_name)
 
     @property
     def parameter_info(self) -> Dict:
@@ -181,14 +195,16 @@ class ParameterEntry(Parameter):
         elif isinstance(parameter_info, dict):
             self._parameter_info = dict(parameter_info)
 
-            #Update the units attribute, if necessary
+            # Update the units attribute, if necessary
             if "unit" in parameter_info and self.unit != "" and self.unit != parameter_info["unit"]:
-                raise ValueError(f"Recieved multiple parameter units through constructor {self.unit} and parameter_info dictionary {parameter_info['unit']}.")
+                raise ValueError(
+                    f"Recieved multiple parameter units through constructor {self.unit} and parameter_info dictionary {parameter_info['unit']}.")
             elif "unit" in parameter_info:
                 self.unit = parameter_info["unit"]
 
         else:
-            raise ValueError(f"parameter_info must be None or a dictionary: received {parameter_info}.")
+            raise ValueError(
+                f"parameter_info must be None or a dictionary: received {parameter_info}.")
 
     def get_sbml_id(self):
         sbml_id = self.parameter_key.name+"_"
@@ -209,9 +225,11 @@ class ModelParameter(ParameterEntry):
       search_key is a tuple searched for to find the parameter, eg (mech_id, part_id, param_name), :
       found_key is the tuple used after defaulting to find the parameter eg (param_name)
     """
+
     def __init__(self, parameter_name: str, parameter_value: Union[str, numbers.Real], search_key, found_key, unit=None, parameter_key=None, parameter_info=None, **keywords):
 
-        ParameterEntry.__init__(self, parameter_name, parameter_value, unit=unit, parameter_key=parameter_key, parameter_info=parameter_info, **keywords)
+        ParameterEntry.__init__(self, parameter_name, parameter_value, unit=unit,
+                                parameter_key=parameter_key, parameter_info=parameter_info, **keywords)
         self.search_key = search_key
         self.found_key = found_key
 
@@ -221,7 +239,8 @@ class ModelParameter(ParameterEntry):
 
     @search_key.setter
     def search_key(self, search_key):
-        self._search_key = self.create_parameter_key(search_key, self.parameter_name)
+        self._search_key = self.create_parameter_key(
+            search_key, self.parameter_name)
 
     @property
     def found_key(self):
@@ -229,7 +248,8 @@ class ModelParameter(ParameterEntry):
 
     @found_key.setter
     def found_key(self, found_key):
-        self._found_key = self.create_parameter_key(found_key, self.parameter_name)
+        self._found_key = self.create_parameter_key(
+            found_key, self.parameter_name)
 
     def __str__(self):
         return f"ModelParameter({self.parameter_key}) = {self.value}\tsearch_key={self.search_key}"
@@ -244,23 +264,29 @@ class ParameterDatabase(object):
         :param overwrite_parameters: whether to overwrite existing entries in the parameter database
         """
 
-        self.parameters = {} #create an emtpy dictionary to get parameters.
+        self.parameters = {}  # create an emtpy dictionary to get parameters.
 
         if isinstance(parameter_file, str):
-            self.load_parameters_from_file(parameter_file, overwrite_parameters = overwrite_parameters)
+            self.load_parameters_from_file(
+                parameter_file, overwrite_parameters=overwrite_parameters)
         elif isinstance(parameter_file, list):
             for p in parameter_file:
                 if isinstance(p, str):
-                    self.load_parameters_from_file(p, overwrite_parameters = overwrite_parameters)
+                    self.load_parameters_from_file(
+                        p, overwrite_parameters=overwrite_parameters)
                 else:
-                    raise ValueError("parameter_file must be a string or list of strings representing file names and paths.")
+                    raise ValueError(
+                        "parameter_file must be a string or list of strings representing file names and paths.")
         elif parameter_file is not None:
-            raise ValueError("parameter_file must be a string representing a file name and path.")
-            
+            raise ValueError(
+                "parameter_file must be a string representing a file name and path.")
+
         if isinstance(parameter_dictionary, dict):
-            self.load_parameters_from_dictionary(parameter_dictionary, overwrite_parameters = overwrite_parameters)
+            self.load_parameters_from_dictionary(
+                parameter_dictionary, overwrite_parameters=overwrite_parameters)
         elif parameter_dictionary is not None:
-            raise ValueError("parameter_dictionary must be None or a dictionary!")
+            raise ValueError(
+                "parameter_dictionary must be None or a dictionary!")
 
     # To check if a key or ParameterEntry is in a the ParameterDatabase
     def __contains__(self, val):
@@ -307,20 +333,22 @@ class ParameterDatabase(object):
     def __setitem__(self, parameter_key, value):
 
         key = ParameterEntry.create_parameter_key(parameter_key)
-        
+
         if isinstance(value, ParameterEntry):
             if key != value.parameter_key:
-                raise ValueError(f"Parameter Key does not match: ParameterDatabase key {key} is not the same as ParameterEntry Key {value.parameter_key}.")
+                raise ValueError(
+                    f"Parameter Key does not match: ParameterDatabase key {key} is not the same as ParameterEntry Key {value.parameter_key}.")
             self.parameters[key] = value
         else:
-            self.add_parameter(key.name, value, parameter_key = key, parameter_origin = "Set Manually", overwrite_parameters = True)
+            self.add_parameter(key.name, value, parameter_key=key,
+                               parameter_origin="Set Manually", overwrite_parameters=True)
 
     def __str__(self):
         txt = "ParameterDatabase:"
         param_txt = "\n".join([repr(p) for p in self.parameters])
         return txt+param_txt
 
-    def add_parameter(self, parameter_name: str, parameter_value: Union[str,numbers.Real], parameter_origin = None, parameter_key = None, parameter_info = None, overwrite_parameters = False):
+    def add_parameter(self, parameter_name: str, parameter_value: Union[str, numbers.Real], parameter_origin=None, parameter_key=None, parameter_info=None, overwrite_parameters=False):
         """Adds a parameter to the database with appropriate metadata
 
         :param parameter_name: the name of the parameter
@@ -339,16 +367,18 @@ class ParameterDatabase(object):
             parameter_info["parameter origin"] = parameter_origin
 
         # Create ParameterEntry
-        param = ParameterEntry(parameter_name, parameter_value, parameter_key = parameter_key, parameter_info = parameter_info)
+        param = ParameterEntry(parameter_name, parameter_value,
+                               parameter_key=parameter_key, parameter_info=parameter_info)
         key = param.parameter_key
-        
+
         # Update parameter dictionary
         if key in self.parameters and not overwrite_parameters:
-            raise ValueError(f"Duplicate parameter detected. Parameter with key = {key} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True.")
+            raise ValueError(
+                f"Duplicate parameter detected. Parameter with key = {key} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True.")
         else:
             self.parameters[key] = param
 
-    def load_parameters_from_dictionary(self, parameter_dictionary: Dict[ParameterKey, Union[str,numbers.Real]], overwrite_parameters=False) -> None:
+    def load_parameters_from_dictionary(self, parameter_dictionary: Dict[ParameterKey, Union[str, numbers.Real]], overwrite_parameters=False) -> None:
         """Loads Parameters from a parameter dictionary.
 
         :param parameter_dictionary: Dictionary with keys ParameterKey types and values with real numbers
@@ -356,7 +386,8 @@ class ParameterDatabase(object):
         """
         for k in parameter_dictionary:
             key = ParameterEntry.create_parameter_key(k)
-            self.add_parameter(key.name, parameter_dictionary[k], parameter_key = {"part_id":key.part_id, "mechanism":key.mechanism}, parameter_origin = "parameter_dictionary", overwrite_parameters = overwrite_parameters)
+            self.add_parameter(key.name, parameter_dictionary[k], parameter_key={
+                               "part_id": key.part_id, "mechanism": key.mechanism}, parameter_origin="parameter_dictionary", overwrite_parameters=overwrite_parameters)
 
     def load_parameters_from_database(self, parameter_database, overwrite_parameters=False) -> None:
         """Loads parameters from another ParameterDatabase.
@@ -366,13 +397,15 @@ class ParameterDatabase(object):
         """
 
         if not isinstance(parameter_database, ParameterDatabase):
-            raise TypeError(f"paramater_database must be a ParamaterDatabase: recievied {parameter_database}.")
+            raise TypeError(
+                f"paramater_database must be a ParamaterDatabase: recievied {parameter_database}.")
 
         for k in parameter_database:
             if k not in self.parameters or overwrite_parameters:
                 self.parameters[k.parameter_key] = parameter_database[k.parameter_key]
             else:
-                raise ValueError(f"Duplicate parameter detected. Parameter with key = {k} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True.")
+                raise ValueError(
+                    f"Duplicate parameter detected. Parameter with key = {k} is already in the ParameterDatabase. To Overwrite existing parameters, use overwrite_parameters = True.")
 
     def load_parameters_from_file(self, filename: str, overwrite_parameters=False) -> None:
         """Loads parameters from a file to the ParameterDatabase.
@@ -390,7 +423,8 @@ class ParameterDatabase(object):
             elif file_type in ["csv"]:
                 delimiter = ","
             else:
-                raise ValueError("Parameter files must be tab-seperated (.tsv or .txt) or comma-seperated (.csv) files.")
+                raise ValueError(
+                    "Parameter files must be tab-seperated (.tsv or .txt) or comma-seperated (.csv) files.")
 
             csvreader = csv.DictReader(f, delimiter=delimiter)
             # Used for flexible column headings
@@ -399,10 +433,11 @@ class ParameterDatabase(object):
                 'param_name': ["parameter_name", "parameter", "param", "param_name"],
                 'part_id': ['part_id', 'part'],
                 'param_val': ["val", "value", "param_val", "parameter_value"],
-                'unit':['unit', 'units']
+                'unit': ['unit', 'units']
             }
 
-            field_names = self._get_field_names(csvreader.fieldnames, accepted_field_names)
+            field_names = self._get_field_names(
+                csvreader.fieldnames, accepted_field_names)
 
             # Determine which columns are in the CSV
             if field_names['param_name'] is None:
@@ -417,11 +452,13 @@ class ParameterDatabase(object):
             else:
                 no_part_id_column = False
 
-            #Load all parameters
+            # Load all parameters
             for row in csvreader:
                 param_value = row[field_names['param_val']]
-                field_columns = [field_names['param_name'], field_names['part_id'], field_names['mechanism'], field_names['param_val']]
-                parameter_info = {k:row[k] for k in row if k not in field_columns}
+                field_columns = [field_names['param_name'], field_names['part_id'],
+                                 field_names['mechanism'], field_names['param_val']]
+                parameter_info = {k: row[k]
+                                  for k in row if k not in field_columns}
                 # TODO test all these cases!
 
                 # Case 1: No Param Name so skip the row
@@ -431,8 +468,8 @@ class ParameterDatabase(object):
                 # Case 2: Just a Param Name
                 elif no_mechism_column and no_part_id_column:
                     param_name = row[field_names['param_name']]
-                    self.add_parameter(param_name, param_value, parameter_origin = filename, 
-                        parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
+                    self.add_parameter(param_name, param_value, parameter_origin=filename,
+                                       parameter_info=parameter_info, overwrite_parameters=overwrite_parameters)
 
                 # Case 3: Part_id and Param Name
                 elif no_mechism_column and no_part_id_column is False:
@@ -440,42 +477,42 @@ class ParameterDatabase(object):
                     part_id = row[field_names['part_id']]
 
                     if part_id is not None and len(part_id) > 0:
-                        self.add_parameter(param_name, param_value, parameter_key = {"part_id":part_id}, parameter_origin = filename, 
-                            parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
+                        self.add_parameter(param_name, param_value, parameter_key={"part_id": part_id}, parameter_origin=filename,
+                                           parameter_info=parameter_info, overwrite_parameters=overwrite_parameters)
                     else:
-                        self.add_parameter(param_name, param_value, parameter_origin = filename, 
-                            parameter_info = parameter_info , overwrite_parameters = overwrite_parameters)
+                        self.add_parameter(param_name, param_value, parameter_origin=filename,
+                                           parameter_info=parameter_info, overwrite_parameters=overwrite_parameters)
 
                 # Case 4: mechanism and param name
                 elif no_part_id_column and no_mechism_column is False:
                     mech_name = row[field_names['mechanism']]
                     param_name = row[field_names['param_name']]
                     if mech_name is not None and len(mech_name) > 0:
-                        self.add_parameter(param_name, param_value, parameter_key = {"mechanism":mech_name}, parameter_origin = filename, 
-                        parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
+                        self.add_parameter(param_name, param_value, parameter_key={"mechanism": mech_name}, parameter_origin=filename,
+                                           parameter_info=parameter_info, overwrite_parameters=overwrite_parameters)
                     else:
-                        self.add_parameter(param_name, param_value, parameter_origin = filename, 
-                            parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
+                        self.add_parameter(param_name, param_value, parameter_origin=filename,
+                                           parameter_info=parameter_info, overwrite_parameters=overwrite_parameters)
 
                 # Case 5: mechanism, part_id, and param name
                 else:
                     part_id = row[field_names['part_id']]
                     mech_name = row[field_names['mechanism']]
                     param_name = row[field_names['param_name']]
-                    if part_id is not None and len(part_id) > 0 and mech_name is not None and len(mech_name) >0:
-                        self.add_parameter(param_name, param_value, parameter_key = {"part_id":part_id, "mechanism":mech_name}, parameter_origin = filename, 
-                            parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
-                    
-                    elif part_id is not None and len(part_id) > 0:    
-                        self.add_parameter(param_name, param_value, parameter_key = {"part_id":part_id}, parameter_origin = filename, 
-                            parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
+                    if part_id is not None and len(part_id) > 0 and mech_name is not None and len(mech_name) > 0:
+                        self.add_parameter(param_name, param_value, parameter_key={"part_id": part_id, "mechanism": mech_name}, parameter_origin=filename,
+                                           parameter_info=parameter_info, overwrite_parameters=overwrite_parameters)
 
-                    elif mech_name is not None and len(mech_name) >0:
-                        self.add_parameter(param_name, param_value, parameter_key = {"mechanism":mech_name}, parameter_origin = filename, 
-                            parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
+                    elif part_id is not None and len(part_id) > 0:
+                        self.add_parameter(param_name, param_value, parameter_key={"part_id": part_id}, parameter_origin=filename,
+                                           parameter_info=parameter_info, overwrite_parameters=overwrite_parameters)
+
+                    elif mech_name is not None and len(mech_name) > 0:
+                        self.add_parameter(param_name, param_value, parameter_key={"mechanism": mech_name}, parameter_origin=filename,
+                                           parameter_info=parameter_info, overwrite_parameters=overwrite_parameters)
                     else:
-                        self.add_parameter(param_name, param_value, parameter_origin = filename, 
-                            parameter_info = parameter_info, overwrite_parameters = overwrite_parameters)
+                        self.add_parameter(param_name, param_value, parameter_origin=filename,
+                                           parameter_info=parameter_info, overwrite_parameters=overwrite_parameters)
 
     @staticmethod
     def _get_field_names(field_names: List[str], accepted_field_names: Dict[str, List[str]]) -> Dict[str, str]:
@@ -499,7 +536,8 @@ class ParameterDatabase(object):
         for accepted_name in accepted_field_names:
             # try to find an possible accepted names in the field_names using a generator
             try:
-                loc_gen = (idx for idx, name in enumerate(accepted_field_names[accepted_name]) if name in field_names)
+                loc_gen = (idx for idx, name in enumerate(
+                    accepted_field_names[accepted_name]) if name in field_names)
                 loc_idx = next(loc_gen)
             except StopIteration:
                 # we have reached the end of the possible names
@@ -513,7 +551,7 @@ class ParameterDatabase(object):
 
     def find_parameter(self, mechanism, part_id, param_name):
         """Searches the database for the best matching parameter. 
-        
+
         Parameter defaulting hierarchy:
         (mechanism_name, part_id, param_name) --> param_val.
         If that particular parameter key cannot be found, 
@@ -528,7 +566,7 @@ class ParameterDatabase(object):
         for parameters to be shared between different Mechanisms and/or Components.
         """
 
-        #this is imported here because otherwise there are import loops
+        # this is imported here because otherwise there are import loops
         from .mechanism import Mechanism
 
         found_entry = None
@@ -540,19 +578,22 @@ class ParameterDatabase(object):
             mech_name = mechanism.name
             mech_type = mechanism.mechanism_type
         elif mechanism is not None:
-            raise ValueError(f"mechanism keyword must be or string or have name and mechanism_type attributes: recievied {mechanism}.")
+            raise ValueError(
+                f"mechanism keyword must be or string or have name and mechanism_type attributes: recievied {mechanism}.")
         else:
             mech_name = None
             mech_type = None
-        
+
         parameter_key_list = [
-            ParameterKey(mechanism = mech_name, part_id = part_id, name = param_name), 
-            ParameterKey(mechanism = mech_type, part_id = part_id, name = param_name),
-            ParameterKey(mechanism = None, part_id = part_id, name = param_name),
-            ParameterKey(mechanism = mech_name, part_id = None, name = param_name),
-            ParameterKey(mechanism = mech_type, part_id = None, name = param_name),
-            ParameterKey(mechanism = None, part_id = None, name = param_name),
-            ]
+            ParameterKey(mechanism=mech_name,
+                         part_id=part_id, name=param_name),
+            ParameterKey(mechanism=mech_type,
+                         part_id=part_id, name=param_name),
+            ParameterKey(mechanism=None, part_id=part_id, name=param_name),
+            ParameterKey(mechanism=mech_name, part_id=None, name=param_name),
+            ParameterKey(mechanism=mech_type, part_id=None, name=param_name),
+            ParameterKey(mechanism=None, part_id=None, name=param_name),
+        ]
 
         for key in parameter_key_list:
             if key in self.parameters and found_entry is None:
@@ -563,6 +604,6 @@ class ParameterDatabase(object):
         if found_entry is None:
             return None
         else:
-            return_param = ModelParameter(found_entry.parameter_name,found_entry.value, (mech_name, part_id, param_name), found_key,
-                parameter_key = found_entry.parameter_key, parameter_info = found_entry.parameter_info, unit = found_entry.unit)
+            return_param = ModelParameter(found_entry.parameter_name, found_entry.value, (mech_name, part_id, param_name), found_key,
+                                          parameter_key=found_entry.parameter_key, parameter_info=found_entry.parameter_info, unit=found_entry.unit)
             return return_param

@@ -8,9 +8,15 @@ from ..mechanisms.global_mechanisms import Degredation_mRNA_MM, Dilution
 from ..core.mechanism import EmptyMechanism
 from ..mechanisms.binding import One_Step_Binding
 from ..mechanisms.enzyme import BasicCatalysis, MichaelisMenten
-from ..mechanisms.txtl import (OneStepGeneExpression, SimpleTranscription,
-                              SimpleTranslation, Transcription_MM, Translation_MM,
-                              Energy_Transcription_MM, Energy_Translation_MM)
+from ..mechanisms.txtl import (
+    OneStepGeneExpression,
+    SimpleTranscription,
+    SimpleTranslation,
+    Transcription_MM,
+    Translation_MM,
+    Energy_Transcription_MM,
+    Energy_Translation_MM,
+)
 from ..mechanisms.metabolite import OneStepPathway
 from ..core.mixture import Mixture
 
@@ -20,6 +26,7 @@ class ExpressionExtract(Mixture):
 
     Here transcription and Translation are lumped into one reaction: expression.
     """
+
     def __init__(self, name="", **kwargs):
         """Initializes an ExpressionExtract instance.
 
@@ -30,7 +37,9 @@ class ExpressionExtract(Mixture):
         Mixture.__init__(self, name=name, **kwargs)
 
         # Create default Expression Mechanisms
-        dummy_translation = EmptyMechanism(name="dummy_translation", mechanism_type="translation")
+        dummy_translation = EmptyMechanism(
+            name="dummy_translation", mechanism_type="translation"
+        )
         mech_expression = OneStepGeneExpression()
         mech_cat = BasicCatalysis()
         mech_bind = One_Step_Binding()
@@ -39,7 +48,7 @@ class ExpressionExtract(Mixture):
             mech_expression.mechanism_type: mech_expression,
             dummy_translation.mechanism_type: dummy_translation,
             mech_cat.mechanism_type: mech_cat,
-            mech_bind.mechanism_type: mech_bind
+            mech_bind.mechanism_type: mech_bind,
         }
 
         self.add_mechanisms(default_mechanisms)
@@ -87,14 +96,16 @@ class SimpleTxTlExtract(Mixture):
             mech_tx.mechanism_type: mech_tx,
             mech_tl.mechanism_type: mech_tl,
             mech_cat.mechanism_type: mech_cat,
-            mech_bind.mechanism_type: mech_bind
+            mech_bind.mechanism_type: mech_bind,
         }
         self.add_mechanisms(default_mechanisms)
 
         # global mechanisms for dilution and rna degredation
-        mech_rna_deg_global = Dilution(name="rna_degredation", filter_dict={"rna": True}, default_on=False)
+        mech_rna_deg_global = Dilution(
+            name="rna_degredation", filter_dict={"rna": True}, default_on=False
+        )
         global_mechanisms = {"rna_degredation": mech_rna_deg_global}
-        self.add_mechanisms(global_mechanisms)        
+        self.add_mechanisms(global_mechanisms)
 
 
 class TxTlExtract(Mixture):
@@ -102,7 +113,10 @@ class TxTlExtract(Mixture):
 
     This model does not include any energy
     """
-    def __init__(self, name="", rnap="RNAP", ribosome="Ribo", rnaase="RNAase", **kwargs):
+
+    def __init__(
+        self, name="", rnap="RNAP", ribosome="Ribo", rnaase="RNAase", **kwargs
+    ):
         """Initializes a TxTlExtract instance.
 
         :param name: name of the mixture
@@ -113,7 +127,7 @@ class TxTlExtract(Mixture):
         """
         # Always call the superlcass Mixture.__init__(...)
         Mixture.__init__(self, name=name, **kwargs)
-        
+
         # create default Components to represent cellular machinery
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
@@ -134,10 +148,9 @@ class TxTlExtract(Mixture):
             mech_tl.mechanism_type: mech_tl,
             mech_rna_deg.mechanism_type: mech_rna_deg,
             mech_cat.mechanism_type: mech_cat,
-            mech_bind.mechanism_type: mech_bind
+            mech_bind.mechanism_type: mech_bind,
         }
         self.add_mechanisms(default_mechanisms)
-
 
 
 class EnergyTxTlExtract(Mixture):
@@ -149,8 +162,18 @@ class EnergyTxTlExtract(Mixture):
 
     Energy usage for transcription and translation is length dependent."""
 
-    def __init__(self, name="", rnap="RNAP", ribosome="Ribo", rnaase="RNAase", 
-        ntps = "NTPs", ndps = "NDPs", amino_acids = "amino_acids", fuel = "Fuel_3PGA", **kwargs):
+    def __init__(
+        self,
+        name="",
+        rnap="RNAP",
+        ribosome="Ribo",
+        rnaase="RNAase",
+        ntps="NTPs",
+        ndps="NDPs",
+        amino_acids="amino_acids",
+        fuel="Fuel_3PGA",
+        **kwargs,
+    ):
         """
         :param name: name of the mixture
         :param rnap: name of the RNA polymerase, default: RNAP
@@ -162,29 +185,43 @@ class EnergyTxTlExtract(Mixture):
         :param kwargs: keywords passed into the parent Class (Mixture)
         """
         Mixture.__init__(self, name=name, **kwargs)
-        
+
         # create default Components to represent cellular machinery
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
         self.rnaase = Protein(rnaase)
         self.amino_acids = Metabolite(amino_acids)
-        self.fuel = Metabolite(fuel) #fuel is degraded into things other than ATP as well
-        self.ndps = Metabolite(ndps) #NDPs
-        self.ntps = Metabolite(ntps, precursors = [self.fuel, self.ndps], products = [self.ndps]) #fuel becomes ATP, and ATP is degraded
-        
+        # fuel is degraded into things other than ATP as well
+        self.fuel = Metabolite(fuel)
+        self.ndps = Metabolite(ndps)  # NDPs
+        self.ntps = Metabolite(
+            ntps, precursors=[self.fuel, self.ndps], products=[self.ndps]
+        )  # fuel becomes ATP, and ATP is degraded
 
-        #These mechanisms are Component specific and only added to the NTPs metabolite
+        # These mechanisms are Component specific and only added to the NTPs metabolite
         mech_pathway = OneStepPathway()
         self.ntps.add_mechanisms(mech_pathway)
         self.fuel.add_mechanisms(mech_pathway)
 
-
-        default_components = [self.rnap, self.ribosome, self.rnaase, self.amino_acids, self.ntps, self.fuel]
+        default_components = [
+            self.rnap,
+            self.ribosome,
+            self.rnaase,
+            self.amino_acids,
+            self.ntps,
+            self.fuel,
+        ]
         self.add_components(default_components)
 
         # Create default TxTl Mechanisms
-        mech_tx = Energy_Transcription_MM(rnap=self.rnap.get_species(), fuels = [self.ntps.get_species()], wastes = [])
-        mech_tl = Energy_Translation_MM(ribosome=self.ribosome.get_species(), fuels = 4*[self.ntps.get_species()] +[self.amino_acids.get_species()], wastes = 4*[self.ndps.get_species()])
+        mech_tx = Energy_Transcription_MM(
+            rnap=self.rnap.get_species(), fuels=[self.ntps.get_species()], wastes=[]
+        )
+        mech_tl = Energy_Translation_MM(
+            ribosome=self.ribosome.get_species(),
+            fuels=4 * [self.ntps.get_species()] + [self.amino_acids.get_species()],
+            wastes=4 * [self.ndps.get_species()],
+        )
         mech_rna_deg = Degredation_mRNA_MM(nuclease=self.rnaase.get_species())
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
@@ -194,9 +231,6 @@ class EnergyTxTlExtract(Mixture):
             mech_tl.mechanism_type: mech_tl,
             mech_rna_deg.mechanism_type: mech_rna_deg,
             mech_cat.mechanism_type: mech_cat,
-            mech_bind.mechanism_type: mech_bind
+            mech_bind.mechanism_type: mech_bind,
         }
         self.add_mechanisms(default_mechanisms)
-
-
-

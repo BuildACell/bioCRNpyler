@@ -16,6 +16,7 @@ class Mechanism(object):
     derived from this class.
 
     """
+
     def __init__(self, name: str, mechanism_type=""):
         """Initializes a Mechanism instance.
 
@@ -50,6 +51,7 @@ class Mechanism(object):
 
 class EmptyMechanism(Mechanism):
     """For use when one needs a Mechanism to do nothing, such as translation in Expression Mixtures."""
+
     def __init__(self, name, mechanism_type):
         """Initializes an EmptyMechanism instance.
 
