@@ -114,6 +114,14 @@ Component-Mechanism combinations.  This system is designed so that
 models can be produced quickly without full knowledge of all
 parameters and then refined with detailed parameter files later.
 
+**Compartments** are optional in BioCRNpyler. The default compartment 
+for all species in BioCRNpyler is called "default". Membrane components 
+in BioCRNpyler in `biocrnpyler/core/components/membrane/`` usually create
+an "Internal" and an "External" compartment. To replace the "default"
+compartment during compilation of a CRN with `compile_crn`, a 
+keyword argument `compartment=new_compartment` can be passed.
+Refer to the `examples/Specialized Tutorials/` for example use cases.
+
 .. _fig-code:
 
 .. figure:: figures/BioCRNpyler_Code.png

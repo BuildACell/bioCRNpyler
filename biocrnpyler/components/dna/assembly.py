@@ -77,9 +77,11 @@ class DNAassembly(DNA):
         :return: None
         """
         if dna is None:
-            self.dna = self.set_species(self.name, material_type="dna", attributes=attributes)
+            self.dna = self.set_species(self.name, material_type="dna",
+                                        attributes=attributes, compartment=self.compartment)
         else:
-            self.dna = self.set_species(dna, material_type="dna", attributes=attributes)
+            self.dna = self.set_species(dna, material_type="dna",
+                                        attributes=attributes, compartment=self.compartment)
 
         if self.promoter is not None:
             self.promoter.dna = self.dna
@@ -94,13 +96,15 @@ class DNAassembly(DNA):
         :return: None
         """
         if transcript is None:
-            self.transcript = self.set_species(self.name, material_type="rna", attributes=attributes)
+            self.transcript = self.set_species(self.name, material_type="rna",
+                                               attributes=attributes, compartment=self.compartment)
 
         # this is used for expression mixtures where there is no transcript!
         elif transcript is False:
             self.transcript = None
         else:
-            self.transcript = self.set_species(transcript, material_type="rna", attributes=attributes)
+            self.transcript = self.set_species(transcript, material_type="rna",
+                                               attributes=attributes, compartment=self.compartment)
 
         if self.promoter is not None:
             self.promoter.transcript = self.transcript
@@ -115,9 +119,11 @@ class DNAassembly(DNA):
         :return: None
         """
         if protein is None:
-            self.protein = self.set_species(self.name, material_type="protein", attributes=attributes)
+            self.protein = self.set_species(self.name, material_type="protein",
+                                            attributes=attributes, compartment=self.compartment)
         else:
-            self.protein = self.set_species(protein, material_type="protein", attributes=attributes)
+            self.protein = self.set_species(protein, material_type="protein",
+                                            attributes=attributes, compartment=self.compartment)
 
         if self.rbs is not None:
             self.rbs.protein = self.protein

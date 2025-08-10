@@ -73,6 +73,8 @@ class Component:
             if not isinstance(compartment, Compartment):
                 raise TypeError("The compartment must be a Compartment object")
             self.compartment = compartment
+        else:
+            self.compartment = Compartment("default")
 
         self.parameter_database = ParameterDatabase(
             parameter_file=parameter_file, parameter_dictionary=parameters
