@@ -226,7 +226,6 @@ class Species(OrderedMonomer):
         show_compartment=False,
         show_attributes=True,
         show_initial_condition=False,
-        show_compartments=False,
         **kwargs,
     ):
         """

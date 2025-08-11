@@ -258,19 +258,18 @@ class ChemicalReactionNetwork(object):
         show_rates=True,
         show_material=True,
         show_attributes=True,
-        show_compartment=False,
         show_initial_concentration=True,
         show_keys=True,
-        show_compartments=False,
+        show_compartment=False,
         **kwargs,
     ):
         """A more powerful printing function.
 
         Useful for understanding CRNs but does not return string identifiers.
-        show_material toggles whether species.material is printed.
-        show_attributes toggles whether species.attributes is printed
-        show_rates toggles whether reaction rate functions are printed
-        show_compartment toggles whether species.compartment is printed
+        `show_material` toggles whether species.material is printed.
+        `show_attributes` toggles whether species.attributes is printed
+        `show_rates` toggles whether reaction rate functions are printed
+        `show_compartment` toggles whether species.compartment is printed
         """
 
         txt = "Species" + f"(N = {len(self._species)}) = " + "{\n"
@@ -290,7 +289,7 @@ class ChemicalReactionNetwork(object):
 
             txt += s.pretty_print(
                 show_material=show_material,
-                show_compartment=show_compartments,
+                show_compartment=show_compartment,
                 show_attributes=show_attributes,
                 **kwargs,
             )

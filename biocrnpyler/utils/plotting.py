@@ -337,7 +337,7 @@ def generate_networkx_graph(
     pp_show_material=True,
     pp_show_rates=True,
     pp_show_attributes=True,
-    pp_show_compartments=True,
+    pp_show_compartment=True,
     colordict=None,
     reactioncolordict=None,
     imagedict=None,
@@ -446,7 +446,7 @@ def generate_networkx_graph(
             CRNgraph.nodes[allnodenum]["species"] = str(species)
         else:
             spectxt = species.pretty_print(
-                show_material=pp_show_material, show_compartment=pp_show_compartments
+                show_material=pp_show_material, show_compartment=pp_show_compartment
             )
             CRNgraph.nodes[allnodenum]["species"] = spectxt
         CRNgraph.nodes[allnodenum]["color"] = species_color

@@ -8,9 +8,11 @@ import warnings
 import pytest
 
 import biocrnpyler as bcp
-from biocrnpyler import CRNPlotter, DNA_construct, Promoter,IntegraseSite,\
-    RBS,CDS,Terminator, Complex, Species, DNA_part, RegulatedPromoter
-from biocrnpyler.components.dna.construct import RNA_construct
+from biocrnpyler.utils.plotting import CRNPlotter
+from biocrnpyler.components import RNA_construct, DNA_construct,\
+    Promoter, IntegraseSite, RBS, CDS, Terminator, Complex,\
+    Species, DNA_part, RegulatedPromoter
+
 
 def test_CRNPlotter():
     class dummy_renderer:
@@ -143,7 +145,7 @@ def test_render_network_bokeh():
 
     # Generate a graph and make sure it is created
     with warnings.catch_warnings(record=True) as records:
-        plot = bcp.render_network_bokeh(crn1)
+        plot = bcp.utils.plotting.render_network_bokeh(crn1)
 
     for w in records:
         if re.search("plotting disabled", w.message.args[0]):

@@ -115,7 +115,8 @@ models can be produced quickly without full knowledge of all
 parameters and then refined with detailed parameter files later.
 
 **Compartments** are optional in BioCRNpyler. The default compartment 
-for all species in BioCRNpyler is called "default". Membrane components 
+for all species in BioCRNpyler is called "default". Component Compartments
+can be set using setter functions for each component. Membrane components 
 in BioCRNpyler in `biocrnpyler/core/components/membrane/`` usually create
 an "Internal" and an "External" compartment. To replace the "default"
 compartment during compilation of a CRN with `compile_crn`, a 

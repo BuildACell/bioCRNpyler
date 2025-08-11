@@ -74,7 +74,8 @@ class Component:
                 raise TypeError("The compartment must be a Compartment object")
             self.compartment = compartment
         else:
-            self.compartment = Compartment("default")
+            # Don't create a default compartment here to avoid circular imports
+            self._compartment = None
 
         self.parameter_database = ParameterDatabase(
             parameter_file=parameter_file, parameter_dictionary=parameters

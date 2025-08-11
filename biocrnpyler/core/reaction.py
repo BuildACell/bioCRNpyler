@@ -11,7 +11,7 @@ import itertools
 from typing import List, Union
 from warnings import warn
 
-from ..utils import remove_bindloc
+from ..utils.general import remove_bindloc
 
 
 class Reaction(object):

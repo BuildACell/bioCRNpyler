@@ -4,7 +4,9 @@
 
 import pytest
 #from unittest import TestCase
-from biocrnpyler import Promoter, DNA_construct, Terminator, Transcription_MM, Species, RBS, CDS, Complex
+from biocrnpyler.components import Promoter, DNA_construct, Terminator,\
+    Species, RBS, CDS, Complex
+from biocrnpyler.mechanisms import Transcription_MM
 import copy
 
 def test_promoter_DNAconstruct():
