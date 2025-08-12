@@ -63,7 +63,8 @@ class Membrane_Protein_Integration(Mechanism):
         if complex is None:
             size = integral_membrane_protein.size
             if size > 1:
-                complex1 = Complex([integral_membrane_protein] * size)
+                complex1 = Complex([integral_membrane_protein] * size,
+                                   compartment=integral_membrane_protein.compartment)
             else:
                 complex1 = complex
         else:
@@ -96,7 +97,8 @@ class Membrane_Protein_Integration(Mechanism):
 
         if complex is None:
             if size > 1:
-                complex1 = Complex([integral_membrane_protein] * size)
+                complex1 = Complex([integral_membrane_protein] * size,
+                                   compartment=integral_membrane_protein.compartment)
             else:
                 complex1 = complex
         else:
@@ -215,9 +217,11 @@ class Facilitated_Transport_MM(Mechanism):
             # Create empty dictionary for complexes
             complex_dict = {}
             # Complex1
-            complex_dict["sub:MC"] = Complex([substrate, membrane_carrier])
+            complex_dict["sub:MC"] = Complex([substrate, membrane_carrier],
+                                             compartment=substrate.compartment)
             # Complex2
-            complex_dict["prod:MC"] = Complex([product, membrane_carrier])
+            complex_dict["prod:MC"] = Complex([product, membrane_carrier],
+                                              compartment=product.compartment)
 
         # Make dictionary into array
         complex_array = [value for value in complex_dict.values()]
@@ -250,9 +254,11 @@ class Facilitated_Transport_MM(Mechanism):
             # Create empty dictionary for complexes
             complex_dict = {}
             # Complex1
-            complex_dict["sub:MC"] = Complex([substrate, membrane_carrier])
+            complex_dict["sub:MC"] = Complex([substrate, membrane_carrier],
+                                             compartment=substrate.compartment)
             # Complex2
-            complex_dict["prod:MC"] = Complex([product, membrane_carrier])
+            complex_dict["prod:MC"] = Complex([product, membrane_carrier],
+                                              compartment=product.compartment)
 
         # Facilitated membrane protein transport
         # Sub + MC --> Sub:MC
@@ -322,17 +328,20 @@ class Primary_Active_Transport_MM(Mechanism):
             # Create empty dictionary for complexes
             complex_dict = {}
             # Complex1
-            complex_dict["Pump:Sub"] = Complex([substrate, membrane_pump])
+            complex_dict["Pump:Sub"] = Complex([substrate, membrane_pump],
+                                               compartment=substrate.compartment)
             # Complex2
-            complex_dict["Pump:Sub:ATP"] = Complex(
-                [nATP * [energy], complex_dict["Pump:Sub"]]
-            )
+            complex_dict["Pump:Sub:ATP"] = Complex([nATP * [energy],
+                                                    complex_dict["Pump:Sub"]],
+                                                   compartment=substrate.compartment)
             # Complex3
             complex_dict["Pump:Prod:ATP"] = Complex(
-                [nATP * [energy], product, membrane_pump]
+                [nATP * [energy], product, membrane_pump],
+                compartment=product.compartment
             )
             # Complex4
-            complex_dict["Pump:ADP"] = Complex([nATP * [waste], membrane_pump])
+            complex_dict["Pump:ADP"] = Complex([nATP * [waste], membrane_pump],
+                                               compartment=membrane_pump.compartment)
 
         # Make dictionary into array
         complex_array = [value for value in complex_dict.values()]
@@ -377,20 +386,24 @@ class Primary_Active_Transport_MM(Mechanism):
             complex_dict = {}
 
             # Complex1
-            complex_dict["Pump:Sub"] = Complex([substrate, membrane_pump])
+            complex_dict["Pump:Sub"] = Complex([substrate, membrane_pump],
+                                               compartment=substrate.compartment)
             complex1 = complex_dict["Pump:Sub"]
 
             # Complex2
             complex_dict["Pump:Sub:ATP"] = Complex(
-                [nATP * [energy], complex_dict["Pump:Sub"]]
+                [nATP * [energy], complex_dict["Pump:Sub"]],
+                compartment=substrate.compartment,
             )
             # Complex3
             complex_dict["Pump:Prod:ATP"] = Complex(
-                [nATP * [energy], product, membrane_pump]
+                [nATP * [energy], product, membrane_pump],
+                compartment=product.compartment,
             )
 
             # Complex4
-            complex_dict["Pump:ADP"] = Complex([nATP * [waste], membrane_pump])
+            complex_dict["Pump:ADP"] = Complex([nATP * [waste], membrane_pump],
+                                               compartment=membrane_pump.compartment)
 
         # Active membrane protein transport
         # Sub + MP<--> Sub:MP

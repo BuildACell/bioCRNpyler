@@ -33,12 +33,17 @@ class DiffusibleMolecule(Component):
             else:
                 internal_compartment=internal_compartment+'_'+str(cell)
                 external_compartment=external_compartment
-
         # Substrate
         self.substrate = self.set_species(substrate, compartment=internal_compartment)
         self.product = self.set_species(substrate, compartment=external_compartment)
+        
+        # Name the component
+        if cell is not None:
+            name = self.substrate.name + '_' + str(cell)
+        else:
+            name = self.substrate.name
 
-        Component.__init__(self=self, name=self.substrate.name, attributes=attributes, **keywords)
+        Component.__init__(self=self, name=name, attributes=attributes, **keywords)
         
     def get_species(self):
         return self.substrate
@@ -113,15 +118,20 @@ class IntegralMembraneProtein(Component):
                                                 compartment=membrane_compartment, 
                                                 attributes=[direction])
 
-    # Indicates the number of monomers that compose the channel, will be used in Membrane_Protein_Integration(Mechanism)
+        # Indicates the number of monomers that compose the channel, will be used in Membrane_Protein_Integration(Mechanism)
         if size is None:
             self.membrane_protein.size = 1
         else:
             self.membrane_protein.size = size
         
-    # Indicates cell
+        # Indicates cell
         self.product.cell= cell
-        Component.__init__(self=self, name=self.membrane_protein.name, **keywords)
+        # Name the component
+        if cell is not None:
+            name = self.membrane_protein.name + '_' + str(cell)
+        else:
+            name = self.membrane_protein.name
+        Component.__init__(self=self, name=name, **keywords)
         
     def get_species(self):
         return self.membrane_protein
@@ -223,8 +233,12 @@ class MembraneChannel(Component):
                                                    attributes=attributes)
             else:
                 print('Membrane channel direction not found.')
-
-        Component.__init__(self=self, name=self.integral_membrane_protein.name, **keywords)
+        # Name the component
+        if cell is not None:
+            name = self.integral_membrane_protein.name + '_' + str(cell)
+        else:
+            name = self.integral_membrane_protein.name
+        Component.__init__(self=self, name=name, **keywords)
         
     def get_species(self):
         return self.integral_membrane_protein
@@ -351,8 +365,12 @@ class MembranePump(Component):
                 self.membrane_pump.ATP= 1
             else: 
                 self.membrane_pump.ATP = ATP
-
-        Component.__init__(self=self, name=self.membrane_pump.name, **keywords)
+        # Name the component
+        if cell is not None:
+            name = self.membrane_pump.name + '_' + str(cell)
+        else:
+            name = self.membrane_pump.name
+        Component.__init__(self=self, name=name, **keywords)
         
     def get_species(self):
         return self.membrane_pump
@@ -450,8 +468,12 @@ class MembraneSensor(Component):
                                        attributes=attributes)
         self.waste = self.set_species('ADP',  material_type='small_molecule', compartment=internal_compartment,
                                       attributes=attributes)
-
-        Component.__init__(self=self, name=self.membrane_sensor_protein.name, **keywords)
+        # Name the component
+        if cell is not None:
+            name = self.membrane_sensor_protein.name + '_' + str(cell)
+        else:
+            name = self.membrane_sensor_protein.name
+        Component.__init__(self=self, name=name, **keywords)
 
     def get_species(self):
         return self.membrane_sensor_protein
