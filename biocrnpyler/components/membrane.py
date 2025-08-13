@@ -3,6 +3,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from typing import List, Union
+import warnings
 
 from ..core.component import Component
 from ..core.reaction import Reaction
