@@ -80,12 +80,12 @@ class IntegralMembraneProtein(Component):
         
         self.membrane_protein = self.set_species(membrane_protein)
 
-        if self.membrane_protein.compartment.name not in ('default', compartment):
+        if self.membrane_protein.compartment.name not in ('default', compartment.name):
             warnings.warn("Inconsistent compartment with IntegralMembraneProtein and membrane_protein. Defaulting to use IntegralMembraneProtein compartment.", UserWarning) #<--can change this error message to be more specific
             self.membrane_protein.compartment.name = compartment.name # uses membrane protein compartment going forward
             # compartment = self.membrane_protein.compartment.name  # uses compartment parameter going forward
         else: 
-            self.membrane_protein.compartment.name = compartment
+            self.membrane_protein.compartment.name = compartment.name
         
     # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
