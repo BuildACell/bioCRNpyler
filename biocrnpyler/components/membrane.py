@@ -24,7 +24,7 @@ class DiffusibleMolecule(Component):
         :param attributes: Species attribute, passed to Component
         :param keywords: pass into the parent's (Component) initializer
         """
-
+                     
         # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
@@ -76,7 +76,16 @@ class IntegralMembraneProtein(Component):
         :param attributes: Species attribute.
         :param keywords: pass into the parent's (Component) initializer
         """
+                     
+    self.membrane_protein = self.set_species(membrane_protein)
 
+    if self.membrane_protein.compartment.name not in ('default', compartment.name):
+        warnings.warn("Inconsistent compartment with IntegralMembraneProtein and membrane_protein. Defaulting to use IntegralMembraneProtein compartment.", UserWarning) #<--can change this error message to be more specific
+        self.membrane_protein.compartment.name = compartment.name # uses membrane protein compartment going forward
+        # compartment = self.membrane_protein.compartment.name  # uses compartment parameter going forward
+    else: 
+        self.membrane_protein.compartment.name = compartment.name 
+        
     # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
@@ -85,13 +94,6 @@ class IntegralMembraneProtein(Component):
             else:
                 compartment=compartment+'_'+str(cell)
                 membrane_compartment=membrane_compartment+'_'+str(cell)
-        else:
-            self.membrane_protein = self.set_species(membrane_protein)
-            compartment= self.membrane_protein.compartment.name
-
-            if len(compartment.split('_')) == 2:
-                cell = compartment.split('_')[-1]
-                membrane_compartment=membrane_compartment+'_'+cell
 
     # PROTEIN
         self.membrane_protein = self.set_species(membrane_protein, material_type='protein', 
