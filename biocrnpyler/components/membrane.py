@@ -79,13 +79,16 @@ class IntegralMembraneProtein(Component):
         """
         
         self.membrane_protein = self.set_species(membrane_protein)
+        #Checks if compartment a string
+        if type(compartment) is not str:
+          compartment=compartment.name
 
-        if self.membrane_protein.compartment.name not in ('default', compartment.name):
+        if self.membrane_protein.compartment.name not in ('default', compartment):
             warnings.warn("Inconsistent compartment with IntegralMembraneProtein and membrane_protein. Defaulting to use IntegralMembraneProtein compartment.", UserWarning) #<--can change this error message to be more specific
-            self.membrane_protein.compartment.name = compartment.name # uses membrane protein compartment going forward
-            # compartment = self.membrane_protein.compartment.name  # uses compartment parameter going forward
+            self.membrane_protein.compartment.name = compartment # uses membrane protein compartment going forward
+            # compartment = self.membrane_protein.compartment  # uses compartment parameter going forward
         else: 
-            self.membrane_protein.compartment.name = compartment.name
+            self.membrane_protein.compartment.name = compartment
         
     # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
