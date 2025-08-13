@@ -87,11 +87,11 @@ class IntegralMembraneProtein(Component):
                 membrane_compartment=membrane_compartment+'_'+str(cell)
         else:
             self.membrane_protein = self.set_species(membrane_protein)
-            membrane_compartment= self.membrane_protein.compartment.name
+            compartment= self.membrane_protein.compartment.name
 
-            if len(membrane_compartment.split('_')) == 2:
-                cell = membrane_compartment.split('_')[-1]
-                internal_compartment=internal_compartment+'_'+cell
+            if len(compartment.split('_')) == 2:
+                cell = compartment.split('_')[-1]
+                membrane_compartment=membrane_compartment+'_'+cell
 
     # PROTEIN
         self.membrane_protein = self.set_species(membrane_protein, material_type='protein', 
