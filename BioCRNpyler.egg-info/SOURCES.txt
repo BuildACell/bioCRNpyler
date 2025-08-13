@@ -1,0 +1,14 @@
+LICENSE
+MANIFEST.in
+README.md
+pyproject.toml
+setup.cfg
+setup.py
+BioCRNpyler.egg-info/PKG-INFO
+BioCRNpyler.egg-info/SOURCES.txt
+BioCRNpyler.egg-info/dependency_links.txt
+BioCRNpyler.egg-info/requires.txt
+BioCRNpyler.egg-info/top_level.txt
+Tests/test_combinatorial_complex.py
+Tests/test_combinatorial_conformation.py
+biocrnpyler/__init__.py

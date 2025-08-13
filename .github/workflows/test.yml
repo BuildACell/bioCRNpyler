@@ -1,7 +1,7 @@
 name: BioCRNpyler Test
 on:
   push:
-    branches: ["*","!master"]
+    branches: ["*","!main"]
 jobs:
   build:
     runs-on: ${{ matrix.os }}
