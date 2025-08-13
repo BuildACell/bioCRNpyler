@@ -85,7 +85,7 @@ class IntegralMembraneProtein(Component):
             self.membrane_protein.compartment.name = compartment.name # uses membrane protein compartment going forward
             # compartment = self.membrane_protein.compartment.name  # uses compartment parameter going forward
         else: 
-            self.membrane_protein.compartment.name = compartment.name 
+            self.membrane_protein.compartment.name = compartment
         
     # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
