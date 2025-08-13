@@ -3,8 +3,8 @@
 
 [![Build Status](https://github.com/buildacell/biocrnpyler/actions/workflows/deploy.yml/badge.svg)](https://github.com/biocircuits/bioscrape/actions/workflows/deploy_bioscrape.yml)
 [![PyPI version](https://badge.fury.io/py/biocrnpyler.svg)](https://badge.fury.io/py/biocrnpyler)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/BuildACell/BioCRNPyler/master?filepath=%2Fexamples%2F)
-<!-- [![codecov](https://codecov.io/gh/BuildACell/BioCRNPyler/branch/master/graph/badge.svg)](https://codecov.io/gh/BuildACell/BioCRNPyler) -->
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/BuildACell/BioCRNPyler/main?filepath=%2Fexamples%2F)
+<!-- [![codecov](https://codecov.io/gh/BuildACell/BioCRNPyler/branch/main/graph/badge.svg)](https://codecov.io/gh/BuildACell/BioCRNPyler) -->
 [![Docs](https://readthedocs.org/projects/biocrnpyler/badge/)](https://biocrnpyler.readthedocs.io/)
 
 BioCRNPyler (pronounced Bio-Compiler) is a Python package for the creation, manipulation,
@@ -85,8 +85,8 @@ myCRN = myMixture.compile_crn()
 ```
 
 
-More advanced examples can be found in the [example](https://github.com/BuildACell/BioCRNPyler/tree/master/examples) folder, 
-here's the first file in the Tutorial series: [Building CRNs](https://github.com/BuildACell/BioCRNPyler/blob/master/examples/1.%20Building%20CRNs%20Directly.ipynb)
+More advanced examples can be found in the [example](https://github.com/BuildACell/BioCRNPyler/tree/main/examples) folder, 
+here's the first file in the Tutorial series: [Building CRNs](https://github.com/BuildACell/BioCRNPyler/blob/main/examples/1.%20Building%20CRNs%20Directly.ipynb)
 
 # Installation
 
@@ -108,7 +108,7 @@ Please report any bugs that you find [here](https://github.com/BuildACell/BioCRN
 Or, even better, fork the repository on [GitHub](https://github.com/BuildACell/BioCRNPyler),
 and create a pull request (PR). We welcome all changes, big or small, and we
 will help you make the PR if you are new to `git` (just ask on the issue and/or
-see [contribution guidelines](https://github.com/BuildACell/BioCRNPyler/blob/master/docs/CONTRIBUTING.md)).
+see [contribution guidelines](https://github.com/BuildACell/BioCRNPyler/blob/main/docs/CONTRIBUTING.md)).
 
 # Versions
 
