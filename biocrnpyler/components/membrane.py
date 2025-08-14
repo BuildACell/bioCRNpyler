@@ -16,7 +16,7 @@ class DiffusibleMolecule(Component):
     By default, a DiffusibleMolecule uses a mechanism called "diffusion".
     """
     def __init__(self, substrate:Union[Species, str, Component], 
-                 internal_compartment:str='Internal', external_compartment:str='External',
+                 internal_compartment:Union[str, Compartment]='Internal', external_compartment:Union[str, Compartment]='External',
                  cell:Union[str, int]=None, attributes=None, **keywords):       
         """Initialize a DiffusibleMolecule object to store molecule/substance related information.
         :param substrate: name of the diffusible substrate, reference to an Species or Component
@@ -26,15 +26,20 @@ class DiffusibleMolecule(Component):
         :param attributes: Species attribute, passed to Component
         :param keywords: pass into the parent's (Component) initializer
         """
-                     
+        # Creates compartment object if compartment is a str
+        if internal_compartment is str:
+            internal_compartment = Compartment(name=internal_compartment)
+        if external_compartment is str:
+            external_compartment = Compartment(name=external_compartment)
+
         # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
-                internal_compartment=internal_compartment+'_'+cell
-                external_compartment=external_compartment
+                internal_compartment.name=internal_compartment.name+'_'+cell
+                external_compartment.name=external_compartment.name
             else:
-                internal_compartment=internal_compartment+'_'+str(cell)
-                external_compartment=external_compartment
+                internal_compartment.name=internal_compartment.name+'_'+str(cell)
+                external_compartment.name=external_compartment.name
         # Substrate
         self.substrate = self.set_species(substrate, compartment=internal_compartment)
         self.product = self.set_species(substrate, compartment=external_compartment)
@@ -66,8 +71,8 @@ class IntegralMembraneProtein(Component):
     """
     def __init__(self, membrane_protein:Union[Species, str, Component],
                  product:Union[Species,str, Component], direction:str=None, size:int=None, 
-                 compartment:Union[str, Compartment]= 'Internal', membrane_compartment:Union[str, Compartment]='Membrane', cell:Union[str,int]=None,
-                 attributes=None, **keywords):
+                 compartment:Union[str, Compartment]= 'Internal', membrane_compartment:Union[str, Compartment]='Membrane', 
+                 cell:Union[str,int]=None, attributes=None, **keywords):
         """Initialize a IntegralMembraneProtein object to store membrane channel related information.
         :param product: name of the membrane channel, reference to an Species or Component
         :param direction: transport direction (str), set to "Passive" by default, undirectional unless specified 
@@ -77,15 +82,15 @@ class IntegralMembraneProtein(Component):
         :param cell: indicated the cell, identifier can be name or number
         :param attributes: Species attribute.
         :param keywords: pass into the parent's (Component) initializer
-        """
-        
-        self.membrane_protein = self.set_species(membrane_protein)
-        
+        """      
         # Creates compartment object if compartment is a str
         if type(compartment) is str:
             compartment = Compartment(name=compartment)
+        if type(membrane_compartment) is str:
+            membrane_compartment = Compartment(name=membrane_compartment)
         
         # Logic for prioritizing compartments
+        self.membrane_protein = self.set_species(membrane_protein)
         if self.membrane_protein.compartment.name == 'default':
           self.membrane_protein.compartment = compartment
         elif self.membrane_protein.compartment.name != compartment.name and compartment.name == 'Internal':
@@ -98,11 +103,11 @@ class IntegralMembraneProtein(Component):
         # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
-                compartment=compartment+'_'+cell
-                membrane_compartment=membrane_compartment+'_'+cell
+                internal_compartment.name=internal_compartment.name+'_'+cell
+                external_compartment.name=external_compartment.name
             else:
-                compartment=compartment+'_'+str(cell)
-                membrane_compartment=membrane_compartment+'_'+str(cell)
+                internal_compartment.name=internal_compartment.name+'_'+str(cell)
+                external_compartment.name=external_compartment.name
 
         # PROTEIN
         self.membrane_protein = self.set_species(membrane_protein, material_type='protein', 
@@ -162,8 +167,8 @@ class MembraneChannel(Component):
     Uses a mechanism called "transport".
     """
     def __init__(self, integral_membrane_protein: Union[Species, str, Component],
-                 substrate: Union[Species, str, Component],
-                 direction:str=None, internal_compartment:str='Internal', external_compartment:str='External',
+                 substrate: Union[Species, str, Component],direction:str=None, 
+                 internal_compartment:Union[str, Compartment]='Internal', external_compartment:Union[str, Compartment]='External',
                  cell:Union[str,int]=None, attributes=None, **keywords):
         """Initialize a MembraneChannel object to store transport membrane related information.
         :param substrate: name of the substrate, reference to an Species or Component
@@ -174,20 +179,18 @@ class MembraneChannel(Component):
         :param attributes: Species attribute
         :param keywords: pass into the parent's (Component) initializer
         """
-
+        # Creates compartment object if compartment is a str
+        if internal_compartment is str:
+            internal_compartment = Compartment(name=internal_compartment)
+        if external_compartment is str:
+            external_compartment = Compartment(name=external_compartment)
+          
         # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
-                internal_compartment=internal_compartment+'_'+cell
+                internal_compartment.name=internal_compartment.name+'_'+cell
             else:
-                internal_compartment=internal_compartment+'_'+str(cell)
-        else:
-            self.integral_membrane_protein = self.set_species(integral_membrane_protein)
-            membrane_compartment= self.integral_membrane_protein.compartment.name
-
-            if len(membrane_compartment.split('_')) == 2:
-                cell = membrane_compartment.split('_')[-1]
-                internal_compartment=internal_compartment+'_'+cell
+                internal_compartment.name=internal_compartment.name+'_'+str(cell)
 
         # Substrate and product assignments.
         """In the case of membrane components, the substrate is the substance on which the transporter/channel acts without distinction of compartment. 
@@ -269,8 +272,8 @@ class MembranePump(Component):
     Uses a mechanism called "transport".
     """
     def __init__(self, membrane_pump: Union[Species, str, Component],
-                 substrate: Union[Species, str, Component],
-                 direction:str=None, internal_compartment:str='Internal', external_compartment:str='External',
+                 substrate: Union[Species, str, Component], direction:str=None, 
+                 internal_compartment:Union[str, Compartment]='Internal', external_compartment:Union[str, Compartment]='External',
                  ATP:int=None, cell:Union[int, str]=None, attributes=None, **keywords):
         """Initialize a MembranePump object to store Transport membrane related information.
         :param substrate: name of the substrate, reference to an Species or Component
@@ -282,20 +285,18 @@ class MembranePump(Component):
         :param attributes: Species attribute
         :param keywords: pass into the parent's (Component) initializer
         """
+        # Creates compartment object if compartment is a str
+        if internal_compartment is str:
+            internal_compartment = Compartment(name=internal_compartment)
+        if external_compartment is str:
+            external_compartment = Compartment(name=external_compartment)
 
         # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
-                internal_compartment=internal_compartment+'_'+cell
+                internal_compartment.name=internal_compartment.name+'_'+cell
             else:
-                internal_compartment=internal_compartment+'_'+str(cell)
-        else:
-            self.membrane_pump = self.set_species(membrane_pump)
-            membrane_compartment= self.membrane_pump.compartment.name
-
-            if len(membrane_compartment.split('_')) == 2:
-                cell = membrane_compartment.split('_')[-1]
-                internal_compartment=internal_compartment+'_'+cell
+                internal_compartment.name=internal_compartment.name+'_'+str(cell)
 
         # SUBSTRATE
         if substrate is None:
@@ -405,7 +406,7 @@ class MembraneSensor(Component):
                  assigned_substrate: Union[Species, str, Component],
                  signal_substrate: Union[Species, str, Component],
                  product: Union[Species, str, Component]=None,
-                 internal_compartment:str='Internal', external_compartment:str='External',
+                 internal_compartment:Union[str, Compartment]='Internal', external_compartment:Union[str, Compartment]='External',
                  ATP:int=2, cell:Union[int, str]=None, attributes=None, **keywords):
         """Initialize a MembraneSensor object to store Transport membrane related information.
         :param membrane_sensor_protein: name of the membrane protein in the TCS, reference to an Species or Component
@@ -420,20 +421,18 @@ class MembraneSensor(Component):
         :param attributes: Species attribute
         :param keywords: pass into the parent's (Component) initializer
         """
+        # Creates compartment object if compartment is a str
+        if internal_compartment is str:
+            internal_compartment = Compartment(name=internal_compartment)
+        if external_compartment is str:
+            external_compartment = Compartment(name=external_compartment)
 
          # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
-                internal_compartment=internal_compartment+'_'+cell
+                internal_compartment.name=internal_compartment.name+'_'+cell
             else:
-                internal_compartment=internal_compartment+'_'+str(cell)
-        else:
-            self.membrane_sensor_protein = self.set_species(membrane_sensor_protein)
-            membrane_compartment= self.membrane_sensor_protein.compartment.name
-
-            if len(membrane_compartment.split('_')) == 2:
-                cell = membrane_compartment.split('_')[-1]
-                internal_compartment=internal_compartment+'_'+cell
+                internal_compartment.name=internal_compartment.name+'_'+str(cell)
                     
         # RESPONSE PROTEIN
         if response_protein is None:
