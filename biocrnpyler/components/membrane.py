@@ -27,9 +27,9 @@ class DiffusibleMolecule(Component):
         :param keywords: pass into the parent's (Component) initializer
         """
         # Creates compartment object if compartment is a str
-        if internal_compartment is str:
+        if type(internal_compartment) is str:
             internal_compartment = Compartment(name=internal_compartment)
-        if external_compartment is str:
+        if type(external_compartment) is str:
             external_compartment = Compartment(name=external_compartment)
 
         # Additional information on the identity of the specific cell/vesicle (if needed).
@@ -180,9 +180,9 @@ class MembraneChannel(Component):
         :param keywords: pass into the parent's (Component) initializer
         """
         # Creates compartment object if compartment is a str
-        if internal_compartment is str:
+        if type(internal_compartment) is str:
             internal_compartment = Compartment(name=internal_compartment)
-        if external_compartment is str:
+        if type(external_compartment) is str:
             external_compartment = Compartment(name=external_compartment)
           
         # Additional information on the identity of the specific cell/vesicle (if needed).
@@ -286,9 +286,9 @@ class MembranePump(Component):
         :param keywords: pass into the parent's (Component) initializer
         """
         # Creates compartment object if compartment is a str
-        if internal_compartment is str:
+        if type(internal_compartment) is str:
             internal_compartment = Compartment(name=internal_compartment)
-        if external_compartment is str:
+        if type(external_compartment) is str:
             external_compartment = Compartment(name=external_compartment)
 
         # Additional information on the identity of the specific cell/vesicle (if needed).
@@ -422,9 +422,9 @@ class MembraneSensor(Component):
         :param keywords: pass into the parent's (Component) initializer
         """
         # Creates compartment object if compartment is a str
-        if internal_compartment is str:
+        if type(internal_compartment) is str:
             internal_compartment = Compartment(name=internal_compartment)
-        if external_compartment is str:
+        if type(external_compartment) is str:
             external_compartment = Compartment(name=external_compartment)
 
          # Additional information on the identity of the specific cell/vesicle (if needed).
