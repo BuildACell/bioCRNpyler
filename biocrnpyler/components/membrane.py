@@ -36,10 +36,9 @@ class DiffusibleMolecule(Component):
         if cell is not None:
             if type(cell) is str:
                 internal_compartment.name=internal_compartment.name+'_'+cell
-                external_compartment.name=external_compartment.name
             else:
                 internal_compartment.name=internal_compartment.name+'_'+str(cell)
-                external_compartment.name=external_compartment.name
+        
         # Substrate
         self.substrate = self.set_species(substrate, compartment=internal_compartment)
         self.product = self.set_species(substrate, compartment=external_compartment)
@@ -104,10 +103,10 @@ class IntegralMembraneProtein(Component):
         if cell is not None:
             if type(cell) is str:
                 compartment.name=compartment.name+'_'+cell
-                membrane_compartment.name=membrane_compartment.name
+                membrane_compartment.name=membrane_compartment.name+'_'+cell
             else:
                 compartment.name=compartment.name+'_'+str(cell)
-                membrane_compartment.name=membrane_compartment.name
+                membrane_compartment.name=membrane_compartment.name+'_'+str(cell)
 
         # PROTEIN
         self.membrane_protein = self.set_species(membrane_protein, material_type='protein', 
@@ -191,6 +190,12 @@ class MembraneChannel(Component):
                 internal_compartment.name=internal_compartment.name+'_'+cell
             else:
                 internal_compartment.name=internal_compartment.name+'_'+str(cell)
+        else:
+          self.integral_membrane_protein = self.set_species(integral_membrane_protein)
+          membrane_compartment= self.integral_membrane_protein.compartment
+          if len(membrane_compartment.name.split('_')) == 2:
+            cell = membrane_compartment.name.split('_')[-1]
+            internal_compartment.name=internal_compartment.name+'_'+cell
 
         # Substrate and product assignments.
         """In the case of membrane components, the substrate is the substance on which the transporter/channel acts without distinction of compartment. 
@@ -297,6 +302,12 @@ class MembranePump(Component):
                 internal_compartment.name=internal_compartment.name+'_'+cell
             else:
                 internal_compartment.name=internal_compartment.name+'_'+str(cell)
+        else:
+          self.membrane_pump = self.set_species(membrane_pump)
+          membrane_compartment= self.membrane_pump.compartment
+          if len(membrane_compartment.name.split('_')) == 2:
+            cell = membrane_compartment.name.split('_')[-1]
+            internal_compartment.name=internal_compartment.name+'_'+cell
 
         # SUBSTRATE
         if substrate is None:
@@ -433,6 +444,12 @@ class MembraneSensor(Component):
                 internal_compartment.name=internal_compartment.name+'_'+cell
             else:
                 internal_compartment.name=internal_compartment.name+'_'+str(cell)
+        else:
+          self.membrane_sensor_protein = self.set_species(membrane_sensor_protein)
+          membrane_compartment= self.membrane_sensor_protein.compartment
+          if len(membrane_compartment.name.split('_')) == 2:
+            cell = membrane_compartment.name.split('_')[-1]
+            internal_compartment.name=internal_compartment.name+'_'+cell
                     
         # RESPONSE PROTEIN
         if response_protein is None:
