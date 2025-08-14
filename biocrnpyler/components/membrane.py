@@ -103,11 +103,11 @@ class IntegralMembraneProtein(Component):
         # Additional information on the identity of the specific cell/vesicle (if needed).
         if cell is not None:
             if type(cell) is str:
-                internal_compartment.name=internal_compartment.name+'_'+cell
-                external_compartment.name=external_compartment.name
+                compartment.name=compartment.name+'_'+cell
+                membrane_compartment.name=membrane_compartment.name
             else:
-                internal_compartment.name=internal_compartment.name+'_'+str(cell)
-                external_compartment.name=external_compartment.name
+                compartment.name=compartment.name+'_'+str(cell)
+                membrane_compartment.name=membrane_compartment.name
 
         # PROTEIN
         self.membrane_protein = self.set_species(membrane_protein, material_type='protein', 
