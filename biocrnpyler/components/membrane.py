@@ -37,7 +37,7 @@ class DiffusibleMolecule(Component):
         self.product = self.set_species(substrate, compartment=external_compartment)
         
         # Name the component
-        name = self.substrate.compartment.name
+        name = self.substrate.name
 
         Component.__init__(self=self, name=name, attributes=attributes, **keywords)
         
@@ -121,7 +121,7 @@ class IntegralMembraneProtein(Component):
             self.membrane_protein.size = size
         
         # Name the component
-        name = self.membrane_protein.compartment.name
+        name = self.membrane_protein.name
 
         Component.__init__(self=self, name=name, **keywords)
         
@@ -218,7 +218,7 @@ class MembraneChannel(Component):
                 print('Membrane channel direction not found.')
         
         # Name the component
-        name = self.integral_membrane_protein.compartment.name
+        name = self.integral_membrane_protein.name
         
         Component.__init__(self=self, name=name, **keywords)
         
@@ -340,7 +340,7 @@ class MembranePump(Component):
                 self.membrane_pump.ATP = ATP
         
         # Name the component
-        name = self.membrane_pump.compartment.name
+        name = self.membrane_pump.name
 
         Component.__init__(self=self, name=name, **keywords)
         
@@ -432,7 +432,7 @@ class MembraneSensor(Component):
         self.waste = self.set_species('ADP',  material_type='small_molecule', compartment=internal_compartment,
                                       attributes=attributes)
         # Name the component
-        name = self.membrane_sensor_protein.compartment.name
+        name = self.membrane_sensor_protein.name
 
         Component.__init__(self=self, name=name, **keywords)
 
