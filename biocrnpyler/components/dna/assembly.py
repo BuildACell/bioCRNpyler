@@ -19,7 +19,7 @@ class DNAassembly(DNA):
 
     def __init__(self, name: str, dna=None, promoter=None, transcript=None,
                  rbs=None, protein=None, length=None,
-                 attributes=None, mechanisms=None,
+                 attributes=None, mechanisms=None, compartment=None,
                  parameters=None, initial_concentration=None, **keywords):
         """
         Note: If transcript is None and protein is not None, the
@@ -45,14 +45,16 @@ class DNAassembly(DNA):
         self.transcript = None
         
         # This has to be called at the end so mechanisms are set for the promoter, RBS, etc.
-        DNA.__init__(self, name, length=length, mechanisms=mechanisms,
-                     parameters=parameters, initial_concentration=initial_concentration,
-                     attributes=attributes, **keywords)
+        DNA.__init__(
+            self, name, length=length, mechanisms=mechanisms,
+            parameters=parameters, initial_concentration=initial_concentration,
+            attributes=attributes, compartment=compartment, **keywords)
 
         self.update_dna(dna, attributes=attributes)
         self.update_transcript(transcript)
         self.update_protein(protein)
-        self.update_promoter(promoter, transcript=self.transcript, protein=self.protein)
+        self.update_promoter(
+            promoter, transcript=self.transcript, protein=self.protein)
         self.update_rbs(rbs, transcript=self.transcript, protein=self.protein)
 
     def get_species(self):
