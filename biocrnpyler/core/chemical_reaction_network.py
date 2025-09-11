@@ -302,8 +302,10 @@ class ChemicalReactionNetwork(object):
                 if show_keys:  # shows where the initial conditions came from
                     if isinstance(init_conc, ModelParameter):
                         txt += f"\n   found_key=(mech={init_conc.found_key.mechanism}, partid={init_conc.found_key.part_id}, name={init_conc.found_key.name}).\n   search_key=(mech={init_conc.search_key.mechanism}, partid={init_conc.search_key.part_id}, name={init_conc.search_key.name}).\n"
+                    else:
+                        txt += "\n"
 
-        txt += "\n}\n"
+        txt += "}\n"
         txt += f"\nReactions ({len(self._reactions)}) = [\n"
 
         for rind in range(len(self._reactions)):
