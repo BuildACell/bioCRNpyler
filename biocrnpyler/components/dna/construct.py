@@ -31,9 +31,12 @@ class Construct(Component,OrderedPolymer):
                 component_enumerators = None,
                 make_dirless_hash = True,
                 **keywords):
-        """this represents a bunch of parts in a row.
-        A parts list has [[part,direction],[part,direction],...]
-        Each part must be an OrderedMonomer"""
+        """This represents a bunch of parts in a row.
+        
+        A parts list has [[part,direction],[part,direction],...]  Each
+        part must be an OrderedMonomer
+
+        """
 
         if(component_enumerators is None):
             component_enumerators = []
@@ -334,17 +337,26 @@ class Construct(Component,OrderedPolymer):
         return new_constructs
 
     def combinatorial_enumeration(self):
-        """returns a list of new components that are copies of
-        existing components, but with a different species placed inside. This different
-        species represents different combinatorial states of the polymer.
-        for example:
+        """Returns a list of new components that are copies of
+        existing components, but with a different species placed
+        inside.
+
+        This different species represents different combinatorial
+        states of the polymer.  for example:
+        
             construct: <A,B,C>
+        
         two new species are possible: <[A:RNAP],B,C>; <A,[B:RNAP],C>
-        combinatorial species is also possible (since A and B are assumed to act independantly)
+        combinatorial species is also possible (since A and B are
+        assumed to act independantly)
+        
                                         <[A:RNAP],[B:RNAP],C>
-        Thus, this function returns A which binds to <A,B,C> (creating <[A:RNAP],B,C>) AND also
-        A which binds to <A,[B:RNAP],C> (creating <[A:RNAP],[B:RNAP],C>). Likewise for B
-        In total two A components are returned, and two B components are returned.
+        
+        Thus, this function returns A which binds to <A,B,C> (creating
+        <[A:RNAP],B,C>) AND also A which binds to <A,[B:RNAP],C>
+        (creating <[A:RNAP],[B:RNAP],C>). Likewise for B In total two
+        A components are returned, and two B components are returned.
+
         """
         #Looks at combinatorial states of constructs to generate DNA_parts
         #my_polymer = self.get_species()

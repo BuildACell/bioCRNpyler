@@ -26,7 +26,9 @@ from .parameter import ModelParameter, Parameter
 
 
 class ChemicalReactionNetwork(object):
-    r"""A chemical reaction network is a container of species and reactions
+    r"""Network of reactions between a set of species.
+
+    A chemical reaction network is a container of species and reactions
     chemical reaction networks can be compiled into SBML.
 
     reaction types:

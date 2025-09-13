@@ -26,13 +26,12 @@ and contexts -- to CRN implementations.
 
 .. rubric:: Links:
 
-- Mailing list: [SBTools Google
-  Group](https://groups.google.com/g/sbtools/) Email:
-  sbtools@googlegroups.com
+- Mailing list: `SBTools Google
+  Group <https://groups.google.com/g/sbtools/>`_ (sbtools@googlegroups.com)
 - Source code: https://github.com/BuildACell/BioCRNPyler
-- Overview paper: [BioCRNpyler: Compiling Chemical Reaction Networks
+- Overview paper: `BioCRNpyler: Compiling Chemical Reaction Networks
   from Biomolecular Parts in Diverse
-  Contexts](https://doi.org/10.1371/journal.pcbi.1009987)
+  Contexts <https://doi.org/10.1371/journal.pcbi.1009987>`_
 - Bug reports: https://github.com/BuildACell/BioCRNPyler/issues
 - Slack: Join the #biocrnpyler channel on SBTools slack: Ask on the
   public SBTools Google group to be added or send a message to one of
@@ -66,9 +65,19 @@ or the GitHub site: https://github.com/BuildACell/BioCRNPyler.
    :numbered: 2
 
    intro
-   tutorial
-   membrane_features
-   Reference Manual <reference>
+   core
+   components
+   mechanisms
+   mixtures
+   membranes
+   tutorials
+
+.. toctree::
+   :caption: Reference Manual
+   :maxdepth: 1
+
+   library
+   develop
 
 
 Indices and tables

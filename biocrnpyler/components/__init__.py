@@ -1,3 +1,13 @@
+"""BioCRNpyler component library (including DNA components).
+
+Components are the primary building blocks of models in BioCRNpyler.
+They represent biomolecular parts or motifs such as promoters,
+enzymes, transcriptional units, or complexes, and serve as an
+abstraction layer above the core chemical species and reactions
+defined in the :mod:`biocrnpyler.core` module.
+
+"""
+
 from .basic import *
 from .dna import *
 from .combinatorial_complex import *

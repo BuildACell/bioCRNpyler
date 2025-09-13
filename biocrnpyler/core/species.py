@@ -9,7 +9,8 @@ from .polymer import OrderedMonomer, OrderedPolymer, MonomerCollection
 
 
 class Species(OrderedMonomer):
-    """A formal species object for a CRN
+    """A formal species object for a chemical reaction network (CRN).
+
     A Species must have a name. They may also have a material_type (such as DNA,
     RNA, Protein), and a list of attributes.
     """
@@ -1353,18 +1354,19 @@ class PolymerConformation(Species, MonomerCollection):
 
 
 class Complex:
-    """
-     !!!ComplexSpecies and OrderedComplexSpecies should ALWAYS be created with the Complex function!!!
+    """Metaclass for creating chemical complexes.
 
-    Complex is not a class that gets instantiated - it creates ComplexSpecies and OrderedComplexSpecies.
-    The Logic encoded in the __new__ function is used to insert these classes into the binding sites of
-    OrderedPolymerSpecies.
+    Complex is not a class that gets instantiated - it creates
+    ComplexSpecies and OrderedComplexSpecies.  The Logic encoded in
+    the __new__ function is used to insert these classes into the
+    binding sites of OrderedPolymerSpecies.
 
     arguments:
     species: a list of species to put into ComplexSpecies or OrderedComplexSpecies
 
     keywords:
     ordered: whether to produce an OrderedComplexSpecies (default = False)
+
     """
 
     def __new__(cls, *args, **keywords):

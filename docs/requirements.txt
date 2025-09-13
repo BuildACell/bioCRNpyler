@@ -6,3 +6,4 @@ nbsphinx
 nbsphinx-link
 recommonmark
 pandoc
+python-libsbml

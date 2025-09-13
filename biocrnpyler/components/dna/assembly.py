@@ -22,10 +22,10 @@ class DNAassembly(DNA):
                  attributes=None, mechanisms=None,
                  parameters=None, initial_concentration=None, **keywords):
         """
-            Note:
-        If transcript is None and protein is not None,
-        the DNAassembly will use its transcription mechanisms to produce the protein.
-        This is used by Expression Mixtures.
+        Note: If transcript is None and protein is not None, the
+        DNAassembly will use its transcription mechanisms to produce the
+        protein.  This is used by Expression Mixtures.
+        
         :param name: name of the DNA assembly
         :param dna:
         :param promoter:
@@ -38,6 +38,7 @@ class DNAassembly(DNA):
         :param parameters:
         :param initial_concentration:
         :param keywords: passed into the parent object (DNA)
+
         """
         self.promoter = None
         self.rbs = None

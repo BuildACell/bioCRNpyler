@@ -1,13 +1,12 @@
-==============================
+.. _membranes_ref:
+
+=============================================
 Membrane-Associated Components and Mechanisms
-==============================
+=============================================
 
-The following Jupyter notebooks provide a set of tutorial
-introductions to BioCRNpyler's membrane-associate features.
-
--------------
+------------
 Introduction
--------------
+------------
 
 BioCRNpyler supports modeling genetic circuits with membrane-associated 
 features using computational tools. This functionality enables users to 

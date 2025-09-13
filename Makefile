@@ -32,3 +32,7 @@ get_test_deps :
 docs :
 	# this has to be one line to run everything in the docs folder
 	cd docs; echo "Running Sphinx docs generator"; sphinx-apidoc -o source/ ../biocrnpyler; python generate_nblinks.py; make clean && make html;
+
+TAGS: biocrnpyler/*.py biocrnpyler/*/*.py biocrnpyler/*/*/*.py docs/*.rst \
+    docs/examples/*.ipynb
+	ftags $^
