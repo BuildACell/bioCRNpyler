@@ -128,8 +128,10 @@ class TestGlobalMechanism(TestCase):
         #test default functionality on a tagged species
         species = rdmm.update_species(rna, M)
         rxns = rdmm.update_reactions(rna, M)
-        species_mm = MM.update_species(Enzyme = rnaase, Sub = rna, Prod = None)
-        rxns_mm = MM.update_reactions(Enzyme = rnaase, Sub = rna, Prod = None, kb=1, ku=1, kcat=1)
+        species_mm = MM.update_species(
+            enzyme=rnaase, substrate=rna, product=None)
+        rxns_mm = MM.update_reactions(
+            enzyme=rnaase, substrate=rna, product=None, kb=1, ku=1, kcat=1)
 
         #species
         self.assertTrue(species_mm == species)
@@ -166,8 +168,11 @@ class TestGlobalMechanism(TestCase):
         #test default functionality on a tagged species
         species = dtd.update_species(tagged_protein, M)
         rxns = dtd.update_reactions(tagged_protein, M)
-        species_mm = MM.update_species(Enzyme = protease, Sub = tagged_protein, Prod = None)
-        rxns_mm = MM.update_reactions(Enzyme = protease, Sub = tagged_protein, Prod = None, kb=1, ku=1, kcat=1)
+        species_mm = MM.update_species(
+            enzyme=protease, substrate=tagged_protein, product=None)
+        rxns_mm = MM.update_reactions(
+            enzyme=protease, substrate=tagged_protein, product=None,
+            kb=1, ku=1, kcat=1)
 
         #species
         self.assertTrue(species_mm == species)

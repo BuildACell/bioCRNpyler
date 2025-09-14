@@ -240,12 +240,12 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
             else:
                 prod = None
             species += MichaelisMenten.update_species(
-                self, Enzyme=self.nuclease, Sub=s, Prod=prod)
+                self, enzyme=self.nuclease, substrate=s, product=prod)
 
         # If the material type is simply RNA, break it up.
         elif s.material_type == "rna":
             species += MichaelisMenten.update_species(
-                self, Enzyme=self.nuclease, Sub=s, Prod=None)
+                self, enzyme=self.nuclease, substrate=s, product=None)
         else:
             # This case includes OrderedPolymerSpecies with RNA inside them and species with RNA in their name (but not mateiral type)
             species = []
@@ -271,7 +271,7 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
             else:
                 prod = None
             reactions += MichaelisMenten.update_reactions(
-                self, Enzyme=self.nuclease, Sub=s, Prod=prod, kb=kb, ku=ku, kcat=kdeg)
+                self, enzyme=self.nuclease, substrate=s, product=prod, kb=kb, ku=ku, kcat=kdeg)
 
         # If the material type is simply RNA, break it up.
         elif s.material_type == "rna":
@@ -280,7 +280,7 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
             ku = self.get_parameter(s, "ku", mixture)
 
             reactions += MichaelisMenten.update_reactions(
-                self, Enzyme=self.nuclease, Sub=s, Prod=None, kb=kb, ku=ku, kcat=kdeg)
+                self, enzyme=self.nuclease, substrate=s, product=None, kb=kb, ku=ku, kcat=kdeg)
         else:
             # This case includes OrderedPolymerSpecies with RNA inside them and species with RNA in their name (but not mateiral type)
             reactions = []
@@ -312,7 +312,7 @@ class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
     def update_species(self, s, mixture):
         species = []
         species += MichaelisMenten.update_species(
-            self, Enzyme=self.degredase, Sub=s, Prod=None)
+            self, enzyme=self.degredase, substrate=s, product=None)
         return species
 
     def update_reactions(self, s, mixture):
@@ -323,5 +323,5 @@ class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
 
         rxns = []
         rxns += MichaelisMenten.update_reactions(
-            self, Enzyme=self.degredase, Sub=s, Prod=None, kb=kb, ku=ku, kcat=kdeg)
+            self, enzyme=self.degredase, substrate=s, product=None, kb=kb, ku=ku, kcat=kdeg)
         return rxns
