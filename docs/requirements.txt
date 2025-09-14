@@ -7,3 +7,4 @@ nbsphinx-link
 recommonmark
 pandoc
 python-libsbml
+setuptools-scm
