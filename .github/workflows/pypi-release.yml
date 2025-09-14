@@ -3,6 +3,11 @@ name: PyPI Release
 
 on:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Tag/branch/commit to build. Leave blank to use the ref you clicked from.'
+        required: false
+        default: ''
 
 jobs:
   pypi-publish:
@@ -10,9 +15,13 @@ jobs:
     environment: Release Deploy
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.ref || github.ref }}
+
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12' 
 

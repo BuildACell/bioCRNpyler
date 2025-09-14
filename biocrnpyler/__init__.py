@@ -8,3 +8,8 @@ from .mechanisms import *
 from .mixtures import *
 # All utilities
 from .utils import *
+
+try:
+    from ._version import version as __version__
+except Exception:
+    __version__ = "0+unknown"
