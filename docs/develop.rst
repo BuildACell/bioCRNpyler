@@ -291,11 +291,46 @@ Sphinx files guidelines:
     Manual (e.g., to look at a function more closely via a link in the
     User Guide).
 
+Contributing and Releases
+=========================
+
+Releasing new versions
+----------------------
+
+BioCRNpyler uses semantic versioning (`MAJOR.MINOR.PATCH`) and Git tags for automatic versioning of package distributions. The package wheels/sdists are published to PyPI via GitHub Actions using the `pypi-release.yml` action that can be triggered manually (with appropriate permissions). Follow this checklist when planning a new release.
+
+Release checklist for a new stable version:
+
+1. Ensure your working tree is clean and CI is green.
+
+2. Update the docs as needed.
+
+3. Commit and push all changes.
+
+4. Create an annotated tag on the release commit::
+
+  `git tag -a vX.Y.Z -m "Release X.Y.Z"`
+
+  `git push --tags`
+
+5. Start the `pypi-release` workflow in GitHub Actions:
+
+   * Prefer running the workflow from the tag, or
+   * Provide the tag name in the `ref` input on the workflow.
+
+6. Once the job has finished, you can verify from a fresh environment::
+
+  `python -m pip install -U biocrnpyler`
+  
+  `python -c "import biocrnpyler; print(biocrnpyler.__version__)"`
+
+7. Create a GitHub Release for the tag and paste the CHANGELOG entry.
+
 
 Reference Manual
 ----------------
 
 The Reference Manual should provide a fairly comprehensive description
-of every class and function.  All primary functions and classes bust
+of every class and function. All primary functions and classes must
 be included here, since the Reference Manual generates the stub files
 used by Sphinx.

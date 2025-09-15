@@ -2,7 +2,7 @@
 venv/*
 .eggs/*
 biocrnpyler.egg-info/
-
+biocrnpyler/_version.py
 __pycache__/*
 *.pyc
 

@@ -23,11 +23,17 @@ author = 'William Poole, Ayush Pandey, Andrey Shur, Zoltan Tuza, Richard M. Murr
 
 # Import the package
 import biocrnpyler
+from setuptools_scm import get_version
 
-# The short X.Y version
-version = '1.3'
-# The full version, including alpha/beta/rc tags
-release = '1.3.0'
+release = get_version(root="..", relative_to=__file__)
+
+# Short X.Y
+version = ".".join(release.split(".", 2)[:2])
+
+# # The short X.Y version
+# version = '1.3'
+# # The full version, including alpha/beta/rc tags
+# release = '1.3.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -158,9 +164,9 @@ def linkcode_resolve(domain, info):
 
     base_url = "https://github.com/BuildACell/BioCRNPyler/blob/"
     if release != version:      # development release
-        # TODO: replace 'refactor-modules' with 'master'
+        # TODO: replace 'refactor-modules' with 'master' -> replaced with main
         # print("  --> ", base_url + "refactor-modules/control/%s%s" % (fn, linespec))
-        return base_url + "refactor-modules/biocrnpyler/%s%s" % (fn, linespec)
+        return base_url + "main/biocrnpyler/%s%s" % (fn, linespec)
     else:                       # specific version
         return base_url + "%s/biocrnpyler/%s%s" % (version, fn, linespec)
 

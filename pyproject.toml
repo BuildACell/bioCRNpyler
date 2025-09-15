@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = ["setuptools>=64", "setuptools-scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "BioCRNpyler"
-version = "1.3.1"
+dynamic = ["version"]
 description = "A chemical reaction network compiler for generating large biological circuit models"
 authors = [{name='Build-A-Cell'}]
 classifiers=[
@@ -38,7 +38,7 @@ dependencies = [
     "pytest-cov",
     "nbconvert"
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 
 [project.optional-dependencies]
 test = [
@@ -50,6 +50,11 @@ test = [
 "Bug Tracker" = "https://github.com/buildacell/biocrnpyler/issues"
 
 [tool.setuptools]
-packages = ["biocrnpyler"]
 include-package-data = true
-package-dir = {"biocrnpyler"="biocrnpyler"}
+
+[tool.setuptools.packages.find]
+include = ["biocrnpyler", "biocrnpyler.*"]
+
+[tool.setuptools_scm]
+write_to = "biocrnpyler/_version.py"
+local_scheme = "no-local-version"
