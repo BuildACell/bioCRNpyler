@@ -1,7 +1,6 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-
 from ..core.mechanism import Mechanism
 from ..core.reaction import Reaction
 from ..core.species import Complex
@@ -11,18 +10,16 @@ class BasicCatalysis(Mechanism):
     """Mechanism for the schema S + C --> P + C."""
 
     def __init__(
-            self, name: str = "basic_catalysis",
-            mechanism_type: str = "catalysis", **keywords):
+            self, name: str='basic_catalysis',
+            mechanism_type: str='catalysis'):
         """Initializes a BasicCatalysis instance.
 
-        :param name: name of the Mechanism, default: basic_catalysis
-        :param mechanism_type: type of the Mechanism, default: catalysis
-        :param keywords:
+        :param name: name of the Mechanism, default: 'basic_catalysis'
+        :param mechanism_type: type of the Mechanism, default: 'catalysis'
         """
-        # TODO ZAT: remove unused keywords argument
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, enzyme, substrate, product=None, **keywords):
+    def update_species(self, enzyme, substrate, product=None):
         if product is None:
             return [enzyme, substrate]
         else:
@@ -30,7 +27,7 @@ class BasicCatalysis(Mechanism):
 
     def update_reactions(
             self, enzyme, substrate, product, component=None,
-            part_id=None, kcat=None, **keywords):
+            part_id=None, kcat=None):
 
         if part_id is None and component is not None:
             part_id = component.name
@@ -53,19 +50,17 @@ class BasicProduction(Mechanism):
     """Mechanism for the schema C --> P + C."""
 
     def __init__(
-            self, name="basic_production", mechanism_type="catalysis",
-            **keywords):
+            self, name='basic_production', mechanism_type='catalysis'):
         """Initializes a BasicProduction instance.
 
         :param name: name of the Mechanism, default: basic_production
         :param mechanism_type: type of the Mechanism, default: catalysis
         :param keywords:
         """
-        # TODO ZAT: remove unused keywords argument
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(
-            self, enzyme, substrate=None, product=None, **keywords):
+            self, enzyme, substrate=None, product=None):
 
         species = [enzyme]
         if product is not None:
@@ -77,7 +72,8 @@ class BasicProduction(Mechanism):
 
     def update_reactions(
             self, enzyme, substrate, product, component=None,
-            part_id=None, kcat=None, **keywords):
+            part_id=None, kcat=None):
+
         if part_id is None and component is not None:
             part_id = component.name
 
@@ -106,19 +102,18 @@ class MichaelisMenten(Mechanism):
     """
 
     def __init__(
-            self, name='michaelis_menten', mechanism_type='catalysis',
-            **keywords):
+            self, name='michaelis_menten', mechanism_type='catalysis'):
         """Initializes a MichaelisMenten instance.
 
         :param name: name of the Mechanism, default: 'michaelis_menten'
         :param mechanism_type: type of the Mechanism, default: 'catalysis'
         :param keywords:
         """
-        # TODO ZAT: remove unused keywords argument
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(
-            self, enzyme, substrate, product=None, complex=None, **keywords):
+            self, enzyme, substrate, product=None, complex=None):
+
         if complex is None:
             complexS = Complex([substrate, enzyme])
         else:
@@ -130,8 +125,9 @@ class MichaelisMenten(Mechanism):
 
     def update_reactions(
             self, enzyme, substrate, product, component=None, part_id=None,
-            complex=None, kb=None, ku=None, kcat=None, **keywords):
-        # Get Parameters
+            complex=None, kb=None, ku=None, kcat=None):
+
+        # Get parameters
         if part_id is None and component is not None:
             part_id = component.name
 
@@ -160,7 +156,7 @@ class MichaelisMenten(Mechanism):
             cat_rxn = Reaction.from_massaction(
                 inputs=[complexS], outputs=[product, enzyme],
                 k_forward=kcat)
-        else:  # degradation Reaction
+        else:  # degredation Reaction
             # substrate:Enz --> Enz
             cat_rxn = Reaction.from_massaction(
                 inputs=[complexS], outputs=[enzyme], k_forward=kcat)
@@ -176,7 +172,7 @@ class MichaelisMentenReversible(Mechanism):
 
     def __init__(
             self, name='michaelis_menten_reverse_binding',
-            mechanism_type='catalysis', **keywords):
+            mechanism_type='catalysis'):
         """Initializes a MichaelisMentenReversible instance.
 
         :param name: name of the Mechanism, default:
@@ -184,12 +180,11 @@ class MichaelisMentenReversible(Mechanism):
         :param mechanism_type: type of the Mechanism, default: 'catalysis'
         :param keywords:
         """
-        # TODO ZAT: remove unused keywords argument
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(
-            self, enzyme, substrate, product, complex=None,
-            complex2=None, **keywords):
+            self, enzyme, substrate, product, complex=None, complex2=None):
+
         if complex is None:
             complex1 = Complex([substrate, enzyme])
         else:
@@ -201,10 +196,11 @@ class MichaelisMentenReversible(Mechanism):
         return [enzyme, substrate, product, complex1, complex2]
 
     def update_reactions(
-            self, enzyme, substrate, product, component=None, part_id=None,
-            complex=None, complex2=None, kb=None, ku=None, kcat=None,
-            **keywords):
-        # Get Parameters
+            self, enzyme, substrate, product, component=None,
+            part_id=None, complex=None, complex2=None, kb=None, ku=None,
+            kcat=None):
+
+        # Get parameters
         if part_id is None and component is not None:
             part_id = component.name
 
@@ -264,19 +260,18 @@ class MichaelisMentenCopy(Mechanism):
     """
 
     def __init__(
-            self, name='michaelis_menten_copy', mechanism_type='copy',
-            **keywords):
+            self, name='michaelis_menten_copy', mechanism_type='copy'):
         """Initializes a MichaelisMentenCopy instance.
 
-        :param name: name of the Mechanism, default: 'michalis_menten_copy'
+        :param name: name of the Mechanism, default: 'michaelis_menten_copy'
         :param mechanism_type: type of the Mechanism, default: 'copy'
         :param keywords:
         """
-        # TODO ZAT: remove unused keywords argument
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(
-            self, enzyme, substrate, complex=None, product=None, **keywords):
+            self, enzyme, substrate, complex=None, product=None):
+
         if complex is None:
             complexS = Complex([substrate, enzyme])
         else:
@@ -291,8 +286,8 @@ class MichaelisMentenCopy(Mechanism):
 
     def update_reactions(
             self, enzyme, substrate, product, component=None, part_id=None,
-            complex=None, kb=None, ku=None,
-                         kcat=None, **keywords):
+            complex=None, kb=None, ku=None, kcat=None):
+
         if complex is None:
             complexS = Complex([substrate, enzyme])
         else:
