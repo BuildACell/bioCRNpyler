@@ -28,7 +28,7 @@ Note that the above filtering is done automatically. Any parameters needed by th
  in the Mixture's parameter dictionary. These methods are assumed to take a single species
  as input.
 
-An example of a global mechanism is degradation via dilution which is demonstrated in the Tests folder.
+An example of a global mechanism is degredation via dilution which is demonstrated in the Tests folder.
 
 GlobalMechanisms should be used cautiously or avoided alltogether - the order in which they are called
 may have to be carefully user defined in the subclasses of Mixture in order to ensure expected behavior.
@@ -45,7 +45,7 @@ class GlobalMechanism(Mechanism):
     In order to decide which species a global mechanism acts upon, the filter_dict
     is used.
 
-    An example of a global mechanism is degradation via dilution which is
+    An example of a global mechanism is degredation via dilution which is
     demonstrated in the Tests folder.
 
     GlobalMechanisms should be used cautiously or avoided alltogether - the order

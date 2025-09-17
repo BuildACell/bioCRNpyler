@@ -33,7 +33,7 @@ class ConstructExplorer(LocalComponentEnumerator):
         """clear accumulator variables from the numerator. MUST BE SUBCLASSED"""
         pass
 
-    def enumerate_components(self, component, previously_enumerated = None):
+    def enumerate_components(self, component, previously_enumerated=None):
         #Only works on Constructs!
         self.reset_enumerator()
         if isinstance(component, Construct):
@@ -225,13 +225,13 @@ class TlExplorer(ConstructExplorer):
                 self.current_proteins[rbs] += [[part,effective_direction]]
             #CDSes that aren't specifically designed to allow read-through
             #will terminate by default
-            if(effective_direction not in part.no_stop_codons):
+            if effective_direction not in part.no_stop_codons:
                 #if the part has stop codons, terminate
                 self.terminate_loop()
 
         #Case 3: all other parts usually terminate, unless they are designed to allow read-through
         elif(rbses_translating >0):
-            if(effective_direction not in part.no_stop_codons):
+            if effective_direction not in part.no_stop_codons:
                 #if the part has stop codons, terminate
                 self.terminate_loop()
                 

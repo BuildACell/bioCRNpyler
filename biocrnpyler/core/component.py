@@ -18,22 +18,24 @@ class Component:
 
     These subclasses of Component represent different kinds of biomolecules.
 
-    This class must be Subclassed to provide functionality with the functions get_species and get_reactions overwritten.
+    This class must be Subclassed to provide functionality with the
+    functions get_species and get_reactions overwritten.
+
     """
 
     def __init__(
-        self,
-        name: Union[str, Species],
-        mechanisms=None,  # custom mechanisms
-        parameters=None,  # parameter configuration
-        parameter_file=None,  # custom parameter file
-        mixture=None,
-        compartment=None,
-        attributes=None,
-        # This is added as a parameter ("initial concentration", None, self.name):initial_concentration
-        initial_concentration=None,
-        initial_condition_dictionary=None,
-        **keywords,  # parameter keywords
+            self,
+            name: Union[str, Species],
+            mechanisms=None,  # custom mechanisms
+            parameters=None,  # parameter configuration
+            parameter_file=None,  # custom parameter file
+            mixture=None,
+            compartment=None,
+            attributes=None,
+            # This is added as a parameter ("initial concentration",
+            # None, self.name):initial_concentration
+            initial_concentration=None,
+            initial_condition_dictionary=None,
     ):
         """Initializes a Component object.
 
@@ -46,7 +48,6 @@ class Component:
         :param attributes:
         :param initial_concentration:
         :param initial_condition_dictionary:
-        :param keywords:
         """
         if mechanisms is None:
             self.mechanisms = {}
@@ -63,11 +64,7 @@ class Component:
         # components that mimic CRN species.
         self.attributes = []
         self.set_attributes(attributes)
-
-        if mixture is not None:
-            self.set_mixture(mixture)
-        else:
-            self.set_mixture(None)
+        self.set_mixture(mixture)
 
         if compartment is not None:
             if not isinstance(compartment, Compartment):
@@ -97,7 +94,8 @@ class Component:
         if initial_concentration is not None:
             if initial_concentration < 0:
                 raise ValueError(
-                    f"Initial concentration must be non-negative, this was given: {initial_concentration}"
+                    f"Initial concentration must be non-negative, "
+                    f"this was given: {initial_concentration}"
                 )
             param_key = ParameterKey(
                 mechanism="initial concentration", part_id=None, name=self.name
@@ -222,18 +220,15 @@ class Component:
             )
 
     def update_parameters(
-        self,
-        parameter_file=None,
-        parameters=None,
-        parameter_database=None,
-        overwrite_parameters=True,
-    ):
-        """Updates the ParameterDatabase inside a Component
+            self, parameter_file=None, parameters=None,
+            parameter_database=None, overwrite_parameters=True):
+        """Updates the ParameterDatabase inside a Component.
 
         Possible inputs:
             parameter_file (string)
             parameters (dict)
             parameter_database (ParameterDatabase)
+
         """
 
         if parameter_file is not None:
@@ -286,25 +281,26 @@ class Component:
         self._mechanisms = {}
         if isinstance(mechanisms, dict):
             for mech_type in mechanisms:
-                self.add_mechanism(mechanisms[mech_type], mech_type, overwrite=True)
+                self.add_mechanism(
+                    mechanisms[mech_type], mech_type, overwrite=True)
         elif isinstance(mechanisms, list):
             for mech in mechanisms:
                 self.add_mechanism(mech, overwrite=True)
 
     def add_mechanism(
-        self,
-        mechanism: Mechanism,
-        mech_type=None,
-        overwrite=False,
-        optional_mechanism=False,
-    ):
-        """adds a mechanism of type mech_type to the Component Mechanism dictionary.
+            self, mechanism: Mechanism, mech_type=None, overwrite=False,
+            optional_mechanism=False):
+        """Add a mechanism to the component mechanism dictionary.
+
+        Adds a mechanism of type mech_type to the Component Mechanism
+        dictionary.
 
         :param mechanism:
         :param mech_type:
         :param overwrite: toggles whether the mechanism is added overwriting any mechanism with the same key.
         :param optional_mechanism: toggles whether an error is thrown if a Mechanism is added that conflicts with an exising Mechanism
         :return:
+
         """
         if not hasattr(self, "_mechanisms"):
             self._mechanisms = {}
@@ -422,13 +418,19 @@ class Component:
         warn("Unsubclassed update_reactions called for " + repr(self))
         return reactions
 
-    def enumerate_components(self, **keywords) -> List:
-        """this is for component enumeration. Usually you will return a list of components that are
-        copies of existing ones (first list) and new components (second list). For example,
-        A DNA_construct makes a list of copies of its parts as the first output, and a list of RNA_constructs
-        as the second output.
-        An RNA_construct will make a list of copies of its parts as the first output, and a list of Protein
-        components as its second output (if it makes any proteins)"""
+    def enumerate_components(self, previously_enumerated=None) -> List:
+        """Enumerate components created by this component.
+
+        This method is used for component enumeration. Usually you
+        will return a list of components that are copies of existing
+        ones (first list) and new components (second list). For
+        example, A DNA_construct makes a list of copies of its parts
+        as the first output, and a list of RNA_constructs as the
+        second output.  An RNA_construct will make a list of copies of
+        its parts as the first output, and a list of Protein
+        components as its second output (if it makes any proteins)
+
+        """
         return []
 
     def __repr__(self):

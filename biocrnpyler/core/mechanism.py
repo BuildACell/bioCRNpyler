@@ -50,7 +50,12 @@ class Mechanism(object):
 
 
 class EmptyMechanism(Mechanism):
-    """For use when one needs a Mechanism to do nothing, such as translation in Expression Mixtures."""
+    """Mechanism that does nothing.
+
+    For use when one needs a Mechanism to do nothing, such as
+    translation in Expression Mixtures.
+
+    """
 
     def __init__(self, name, mechanism_type):
         """Initializes an EmptyMechanism instance.
@@ -60,8 +65,8 @@ class EmptyMechanism(Mechanism):
         """
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
-    def update_species(self, component=None, part_id=None, **keywords):
+    def update_species(self, component=None, part_id=None, **kwargs):
         return []
 
-    def update_reactions(self, component=None, part_id=None, **keywords):
+    def update_reactions(self, component=None, part_id=None, **kwargs):
         return []

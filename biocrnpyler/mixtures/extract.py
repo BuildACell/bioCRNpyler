@@ -72,11 +72,12 @@ class ExpressionExtract(Mixture):
 
 
 class SimpleTxTlExtract(Mixture):
-    """
-    A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.)
-    RNA is degraded via a global mechanism.
-    """
+    """A Model for Transcription and Translation in an extract any
+    Machinery (eg Ribosomes, Polymerases, etc.).
 
+    RNA is degraded via a global mechanism.
+
+    """
     def __init__(self, name="", **kwargs):
         """Initializes a SimpleTxTlExtract instance.
 
@@ -109,9 +110,11 @@ class SimpleTxTlExtract(Mixture):
 
 
 class TxTlExtract(Mixture):
-    """A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
+    """A Model for Transcription and Translation in Cell Extract with
+    Ribosomes, Polymerases, and Endonucleases.
 
-    This model does not include any energy
+    This model does not include any energy.
+
     """
 
     def __init__(
@@ -124,6 +127,7 @@ class TxTlExtract(Mixture):
         :param ribosome: name of the ribosome, default: Ribo
         :param rnaase: name of the Ribonuclease, default: RNAase
         :param kwargs: keywords passed into the parent Class (Mixture)
+
         """
         # Always call the superlcass Mixture.__init__(...)
         Mixture.__init__(self, name=name, **kwargs)
@@ -154,13 +158,18 @@ class TxTlExtract(Mixture):
 
 
 class EnergyTxTlExtract(Mixture):
-    """A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
+    """A Model for Transcription and Translation in Cell Extract with
+    Ribosomes, Polymerases, and Endonucleases.
 
-    This model include energy carrier molcules in the form of NTPs, Amino Acids, and a Fuel Species (such as 3PGA) used for NTP
-    regeneration. This model is equivalent to TxTl extract, but with limited fuel. Note that different amino acids and nucleotides
-    are lumped together.
+    This model include energy carrier molcules in the form of NTPs,
+    Amino Acids, and a Fuel Species (such as 3PGA) used for NTP
+    regeneration. This model is equivalent to TxTl extract, but with
+    limited fuel. Note that different amino acids and nucleotides are
+    lumped together.
 
-    Energy usage for transcription and translation is length dependent."""
+    Energy usage for transcription and translation is length dependent.
+
+    """
 
     def __init__(
         self,
@@ -179,10 +188,13 @@ class EnergyTxTlExtract(Mixture):
         :param rnap: name of the RNA polymerase, default: RNAP
         :param ribosome: name of the ribosome, default: Ribo
         :param rnaase: name of the Ribonuclease, default: RNAase
-        :param ntps: name of the nucleotide fuel source (eg ATP + GTP etc), default: NTP
-        :param amino_acids: name of the amino acids species, default: amino_acids
+        :param ntps: name of the nucleotide fuel source (eg ATP + GTP etc),
+            default: NTP
+        :param amino_acids: name of the amino acids species, default:
+            amino_acids
         :param fuel: name of the fuel species that regenerates ATP
         :param kwargs: keywords passed into the parent Class (Mixture)
+
         """
         Mixture.__init__(self, name=name, **kwargs)
 
@@ -198,7 +210,8 @@ class EnergyTxTlExtract(Mixture):
             ntps, precursors=[self.fuel, self.ndps], products=[self.ndps]
         )  # fuel becomes ATP, and ATP is degraded
 
-        # These mechanisms are Component specific and only added to the NTPs metabolite
+        # These mechanisms are Component specific and only added to
+        # the NTPs metabolite
         mech_pathway = OneStepPathway()
         self.ntps.add_mechanisms(mech_pathway)
         self.fuel.add_mechanisms(mech_pathway)
@@ -215,11 +228,13 @@ class EnergyTxTlExtract(Mixture):
 
         # Create default TxTl Mechanisms
         mech_tx = Energy_Transcription_MM(
-            rnap=self.rnap.get_species(), fuels=[self.ntps.get_species()], wastes=[]
+            rnap=self.rnap.get_species(), fuels=[self.ntps.get_species()],
+            wastes=[]
         )
         mech_tl = Energy_Translation_MM(
             ribosome=self.ribosome.get_species(),
-            fuels=4 * [self.ntps.get_species()] + [self.amino_acids.get_species()],
+            fuels=4 * [self.ntps.get_species()] + \
+                [self.amino_acids.get_species()],
             wastes=4 * [self.ndps.get_species()],
         )
         mech_rna_deg = Degredation_mRNA_MM(nuclease=self.rnaase.get_species())

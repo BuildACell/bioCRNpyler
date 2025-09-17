@@ -18,18 +18,20 @@ class Reaction(object):
     r"""An abstract representation of a chemical reaction in a CRN.
 
     A reaction has the form:
-    .. math::
-       \sum_i n_i I_i --> \sum_i m_i O_i @ rate = k
-       where n_i is the count of the ith input, I_i, and m_i is the count of the
-       ith output, O_i.
-    If the reaction is reversible, the reverse reaction is also included:
-    .. math::
-       \sum_i m_i O_i  --> \sum_i n_i I_i @ rate = k_rev
-    """
 
-    def __init__(self, inputs: Union[List[Species], List[WeightedSpecies]],
-                 outputs: Union[List[Species], List[WeightedSpecies]],
-                 propensity_type: Propensity):
+    .. math:: \sum_i n_i I_i --> \sum_i m_i O_i @ rate = k
+
+    where n_i is the count of the ith input, I_i, and m_i is the count
+    of the ith output, O_i.  If the reaction is reversible, the
+    reverse reaction is also included:
+
+    .. math:: \sum_i m_i O_i --> \sum_i n_i I_i @ rate = k_rev
+
+    """
+    def __init__(
+            self, inputs: Union[List[Species], List[WeightedSpecies]],
+            outputs: Union[List[Species], List[WeightedSpecies]],
+            propensity_type: Propensity):
 
         if len(inputs) == 0 and len(outputs) == 0:
             warn("Reaction Inputs and Outputs both contain 0 Species.")
@@ -93,15 +95,20 @@ class Reaction(object):
             complexes=new_output_complexes)
 
     @staticmethod
-    def _check_and_convert_complex_list(complexes: Union[List[Species], List[WeightedSpecies]]) -> List[WeightedSpecies]:
+    def _check_and_convert_complex_list(
+            complexes: Union[List[Species], List[WeightedSpecies]]) \
+            -> List[WeightedSpecies]:
         if all([isinstance(one_complex, Species) for one_complex in complexes]):
             # we wrap each Species object to WeightedSpecies
-            complexes = [WeightedSpecies(species=species)
-                         for species in complexes]
+            complexes = [
+                WeightedSpecies(species=species) for species in complexes]
         else:
-            if not all([isinstance(one_complex, WeightedSpecies) for one_complex in complexes]):
+            if not all([
+                    isinstance(one_complex, WeightedSpecies)
+                    for one_complex in complexes]):
                 raise TypeError(
-                    f'inputs must be list of Species or list of ChemicalComplexes! Recieved {complexes}')
+                    f"inputs must be list of Species or list of "
+                    f"ChemicalComplexes! Recieved {complexes}")
 
         # filter out duplicates and adjust stoichiometry
         out_list = []
@@ -129,10 +136,13 @@ class Reaction(object):
         :param species: species to be replaced
         :param new_species: the new species the old species is replaced with
         :return: a new Reaction instance
+
         """
-        if not isinstance(species, Species) or not isinstance(new_species, Species):
+        if not isinstance(species, Species) \
+           or not isinstance(new_species, Species):
             raise ValueError(
-                'both species and new_species argument must be an instance of Species!')
+                "both species and new_species argument must be an "
+                "instance of Species!")
 
         new_inputs = []
         for s in self.inputs:
@@ -144,11 +154,12 @@ class Reaction(object):
             new_s = s.replace_species(species, new_species)
             new_outputs.append(new_s)
 
-        # get a shallow copy of the parameters and species, so we can replace some of them
+        # get a shallow copy of the parameters and species, so we can
+        # replace some of them
         propensity_type_dict = copy.copy(self.propensity_type.propensity_dict)
         for key, prop_species in propensity_type_dict['species'].items():
-            propensity_type_dict['species'][key] = prop_species.replace_species(
-                species, new_species)
+            propensity_type_dict['species'][key] = \
+                prop_species.replace_species(species, new_species)
 
         new_propensity_type = self.propensity_type.from_dict(
             propensity_type_dict)
@@ -159,11 +170,12 @@ class Reaction(object):
 
     def __repr__(self):
         """Helper function to print the text of a rate function"""
-        return self.pretty_print(show_rates=False, show_material=True, show_attributes=True, show_parameters=False)
+        return self.pretty_print(
+            show_rates=False, show_material=True, show_attributes=True,
+            show_parameters=False)
 
     def pretty_print(self, show_rates=True, show_material=True,
                      show_attributes=True, show_parameters=True, **kwargs):
-
         kwargs['show_rates'] = show_rates
         kwargs['show_material'] = show_material
         kwargs['show_attributes'] = show_attributes
@@ -177,7 +189,6 @@ class Reaction(object):
 
         txt += '+'.join([s.pretty_print(**kwargs) for s in self.outputs])
         if show_rates:
-
             # These kwargs are essential for massaction propensities
             kwargs["reaction"] = self
             if "stochastic" not in kwargs:
@@ -192,12 +203,16 @@ class Reaction(object):
            and propensity."""
         if not isinstance(other, Reaction):
             raise TypeError(
-                f'Only reactions can be compared with reaction! We got {type(other)}.')
+                f"Only reactions can be compared with reaction! "
+                f"We got {type(other)}.")
 
-        if len(self.inputs) != len(other.inputs) or len(self.outputs) != len(other.outputs):
+        if len(self.inputs) != len(other.inputs) \
+                or len(self.outputs) != len(other.outputs):
             return False
 
-        return (set(self.inputs), set(self.outputs), self.propensity_type) == (set(other.inputs), set(other.outputs), other.propensity_type)
+        return (set(self.inputs), set(self.outputs),
+                self.propensity_type) == (set(other.inputs),
+                set(other.outputs), other.propensity_type)
 
     def __contains__(self, item: Species):
         """It checks whether a species is part of a reaction.
@@ -219,10 +234,13 @@ class Reaction(object):
 
     @property
     def species(self) -> List[Species]:
-        """returns a list of species in the reactions collected from the inputs
+        """List of species in the reactions.
+
+        Returns a list of species in the reactions collected from the inputs
         and outputs and the propensity (e.g. Hill kinetics has species in it).
 
         :return: list of species in the reactions
+
         """
         in_part = []
         for s in self.inputs:
@@ -231,4 +249,5 @@ class Reaction(object):
         for s in self.outputs:
             out_part.extend(Species.flatten_list(s.species))
 
-        return list(itertools.chain(in_part, out_part, self.propensity_type.species))
+        return list(
+            itertools.chain(in_part, out_part, self.propensity_type.species))
