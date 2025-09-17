@@ -131,7 +131,7 @@ def test_render_network_bokeh():
         (None, None, "kb"): 100,
         (None, None, "ku"): 10,
         (None, None, "ktl"): 0.05,
-        ("rna_degredation_mm", None, "kdeg"): 0.001,
+        ("rna_degradation_mm", None, "kdeg"): 0.001,
         (None, None, "cooperativity"): 2}
     txtl = bcp.TxTlExtract('mixture1', parameters=parameters)
     dna = bcp.DNAassembly(

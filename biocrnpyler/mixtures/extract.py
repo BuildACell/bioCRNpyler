@@ -4,7 +4,7 @@
 from ..core.chemical_reaction_network import ChemicalReactionNetwork
 from ..components.basic import Protein, Metabolite
 from ..components.dna.assembly import DNAassembly
-from ..mechanisms.global_mechanisms import Degredation_mRNA_MM, Dilution
+from ..mechanisms.global_mechanisms import Degradation_mRNA_MM, Dilution
 from ..core.mechanism import EmptyMechanism
 from ..mechanisms.binding import One_Step_Binding
 from ..mechanisms.enzyme import BasicCatalysis, MichaelisMenten
@@ -101,11 +101,11 @@ class SimpleTxTlExtract(Mixture):
         }
         self.add_mechanisms(default_mechanisms)
 
-        # global mechanisms for dilution and rna degredation
+        # global mechanisms for dilution and rna degradation
         mech_rna_deg_global = Dilution(
-            name="rna_degredation", filter_dict={"rna": True}, default_on=False
+            name="rna_degradation", filter_dict={"rna": True}, default_on=False
         )
-        global_mechanisms = {"rna_degredation": mech_rna_deg_global}
+        global_mechanisms = {"rna_degradation": mech_rna_deg_global}
         self.add_mechanisms(global_mechanisms)
 
 
@@ -143,7 +143,7 @@ class TxTlExtract(Mixture):
         # Create default TxTl Mechanisms
         mech_tx = Transcription_MM(rnap=self.rnap.get_species())
         mech_tl = Translation_MM(ribosome=self.ribosome.get_species())
-        mech_rna_deg = Degredation_mRNA_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 
@@ -237,7 +237,7 @@ class EnergyTxTlExtract(Mixture):
                 [self.amino_acids.get_species()],
             wastes=4 * [self.ndps.get_species()],
         )
-        mech_rna_deg = Degredation_mRNA_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 

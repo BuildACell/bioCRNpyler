@@ -7,7 +7,7 @@ from ..core.mixture import Mixture
 
 from ..components.basic import Protein
 from ..components.dna.assembly import DNAassembly
-from ..mechanisms.global_mechanisms import Degredation_mRNA_MM, Dilution
+from ..mechanisms.global_mechanisms import Degradation_mRNA_MM, Dilution
 from ..mechanisms.binding import One_Step_Binding
 from ..mechanisms.enzyme import BasicCatalysis, MichaelisMenten
 from ..mechanisms.txtl import (
@@ -115,12 +115,12 @@ class SimpleTxTlDilutionMixture(Mixture):
         # They have the attribute 'machinery'
         dilution_mechanism = Dilution(filter_dict={"dna": False}, default_on=True)
         deg_mrna = Dilution(
-            name="rna_degredation", filter_dict={"rna": True}, default_on=False
+            name="rna_degradation", filter_dict={"rna": True}, default_on=False
         )
 
         global_mechanisms = {
             "dilution": dilution_mechanism,
-            "rna_degredation": deg_mrna,
+            "rna_degradation": deg_mrna,
         }
         self.add_mechanisms(global_mechanisms)
 
@@ -167,9 +167,9 @@ class TxTlDilutionMixture(Mixture):
             ("translation", None, "ku"): 5,
             ("translation", None, "kb"): 500,
             ("translation", None, "ktl"): 0.1,
-            ("rna_degredation", None, "ku"): 50,
-            ("rna_degredation", None, "kb"): 500,
-            ("rna_degredation", None, "kdeg"): 0.1,
+            ("rna_degradation", None, "ku"): 50,
+            ("rna_degradation", None, "kb"): 500,
+            ("rna_degradation", None, "kdeg"): 0.1,
         }
         BackgroundProcesses = DNAassembly(
             name="cellular_processes",
@@ -196,7 +196,7 @@ class TxTlDilutionMixture(Mixture):
         dilution_mechanism = Dilution(
             filter_dict={"dna": False, "machinery": False}, default_on=True
         )
-        mech_rna_deg = Degredation_mRNA_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,

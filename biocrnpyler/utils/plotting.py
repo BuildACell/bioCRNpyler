@@ -401,8 +401,8 @@ def generate_networkx_graph(
     # it has {species:index}
     rxnlist = []  # list of numbers corresponding to only reaction nodes
     # sometimes reactions have no products. I want this to be represented in the graph with this
-    # "nothing" node. However, usually we are making degredation reactions which yield the
-    # degredation enzyme, so then it doesn't go to nothing. This means actually this node
+    # "nothing" node. However, usually we are making degradation reactions which yield the
+    # degradation enzyme, so then it doesn't go to nothing. This means actually this node
     # isn't use for anything. But i think it's good to have just in case.
 
     default_species_color = "grey"

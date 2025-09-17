@@ -3,7 +3,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import GlobalMechanism,Species, Complex, Mixture, MichaelisMenten, Deg_Tagged_Degredation, Degredation_mRNA_MM
+from biocrnpyler import GlobalMechanism,Species, Complex, Mixture, MichaelisMenten, Deg_Tagged_Degradation, Degradation_mRNA_MM
 
 class TestGlobalMechanism(TestCase):
 
@@ -107,17 +107,17 @@ class TestGlobalMechanism(TestCase):
 
 
 
-    def test_rna_degredation_mm(self):
+    def test_rna_degradation_mm(self):
 
         M = Mixture(parameters = {"kdeg":1, "kb":1, "ku":1})
 
         rnaase = Species("P")
         rna = Species("X", material_type = "rna")
 
-        #compare deg_Tagged_Degredation to MichaelisMenten
+        #compare deg_Tagged_Degradation to MichaelisMenten
         MM = MichaelisMenten(name = "name", mechanism_type = "type")
         
-        rdmm = Degredation_mRNA_MM(rnaase)
+        rdmm = Degradation_mRNA_MM(rnaase)
         #test default global mechanism parameters
         self.assertTrue(rdmm.recursive_species_filtering is True)
         self.assertTrue(rdmm.default_on is False)
@@ -139,14 +139,14 @@ class TestGlobalMechanism(TestCase):
         self.assertTrue(all([str(rxns[i]) == str(rxns_mm[i]) for i in range(len(rxns))]))
 
         #Overwrite default_on, recursive_species_filtering, and filter_dict
-        rdmm2 = Degredation_mRNA_MM(rnaase, default_on = True, recursive_species_filtering = False, filter_dict = {"test":True})
+        rdmm2 = Degradation_mRNA_MM(rnaase, default_on = True, recursive_species_filtering = False, filter_dict = {"test":True})
         self.assertTrue(rdmm2.recursive_species_filtering is False)
         self.assertTrue(rdmm2.default_on is True)
         self.assertTrue("rna" not in rdmm2.filter_dict)
         self.assertTrue("test" in rdmm2.filter_dict and rdmm2.filter_dict["test"] is True)
         self.assertTrue(len(rdmm2.filter_dict)==1)
 
-    def test_deg_tagged_degredation(self):
+    def test_deg_tagged_degradation(self):
 
         M = Mixture(parameters = {"kdeg":1, "kb":1, "ku":1})
 
@@ -154,10 +154,10 @@ class TestGlobalMechanism(TestCase):
         tagged_protein = Species("X", attributes = ["degtagged"])
         untagged_protein = Species("Y")
 
-        #compare deg_Tagged_Degredation to MichaelisMenten
+        #compare deg_Tagged_Degradation to MichaelisMenten
         MM = MichaelisMenten(name = "name", mechanism_type = "type")
         
-        dtd = Deg_Tagged_Degredation(protease)
+        dtd = Deg_Tagged_Degradation(protease)
         #test default global mechanism parameters
         self.assertTrue(dtd.recursive_species_filtering is False)
         self.assertTrue(dtd.default_on is False)
@@ -180,7 +180,7 @@ class TestGlobalMechanism(TestCase):
         self.assertTrue(all([str(rxns[i]) == str(rxns_mm[i]) for i in range(len(rxns))]))
 
         #Overwrite default_on, recursive_species_filtering, and filter_dict
-        dtd2 = Deg_Tagged_Degredation(protease, default_on = True, recursive_species_filtering = True, filter_dict = {"test":True})
+        dtd2 = Deg_Tagged_Degradation(protease, default_on = True, recursive_species_filtering = True, filter_dict = {"test":True})
         self.assertTrue(dtd2.recursive_species_filtering is True)
         self.assertTrue(dtd2.default_on is True)
         self.assertTrue("degtagged" not in dtd2.filter_dict)

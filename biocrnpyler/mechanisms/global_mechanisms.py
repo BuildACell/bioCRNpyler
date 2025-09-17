@@ -28,7 +28,7 @@ Note that the above filtering is done automatically. Any parameters needed by th
  in the Mixture's parameter dictionary. These methods are assumed to take a single species
  as input.
 
-An example of a global mechanism is degredation via dilution which is demonstrated in the Tests folder.
+An example of a global mechanism is degradation via dilution which is demonstrated in the Tests folder.
 
 GlobalMechanisms should be used cautiously or avoided alltogether - the order in which they are called
 may have to be carefully user defined in the subclasses of Mixture in order to ensure expected behavior.
@@ -45,7 +45,7 @@ class GlobalMechanism(Mechanism):
     In order to decide which species a global mechanism acts upon, the filter_dict
     is used.
 
-    An example of a global mechanism is degredation via dilution which is
+    An example of a global mechanism is degradation via dilution which is
     demonstrated in the Tests folder.
 
     GlobalMechanisms should be used cautiously or avoided alltogether - the order
@@ -166,7 +166,7 @@ class GlobalMechanism(Mechanism):
 class Dilution(GlobalMechanism):
     """A global mechanism to represent dilution."""
 
-    def __init__(self, name="global_degredation_via_dilution",
+    def __init__(self, name="global_degradation_via_dilution",
                  mechanism_type="dilution", filter_dict=None,
                  default_on=True, recursive_species_filtering=True):
         GlobalMechanism.__init__(self, name=name,
@@ -202,15 +202,15 @@ class AnitDilutionConstiutiveCreation(GlobalMechanism):
         return [rxn]
 
 
-class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
-    """Michaelis Menten mRNA Degredation by Endonucleases
+class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
+    """Michaelis Menten mRNA Degradation by Endonucleases
        mRNA + Endo <--> mRNA:Endo --> Endo
        All species of type "rna" are degraded by this mechanisms, including those inside of a ComplexSpecies.
        ComplexSpecies are seperated by this process, including embedded ComplexSpecies. 
        OrderedPolymerSpecies are ignored.
     """
 
-    def __init__(self, nuclease, name="rna_degredation_mm", mechanism_type="rna_degredation",
+    def __init__(self, nuclease, name="rna_degradation_mm", mechanism_type="rna_degradation",
                  default_on=False, recursive_species_filtering=True, filter_dict=None, **keywords):
 
         if isinstance(nuclease, Species):
@@ -288,13 +288,13 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
         return reactions
 
 
-class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
-    """Michaelis Menten Degredation of deg-tagged proteins by degredase (such as proteases)
+class Deg_Tagged_Degradation(GlobalMechanism, MichaelisMenten):
+    """Michaelis Menten Degradation of deg-tagged proteins by degredase (such as proteases)
        Species_degtagged + degredase <--> Species_degtagged:degredase --> degredase
        All species with the attribute degtagged and material_type protein are degraded. The method is not recursive.
     """
 
-    def __init__(self, degredase, deg_tag="degtagged", name="deg_tagged_degredation", mechanism_type="degredation",
+    def __init__(self, degredase, deg_tag="degtagged", name="deg_tagged_degradation", mechanism_type="degradation",
                  filter_dict=None, recursive_species_filtering=False, default_on=False, **keywords):
         if isinstance(degredase, Species):
             self.degredase = degredase

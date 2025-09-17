@@ -156,7 +156,7 @@ class MichaelisMenten(Mechanism):
             cat_rxn = Reaction.from_massaction(
                 inputs=[complexS], outputs=[product, enzyme],
                 k_forward=kcat)
-        else:  # degredation Reaction
+        else:  # degradation Reaction
             # substrate:Enz --> Enz
             cat_rxn = Reaction.from_massaction(
                 inputs=[complexS], outputs=[enzyme], k_forward=kcat)

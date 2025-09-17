@@ -71,7 +71,7 @@ class Mixture(object):
         # Global mechanisms are applied just once ALL species generated from
         # components inside a mixture
         # Global mechanisms should be used rarely, and with care. An example
-        # usecase is degredation via dilution.
+        # usecase is degradation via dilution.
         if global_mechanisms is None and \
            not hasattr(self, '_global_mechanisms'):
             self.global_mechanisms = {}

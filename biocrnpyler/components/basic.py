@@ -124,7 +124,7 @@ class Metabolite(Component):
         :param precursors: list of chemical species directly transformed
             into this metabolite via the production mechanism
         :param products: list of chemical species produced from this
-            metabolite via the degredation mechanism
+            metabolite via the degradation mechanism
         :param kwargs: pass into the parent's (Component) initializer
 
         """
@@ -146,7 +146,7 @@ class Metabolite(Component):
         if products is not None:
             for p in products:
                 if p is None:
-                    # None is a valid product representing total degredation
+                    # None is a valid product representing total degradation
                     self.products.append(None)
                 else:
                     self.products.append(self.set_species(p))
@@ -170,7 +170,7 @@ class Metabolite(Component):
             if len(self.products) > 0:
                 species += mech_pathway.update_species(
                     precursor=[self.get_species()], product=self.products,
-                    component=self, part_id=self.name + '_degredation')
+                    component=self, part_id=self.name + '_degradation')
         return species
 
     def update_reactions(self) -> List:
@@ -186,7 +186,7 @@ class Metabolite(Component):
             if len(self.products) > 0:
                 reactions += mech_pathway.update_reactions(
                     precursor=[self.get_species()], product=self.products,
-                    component=self, part_id=self.name + '_degredation')
+                    component=self, part_id=self.name + '_degradation')
         return reactions
 
 
