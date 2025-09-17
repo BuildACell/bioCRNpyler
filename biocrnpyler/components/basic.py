@@ -1,4 +1,3 @@
-
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
@@ -10,22 +9,25 @@ from ..core.species import Complex, Species
 
 
 class DNA(Component):
-    """The DNA class is used to represent a DNA sequence that has a given length.
+    """DNA sequence that has a given length.
 
+    Notes
+    -----
     Produces no reactions.
     """
 
-    def __init__(self, name, length=0, attributes=None, **keywords):
+    def __init__(self, name, length=0, attributes=None, **kwargs):
         """Initialize a DNA object to store DNA related information.
 
         :param name: Name of the sequence (str)
         :param length: length of the basepairs (int)
         :param attributes: Species attribute
-        :param keywords: pass into the parent's (Component) initializer
+        :param kwargs: pass into the parent's (Component) initializer
         """
-        self.species = self.set_species(name, material_type="dna",
-                                        attributes=attributes)
-        super().__init__(name=name, length=length, **keywords)
+        self.species = self.set_species(
+            name, material_type='dna', attributes=attributes)
+        # self.length = length  # RMM, 14 Sep '25: was not being set
+        super().__init__(name=name, **kwargs)
 
     def get_species(self) -> Species:
         return self.species
@@ -37,24 +39,28 @@ class DNA(Component):
     def update_reactions(self) -> List:
         return []
 
-   
-
 
 class RNA(Component):
-    """A class to represent Components made of RNA. Produces no reactions."""
+    """RNA sequence of a given length.
 
-    def __init__(self, name: str, length=0, attributes=None, **keywords):
-        """Initialize a RNA object to store RNA related information
+    Notes
+    -----
+    Produces no reactions.
+    """
+
+    def __init__(self, name: str, length=0, attributes=None, **kwargs):
+        """Initialize an RNA object to store RNA related information.
 
         :param name: name of the rna
         :param length: number of basepairs (int)
         :param attributes: Species attribute
-        :param keywords: pass into the parent's (Component) initializer
-        """
+        :param kwargs: pass into the parent's (Component) initializer
 
-        self.species = self.set_species(name, material_type="rna",
-                                        attributes=attributes)
-        super().__init__(name=name, length = length, **keywords)
+        """
+        self.species = self.set_species(
+            name, material_type='rna', attributes=attributes)
+        # self.length = length  # RMM, 14 Sep '25: was not being set
+        super().__init__(name=name, **kwargs)
 
     def get_species(self) -> Species:
         return self.species
@@ -67,20 +73,26 @@ class RNA(Component):
         return []
 
 class Protein(Component):
-    """A class to represent Components made of Protein. Produces no reactions."""
+    """Protein/peptide of a given length.
 
-    def __init__(self, name: str, length=0, attributes=None, **keywords):
+    Notes
+    -----
+    Produces no reactions.
+
+    """
+    def __init__(self, name: str, length=0, attributes=None, **kwargs):
         """Initialize a Protein object to store Protein related information.
 
         :param name: name of the protein
         :param length: length of the protein in number of amino acids
         :param attributes: Species attribute
-        :param keywords: pass into the parent's (Component) initializer
-        """
-        self.species = self.set_species(name, material_type="protein",
-                                        attributes=attributes)
+        :param kwargs: pass into the parent's (Component) initializer
 
-        super().__init__(name=name, length = length, **keywords)
+        """
+        self.species = self.set_species(
+            name, material_type='protein', attributes=attributes)
+        # self.length = length  # RMM, 14 Sep '25: was not being set
+        super().__init__(name=name, **kwargs)
 
     def get_species(self) -> Species:
         return self.species
@@ -91,6 +103,7 @@ class Protein(Component):
 
     def update_reactions(self) -> List:
         return []
+
 
 class Metabolite(Component):
     """Metabolic compounded that is produced, utilized, or degraded.
@@ -103,7 +116,7 @@ class Metabolite(Component):
     """
     def __init__(
             self, name: str, attributes=None, precursors=None, products=None,
-            **keywords):
+            **kwargs):
         """Initialize and store Metabolite related information.
 
         :param name: name of the protein
@@ -112,11 +125,11 @@ class Metabolite(Component):
             into this metabolite via the production mechanism
         :param products: list of chemical species produced from this
             metabolite via the degredation mechanism
-        :param keywords: pass into the parent's (Component) initializer
+        :param kwargs: pass into the parent's (Component) initializer
 
         """
         self.species = self.set_species(
-            name, material_type="metabolite", attributes=attributes)
+            name, material_type='metabolite', attributes=attributes)
 
         # Set percursor species list
         self.precursors = []
@@ -139,7 +152,7 @@ class Metabolite(Component):
                     self.products.append(self.set_species(p))
 
 
-        Component.__init__(self=self, name=name, **keywords)
+        Component.__init__(self=self, name=name, **kwargs)
 
     def get_species(self) -> Species:
         return self.species
@@ -153,11 +166,11 @@ class Metabolite(Component):
             if len(self.precursors) > 0:
                 species += mech_pathway.update_species(
                     precursor=self.precursors, product=[self.get_species()],
-                    component=self, part_id=self.name + "_production")
+                    component=self, part_id=self.name + '_production')
             if len(self.products) > 0:
                 species += mech_pathway.update_species(
                     precursor=[self.get_species()], product=self.products,
-                    component=self, part_id=self.name + "_degradation")
+                    component=self, part_id=self.name + '_degredation')
         return species
 
     def update_reactions(self) -> List:
@@ -169,11 +182,11 @@ class Metabolite(Component):
             if len(self.precursors) > 0:
                 reactions += mech_pathway.update_reactions(
                     precursor=self.precursors, product=[self.get_species()],
-                    component=self, part_id=self.name + "_production")
+                    component=self, part_id=self.name + '_production')
             if len(self.products) > 0:
                 reactions += mech_pathway.update_reactions(
                     precursor=[self.get_species()], product=self.products,
-                    component=self, part_id=self.name + "_degredation")
+                    component=self, part_id=self.name + '_degredation')
         return reactions
 
 
@@ -187,7 +200,7 @@ class ChemicalComplex(Component):
 
     def __init__(
             self, species: List[Species], name: str=None,
-            material_type='complex', attributes=None, **keywords):
+            material_type='complex', attributes=None, **kwargs):
         """Initialize and store ChemicalComplex related information.
 
         :param species: list of species inside a complex
@@ -195,7 +208,7 @@ class ChemicalComplex(Component):
         :param material_type: option to rename the material_type,
             default: 'complex'
         :param attributes: Species attribute
-        :param keywords: pass into the parent's (Component) initializer
+        :param kwargs: pass into the parent's (Component) initializer
         """
         if not isinstance(species, list) or len(species) < 2:
             raise ValueError(
@@ -215,13 +228,12 @@ class ChemicalComplex(Component):
         if name is None:
             name = self.species.name
 
-        Component.__init__(self=self, name=name, **keywords)
+        Component.__init__(self=self, name=name, **kwargs)
 
     def get_species(self) -> List[Species]:
         return self.species
 
     def update_species(self) -> List[Species]:
-
         mech_b = self.get_mechanism('binding')
         bindee = self.internal_species[0]
         binder = self.internal_species[1:]
@@ -231,7 +243,6 @@ class ChemicalComplex(Component):
         return species
 
     def update_reactions(self) -> List[Reaction]:
-
         mech_b = self.get_mechanism('binding')
         bindee = self.internal_species[0]
         binder = self.internal_species[1:]
@@ -256,7 +267,7 @@ class Enzyme(Component):
             self, enzyme: Union[Species, str, Component],
             substrates: List[Union[Species, str, Component]],
             products: List[Union[Species, str, Component]],
-            attributes=None, **keywords):
+            attributes=None, **kwargs):
         """Initialize and store enzyme related information.
 
         :param enzyme: name of the enzyme or reference to an Species
@@ -266,14 +277,15 @@ class Enzyme(Component):
         :param products: list of (name of the product or reference
             to a Species or Component)
         :param attributes: Species attribute
-        :param keywords: pass into the parent's (Component) initializer
+        :param kwargs: pass into the parent's (Component) initializer
+
         """
         self.enzyme = self.set_species(
             enzyme, material_type='protein', attributes=attributes)
         self.substrates = substrates
         self.products = products
 
-        Component.__init__(self=self, name=self.enzyme.name, **keywords)
+        Component.__init__(self=self, name=self.enzyme.name, **kwargs)
 
     @property
     def substrates(self) -> List:
@@ -304,7 +316,7 @@ class Enzyme(Component):
         mech_cat = self.get_mechanism('catalysis')
         return mech_cat.update_species(
             enzyme=self.enzyme, substrate=self.substrates,
-            produdcts=self.products)
+            product=self.products)
 
     def update_reactions(self) -> List[Reaction]:
         mech_cat = self.get_mechanism('catalysis')
