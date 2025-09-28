@@ -498,6 +498,14 @@ class ParameterDatabase(object):
             in the parameter database
 
         """
+        from ..utils.fileutil import find_file_in_bcp_path
+
+        # Find the file in the current path
+        if (_filename := find_file_in_bcp_path(filename)) is None:
+            raise ValueError(f"can't find parameter file {filename}")
+        else:
+            filename = _filename
+
         # Figure out the format of the parameter file from the file extension
         with open(filename) as f:
             file_type = filename.split(".")[-1]
@@ -514,10 +522,10 @@ class ParameterDatabase(object):
             # Used for flexible column headings
             accepted_field_names = {
                 'mechanism': ['mechanism', 'mechanism_id'],
-                'param_name': ["parameter_name", "parameter",
-                               "param", "param_name"],
+                'param_name': ['parameter_name', 'parameter',
+                               'param', 'param_name'],
                 'part_id': ['part_id', 'part'],
-                'param_val': ["val", "value", "param_val", "parameter_value"],
+                'param_val': ['val', 'value', 'param_val', 'parameter_value'],
                 'unit': ['unit', 'units']
             }
 
