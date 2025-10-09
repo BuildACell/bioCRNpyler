@@ -1,0 +1,21 @@
+mechanism	part_id	param_name	value	units	comments
+simple_transcription		ktx	3.25		Tx_cat from Singhal et al.
+energy_transcription_mm		ktx	3.25		Tx_cat from Singhal et al.
+energy_transcription_mm		kb	4.48		For the promoter tested in Singhal et al Supplemental Table S2
+energy_transcription_mm		ku	2.48889E-06		For the promoter tested in Singhal et al Supplemental Table S2
+energy_transcription_mm		length	900		"This is a default length, gene specific ones should be set"
+simple_translation		ktl	19.2		TL_cat from Singhal et al.
+energy_translation_mm		ktl	19.2		TL_cat from Singhal et al.
+energy_translation_mm		kb	0.819		For the RBS tested in Singhal et al Supplemental Table S2
+energy_translation_mm		ku	0.002853659		For the RBS tested in Singhal et al Supplemental Table S2
+energy_translation_mm		length	300		"This is a default length, transcript specific ones should be set"
+rna_degradation		kdil	1e-4		RMM
+rna_degradation_mm		kdeg	1.01		The values from Singhal et al Supplemental Table S2
+rna_degradation_mm		kb	1		The values from Singhal et al Supplemental Table S2
+rna_degradation_mm		ku	1.26582E-06		The values from Singhal et al Supplemental Table S2
+initial concentration		NTPs	5E+03	nM	"Total NTPs in standard energy buffer, converted to nM"
+initial concentration		AAs	3E+04	nM	"Total amino acids in standard energy buffer, converted to nM"
+initial concentration		ATP	5E+03	nM	"Standard energy buffer amount, converted to nM"
+initial concentration		RNAase	20.2	nM	"The values from Singhal et al Supplemental Table S2, converted to nM"
+initial concentration		protein_Ribo	2.73E+01	nM	"The values from Singhal et al Supplemental Table S2, converted to nM"
+initial concentration		RNAP	9.33E+00	nM	"The values from Singhal et al Supplemental Table S2, converted to nM"

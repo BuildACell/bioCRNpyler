@@ -11,3 +11,7 @@ Extract
 - :class:`biocrnpyler.mixtures.extract.TxTlExtract`
 - :class:`biocrnpyler.mixtures.extract.EnergyTxTlExtract`
 
+Pure
+----
+- :class:`biocrnpyler.mixtures.pure.BasicPURE`
+
