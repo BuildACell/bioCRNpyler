@@ -69,6 +69,7 @@ or the GitHub site: https://github.com/BuildACell/BioCRNPyler.
    components
    mechanisms
    mixtures
+   parameters
    membranes
    tutorials
 

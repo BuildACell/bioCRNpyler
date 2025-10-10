@@ -17,7 +17,6 @@ chapters in the User Guide.
    examples/2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
    examples/3. DNA Assemblies gene expression transcription and translation.ipynb
    examples/4. Promoters Transcriptional Regulation and Gene Regulatory Networks.ipynb
-   examples/5. Parameters.ipynb
    examples/6. Global Mechanisms.ipynb
    examples/7. Network Plotting Examples.ipynb
    examples/8. Developer Overview.ipynb
