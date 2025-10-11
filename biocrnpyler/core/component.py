@@ -24,18 +24,18 @@ class Component:
     """
 
     def __init__(
-            self,
-            name: Union[str, Species],
-            mechanisms=None,  # custom mechanisms
-            parameters=None,  # parameter configuration
-            parameter_file=None,  # custom parameter file
-            mixture=None,
-            compartment=None,
-            attributes=None,
-            # This is added as a parameter ("initial concentration",
-            # None, self.name):initial_concentration
-            initial_concentration=None,
-            initial_condition_dictionary=None,
+        self,
+        name: Union[str, Species],
+        mechanisms=None,  # custom mechanisms
+        parameters=None,  # parameter configuration
+        parameter_file=None,  # custom parameter file
+        mixture=None,
+        compartment=None,
+        attributes=None,
+        # This is added as a parameter ("initial concentration",
+        # None, self.name):initial_concentration
+        initial_concentration=None,
+        initial_condition_dictionary=None,
     ):
         """Initializes a Component object.
 
@@ -58,7 +58,7 @@ class Component:
         elif isinstance(name, str):
             self.name = name
         else:
-            raise ValueError("name must be a Species or string")
+            raise ValueError('name must be a Species or string')
 
         # Attributes can be used to store key words like protein deg-tags for
         # components that mimic CRN species.
@@ -68,7 +68,9 @@ class Component:
 
         if compartment is not None:
             if not isinstance(compartment, Compartment):
-                raise TypeError("The compartment must be a Compartment object")
+                raise TypeError(
+                    'The compartment must be a Compartment object'
+                )
             self.compartment = compartment
         else:
             # Don't create a default compartment here to avoid circular imports
@@ -83,7 +85,9 @@ class Component:
         if initial_condition_dictionary is None:
             self.initial_condition_dictionary = {}
         else:
-            self.initial_condition_dictionary = dict(initial_condition_dictionary)
+            self.initial_condition_dictionary = dict(
+                initial_condition_dictionary
+            )
 
     @property
     def initial_concentration(self):
@@ -94,14 +98,16 @@ class Component:
         if initial_concentration is not None:
             if initial_concentration < 0:
                 raise ValueError(
-                    f"Initial concentration must be non-negative, "
-                    f"this was given: {initial_concentration}"
+                    f'Initial concentration must be non-negative, '
+                    f'this was given: {initial_concentration}'
                 )
             param_key = ParameterKey(
-                mechanism="initial concentration", part_id=None, name=self.name
+                mechanism='initial concentration',
+                part_id=None,
+                name=self.name,
             )
             self.parameter_database.add_parameter(
-                parameter_name="initial concentration",
+                parameter_name='initial concentration',
                 parameter_value=initial_concentration,
                 parameter_key=param_key,
                 overwrite_parameters=True,
@@ -124,21 +130,25 @@ class Component:
         :param compartment:
         :return: None
         """
-        if compartment is not None and not isinstance(compartment, Compartment):
-            raise TypeError("The compartment must be a Compartment object")
+        if compartment is not None and not isinstance(
+            compartment, Compartment
+        ):
+            raise TypeError('The compartment must be a Compartment object')
         if compartment is not None:
             self._compartment = compartment
-        if hasattr(self, "_compartment") and self._compartment:
-            if hasattr(self, "species"):
+        if hasattr(self, '_compartment') and self._compartment:
+            if hasattr(self, 'species'):
                 if isinstance(self.species, list):
                     for s in self.species:
-                        if s.compartment.name == "default":
+                        if s.compartment.name == 'default':
                             s.compartment = compartment
                 else:
-                    if self.species.compartment.name == "default":
+                    if self.species.compartment.name == 'default':
                         self.species.compartment = compartment
-        if compartment is not None and not isinstance(compartment, Compartment):
-            raise TypeError("The compartment must be a Compartment object")
+        if compartment is not None and not isinstance(
+            compartment, Compartment
+        ):
+            raise TypeError('The compartment must be a Compartment object')
 
     def set_mixture(self, mixture) -> None:
         """Set the mixture the Component is in.
@@ -181,7 +191,10 @@ class Component:
                 compartment=compartment,
                 attributes=attributes,
             )
-        elif isinstance(species, Component) and species.get_species() is not None:
+        elif (
+            isinstance(species, Component)
+            and species.get_species() is not None
+        ):
             return species.get_species()
         elif isinstance(species, list):
             return [
@@ -195,7 +208,7 @@ class Component:
             ]
         else:
             raise ValueError(
-                f"Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input. Recieved {species}"
+                f'Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input. Recieved {species}'
             )
 
     def __hash__(self):
@@ -208,20 +221,24 @@ class Component:
 
     def add_attribute(self, attribute: str):
         assert isinstance(attribute, str) and attribute is not None, (
-            "Attribute: %s must be a str" % attribute
+            'Attribute: %s must be a str' % attribute
         )
 
         self.attributes.append(attribute)
-        if hasattr(self, "species") and self.species is not None:
+        if hasattr(self, 'species') and self.species is not None:
             self.species.add_attribute(attribute)
         else:
             raise Warning(
-                f"Component {self.name} has no internal species and therefore no attributes"
+                f'Component {self.name} has no internal species and therefore no attributes'
             )
 
     def update_parameters(
-            self, parameter_file=None, parameters=None,
-            parameter_database=None, overwrite_parameters=True):
+        self,
+        parameter_file=None,
+        parameters=None,
+        parameter_database=None,
+        overwrite_parameters=True,
+    ):
         """Updates the ParameterDatabase inside a Component.
 
         Possible inputs:
@@ -257,7 +274,7 @@ class Component:
         """
         if not isinstance(mechanism_type, str):
             raise TypeError(
-                f"mechanism_type must be a string. Received {mechanism_type}."
+                f'mechanism_type must be a string. Received {mechanism_type}.'
             )
 
         mech = None
@@ -267,7 +284,7 @@ class Component:
             mech = self.mixture.get_mechanism(mechanism_type)
         if mech is None and not optional_mechanism:
             raise KeyError(
-                f"Unable to find mechanism of type {mechanism_type} in Component {self} or Mixture {self.mixture}."
+                f'Unable to find mechanism of type {mechanism_type} in Component {self} or Mixture {self.mixture}.'
             )
         else:
             return mech
@@ -282,14 +299,19 @@ class Component:
         if isinstance(mechanisms, dict):
             for mech_type in mechanisms:
                 self.add_mechanism(
-                    mechanisms[mech_type], mech_type, overwrite=True)
+                    mechanisms[mech_type], mech_type, overwrite=True
+                )
         elif isinstance(mechanisms, list):
             for mech in mechanisms:
                 self.add_mechanism(mech, overwrite=True)
 
     def add_mechanism(
-            self, mechanism: Mechanism, mech_type=None, overwrite=False,
-            optional_mechanism=False):
+        self,
+        mechanism: Mechanism,
+        mech_type=None,
+        overwrite=False,
+        optional_mechanism=False,
+    ):
         """Add a mechanism to the component mechanism dictionary.
 
         Adds a mechanism of type mech_type to the Component Mechanism
@@ -302,22 +324,26 @@ class Component:
         :return:
 
         """
-        if not hasattr(self, "_mechanisms"):
+        if not hasattr(self, '_mechanisms'):
             self._mechanisms = {}
 
         if not isinstance(mechanism, Mechanism):
-            raise TypeError(f"mechanism must be a Mechanism. Received {mechanism}.")
+            raise TypeError(
+                f'mechanism must be a Mechanism. Received {mechanism}.'
+            )
 
         if mech_type is None:
             mech_type = mechanism.mechanism_type
         if not isinstance(mech_type, str):
-            raise TypeError(f"mechanism keys must be strings. Received {mech_type}")
+            raise TypeError(
+                f'mechanism keys must be strings. Received {mech_type}'
+            )
 
         if mech_type not in self._mechanisms or overwrite:
             self._mechanisms[mech_type] = copy.deepcopy(mechanism)
         elif not optional_mechanism:
             raise ValueError(
-                f"mech_type {mech_type} already in component {self}. To overwrite, use keyword overwrite = True."
+                f'mech_type {mech_type} already in component {self}. To overwrite, use keyword overwrite = True.'
             )
 
     def add_mechanisms(
@@ -336,7 +362,9 @@ class Component:
 
         if isinstance(mechanisms, Mechanism):
             self.add_mechanism(
-                mechanisms, overwrite=overwrite, optional_mechanism=optional_mechanism
+                mechanisms,
+                overwrite=overwrite,
+                optional_mechanism=optional_mechanism,
             )
         elif isinstance(mechanisms, dict):
             for mech_type in mechanisms:
@@ -349,11 +377,13 @@ class Component:
         elif isinstance(mechanisms, list):
             for mech in mechanisms:
                 self.add_mechanism(
-                    mech, overwrite=overwrite, optional_mechanism=optional_mechanism
+                    mech,
+                    overwrite=overwrite,
+                    optional_mechanism=optional_mechanism,
                 )
         else:
             raise ValueError(
-                f"add_mechanisms expected a list of Mechanisms. Received {mechanisms}"
+                f'add_mechanisms expected a list of Mechanisms. Received {mechanisms}'
             )
 
     def get_parameter(
@@ -380,7 +410,9 @@ class Component:
         :return: Parameter object or a Real number
         """
         # Try the Component ParameterDatabase
-        param = self.parameter_database.find_parameter(mechanism, part_id, param_name)
+        param = self.parameter_database.find_parameter(
+            mechanism, part_id, param_name
+        )
 
         # Next try the Mixture ParameterDatabase
         if param is None and self.mixture is not None and check_mixture:
@@ -388,10 +420,10 @@ class Component:
 
         if param is None and not return_none:
             raise ValueError(
-                "No parameters can be found that match the "
-                "(mechanism, part_id, "
-                f"param_name)=({repr(mechanism)}, {part_id}, "
-                f"{param_name})"
+                'No parameters can be found that match the '
+                '(mechanism, part_id, '
+                f'param_name)=({repr(mechanism)}, {part_id}, '
+                f'{param_name})'
             )
         elif return_numerical and isinstance(param, Parameter):
             return param.value
@@ -405,7 +437,7 @@ class Component:
         :return: empty list
         """
         species = []
-        warn("Unsubclassed update_species called for " + repr(self))
+        warn('Unsubclassed update_species called for ' + repr(self))
         return species
 
     # TODO implement abstractmethod
@@ -415,7 +447,7 @@ class Component:
         :return: empty list
         """
         reactions = []
-        warn("Unsubclassed update_reactions called for " + repr(self))
+        warn('Unsubclassed update_reactions called for ' + repr(self))
         return reactions
 
     def enumerate_components(self, previously_enumerated=None) -> List:
@@ -434,4 +466,4 @@ class Component:
         return []
 
     def __repr__(self):
-        return type(self).__name__ + ": " + self.name
+        return type(self).__name__ + ': ' + self.name

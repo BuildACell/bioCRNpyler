@@ -37,7 +37,10 @@ def generate_mechanisms_rst(src_root, out_file):
         if not classes:
             continue
         section_title = module.replace('_', ' ').title()
-        lines = [f'- :class:`biocrnpyler.mechanisms.{module}.{cls}`' for cls in classes]
+        lines = [
+            f'- :class:`biocrnpyler.mechanisms.{module}.{cls}`'
+            for cls in classes
+        ]
         sections.append((section_title, lines))
     write_rst_file(out_file, 'Mechanisms', sections)
 
@@ -53,7 +56,10 @@ def generate_mixtures_rst(src_root, out_file):
         if not classes:
             continue
         section_title = module.replace('_', ' ').title()
-        lines = [f'- :class:`biocrnpyler.mixtures.{module}.{cls}`' for cls in classes]
+        lines = [
+            f'- :class:`biocrnpyler.mixtures.{module}.{cls}`'
+            for cls in classes
+        ]
         sections.append((section_title, lines))
     write_rst_file(out_file, 'Mixtures', sections)
 
@@ -69,7 +75,9 @@ def generate_components_rst(src_root, out_file):
             module = py.stem
             classes = get_classes_in_file(py)
             for cls in classes:
-                lines.append(f'- :class:`biocrnpyler.components.{module}.{cls}`')
+                lines.append(
+                    f'- :class:`biocrnpyler.components.{module}.{cls}`'
+                )
         sections.append(('Components', lines))
     # DNA subpackage
     dna_dir = comp_dir / 'dna'
@@ -82,7 +90,10 @@ def generate_components_rst(src_root, out_file):
             if not classes:
                 continue
             title = f'DNA: {module.replace("_", " ").title()}'
-            lines = [f'- :class:`biocrnpyler.components.dna.{module}.{cls}`' for cls in classes]
+            lines = [
+                f'- :class:`biocrnpyler.components.dna.{module}.{cls}`'
+                for cls in classes
+            ]
             sections.append((title, lines))
     write_rst_file(out_file, 'Components', sections)
 

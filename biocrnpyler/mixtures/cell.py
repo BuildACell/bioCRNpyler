@@ -27,7 +27,7 @@ class ExpressionDilutionMixture(Mixture):
     A global mechanism is used to dilute all non-dna species
     """
 
-    def __init__(self, name="", **kwargs):
+    def __init__(self, name='', **kwargs):
         """Initializes an ExpressionDilutionMixture instance.
 
         :param name: name of the mixture
@@ -37,7 +37,7 @@ class ExpressionDilutionMixture(Mixture):
 
         # Create default mechanisms for Gene Expression
         dummy_translation = EmptyMechanism(
-            name="dummy_translation", mechanism_type="translation"
+            name='dummy_translation', mechanism_type='translation'
         )
         mech_expression = OneStepGeneExpression()
         mech_cat = BasicCatalysis()
@@ -53,9 +53,9 @@ class ExpressionDilutionMixture(Mixture):
 
         # Create global mechanism for dilution
         dilution_mechanism = Dilution(
-            name="dilution", filter_dict={"dna": False}, default_on=True
+            name='dilution', filter_dict={'dna': False}, default_on=True
         )
-        global_mechanisms = {"dilution": dilution_mechanism}
+        global_mechanisms = {'dilution': dilution_mechanism}
         self.add_mechanisms(global_mechanisms)
 
     def compile_crn(self, **keywords) -> ChemicalReactionNetwork:
@@ -85,7 +85,7 @@ class SimpleTxTlDilutionMixture(Mixture):
     mRNA is also degraded via a separate reaction to represent endonucleases
     """
 
-    def __init__(self, name="", **keywords):
+    def __init__(self, name='', **keywords):
         """Initializes a SimpleTxTlDilutionMixture instance.
 
         :param name: name of the mixture
@@ -113,14 +113,18 @@ class SimpleTxTlDilutionMixture(Mixture):
         # By Default Species are diluted S-->0 Unless:
         # They are of type 'dna'
         # They have the attribute 'machinery'
-        dilution_mechanism = Dilution(filter_dict={"dna": False}, default_on=True)
+        dilution_mechanism = Dilution(
+            filter_dict={'dna': False}, default_on=True
+        )
         deg_mrna = Dilution(
-            name="rna_degradation", filter_dict={"rna": True}, default_on=False
+            name='rna_degradation',
+            filter_dict={'rna': True},
+            default_on=False,
         )
 
         global_mechanisms = {
-            "dilution": dilution_mechanism,
-            "rna_degradation": deg_mrna,
+            'dilution': dilution_mechanism,
+            'rna_degradation': deg_mrna,
         }
         self.add_mechanisms(global_mechanisms)
 
@@ -138,7 +142,7 @@ class TxTlDilutionMixture(Mixture):
     """
 
     def __init__(
-        self, name="", rnap="RNAP", ribosome="Ribo", rnaase="RNAase", **kwargs
+        self, name='', rnap='RNAP', ribosome='Ribo', rnaase='RNAase', **kwargs
     ):
         """Initializes a TxTlDilutionMixture instance.
 
@@ -155,26 +159,26 @@ class TxTlDilutionMixture(Mixture):
         self.ribosome = Protein(ribosome)
         self.rnaase = Protein(rnaase)
 
-        self.rnap.add_attribute("machinery")
-        self.ribosome.add_attribute("machinery")
-        self.rnaase.add_attribute("machinery")
+        self.rnap.add_attribute('machinery')
+        self.ribosome.add_attribute('machinery')
+        self.rnaase.add_attribute('machinery')
 
         # DNAassmbly represents background processes / loading in a cell
         background_parameters = {
-            ("transcription", None, "ku"): 50,
-            ("transcription", None, "kb"): 500,
-            ("transcription", None, "ktx"): 0.1,
-            ("translation", None, "ku"): 5,
-            ("translation", None, "kb"): 500,
-            ("translation", None, "ktl"): 0.1,
-            ("rna_degradation", None, "ku"): 50,
-            ("rna_degradation", None, "kb"): 500,
-            ("rna_degradation", None, "kdeg"): 0.1,
+            ('transcription', None, 'ku'): 50,
+            ('transcription', None, 'kb'): 500,
+            ('transcription', None, 'ktx'): 0.1,
+            ('translation', None, 'ku'): 5,
+            ('translation', None, 'kb'): 500,
+            ('translation', None, 'ktl'): 0.1,
+            ('rna_degradation', None, 'ku'): 50,
+            ('rna_degradation', None, 'kb'): 500,
+            ('rna_degradation', None, 'kdeg'): 0.1,
         }
         BackgroundProcesses = DNAassembly(
-            name="cellular_processes",
-            promoter="average_promoter",
-            rbs="average_rbs",
+            name='cellular_processes',
+            promoter='average_promoter',
+            rbs='average_rbs',
             parameters=background_parameters,
         )
 
@@ -194,7 +198,7 @@ class TxTlDilutionMixture(Mixture):
 
         # Create Global Dilution Mechanisms
         dilution_mechanism = Dilution(
-            filter_dict={"dna": False, "machinery": False}, default_on=True
+            filter_dict={'dna': False, 'machinery': False}, default_on=True
         )
         mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
 
@@ -204,7 +208,7 @@ class TxTlDilutionMixture(Mixture):
             mech_cat.mechanism_type: mech_cat,
             mech_bind.mechanism_type: mech_bind,
             mech_rna_deg.mechanism_type: mech_rna_deg,
-            "dilution": dilution_mechanism,
+            'dilution': dilution_mechanism,
         }
 
         self.add_mechanisms(default_mechanisms)

@@ -17,12 +17,21 @@ from .compartment import Compartment
 
 class Mixture(object):
     def __init__(
-            self, name='', mechanisms=None, components=None, parameters=None,
-            compartment: Compartment=None, parameter_file=None,
-            overwrite_parameters=False, global_mechanisms=None, species=None,
-            initial_condition_dictionary=None,
-            global_component_enumerators=None,
-            global_recursion_depth=4, local_recursion_depth=None):
+        self,
+        name='',
+        mechanisms=None,
+        components=None,
+        parameters=None,
+        compartment: Compartment = None,
+        parameter_file=None,
+        overwrite_parameters=False,
+        global_mechanisms=None,
+        species=None,
+        initial_condition_dictionary=None,
+        global_component_enumerators=None,
+        global_recursion_depth=4,
+        local_recursion_depth=None,
+    ):
         """Mixture object holding components, mechanisms, and parameters.
 
         A Mixture object holds together all the components
@@ -51,8 +60,8 @@ class Mixture(object):
         # recursion depth for global component enumeration
         self.global_recursion_depth = global_recursion_depth
 
-        if (local_recursion_depth is None):
-            self.local_recursion_depth = self.global_recursion_depth+2
+        if local_recursion_depth is None:
+            self.local_recursion_depth = self.global_recursion_depth + 2
 
         # process the components
         if components is None and not hasattr(self, '_components'):
@@ -71,8 +80,9 @@ class Mixture(object):
         # components inside a mixture
         # Global mechanisms should be used rarely, and with care. An example
         # usecase is degradation via dilution.
-        if global_mechanisms is None and \
-           not hasattr(self, '_global_mechanisms'):
+        if global_mechanisms is None and not hasattr(
+            self, '_global_mechanisms'
+        ):
             self.global_mechanisms = {}
         elif global_mechanisms is not None:
             self.add_mechanisms(global_mechanisms)
@@ -88,14 +98,16 @@ class Mixture(object):
 
         # Create a paraemter database
         self.parameter_database = ParameterDatabase(
-            parameter_file=parameter_file, parameter_dictionary=parameters,
-            overwrite_parameters=overwrite_parameters)
+            parameter_file=parameter_file,
+            parameter_dictionary=parameters,
+            overwrite_parameters=overwrite_parameters,
+        )
 
         # CRN is stored here during compilation
         self.crn = None
 
     def add_species(self, species: Union[List[Species], Species]):
-        if not hasattr(self, "added_species"):
+        if not hasattr(self, 'added_species'):
             self.added_species = []
 
         if species is not None:
@@ -104,14 +116,18 @@ class Mixture(object):
             else:
                 species_list = species
 
-            assert all(isinstance(x, Species)
-                       for x in species_list), 'only Species type is accepted!'
+            assert all(
+                isinstance(x, Species) for x in species_list
+            ), 'only Species type is accepted!'
 
             self.added_species += species_list
 
     def set_species(
-            self, species: Union[Species, str], material_type=None,
-            attributes=None):
+        self,
+        species: Union[Species, str],
+        material_type=None,
+        attributes=None,
+    ):
         """Used to set internal species from strings, Species or Components
 
         :param species: name of a species or a species instance
@@ -123,16 +139,21 @@ class Mixture(object):
             return species
         elif isinstance(species, str):
             return Species(
-                name=species, material_type=material_type,
-                attributes=attributes)
-        elif isinstance(species, Component) and \
-             species.get_species() is not None:
+                name=species,
+                material_type=material_type,
+                attributes=attributes,
+            )
+        elif (
+            isinstance(species, Component)
+            and species.get_species() is not None
+        ):
             return species.get_species()
         else:
             raise ValueError(
-                "Invalid Species: string, chemical_reaction_network.Species "
-                "or Component with implemented .get_species() required as "
-                "input.")
+                'Invalid Species: string, chemical_reaction_network.Species '
+                'or Component with implemented .get_species() required as '
+                'input.'
+            )
 
     @property
     def components(self):
@@ -145,22 +166,26 @@ class Mixture(object):
 
     def add_component(self, component):
         """this function adds a single component to the mixture."""
-        if not hasattr(self, "_components"):
+        if not hasattr(self, '_components'):
             self.components = []
 
         if isinstance(component, list):
             self.add_components(component)
         else:
-            assert isinstance(component, Component), \
-                "the object: %s passed into mixture as component must " + \
-                "be of the class Component" % str(component)
+            assert isinstance(component, Component), (
+                'the object: %s passed into mixture as component must '
+                + 'be of the class Component' % str(component)
+            )
 
             # Check if component is already in self._components
             for comp in self._components:
-                if type(comp) == type(component) and \
-                comp.name == component.name:
+                if (
+                    type(comp) == type(component)
+                    and comp.name == component.name
+                ):
                     raise ValueError(
-                        f"{comp} of the same type and name already in Mixture!")
+                        f'{comp} of the same type and name already in Mixture!'
+                    )
             else:
                 # Components are copied before being added to Mixtures
                 component_copy = copy.deepcopy(component)
@@ -175,7 +200,8 @@ class Mixture(object):
         """
         if not isinstance(mechanism_type, str):
             raise TypeError(
-                f"mechanism_type must be a string. Recievied {mechanism_type}.")
+                f'mechanism_type must be a string. Recievied {mechanism_type}.'
+            )
 
         if mechanism_type in self.mechanisms:
             return self.mechanisms[mechanism_type]
@@ -183,8 +209,7 @@ class Mixture(object):
             return None
 
     def add_components(self, components: Union[List[Component], Component]):
-        """This function adds a list of components to the mixture.
-        """
+        """This function adds a list of components to the mixture."""
         if isinstance(components, Component):
             self.add_component(components)
         elif isinstance(components, List):
@@ -192,8 +217,9 @@ class Mixture(object):
                 self.add_component(component)
         else:
             raise ValueError(
-                f"add_components expected a list of Components. "
-                f"Received {components}")
+                f'add_components expected a list of Components. '
+                f'Received {components}'
+            )
 
     def get_component(self, component=None, name=None, index=None):
         """Function to get components from Mixture._components.
@@ -209,15 +235,17 @@ class Mixture(object):
         """
         if [component, name, index].count(None) != 2:
             raise ValueError(
-                f"get_component requires a single keyword. "
-                f"Received component={component}, name={name}, index={index}.")
+                f'get_component requires a single keyword. '
+                f'Received component={component}, name={name}, index={index}.'
+            )
         if not (isinstance(component, Component) or component is None):
             raise ValueError(
-                f"component must be of type Component. Received {component}.")
+                f'component must be of type Component. Received {component}.'
+            )
         if not (isinstance(name, str) or name is None):
-            raise ValueError(f"name must be of type str. Received {name}.")
+            raise ValueError(f'name must be of type str. Received {name}.')
         if not (isinstance(index, int) or index is None):
-            raise ValueError(f"index must be of type int. Received {index}.")
+            raise ValueError(f'index must be of type int. Received {index}.')
 
         matches = []
         if index is not None:
@@ -225,8 +253,10 @@ class Mixture(object):
         else:
             for comp in self.components:
                 if component is not None:
-                    if type(comp) == type(component) and \
-                       comp.name == component.name:
+                    if (
+                        type(comp) == type(component)
+                        and comp.name == component.name
+                    ):
                         matches.append(comp)
                 elif name is not None:
                     if comp.name == name:
@@ -237,8 +267,9 @@ class Mixture(object):
             return matches[0]
         else:
             warn(
-                "get_component found multiple matching components. "
-                "A list has been returned.")
+                'get_component found multiple matching components. '
+                'A list has been returned.'
+            )
             return matches
 
     @property
@@ -263,26 +294,29 @@ class Mixture(object):
             the same type (default False)
         :return:
         """
-        if not hasattr(self, "_mechanisms"):
+        if not hasattr(self, '_mechanisms'):
             self._mechanisms = {}
 
         if not isinstance(mechanism, Mechanism):
             raise TypeError(
-                f"mechanism must be a Mechanism. Received {mechanism}.")
+                f'mechanism must be a Mechanism. Received {mechanism}.'
+            )
 
         if mech_type is None:
             mech_type = mechanism.mechanism_type
         if not isinstance(mech_type, str):
             raise TypeError(
-                f"mechanism keys must be strings. Received {mech_type}")
+                f'mechanism keys must be strings. Received {mech_type}'
+            )
 
         if isinstance(mechanism, GlobalMechanism):
             self.add_global_mechanism(mechanism, mech_type, overwrite)
         elif isinstance(mechanism, Mechanism):
             if mech_type in self._mechanisms and not overwrite:
                 raise ValueError(
-                    f"mech_type {mech_type} already in Mixture {self}. "
-                    f"To overwrite, use keyword overwrite = True.")
+                    f'mech_type {mech_type} already in Mixture {self}. '
+                    f'To overwrite, use keyword overwrite = True.'
+                )
             else:
                 self._mechanisms[mech_type] = copy.deepcopy(mechanism)
 
@@ -303,14 +337,16 @@ class Mixture(object):
         elif isinstance(mechanisms, dict):
             for mech_type in mechanisms:
                 self.add_mechanism(
-                    mechanisms[mech_type], mech_type, overwrite=overwrite)
+                    mechanisms[mech_type], mech_type, overwrite=overwrite
+                )
         elif isinstance(mechanisms, list):
             for mech in mechanisms:
                 self.add_mechanism(mech, overwrite=overwrite)
         else:
             raise ValueError(
-                f"add_mechanisms expected a list of Mechanisms. "
-                f"Recieved {mechanisms}")
+                f'add_mechanisms expected a list of Mechanisms. '
+                f'Recieved {mechanisms}'
+            )
 
     @property
     def global_mechanisms(self):
@@ -323,12 +359,15 @@ class Mixture(object):
         if isinstance(mechanisms, dict):
             for mech_type in mechanisms:
                 self.add_global_mechanism(
-                    mechanisms[mech_type], mech_type, overwrite=True)
+                    mechanisms[mech_type], mech_type, overwrite=True
+                )
         elif isinstance(mechanisms, list):
             for mech in mechanisms:
                 self.add_global_mechanism(mech, overwrite=True)
 
-    def add_global_mechanism(self, mechanism, mech_type=None, overwrite=False):
+    def add_global_mechanism(
+        self, mechanism, mech_type=None, overwrite=False
+    ):
         """Add a global mechanism to the mixture.
 
         Adds a mechanism of type mech_type to the Mixture
@@ -342,44 +381,51 @@ class Mixture(object):
              type (default False)
 
         """
-        if not hasattr(self, "_global_mechanisms"):
+        if not hasattr(self, '_global_mechanisms'):
             self._global_mechanisms = {}
 
         if not isinstance(mechanism, GlobalMechanism):
             raise TypeError(
-                f"mechanism must be a GlobalMechanism. Recieved {mechanism}.")
+                f'mechanism must be a GlobalMechanism. Recieved {mechanism}.'
+            )
 
         if mech_type is None:
             mech_type = mechanism.mechanism_type
         if not isinstance(mech_type, str):
             raise TypeError(
-                f"mechanism keys must be strings. Recieved {mech_type}")
+                f'mechanism keys must be strings. Recieved {mech_type}'
+            )
 
         if mech_type in self._mechanisms and not overwrite:
             raise ValueError(
-                f"mech_type {mech_type} already in Mixture {self}. "
-                f"To overwrite, use keyword overwrite = True.")
+                f'mech_type {mech_type} already in Mixture {self}. '
+                f'To overwrite, use keyword overwrite = True.'
+            )
         else:
             self._global_mechanisms[mech_type] = copy.deepcopy(mechanism)
 
     def update_parameters(
-            self, parameter_file=None, parameters=None,
-            overwrite_parameters=True):
+        self, parameter_file=None, parameters=None, overwrite_parameters=True
+    ):
         if parameter_file is not None:
             self.parameter_database.load_parameters_from_file(
-                parameter_file, overwrite_parameters=overwrite_parameters)
+                parameter_file, overwrite_parameters=overwrite_parameters
+            )
 
         if parameters is not None:
             self.parameter_database.load_parameters_from_dictionary(
-                parameters, overwrite_parameters=overwrite_parameters)
+                parameters, overwrite_parameters=overwrite_parameters
+            )
 
     def get_parameter(self, mechanism, part_id, param_name):
         param = self.parameter_database.find_parameter(
-            mechanism, part_id, param_name)
+            mechanism, part_id, param_name
+        )
         return param
 
     def get_initial_concentration(
-            self, S: Union[List, Species], component=None):
+        self, S: Union[List, Species], component=None
+    ):
         """Get initial concentration.
 
         Tries to find an initial condition of species s using the
@@ -414,39 +460,59 @@ class Mixture(object):
         for s in S:
             if not isinstance(s, Species):
                 raise ValueError(
-                    f"{s} is not a Species! Can only find initial "
-                    f"concentration of a Species.")
+                    f'{s} is not a Species! Can only find initial '
+                    f'concentration of a Species.'
+                )
             init_conc = None
             # 1 Check the component
             if component is not None:
                 init_conc = component.get_parameter(
-                    param_name=str(s), part_id=self.name,
-                    mechanism="initial concentration",
-                    check_mixture=False, return_none=True)
+                    param_name=str(s),
+                    part_id=self.name,
+                    mechanism='initial concentration',
+                    check_mixture=False,
+                    return_none=True,
+                )
                 if init_conc is None:
                     init_conc = component.get_parameter(
-                        param_name=s.name, part_id=self.name,
-                        mechanism="initial concentration",
-                        check_mixture=False, return_none=True)
+                        param_name=s.name,
+                        part_id=self.name,
+                        mechanism='initial concentration',
+                        check_mixture=False,
+                        return_none=True,
+                    )
                 if init_conc is None and component.get_species() == s:
                     init_conc = component.get_parameter(
-                        param_name=component.name, part_id=self.name,
-                        mechanism="initial concentration",
-                        check_mixture=False, return_none=True)
+                        param_name=component.name,
+                        part_id=self.name,
+                        mechanism='initial concentration',
+                        check_mixture=False,
+                        return_none=True,
+                    )
 
             # 2 Check self
             if init_conc is None:
                 init_conc = self.get_parameter(
-                    param_name=str(s), part_id=self.name,
-                    mechanism="initial concentration")
+                    param_name=str(s),
+                    part_id=self.name,
+                    mechanism='initial concentration',
+                )
                 if init_conc is None:
                     init_conc = self.get_parameter(
-                        param_name=s.name, part_id=self.name,
-                        mechanism="initial concentration")
-                if init_conc is None and component is not None and component.get_species() == s:
+                        param_name=s.name,
+                        part_id=self.name,
+                        mechanism='initial concentration',
+                    )
+                if (
+                    init_conc is None
+                    and component is not None
+                    and component.get_species() == s
+                ):
                     init_conc = self.get_parameter(
-                        param_name=component.name, part_id=self.name,
-                        mechanism="initial concentration")
+                        param_name=component.name,
+                        part_id=self.name,
+                        mechanism='initial concentration',
+                    )
 
             if init_conc is None:
                 init_conc = 0
@@ -456,9 +522,13 @@ class Mixture(object):
         return init_conc_dict
 
     def add_species_to_crn(
-            self, new_species, component=None, no_initial_concentrations=False,
-            copy_species=True, compartment=None):
-
+        self,
+        new_species,
+        component=None,
+        no_initial_concentrations=False,
+        copy_species=True,
+        compartment=None,
+    ):
         if self.crn is None:
             self.crn = ChemicalReactionNetwork(species=[], reactions=[])
 
@@ -470,8 +540,8 @@ class Mixture(object):
         # 2) add (deep-copied) new_species into the CRN, with
         # compartment override
         all_species = self.crn.add_species(
-            new_species, copy_species=copy_species,
-            compartment=compartment)
+            new_species, copy_species=copy_species, compartment=compartment
+        )
 
         # 3) compute which Species objects we just inserted
         after = set(self.crn._species_set)
@@ -481,8 +551,9 @@ class Mixture(object):
         if not no_initial_concentrations and just_added:
             ic_dict = self.get_initial_concentration(just_added, component)
             # merge into any existing initial_concentration_dict
-            existing = getattr(
-                self.crn, "initial_concentration_dict", {}) or {}
+            existing = (
+                getattr(self.crn, 'initial_concentration_dict', {}) or {}
+            )
             existing.update(ic_dict)
             self.crn.initial_concentration_dict = existing
 
@@ -495,9 +566,10 @@ class Mixture(object):
         #     init_conc_dict = self.get_initial_concentration(
         #         remove_bindloc(new_species), component)
         #     self.crn.initial_concentration_dict = init_conc_dict
+
     def apply_global_mechanisms(
-            self, species, compartment=None) -> Tuple[List[Species],
-                                                      List[Reaction]]:
+        self, species, compartment=None
+    ) -> Tuple[List[Species], List[Reaction]]:
         # update with global mechanisms
 
         global_mech_species = []
@@ -505,27 +577,27 @@ class Mixture(object):
         if self.global_mechanisms:
             for mech in self.global_mechanisms:
                 # Update Global Mechanisms
-                global_mech_species += \
-                    self.global_mechanisms[mech].update_species_global(
-                    species, self, compartment)
-                global_mech_reactions += \
-                    self.global_mechanisms[mech].update_reactions_global(
-                        species, self, compartment)
+                global_mech_species += self.global_mechanisms[
+                    mech
+                ].update_species_global(species, self, compartment)
+                global_mech_reactions += self.global_mechanisms[
+                    mech
+                ].update_reactions_global(species, self, compartment)
 
         self.add_species_to_crn(
-            global_mech_species,
-            component=None, compartment=compartment)
+            global_mech_species, component=None, compartment=compartment
+        )
         self.crn.add_reactions(global_mech_reactions, compartment=compartment)
         return global_mech_species, global_mech_reactions
 
     def component_enumeration(
-            self, comps_to_enumerate=None, recursion_depth=10) -> \
-            List[Component]:
+        self, comps_to_enumerate=None, recursion_depth=10
+    ) -> List[Component]:
         # Components that produce components through Component Enumeration
 
         all_components = []
         new_components = []
-        if (comps_to_enumerate is None):
+        if comps_to_enumerate is None:
             comps_to_enumerate = list(self.components)
 
         if recursion_depth == 0:
@@ -537,32 +609,36 @@ class Mixture(object):
                     component.set_mixture(self)
                     component.compartment = self.compartment
                     enumerated = component.enumerate_components(
-                        previously_enumerated=all_components + new_components)
+                        previously_enumerated=all_components + new_components
+                    )
                     new_components += enumerated
 
                 all_components += comps_to_enumerate
                 comps_to_enumerate = list(new_components)
                 new_components = []
 
-        if (len(comps_to_enumerate) > 0):
-            warn("Mixture was left with unenumerated components " +
-                 str(', '.join([str(c) for c in comps_to_enumerate])))
+        if len(comps_to_enumerate) > 0:
+            warn(
+                'Mixture was left with unenumerated components '
+                + str(', '.join([str(c) for c in comps_to_enumerate]))
+            )
         return all_components
 
     def global_component_enumeration(
-            self, comps_to_enumerate=None, recursion_depth=None) -> \
-            List[Component]:
+        self, comps_to_enumerate=None, recursion_depth=None
+    ) -> List[Component]:
         """components that produce other components infinitely"""
-        if (recursion_depth is None):
+        if recursion_depth is None:
             recursion_depth = self.global_recursion_depth
 
-        if (comps_to_enumerate is None):
+        if comps_to_enumerate is None:
             # these go into the ComponentEnuemrators
             comps_to_enumerate = list(self.components)
 
         # Recursion depth
         enumerated_components = list(
-            comps_to_enumerate)  # These will be returned
+            comps_to_enumerate
+        )  # These will be returned
         for global_enumerator in self.global_component_enumerators:
             # reset the enumeration if there's any stored info
             global_enumerator.reset(enumerated_components)
@@ -575,12 +651,15 @@ class Mixture(object):
                 enumerated = global_enumerator.enumerate_components(
                     comps_to_enumerate,
                     # this should be only NEWLY CREATED components
-                    previously_enumerated=enumerated_components)
+                    previously_enumerated=enumerated_components,
+                )
                 for c in enumerated:
                     # These components are passed into the enumerator
                     # next recursion
-                    if c not in new_comps_to_enumerate and \
-                       c not in comps_to_enumerate:
+                    if (
+                        c not in new_comps_to_enumerate
+                        and c not in comps_to_enumerate
+                    ):
                         new_comps_to_enumerate.append(c)
 
                     # These components are returend
@@ -592,15 +671,16 @@ class Mixture(object):
 
         return enumerated_components
 
-    def compile_crn(self,
-                    recursion_depth: int = None,
-                    initial_concentration_dict: dict = None,
-                    return_enumerated_components: bool = False,
-                    initial_concentrations_at_end: bool = False,
-                    copy_objects: bool = True,
-                    add_reaction_species: bool = True,
-                    compartment: Compartment = None
-                    ) -> ChemicalReactionNetwork:
+    def compile_crn(
+        self,
+        recursion_depth: int = None,
+        initial_concentration_dict: dict = None,
+        return_enumerated_components: bool = False,
+        initial_concentrations_at_end: bool = False,
+        copy_objects: bool = True,
+        add_reaction_species: bool = True,
+        compartment: Compartment = None,
+    ) -> ChemicalReactionNetwork:
         """
         Creates a chemical reaction network from the species
         and reactions associated with a mixture object (with compartment).
@@ -623,7 +703,7 @@ class Mixture(object):
         """
         resetwarnings()
 
-        if compartment is None and hasattr(self, "compartment"):
+        if compartment is None and hasattr(self, 'compartment'):
             compartment = self.compartment
 
         self.crn = ChemicalReactionNetwork([], [])
@@ -642,8 +722,11 @@ class Mixture(object):
             new = []
             for s in flat:
                 # retag any default compartment on the candidate itself
-                if compartment and getattr(s, "compartment", None) and \
-                   s.compartment.name == "default":
+                if (
+                    compartment
+                    and getattr(s, 'compartment', None)
+                    and s.compartment.name == 'default'
+                ):
                     s.compartment = compartment
 
                 # use __eq__ to check if already in existing_list
@@ -659,17 +742,17 @@ class Mixture(object):
                 component=None,
                 no_initial_concentrations=initial_concentrations_at_end,
                 copy_species=copy_objects,
-                compartment=compartment
+                compartment=compartment,
             )
 
         # enumerate components
         if recursion_depth is None:
             recursion_depth = self.global_recursion_depth
         global_comps = self.global_component_enumeration(
-            recursion_depth=recursion_depth)
+            recursion_depth=recursion_depth
+        )
         enumerated = self.component_enumeration(
-            global_comps,
-            recursion_depth=self.local_recursion_depth
+            global_comps, recursion_depth=self.local_recursion_depth
         )
 
         for comp in enumerated:
@@ -690,7 +773,7 @@ class Mixture(object):
                     component=comp,
                     no_initial_concentrations=initial_concentrations_at_end,
                     copy_species=copy_objects,
-                    compartment=compartment
+                    compartment=compartment,
                 )
 
         # component reactions & their species
@@ -700,20 +783,26 @@ class Mixture(object):
                 rxns,
                 copy_reactions=copy_objects,
                 add_species=False,
-                compartment=compartment
+                compartment=compartment,
             )
 
             # retag species with compartments inside these new reactions
-            new_rxns = self.crn._reactions[-len(rxns):]
+            new_rxns = self.crn._reactions[-len(rxns) :]
             for r in new_rxns:
-                for w in (r.inputs + r.outputs):
-                    if compartment and w.species.compartment.name == "default":
+                for w in r.inputs + r.outputs:
+                    if (
+                        compartment
+                        and w.species.compartment.name == 'default'
+                    ):
                         w.species.compartment = compartment
 
             # collect & add only new species
             if add_reaction_species:
                 participants = [
-                    w.species for r in new_rxns for w in (r.inputs + r.outputs)]
+                    w.species
+                    for r in new_rxns
+                    for w in (r.inputs + r.outputs)
+                ]
                 existing = list(self.crn._species_set)
                 fresh = _filter_new_by_eq(participants, existing)
                 if fresh:
@@ -722,17 +811,20 @@ class Mixture(object):
                         component=comp,
                         no_initial_concentrations=initial_concentrations_at_end,
                         copy_species=copy_objects,
-                        compartment=compartment
+                        compartment=compartment,
                     )
 
         # global mechanisms
         global_sp, global_rxns = [], []
         for mech in self.global_mechanisms.values():
             global_sp.extend(
-                mech.update_species_global(list(self.crn._species_set), self))
+                mech.update_species_global(list(self.crn._species_set), self)
+            )
             global_rxns.extend(
                 mech.update_reactions_global(
-                    list(self.crn._species_set), self))
+                    list(self.crn._species_set), self
+                )
+            )
 
         if global_sp:
             existing = list(self.crn._species_set)
@@ -743,7 +835,7 @@ class Mixture(object):
                     component=None,
                     no_initial_concentrations=initial_concentrations_at_end,
                     copy_species=copy_objects,
-                    compartment=compartment
+                    compartment=compartment,
                 )
 
         if global_rxns:
@@ -751,17 +843,21 @@ class Mixture(object):
                 global_rxns,
                 copy_reactions=copy_objects,
                 add_species=False,
-                compartment=compartment
+                compartment=compartment,
             )
-            new_grx = self.crn._reactions[-len(global_rxns):]
+            new_grx = self.crn._reactions[-len(global_rxns) :]
             for r in new_grx:
-                for w in (r.inputs + r.outputs):
-                    if compartment and w.species.compartment.name == "default":
+                for w in r.inputs + r.outputs:
+                    if (
+                        compartment
+                        and w.species.compartment.name == 'default'
+                    ):
                         w.species.compartment = compartment
 
             if add_reaction_species:
                 participants = [
-                    w.species for r in new_grx for w in (r.inputs + r.outputs)]
+                    w.species for r in new_grx for w in (r.inputs + r.outputs)
+                ]
                 existing = list(self.crn._species_set)
                 fresh = _filter_new_by_eq(participants, existing)
                 if fresh:
@@ -770,14 +866,15 @@ class Mixture(object):
                         component=None,
                         no_initial_concentrations=initial_concentrations_at_end,
                         copy_species=copy_objects,
-                        compartment=compartment
+                        compartment=compartment,
                     )
 
         # initial‐conc handling
         if initial_concentrations_at_end:
-            self.crn.initial_concentration_dict = \
+            self.crn.initial_concentration_dict = (
                 self.get_initial_concentration(
                     list(self.crn._species_set), component=None
+                )
             )
         if initial_concentration_dict is not None:
             self.crn.initial_concentration_dict = initial_concentration_dict
@@ -791,18 +888,18 @@ class Mixture(object):
         return type(self).__name__ + ': ' + self.name
 
     def __repr__(self):
-        txt = str(self)+"\n"
+        txt = str(self) + '\n'
         if self.components:
-            txt += "Components = ["
+            txt += 'Components = ['
             for comp in self.components:
-                txt += "\n\t"+str(comp)
+                txt += '\n\t' + str(comp)
         if self.mechanisms:
-            txt += " ]\nMechanisms = {"
+            txt += ' ]\nMechanisms = {'
             for mech in self.mechanisms:
-                txt += "\n\t"+mech+":"+self.mechanisms[mech].name
+                txt += '\n\t' + mech + ':' + self.mechanisms[mech].name
         if self.global_mechanisms:
-            txt += " }\nGlobal Mechanisms = {"
+            txt += ' }\nGlobal Mechanisms = {'
             for mech in self.global_mechanisms:
-                txt += "\n\t"+mech+":"+self.global_mechanisms[mech].name
-        txt += " }"
+                txt += '\n\t' + mech + ':' + self.global_mechanisms[mech].name
+        txt += ' }'
         return txt

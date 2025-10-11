@@ -12,6 +12,7 @@
 #
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath('..'))
 
 
@@ -19,7 +20,9 @@ sys.path.insert(0, os.path.abspath('..'))
 
 project = 'BioCRNPyler'
 copyright = '2025, Build-a-Cell'
-author = 'William Poole, Ayush Pandey, Andrey Shur, Zoltan Tuza, Richard M. Murray'
+author = (
+    'William Poole, Ayush Pandey, Andrey Shur, Zoltan Tuza, Richard M. Murray'
+)
 
 # Import the package
 import biocrnpyler
@@ -42,10 +45,15 @@ version = ".".join(release.split(".", 2)[:2])
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc', 'sphinx.ext.linkcode', 'sphinx.ext.doctest',
-    'sphinx.ext.autosummary', 'sphinx_copybutton', 'sphinx_toggleprompt',
-    'nbsphinx', 'nbsphinx_link',
-    'recommonmark'
+    'sphinx.ext.autodoc',
+    'sphinx.ext.linkcode',
+    'sphinx.ext.doctest',
+    'sphinx.ext.autosummary',
+    'sphinx_copybutton',
+    'sphinx_toggleprompt',
+    'nbsphinx',
+    'nbsphinx_link',
+    'recommonmark',
 ]
 
 source_suffix = ['.rst']
@@ -58,7 +66,7 @@ autosummary_generate = True
 autodoc_default_options = {
     'members': True,
     'inherited-members': True,
-    'exclude-members': '__init__, __weakref__, __repr__, __str__'
+    'exclude-members': '__init__, __weakref__, __repr__, __str__',
 }
 
 # For classes, include both the class docstring and the init docstring
@@ -84,7 +92,7 @@ html_theme = 'sphinx_rtd_theme'
 default_role = 'py:obj'
 
 # Skip prompts when using copy button
-copybutton_prompt_text = r">>> |\.\.\. "
+copybutton_prompt_text = r'>>> |\.\.\. '
 copybutton_prompt_is_regexp = True
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -100,6 +108,7 @@ html_css_files = ['css/custom.css']
 
 import inspect
 from os.path import relpath, dirname
+
 
 def linkcode_resolve(domain, info):
     """
@@ -146,7 +155,7 @@ def linkcode_resolve(domain, info):
 
     # Ignore re-exports as their source files are not within the numpy repo
     module = inspect.getmodule(obj)
-    if module is not None and not module.__name__.startswith("biocrnpyler"):
+    if module is not None and not module.__name__.startswith('biocrnpyler'):
         # print("module is not None but doesnt start with biocrnpyler")
         return None
 
@@ -158,17 +167,17 @@ def linkcode_resolve(domain, info):
     fn = relpath(fn, start=dirname(biocrnpyler.__file__))
 
     if lineno:
-        linespec = "#L%d-L%d" % (lineno, lineno + len(source) - 1)
+        linespec = '#L%d-L%d' % (lineno, lineno + len(source) - 1)
     else:
-        linespec = ""
+        linespec = ''
 
     base_url = "https://github.com/BuildACell/BioCRNPyler/blob/"
     if release != version:      # development release
         # TODO: replace 'refactor-modules' with 'master' -> replaced with main
         # print("  --> ", base_url + "refactor-modules/control/%s%s" % (fn, linespec))
-        return base_url + "main/biocrnpyler/%s%s" % (fn, linespec)
+        return base_url + 'main/biocrnpyler/%s%s' % (fn, linespec)
     else:                       # specific version
-        return base_url + "%s/biocrnpyler/%s%s" % (version, fn, linespec)
+        return base_url + '%s/biocrnpyler/%s%s' % (version, fn, linespec)
 
 # -- Options for doctest ----------------------------------------------
 
@@ -177,4 +186,3 @@ doctest_global_setup = """
 import numpy as np
 import biocrnpyler as bcp
 """
-    

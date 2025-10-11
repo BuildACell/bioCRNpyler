@@ -21,13 +21,13 @@ def all_comb(input_list):
 
 
 def rev_dir(dir):
-    reversedict = {"forward": "reverse", "reverse": "forward"}
+    reversedict = {'forward': 'reverse', 'reverse': 'forward'}
     return reversedict[dir]
 
 
 def recursive_parent(s):
     # Recursively goes through Species and gets the top level parent
-    if hasattr(s, "parent") and s.parent is not None:
+    if hasattr(s, 'parent') and s.parent is not None:
         return recursive_parent(s.parent)
     else:
         return s
@@ -101,38 +101,46 @@ def member_dictionary_search(member, dictionary):
         return None
     elif repr(member) in dictionary:
         return dictionary[repr(member)]
-    elif hasattr(member, "name") and member.name in dictionary:
+    elif hasattr(member, 'name') and member.name in dictionary:
         return dictionary[member.name]
     elif (
-        hasattr(member, "integrase")
-        and hasattr(member, "site_type")
+        hasattr(member, 'integrase')
+        and hasattr(member, 'site_type')
         and (str(member.integrase.name), member.site_type) in dictionary
     ):
         return dictionary[(str(member.integrase.name), member.site_type)]
-    elif hasattr(member, "site_type") and member.site_type in dictionary:
+    elif hasattr(member, 'site_type') and member.site_type in dictionary:
         return dictionary[member.site_type]
-    elif hasattr(member, "assembly"):
+    elif hasattr(member, 'assembly'):
         typename = type(member).__name__
         if typename in dictionary:
             return dictionary[typename]
     elif (
-        hasattr(member, "material_type")
-        and hasattr(member, "attributes")
+        hasattr(member, 'material_type')
+        and hasattr(member, 'attributes')
         and (member.material_type, tuple(member.attributes)) in dictionary
     ):
         return dictionary[(member.material_type, tuple(member.attributes))]
-    elif hasattr(member, "material_type") and member.material_type in dictionary:
+    elif (
+        hasattr(member, 'material_type')
+        and member.material_type in dictionary
+    ):
         return dictionary[member.material_type]
-    elif hasattr(member, "attributes") and tuple(member.attributes) in dictionary:
+    elif (
+        hasattr(member, 'attributes')
+        and tuple(member.attributes) in dictionary
+    ):
         return dictionary[tuple(member.attributes)]
-    elif hasattr(member, "propensity_type"):
+    elif hasattr(member, 'propensity_type'):
         out_value = None
         try:
-            for k, p in member.propensity_type.propensity_dict["parameters"].items():
-                if hasattr(p, "search_key"):
-                    mech_str = repr(p.search_key.mechanism).strip("'\"")
-                    partid_str = repr(p.search_key.part_id).strip("'\"")
-                    name_str = repr(p.search_key.name).strip("'\"")
+            for k, p in member.propensity_type.propensity_dict[
+                'parameters'
+            ].items():
+                if hasattr(p, 'search_key'):
+                    mech_str = repr(p.search_key.mechanism).strip('\'"')
+                    partid_str = repr(p.search_key.part_id).strip('\'"')
+                    name_str = repr(p.search_key.name).strip('\'"')
                     cur_value = out_value
                     if name_str in dictionary:
                         # name of the mechanism that made the reaction
@@ -145,7 +153,7 @@ def member_dictionary_search(member, dictionary):
                         cur_value = dictionary[mech_str]
                     if out_value is not None and cur_value != out_value:
                         warn(
-                            f"dictionary search output was {out_value} but now it will be {cur_value}"
+                            f'dictionary search output was {out_value} but now it will be {cur_value}'
                         )
                     out_value = cur_value
         except KeyError:

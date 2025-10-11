@@ -27,7 +27,7 @@ class ExpressionExtract(Mixture):
     Here transcription and Translation are lumped into one reaction: expression.
     """
 
-    def __init__(self, name="", **kwargs):
+    def __init__(self, name='', **kwargs):
         """Initializes an ExpressionExtract instance.
 
         :param name: name of the mixture
@@ -38,7 +38,7 @@ class ExpressionExtract(Mixture):
 
         # Create default Expression Mechanisms
         dummy_translation = EmptyMechanism(
-            name="dummy_translation", mechanism_type="translation"
+            name='dummy_translation', mechanism_type='translation'
         )
         mech_expression = OneStepGeneExpression()
         mech_cat = BasicCatalysis()
@@ -78,7 +78,8 @@ class SimpleTxTlExtract(Mixture):
     RNA is degraded via a global mechanism.
 
     """
-    def __init__(self, name="", **kwargs):
+
+    def __init__(self, name='', **kwargs):
         """Initializes a SimpleTxTlExtract instance.
 
         :param name: name of the mixture
@@ -103,9 +104,11 @@ class SimpleTxTlExtract(Mixture):
 
         # global mechanisms for dilution and rna degradation
         mech_rna_deg_global = Dilution(
-            name="rna_degradation", filter_dict={"rna": True}, default_on=False
+            name='rna_degradation',
+            filter_dict={'rna': True},
+            default_on=False,
         )
-        global_mechanisms = {"rna_degradation": mech_rna_deg_global}
+        global_mechanisms = {'rna_degradation': mech_rna_deg_global}
         self.add_mechanisms(global_mechanisms)
 
 
@@ -118,7 +121,7 @@ class TxTlExtract(Mixture):
     """
 
     def __init__(
-        self, name="", rnap="RNAP", ribosome="Ribo", rnaase="RNAase", **kwargs
+        self, name='', rnap='RNAP', ribosome='Ribo', rnaase='RNAase', **kwargs
     ):
         """Initializes a TxTlExtract instance.
 
@@ -173,14 +176,14 @@ class EnergyTxTlExtract(Mixture):
 
     def __init__(
         self,
-        name="",
-        rnap="RNAP",
-        ribosome="Ribo",
-        rnaase="RNAase",
-        ntps="NTPs",
-        ndps="NDPs",
-        amino_acids="amino_acids",
-        fuel="Fuel_3PGA",
+        name='',
+        rnap='RNAP',
+        ribosome='Ribo',
+        rnaase='RNAase',
+        ntps='NTPs',
+        ndps='NDPs',
+        amino_acids='amino_acids',
+        fuel='Fuel_3PGA',
         **kwargs,
     ):
         """
@@ -228,13 +231,14 @@ class EnergyTxTlExtract(Mixture):
 
         # Create default TxTl Mechanisms
         mech_tx = Energy_Transcription_MM(
-            rnap=self.rnap.get_species(), fuels=[self.ntps.get_species()],
-            wastes=[]
+            rnap=self.rnap.get_species(),
+            fuels=[self.ntps.get_species()],
+            wastes=[],
         )
         mech_tl = Energy_Translation_MM(
             ribosome=self.ribosome.get_species(),
-            fuels=4 * [self.ntps.get_species()] + \
-                [self.amino_acids.get_species()],
+            fuels=4 * [self.ntps.get_species()]
+            + [self.amino_acids.get_species()],
             wastes=4 * [self.ndps.get_species()],
         )
         mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())

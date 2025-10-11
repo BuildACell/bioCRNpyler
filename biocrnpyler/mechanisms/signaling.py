@@ -1,4 +1,3 @@
-
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
@@ -17,14 +16,26 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
     Mechanism for the dephosphorylation of phosphoryled response protein: RP* --> RP + Pi
     """
 
-    def __init__(self, name="two_component_membrane_signaling",
-                 mechanism_type="membrane_sensor", **keywords):
+    def __init__(
+        self,
+        name='two_component_membrane_signaling',
+        mechanism_type='membrane_sensor',
+        **keywords,
+    ):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, membrane_sensor_protein, response_protein, assigned_substrate,
-                       signal_substrate, product, energy, waste, complex_dict=None,
-                       **keywords):
-
+    def update_species(
+        self,
+        membrane_sensor_protein,
+        response_protein,
+        assigned_substrate,
+        signal_substrate,
+        product,
+        energy,
+        waste,
+        complex_dict=None,
+        **keywords,
+    ):
         nATP = membrane_sensor_protein.ATP
 
         if complex_dict is None:
@@ -33,61 +44,105 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
             # Complex1
             complex_dict['Activated_MSP'] = Complex(
                 [signal_substrate, membrane_sensor_protein],
-                compartment=membrane_sensor_protein.compartment)
+                compartment=membrane_sensor_protein.compartment,
+            )
             # Complex2
             complex_dict['ATP:Activated_MSP'] = Complex(
-                [nATP*[energy], complex_dict['Activated_MSP']],
-                compartment=membrane_sensor_protein.compartment)
+                [nATP * [energy], complex_dict['Activated_MSP']],
+                compartment=membrane_sensor_protein.compartment,
+            )
             # Complex3
             complex_dict['ADP:Activated_MSP:Sub'] = Complex(
-                [complex_dict['Activated_MSP'], nATP*[waste], assigned_substrate],
-                compartment=membrane_sensor_protein.compartment)
+                [
+                    complex_dict['Activated_MSP'],
+                    nATP * [waste],
+                    assigned_substrate,
+                ],
+                compartment=membrane_sensor_protein.compartment,
+            )
             # Complex4
             complex_dict['Activated_MSP:Sub'] = Complex(
                 [complex_dict['Activated_MSP'], assigned_substrate],
-                compartment=membrane_sensor_protein.compartment)
+                compartment=membrane_sensor_protein.compartment,
+            )
             # Complex5
             complex_dict['Activated_MSP:Sub:RP'] = Complex(
                 [complex_dict['Activated_MSP:Sub'], response_protein],
-                compartment=membrane_sensor_protein.compartment)
+                compartment=membrane_sensor_protein.compartment,
+            )
             # Complex6
             complex_dict['Activated_MSP:RP:Sub'] = Complex(
-                [complex_dict['Activated_MSP'], response_protein, assigned_substrate],
-                compartment=membrane_sensor_protein.compartment)
+                [
+                    complex_dict['Activated_MSP'],
+                    response_protein,
+                    assigned_substrate,
+                ],
+                compartment=membrane_sensor_protein.compartment,
+            )
 
         # Make dictionary into array
         complex_array = [value for value in complex_dict.values()]
 
-        return [membrane_sensor_protein, response_protein, assigned_substrate, signal_substrate, energy, waste, complex_array]
+        return [
+            membrane_sensor_protein,
+            response_protein,
+            assigned_substrate,
+            signal_substrate,
+            energy,
+            waste,
+            complex_array,
+        ]
 
-    def update_reactions(self, membrane_sensor_protein, response_protein, assigned_substrate,
-                         signal_substrate, product, energy, waste, complex_dict=None,
-                         component=None, part_id=None, **keywords):
+    def update_reactions(
+        self,
+        membrane_sensor_protein,
+        response_protein,
+        assigned_substrate,
+        signal_substrate,
+        product,
+        energy,
+        waste,
+        complex_dict=None,
+        component=None,
+        part_id=None,
+        **keywords,
+    ):
         """This always requires the inputs component and part_id to find the relevant parameters"""
 
         # Get Parameters
         kb_sigMS = component.get_parameter(
-            "kb_sigMS", part_id=part_id, mechanism=self)
+            'kb_sigMS', part_id=part_id, mechanism=self
+        )
         ku_sigMS = component.get_parameter(
-            "ku_sigMS", part_id=part_id, mechanism=self)
+            'ku_sigMS', part_id=part_id, mechanism=self
+        )
         kb_autoPhos = component.get_parameter(
-            "kb_autoPhos", part_id=part_id, mechanism=self)
+            'kb_autoPhos', part_id=part_id, mechanism=self
+        )
         ku_autoPhos = component.get_parameter(
-            "ku_autoPhos", part_id=part_id, mechanism=self)
+            'ku_autoPhos', part_id=part_id, mechanism=self
+        )
         k_hydro = component.get_parameter(
-            "k_hydro", part_id=part_id, mechanism=self)
+            'k_hydro', part_id=part_id, mechanism=self
+        )
         ku_waste = component.get_parameter(
-            "ku_waste", part_id=part_id, mechanism=self)
+            'ku_waste', part_id=part_id, mechanism=self
+        )
         kb_phosRP = component.get_parameter(
-            "kb_phosRP", part_id=part_id, mechanism=self)
+            'kb_phosRP', part_id=part_id, mechanism=self
+        )
         ku_phosRP = component.get_parameter(
-            "ku_phosRP", part_id=part_id, mechanism=self)
+            'ku_phosRP', part_id=part_id, mechanism=self
+        )
         k_phosph = component.get_parameter(
-            "k_phosph", part_id=part_id, mechanism=self)
+            'k_phosph', part_id=part_id, mechanism=self
+        )
         ku_activeRP = component.get_parameter(
-            "ku_activeRP", part_id=part_id, mechanism=self)
+            'ku_activeRP', part_id=part_id, mechanism=self
+        )
         ku_dephos = component.get_parameter(
-            "ku_dephos", part_id=part_id, mechanism=self)
+            'ku_dephos', part_id=part_id, mechanism=self
+        )
 
         # Complexes
         nATP = membrane_sensor_protein.ATP
@@ -98,76 +153,109 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
             # Complex1
             complex_dict['Activated_MSP'] = Complex(
                 [signal_substrate, membrane_sensor_protein],
-                compartment=membrane_sensor_protein.compartment)
+                compartment=membrane_sensor_protein.compartment,
+            )
             # Complex2
             complex_dict['ATP:Activated_MSP'] = Complex(
-                [nATP*[energy], complex_dict['Activated_MSP']],
-                compartment=membrane_sensor_protein.compartment)
+                [nATP * [energy], complex_dict['Activated_MSP']],
+                compartment=membrane_sensor_protein.compartment,
+            )
             # Complex3
             complex_dict['ADP:Activated_MSP:Sub'] = Complex(
-                [complex_dict['Activated_MSP'], nATP*[waste], assigned_substrate],
-                compartment=membrane_sensor_protein.compartment)
+                [
+                    complex_dict['Activated_MSP'],
+                    nATP * [waste],
+                    assigned_substrate,
+                ],
+                compartment=membrane_sensor_protein.compartment,
+            )
             # Complex4
             complex_dict['Activated_MSP:Sub'] = Complex(
                 [complex_dict['Activated_MSP'], assigned_substrate],
-                compartment=membrane_sensor_protein.compartment)
+                compartment=membrane_sensor_protein.compartment,
+            )
             # Complex5
             complex_dict['Activated_MSP:Sub:RP'] = Complex(
                 [complex_dict['Activated_MSP:Sub'], response_protein],
-                compartment=membrane_sensor_protein.compartment)
+                compartment=membrane_sensor_protein.compartment,
+            )
             # Complex6
             complex_dict['Activated_MSP:RP:Sub'] = Complex(
-                [complex_dict['Activated_MSP'], response_protein, assigned_substrate],
-                compartment=membrane_sensor_protein.compartment)
+                [
+                    complex_dict['Activated_MSP'],
+                    response_protein,
+                    assigned_substrate,
+                ],
+                compartment=membrane_sensor_protein.compartment,
+            )
 
-    # Two-component signal transduction
+        # Two-component signal transduction
         # Activation of membrane sensor: S + P<--> P*
-        binding_rxn1 = Reaction.from_massaction(inputs=[signal_substrate, membrane_sensor_protein],
-                                                outputs=[
-                                                    complex_dict['Activated_MSP']],
-                                                k_forward=kb_sigMS,
-                                                k_reverse=ku_sigMS)
+        binding_rxn1 = Reaction.from_massaction(
+            inputs=[signal_substrate, membrane_sensor_protein],
+            outputs=[complex_dict['Activated_MSP']],
+            k_forward=kb_sigMS,
+            k_reverse=ku_sigMS,
+        )
 
         # Auto-phosphorylation membrane sensor:
         # P* + ATP<--> P*:ATP
-        binding_rxn2 = Reaction.from_massaction(inputs=[complex_dict['Activated_MSP'], nATP*[energy]],
-                                                outputs=[
-                                                    complex_dict['ATP:Activated_MSP']],
-                                                k_forward=kb_autoPhos,
-                                                k_reverse=ku_autoPhos)
+        binding_rxn2 = Reaction.from_massaction(
+            inputs=[complex_dict['Activated_MSP'], nATP * [energy]],
+            outputs=[complex_dict['ATP:Activated_MSP']],
+            k_forward=kb_autoPhos,
+            k_reverse=ku_autoPhos,
+        )
         # P*:ATP--> P*:Pi:ADP
-        hydrolysis_rxn1 = Reaction.from_massaction(inputs=[complex_dict['ATP:Activated_MSP']],
-                                                   outputs=[
-                                                       complex_dict['ADP:Activated_MSP:Sub']],
-                                                   k_forward=k_hydro)
+        hydrolysis_rxn1 = Reaction.from_massaction(
+            inputs=[complex_dict['ATP:Activated_MSP']],
+            outputs=[complex_dict['ADP:Activated_MSP:Sub']],
+            k_forward=k_hydro,
+        )
         # P*:Pi:ADP--> P*:Pi +ADP
-        unbinding_rxn3 = Reaction.from_massaction(inputs=[complex_dict['ADP:Activated_MSP:Sub']],
-                                                  outputs=[
-                                                      complex_dict['Activated_MSP:Sub'], nATP*[waste]],
-                                                  k_forward=ku_waste)
+        unbinding_rxn3 = Reaction.from_massaction(
+            inputs=[complex_dict['ADP:Activated_MSP:Sub']],
+            outputs=[complex_dict['Activated_MSP:Sub'], nATP * [waste]],
+            k_forward=ku_waste,
+        )
 
         # Phosphorylation of response protein:
         # P*:Pi + RP <--> P*:Pi:RP
-        binding_rxn4 = Reaction.from_massaction(inputs=[complex_dict['Activated_MSP:Sub'], response_protein],
-                                                outputs=[
-                                                    complex_dict['Activated_MSP:Sub:RP']],
-                                                k_forward=kb_phosRP,
-                                                k_reverse=ku_phosRP)
+        binding_rxn4 = Reaction.from_massaction(
+            inputs=[complex_dict['Activated_MSP:Sub'], response_protein],
+            outputs=[complex_dict['Activated_MSP:Sub:RP']],
+            k_forward=kb_phosRP,
+            k_reverse=ku_phosRP,
+        )
         # P*:Pi:RP --> P*:RP:Pi
-        Phosph_rxn1 = Reaction.from_massaction(inputs=[complex_dict['Activated_MSP:Sub:RP']],
-                                               outputs=[
-                                                   complex_dict['Activated_MSP:RP:Sub']],
-                                               k_forward=k_phosph)
+        Phosph_rxn1 = Reaction.from_massaction(
+            inputs=[complex_dict['Activated_MSP:Sub:RP']],
+            outputs=[complex_dict['Activated_MSP:RP:Sub']],
+            k_forward=k_phosph,
+        )
         # P*:RP:Pi--> P* + RP:Pi
-        unbinding_rxn5 = Reaction.from_massaction(inputs=[complex_dict['Activated_MSP:RP:Sub']],
-                                                  outputs=[
-                                                      product, complex_dict['Activated_MSP'],],
-                                                  k_forward=ku_activeRP)
+        unbinding_rxn5 = Reaction.from_massaction(
+            inputs=[complex_dict['Activated_MSP:RP:Sub']],
+            outputs=[
+                product,
+                complex_dict['Activated_MSP'],
+            ],
+            k_forward=ku_activeRP,
+        )
         # Dephosphorylation: RP:Pi--> RP + Pi
-        unbinding_rxn6 = Reaction.from_massaction(inputs=[product],
-                                                  outputs=[
-                                                      response_protein, assigned_substrate],
-                                                  k_forward=ku_dephos)
+        unbinding_rxn6 = Reaction.from_massaction(
+            inputs=[product],
+            outputs=[response_protein, assigned_substrate],
+            k_forward=ku_dephos,
+        )
 
-        return [binding_rxn1, binding_rxn2, hydrolysis_rxn1, unbinding_rxn3,
-                binding_rxn4, Phosph_rxn1, unbinding_rxn5, unbinding_rxn6]
+        return [
+            binding_rxn1,
+            binding_rxn2,
+            hydrolysis_rxn1,
+            unbinding_rxn3,
+            binding_rxn4,
+            Phosph_rxn1,
+            unbinding_rxn5,
+            unbinding_rxn6,
+        ]

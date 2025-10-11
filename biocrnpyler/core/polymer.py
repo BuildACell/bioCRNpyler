@@ -5,6 +5,7 @@ These classes are used by Chemical Reaction Network Species as well as
 certain Components such as DNA_construct.
 
 """
+
 import copy
 from warnings import warn
 
@@ -48,29 +49,31 @@ class OrderedPolymer(MonomerCollection):
     @polymer.setter
     def polymer(self, parts):
         polymer = []
-        assert (type(parts) == list or type(parts) ==
-                tuple), "OrderedPolymer must be instantiated with a list"
+        assert (
+            type(parts) == list or type(parts) == tuple
+        ), 'OrderedPolymer must be instantiated with a list'
         for item in parts:
-            if (isinstance(item, list) or isinstance(item, tuple)):
+            if isinstance(item, list) or isinstance(item, tuple):
                 part = item[0]
-                if (len(item) > 1):
+                if len(item) > 1:
                     partdir = item[1]
                 else:
                     partdir = None
-            elif (isinstance(item, OrderedMonomer)):
+            elif isinstance(item, OrderedMonomer):
                 part = item
                 partdir = item.direction
             else:
                 raise ValueError(
-                    "{} is not an OrderedMonomer or ".format(str(item)) + \
-                    "a list of the form [OrderedMonomer,direction]")
+                    '{} is not an OrderedMonomer or '.format(str(item))
+                    + 'a list of the form [OrderedMonomer,direction]'
+                )
 
             # OrderedMonomers are always copied when inserted into an
             # OrderedPolymer
             part_copy = copy.copy(part)
             polymer += [part_copy]
-            position = len(polymer)-1
-            if (partdir == None):
+            position = len(polymer) - 1
+            if partdir == None:
                 partdir = self.default_direction
             part_copy.monomer_insert(self, position, partdir)
 
@@ -78,11 +81,11 @@ class OrderedPolymer(MonomerCollection):
 
     def __hash__(self):
         hval = 0
-        if (not hasattr(self, "_polymer") or len(self._polymer) == 0):
+        if not hasattr(self, '_polymer') or len(self._polymer) == 0:
             hval = 0
         else:
             hval = sum([a.subhash() for a in self._polymer])
-        if (hasattr(self, "name")):
+        if hasattr(self, 'name'):
             hval += hash(self.name)
 
         return hval
@@ -95,14 +98,15 @@ class OrderedPolymer(MonomerCollection):
         # OrderedMonomers are always copied when inserted into an OrderedPolymer
         part_copy = copy.copy(part)
 
-        if (direction is None):
+        if direction is None:
             direction = part.direction
 
         part_copy.monomer_insert(self, position, direction)
         for subsequent_part in self.polymer[position:]:
             subsequent_part.position += 1
-        self.polymer = self.polymer[:position] + \
-            (part_copy,)+self.polymer[position:]
+        self.polymer = (
+            self.polymer[:position] + (part_copy,) + self.polymer[position:]
+        )
         self.changed()
 
     def replace(self, position, part, direction=None):
@@ -110,13 +114,16 @@ class OrderedPolymer(MonomerCollection):
         # OrderedPolymer
         part_copy = copy.copy(part)
 
-        if (direction is None):
+        if direction is None:
             direction = part.direction
 
         self.polymer[position].remove()
         part_copy.monomer_insert(self, position, direction)
-        self.polymer = self.polymer[:position] + \
-            (part_copy,)+self.polymer[position+1:]
+        self.polymer = (
+            self.polymer[:position]
+            + (part_copy,)
+            + self.polymer[position + 1 :]
+        )
         self.changed()
 
     def append(self, part, direction=None):
@@ -124,8 +131,8 @@ class OrderedPolymer(MonomerCollection):
         # OrderedPolymer
         part_copy = copy.copy(part)
 
-        if (direction is None):
-            if (hasattr(part, "direction")):
+        if direction is None:
+            if hasattr(part, 'direction'):
                 direction = part_copy.direction
             else:
                 direction = None
@@ -133,24 +140,24 @@ class OrderedPolymer(MonomerCollection):
         self.insert(pos, part_copy, direction)
 
     def __repr__(self):
-        outstr = "polymer("
+        outstr = 'polymer('
         for part in self.polymer:
-            outstr += str(part)+", direction = "+str(part.direction)+","
-        if (outstr[:-1] == ","):
+            outstr += str(part) + ', direction = ' + str(part.direction) + ','
+        if outstr[:-1] == ',':
             outstr = outstr[:-1]
-        outstr += ")"
+        outstr += ')'
         return outstr
 
     def direction_invert(self, dirname):
-        if (dirname == "forward"):
-            return "reverse"
-        elif (dirname == "reverse"):
-            return "forward"
-        elif (dirname == 0):
+        if dirname == 'forward':
+            return 'reverse'
+        elif dirname == 'reverse':
+            return 'forward'
+        elif dirname == 0:
             return 1
-        elif (dirname == 1):
+        elif dirname == 1:
             return 0
-        elif (dirname is None):
+        elif dirname is None:
             return None
         else:
             warn("didn't know how to invert {}".format(str(dirname)))
@@ -166,20 +173,22 @@ class OrderedPolymer(MonomerCollection):
         self.replace(ii, val, val.direction)
 
     def __eq__(self, other):
-        if (isinstance(other, OrderedPolymer)):
+        if isinstance(other, OrderedPolymer):
             for item1, item2 in zip(self.polymer, other.polymer):
-                if (item1.direction == item2.direction \
-                    and item1.position == item2.position \
-                    and type(item1) == type(item2)):
+                if (
+                    item1.direction == item2.direction
+                    and item1.position == item2.position
+                    and type(item1) == type(item2)
+                ):
                     pass
                 else:
                     return False
-            if (len(self.polymer) == len(other.polymer)):
+            if len(self.polymer) == len(other.polymer):
                 return True
         return False
 
     def __contains__(self, item):
-        if (item in self.polymer):
+        if item in self.polymer:
             return True
         else:
             return False
@@ -187,11 +196,11 @@ class OrderedPolymer(MonomerCollection):
     def delpart(self, position):
         part = self.polymer[position]
         part.remove()
-        for subsequent_part in self.polymer[position+1:]:
+        for subsequent_part in self.polymer[position + 1 :]:
             subsequent_part.position -= 1
-        self.polymer = self.polymer[:position] + self.polymer[position+1:]
+        self.polymer = self.polymer[:position] + self.polymer[position + 1 :]
         self.changed()
-        if (hasattr(self, "name") and hasattr(self, "make_name")):
+        if hasattr(self, 'name') and hasattr(self, 'make_name'):
             self.name = self.make_name()
 
     def reverse(self):
@@ -209,8 +218,8 @@ class NamedPolymer(OrderedPolymer):
         self.name = name
         self.circular = circular
         OrderedPolymer.__init__(
-            self=self, parts=parts,
-            default_direction=default_direction)
+            self=self, parts=parts, default_direction=default_direction
+        )
 
 
 class OrderedMonomer:
@@ -219,6 +228,7 @@ class OrderedMonomer:
     Each unit has a direction, a location, and a link back to its parent.
 
     """
+
     def __init__(self, direction=None, position=None, parent=None):
         """the default is that the monomer is not part of a polymer"""
 
@@ -243,7 +253,8 @@ class OrderedMonomer:
             self._parent = parent
         else:
             raise ValueError(
-                f"parent must be an MonomerCollection. Recieved {parent}")
+                f'parent must be an MonomerCollection. Recieved {parent}'
+            )
 
     @property
     def direction(self):
@@ -261,44 +272,51 @@ class OrderedMonomer:
     def position(self, position):
         if self.parent is not None and position is None:
             raise ValueError(
-                "{} is part of a polymer with no position!".format(self))
+                '{} is part of a polymer with no position!'.format(self)
+            )
         else:
             self._position = position
 
     def find_polymer_component(self):
         from .species import ComplexSpecies
+
         outpolymer = None
-        if (isinstance(self, ComplexSpecies)):
+        if isinstance(self, ComplexSpecies):
             for specie in self.species:
-                if (specie.is_polymer_component):
-                    if (outpolymer is not None):
+                if specie.is_polymer_component:
+                    if outpolymer is not None:
                         raise ValueError(
-                            "multiple species are part of the polymer "
-                            "in the same place!!")
+                            'multiple species are part of the polymer '
+                            'in the same place!!'
+                        )
                     else:
                         outpolymer = specie
-        if (self.is_polymer_component):
-            if (outpolymer is not None):
+        if self.is_polymer_component:
+            if outpolymer is not None:
                 raise ValueError(
-                    "multiple species are part of the polymer "
-                    "in the same place!!")
+                    'multiple species are part of the polymer '
+                    'in the same place!!'
+                )
             else:
                 outpolymer = self
         return outpolymer
 
     def monomer_insert(
-            self, parent: OrderedPolymer, position: int, direction=None):
-        if (position is None):
+        self, parent: OrderedPolymer, position: int, direction=None
+    ):
+        if position is None:
             raise ValueError(
-                "{} has no position to be inserted at!".format(self))
-        if (direction is None):
-            if (self.direction is not None):
+                '{} has no position to be inserted at!'.format(self)
+            )
+        if direction is None:
+            if self.direction is not None:
                 direction = self.direction
-        if (parent is None):
+        if parent is None:
             raise ValueError(
-                "{} is trying to be inserted into nothing!".format(self))
-        if (self.is_polymer_component is False):
-            if (self.find_polymer_component() is None):
+                '{} is trying to be inserted into nothing!'.format(self)
+            )
+        if self.is_polymer_component is False:
+            if self.find_polymer_component() is None:
                 self.is_polymer_component = True
         self.parent = parent
         self.position = position
@@ -306,14 +324,14 @@ class OrderedMonomer:
 
     def set_dir(self, direction):
         self.direction = direction
-        return (self)
+        return self
 
     def remove(self):
         self.parent = None
         self.position = None
         self.direction = None
 
-        return (self)
+        return self
 
     def get_orphan(self):
         """Returns a copy of this monomer, except with no parent.
@@ -323,28 +341,35 @@ class OrderedMonomer:
         """
         copied_monomer = copy.copy(self)
         copied_monomer.parent = None
-        return (copied_monomer)
+        return copied_monomer
 
     def get_removed(self):
         copied_part = copy.copy(self)
         copied_part.parent = None
         copied_part.direction = None
         copied_part.position = None
-        if (hasattr(copied_part, "_attributes")):
-            copied_part.remove_attribute("forward")
-            copied_part.remove_attribute("reverse")
+        if hasattr(copied_part, '_attributes'):
+            copied_part.remove_attribute('forward')
+            copied_part.remove_attribute('reverse')
         return copied_part
 
     def __repr__(self):
-        txt = "OrderedMonomer(direction="+str(self.direction)+",position=" +\
-            str(self.position)+")"
+        txt = (
+            'OrderedMonomer(direction='
+            + str(self.direction)
+            + ',position='
+            + str(self.position)
+            + ')'
+        )
         return txt
 
     def __eq__(self, other):
-        if (isinstance(other, OrderedMonomer)):
-            if (self.direction == other.direction \
-                and self.position == other.position \
-                and self.parent == other.parent):
+        if isinstance(other, OrderedMonomer):
+            if (
+                self.direction == other.direction
+                and self.position == other.position
+                and self.parent == other.parent
+            ):
                 return True
         return False
 
@@ -352,7 +377,7 @@ class OrderedMonomer:
         hval = 0
         hval += self.subhash()
 
-        if (self.parent is not None):
+        if self.parent is not None:
             hval += hash(self.parent)
 
         return hval
@@ -361,6 +386,6 @@ class OrderedMonomer:
         hval = 0
         hval += hash(self.position)
         hval += hash(self.direction)
-        if (hasattr(self, "name")):
+        if hasattr(self, 'name'):
             hval += hash(self.name)
         return hval

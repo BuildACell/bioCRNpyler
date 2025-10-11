@@ -1,6 +1,4 @@
-"""Utility functions, including SBML support and plotting.
-
-"""
+"""Utility functions, including SBML support and plotting."""
 
 from .general import *
 from .sbmlutil import *

@@ -15,10 +15,15 @@ class Species(OrderedMonomer):
     DNA, RNA, Protein), and a list of attributes.
 
     """
+
     def __init__(
-            self, name: str, material_type='',
-            attributes: Union[List, None] = None,
-            compartment=None, **kwargs):
+        self,
+        name: str,
+        material_type='',
+        attributes: Union[List, None] = None,
+        compartment=None,
+        **kwargs,
+    ):
         OrderedMonomer.__init__(self, **kwargs)
 
         self.name = name
@@ -29,13 +34,13 @@ class Species(OrderedMonomer):
 
     @property
     def attributes(self):
-        if not hasattr(self, "_attributes"):
+        if not hasattr(self, '_attributes'):
             self._attributes = []
         return self._attributes
 
     @attributes.setter
     def attributes(self, attributes):
-        if not hasattr(self, "_attributes"):
+        if not hasattr(self, '_attributes'):
             self._attributes = []
         if attributes is not None:
             if not isinstance(attributes, list):
@@ -47,36 +52,37 @@ class Species(OrderedMonomer):
 
     def remove_attribute(self, attribute: str):
         """Remove an attribute from a Species."""
-        if not hasattr(self, "_attributes") or attribute is None:
+        if not hasattr(self, '_attributes') or attribute is None:
             return
         else:
             assert (
                 isinstance(attribute, str) and attribute.isalnum()
-            ), f"Attribute: {attribute} must be an alpha-numeric string"
+            ), f'Attribute: {attribute} must be an alpha-numeric string'
             self._attributes = [a for a in self.attributes if a != attribute]
 
     def add_attribute(self, attribute: str):
         """Adds attribute to a Species."""
-        if not hasattr(self, "_attributes"):
+        if not hasattr(self, '_attributes'):
             self._attributes = []
         assert (
-            isinstance(attribute, str) and attribute is not None
+            isinstance(attribute, str)
+            and attribute is not None
             and attribute.isalnum()
-        ), f"Attribute: {attribute} must be an alpha-numeric string"
+        ), f'Attribute: {attribute} must be an alpha-numeric string'
         if attribute not in self.attributes:
             self._attributes.append(attribute)
 
     @property
     def name(self):
         if self._name is None:
-            return ""
+            return ''
         else:
             return self._name
 
     @name.setter
     def name(self, name: str):
         if name is None:
-            raise TypeError(f"Name must be a string. Recievied {name}")
+            raise TypeError(f'Name must be a string. Recievied {name}')
         else:
             self._name = self._check_name(name)
 
@@ -87,17 +93,18 @@ class Species(OrderedMonomer):
     @compartment.setter
     def compartment(self, compartment):
         if compartment is None:
-            self._compartment = Compartment(name="default")
+            self._compartment = Compartment(name='default')
         else:
             if isinstance(compartment, str):
                 self._compartment = Compartment(
-                    name=self._check_name(compartment))
+                    name=self._check_name(compartment)
+                )
             elif isinstance(compartment, Compartment):
                 self._compartment = compartment
 
     @property
     def direction(self):
-        if hasattr(self, "_direction"):
+        if hasattr(self, '_direction'):
             return self._direction
         else:
             return None
@@ -138,21 +145,22 @@ class Species(OrderedMonomer):
         if name is None:
             return name
         elif isinstance(name, str):
-            no_underscore_string = name.replace("_", "")
+            no_underscore_string = name.replace('_', '')
             if (
                 no_underscore_string.isalnum()
-                and "__" not in name
-                and name[len(name) - 1] != "_"
+                and '__' not in name
+                and name[len(name) - 1] != '_'
                 and name[0].isalnum()
             ):
                 return name
             else:
                 raise ValueError(
-                    f"name attribute {name} must consist of letters, "
-                    f"numbers, or underscores and cannot contain double "
-                    f"underscores or begin/end with a special character.")
+                    f'name attribute {name} must consist of letters, '
+                    f'numbers, or underscores and cannot contain double '
+                    f'underscores or begin/end with a special character.'
+                )
         else:
-            raise TypeError("Name must be a string.")
+            raise TypeError('Name must be a string.')
 
     @property
     def material_type(self):
@@ -167,50 +175,56 @@ class Species(OrderedMonomer):
         with a number, there must be a material type.
 
         """
-        if material_type in [None, ""] and self.name[0].isnumeric():
+        if material_type in [None, ''] and self.name[0].isnumeric():
             raise ValueError(
-                f"species name: {self.name} contains a number as the "
-                f"first character and therefore requires a material_type.")
+                f'species name: {self.name} contains a number as the '
+                f'first character and therefore requires a material_type.'
+            )
         elif material_type == None:
             self._material_type = None
         elif (
-            material_type.replace("_", "").isalnum()
-            and material_type.replace("_", "")[0].isalpha()
-            and "__" not in material_type
-            and material_type[len(material_type) - 1] != "_"
-        ) or material_type == "":
+            material_type.replace('_', '').isalnum()
+            and material_type.replace('_', '')[0].isalpha()
+            and '__' not in material_type
+            and material_type[len(material_type) - 1] != '_'
+        ) or material_type == '':
             self._material_type = material_type
         else:
             raise ValueError(
-                f"material_type {material_type} must be alpha-numeric "
-                f"and start with a letter.")
+                f'material_type {material_type} must be alpha-numeric '
+                f'and start with a letter.'
+            )
 
     def __repr__(self):
-        txt = ""
-        if self.material_type not in ["", None]:
-            txt = self.material_type + "_"
+        txt = ''
+        if self.material_type not in ['', None]:
+            txt = self.material_type + '_'
 
         txt += self.name
 
         if len(self.attributes) > 0 and self.attributes != []:
             for i in self.attributes:
                 if i is not None:
-                    txt += "_" + str(i)
-        if self.compartment.name != "default":
+                    txt += '_' + str(i)
+        if self.compartment.name != 'default':
             # Only add a compartment name if it is not the default one.
             # if compartment name is already there with an underscore
             # remove it from the string first to not repeat the compartment tag
-            txt = txt.replace("_" + self.compartment.name, "")
-            txt += "_" + self.compartment.name
-        txt = txt.replace("'", "")
+            txt = txt.replace('_' + self.compartment.name, '')
+            txt += '_' + self.compartment.name
+        txt = txt.replace("'", '')
         return txt
 
     def replace_species(self, species, new_species):
         if not isinstance(species, Species):
-            raise ValueError("species argument must be an instance of Species!")
+            raise ValueError(
+                'species argument must be an instance of Species!'
+            )
 
         if not isinstance(new_species, Species):
-            raise ValueError("species argument must be an instance of Species!")
+            raise ValueError(
+                'species argument must be an instance of Species!'
+            )
 
         if self == species:
             return new_species
@@ -227,9 +241,12 @@ class Species(OrderedMonomer):
         return [self]
 
     def pretty_print(
-            self, show_material=True, show_compartment=False,
-            show_attributes=True, show_initial_condition=False,
-            **kwargs            # TODO: allows spurious keywords; fix...
+        self,
+        show_material=True,
+        show_compartment=False,
+        show_attributes=True,
+        show_initial_condition=False,
+        **kwargs,  # TODO: allows spurious keywords; fix...
     ):
         """A more powerful printing function.
 
@@ -239,28 +256,31 @@ class Species(OrderedMonomer):
         printed
 
         """
-        txt = ""
-        if self.material_type not in ["", None] and show_material:
-            txt = self.material_type + "["
+        txt = ''
+        if self.material_type not in ['', None] and show_material:
+            txt = self.material_type + '['
 
         txt += self.name
 
-        if self.compartment not in ["default", None] and show_compartment:
-            txt += " in " + self.compartment.name + "."
+        if self.compartment not in ['default', None] and show_compartment:
+            txt += ' in ' + self.compartment.name + '.'
 
-        if len(self.attributes) > 0 and self.attributes != [] \
-           and show_attributes:
-            txt += "("
+        if (
+            len(self.attributes) > 0
+            and self.attributes != []
+            and show_attributes
+        ):
+            txt += '('
             for i in self.attributes:
                 if i is not None:
-                    txt += str(i) + ", "
-            txt = txt[:-2] + ")"
+                    txt += str(i) + ', '
+            txt = txt[:-2] + ')'
 
-        txt = txt.replace("'", "")
-        if hasattr(self, "direction") and self.direction is not None:
-            txt += "-" + self.direction
-        if self.material_type not in ["", None] and show_material:
-            txt += "]"
+        txt = txt.replace("'", '')
+        if hasattr(self, 'direction') and self.direction is not None:
+            txt += '-' + self.direction
+        if self.material_type not in ['', None] and show_material:
+            txt += ']'
 
         return txt
 
@@ -278,13 +298,15 @@ class Species(OrderedMonomer):
 
         # Note: "==" equality between parents and children can result in
         # loops, so string equality is used
-        if (isinstance(other, Species)
+        if (
+            isinstance(other, Species)
             and self.material_type == other.material_type
             and self.name == other.name
             and set(self.attributes) == set(other.attributes)
             and str(self.parent) == str(other.parent)
             and self.compartment == other.compartment
-            and self.position == other.position):
+            and self.position == other.position
+        ):
             return True
         else:
             return False
@@ -296,11 +318,13 @@ class Species(OrderedMonomer):
         positions.
 
         """
-        if (isinstance(other, Species)
+        if (
+            isinstance(other, Species)
             and self.material_type == other.material_type
             and self.name == other.name
             and set(self.attributes) == set(other.attributes)
-            and self.compartment == other.compartment):
+            and self.compartment == other.compartment
+        ):
             return True
         else:
             return False
@@ -364,13 +388,16 @@ class WeightedSpecies:
     def stoichiometry(self, new_stoichiometry):
         if new_stoichiometry <= 0:
             raise ValueError(
-                f"Stoichiometry must be positive integer! "
-                f"We got {new_stoichiometry}!"            )
+                f'Stoichiometry must be positive integer! '
+                f'We got {new_stoichiometry}!'
+            )
         self._stoichiometry = int(new_stoichiometry)
 
     def pretty_print(self, **kwargs):
-        return f'{self.stoichiometry if self.stoichiometry > 1 else ""}' + \
-            f'{self.species.pretty_print(**kwargs)}'
+        return (
+            f'{self.stoichiometry if self.stoichiometry > 1 else ""}'
+            + f'{self.species.pretty_print(**kwargs)}'
+        )
 
     def replace_species(self, *args, **kwargs):
         return self.species.replace_species(*args, **kwargs)
@@ -394,8 +421,9 @@ class WeightedSpecies:
         # convert to set doesn't work because we need only species equality
         unique_species = []
         for w_species in weighted_species:
-            if not any(w_species.species == u_s.species
-                       for u_s in unique_species):
+            if not any(
+                w_species.species == u_s.species for u_s in unique_species
+            ):
                 unique_species.append(w_species)
 
         freq_dict = dict(zip(unique_species, [0] * len(unique_species)))
@@ -408,8 +436,10 @@ class WeightedSpecies:
 
     def __eq__(self, other):
         if other.__class__ is self.__class__:
-            return (other.species, other.stoichiometry) == \
-                (self.species, self.stoichiometry)
+            return (other.species, other.stoichiometry) == (
+                self.species,
+                self.stoichiometry,
+            )
         return False
 
     def __hash__(self):
@@ -431,29 +461,39 @@ class ComplexSpecies(Species):
     (e.g. polymers) use OrderedComplexSpecies
 
     """
-    def __init__(
-            self, species: List[Union[Species, str]],
-            name: Union[str, None] = None, material_type="complex",
-            attributes=None, compartment=None, called_from_complex=False):
 
+    def __init__(
+        self,
+        species: List[Union[Species, str]],
+        name: Union[str, None] = None,
+        material_type='complex',
+        attributes=None,
+        compartment=None,
+        called_from_complex=False,
+    ):
         # A little check to enforce use of Complex() to create ComplexSpecies
         if not called_from_complex:
             warnings.warn(
-                "ComplexSpecies should be created using the "
-                "Complex([List of Species]) function, not directly!")
+                'ComplexSpecies should be created using the '
+                'Complex([List of Species]) function, not directly!'
+            )
 
         # Set species because it is used for default naming
         if len(Species.flatten_list(species)) <= 1:
             raise ValueError(
-                "chemical_reaction_network.complex requires 2 "
-                "or more species in its constructor."
+                'chemical_reaction_network.complex requires 2 '
+                'or more species in its constructor.'
             )
         self.species = species
 
         # call super class
         Species.__init__(
-            self, name=name, material_type=material_type,
-            attributes=attributes, compartment=compartment)
+            self,
+            name=name,
+            material_type=material_type,
+            attributes=attributes,
+            compartment=compartment,
+        )
 
     def __repr__(self):
         """String representation of ComplexSpecies.
@@ -464,18 +504,18 @@ class ComplexSpecies(Species):
 
         """
         txt = Species.__repr__(self)
-        txt += "_"
+        txt += '_'
         return txt
 
     @property
     def name(self):
         if self._name is None:
-            name = ""
+            name = ''
             for s in self.species_set:
                 count = self.species.count(s)
-                name += str(s) + "_"
+                name += str(s) + '_'
                 if count > 1:
-                    name += f"{count}x_"
+                    name += f'{count}x_'
             name = name[:-1]
             return name
         else:
@@ -492,7 +532,8 @@ class ComplexSpecies(Species):
         if not isinstance(item, Species):
             raise ValueError(
                 "Operator 'in' requires chemical_reaction_network.Species "
-                "(or a subclass). Received: " + str(item))
+                '(or a subclass). Received: ' + str(item)
+            )
         if item in self.species:
             # this is the base case
             return True
@@ -519,12 +560,13 @@ class ComplexSpecies(Species):
     @species.setter
     def species(self, species):
         if not isinstance(species, list):
-            raise TypeError(f"species must be a list: recieved {species}.")
+            raise TypeError(f'species must be a list: recieved {species}.')
         species = Species.flatten_list(species)
         if not all(isinstance(s, Species) for s in species):
             raise TypeError(
-                f"recieved a non-species as a member of the list species: "
-                f"{species}.")
+                f'recieved a non-species as a member of the list species: '
+                f'{species}.'
+            )
         else:
             list.sort(species, key=lambda s: repr(s))
             self._species = species
@@ -537,10 +579,14 @@ class ComplexSpecies(Species):
 
         """
         if not isinstance(species, Species):
-            raise ValueError("species argument must be an instance of Species!")
+            raise ValueError(
+                'species argument must be an instance of Species!'
+            )
 
         if not isinstance(new_species, Species):
-            raise ValueError("species argument must be an instance of Species!")
+            raise ValueError(
+                'species argument must be an instance of Species!'
+            )
 
         new_species_list = []
         for s in self.species:
@@ -575,9 +621,12 @@ class ComplexSpecies(Species):
         return species
 
     def pretty_print(
-            self, show_material=True, show_compartment=False,
-            show_attributes=True, show_initial_condition=False,
-            **kwargs            # TODO: allows spurious keywords; fix...
+        self,
+        show_material=True,
+        show_compartment=False,
+        show_attributes=True,
+        show_initial_condition=False,
+        **kwargs,  # TODO: allows spurious keywords; fix...
     ):
         """A more powerful printing function.
 
@@ -586,35 +635,40 @@ class ComplexSpecies(Species):
         show_attributes toggles whether species.attributes is printed
 
         """
-        txt = ""
-        if self.material_type not in ["", None] and show_material:
+        txt = ''
+        if self.material_type not in ['', None] and show_material:
             txt += self.material_type
-        txt += "["
+        txt += '['
         for s in self.species_set:
             count = self.species.count(s)
             if count > 1:
-                txt += f"{count}x_"
+                txt += f'{count}x_'
             txt += (
                 s.pretty_print(
-                    show_material=show_material, show_attributes=False) + ":"
+                    show_material=show_material, show_attributes=False
+                )
+                + ':'
             )
         txt = txt[:-1]
 
-        if self.compartment not in ["default", None] and show_compartment:
-            txt += " in " + self.compartment.name + "."
+        if self.compartment not in ['default', None] and show_compartment:
+            txt += ' in ' + self.compartment.name + '.'
 
-        if len(self.attributes) > 0 and self.attributes != [] \
-           and show_attributes:
-            txt += "("
+        if (
+            len(self.attributes) > 0
+            and self.attributes != []
+            and show_attributes
+        ):
+            txt += '('
             for i in self.attributes:
                 if i is not None:
-                    txt += str(i) + ", "
-            txt = txt[:-2] + ")"
+                    txt += str(i) + ', '
+            txt = txt[:-2] + ')'
 
-        txt = txt.replace("'", "")
-        if hasattr(self, "direction") and self.direction is not None:
-            txt += "-" + self.direction
-        txt += "]"
+        txt = txt.replace("'", '')
+        if hasattr(self, 'direction') and self.direction is not None:
+            txt += '-' + self.direction
+        txt += ']'
 
         return txt
 
@@ -640,20 +694,26 @@ class OrderedComplexSpecies(ComplexSpecies):
     """
 
     def __init__(
-            self, species, name=None, material_type='ordered_complex',
-            attributes=None, compartment=None, called_from_complex=False):
-
+        self,
+        species,
+        name=None,
+        material_type='ordered_complex',
+        attributes=None,
+        compartment=None,
+        called_from_complex=False,
+    ):
         # A little check to enforce use of Complex() to create ComplexSpecies
         if not called_from_complex:
             warnings.warn(
-                "OrderedComplexSpecies should be created using the "
-                "Complex([List of Species]) function, not directly!")
+                'OrderedComplexSpecies should be created using the '
+                'Complex([List of Species]) function, not directly!'
+            )
 
         # Set species because it is used for default naming
         if len(Species.flatten_list(species)) <= 1:
             raise ValueError(
-                "chemical_reaction_network.complex requires 2 "
-                "or more species in its constructor."
+                'chemical_reaction_network.complex requires 2 '
+                'or more species in its constructor.'
             )
         self.species = species
 
@@ -669,14 +729,14 @@ class OrderedComplexSpecies(ComplexSpecies):
     @property
     def name(self):
         if self._name is None:
-            name = ""
+            name = ''
             for s in self.species:
                 if isinstance(s, str):
                     s = Species(name=s)
-                if s.material_type not in [""]:
-                    name += f"{s.material_type}_{s.name}_"
+                if s.material_type not in ['']:
+                    name += f'{s.material_type}_{s.name}_'
                 else:
-                    name += f"{s.name}_"
+                    name += f'{s.name}_'
             name = name[:-1]
             return name
         else:
@@ -693,12 +753,12 @@ class OrderedComplexSpecies(ComplexSpecies):
     @species.setter
     def species(self, species):
         if not isinstance(species, list):
-            raise TypeError(f"species must be a list: recieved {species}.")
+            raise TypeError(f'species must be a list: recieved {species}.')
         species = Species.flatten_list(species)
         if not all(isinstance(s, Species) for s in species):
             raise TypeError(
-                f"recieved a non-species as a member of the list species: "
-                f"{species}."
+                f'recieved a non-species as a member of the list species: '
+                f'{species}.'
             )
         else:
             self._species = species
@@ -710,10 +770,14 @@ class OrderedComplexSpecies(ComplexSpecies):
 
         """
         if not isinstance(species, Species):
-            raise ValueError("species argument must be an instance of Species!")
+            raise ValueError(
+                'species argument must be an instance of Species!'
+            )
 
         if not isinstance(new_species, Species):
-            raise ValueError("species argument must be an instance of Species!")
+            raise ValueError(
+                'species argument must be an instance of Species!'
+            )
 
         new_species_list = []
         for s in self.species:
@@ -733,9 +797,12 @@ class OrderedComplexSpecies(ComplexSpecies):
         )
 
     def pretty_print(
-            self, show_material=True, show_compartment=False,
-            show_attributes=True, show_initial_condition=False,
-            **kwargs            # TODO: allows spurious keywords; fix...
+        self,
+        show_material=True,
+        show_compartment=False,
+        show_attributes=True,
+        show_initial_condition=False,
+        **kwargs,  # TODO: allows spurious keywords; fix...
     ):
         """A more powerful printing function.
 
@@ -745,32 +812,37 @@ class OrderedComplexSpecies(ComplexSpecies):
         printed.
 
         """
-        txt = ""
-        if self.material_type not in ["", None] and show_material:
+        txt = ''
+        if self.material_type not in ['', None] and show_material:
             txt += self.material_type
 
-        txt += "["
+        txt += '['
 
         for s in self.species:
             txt += (
                 s.pretty_print(
-                    show_material=show_material, show_attributes=False) + ":"
+                    show_material=show_material, show_attributes=False
+                )
+                + ':'
             )
         txt = txt[:-1]
 
-        if self.compartment not in ["default", None] and show_compartment:
-            txt += " in " + self.compartment.name + "."
+        if self.compartment not in ['default', None] and show_compartment:
+            txt += ' in ' + self.compartment.name + '.'
 
-        if len(self.attributes) > 0 and self.attributes != [] \
-           and show_attributes:
-            txt += "("
+        if (
+            len(self.attributes) > 0
+            and self.attributes != []
+            and show_attributes
+        ):
+            txt += '('
             for i in self.attributes:
                 if i is not None:
-                    txt += str(i) + ", "
-            txt = txt[:-2] + ")"
+                    txt += str(i) + ', '
+            txt = txt[:-2] + ')'
 
-        txt = txt.replace("'", "")
-        txt += "]"
+        txt = txt.replace("'", '')
+        txt += ']'
 
         return txt
 
@@ -795,12 +867,18 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
     Species. Both will work from the point of view of any Mechanism.
 
     """
-    default_material = "ordered_polymer"
+
+    default_material = 'ordered_polymer'
 
     def __init__(
-            self, species, name=None, material_type=default_material,
-            compartment=None, attributes=None, circular=False):
-
+        self,
+        species,
+        name=None,
+        material_type=default_material,
+        compartment=None,
+        attributes=None,
+        circular=False,
+    ):
         self.material_type = material_type
         self.compartment = compartment
         self.parent = None
@@ -824,20 +902,23 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
                 specie, PolymerConformation
             ):
                 raise NotImplementedError(
-                    "OrderedPolymer and PolymerConformation cannot be "
-                    "used as a Monomer at this time."
+                    'OrderedPolymer and PolymerConformation cannot be '
+                    'used as a Monomer at this time.'
                 )
-            elif isinstance(specie, Species) \
-                 and isinstance(specie, OrderedMonomer):
+            elif isinstance(specie, Species) and isinstance(
+                specie, OrderedMonomer
+            ):
                 monomers += [specie]
             elif (isinstance(specie, tuple) or isinstance(specie, list)) and (
-                isinstance(specie[0], Species) \
-                    and isinstance(specie[0], OrderedMonomer)):
+                isinstance(specie[0], Species)
+                and isinstance(specie[0], OrderedMonomer)
+            ):
                 monomers += [specie]
             else:
                 raise ValueError(
-                    "{} should be a Species or list ".format(specie) +
-                    "[Species, 'direction']")
+                    '{} should be a Species or list '.format(specie)
+                    + "[Species, 'direction']"
+                )
                 # only species are acceptable
 
         OrderedPolymer.__init__(self, monomers)
@@ -907,7 +988,7 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
     @property
     def name(self):
         if self._name is None:
-            name = ""
+            name = ''
             for monomer in self.polymer:
                 name += str(monomer) + '_'
             name = name[:-1]  # remove last underscore
@@ -929,15 +1010,18 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
         mydir = direction
         if (mydir is None) and (part.direction is not None):
             mydir = part.direction
-        if part == self.polymer[position] \
-           and self.polymer[position].direction == mydir:
+        if (
+            part == self.polymer[position]
+            and self.polymer[position].direction == mydir
+        ):
             # in this case we are replacing a part with the same thing, so
             # do nothing but it could be true that the reference changes?
             # That shouldnt be
             pass
         else:
             OrderedPolymer.replace(
-                self, position=position, part=part, direction=mydir)
+                self, position=position, part=part, direction=mydir
+            )
 
     def __contains__(self, item):
         for part in self.species:
@@ -985,8 +1069,13 @@ class PolymerConformation(Species, MonomerCollection):
     """
 
     def __init__(
-            self, complexes=None, polymer=None, material_type='conformation',
-            name=None, **kwargs):
+        self,
+        complexes=None,
+        polymer=None,
+        material_type='conformation',
+        name=None,
+        **kwargs,
+    ):
         """Initialize PolymerConformation class.
 
         complexes: a list of ComplexSpecies each of which must contain
@@ -994,7 +1083,8 @@ class PolymerConformation(Species, MonomerCollection):
 
         """
         Species.__init__(
-            self, name=name, material_type=material_type, **kwargs)
+            self, name=name, material_type=material_type, **kwargs
+        )
 
         if isinstance(complexes, list) and len(complexes) == 0:
             complexes = None
@@ -1003,10 +1093,11 @@ class PolymerConformation(Species, MonomerCollection):
             complexes is None and polymer is None
         ):
             raise ValueError(
-                "PolymerConformation requires either: a list of "
-                "ComplexSpecies which contain monomers from "
-                "OrderedPolymerSpecies or a single OrderedPolymerSpecies "
-                "in its constructor.")
+                'PolymerConformation requires either: a list of '
+                'ComplexSpecies which contain monomers from '
+                'OrderedPolymerSpecies or a single OrderedPolymerSpecies '
+                'in its constructor.'
+            )
         elif complexes is not None:
             self.complexes = complexes
         elif polymer is not None:
@@ -1020,13 +1111,14 @@ class PolymerConformation(Species, MonomerCollection):
                 self.polymers = [OrderedPolymerSpecies(polymer)]
             else:
                 raise ValueError(
-                    f"polymer must be an OrderedPolymerSpecies or a list "
-                    f"of Species. Received: {polymer}."
+                    f'polymer must be an OrderedPolymerSpecies or a list '
+                    f'of Species. Received: {polymer}.'
                 )
 
     @classmethod
     def from_polymer_conformation(
-            cls, pcs, complexes=None, complexes_to_remove=None, **kwargs):
+        cls, pcs, complexes=None, complexes_to_remove=None, **kwargs
+    ):
         """New PolymerConformation from prevous conformaiton plus complexes.
 
         This function produces a new PolymerConformation from previously
@@ -1040,7 +1132,8 @@ class PolymerConformation(Species, MonomerCollection):
             [isinstance(pc, PolymerConformation) for pc in pcs]
         ):
             raise TypeError(
-                f"pcs must be a list of PolymerConformations. Recieved {pcs}.")
+                f'pcs must be a list of PolymerConformations. Recieved {pcs}.'
+            )
 
         if complexes is None:
             complexes = []
@@ -1056,7 +1149,9 @@ class PolymerConformation(Species, MonomerCollection):
         return cls(complexes, **kwargs)
 
     @classmethod
-    def from_polymer_replacement(cls, pc, old_polymers, new_polymers, **kwargs):
+    def from_polymer_replacement(
+        cls, pc, old_polymers, new_polymers, **kwargs
+    ):
         """Replace old polymers with new polymers.
 
         This function produces a PolymerConformation from a previously
@@ -1071,34 +1166,39 @@ class PolymerConformation(Species, MonomerCollection):
 
         """
         if not isinstance(pc, PolymerConformation):
-            raise TypeError(f"pc must be a PolymerConformation. Recieved {pc}.")
+            raise TypeError(
+                f'pc must be a PolymerConformation. Recieved {pc}.'
+            )
 
         if not isinstance(new_polymers, list) and all(
             [isinstance(p, OrderedPolymerSpecies) for p in new_polymers]
         ):
             raise TypeError(
-                f"new_polymers must be a list of OrderedPolymerSpecies. "
-                f"Recieved: {new_polymers}")
+                f'new_polymers must be a list of OrderedPolymerSpecies. '
+                f'Recieved: {new_polymers}'
+            )
 
         if not isinstance(old_polymers, list) and all(
             [isinstance(p, OrderedPolymerSpecies) for p in old_polymers]
         ):
             raise TypeError(
-                f"new_polymers must be a list of OrderedPolymerSpecies. "
-                f"Recieved: {old_polymers}"
+                f'new_polymers must be a list of OrderedPolymerSpecies. '
+                f'Recieved: {old_polymers}'
             )
 
-        if not all([any([p is pp for pp in pc.polymers])
-                    for p in old_polymers]):
+        if not all(
+            [any([p is pp for pp in pc.polymers]) for p in old_polymers]
+        ):
             raise ValueError(
-                "All OrderedPolymerSpecies in old_polymers must be "
-                "contained (as instances, not string equivalents) "
-                "in pc.polymers."
+                'All OrderedPolymerSpecies in old_polymers must be '
+                'contained (as instances, not string equivalents) '
+                'in pc.polymers.'
             )
 
         if len(old_polymers) != len(new_polymers):
             raise ValueError(
-                "old_polymers and new_polymers must be the same length.")
+                'old_polymers and new_polymers must be the same length.'
+            )
 
         complexes = pc.complexes
         new_complexes = []
@@ -1118,7 +1218,9 @@ class PolymerConformation(Species, MonomerCollection):
                     species.append(s)
 
             # Create the new Complex
-            if isinstance(c, OrderedComplexSpecies):  # is the complex ordered?
+            if isinstance(
+                c, OrderedComplexSpecies
+            ):  # is the complex ordered?
                 new_complexes += [
                     OrderedComplexSpecies(
                         species,
@@ -1138,8 +1240,9 @@ class PolymerConformation(Species, MonomerCollection):
                 ]
             else:
                 raise TypeError(
-                    f"Invalid object found in "
-                    f"PolymerConformation.complexes: {c}.")
+                    f'Invalid object found in '
+                    f'PolymerConformation.complexes: {c}.'
+                )
 
         # Set keywords
         if 'material_type' not in kwargs:
@@ -1161,7 +1264,8 @@ class PolymerConformation(Species, MonomerCollection):
         for c in complexes:
             if c not in self.complexes:
                 raise ValueError(
-                    f"Complex {c} not in PolymerConformation {self}.")
+                    f'Complex {c} not in PolymerConformation {self}.'
+                )
 
         new_complexes = [c for c in self.complexes if c not in complexes]
 
@@ -1204,18 +1308,23 @@ class PolymerConformation(Species, MonomerCollection):
             [isinstance(c, ComplexSpecies) for c in complexes]
         ):
             raise TypeError(
-                f"complexes must be a list containing ComplexSpecies. "
-                f"Recieved {complexes}."
+                f'complexes must be a list containing ComplexSpecies. '
+                f'Recieved {complexes}.'
             )
 
         complex_counts = [
-            (sum([cc == c and cc.species == c.species for cc in complexes]), c)
+            (
+                sum(
+                    [cc == c and cc.species == c.species for cc in complexes]
+                ),
+                c,
+            )
             for c in complexes
         ]
         if any([i[0] > 1 for i in complex_counts]):
             raise ValueError(
-                f"Complexes contains two or more identical complexes. "
-                f"Recieved: {[c[1] for c in complex_counts if c[0] > 1]}."
+                f'Complexes contains two or more identical complexes. '
+                f'Recieved: {[c[1] for c in complex_counts if c[0] > 1]}.'
             )
 
         # Sort the complexes by their name, and the ids of the polymers
@@ -1240,8 +1349,9 @@ class PolymerConformation(Species, MonomerCollection):
             for i, s in enumerate(c.species):
                 parent = s.parent
 
-                if parent is not None \
-                   and isinstance(parent, OrderedPolymerSpecies):
+                if parent is not None and isinstance(
+                    parent, OrderedPolymerSpecies
+                ):
                     complex_contains_polymer = True
                     # parent has not been copied
                     if not any([parent is p for p in polymers]):
@@ -1265,15 +1375,15 @@ class PolymerConformation(Species, MonomerCollection):
                     parent, OrderedPolymerSpecies
                 ):
                     raise ValueError(
-                        f"Species {s} found inside complex {c} with a "
-                        f"parent {parent} which is not an "
-                        f"OrderedPolymerSpecies."
+                        f'Species {s} found inside complex {c} with a '
+                        f'parent {parent} which is not an '
+                        f'OrderedPolymerSpecies.'
                     )
 
             if not complex_contains_polymer:
                 raise ValueError(
-                    f"Complex {c} does not contain any Species inside "
-                    f"of Polymers."
+                    f'Complex {c} does not contain any Species inside '
+                    f'of Polymers.'
                 )
 
             # Set the parent of the ComplexSpecies to self
@@ -1286,8 +1396,12 @@ class PolymerConformation(Species, MonomerCollection):
         if len(copied_complexes) > 0:
 
             def complex_sort_func(c):
-                return (tuple([i if i else -1
-                               for i in self.get_polymer_indices(c)]), c)
+                return (
+                    tuple(
+                        [i if i else -1 for i in self.get_polymer_indices(c)]
+                    ),
+                    c,
+                )
 
             copied_complexes.sort(key=complex_sort_func)
         self._complexes = copied_complexes
@@ -1349,9 +1463,9 @@ class PolymerConformation(Species, MonomerCollection):
         #    i = self.complexes.index(c)
         #    return self.complexes[i]
         for cc in self.complexes:
-            if cc == c and [(s.position, str(s.parent)) for s in c.species] == [
-                (s.position, str(s.parent)) for s in cc.species
-            ]:
+            if cc == c and [
+                (s.position, str(s.parent)) for s in c.species
+            ] == [(s.position, str(s.parent)) for s in cc.species]:
                 return cc
         return None
 
@@ -1360,7 +1474,9 @@ class PolymerConformation(Species, MonomerCollection):
         if c in self.complexes:
             self.complexes.remove(c)
         else:
-            raise ValueError(f"Complex {c} not in PolymerConformation {self}.")
+            raise ValueError(
+                f'Complex {c} not in PolymerConformation {self}.'
+            )
 
     def get_complexes_at(self, p_ind, p_pos):
         # returns all complexes in polymer p_ind bound to location p_pos
@@ -1379,22 +1495,21 @@ class PolymerConformation(Species, MonomerCollection):
             if len(self.complexes) == 0 and len(self.polymers) == 1:
                 return str(self.polymers[0])
             else:
-
-                name = ""
+                name = ''
                 for p in self.polymers:
-                    name += "_" + str(p)
+                    name += '_' + str(p)
                 for c in self.complexes:
                     parent_inds = self.get_polymer_indices(c)
-                    name += "_"
+                    name += '_'
                     for i, ind in enumerate(parent_inds):
                         if ind is None:
-                            name += "n"
+                            name += 'n'
                         else:
                             locs = list(self.get_polymer_positions(c, ind))
                             loc = locs[i]
 
-                            name += f"p{ind}l{loc}"
-                    name += "_" + str(c)
+                            name += f'p{ind}l{loc}'
+                    name += '_' + str(c)
                 return name
         else:
             return self._name
@@ -1417,10 +1532,10 @@ class PolymerConformation(Species, MonomerCollection):
         """
         if len(self.complexes) == 0 and len(self.polymers) == 1:
             txt = Species.__repr__(self)
-            txt = txt.replace("conformation_", "")
+            txt = txt.replace('conformation_', '')
         else:
             txt = Species.__repr__(self)
-            txt += "_"
+            txt += '_'
         return txt
 
 
@@ -1482,8 +1597,9 @@ class Complex:
 
         if not isinstance(species, list):
             raise TypeError(
-                f"First argument to Complex (or species keyword), "
-                f"must be a list of Species; recieved {species}.")
+                f'First argument to Complex (or species keyword), '
+                f'must be a list of Species; recieved {species}.'
+            )
 
         # Check whether ot make a ComplexSpecies or OrderedComplexSpecies
         if kwargs.pop('ordered', False):
@@ -1511,7 +1627,7 @@ class Complex:
         # does, that means the species is in an OrderedPolymerSpecies and
         # the Complex should be formed around it.
         for i, specie in enumerate(species):
-            if hasattr(specie, "parent") and (specie.parent is not None):
+            if hasattr(specie, 'parent') and (specie.parent is not None):
                 # This adds to a growing list of parents, which will be
                 # placed in an PolymerConformation. It is very important to
                 # deepcopy here because the underlying
@@ -1550,7 +1666,8 @@ class Complex:
             # preserve order
             species.insert(insertlocs[0], child)
             new_complex = ComplexClass(
-                species, *args, **kwargs)  # create the Complex
+                species, *args, **kwargs
+            )  # create the Complex
 
             # Create a new OrderedPolymerSpecied which is copied from the
             # parent with the new complex replacing bindloc (inheriting the
@@ -1589,18 +1706,21 @@ class Complex:
             [isinstance(p, OrderedPolymerSpecies) for p in parent_species]
         ) and any([p.parent is None for p in parent_species]):
             raise TypeError(
-                "In order to form Complexes between Monomers inside "
-                "OrderedPolymerSpecies, each OrderedPolymerSpecies must be "
-                "placed in one or more PolymerConformations."
+                'In order to form Complexes between Monomers inside '
+                'OrderedPolymerSpecies, each OrderedPolymerSpecies must be '
+                'placed in one or more PolymerConformations.'
             )
 
-        elif any([
+        elif any(
+            [
                 isinstance(s, OrderedPolymerSpecies) and s.parent is not None
-                for s in species]):
+                for s in species
+            ]
+        ):
             raise ValueError(
-                "OrderedPolymerSpecies cannot be combined into a Complex "
-                "if they are already part of an PolymerConformation. "
-                "Maybe you meant to Complex specific monomers?"
+                'OrderedPolymerSpecies cannot be combined into a Complex '
+                'if they are already part of an PolymerConformation. '
+                'Maybe you meant to Complex specific monomers?'
             )
 
         # Case 5: Multiple species in one more more PolymerConformations
@@ -1617,11 +1737,14 @@ class Complex:
 
                 # if the parent is a OrderedPolymerSpecies
                 if isinstance(p, OrderedPolymerSpecies):
-                    merged_species.insert(insertlocs[i] + insert_loc_offset, s)
+                    merged_species.insert(
+                        insertlocs[i] + insert_loc_offset, s
+                    )
 
                     # if the Polymer is already in a Conformation...
-                    if p.parent is not None \
-                       and not any([p.parent is pp for pp in pcs]):
+                    if p.parent is not None and not any(
+                        [p.parent is pp for pp in pcs]
+                    ):
                         pcs.append(p.parent)
 
                 # if the parent is a PolymerConformation and child is a
@@ -1647,12 +1770,13 @@ class Complex:
                     insert_loc_offset += len(s.species) - 1
                 else:
                     raise TypeError(
-                        f"Cannot form a complex from {species}. "
-                        f"Invalid Parent Species {p} for child {s}."
+                        f'Cannot form a complex from {species}. '
+                        f'Invalid Parent Species {p} for child {s}.'
                     )
 
             # Create a Complex and merged PolymerConformation
             new_complex = ComplexClass(merged_species, *args, **kwargs)
             new_pc = PolymerConformation.from_polymer_conformation(
-                pcs, [new_complex])
+                pcs, [new_complex]
+            )
             return new_pc.get_complex(new_complex)

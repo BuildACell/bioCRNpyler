@@ -19,13 +19,13 @@ logger = logging.getLogger(__name__)
 
 
 def create_sbml_model(
-    compartment_id="default",
-    time_units="second",
-    extent_units="mole",
-    substance_units="mole",
-    length_units="metre",
-    area_units="square_metre",
-    volume_units="litre",
+    compartment_id='default',
+    time_units='second',
+    extent_units='mole',
+    substance_units='mole',
+    length_units='metre',
+    area_units='square_metre',
+    volume_units='litre',
     volume=1e-6,
     model_id=None,
     **kwargs,
@@ -46,12 +46,12 @@ def create_sbml_model(
     document = libsbml.SBMLDocument(3, 2)
     model = document.createModel()
     if model_id is None:
-        model_id = "biocrnpyler_" + str(randint(1, int(1e6)))
+        model_id = 'biocrnpyler_' + str(randint(1, int(1e6)))
     model.setId(model_id)
     model.setName(model_id)
     # Define units for area (not used, but keeps COPASI from complaining)
     unitdef = model.createUnitDefinition()
-    unitdef.setId("square_metre")
+    unitdef.setId('square_metre')
     unit = unitdef.createUnit()
     unit.setKind(libsbml.UNIT_KIND_METRE)
     unit.setExponent(2)
@@ -81,7 +81,11 @@ def valid_sbml_id(given_id, document=None):
 
 
 def add_all_species(
-    model, species: List, initial_condition_dictionary: dict, compartment=None, **kwargs
+    model,
+    species: List,
+    initial_condition_dictionary: dict,
+    compartment=None,
+    **kwargs,
 ):
     """adds a list of Species to the SBML model.
     :param model: valid SBML model
@@ -98,7 +102,9 @@ def add_all_species(
     trans = SetIdFromNames(all_ids)
 
     all_ids = [str(s) for s in species]
-    all_sbml_ids = [trans.getValidIdForName(species_id) for species_id in all_ids]
+    all_sbml_ids = [
+        trans.getValidIdForName(species_id) for species_id in all_ids
+    ]
 
     for s_ind, s in enumerate(species):
         s_id = all_sbml_ids[s_ind]
@@ -108,7 +114,9 @@ def add_all_species(
             if compartment is None:
                 compartment = add_compartment(model, s.compartment)
         if s in initial_condition_dictionary:
-            initial_concentration = parameter_to_value(initial_condition_dictionary[s])
+            initial_concentration = parameter_to_value(
+                initial_condition_dictionary[s]
+            )
         else:
             initial_concentration = 0
         add_species(
@@ -121,7 +129,12 @@ def add_all_species(
 
 
 def add_species(
-    model, compartment, species_name, species_id, initial_concentration=None, **kwargs
+    model,
+    compartment,
+    species_name,
+    species_id,
+    initial_concentration=None,
+    **kwargs,
 ):
     """Helper function to add a species to the sbml model.
     :param model:
@@ -133,7 +146,7 @@ def add_species(
 
     # Construct the species ID
 
-    logger.debug(f"Adding species: {species_name}, id: {species_id}")
+    logger.debug(f'Adding species: {species_name}, id: {species_id}')
     sbml_species = model.createSpecies()
     sbml_species.setName(species_name)
     sbml_species.setId(species_id)
@@ -141,7 +154,7 @@ def add_species(
     sbml_species.setConstant(False)
     sbml_species.setBoundaryCondition(False)
     sbml_species.setHasOnlySubstanceUnits(False)
-    sbml_species.setSubstanceUnits("mole")
+    sbml_species.setSubstanceUnits('mole')
     if initial_concentration is None:
         initial_concentration = 0
     sbml_species.setInitialConcentration(initial_concentration)
@@ -228,15 +241,16 @@ def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
 
     trans = SetIdFromNames(all_ids)
 
-    all_ids = [f"r{i}" for i in range(len(reactions))]
-    all_ids_rev = [f"r{i}rev" for i in range(len(reactions))]
-    all_sbml_ids = [trans.getValidIdForName(reaction_id) for reaction_id in all_ids]
+    all_ids = [f'r{i}' for i in range(len(reactions))]
+    all_ids_rev = [f'r{i}rev' for i in range(len(reactions))]
+    all_sbml_ids = [
+        trans.getValidIdForName(reaction_id) for reaction_id in all_ids
+    ]
     all_sbml_ids_rev = [
         trans.getValidIdForName(reaction_id) for reaction_id in all_ids_rev
     ]
 
     for rxn_count, r in enumerate(reactions):
-
         add_reaction(
             model=model,
             crn_reaction=r,
@@ -282,17 +296,25 @@ def add_reaction(
     # Create the reactants and products for the sbml_reaction
     if not reverse_reaction:
         _create_reactants(
-            reactant_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model
+            reactant_list=crn_reaction.inputs,
+            sbml_reaction=sbml_reaction,
+            model=model,
         )
         _create_products(
-            product_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model
+            product_list=crn_reaction.outputs,
+            sbml_reaction=sbml_reaction,
+            model=model,
         )
     else:
         _create_reactants(
-            reactant_list=crn_reaction.outputs, sbml_reaction=sbml_reaction, model=model
+            reactant_list=crn_reaction.outputs,
+            sbml_reaction=sbml_reaction,
+            model=model,
         )
         _create_products(
-            product_list=crn_reaction.inputs, sbml_reaction=sbml_reaction, model=model
+            product_list=crn_reaction.inputs,
+            sbml_reaction=sbml_reaction,
+            model=model,
         )
 
     # Create the kinetic law and corresponding local propensity parameters
@@ -336,11 +358,17 @@ def _create_modifiers(crn_reaction, sbml_reaction, model):
     reactants_list = [str(i.species) for i in crn_reaction.inputs]
     products_list = [str(i.species) for i in crn_reaction.outputs]
     modifier_species = [
-        str(i) for i in crn_reaction.propensity_type.propensity_dict["species"].values()
+        str(i)
+        for i in crn_reaction.propensity_type.propensity_dict[
+            'species'
+        ].values()
     ]
     for modifier_id in modifier_species:
         modifier_id = str(modifier_id)
-        if modifier_id not in reactants_list and modifier_id not in products_list:
+        if (
+            modifier_id not in reactants_list
+            and modifier_id not in products_list
+        ):
             modifier = sbml_reaction.createModifier()
             modifier.setSpecies(modifier_id)
 
@@ -362,7 +390,9 @@ def _create_local_parameter(ratelaw, name, value, constant=True):
 def _create_global_parameter(model, name, value, p_unit=None, constant=True):
     if p_unit is not None:
         if not isinstance(p_unit, str):
-            raise ValueError("Units for a parameter must be passed as strings.")
+            raise ValueError(
+                'Units for a parameter must be passed as strings.'
+            )
         unit_added = False
         for unit_definition in model.getListOfUnitDefinitions():
             if unit_definition.getId() == p_unit:
@@ -446,11 +476,17 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
     # once for each SBase element in the model.
     def transform(self, element):
         # return in case we don't have a valid element
-        if element is None or element.getTypeCode() == libsbml.SBML_LOCAL_PARAMETER:
+        if (
+            element is None
+            or element.getTypeCode() == libsbml.SBML_LOCAL_PARAMETER
+        ):
             return libsbml.LIBSBML_OPERATION_SUCCESS
 
             # or if there is nothing to do
-        if element.isSetName() == False or element.getId() == element.getName():
+        if (
+            element.isSetName() == False
+            or element.getId() == element.getName()
+        ):
             return libsbml.LIBSBML_OPERATION_SUCCESS
 
             # find the new id
@@ -469,21 +505,21 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
         count = 0
         end = len(name)
 
-        if "0" <= name[count] and name[count] <= "9":
-            IdStream.append("x_")
-        if "*" in name:
-            IdStream.append("xx")
+        if '0' <= name[count] and name[count] <= '9':
+            IdStream.append('x_')
+        if '*' in name:
+            IdStream.append('xx')
         for count in range(0, end):
             if (
-                ("0" <= name[count] and name[count] <= "9")
-                or ("a" <= name[count] and name[count] <= "z")
-                or ("A" <= name[count] and name[count] <= "Z")
+                ('0' <= name[count] and name[count] <= '9')
+                or ('a' <= name[count] and name[count] <= 'z')
+                or ('A' <= name[count] and name[count] <= 'Z')
             ):
                 IdStream.append(name[count])
             else:
-                IdStream.append("_")
-        Id = "".join(IdStream)
-        if Id[len(Id) - 1] != "_":
+                IdStream.append('_')
+        Id = ''.join(IdStream)
+        if Id[len(Id) - 1] != '_':
             return Id
 
         return Id
@@ -498,7 +534,7 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
         id = baseString
         count = 1
         while self.existingIds.count(id) != 0:
-            id = "{0}_{1}".format(baseString, count)
+            id = '{0}_{1}'.format(baseString, count)
             count = count + 1
         return id
 
@@ -514,12 +550,15 @@ def getAllIds(allElements):
 
     for i in range(0, allElements.getSize()):
         current = allElements.get(i)
-        if current.isSetId() and current.getTypeCode() != libsbml.SBML_LOCAL_PARAMETER:
+        if (
+            current.isSetId()
+            and current.getTypeCode() != libsbml.SBML_LOCAL_PARAMETER
+        ):
             result.append(current.getId())
     return result
 
 
-def getSpeciesByName(model, name, compartment=""):
+def getSpeciesByName(model, name, compartment=''):
     """
     Returns a list of species in the Model with the given name
     compartment : (Optional) argument to specify the compartment name in which
@@ -530,7 +569,7 @@ def getSpeciesByName(model, name, compartment=""):
     species_found = []
     for species in model.getListOfSpecies():
         if species.getName() == name:
-            if compartment != "":
+            if compartment != '':
                 comp_elem = species.getCompartment()
                 comp_name = model.getElementBySId(comp_elem).getName()
                 if comp_name == compartment:
@@ -543,9 +582,11 @@ def getSpeciesByName(model, name, compartment=""):
     if len(species_found) == 1:
         return species_found[0]
     elif not species_found:
-        raise ValueError("The species " + name + " not found.")
+        raise ValueError('The species ' + name + ' not found.')
     else:
-        warn("Multiple species with name " + name + " found. Returning a list")
+        warn(
+            'Multiple species with name ' + name + ' found. Returning a list'
+        )
         return species_found
 
 
@@ -573,7 +614,7 @@ class validateSBML(object):
         errors = sbmlDoc.getNumErrors()
         if print_results:
             print(
-                "Validating SBML model with ID: {0}...".format(
+                'Validating SBML model with ID: {0}...'.format(
                     sbmlDoc.getModel().getId()
                 )
             )
@@ -581,7 +622,7 @@ class validateSBML(object):
 
         numReadErr = 0
         numReadWarn = 0
-        errMsgRead = ""
+        errMsgRead = ''
 
         if errors > 0:
             for i in range(errors):
@@ -601,10 +642,12 @@ class validateSBML(object):
 
         numCCErr = 0
         numCCWarn = 0
-        errMsgCC = ""
+        errMsgCC = ''
 
         if seriousErrors:
-            errMsgRead += "Further consistency checking and validation aborted."
+            errMsgRead += (
+                'Further consistency checking and validation aborted.'
+            )
         else:
             sbmlDoc.setConsistencyChecks(
                 libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, self.ucheck
@@ -626,25 +669,27 @@ class validateSBML(object):
         if errMsgRead or errMsgCC:
             if print_results:
                 print()
-                print("===== validation error/warning messages =====\n")
+                print('===== validation error/warning messages =====\n')
             if errMsgRead:
                 if print_results:
                     print(errMsgRead)
             if errMsgCC:
                 if print_results:
-                    print("*** consistency check ***\n")
+                    print('*** consistency check ***\n')
                     print(errMsgCC)
         if not (numReadErr + numCCErr):
-            print("Successful!")
+            print('Successful!')
         return numReadErr + numCCErr
 
 
 def validate_sbml(sbml_document, enable_unit_check=False, print_results=True):
     """Validates the generated SBML model by using libSBML SBML validation code."""
     validator = validateSBML(enable_unit_check)
-    validation_result = validator.validate(sbml_document, print_results=print_results)
+    validation_result = validator.validate(
+        sbml_document, print_results=print_results
+    )
     if validation_result > 0:
         warn(
-            "SBML model invalid. Run with print_results = False to hide print statements"
+            'SBML model invalid. Run with print_results = False to hide print statements'
         )
     return validation_result

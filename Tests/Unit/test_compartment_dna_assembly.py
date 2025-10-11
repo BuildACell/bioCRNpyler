@@ -8,37 +8,37 @@ def test_compartment_dna_assembly():
     """Test compartment assignment for DNA assembly in a CRN."""
 
     # Create compartments for the inside and outside of the detector cell
-    detector_internal = Compartment(name="DetectorInternal")
+    detector_internal = Compartment(name='DetectorInternal')
 
     # Create the protein for TetR
-    tetr = Protein("TetR", compartment=detector_internal)
+    tetr = Protein('TetR', compartment=detector_internal)
 
     # Create a DNA construct for a GFP reporter
     ptet = RepressiblePromoter(
-        name="ptet", repressor=tetr, compartment=detector_internal
+        name='ptet', repressor=tetr, compartment=detector_internal
     )
-    
+
     dna_gfp = DNAassembly(
-        name="GFP",
+        name='GFP',
         promoter=ptet,
-        rbs="RBS_standard",
-        protein="GFP",
+        rbs='RBS_standard',
+        protein='GFP',
         compartment=detector_internal,
     )
 
     parameter_dict = {
-        "ktx": 1.0,  # Transcription rate
-        "ktl": 1.0,  # Translation rate
-        "kdil": 0.1,  # Dilution rate
-        "kleak": 0.01, # Leak rate
-        "K": 10, # Half-activation value
-        "k": 1, # activation rate
-        "n": 2, # Hill coefficient
+        'ktx': 1.0,  # Transcription rate
+        'ktl': 1.0,  # Translation rate
+        'kdil': 0.1,  # Dilution rate
+        'kleak': 0.01,  # Leak rate
+        'K': 10,  # Half-activation value
+        'k': 1,  # activation rate
+        'n': 2,  # Hill coefficient
     }
 
     # Create mixture
     mixture = SimpleTxTlExtract(
-        "DetectorCell",
+        'DetectorCell',
         components=[tetr, dna_gfp],
         parameters=parameter_dict,
     )
@@ -55,4 +55,3 @@ def test_compartment_dna_assembly():
     # assert that compartments are correct after compilation
     for species in crn.species:
         assert species.compartment.name == detector_internal.name
-    

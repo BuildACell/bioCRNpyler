@@ -17,8 +17,14 @@ def test_enzyme():
 
     assert e.get_species().name == 'E1'
 
-    with pytest.raises(KeyError, match='Unable to find mechanism of type catalysis in Component'):
+    with pytest.raises(
+        KeyError,
+        match='Unable to find mechanism of type catalysis in Component',
+    ):
         e.update_species()
 
-    with pytest.raises(KeyError, match='Unable to find mechanism of type catalysis in Component'):
+    with pytest.raises(
+        KeyError,
+        match='Unable to find mechanism of type catalysis in Component',
+    ):
         e.update_reactions()

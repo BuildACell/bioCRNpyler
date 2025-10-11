@@ -1,6 +1,5 @@
-"""Chemical reaction networks and BioCRNpyler base classes.
+"""Chemical reaction networks and BioCRNpyler base classes."""
 
-"""
 from .polymer import *
 from .species import *
 from .compartment import *

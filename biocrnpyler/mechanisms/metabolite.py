@@ -5,7 +5,8 @@ from ..core.reaction import Reaction
 # [precursors] --> [products] using Massaction (None OK)
 class OneStepPathway(Mechanism):
     def __init__(
-            self, name='one_step_pathway', mechanism_type='metabolic_pathway'):
+        self, name='one_step_pathway', mechanism_type='metabolic_pathway'
+    ):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     def update_species(self, precursor, product, **keywords):
@@ -17,8 +18,14 @@ class OneStepPathway(Mechanism):
         return species
 
     def update_reactions(
-            self, precursor, product, component=None, part_id=None, k=None,
-            **keywords):
+        self,
+        precursor,
+        product,
+        component=None,
+        part_id=None,
+        k=None,
+        **keywords,
+    ):
         if precursor is None:
             inputs = []
         else:
@@ -30,9 +37,9 @@ class OneStepPathway(Mechanism):
             outputs = product
 
         if component is None and k is None:
-            raise ValueError("Must pass in a component or a rate k.")
+            raise ValueError('Must pass in a component or a rate k.')
         elif k is None:
-            k = component.get_parameter("k", part_id=part_id, mechanism=self)
+            k = component.get_parameter('k', part_id=part_id, mechanism=self)
 
         r = Reaction.from_massaction(inputs, outputs, k_forward=k)
         return [r]
