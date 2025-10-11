@@ -186,8 +186,10 @@ class SimpleTranslation(Mechanism):
 
 
 class PositiveHillTranscription(Mechanism):
-    """A mechanism to model transcription as a proprotional positive hill function:
+    """A mechanism to model transcription as a proprotional positive hill function.
+
     G --> G + P
+
     rate = k*G*(R^n)/(K+R^n)
     where R is a regulator (activator).
     Optionally includes a leak reaction
@@ -235,7 +237,7 @@ class PositiveHillTranscription(Mechanism):
         protein=None,
         **keywords,
     ):
-        """This always requires the inputs component and part_id to find the relevant parameters
+        """This always requires the inputs component and part_id to find the relevant parameters.
 
         :param dna:
         :param regulator:
@@ -247,7 +249,6 @@ class PositiveHillTranscription(Mechanism):
         :param keywords:
         :return:
         """
-
         ktx = component.get_parameter('k', part_id=part_id, mechanism=self)
         n = component.get_parameter('n', part_id=part_id, mechanism=self)
         K = component.get_parameter('K', part_id=part_id, mechanism=self)
@@ -287,8 +288,10 @@ class PositiveHillTranscription(Mechanism):
 
 
 class NegativeHillTranscription(Mechanism):
-    """A mechanism to model transcription as a proprotional negative hill function:
+    """A mechanism to model transcription as a proprotional negative hill function.
+
     G --> G + P
+
     rate = k*G*(1)/(K+R^n)
     where R is a regulator (repressor).
     Optionally includes a leak reaction
@@ -336,7 +339,7 @@ class NegativeHillTranscription(Mechanism):
         protein=None,
         **keywords,
     ):
-        """This always requires the inputs component and part_id to find the relevant parameters
+        """This always requires the inputs component and part_id to find the relevant parameters.
 
         :param dna:
         :param regulator:
@@ -348,7 +351,6 @@ class NegativeHillTranscription(Mechanism):
         :param keywords:
         :return:
         """
-
         ktx = component.get_parameter('k', part_id=part_id, mechanism=self)
         n = component.get_parameter('n', part_id=part_id, mechanism=self)
         K = component.get_parameter('K', part_id=part_id, mechanism=self)
@@ -553,6 +555,7 @@ class Energy_Transcription_MM(Mechanism):
         **keywords,
     ):
         """Initializes a Transcription_MM instance.
+
         :param fuels: List of Species consumed during transcription
         :param wastes: List of Species consumed during transcription
         :param rnap: Species instance that is representing an RNA polymerase
@@ -803,7 +806,6 @@ class multi_tx(Mechanism):
 
         max_occ =  maximum occupancy of gene (physical limit)
         """
-
         # parameter loading
         kb = component.get_parameter('kb', part_id=part_id, mechanism=self)
         ku = component.get_parameter('ku', part_id=part_id, mechanism=self)
@@ -988,7 +990,6 @@ class multi_tl(Mechanism):
         mRNA:RBZ_n_c --> mRNA:RBZ_0_c + n RBZ + n Protein
         kf = ktl_solo
         """
-
         # parameter loading
         kb = component.get_parameter('kb', part_id=part_id, mechanism=self)
         ku = component.get_parameter('ku', part_id=part_id, mechanism=self)

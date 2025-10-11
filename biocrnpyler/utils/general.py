@@ -34,9 +34,13 @@ def recursive_parent(s):
 
 
 def remove_bindloc(spec_list):
-    """go through every species on a list and remove any "bindloc" attributes. This is used
-    to convert monomers with a parent polymer into the correct species after combinatorial binding
-    in things like DNAassembly and RNAassembly."""
+    """Go through every species on a list and remove any "bindloc" attributes.
+
+    This is used to convert monomers with a parent polymer into the
+    correct species after combinatorial binding in things like
+    DNAassembly and RNAassembly.
+
+    """
     if not isinstance(spec_list, list):
         spec_list = [spec_list]
 
@@ -74,8 +78,10 @@ def process_initial_concentration_dict(
 
 
 def combine_dictionaries(dict1, dict2):
-    """append lists that share the same key, and add new keys
-    WARNING: this only works if the dictionaries have values that are lists"""
+    """Append lists that share the same key, and add new keys.
+
+    WARNING: this only works if the dictionaries have values that are lists.
+    """
     outdict = dict1
     for key in dict2:
         if key in outdict:
@@ -88,7 +94,8 @@ def combine_dictionaries(dict1, dict2):
 
 
 def member_dictionary_search(member, dictionary):
-    """searches through a dictionary for keys relevant to the given data member.
+    """Searches through a dictionary for keys relevant to the given data member.
+
     Order of returning:
     repr
     name
@@ -96,6 +103,7 @@ def member_dictionary_search(member, dictionary):
     propensity name
     propensity partid
     propensity mechanism
+
     """
     if dictionary is None:
         return None

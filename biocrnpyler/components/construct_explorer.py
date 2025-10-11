@@ -33,7 +33,11 @@ class ConstructExplorer(LocalComponentEnumerator):
         self.reset_enumerator()
 
     def reset_enumerator(self):
-        """clear accumulator variables from the numerator. MUST BE SUBCLASSED"""
+        """Clear accumulator variables from the numerator.
+
+        MUST BE SUBCLASSED
+
+        """
         pass
 
     def enumerate_components(self, component, previously_enumerated=None):
@@ -72,9 +76,13 @@ class ConstructExplorer(LocalComponentEnumerator):
             return []
 
     def check_loop(self):
-        """if we already went around the plasmid, then what we're checking for is continuing
-        transcripts or proteins. We don't want to start making new transcripts
-        because we already checked this area for promoters"""
+        """Check for loops in plasmids (?).
+
+        If we already went around the plasmid, then what we're checking for is
+        continuing transcripts or proteins. We don't want to start making new
+        transcripts because we already checked this area for promoters.
+
+        """
         logging.debug(f"loop count = {self.current_loop_count}")
         if self.current_loop_count >= self.max_loop_count:
             self.terminate_loop()
@@ -129,8 +137,8 @@ class TxExplorer(ConstructExplorer):
     def iterate_part(self, part, reading_direction):
         # Part is a DNA_part
         # direction is the direction we are looking in along the DNA_construct
+        """The explorer sees a dna_part.
 
-        """the explorer sees a dna_part.
         1. it calculates effective direction of part relative to transcription direction
         2. it adds parts to growing transcripts
         3. it makes new transcripts and terminates growing transcripts.
@@ -221,8 +229,8 @@ class TlExplorer(ConstructExplorer):
     def iterate_part(self, part, reading_direction):
         # Part is a DNA_part
         # direction is the direction we are looking in along the DNA_construct
+        """The explorer sees a dna_part.
 
-        """the explorer sees a dna_part.
         1. it calculates effective direction of part relative to transcription direction
         2. it adds parts to growing transcripts
         3. it makes new transcripts and terminates growing transcripts.

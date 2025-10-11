@@ -193,7 +193,7 @@ class Reaction(object):
         return new_r
 
     def __repr__(self):
-        """Helper function to print the text of a rate function"""
+        """Helper function to print the text of a rate function."""
         return self.pretty_print(
             show_rates=False,
             show_material=True,
@@ -232,8 +232,7 @@ class Reaction(object):
         return txt
 
     def __eq__(self, other):
-        """Two reactions are equivalent if they have the same inputs, outputs,
-        and propensity."""
+        """Two reactions are equivalent if they have the same inputs, outputs, and propensity."""
         if not isinstance(other, Reaction):
             raise TypeError(
                 f"Only reactions can be compared with reaction! "

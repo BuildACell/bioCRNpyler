@@ -282,9 +282,7 @@ class CombinatorialConformation(Component):
             return species_changes, merged_complexes
 
     def get_combinations_between(self, s0, sf):
-        """
-        Returns a list of ???.
-        """
+        """Returns a list of ???."""
         # print("geting combinations between", s0, "and", sf)
         X = self.compute_species_changes(s0, sf)
 

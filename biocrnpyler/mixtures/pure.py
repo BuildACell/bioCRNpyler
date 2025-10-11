@@ -38,7 +38,8 @@ class BasicPURE(Mixture):
         parameter_file='mixtures/pure_parameters.tsv',
         **kwargs,
     ):
-        """
+        """Initialize the PURE mixture.
+
         :param name: name of the mixture
         :param rnap: name of the RNA polymerase, default: RNAP
         :param ribosome: name of the ribosome, default: Ribo

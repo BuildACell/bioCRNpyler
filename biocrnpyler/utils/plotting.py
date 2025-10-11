@@ -90,7 +90,7 @@ def makeArrows2(
     headangle=math.pi / 6,
     make_arrows=True,
 ):
-    """this function draws an arrow shape at the end of graph lines"""
+    """This function draws an arrow shape at the end of graph lines."""
     xs, ys = [], []
     xbounds = [0, 0]
     ybounds = [0, 0]
@@ -158,7 +158,8 @@ def graphPlot(
     rseed=30,
     show_species_images=False,
 ):
-    """given a directed graph, plot it!
+    """Given a directed graph, plot it!
+
     Inputs:
     DG: a directed graph of type DiGraph
     DGspecies: a directed graph which only contains the species nodes
@@ -349,7 +350,8 @@ def generate_networkx_graph(
     reactioncolordict=None,
     imagedict=None,
 ):
-    """generates a networkx DiGraph object that represents the CRN.
+    """Generates a networkx DiGraph object that represents the CRN.
+
     input:
     ==========================
     CRN: a CRN from mixture.get_model() for example
@@ -569,16 +571,19 @@ def generate_networkx_graph(
 class CRNPlotter:
     class MultiPart:
         def __init__(self, name, parts_list, bound=None):
-            """multiple simple parts which are treated as one"""
+            """Multiple simple parts which are treated as one."""
             self.name = name
             self.parts_list = parts_list
             self.bound = None
 
         def get_directed(self, direction, bound=None, non_binder=None):
-            """returns a copy of itself with the direction changed to the value of 'direction'.
-            In the case of MultiPart it also means reversing the order of the subparts.
-            A MultiPart binds to things differently from a normal part. the binding is distributed among
-            the subparts. "non_binder" indicates a dpl_type which should not be shown binding to things.
+            """Returns a copy of itself with the direction changed to the value of 'direction'.
+
+            In the case of MultiPart it also means reversing the order of the
+            subparts.  A MultiPart binds to things differently from a normal
+            part. the binding is distributed among the subparts. "non_binder"
+            indicates a dpl_type which should not be shown binding to things.
+
             """
             if non_binder is None:
                 # by default we assume that promoters that are part of MultiParts don't bind to things
@@ -620,8 +625,12 @@ class CRNPlotter:
                 return new_multipart
 
         def get_dpl(self):
-            """dnaplotlib takes these dictionaries as input. So this converts the MultiPart object
-            into a list of dictionaries that matplotlib can understand"""
+            """Dnaplotlib takes these dictionaries as input.
+
+            So this converts the MultiPart object into a list of dictionaries
+            that matplotlib can understand.
+
+            """
             outlist = []
             for part in self.parts_list:
                 outlist += part.get_dpl()
@@ -644,7 +653,7 @@ class CRNPlotter:
             label_size=13,
             added_opts=None,
         ):
-            """this is a simplified version of a DNAconstruct which mostly only has information relevant to plotting"""
+            """This is a simplified version of a DNAconstruct which mostly only has information relevant to plotting."""
             self.name = name
             self.parts_list = parts_list
             self.circular = circular
@@ -654,7 +663,7 @@ class CRNPlotter:
                 self.added_opts = {}
 
         def get_dpl(self):
-            """output a list of dictionaries suitable for dnaplotlib"""
+            """Output a list of dictionaries suitable for dnaplotlib."""
             outlist = []
             for part in self.parts_list:
                 part_dpl = part.get_dpl()
@@ -664,8 +673,11 @@ class CRNPlotter:
             return outlist
 
         def get_dpl_binders(self):
-            """output a dnaplotlib dictionary list to represent the "binders".
-            Binders are "regulation" arcs modified to draw a SBOL glyph instead of a line.
+            """Output a dnaplotlib dictionary list to represent the "binders".
+
+            Binders are "regulation" arcs modified to draw a SBOL glyph
+            instead of a line.
+
             """
             my_dpl_output = self.get_dpl()
             out_regs = []
@@ -773,7 +785,7 @@ class CRNPlotter:
             added_opts=None,
             material_type=None,
         ):
-            """a simple 'part' for the sole purpose of rendering using DNAplotlib"""
+            """A simple 'part' for the sole purpose of rendering using DNAplotlib."""
             self.name = name
             self.color = color
             self.color2 = color2
@@ -874,7 +886,7 @@ class CRNPlotter:
         recursion_depth=4,
         compiled_components=None,
     ):
-        """creates dnaplotlib images for all relevant species in a mixture"""
+        """Creates dnaplotlib images for all relevant species in a mixture."""
         if crn is None:
             mycrn, compiled_components = mixture.compile_crn(
                 return_enumerated_components=True,
@@ -1111,7 +1123,7 @@ class CRNPlotter:
     def make_dpl_from_part(
         self, part, set_color=None, save_in_dict=True, set_color2=None
     ):
-        """create a DNAplotlib dictionary from a part"""
+        """Create a DNAplotlib dictionary from a part."""
         removed_part = part.get_removed()
         if len(self.colordict) > 0 and set_color is None:
             search_color = member_dictionary_search(
@@ -1222,7 +1234,7 @@ class CRNPlotter:
 
 
 def render_constructs(constructs, color_dictionary=None):
-    """wrapper around CRNPlotter class to make a bunch of constructs which are color coordinated"""
+    """Wrapper around CRNPlotter class to make a bunch of constructs which are color coordinated."""
     plotter = CRNPlotter(colordict=color_dictionary)
     axes = []
     for construct in constructs:

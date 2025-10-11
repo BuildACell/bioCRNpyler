@@ -31,7 +31,7 @@ class Mechanism(object):
             )
 
     def update_species(self, component=None, part_id=None) -> List:
-        """the child class should implement this method.
+        """The child class should implement this method.
 
         :return: empty list
         """
@@ -39,7 +39,7 @@ class Mechanism(object):
         return []
 
     def update_reactions(self, component=None, part_id=None) -> List:
-        """the child class should implement this method.
+        """The child class should implement this method.
 
         :return: empty list
         """

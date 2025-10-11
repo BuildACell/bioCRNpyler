@@ -113,7 +113,7 @@ class ChemicalReactionNetwork(object):
             )
 
     def add_species(self, species, copy_species=True, compartment=None):
-        """Adds a Species or a list of Species to the CRN object
+        """Adds a Species or a list of Species to the CRN object.
 
         :param species: Species instance or list of Species instances
         :param copy_species: whether to deep copy Species added to the CRN. Protects CRN validity at teh expense of speed.
@@ -151,7 +151,7 @@ class ChemicalReactionNetwork(object):
         add_species=True,
         compartment=None,
     ) -> None:
-        """Adds a reaction or a list of reactions to the CRN object
+        """Adds a reaction or a list of reactions to the CRN object.
 
         :param reactions: Reaction instance or list of Reaction instances
         :param copy_reactions: whether to deep copy reactions before adding
@@ -227,7 +227,6 @@ class ChemicalReactionNetwork(object):
         :param show_warnings: whether to show warning when duplicated reactions/species was found
         :return: tuple(reaction,species)
         """
-
         if not all(isinstance(r, Reaction) for r in reactions):
             raise ValueError("A non-reaction object was used as a reaction!")
 
@@ -301,7 +300,6 @@ class ChemicalReactionNetwork(object):
         `show_rates` toggles whether reaction rate functions are printed
         `show_compartment` toggles whether species.compartment is printed
         """
-
         txt = 'Species' + f"(N = {len(self._species)}) = " + '{\n'
 
         def ics(s):
@@ -365,9 +363,7 @@ class ChemicalReactionNetwork(object):
     def get_all_species_containing(
         self, species: Species, return_as_strings=False
     ):
-        """Returns all species (complexes and otherwise) containing a given species
-        (or string).
-        """
+        """Returns all species (complexes and otherwise) containing a given species (or string)."""
         return_list = []
         if not isinstance(species, Species):
             raise ValueError(
@@ -387,7 +383,6 @@ class ChemicalReactionNetwork(object):
 
         Does not act in place: returns a new CRN.
         """
-
         if not isinstance(species, Species):
             raise ValueError(
                 "species argument must be an instance of Species!"
@@ -417,8 +412,7 @@ class ChemicalReactionNetwork(object):
         check_validity=True,
         **keywords,
     ):
-        """Creates an new SBML model and populates with the species and
-        reactions in the ChemicalReactionNetwork object
+        """Creates an new SBML model and populates with the species and reactions in the ChemicalReactionNetwork object.
 
         :param stochastic_model: whether the model is stochastic
         :param show_warnings: of from check crn validity
@@ -465,7 +459,7 @@ class ChemicalReactionNetwork(object):
         check_validity=True,
         **keywords,
     ) -> bool:
-        """ "Writes CRN object to a SBML file
+        """Writes CRN object to a SBML file.
 
         :param file_name: name of the file where the SBML model gets written
         :param stochastic_model: export an SBML file which ready for stochastic simulations
@@ -491,6 +485,7 @@ class ChemicalReactionNetwork(object):
         safe=False,
     ):
         """Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
+
         Returns the data for all species as Pandas dataframe.
         """
         result = None
@@ -524,6 +519,7 @@ class ChemicalReactionNetwork(object):
         **kwargs,
     ):
         """Simulate CRN model with bioscrape via writing a SBML file temporarily.
+
         [Bioscrape on GitHub](https://github.com/biocircuits/bioscrape).
 
         Returns the data for all species as Pandas dataframe.
@@ -583,6 +579,7 @@ class ChemicalReactionNetwork(object):
         check_validity=True,
     ):
         """To simulate using roadrunner.
+
         Arguments:
         timepoints: The array of time points to run the simulation for.
         initial_condition_dict:

@@ -8,7 +8,7 @@ from .construct import DNA_part
 
 class CDS(DNA_part):
     def __init__(self, name, protein=None, no_stop_codons=[], **kwargs):
-        """a CDS is a sequence of DNA that codes for a protein"""
+        """A CDS is a sequence of DNA that codes for a protein."""
         self.name = name
         DNA_part.__init__(self, name, no_stop_codons=no_stop_codons, **kwargs)
         # TODO use set_species()

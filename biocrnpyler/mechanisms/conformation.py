@@ -6,7 +6,8 @@ from ..core.reaction import Reaction
 
 
 class One_Step_Reversible_Conformation_Change(Mechanism):
-    """A reaction where n binders (A) bind to 1 bindee (B) in one step
+    """A reaction where n binders (A) bind to 1 bindee (B) in one step.
+
     n A + B <--> nA:B
     """
 

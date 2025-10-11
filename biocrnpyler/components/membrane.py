@@ -27,7 +27,9 @@ class DiffusibleMolecule(Component):
         **keywords,
     ):
         """Initialize a DiffusibleMolecule object to store molecule/substance related information.
-        :param substrate: name of the diffusible substrate, reference to an Species or Component
+
+        :param substrate: name of the diffusible substrate, reference to
+            an Species or Component
         :param internal_compartment: name of internal compartment
         :param external_compartment: name of external compartment
         :param attributes: Species attribute, passed to Component
@@ -69,10 +71,13 @@ class DiffusibleMolecule(Component):
 
 
 class IntegralMembraneProtein(Component):
-    """A class to represent transmembrane proteins or integral membrane proteins.
-    This membrane class is to classify a membrane channel that will intergrate into the membrane.
-    Uses a mechanism called "membrane_insertion".
-    Size is used to indicate number of repeating components to create oligomer. Dimer = 2, Trimers = 3, etc.
+    """Class representing transmembrane proteins or integral membrane proteins.
+
+    This membrane class is to classify a membrane channel that will intergrate
+    into the membrane.  Uses a mechanism called "membrane_insertion".  Size is
+    used to indicate number of repeating components to create oligomer. Dimer
+    = 2, Trimers = 3, etc.
+
     """
 
     def __init__(
@@ -87,6 +92,7 @@ class IntegralMembraneProtein(Component):
         **keywords,
     ):
         """Initialize a IntegralMembraneProtein object to store membrane channel related information.
+
         :param product: name of the membrane channel, reference to an Species or Component
         :param direction: transport direction (str), set to "Passive" by default, undirectional unless specified
         :param size: number of monomers needed for channel used in Membrane_Protein_Integration(Mechanism)
@@ -216,8 +222,7 @@ class MembraneChannel(Component):
         attributes=None,
         **keywords,
     ):
-        """Initialize a MembraneChannel object to store transport membrane
-        related information.
+        """Initialize a MembraneChannel object to store transport membrane related information.
 
         :param substrate: substrate to be transported (str, Species, Component)
         :param direction: direction of transport based on transporter action
@@ -326,8 +331,11 @@ class MembraneChannel(Component):
 
 class MembranePump(Component):
     """A class to represent membrane pumps or transporters that require ATP.
-    The membrane pump transports substrates unidirectionally across the membrane, independent of the concentration gradient.
-    Uses a mechanism called "transport".
+
+    The membrane pump transports substrates unidirectionally across the
+    membrane, independent of the concentration gradient.  Uses a mechanism
+    called 'transport'.
+
     """
 
     def __init__(
@@ -342,6 +350,7 @@ class MembranePump(Component):
         **keywords,
     ):
         """Initialize a MembranePump object to store Transport membrane related information.
+
         :param substrate: name of the substrate, reference to an Species or Component
         :param direction: give direction of transport ref to vesicle
         :param internal_compartment: name of internal compartment
@@ -512,8 +521,11 @@ class MembranePump(Component):
 
 class MembraneSensor(Component):
     """A class to represent a two-component system (TCS) membrane sensor.
-    The membrane sensor protein senses the signal substrate and added the assigned substrate to the response protein.
-    Uses a mechanism called "membrane_sensor".
+
+    The membrane sensor protein senses the signal substrate and added the
+    assigned substrate to the response protein.  Uses a mechanism called
+    'membrane_sensor'.
+
     """
 
     def __init__(
@@ -530,6 +542,7 @@ class MembraneSensor(Component):
         **keywords,
     ):
         """Initialize a MembraneSensor object to store Transport membrane related information.
+
         :param membrane_sensor_protein: name of the membrane protein in the TCS, reference to an Species or Component
         :param response_protein: name of the response protein in the TCS, reference to an Species or Component
         :param assigned_substrate: name of the assigned substrate in the TCS, reference to an Species or Component

@@ -17,6 +17,7 @@ class Polymer_transformation:
         self, partslist, circular=False, parentsdict=None, material_type='dna'
     ):
         """A Polymer transformation is like a generic transformation of a polymer sequence.
+
         You specify a parts list that would make up the output polymer. This list can contain:
         parts from ordered polymers
         parts that aren't in any polymers (have parent = None)
@@ -25,8 +26,7 @@ class Polymer_transformation:
 
         Also you can specify if the output should be circular or not.
 
-        example:
-
+        Example:
         valid partslist:
         partslist = [Monomer(forward,3,"input1"),Monomer(reverse,1,"input2"),Promoter(forward,None,None)]
 
@@ -108,8 +108,12 @@ class Polymer_transformation:
         self.material_type = material_type
 
     def renumber_output(self, output_renumbering_function):
-        """change the ordering of the output list, using the output_renumbering_function which takes
-        in an int and returns an int which is the new index of the part"""
+        """Change the ordering of the output list.
+
+        Use the output_renumbering_function, which takes in an int and
+        returns an int which is the new index of the part.
+
+        """
         new_partslist = []
         for i in range(len(self.partslist)):
             new_i, direc = output_renumbering_function(i)
@@ -123,14 +127,19 @@ class Polymer_transformation:
         self.partslist = new_partslist
 
     def get_renumbered(self, output_renumbering_function):
-        """return a copy of this transformation, but the output indexes are renumbered"""
+        """Return a copy of this transformation, but the output indexes are renumbered."""
         rxn_copied = copy.copy(self)
         rxn_copied.renumber_output(output_renumbering_function)
         return rxn_copied
 
     def reversed(self):
-        """return a circularly permuted version of self. That means the inputs are shuffled around
-        For example, we had input1, input2, input3. Now we will have input1=input2, input2=input3, input3=input1."""
+        """Return a circularly permuted version of self.
+
+        That means the inputs are shuffled around For example, we had input1,
+        input2, input3. Now we will have input1=input2, input2=input3,
+        input3=input1.
+
+        """
         new_parentsdict = {}
 
         new_name_dict = {}
@@ -160,10 +169,15 @@ class Polymer_transformation:
             )
 
     def create_polymer(self, polymer_list, **kwargs):
-        """this function creates a new polymer from the template saved inside this class.
-        A polymer_list is a list of polymers from which the resulting polymer is made. Some of
-        the parts which compose the output polymer don't have a parent, and therefore are new parts.
-        In these cases anything bound to the previous location of these parts will be bound to the new ones as well."""
+        """Create a new polymer from the template saved inside this class.
+
+        A polymer_list is a list of polymers from which the resulting polymer
+        is made. Some of the parts which compose the output polymer don't have
+        a parent, and therefore are new parts.  In these cases anything bound
+        to the previous location of these parts will be bound to the new ones
+        as well.
+
+        """
         polymer_dict = {
             'input' + str(a + 1): b for a, b in enumerate(polymer_list)
         }
@@ -251,8 +265,7 @@ class Polymer_transformation:
 
     @classmethod
     def dummify(cls, in_polymer, name):
-        """creates a simplified polymer that has the same number of monomers, direction of monomers,
-        and name as the input polymer, but is otherwise disconnected."""
+        """Create a simplified polymer that has the same number of monomers, direction of monomers, and name as the input polymer, but is otherwise disconnected."""
         # this is used specifically with polymerTransformation. Dummified version of polymers are stored in
         # polymerTransformation as generic "slots" for monomers to be properly placed into
         out_list = []
@@ -299,10 +312,14 @@ class IntegraseRule:
         allow_integration=True,
         allow_inversion=True,
     ):
-        """The integrase mechanism is a mechanism at the level of DNA. It creates DNA species which
-        the integrase manipulations would lead to. This mechanism does not create any reaction rates.
-        We need to figure out how integrase binding will work before being able to create
-        reactions and their corresponding rates"""
+        """The integrase mechanism is a mechanism at the level of DNA.
+
+        It creates DNA species which the integrase manipulations would lead
+        to. This mechanism does not create any reaction rates.  We need to
+        figure out how integrase binding will work before being able to create
+        reactions and their corresponding rates
+
+        """
         if reactions is None:
             reactions = {('attB', 'attP'): 'attL', ('attP', 'attB'): 'attR'}
         if name is None:
@@ -333,7 +350,7 @@ class IntegraseRule:
         return False
 
     def reactive_sites(self):
-        """returns a list of attachment sites (strings) that participate in integrase reactions"""
+        """Returns a list of attachment sites (strings) that participate in integrase reactions."""
         attsites = []
         for reaction in self.reactions:
             attsites += list(reaction)
@@ -341,7 +358,7 @@ class IntegraseRule:
         return attsites
 
     def generate_products(self, site1, site2, site2_parent=None):
-        """generates DNA_part objects corresponding to the products of recombination"""
+        """Generates DNA_part objects corresponding to the products of recombination."""
         # the sites should have the same integrase and dinucleotide, otherwise it won't work
         assert site1.integrase == site2.integrase
         assert (
@@ -416,8 +433,10 @@ class IntegraseRule:
         force_inter=False,
         existing_dna_constructs=None,
     ):
-        """perform an integration reaction between the chosen sites and make new DNA_constructs
-        site1 and site2 are integrase site dna_parts which have parents that are DNA_constructs.
+        """Perform an integration reaction between the chosen sites.
+
+        Make new DNA_constructs site1 and site2 are integrase site dna_parts
+        which have parents that are DNA_constructs.
 
         There are four possible reactions:
         1) inversion
@@ -443,6 +462,7 @@ class IntegraseRule:
         that occur between two copies of the same plasmid.
 
         force_inter forces a reaction to be intermolecular even if the two sites are on the same plasmid
+
         """
         intermolecular = True  # by default, the reaction is intermolecular
         # if one of the sites is not part of a construct then raise an error!
@@ -683,7 +703,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         GlobalComponentEnumerator.__init__(self, name=name)
 
     def list_integrase(self, construct):
-        """lists all the parts that can be acted on by integrases"""
+        """Lists all the parts that can be acted on by integrases."""
         int_dict = {}
         for part in construct.parts_list:
             if isinstance(part, IntegraseSite) and part.integrase is not None:
@@ -697,7 +717,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         return int_dict
 
     def reset(self, components=None, **kwargs):
-        """this resets the linked_sites member in any attachment sites"""
+        """This resets the linked_sites member in any attachment sites."""
         for component in components:
             if hasattr(component, 'parts_list'):
                 for part in component:
@@ -708,10 +728,14 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
     def find_dna_construct(
         cls, construct: Construct, conlist: List[Construct]
     ):
-        """find a construct that matches the input "construct", but can be reverse or circularly permuted
-        returns: found_construct, index_function(index) => (new_index,"f" or "r" if it must be reversed)
-        or,
-        None, if no matching construct is found"""
+        """Find a construct that matches the input 'construct'.
+
+        Can be reverse or circularly permuted.
+
+        returns: found_construct, index_function(index) =>
+            (new_index,"f" or "r" if it must be reversed)
+            or, None, if no matching construct is found
+        """
         matched_construct = None
         for other_construct in conlist:
             if not isinstance(other_construct, Construct):
@@ -771,20 +795,24 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
     def enumerate_components(
         self, components=None, previously_enumerated=None, **kwargs
     ):
-        """this explores all the possible integrase-motivated DNA configurations. If some
-        integrases aren't present, then define intnames to be a list of names of the
-        integrases which are present.
-        An integrase can act in different ways.
-        * serine integrases recombine B and P sites that turn into L and R sites,
-                    and only sites with the same dinucleotide can be recombined.
+        """Explort all the possible integrase-motivated DNA configurations.
+
+        If some integrases aren't present, then define intnames to be a list
+        of names of the integrases which are present.
+
+        An integrase can act in different ways:
+        * serine integrases recombine B and P sites that turn into
+          L and R sites, and only sites with the same dinucleotide can
+          be recombined.
         * serine integrases with directionality factors recombine L and R sites
-                    with the same dinucleotide
+          with the same dinucleotide
         * Invertases only do flipping reactions
         * resolvases only do deletion reactions
-        * FLP or CRE react with homotypic sites, so site1+site1 = site1+site1. But
-                    there are still different types of sites which are orthogonal. For
-                    example, a CRE type 1 or a CRE type 2 site. The sites can also be palindromic,
-                    which means that they can react in either direction.
+        * FLP or CRE react with homotypic sites, so site1+site1 = site1+site1.
+          But there are still different types of sites which are orthogonal.
+          For example, a CRE type 1 or a CRE type 2 site. The sites can also
+          be palindromic, which means that they can react in either direction.
+
         """
         if previously_enumerated is None:
             previously_enumerated = []

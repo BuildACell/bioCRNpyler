@@ -33,6 +33,7 @@ def create_sbml_model(
     **kwargs,
 ):
     """Creates an SBML Level 3 Version 2 model with some fixed standard settings.
+
     Refer to python-libsbml for more information on SBML API.
     :param compartment_id:
     :param time_units:
@@ -89,14 +90,14 @@ def add_all_species(
     compartment=None,
     **kwargs,
 ):
-    """adds a list of Species to the SBML model.
+    """Adds a list of Species to the SBML model.
+
     :param model: valid SBML model
     :param species: list of species to be added to the SBML model
     :param compartment: compartment id, if empty species go to the first compartment
     :param initial_concentration_dict: a dictionary s --> initial_concentration
     :return: None
     """
-
     elementlist = model.getSBMLDocument().getListOfAllElements()
 
     all_ids = getAllIds(elementlist)
@@ -139,13 +140,13 @@ def add_species(
     **kwargs,
 ):
     """Helper function to add a species to the sbml model.
+
     :param model:
     :param compartment: a compartment in the SBML model
     :param species: must be chemical_reaction_network.species objects
     :param initial_concentration: initial concentration of the species in the SBML model
     :return: SBML species object
     """
-
     # Construct the species ID
 
     logger.debug(f"Adding species: {species_name}, id: {species_id}")
@@ -165,7 +166,8 @@ def add_species(
 
 
 def add_all_compartments(model, compartments: List, **keywords):
-    """Adds the list of Compartment objects to the SBML model
+    """Adds the list of Compartment objects to the SBML model.
+
     :param model: valid SBML model
     :param compartments: list of compartments to be added to the SBML model
     :return: None
@@ -176,6 +178,7 @@ def add_all_compartments(model, compartments: List, **keywords):
 
 def add_compartment(model, compartment, **keywords):
     """Helper function to add a compartment to the SBML model.
+
     :param model: a valid SBML model
     :param compartment: a Compartment object
     :return: SBML compartment object
@@ -194,9 +197,7 @@ def add_compartment(model, compartment, **keywords):
 
 
 def get_compartment_by_name(model, compartment_name):
-    """Helper function to find the SBML compartment object
-    given the compartment name in the SBML file
-    """
+    """Helper function to find the SBML compartment object given the compartment name in the SBML file."""
     for compartment in model.getListOfCompartments():
         if compartment.getName() == compartment_name:
             return compartment
@@ -230,13 +231,13 @@ def find_parameter(mixture, id):
 
 
 def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
-    """adds a list of reactions to the SBML model.
+    """Adds a list of reactions to the SBML model.
+
     :param model: an sbml model created by create_sbml_model()
     :param reactions: list of Reactions
     :param stochastic: binary flag for stochastic models
     :return: None
     """
-
     elementlist = model.getSBMLDocument().getListOfAllElements()
 
     all_ids = getAllIds(elementlist)
@@ -280,7 +281,8 @@ def add_reaction(
     reverse_reaction: bool = False,
     **kwargs,
 ):
-    """adds a sbml_reaction to an sbml model.
+    """Adds a sbml_reaction to an sbml model.
+
     :param model: an sbml model created by create_sbml_model()
     :param crn_reaction: must be a chemical_reaction_network.reaction object
     :param reaction_id: unique id of the reaction
@@ -561,8 +563,8 @@ def getAllIds(allElements):
 
 
 def getSpeciesByName(model, name, compartment=''):
-    """
-    Returns a list of species in the Model with the given name
+    """Returns a list of species in the Model with the given name.
+
     compartment : (Optional) argument to specify the compartment name in which
     to look for the species.
     """
@@ -596,8 +598,8 @@ def getSpeciesByName(model, name, compartment=''):
 
 
 class validateSBML(object):
-    """
-    libSBML class to validate the generated SBML models
+    """libSBML class to validate the generated SBML models.
+
     ## @brief   Validates SBMLDocument
     ## @author  Akiya Jouraku (translated from libSBML C++ examples)
     ## @author  Ben Bornstein
@@ -610,6 +612,7 @@ class validateSBML(object):
 
     def validate(self, sbml_document, print_results=False):
         """sbml_document: libSBML SBMLDocument object.
+
         print_results: Print toggle for validation warnings.
         """
         sbmlDoc = sbml_document

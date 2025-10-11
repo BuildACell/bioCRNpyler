@@ -8,8 +8,9 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-"""
-#### Parameter Value Defaulting:
+"""Parameter processing module.
+
+#### Parameter Value Defaulting
 
 Not all parameters need to have the required headings.  The only two
 required columns are "param_val" and "param_name".  BioCRNpyler uses a form

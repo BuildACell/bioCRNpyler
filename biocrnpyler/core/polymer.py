@@ -1,5 +1,4 @@
-"""The classes OrderedPolymer and OrderedMonomer are datastructures used to
-represent Polymers and their associatd components.
+"""The classes OrderedPolymer and OrderedMonomer are datastructures used to represent Polymers and their associatd components.
 
 These classes are used by Chemical Reaction Network Species as well as
 certain Components such as DNA_construct.
@@ -35,10 +34,13 @@ class OrderedPolymer(MonomerCollection):
     """A polymer made up of OrderedMonomers that has a specific order."""
 
     def __init__(self, parts, default_direction=None):
-        """parts can be a list of lists containing
+        """Initialize an ordered polymer.
+
+        Parts can be a list of lists containing
         [[OrderedMonomer,direction],[OrderedMonomer,direction],...]
         alternatively, you can have a regular list, and the direcitons
-        will end up being None"""
+        will end up being None
+        """
         self.default_direction = default_direction
         self.polymer = parts
 
@@ -212,7 +214,7 @@ class OrderedPolymer(MonomerCollection):
 
 
 class NamedPolymer(OrderedPolymer):
-    """The same as an OrderedPolymer but it has a name"""
+    """The same as an OrderedPolymer but it has a name."""
 
     def __init__(self, parts, name, default_direction=None, circular=False):
         self.name = name
@@ -230,8 +232,7 @@ class OrderedMonomer:
     """
 
     def __init__(self, direction=None, position=None, parent=None):
-        """the default is that the monomer is not part of a polymer"""
-
+        """The default is that the monomer is not part of a polymer."""
         self.parent = None
         self.direction = None
         # Set position to prevent weird testing errors of not having attributes

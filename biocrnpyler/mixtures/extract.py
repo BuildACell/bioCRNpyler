@@ -54,7 +54,7 @@ class ExpressionExtract(Mixture):
         self.add_mechanisms(default_mechanisms)
 
     def compile_crn(self, **keywords) -> ChemicalReactionNetwork:
-        """Overwriting compile_crn to turn off transcription in all DNAassemblies
+        """Overwriting compile_crn to turn off transcription in all DNAassemblies.
 
         :return: compiled CRN instance
         """
@@ -72,8 +72,7 @@ class ExpressionExtract(Mixture):
 
 
 class SimpleTxTlExtract(Mixture):
-    """A Model for Transcription and Translation in an extract any
-    Machinery (eg Ribosomes, Polymerases, etc.).
+    """A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.).
 
     RNA is degraded via a global mechanism.
 
@@ -113,8 +112,7 @@ class SimpleTxTlExtract(Mixture):
 
 
 class TxTlExtract(Mixture):
-    """A Model for Transcription and Translation in Cell Extract with
-    Ribosomes, Polymerases, and Endonucleases.
+    """A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
 
     This model does not include any energy.
 
@@ -161,8 +159,7 @@ class TxTlExtract(Mixture):
 
 
 class EnergyTxTlExtract(Mixture):
-    """A Model for Transcription and Translation in Cell Extract with
-    Ribosomes, Polymerases, and Endonucleases.
+    """A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
 
     This model include energy carrier molcules in the form of NTPs,
     Amino Acids, and a Fuel Species (such as 3PGA) used for NTP
@@ -186,7 +183,8 @@ class EnergyTxTlExtract(Mixture):
         fuel='Fuel_3PGA',
         **kwargs,
     ):
-        """
+        """Initailize the TX-TL mixture.
+
         :param name: name of the mixture
         :param rnap: name of the RNA polymerase, default: RNAP
         :param ribosome: name of the ribosome, default: Ribo

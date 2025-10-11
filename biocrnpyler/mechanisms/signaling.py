@@ -8,12 +8,23 @@ from ..core.species import Complex
 
 class Membrane_Signaling_Pathway_MM(Mechanism):
     """A mechanism to model a two-component system (TCS) membrane sensor.
-    Includes the sensing of signal substrate (SigSub) and the phosphorylation of the response protein (RP) but not include the reporter circuit.
-    Mechanism follows Michaelis-Menten Type Reactions.
-    Mechanism for the activation of the membrane sensor protein (MSP): SP + SigSub <--> SP:SigSub --> SP*
-    Mechanism for the auto-phosphorylation: SP* + nATP <--> SP*:nATP --> SP**:nADP --> SP** + nADP
-    Mechanism for the phosphorylation of response protein: SP** + RP <--> SP**:RP --> SP*:RP* --> SP*+RP*
-    Mechanism for the dephosphorylation of phosphoryled response protein: RP* --> RP + Pi
+
+    Includes the sensing of signal substrate (SigSub) and the phosphorylation
+    of the response protein (RP) but not include the reporter circuit.
+    Mechanism follows Michaelis-Menten type reactions.
+
+    Mechanism for the activation of the membrane sensor protein (MSP):
+      SP + SigSub <--> SP:SigSub --> SP*
+
+    Mechanism for the auto-phosphorylation:
+      SP* + nATP <--> SP*:nATP --> SP**:nADP --> SP** + nADP
+
+    Mechanism for the phosphorylation of response protein:
+      SP** + RP <--> SP**:RP --> SP*:RP* --> SP*+RP*
+
+    Mechanism for the dephosphorylation of phosphoryled response protein:
+      RP* --> RP + Pi
+
     """
 
     def __init__(
@@ -107,8 +118,7 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
         part_id=None,
         **keywords,
     ):
-        """This always requires the inputs component and part_id to find the relevant parameters"""
-
+        """This always requires the inputs component and part_id to find the relevant parameters."""
         # Get Parameters
         kb_sigMS = component.get_parameter(
             'kb_sigMS', part_id=part_id, mechanism=self

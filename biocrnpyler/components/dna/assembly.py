@@ -33,7 +33,8 @@ class DNAassembly(DNA):
         initial_concentration=None,
         **keywords,
     ):
-        """
+        """Initialize a DNA assembly.
+
         Note: If transcript is None and protein is not None, the
         DNAassembly will use its transcription mechanisms to produce the
         protein.  This is used by Expression Mixtures.
@@ -93,7 +94,7 @@ class DNAassembly(DNA):
             self.rbs.set_mixture(mixture)
 
     def update_dna(self, dna: Union[None, DNA, str], attributes=None) -> None:
-        """sets up the dna attribute with a valid DNA instance.
+        """Sets up the dna attribute with a valid DNA instance.
 
         :param dna: name of a dna sequence or a DNA instance
         :param attributes: Species attribute
@@ -122,7 +123,7 @@ class DNAassembly(DNA):
     def update_transcript(
         self, transcript: Union[None, RNA, str, bool], attributes=None
     ) -> None:
-        """sets up the transcript attribute with a valid RNA instance.
+        """Sets up the transcript attribute with a valid RNA instance.
 
         :param transcript: name of a RNA transcript or RNA instance
         :param attributes: Species attribute
@@ -155,7 +156,7 @@ class DNAassembly(DNA):
     def update_protein(
         self, protein: Union[None, Protein, str], attributes=None
     ) -> None:
-        """sets up the protein attribute with a valid Protein instance.
+        """Sets up the protein attribute with a valid Protein instance.
 
         :param protein: name of a protein or Protein instance
         :param attributes: Species attribute
@@ -187,7 +188,7 @@ class DNAassembly(DNA):
         transcript: RNA = None,
         protein: Protein = None,
     ) -> None:
-        """sets up the promoter attribute with a valid Promoter instance.
+        """Sets up the promoter attribute with a valid Promoter instance.
 
         :param promoter: name of a promoter or Promoter instance
         :param transcript: reference to the RNA transcript
@@ -223,7 +224,7 @@ class DNAassembly(DNA):
         transcript: RNA = None,
         protein: Protein = None,
     ) -> None:
-        """sets up the rbs attribute with a valid RBS instance.
+        """Sets up the rbs attribute with a valid RBS instance.
 
         :param rbs: name of the ribosome binding site or RBS instance
         :param transcript: RNA that contains the ribosome binding site
@@ -255,7 +256,7 @@ class DNAassembly(DNA):
             self.rbs.add_mechanisms(self.mechanisms, optional_mechanism=True)
 
     def update_species(self) -> List[Species]:
-        """collects the list of Species that a DNAassemlby instance holds.
+        """Collects the list of Species that a DNAassemlby instance holds.
 
         :return: list of Species that a DNAassemlby instance holds
         """
@@ -274,7 +275,7 @@ class DNAassembly(DNA):
         return species
 
     def update_reactions(self) -> List[Reaction]:
-        """collects the list of Reactions that a DNAassemlby instance holds.
+        """Collects the list of Reactions that a DNAassemlby instance holds.
 
         :return: list of Reactions that a DNAassemlby instance holds.
         """
@@ -297,14 +298,13 @@ class DNAassembly(DNA):
         parameters: ParameterDatabase = None,
         overwrite_parameters: bool = True,
     ) -> None:
-        """updates the parameters stored in dna, promoter and rbs.
+        """Updates the parameters stored in dna, promoter and rbs.
 
         :param parameter_file: valid parameter file
         :param parameters: a parameter database instance
         :param overwrite_parameters: whether to overwrite existing parameters
         :return: None
         """
-
         DNA.update_parameters(
             self=self,
             parameter_file=parameter_file,
@@ -333,7 +333,7 @@ class DNAassembly(DNA):
         overwrite: bool = False,
         optional_mechanism: bool = False,
     ) -> None:
-        """adds a mechanism of type mech_type to the Component Mechanism dictionary.
+        """Adds a mechanism of type mech_type to the Component Mechanism dictionary.
 
         DNA_assembly also adds the mechanisms to its promoter and rbs (but never overwrites them!)
 

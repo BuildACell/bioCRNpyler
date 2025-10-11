@@ -64,17 +64,30 @@ line-length = 78
 
 [tool.ruff.lint]
 select = [
-       'F', # pyflakes
-       'I', # isort
-       # todo: add more as needed
+       'F',			# pyflakes
+       'D',			# docstyle
+       'I',			# isort
 ]
 ignore = [
     'F403',			# ignore import .module * in __init__
     'F405',			# allow local wildcard import (for now)
+    'D100', 'D101', 'D102', 	# ignore missing docstrings for now
+    'D103', 'D104', 'D105',
+    'D105', 'D106', 'D107',
+    'D200',			# ignore long docstring first lines for now
+    'D417',			# ignore missing argument descriptions for now
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore `D` rules everywhere except for the `biocrnpyler/` directory.
+'!biocrnpyler/**.py' = ['D']
+'Tests/**.py' = ['F841']	# unused variables OK
 
 [tool.ruff.format]
 quote-style = 'preserve'
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.isort]
 profile = 'black'

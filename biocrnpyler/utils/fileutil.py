@@ -9,8 +9,7 @@ from typing import Optional
 def find_file_in_bcp_path(
     filename: str, env_var_name: str = 'BCP_PATH'
 ) -> Optional[str]:
-    """
-    Find a file by searching through biocrnpyler paths.
+    """Find a file by searching through biocrnpyler paths.
 
     Search order:
     1. Current directory

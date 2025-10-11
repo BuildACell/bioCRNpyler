@@ -9,9 +9,7 @@ from ..core.species import Complex, ComplexSpecies
 
 
 class CombinatorialComplex(Component):
-    """
-    A class to represent a Complex of many Species which can bind together in many different ways.
-    """
+    """A class to represent a Complex of many Species which can bind together in many different ways."""
 
     def __init__(
         self,
@@ -22,11 +20,16 @@ class CombinatorialComplex(Component):
         name=None,
         **keywords,
     ):
-        """
-        Binding reactions will be generated to form all the ComplexSpecies in final_states from all the species in initial_states
-        (or, if initial_states is None, from all the individual species inside each ComplexSpecies). Intermediate states restricts
-        the binding reactions to only form species in this list. Excluded states are not allowed to be reactants or products.
-        At a high level this generates the following reactions:
+        """Initialize combinatorial complex.
+
+        Binding reactions will be generated to form all the
+        ComplexSpecies in final_states from all the species in
+        initial_states (or, if initial_states is None, from all the
+        individual species inside each ComplexSpecies). Intermediate
+        states restricts the binding reactions to only form species in
+        this list. Excluded states are not allowed to be reactants or
+        products.  At a high level this generates the following
+        reactions:
 
         If just final_states are given:
             final_states_internal_species <-[Combinatorial Binding]-> final_states
@@ -82,7 +85,6 @@ class CombinatorialComplex(Component):
                    6. Complex([A, B]) + A <--> Complex ([A, A, B])
                    7. Complex([A, B]) + B <--> Complex ([A, B, B])
         """
-
         # The order these run in is important!
 
         # 1. set final_states
@@ -257,10 +259,7 @@ class CombinatorialComplex(Component):
         return species_to_add
 
     def get_combinations_between(self, s0, sf):
-        """
-        Returns all combinations of Species to create the Complex sf from s0.
-        """
-
+        """Returns all combinations of Species to create the Complex sf from s0."""
         species_to_add = self.compute_species_to_add(s0, sf)
 
         if species_to_add is None or len(species_to_add) == 0:

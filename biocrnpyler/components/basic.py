@@ -11,7 +11,7 @@ from ..core.species import Complex, Species
 class DNA(Component):
     """DNA sequence that has a given length.
 
-    Notes
+    Notes:
     -----
     Produces no reactions.
     """
@@ -44,7 +44,7 @@ class DNA(Component):
 class RNA(Component):
     """RNA sequence of a given length.
 
-    Notes
+    Notes:
     -----
     Produces no reactions.
     """
@@ -78,7 +78,7 @@ class RNA(Component):
 class Protein(Component):
     """Protein/peptide of a given length.
 
-    Notes
+    Notes:
     -----
     Produces no reactions.
 
@@ -113,7 +113,7 @@ class Protein(Component):
 class Metabolite(Component):
     """Metabolic compounded that is produced, utilized, or degraded.
 
-    Notes
+    Notes:
     -----
     Metabolites look for 'metabolic_pathway' mechanism, but will not throw
     an error if it is not found.

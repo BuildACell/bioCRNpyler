@@ -174,7 +174,7 @@ class Component:
         compartment=None,
         attributes=None,
     ) -> Species:
-        """Helper function that allows species to be set from strings, species, or Components
+        """Helper function that allows species to be set from strings, species, or Components.
 
         :param species: Species, str, Component
         :param material_type:
@@ -248,7 +248,6 @@ class Component:
             parameter_database (ParameterDatabase)
 
         """
-
         if parameter_file is not None:
             self.parameter_database.load_parameters_from_file(
                 parameter_file, overwrite_parameters=overwrite_parameters
@@ -362,7 +361,6 @@ class Component:
         :param optional_mechanism: toggles whether an error is thrown if a Mechanism is added that conflicts with an exising Mechanism
         :return:
         """
-
         if isinstance(mechanisms, Mechanism):
             self.add_mechanism(
                 mechanisms,

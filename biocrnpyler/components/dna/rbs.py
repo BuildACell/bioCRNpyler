@@ -9,8 +9,10 @@ from .construct import DNA_part
 
 
 class RBS(DNA_part):
-    """
-    A simple RBS class with no regulation. Must be included in a DNAconstruct or DNAassembly to do anything.
+    """A simple RBS class with no regulation.
+
+    Must be included in a DNAconstruct or DNAassembly to do anything.
+
     """
 
     def __init__(
@@ -76,7 +78,7 @@ class RBS(DNA_part):
         return reactions
 
     def update_component(self, internal_species=None, **keywords):
-        """returns a copy of this component, except with the proper fields updated"""
+        """Returns a copy of this component, except with the proper fields updated."""
         if isinstance(self.parent, DNA):
             return None
         elif isinstance(self.parent, RNA):

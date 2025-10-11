@@ -20,7 +20,7 @@ class Propensity(object):
 
     @staticmethod
     def is_valid_propensity(propensity_type) -> bool:
-        """checks whether the given propensity_type is valid propensity.
+        """Checks whether the given propensity_type is valid propensity.
 
         It recursively checks all subclasses of Propensity until it finds the
         propensity type. Otherwise raise a Type error
@@ -181,7 +181,7 @@ class Propensity(object):
 
     @property
     def species(self) -> List:
-        """returns the instance variables that are species type."""
+        """Returns the instance variables that are species type."""
         return list(self.propensity_dict['species'].values())
 
     def create_kinetic_law(

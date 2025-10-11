@@ -18,8 +18,7 @@ class DNABindingSite(DNA_part):
     def __init__(
         self, name, binders, no_stop_codons=None, assembly=None, **keywords
     ):
-        """an integrase attachment site binds to integrase"""
-
+        """An integrase attachment site binds to integrase."""
         if isinstance(binders, list):
             self.binders = [self.set_species(a) for a in binders]
         else:
@@ -70,7 +69,7 @@ class DNABindingSite(DNA_part):
         return rxns
 
     def update_component(self, internal_species=None, **keywords):
-        """returns a copy of this component, except with the proper fields updated"""
+        """Returns a copy of this component, except with the proper fields updated."""
         if isinstance(self.parent, DNA):
             out_component = copy.copy(self)
             out_component.dna_to_bind = internal_species
@@ -138,7 +137,7 @@ class IntegraseSite(DNABindingSite):
         return recomp
 
     def update_component(self, internal_species=None, **keywords):
-        """returns a copy of this component, except with the proper fields updated"""
+        """Returns a copy of this component, except with the proper fields updated."""
         newcomp = DNABindingSite.update_component(
             self, internal_species=internal_species
         )
@@ -315,8 +314,7 @@ class IntegraseSite(DNABindingSite):
 
 class UserDefined(DNA_part):
     def __init__(self, name, dpl_type=None, **keywords):
-        """a user defined part is a part that doesn't do anything,
-        just exists as a label basically"""
+        """A user defined part is a part that doesn't do anything, just exists as a label basically."""
         DNA_part.__init__(self, name, **keywords)
         self.dpl_type = dpl_type
         self.name = name
@@ -330,7 +328,7 @@ class UserDefined(DNA_part):
 
 class Origin(DNA_part):
     def __init__(self, name, **keywords):
-        """an origin does nothing except look right when plotted"""
+        """An origin does nothing except look right when plotted."""
         DNA_part.__init__(self, name, **keywords)
         self.name = name
 
@@ -343,7 +341,7 @@ class Origin(DNA_part):
 
 class Operator(DNA_part):
     def __init__(self, name, binder=None, **keywords):
-        """an operator does nothing except look right when plotted"""
+        """An operator does nothing except look right when plotted."""
         DNA_part.__init__(self, name, **keywords)
         self.binder = []
         if binder is not None:

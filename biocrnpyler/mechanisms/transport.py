@@ -9,6 +9,7 @@ from ..core.species import Complex
 
 class Simple_Diffusion(Mechanism):
     """A mechanism to model the diffusion of a substrate through a membrane channel.
+
     Does not require energy and follows diffusion rules.
     Reaction schema: substrate <-> product
     """
@@ -56,6 +57,7 @@ class Simple_Diffusion(Mechanism):
 
 class Membrane_Protein_Integration(Mechanism):
     """A simple mehanism to integrate into the membrane protein in the membrane.
+
     Reaction schema for monomers: monomer -> intergral membrane protein
     Reaction schema for oligomer: monomer*[size] -> oligomer -> intergral membrane protein
     """
@@ -94,8 +96,7 @@ class Membrane_Protein_Integration(Mechanism):
         part_id=None,
         **keywords,
     ):
-        """This always requires the inputs component and part_id to find the relevant parameters"""
-
+        """This always requires the inputs component and part_id to find the relevant parameters."""
         # Get Parameters
         kb_oligomer = component.get_parameter(
             'kb_oligomer', part_id=part_id, mechanism=self
@@ -158,6 +159,7 @@ class Membrane_Protein_Integration(Mechanism):
 
 class Simple_Transport(Mechanism):
     """A mechanism to model the transport of a substrate through a membrane channel.
+
     Does not require energy and has unidirectional transport, following diffusion rules.
     Reaction schema: membrane_channel + substrate <-> membrane_channel + product
     """
@@ -220,6 +222,7 @@ class Simple_Transport(Mechanism):
 
 class Facilitated_Transport_MM(Mechanism):
     """A mechanism to model the transport of a substrate through a membrane carrier.
+
     Mechanism follows Michaelis-Menten Type Reactions with products that can bind to membrane carriers.
     Mechanism for the schema: Sub+MC <--> Sub:MC --> Prod:MC --> Prod + MC
     """
@@ -269,8 +272,7 @@ class Facilitated_Transport_MM(Mechanism):
         part_id=None,
         **keywords,
     ):
-        """This always requires the inputs component and part_id to find the relevant parameters"""
-
+        """This always requires the inputs component and part_id to find the relevant parameters."""
         # Get Parameters
         kb_subMC = component.get_parameter(
             'kb_subMC', part_id=part_id, mechanism=self
@@ -338,6 +340,7 @@ class Facilitated_Transport_MM(Mechanism):
 
 class Primary_Active_Transport_MM(Mechanism):
     """A mechanism to model the transport of a substrate through a membrane carrier.
+
     Mechanism follows Michaelis-Menten Type Reactions with products that can bind to membrane carriers.
     Mechanism for the schema: Sub+MP <--> Sub:MP + E --> Sub:MP:E --> MP:Prod:E --> Prod + MP:W --> Prod + MP+ W
     """
@@ -410,8 +413,7 @@ class Primary_Active_Transport_MM(Mechanism):
         part_id=None,
         **keywords,
     ):
-        """This always requires the inputs component and part_id to find the relevant parameters"""
-
+        """This always requires the inputs component and part_id to find the relevant parameters."""
         # Get Parameters
         kb_subMP = component.get_parameter(
             'kb_subMP', part_id=part_id, mechanism=self

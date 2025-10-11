@@ -128,7 +128,7 @@ class Mixture(object):
         material_type=None,
         attributes=None,
     ):
-        """Used to set internal species from strings, Species or Components
+        """Used to set internal species from strings, Species or Components.
 
         :param species: name of a species or a species instance
         :param material_type: material type of a species as a string
@@ -165,7 +165,7 @@ class Mixture(object):
         self.add_components(components)
 
     def add_component(self, component):
-        """this function adds a single component to the mixture."""
+        """This function adds a single component to the mixture."""
         if not hasattr(self, '_components'):
             self.components = []
 
@@ -274,7 +274,7 @@ class Mixture(object):
 
     @property
     def mechanisms(self):
-        """mechanisms stores Mixture Mechanisms."""
+        """Mechanisms stores Mixture Mechanisms."""
         return self._mechanisms
 
     @mechanisms.setter
@@ -350,7 +350,7 @@ class Mixture(object):
 
     @property
     def global_mechanisms(self):
-        """global_mechanisms stores global Mechanisms in the Mixture."""
+        """Stores global Mechanisms in the Mixture."""
         return self._global_mechanisms
 
     @global_mechanisms.setter
@@ -627,7 +627,7 @@ class Mixture(object):
     def global_component_enumeration(
         self, comps_to_enumerate=None, recursion_depth=None
     ) -> List[Component]:
-        """components that produce other components infinitely"""
+        """Components that produce other components infinitely."""
         if recursion_depth is None:
             recursion_depth = self.global_recursion_depth
 
@@ -681,9 +681,8 @@ class Mixture(object):
         add_reaction_species: bool = True,
         compartment: Compartment = None,
     ) -> ChemicalReactionNetwork:
-        """
-        Creates a chemical reaction network from the species
-        and reactions associated with a mixture object (with compartment).
+        """Creates a chemical reaction network from the species and reactions associated with a mixture object (with compartment).
+
         :param initial_concentration_dict: a dictionary to overwrite initial
             concentrations at the end of compile time
         :param recursion_depth: how deep to run the Local and

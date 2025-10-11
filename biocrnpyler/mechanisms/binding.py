@@ -9,7 +9,8 @@ from ..core.species import Complex, Species, WeightedSpecies
 
 
 class One_Step_Cooperative_Binding(Mechanism):
-    """A reaction where n binders (A) bind to 1 bindee (B) in one step
+    """A reaction where n binders (A) bind to 1 bindee (B) in one step.
+
     n A + B <--> nA:B
     """
 
@@ -202,7 +203,8 @@ class Two_Step_Cooperative_Binding(Mechanism):
         n_mer_species=None,
         **keywords,
     ):
-        """
+        """Update reactions.
+
         Returns reactions:
         cooperativity binder <--> n_mer, kf = kb1, kr = ku1
         n_mer + bindee <--> complex, kf = kb2, kr = ku2
@@ -214,7 +216,6 @@ class Two_Step_Cooperative_Binding(Mechanism):
         :param keywords:
         :return:
         """
-
         if part_id is None:
             repr(binder) + '-' + repr(bindee)
         if (
@@ -286,14 +287,14 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
 
 class Combinatorial_Cooperative_Binding(Mechanism):
-    """a reaction where some number of binders bind combinatorially to a bindee"""
+    """A reaction where some number of binders bind combinatorially to a bindee."""
 
     def __init__(
         self,
         name='Combinatorial_Cooperative_binding',
         mechanism_type='cooperative_binding',
     ):
-        """Initializes a Combinatorial_Cooperative_Binding instance
+        """Initializes a Combinatorial_Cooperative_Binding instance.
 
         :param name: name of the Mechanism, default: Combinatorial_Cooperative_binding
         :param mechanism_type: type of the Mechanism, default: cooperative_binding
@@ -301,9 +302,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         Mechanism.__init__(self, name, mechanism_type)
 
     def make_cooperative_complex(self, combo, bindee, cooperativity):
-        """given a list of binders and their cooperativities, make a complex
-        that contains the binders present N number of times where N is
-        each one's cooperativity."""
+        """Given a list of binders and their cooperativities, make a complex that contains the binders present N number of times where N is each one's cooperativity."""
         complexed_species_list = []
         for binder in combo:
             binder_cooperativity = int(cooperativity[binder.name])
@@ -491,8 +490,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
 
 
 class One_Step_Binding(Mechanism):
-    """
-    A mechanism to model the binding of a list of species, eg
+    """A mechanism to model the binding of a list of species.
+
     S1 + S2 ... SN <--> S1:S2:...:SN
     """
 

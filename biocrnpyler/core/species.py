@@ -296,7 +296,6 @@ class Species(OrderedMonomer):
         :return: boolean
 
         """
-
         # Note: "==" equality between parents and children can result in
         # loops, so string equality is used
         if (
@@ -527,9 +526,7 @@ class ComplexSpecies(Species):
         self._name = self._check_name(name)
 
     def __contains__(self, item):
-        """
-        Returns a list of species inside the ComplexSpecies
-        """
+        """Returns a list of species inside the ComplexSpecies."""
         if not isinstance(item, Species):
             raise ValueError(
                 "Operator 'in' requires chemical_reaction_network.Species "
@@ -674,9 +671,7 @@ class ComplexSpecies(Species):
         return txt
 
     def monomer_count(self, m):
-        """
-        Effectively self.species.count(m) using monomer_eq for equality
-        """
+        """Effectively self.species.count(m) using monomer_eq for equality."""
         return sum([s.monomer_eq(m) for s in self.species])
 
 
@@ -1257,7 +1252,6 @@ class PolymerConformation(Species, MonomerCollection):
 
     def copy_remove_complexes(self, complexes):
         """Returns a new PolymerConformation without these complexes."""
-
         if not isinstance(complexes, list):
             complexes = [complexes]
 
@@ -1548,7 +1542,7 @@ class Complex:
     the __new__ function is used to insert these classes into the
     binding sites of OrderedPolymerSpecies.
 
-    arguments:
+    Arguments:
     species: a list of species to put into ComplexSpecies or
         OrderedComplexSpecies
 

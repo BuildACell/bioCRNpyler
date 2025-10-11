@@ -21,7 +21,6 @@ from ..mechanisms.txtl import (
 class ExpressionDilutionMixture(Mixture):
     """A Model for in-vivo Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.).
 
-
     Here transcription and Translation are lumped into one reaction: expression.
     A global mechanism is used to dilute all non-dna species
     """
@@ -129,8 +128,7 @@ class SimpleTxTlDilutionMixture(Mixture):
 
 
 class TxTlDilutionMixture(Mixture):
-    """A Model for Transcription and Translation with Ribosomes,
-    Polymerases, and Endonucleases labelled as Machinery.
+    """A Model for Transcription and Translation with Ribosomes, Polymerases, and Endonucleases labelled as Machinery.
 
     This model includes a background load "cellular processes" which
     represents innate loading effects in the cell.  Effects of loading

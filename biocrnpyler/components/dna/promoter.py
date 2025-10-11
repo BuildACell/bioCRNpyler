@@ -19,7 +19,11 @@ from .construct import DNA_part
 
 
 class Promoter(DNA_part):
-    """A basic Promoter class with no regulation. Needs to be included in a DNAassembly or DNAconstruct to function."""
+    """A basic Promoter class with no regulation.
+
+    Needs to be included in a DNAassembly or DNAconstruct to function.
+
+    """
 
     def __init__(
         self,
@@ -130,7 +134,7 @@ class Promoter(DNA_part):
         return reactions
 
     def update_component(self, internal_species=None, **keywords):
-        """returns a copy of this component, except with the proper fields updated"""
+        """Returns a copy of this component, except with the proper fields updated."""
         if isinstance(self.parent, RNA):
             return None
         elif isinstance(self.parent, DNA):
@@ -181,8 +185,8 @@ class Promoter(DNA_part):
 
 
 class RegulatedPromoter(Promoter):
-    """
-    A Promoter class with simple regulation.
+    """A Promoter class with simple regulation.
+
     regulators = [list of species]
     Each regulator binds independently to the Promoter to regulate it.
     """
@@ -308,9 +312,7 @@ class RegulatedPromoter(Promoter):
 
 
 class ActivatablePromoter(Promoter):
-    """
-    A class for a promoter which can be activated by a single species, modelled as a positive hill function
-    """
+    """A class for a promoter which can be activated by a single species, modelled as a positive Hill function."""
 
     def __init__(
         self, name, activator, transcript=None, leak=False, **keywords
@@ -366,9 +368,7 @@ class ActivatablePromoter(Promoter):
 
 
 class RepressiblePromoter(Promoter):
-    """
-    A class for a promoter which can be repressed by a single species, modelled as a negative hill function
-    """
+    """A class for a promoter which can be repressed by a single species, modelled as a negative Hill function."""
 
     def __init__(
         self, name, repressor, transcript=None, leak=False, **keywords
@@ -440,11 +440,10 @@ class CombinatorialPromoter(Promoter):
         cooperativity=None,
         **keywords,
     ):
-        """
-        A combinatorial promoter is something where binding multiple regulators result in
-        qualitatively different transcription behaviour. For example, maybe it's an AND
-        gate promoter where it only transcribes if two regulators are bound, but not if
-        either one is bound.
+        """A combinatorial promoter is something where binding multiple regulators result in qualitatively different transcription behaviour.
+
+        For example, maybe it's an AND gate promoter where it only transcribes
+        if two regulators are bound, but not if either one is bound.
 
         =============
         inputs
@@ -468,8 +467,8 @@ class CombinatorialPromoter(Promoter):
                         formatted as [["regulator1","regulator2"],["regulator1"],...] regulators
                         can be strings or Species
         cooperativity: a dictionary of cooperativity values. For example, {"regulator":2,"regulator2":1,....}
-        """
 
+        """
         Promoter.__init__(
             self,
             name=name,
