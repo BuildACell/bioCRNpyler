@@ -18,8 +18,6 @@ def test_combinatorial_DNAconstruct_RNAconstruct():
 
     directions_list = ["forward","reverse"]
 
-    index_list = range(4)
-
     parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
     mechs = {"transcription":Transcription_MM(Species("RNAP",material_type="protein")),"translation":Translation_MM(Species("Ribo"))}
 
@@ -29,7 +27,7 @@ def test_combinatorial_DNAconstruct_RNAconstruct():
 
     for order in permutations(correct_order_list):
 
-        for i in range(4):
+        for i in range(len(order)):
             
             for direction in directions_list:
                 new_order = list(order)
@@ -40,7 +38,6 @@ def test_combinatorial_DNAconstruct_RNAconstruct():
             x = DNA_construct(combination,mechanisms = mechs,parameters=parameters)
             print(x)
             y = x.enumerate_components()
-            z = []
             #promoter at the beginning facing reverse doesn't make a transcript
             if((isinstance(x[0],Promoter) and x[0].direction=="reverse")):
                 assert(y == [x[0]])

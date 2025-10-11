@@ -422,8 +422,8 @@ class CombinatorialPromoter(Promoter):
         reactions += mech_b.update_reactions(self.regulators,self.dna_to_bind,component = self,\
                                                         part_id = self.name,cooperativity=self.cooperativity, protein = self.protein)
         if((self.tx_capable_complexes is None) or self.tx_capable_complexes == []):
-            species = self.update_species()
             #this could mean we haven't run update_species() yet
+            self.update_species()
             
             if(self.tx_capable_complexes == []):
                 if(self.leak_complexes is None or self.leak_complexes == []):

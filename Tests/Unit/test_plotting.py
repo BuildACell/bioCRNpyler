@@ -30,7 +30,7 @@ def test_CRNPlotter():
 
             return(0,100)
 
-    d_r = dummy_renderer()
+    d_r = dummy_renderer()  # noqa: F841
     test_plotter = CRNPlotter(dna_renderer=dummy_renderer(),rna_renderer=dummy_renderer(),cmap=[0,1,2,3,4,5,6])
 
     test_construct = DNA_construct([Promoter("p1"),IntegraseSite("attP","attP"),Terminator("t1")])
@@ -144,7 +144,7 @@ def test_render_network_bokeh():
 
     # Generate a graph and make sure it is created
     with warnings.catch_warnings(record=True) as records:
-        plot = bcp.utils.plotting.render_network_bokeh(crn1)
+        plot = bcp.utils.plotting.render_network_bokeh(crn1)  # noqa: F841
 
     for w in records:
         if re.search("plotting disabled", w.message.args[0]):

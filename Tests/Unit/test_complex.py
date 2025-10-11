@@ -40,7 +40,7 @@ def test_complex_with_polymer():
 
     #Cannot complex two Species inside a PolymerSpecies without puting the PolymerSpecies into a Conformation first
     with pytest.raises(TypeError):
-        c = Complex([Species("S"), d[0], d[2]])
+        c = Complex([Species("S"), d[0], d[2]])  # noqa: F841
 
 
 def test_complex_with_single_polymer():

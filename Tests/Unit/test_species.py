@@ -32,7 +32,7 @@ class TestSpecies(TestCase):
         with self.assertRaisesRegex(ValueError, f"material_type 2dna must be alpha-numeric and start with a letter."):
             species = Species(name="test_species", material_type="2dna")
 
-        species2 = Species(name = "test_species2")
+        species2 = Species(name = "test_species2")  # noqa: F841
         with self.assertRaisesRegex(ValueError, "species argument must be an instance of Species!"):
             species.replace_species(species, "new_species")
         with self.assertRaisesRegex(ValueError, "species argument must be an instance of Species!"):

@@ -42,11 +42,12 @@ class Construct(Component, OrderedPolymer):
         if name is None:
             name = self.make_name() # automatic naming
         # self.length = len(parts_list)  # RMM, 14 Sep '25: was not being set
-        material_type = kwargs.pop('material_type', None)
+        material_type = kwargs.pop('material_type', None)  # noqa: F841
         Component.__init__(
             self=self, name=name, mechanisms=mechanisms, parameters=parameters,
             attributes=attributes, initial_concentration=initial_concentration,
             **kwargs)
+        # TODO: material_type is not used; setting it here generates an error
         # self.material_type = material_type  # RMM, 14 Sep '25: was not being set
         self.update_parameters()
         self.transcripts = []

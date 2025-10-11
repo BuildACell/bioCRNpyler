@@ -202,7 +202,7 @@ class TestParameter(TestCase):
             PD = ParameterDatabase(parameter_dictionary = parameter_dict)
 
         #duplicate parameter dictionary
-        key = (None, None, "k")
+        key = (None, None, "k")  # noqa: F841
         parameter_dict = {"k":1, (None, None, "k"):1}
         with self.assertRaisesRegex(ValueError, f"Duplicate parameter detected"):
             PD = ParameterDatabase(parameter_dictionary = parameter_dict)

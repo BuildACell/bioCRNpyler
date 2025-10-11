@@ -250,7 +250,7 @@ def test_generate_sbml_model():
     # although  sbml represents a reverisble reaction with reversible flag
     # BioCRNpyler always creates two reactions, because this is correct
     # for stochastic simulation with SBML.
-    sbml_rxn = model.getListOfReactions()
+    sbml_rxn = model.getListOfReactions()  # noqa: F841
     # assert not sbml_rxn[0].isSetReversible()
     # assert not sbml_rxn[1].isSetReversible()
 

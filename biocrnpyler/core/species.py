@@ -1474,12 +1474,9 @@ class Complex:
         """
         species = []
         # below is extracting the "species" keywords from the args
-        keywarg = None
         if 'species' in kwargs:
-            keywarg = True
             species = kwargs.pop('species')
         elif len(args) >= 1:
-            keywarg = False
             species = args[0]
             args = args[1:]
 
@@ -1489,11 +1486,9 @@ class Complex:
                 f"must be a list of Species; recieved {species}.")
 
         # Check whether ot make a ComplexSpecies or OrderedComplexSpecies
-        if 'ordered' in kwargs:
-            ordered = kwargs.pop('ordered')
+        if kwargs.pop('ordered', False):
             ComplexClass = OrderedComplexSpecies
         else:
-            ordered = False
             ComplexClass = ComplexSpecies
 
         # Use to supress errors in ComplexSpecies and OrderedComplexSpecies

@@ -117,7 +117,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 	def test_component_instantiation(self):
 		try:
 			for (comp, args) in self.component_classes:
-				C = comp(**args)
+				C = comp(**args)  # noqa: F841
 		except Exception as e:
 			error_txt = f"Instantiating Component {comp} with args {args}. \n Unexpected Error: {str(e)}."
 			raise Exception(error_txt)
@@ -126,7 +126,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 	def test_promoter_instantiation(self):
 		try:
 			for (prom, args) in self.promoter_classes:
-				P = prom(**args)
+				P = prom(**args)  # noqa: F841
 		except Exception as e:
 			error_txt = f"Instantiating Promoter {prom} with args {args}. \n Unexpected Error: {str(e)}."
 			raise Exception(error_txt)
@@ -135,7 +135,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 	def test_rbs_instantiation(self):
 		try:
 			for (rbs, args) in self.rbs_classes:
-				R = rbs(**args)
+				R = rbs(**args)  # noqa: F841
 		except Exception as e:
 			error_txt = f"Instantiating RBS {rbs} with args {args}. \n Unexpected Error: {str(e)}."
 			raise Exception(error_txt)
@@ -144,7 +144,7 @@ class CombinatorialComponentMixtureTest(TestCase):
 	def test_mixture_instantiation(self):
 		try:
 			for (mixture, args) in self.mixture_classes:
-				M = mixture(**args)
+				M = mixture(**args)  # noqa: F841
 		except Exception as e:
 			error_txt = f"Instantiating Mixture {mixture} with args {args}. \n Unexpected Error: {str(e)}."
 			raise Exception(error_txt)
@@ -152,9 +152,9 @@ class CombinatorialComponentMixtureTest(TestCase):
 	def test_mechanism_instantiation(self):
 		try:
 			for (mech, args) in self.transcription_mechs:
-				M = mech(**args)
+				M = mech(**args)  # noqa: F841
 			for (mech, args) in self.translation_mechs:
-				M = mech(**args)
+				M = mech(**args)  # noqa: F841
 		except Exception as e:
 			error_txt = f"Instatiating Mechanism {mech}. \n Unexpected Error: {str(e)}."
 			raise Exception(error_txt)

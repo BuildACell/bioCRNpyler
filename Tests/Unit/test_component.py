@@ -166,7 +166,7 @@ class TestComponent(TestCase):
         kb, ku, ktx, ktl, kdeg, cooperativity = 100, 10, 3, 2, 1, 4
         p_id = 'p10'
 
-        parameters = {"kb": kb, "kdeg":kdeg,
+        parameters = {"kb": kb, "kdeg":kdeg, 'cooperativity': cooperativity,
                       ("transcription", None, "ktx"): ktx,
                       ("transcription", p_id, 'ku'): ku,
                       (None, p_id, "ktl"): ktl }

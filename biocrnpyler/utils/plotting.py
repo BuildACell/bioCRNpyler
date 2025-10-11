@@ -394,8 +394,6 @@ def generate_networkx_graph(
         }
     CRNgraph = nx.DiGraph()
     allnodenum = 1  # every node has an index
-    alledgenum = 0  # every edge has an index
-    # this starts at 1 because "nothing" is node 0
     nodedict = {}  # this is so that we can write out the reactions in
     # the reaction "species" field
     # it has {species:index}
@@ -1202,7 +1200,6 @@ def render_network_bokeh(
         width=500, height=500, x_range=Range1d(-500, 500), y_range=Range1d(-500, 500)
     )  # this generates a
     show_im = False
-    images = None
     if "imagedict" in keywords and keywords["imagedict"] is not None:
         show_im = True
     if export:

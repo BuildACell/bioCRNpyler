@@ -341,7 +341,6 @@ class CombinatorialConformation(Component):
     def update_species(self):
         mech_c = self.get_mechanism("conformation_change")
         species = []
-        species_added_dict = {} # save combinations that have already been added
         self.combination_dict = {} # should be recomputed every updated species
 
         # If there are intermediates, compute combinations in two steps
@@ -568,7 +567,6 @@ class CombinatorialConformationPromoter(CombinatorialConformation, Promoter):
         self.conformation_species = \
             CombinatorialConformation.update_species(self)
         promoter_species = []
-        old_name = self.name
         for s in self.conformation_species:
             if isinstance(s, PolymerConformation):
                 active_state = False

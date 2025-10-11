@@ -43,7 +43,7 @@ def test_CombinatorialComplex_init_and_properties():
     assert set(CC4.intermediate_states) == set([Complex([Z, Z])])
 
     #Test with excluded states
-    CC5 = CombinatorialComplex(final_states = [C2], excluded_states = [C1])
+    CC5 = CombinatorialComplex(final_states = [C2], excluded_states = [C1])  # noqa: F841
 
     #Test cases that should produce errors
 
@@ -65,7 +65,7 @@ def test_CombinatorialComplex_init_and_properties():
 
     #intermediate_states must contain only things in final states
     with pytest.raises(ValueError):
-        CC = CombinatorialComplex(final_states = [C1], intermediate_states = [Complex([Species("S"), Species("S2")])])
+        CC = CombinatorialComplex(final_states = [C1], intermediate_states = [Complex([Species("S"), Species("S2")])])  # noqa: F841
 
 def test_CombinatorialComplex_compute_species_to_add():
     X, Y, Z = Species("X"), Species("Y"), Species("Z")
@@ -152,7 +152,7 @@ def test_CombinatorialComplex_get_combinations_between():
     #Test with excluded states that are Species
     CC4 = CombinatorialComplex(final_states = [C], excluded_states = [Y, Z])
     combos = CC4.get_combinations_between(X, C)
-    combos_list = [c[0] for c in combos]+[c[1] for c in combos] + [c[2] for c in combos]
+    combos_list = [c[0] for c in combos]+[c[1] for c in combos] + [c[2] for c in combos]  # noqa: F841
     assert Y not in combos and Z not in combos 
 
 def test_CombinatorialComplex_update_species():

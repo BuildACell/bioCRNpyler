@@ -59,6 +59,9 @@ include = ["biocrnpyler", "biocrnpyler.*"]
 write_to = "biocrnpyler/_version.py"
 local_scheme = "no-local-version"
 
+[tool.ruff]
+line-length = 78
+
 [tool.ruff.lint]
 select = [
        'F', # pyflakes

@@ -152,7 +152,7 @@ class TestGlobalMechanism(TestCase):
 
         protease = Species("P")
         tagged_protein = Species("X", attributes = ["degtagged"])
-        untagged_protein = Species("Y")
+        untagged_protein = Species("Y")  # noqa: F841
 
         #compare deg_Tagged_Degradation to MichaelisMenten
         MM = MichaelisMenten(name = "name", mechanism_type = "type")

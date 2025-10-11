@@ -32,22 +32,20 @@ def test_polymer_transformation():
     assert("(input1-0)(p1)(input2-0)" in str(transformation)) #contains vital information in the repr
 
 def test_integrase_rule():
-    prom = Promoter("p1")
-    utr = RBS("utr")
-    cds = CDS("GFP")
-    cds2 = CDS("RFP")
-    term = Terminator("t16")
-    ap = IntegraseSite("attP","attP")
-    ab = IntegraseSite("attB","attB")
-    aflp = IntegraseSite("FLP","FLP")
-    delete = DNA_construct([ab,cds,ap])
-    flip = DNA_construct([ab,cds,[ap,"reverse"]])
-    plasp = DNA_construct([cds,ap],circular=True)
-    plasb = DNA_construct([cds,ab],circular=True)
-    genp = DNA_construct([cds2,ap])
-    genb = DNA_construct([cds2,ab])
-    
-
+    prom = Promoter("p1")                               # noqa: F841
+    utr = RBS("utr")                                    # noqa: F841
+    cds = CDS("GFP")                                    # noqa: F841
+    cds2 = CDS("RFP")                                   # noqa: F841
+    term = Terminator("t16")                            # noqa: F841
+    ap = IntegraseSite("attP","attP")                   # noqa: F841
+    ab = IntegraseSite("attB","attB")                   # noqa: F841
+    aflp = IntegraseSite("FLP","FLP")                   # noqa: F841
+    delete = DNA_construct([ab,cds,ap])                 # noqa: F841
+    flip = DNA_construct([ab,cds,[ap,"reverse"]])       # noqa: F841
+    plasp = DNA_construct([cds,ap],circular=True)       # noqa: F841
+    plasb = DNA_construct([cds,ab],circular=True)       # noqa: F841
+    genp = DNA_construct([cds2,ap])                     # noqa: F841
+    genb = DNA_construct([cds2,ab])                     # noqa: F841
 
     bxb1_rule = IntegraseRule(name="Bxb1",reactions={("attB","attP"):"attL",("attP","attB"):"attR"})
     assert(set(["attP","attB","attL","attR"])==set(bxb1_rule.attsites))
@@ -57,7 +55,7 @@ def test_integrase_rule():
     bxb1_enumerator = Integrase_Enumerator("Bxb1", int_mechanisms={"Bxb1":bxb1_rule}) 
 
     
-    flp_rule = IntegraseRule(name="FLP",reactions={("FLP","FLP"):"FLP"})
+    flp_rule = IntegraseRule(name="FLP",reactions={("FLP","FLP"):"FLP"}) # noqa: F841
     bad_rule = IntegraseRule(name="Bxb1",reactions={("attB","attP"):"attL"})
     with pytest.raises(AssertionError):
         bxb1_rule.generate_products(delete[0],delete[2]) #must have the right integrase
@@ -225,18 +223,13 @@ def test_integrase_enumerator():
     al = IntegraseSite("attL","attL",integrase="Bxb1")
     ar = IntegraseSite("attR","attR",integrase="Bxb1")
 
-
     flip = DNA_construct([ab,cds,[ap,"reverse"]])
     plasp = DNA_construct([cds,ap],circular=True)
     plasb = DNA_construct([cds,ab],circular=True)
 
-
-
     genp = DNA_construct([cds2,ap])
-    genb = DNA_construct([cds2,ab])
+    genb = DNA_construct([cds2,ab])  # noqa: F841
     
-
-
     bxb1_rule = IntegraseRule(name="Bxb1",reactions={("attB","attP"):"attL",("attP","attB"):"attR"})
 
     bxb1_enumerator = Integrase_Enumerator("Bxb1", int_mechanisms={"Bxb1":bxb1_rule}) 

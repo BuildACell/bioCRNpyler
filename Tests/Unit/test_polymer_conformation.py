@@ -38,7 +38,7 @@ def test_single_polymer_single_complex_instantiation():
     assert str(pc) == f"conformation__{p}_np0l0p0l1_{c1}_"
 
     p2 = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m4")])
-    c2 = ComplexSpecies([p[0], p2[0]], called_from_complex = True)
+    c2 = ComplexSpecies([p[0], p2[0]], called_from_complex = True)  # noqa: F841
 
     #In these cases, TypeErrors should be raised
     with pytest.raises(ValueError):
@@ -57,7 +57,7 @@ def test_single_polymer_single_complex_instantiation():
         S = Species("S")
         S.parent = pc
         c3 = ComplexSpecies([p, S], called_from_complex = True)
-        pc2 = PolymerConformation(complexes = [c3])
+        pc2 = PolymerConformation(complexes = [c3])  # noqa: F841
 
 
 def test_multiple_polymer_multiple_complex_instantiation():
@@ -95,7 +95,7 @@ def test_multiple_polymer_multiple_complex_instantiation():
     #In these cases, value errors should be raised
     with pytest.raises(ValueError):
         #c3 is not part of the conformation
-        pc = PolymerConformation(complexes = [c1, c3])
+        pc = PolymerConformation(complexes = [c1, c3])  # noqa: F841
 
     #try 2 polymers with complexes that look the same
     p3 = OrderedPolymerSpecies([Species("m1"), Species("m2"), Species("m3")])
@@ -115,7 +115,7 @@ def test_multiple_polymer_multiple_complex_instantiation():
     c1b = ComplexSpecies([p1[0], p1[1]], called_from_complex = True)
     with pytest.raises(ValueError):
         #duplicate Complexes are not allowed (identical object case)
-        pc4 = PolymerConformation([c1, c1b])
+        pc4 = PolymerConformation([c1, c1b])  # noqa: F841
 
 def test_degenerate_polymer_conformation():
     S = Species("S")

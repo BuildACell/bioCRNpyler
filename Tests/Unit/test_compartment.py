@@ -98,7 +98,7 @@ class TestCompartments(TestCase):
         # change compartment
         s1.compartment = comp2
         mixture_2 = Mixture(species=[s1])
-        crn_2 = mixture_2.compile_crn(compartment=comp2)
+        crn_2 = mixture_2.compile_crn(compartment=comp2)  # noqa: F841
         self.assertEqual(s1.compartment.name, "comp2")
 
     def test_compartment_in_special_mixtures(self):

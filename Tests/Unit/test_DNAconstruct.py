@@ -67,17 +67,17 @@ def test_get_part_DNAconstruct():
 
     x = DNA_construct([P,U,C,T,T2],mechanisms = mechs,parameters=parameters)
     with pytest.raises(ValueError, match=r"get_component requires a single keyword. Recieved component=None, name=None, index=None."):
-        y = x.get_part()
+        y = x.get_part()                        # noqa: F841
     with pytest.raises(ValueError):
-        y = x.get_part(part = P,index=3)
+        y = x.get_part(part = P,index=3)        # noqa: F841
     with pytest.raises(ValueError):
-        y = x.get_part(part = "oogabooga")
+        y = x.get_part(part = "oogabooga")      # noqa: F841
     with pytest.raises(ValueError):
-        y = x.get_part(part_type = "oogabooga")
+        y = x.get_part(part_type = "oogabooga") # noqa: F841
     with pytest.raises(ValueError):
-        y = x.get_part(name = 5)
+        y = x.get_part(name = 5)                # noqa: F841
     with pytest.raises(ValueError):
-        y = x.get_part(index = "oogabooga")
+        y = x.get_part(index = "oogabooga")     # noqa: F841
     assert(x.get_part(part_type=Promoter)==x[0])
     assert(x.get_part(name="pconst")==x[0])
     assert(x.get_part(index=2)==x[2])
@@ -124,7 +124,6 @@ def test_combinatorial_enumeration_DNAconstruct():
     #circular construct
     x = DNA_construct([P,P,T],mechanisms = mechs,parameters=parameters,circular=True)
     y = x.combinatorial_enumeration()
-    prom_positions = []
     dna_species = {}
     for prom_comp in y:
         if(prom_comp.position not in dna_species):

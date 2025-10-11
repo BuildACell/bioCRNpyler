@@ -106,7 +106,7 @@ class TestCombinatorialPromoter(TestCase):
         newdna.add_mechanisms({"transcription":Transcription_MM(rnap = sp_rnap), "translation":Translation_MM(ribosome = ribosome)})
         #you have to do update_species first
         newprom_copy = newdna.promoter #Promoters are copied when added to DNAassemblies
-        newprom_spec = newprom_copy.update_species()
+        newprom_spec = newprom_copy.update_species()  # noqa: F841
         #now the test... does it produce the right reactions??
         newprom_rxns = newprom_copy.update_reactions()
         #here i am generating the species manually

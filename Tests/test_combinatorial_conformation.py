@@ -21,7 +21,7 @@ def test_CombinatorialConformation_init():
     assert len(CC1.initial_states) == 1 and len(CC1.final_states) == 1
 
     pc1b = Complex([pc0.polymers[0][2], Z]).parent
-    CC1b = CombinatorialConformation(initial_states = [pc0], final_states = [pc1b])
+    CC1b = CombinatorialConformation(initial_states = [pc0], final_states = [pc1b])  # noqa: F841
     assert len(CC1.initial_states) == 1 and len(CC1.final_states) == 1
 
     pc1c = Complex([pc1b.polymers[0][0], pc1b.polymers[0][1]]).parent
@@ -59,7 +59,7 @@ def test_CombinatorialConformation_init():
         CC = CombinatorialConformation(initial_states = [pc0], final_states = [pc1], intermediate_states = [C])
 
     with pytest.raises(ValueError):
-        CC = CombinatorialConformation(initial_states = [pc0], final_states = [pc1], excluded_states = [C])
+        CC = CombinatorialConformation(initial_states = [pc0], final_states = [pc1], excluded_states = [C])  # noqa: F841
 
     
 
@@ -341,7 +341,7 @@ def test_update_species_and_reactions():
     species = CC4a.update_species()
     reactions = CC4a.update_reactions()
     assert len(species) == 3
-    assert pc0 in species and pc4 in species
+    assert pc0 in species and pc4 in species  # noqa: F841
     assert len(reactions) == 1
 
     CC4b = CombinatorialConformation(initial_states = [pc0], intermediate_states = [pc3], final_states = [pc4], parameters = params)

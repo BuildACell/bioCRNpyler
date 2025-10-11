@@ -51,7 +51,7 @@ class TestOrderedMonomer(TestCase):
         p = OrderedPolymer(parts = [])
 
         #Correct instantiation with parent and position
-        m = OrderedMonomer(parent = p, position = 0)
+        m = OrderedMonomer(parent = p, position = 0)  # noqa: F841
 
     def test_properties(self):
         x = OrderedMonomer()

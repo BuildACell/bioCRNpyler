@@ -27,7 +27,7 @@ def test_dictionary_search():
     prot2 = Species("myprot2",material_type="protein")
     prot2.add_attribute("phosphorylated")
     int1 = Species("Bxb1","protein")
-    int2 = IntegraseSite("attP","attP","Int1")
+    int2 = IntegraseSite("attP","attP","Int1")  # noqa: F841
     int3 = IntegraseSite("attP","attP","Bxb1")
     int4 = IntegraseSite("attP2","attP","Bxb1")
     int5 = IntegraseSite("attP3e","attP")

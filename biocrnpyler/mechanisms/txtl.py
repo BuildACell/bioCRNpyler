@@ -617,8 +617,6 @@ class Energy_Translation_MM(Mechanism):
     def update_reactions(
         self, transcript, protein, component, part_id=None, complex=None, **keywords
     ):
-        rxns = []
-
         # Get Parameters
         if part_id == None and component != None:
             part_id = component.name

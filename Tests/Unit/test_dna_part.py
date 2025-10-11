@@ -7,7 +7,7 @@ def test_instantiation():
     assert part.name == "part 1"
 
     with pytest.raises(AttributeError, match=r"DNA_part should not recieve initial_concentration keyword. Pass this into the DNAassembly or DNA_construct instead*"):
-        part2 = DNA_part("part 2", initial_concentration = 10)
+        part2 = DNA_part("part 2", initial_concentration = 10)  # noqa: F841
 
 
     part3 = DNA_part("part3", sequence = "abc", assembly = "a1")

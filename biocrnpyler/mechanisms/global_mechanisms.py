@@ -124,7 +124,6 @@ class GlobalMechanism(Mechanism):
         return new_species
 
     def update_reactions_global(self, species_list: List[Species], mixture, compartment=None):
-        fd = self.filter_dict
         new_reactions = []
         for s in species_list:
             use_mechanism = self.apply_filter(s)
