@@ -1,4 +1,4 @@
-from biocrnpyler import UserDefined, Origin, DNABindingSite
+from biocrnpyler import DNABindingSite, Origin, UserDefined
 
 
 def test_user_defined():

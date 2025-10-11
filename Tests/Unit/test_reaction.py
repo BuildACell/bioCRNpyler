@@ -2,7 +2,8 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import Reaction, Species, MassAction, WeightedSpecies
+
+from biocrnpyler import MassAction, Reaction, Species, WeightedSpecies
 
 
 class TestReaction(TestCase):

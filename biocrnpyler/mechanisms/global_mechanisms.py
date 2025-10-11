@@ -7,7 +7,6 @@ from warnings import warn
 from ..core.mechanism import Mechanism
 from ..core.reaction import Reaction
 from ..core.species import ComplexSpecies, OrderedPolymerSpecies, Species
-
 from .enzyme import MichaelisMenten
 
 """

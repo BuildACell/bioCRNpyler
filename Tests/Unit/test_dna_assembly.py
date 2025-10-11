@@ -1,4 +1,4 @@
-from biocrnpyler import DNAassembly, Promoter, RBS, Mechanism, Species
+from biocrnpyler import RBS, DNAassembly, Mechanism, Promoter, Species
 
 
 def test_instantiation():

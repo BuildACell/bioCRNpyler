@@ -4,13 +4,13 @@ nb_not_installed = False
 try:
     import nbformat
     from nbconvert.preprocessors import (
-        ExecutePreprocessor,
         CellExecutionError,
+        ExecutePreprocessor,
     )
 except ModuleNotFoundError:
     nb_not_installed = True
-from os import listdir, getcwd, pardir
-from os.path import join, abspath
+from os import getcwd, listdir, pardir
+from os.path import abspath, join
 
 
 # Helper function to load and run notebooks with a given name at a given path

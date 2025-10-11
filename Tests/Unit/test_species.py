@@ -2,8 +2,10 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler import Species, WeightedSpecies
+
 import pytest  # type: ignore
+
+from biocrnpyler import Species, WeightedSpecies
 
 
 class TestSpecies(TestCase):

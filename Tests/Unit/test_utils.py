@@ -1,7 +1,7 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from biocrnpyler import Species, Promoter, IntegraseSite, CDS
+from biocrnpyler import CDS, IntegraseSite, Promoter, Species
 from biocrnpyler.utils import (
     member_dictionary_search,
     process_initial_concentration_dict,

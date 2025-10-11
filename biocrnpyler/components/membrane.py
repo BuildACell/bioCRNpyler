@@ -1,12 +1,12 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from typing import Union
 import warnings
+from typing import Union
 
+from ..core.compartment import Compartment
 from ..core.component import Component
 from ..core.species import Species
-from ..core.compartment import Compartment
 
 
 class DiffusibleMolecule(Component):

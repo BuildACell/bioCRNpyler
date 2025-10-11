@@ -4,8 +4,9 @@
 import copy
 import warnings
 from typing import List, Union
+
 from .compartment import Compartment
-from .polymer import OrderedMonomer, OrderedPolymer, MonomerCollection
+from .polymer import MonomerCollection, OrderedMonomer, OrderedPolymer
 
 
 class Species(OrderedMonomer):

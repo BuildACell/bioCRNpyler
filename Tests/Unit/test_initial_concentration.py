@@ -2,12 +2,12 @@
 #  See LICENSE file in the project root directory for details.
 
 from biocrnpyler import (
-    Species,
-    Mixture,
-    ExpressionExtract,
-    ParameterKey,
-    ChemicalReactionNetwork,
     ChemicalComplex,
+    ChemicalReactionNetwork,
+    ExpressionExtract,
+    Mixture,
+    ParameterKey,
+    Species,
     parameter_to_value,
 )
 

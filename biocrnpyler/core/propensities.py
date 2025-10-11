@@ -8,8 +8,8 @@ from typing import List, Set, Union
 
 import libsbml  # type: ignore
 
-from .parameter import ModelParameter, Parameter, ParameterEntry
 from ..utils.sbmlutil import _create_global_parameter, _create_local_parameter
+from .parameter import ModelParameter, Parameter, ParameterEntry
 from .species import Species
 
 

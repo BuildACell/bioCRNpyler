@@ -2,14 +2,15 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
+
 from biocrnpyler import (
-    GlobalMechanism,
-    Species,
     Complex,
-    Mixture,
-    MichaelisMenten,
     Deg_Tagged_Degradation,
     Degradation_mRNA_MM,
+    GlobalMechanism,
+    MichaelisMenten,
+    Mixture,
+    Species,
 )
 
 

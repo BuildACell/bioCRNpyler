@@ -3,9 +3,13 @@
 
 
 from unittest import TestCase
-from biocrnpyler import Species
-from biocrnpyler import ComplexSpecies
-from biocrnpyler import OrderedComplexSpecies, OrderedPolymerSpecies
+
+from biocrnpyler import (
+    ComplexSpecies,
+    OrderedComplexSpecies,
+    OrderedPolymerSpecies,
+    Species,
+)
 
 """This file tests ComplexSpecies, OrderedComplexSpecies which are all subclasses of species."""
 

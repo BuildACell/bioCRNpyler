@@ -65,6 +65,7 @@ line-length = 78
 [tool.ruff.lint]
 select = [
        'F', # pyflakes
+       'I', # isort
        # todo: add more as needed
 ]
 ignore = [
@@ -74,3 +75,7 @@ ignore = [
 
 [tool.ruff.format]
 quote-style = 'preserve'
+
+[tool.isort]
+profile = 'black'
+line_length = 78

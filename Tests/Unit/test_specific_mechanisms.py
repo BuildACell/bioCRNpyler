@@ -4,10 +4,8 @@ import pytest
 A catch all of tests to ensure different mechanisms behave as desired
 """
 
-from biocrnpyler import Species, Complex
-
 # Test Metabolite Mechanisms
-from biocrnpyler import OneStepPathway
+from biocrnpyler import Complex, OneStepPathway, Species
 
 
 def test_OneStepPathway():
@@ -30,9 +28,9 @@ def test_OneStepPathway():
 
 # Test Binding Mechanisms
 from biocrnpyler import (
+    One_Step_Binding,
     One_Step_Cooperative_Binding,
     Two_Step_Cooperative_Binding,
-    One_Step_Binding,
 )
 
 

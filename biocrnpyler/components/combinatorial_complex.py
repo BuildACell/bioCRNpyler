@@ -2,9 +2,10 @@
 #  See LICENSE file in the project root directory for details.
 
 
-from ..core.species import Complex, ComplexSpecies
-from ..core.component import Component
 from itertools import permutations
+
+from ..core.component import Component
+from ..core.species import Complex, ComplexSpecies
 
 
 class CombinatorialComplex(Component):

@@ -1,14 +1,15 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from biocrnpyler import CombinatorialConformation
-from biocrnpyler import (
-    Species,
-    OrderedPolymerSpecies,
-    Complex,
-    PolymerConformation,
-)
 import pytest
+
+from biocrnpyler import (
+    CombinatorialConformation,
+    Complex,
+    OrderedPolymerSpecies,
+    PolymerConformation,
+    Species,
+)
 
 
 def test_CombinatorialConformation_init():

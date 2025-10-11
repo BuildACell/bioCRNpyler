@@ -1,17 +1,18 @@
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from unittest import TestCase
-from unittest.mock import patch, mock_open
-from biocrnpyler import (
-    Parameter,
-    ParameterEntry,
-    ModelParameter,
-    ParameterDatabase,
-    Mechanism,
-)
 import sys
+from unittest import TestCase
+from unittest.mock import mock_open, patch
 from warnings import warn
+
+from biocrnpyler import (
+    Mechanism,
+    ModelParameter,
+    Parameter,
+    ParameterDatabase,
+    ParameterEntry,
+)
 
 
 class TestParameter(TestCase):
@@ -518,6 +519,7 @@ class TestParameter(TestCase):
 def test_findpath():
     import os
     import platform
+
     import biocrnpyler as bcp
 
     # Make sure files that don't exist return None

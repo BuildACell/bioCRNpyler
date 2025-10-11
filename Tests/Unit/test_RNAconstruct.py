@@ -2,7 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 # from unittest import TestCase
-from biocrnpyler import RBS, CDS, Translation_MM, RNA_construct, Species
+from biocrnpyler import CDS, RBS, RNA_construct, Species, Translation_MM
 
 
 def test_basic_RNAconstruct():

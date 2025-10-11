@@ -1,9 +1,9 @@
-import sys
 import inspect
-import biocrnpyler
+import sys
 from os import listdir
-from os.path import isfile
-from os.path import join
+from os.path import isfile, join
+
+import biocrnpyler
 
 # Get lists of bioCRNpyler objects of different types
 species = [

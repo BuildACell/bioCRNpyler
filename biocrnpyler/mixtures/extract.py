@@ -1,24 +1,24 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-from ..core.chemical_reaction_network import ChemicalReactionNetwork
-from ..components.basic import Protein, Metabolite
+from ..components.basic import Metabolite, Protein
 from ..components.dna.assembly import DNAassembly
-from ..mechanisms.global_mechanisms import Degradation_mRNA_MM, Dilution
+from ..core.chemical_reaction_network import ChemicalReactionNetwork
 from ..core.mechanism import EmptyMechanism
+from ..core.mixture import Mixture
 from ..mechanisms.binding import One_Step_Binding
 from ..mechanisms.enzyme import BasicCatalysis, MichaelisMenten
+from ..mechanisms.global_mechanisms import Degradation_mRNA_MM, Dilution
+from ..mechanisms.metabolite import OneStepPathway
 from ..mechanisms.txtl import (
+    Energy_Transcription_MM,
+    Energy_Translation_MM,
     OneStepGeneExpression,
     SimpleTranscription,
     SimpleTranslation,
     Transcription_MM,
     Translation_MM,
-    Energy_Transcription_MM,
-    Energy_Translation_MM,
 )
-from ..mechanisms.metabolite import OneStepPathway
-from ..core.mixture import Mixture
 
 
 class ExpressionExtract(Mixture):

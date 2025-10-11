@@ -107,7 +107,7 @@ html_css_files = ['css/custom.css']
 # -----------------------------------------------------------------------------
 
 import inspect
-from os.path import relpath, dirname
+from os.path import dirname, relpath
 
 
 def linkcode_resolve(domain, info):

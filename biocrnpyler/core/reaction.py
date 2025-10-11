@@ -2,15 +2,14 @@
 #  See LICENSE file in the project root directory for details.
 
 
-from .propensities import MassAction, Propensity
-
-from .species import *
 import copy
 import itertools
 from typing import List, Union
 from warnings import warn
 
 from ..utils.general import remove_bindloc
+from .propensities import MassAction, Propensity
+from .species import *
 
 
 class Reaction(object):

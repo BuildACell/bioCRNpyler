@@ -6,26 +6,25 @@
 # Copyright (c) 2018, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
+import base64
+import copy
+import io
 import math
 import random
 import statistics
 from warnings import warn
 
-from ..components.basic import Protein, DNA, RNA
+from ..components.basic import DNA, RNA, Protein
 from ..components.dna.cds import CDS
-from ..components.dna.misc import IntegraseSite, Origin, Operator, UserDefined
+from ..components.dna.construct import Construct
+from ..components.dna.misc import IntegraseSite, Operator, Origin, UserDefined
 from ..components.dna.promoter import Promoter
 from ..components.dna.rbs import RBS
 from ..components.dna.terminator import Terminator
+from ..core.polymer import OrderedPolymer
 from ..core.propensities import MassAction
 from ..core.species import ComplexSpecies, Species
-from ..core.polymer import OrderedPolymer
-from ..components.dna.construct import Construct
 from . import member_dictionary_search
-import io
-import base64
-
-import copy
 
 HAVE_MATPLOTLIB = False
 try:
@@ -49,6 +48,7 @@ if PLOT_DNA and not HAVE_MATPLOTLIB:
 PLOT_NETWORK = False
 try:
     import networkx as nx  # type: ignore
+    from bokeh.io import export_svgs, output_notebook  # noqa: F401
     from bokeh.models import (
         BoxSelectTool,
         EdgesAndLinkedNodes,  # type: ignore
@@ -62,9 +62,8 @@ try:
         TapTool,
         WheelZoomTool,
     )
-    from bokeh.plotting import from_networkx  # noqa: F401
     from bokeh.palettes import Spectral4  # noqa: F401
-    from bokeh.io import export_svgs, output_notebook  # noqa: F401
+    from bokeh.plotting import from_networkx  # noqa: F401
     from fa2_modified import ForceAtlas2  # noqa: F401
 
     PLOT_NETWORK = True

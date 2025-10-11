@@ -2,17 +2,17 @@
 # See LICENSE file in the project root directory for details.
 
 import copy
-from typing import List, Union, Tuple
+from typing import List, Tuple, Union
 from warnings import resetwarnings, warn
 
-from .chemical_reaction_network import ChemicalReactionNetwork
-from .component import Component
 from ..mechanisms.global_mechanisms import GlobalMechanism
+from .chemical_reaction_network import ChemicalReactionNetwork
+from .compartment import Compartment
+from .component import Component
 from .mechanism import Mechanism
 from .parameter import ParameterDatabase
 from .reaction import Reaction
 from .species import Species
-from .compartment import Compartment
 
 
 class Mixture(object):

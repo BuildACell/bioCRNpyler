@@ -2,9 +2,9 @@
 # See LICENSE file in the project root directory for details.
 
 from ..core.mechanism import Mechanism
+from ..core.propensities import GeneralPropensity, ProportionalHillNegative
 from ..core.reaction import Reaction
 from ..core.species import Complex
-from ..core.propensities import ProportionalHillNegative, GeneralPropensity
 
 
 class Simple_Diffusion(Mechanism):

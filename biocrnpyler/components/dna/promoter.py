@@ -5,7 +5,7 @@ import copy
 import itertools as it
 from warnings import warn
 
-from .construct import DNA_part
+from ...core.species import Species
 from ...mechanisms.binding import (
     Combinatorial_Cooperative_Binding,
     One_Step_Cooperative_Binding,
@@ -14,8 +14,8 @@ from ...mechanisms.txtl import (
     NegativeHillTranscription,
     PositiveHillTranscription,
 )
-from ...core.species import Species
 from ..basic import DNA, RNA
+from .construct import DNA_part
 
 
 class Promoter(DNA_part):

@@ -5,13 +5,13 @@ import pytest
 
 # from unittest import TestCase
 from biocrnpyler.components import (
-    Promoter,
-    DNA_construct,
-    Terminator,
-    Species,
-    RBS,
     CDS,
+    RBS,
     Complex,
+    DNA_construct,
+    Promoter,
+    Species,
+    Terminator,
 )
 from biocrnpyler.mechanisms import Transcription_MM
 

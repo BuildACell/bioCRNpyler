@@ -2,8 +2,10 @@
 # See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
-from biocrnpyler.utils.sbmlutil import create_sbml_model
+
 import libsbml
+
+from biocrnpyler.utils.sbmlutil import create_sbml_model
 from biocrnpyler.utils.units import *
 
 

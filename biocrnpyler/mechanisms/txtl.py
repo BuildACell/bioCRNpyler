@@ -1,4 +1,5 @@
 from typing import List
+
 from ..core.mechanism import Mechanism
 from ..core.propensities import (
     ProportionalHillNegative,

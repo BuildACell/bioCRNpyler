@@ -1,5 +1,6 @@
-from biocrnpyler import *
 import numpy as np
+
+from biocrnpyler import *
 
 # Parameters
 kb, ku, ktx, ktl, kdeg = 200, 10, 2.0, 50.0, 1.5

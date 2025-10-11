@@ -1,23 +1,25 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
+import copy
+
 import pytest
+
 from biocrnpyler import (
-    Promoter,
-    DNA_construct,
-    Terminator,
-    Species,
-    RBS,
     CDS,
-    Polymer_transformation,
+    RBS,
+    DNA_construct,
+    Integrase_Enumerator,
+    IntegraseRule,
+    IntegraseSite,
     NamedPolymer,
     OrderedPolymer,
-    IntegraseSite,
-    IntegraseRule,
-    Integrase_Enumerator,
+    Polymer_transformation,
+    Promoter,
+    Species,
+    Terminator,
     TxTlExtract,
 )
-import copy
 
 
 def test_polymer_transformation():

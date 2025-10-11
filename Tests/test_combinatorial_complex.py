@@ -1,9 +1,15 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from biocrnpyler import CombinatorialComplex, One_Step_Binding, Reaction
-from biocrnpyler import Species, Complex
 import pytest
+
+from biocrnpyler import (
+    CombinatorialComplex,
+    Complex,
+    One_Step_Binding,
+    Reaction,
+    Species,
+)
 
 
 def test_CombinatorialComplex_init_and_properties():

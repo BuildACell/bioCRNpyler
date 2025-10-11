@@ -14,9 +14,9 @@ from warnings import warn
 
 from ...core.component import Component
 from ...core.polymer import OrderedMonomer, OrderedPolymer
-from ..basic import DNA, RNA
-from ...core.species import Species, ComplexSpecies, OrderedPolymerSpecies
+from ...core.species import ComplexSpecies, OrderedPolymerSpecies, Species
 from ...utils import all_comb
+from ..basic import DNA, RNA
 
 
 class Construct(Component, OrderedPolymer):

@@ -7,9 +7,9 @@ from unittest import TestCase
 class TestCombinatorialPromoter(TestCase):
     def test_initialization(self):
         from biocrnpyler import (
+            Combinatorial_Cooperative_Binding,
             CombinatorialPromoter,
             Species,
-            Combinatorial_Cooperative_Binding,
         )
 
         # initializing with one regulator that has no list
@@ -72,11 +72,11 @@ class TestCombinatorialPromoter(TestCase):
     def test_update_species(self):
         from biocrnpyler import (
             CombinatorialPromoter,
-            Species,
+            Complex,
             DNAassembly,
+            Species,
             Transcription_MM,
             Translation_MM,
-            Complex,
         )
 
         # make a complicated promoter
@@ -166,12 +166,12 @@ class TestCombinatorialPromoter(TestCase):
         reactions with the proper inputs and outputs."""
         from biocrnpyler import (
             CombinatorialPromoter,
-            Species,
+            Complex,
             DNAassembly,
+            ParameterKey,
+            Species,
             Transcription_MM,
             Translation_MM,
-            Complex,
-            ParameterKey,
         )
 
         # make a relatively simple combinatorial promoter

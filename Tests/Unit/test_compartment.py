@@ -1,14 +1,15 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
+import os
+import tempfile
 from unittest import TestCase
-from biocrnpyler import Species, Compartment
-from biocrnpyler import Mixture
+
+import libsbml  # type: ignore
+
+from biocrnpyler import Compartment, Mixture, Species
 from biocrnpyler.components.dna import ActivatablePromoter, DNAassembly
 from biocrnpyler.mixtures import EnergyTxTlExtract
-import tempfile
-import os
-import libsbml  # type: ignore
 
 
 class TestCompartments(TestCase):

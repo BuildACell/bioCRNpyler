@@ -2,15 +2,17 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
+
 from biocrnpyler import (
-    Component,
     DNA,
-    ParameterDatabase,
-    Mixture,
+    Component,
     Mechanism,
+    Mixture,
+    ParameterDatabase,
+    SimpleTranscription,
+    SimpleTranslation,
     Species,
 )
-from biocrnpyler import SimpleTranscription, SimpleTranslation
 
 
 class TestComponent(TestCase):

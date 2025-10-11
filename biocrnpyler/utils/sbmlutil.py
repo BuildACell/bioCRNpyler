@@ -8,9 +8,11 @@ import logging
 from random import randint
 from typing import List
 from warnings import warn
-from .general import parameter_to_value
-from ..utils.units import create_new_unit_definition
+
 import libsbml  # type: ignore
+
+from ..utils.units import create_new_unit_definition
+from .general import parameter_to_value
 
 # Reaction ID number (global)
 reaction_id = 0

@@ -1,8 +1,9 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
-import libsbml  # type: ignore
 import warnings
+
+import libsbml  # type: ignore
 
 
 def biocrnpyler_supported_units():

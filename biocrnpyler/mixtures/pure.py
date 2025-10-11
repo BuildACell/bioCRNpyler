@@ -1,11 +1,11 @@
 # pure.py - mixture model for PURE
 # RMM, 20 Sep 2025
 
+from ..components.basic import Metabolite, Protein
 from ..core.mixture import Mixture
-from ..components.basic import Protein, Metabolite
-from ..mechanisms.global_mechanisms import Degradation_mRNA_MM
 from ..mechanisms.binding import One_Step_Binding
 from ..mechanisms.enzyme import MichaelisMenten
+from ..mechanisms.global_mechanisms import Degradation_mRNA_MM
 from ..mechanisms.txtl import Energy_Transcription_MM, Energy_Translation_MM
 
 

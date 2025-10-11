@@ -1,14 +1,15 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
+import copy
+import itertools as it
 from typing import List
-from ..core.species import Species, ComplexSpecies
-from ..core.polymer import OrderedMonomer, NamedPolymer
+
+from ..core.polymer import NamedPolymer, OrderedMonomer
+from ..core.species import ComplexSpecies, Species
+from ..utils import combine_dictionaries
+from .component_enumerator import GlobalComponentEnumerator
 from .dna.construct import Construct, DNA_construct
 from .dna.misc import IntegraseSite
-from .component_enumerator import GlobalComponentEnumerator
-import itertools as it
-from ..utils import combine_dictionaries
-import copy
 
 
 class Polymer_transformation:

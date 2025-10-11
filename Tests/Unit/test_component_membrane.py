@@ -1,6 +1,8 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
+import pytest
+
 from biocrnpyler import (
     DiffusibleMolecule,
     IntegralMembraneProtein,
@@ -8,7 +10,6 @@ from biocrnpyler import (
     MembranePump,
     MembraneSensor,
 )
-import pytest
 
 
 def test_DiffusibleMolecule():

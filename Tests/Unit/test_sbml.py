@@ -1,18 +1,23 @@
-import pytest
 from unittest import TestCase
-from biocrnpyler.utils.sbmlutil import *
-from biocrnpyler import Species, Complex
-from biocrnpyler import Compartment
+
+import pytest
+
 from biocrnpyler import (
-    MassAction,
-    HillPositive,
-    HillNegative,
-    ProportionalHillPositive,
-    ProportionalHillNegative,
+    ChemicalReactionNetwork,
+    Compartment,
+    Complex,
     GeneralPropensity,
+    HillNegative,
+    HillPositive,
+    MassAction,
+    ParameterEntry,
+    ParameterKey,
+    ProportionalHillNegative,
+    ProportionalHillPositive,
+    Reaction,
+    Species,
 )
-from biocrnpyler import ParameterEntry, ParameterKey
-from biocrnpyler import Reaction, ChemicalReactionNetwork
+from biocrnpyler.utils.sbmlutil import *
 
 
 class TestSBML(TestCase):
@@ -438,8 +443,6 @@ def test_sbml_basics():
     from biocrnpyler.utils.sbmlutil import (
         _create_global_parameter,
         _create_local_parameter,
-    )
-    from biocrnpyler.utils.sbmlutil import (
         _create_modifiers,
         _create_products,
         _create_reactants,

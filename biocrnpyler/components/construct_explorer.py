@@ -9,15 +9,15 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
+import logging
 from warnings import warn
 
+from .component_enumerator import LocalComponentEnumerator
 from .dna.cds import CDS
+from .dna.construct import Construct, RNA_construct
 from .dna.promoter import Promoter
 from .dna.rbs import RBS
 from .dna.terminator import Terminator
-from .dna.construct import Construct, RNA_construct
-from .component_enumerator import LocalComponentEnumerator
-import logging
 
 
 class ConstructExplorer(LocalComponentEnumerator):

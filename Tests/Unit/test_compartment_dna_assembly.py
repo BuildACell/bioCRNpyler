@@ -1,5 +1,4 @@
-from biocrnpyler.components import Protein, DNAassembly
-from biocrnpyler.components import RepressiblePromoter
+from biocrnpyler.components import DNAassembly, Protein, RepressiblePromoter
 from biocrnpyler.core import Compartment
 from biocrnpyler.mixtures import SimpleTxTlExtract
 

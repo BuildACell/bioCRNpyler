@@ -2,27 +2,27 @@
 #  See LICENSE file in the project root directory for details.
 
 import copy
+import numbers
 import warnings
 from typing import Dict, List, Tuple, Union
 from warnings import warn
-import numbers
 
 import libsbml  # type: ignore
 
-from .reaction import Reaction
-from ..utils.sbmlutil import (
-    add_all_reactions,
-    add_all_species,
-    add_all_compartments,
-    create_sbml_model,
-)
-from .species import Species
 from ..utils import (
-    process_initial_concentration_dict,
     parameter_to_value,
+    process_initial_concentration_dict,
     remove_bindloc,
 )
+from ..utils.sbmlutil import (
+    add_all_compartments,
+    add_all_reactions,
+    add_all_species,
+    create_sbml_model,
+)
 from .parameter import ModelParameter, Parameter
+from .reaction import Reaction
+from .species import Species
 
 
 class ChemicalReactionNetwork(object):
@@ -595,8 +595,9 @@ class ChemicalReactionNetwork(object):
         """
         res_ar = None
         try:
-            import roadrunner  # type: ignore
             import io
+
+            import roadrunner  # type: ignore
 
             document, _ = self.generate_sbml_model(
                 stochastic_model=False, check_validity=check_validity

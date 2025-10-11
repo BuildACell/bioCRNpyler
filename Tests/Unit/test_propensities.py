@@ -1,18 +1,19 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
+import pytest
+
 from biocrnpyler import (
+    GeneralPropensity,
+    Hill,
+    HillNegative,
+    HillPositive,
     MassAction,
+    ParameterEntry,
     ProportionalHillNegative,
     ProportionalHillPositive,
-    HillPositive,
-    HillNegative,
-    Hill,
+    Species,
 )
-from biocrnpyler import GeneralPropensity
-from biocrnpyler import ParameterEntry
-from biocrnpyler import Species
-import pytest
 
 
 def test_massaction_forward_rate():

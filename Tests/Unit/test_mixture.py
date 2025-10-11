@@ -2,16 +2,17 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
+
 from biocrnpyler import (
-    Mixture,
-    Species,
     DNA,
-    Reaction,
     ChemicalReactionNetwork,
     Component,
+    GlobalMechanism,
+    Mixture,
+    Reaction,
     SimpleTranscription,
     SimpleTranslation,
-    GlobalMechanism,
+    Species,
 )
 
 

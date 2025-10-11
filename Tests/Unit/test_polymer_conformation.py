@@ -2,12 +2,12 @@
 #  See LICENSE file in the project root directory for details.
 
 import pytest
-from biocrnpyler import *
 
+from biocrnpyler import *
 from biocrnpyler import (
+    Complex,
     OrderedPolymerSpecies,
     PolymerConformation,
-    Complex,
     Species,
 )
 

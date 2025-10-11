@@ -6,11 +6,11 @@
 ################################################################
 import itertools as it
 import numbers
-
 from typing import Dict, Union
-from ..core.species import WeightedSpecies, Species
-from ..core.parameter import Parameter
 from warnings import warn
+
+from ..core.parameter import Parameter
+from ..core.species import Species, WeightedSpecies
 
 
 def all_comb(input_list):

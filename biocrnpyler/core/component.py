@@ -6,9 +6,9 @@ from numbers import Real
 from typing import List, Union
 from warnings import warn
 
-from .mechanism import Mechanism
-from .compartment import Compartment
 from ..mechanisms.global_mechanisms import GlobalMechanism
+from .compartment import Compartment
+from .mechanism import Mechanism
 from .parameter import Parameter, ParameterDatabase, ParameterKey
 from .species import Species
 

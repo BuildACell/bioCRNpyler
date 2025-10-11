@@ -1,13 +1,14 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from ..core.species import Complex, ComplexSpecies, PolymerConformation
-from ..core.component import Component
-from ..mechanisms.conformation import One_Step_Reversible_Conformation_Change
-from ..components.dna.promoter import Promoter
-from itertools import permutations
 import copy
 import warnings
+from itertools import permutations
+
+from ..components.dna.promoter import Promoter
+from ..core.component import Component
+from ..core.species import Complex, ComplexSpecies, PolymerConformation
+from ..mechanisms.conformation import One_Step_Reversible_Conformation_Change
 
 
 class CombinatorialConformation(Component):

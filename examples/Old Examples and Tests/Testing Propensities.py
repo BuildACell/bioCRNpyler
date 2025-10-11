@@ -1,16 +1,16 @@
 from biocrnpyler.chemical_reaction_network import (
-    Species,
-    Reaction,
-    ComplexSpecies,
     ChemicalReactionNetwork,
+    ComplexSpecies,
+    Reaction,
+    Species,
 )
 from biocrnpyler.propensities import (
-    MassAction,
-    ProportionalHillPositive,
-    ProportionalHillNegative,
     HillNegative,
     HillPositive,
+    MassAction,
     Propensity,
+    ProportionalHillNegative,
+    ProportionalHillPositive,
 )
 
 print('Start')
@@ -90,9 +90,9 @@ for i in range(6):
     CRN.write_sbml_file(file_name=fname)
     print('Saved')
 
-    from bioscrape.types import Model
-    from bioscrape.simulator import py_simulate_model
     from bioscrape.sbmlutil import *
+    from bioscrape.simulator import py_simulate_model
+    from bioscrape.types import Model
 
     M = Model(sbml_filename=fname)
 

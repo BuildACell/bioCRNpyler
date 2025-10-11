@@ -5,16 +5,17 @@
 # from unittest import TestCase
 
 from itertools import permutations
+
 from biocrnpyler import (
-    Promoter,
-    RBS,
     CDS,
+    RBS,
+    DNA_construct,
+    Promoter,
+    RNA_construct,
+    Species,
     Terminator,
     Transcription_MM,
     Translation_MM,
-    RNA_construct,
-    DNA_construct,
-    Species,
 )
 
 
@@ -113,9 +114,9 @@ def test_combinatorial_DNAconstruct_RNAconstruct():
 
 from biocrnpyler import (
     ActivatablePromoter,
-    RepressiblePromoter,
-    RegulatedPromoter,
     CombinatorialPromoter,
+    RegulatedPromoter,
+    RepressiblePromoter,
 )
 
 # list of possible promoter types
@@ -135,10 +136,10 @@ promoters = [
 terminators = [Terminator('terminator')]
 
 from biocrnpyler import (
-    SimpleTxTlExtract,
-    TxTlExtract,
     SimpleTxTlDilutionMixture,
+    SimpleTxTlExtract,
     TxTlDilutionMixture,
+    TxTlExtract,
 )
 
 # list of possible mixtures

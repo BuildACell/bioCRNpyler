@@ -4,14 +4,14 @@
 from typing import List, Union
 
 from ...core.component import Component
-from ..basic import DNA, RNA, Protein
-from .promoter import Promoter
-from .rbs import RBS
 from ...core.mechanism import Mechanism
 from ...core.mixture import Mixture
 from ...core.parameter import ParameterDatabase
 from ...core.reaction import Reaction
 from ...core.species import Species
+from ..basic import DNA, RNA, Protein
+from .promoter import Promoter
+from .rbs import RBS
 
 
 class DNAassembly(DNA):

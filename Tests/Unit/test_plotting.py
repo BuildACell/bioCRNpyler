@@ -7,20 +7,20 @@ import warnings
 import pytest
 
 import biocrnpyler as bcp
-from biocrnpyler.utils.plotting import CRNPlotter
 from biocrnpyler.components import (
-    RNA_construct,
-    DNA_construct,
-    Promoter,
-    IntegraseSite,
-    RBS,
     CDS,
-    Terminator,
+    RBS,
     Complex,
-    Species,
+    DNA_construct,
     DNA_part,
+    IntegraseSite,
+    Promoter,
     RegulatedPromoter,
+    RNA_construct,
+    Species,
+    Terminator,
 )
+from biocrnpyler.utils.plotting import CRNPlotter
 
 
 def test_CRNPlotter():

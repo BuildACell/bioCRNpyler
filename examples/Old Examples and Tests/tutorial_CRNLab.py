@@ -1,6 +1,7 @@
 # Tube level interface of biocrnpyler for users
-from biocrnpyler import *
 import numpy as np
+
+from biocrnpyler import *
 
 # Set up the standard TXTL tubes by creating a Mixture, give any name you'd like for the mixture
 # from .crnlab import CRNLab

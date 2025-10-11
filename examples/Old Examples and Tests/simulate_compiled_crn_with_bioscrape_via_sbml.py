@@ -1,7 +1,7 @@
-from biocrnpyler import *
-
 import numpy as np
 import pylab as plt
+
+from biocrnpyler import *
 
 kb, ku, ktx, ktl, kdeg = 100, 10, 3, 2, 1
 parameters = {'kb': kb, 'ku': ku, 'ktx': ktx, 'ktl': ktl, 'kdeg': kdeg}
