@@ -73,7 +73,7 @@ def test_combinatorial_DNAconstruct_RNAconstruct():
 
 
 
-from biocrnpyler import Promoter, ActivatablePromoter, RepressiblePromoter, RegulatedPromoter, CombinatorialPromoter
+from biocrnpyler import ActivatablePromoter, RepressiblePromoter, RegulatedPromoter, CombinatorialPromoter
 
 #list of possible promoter types
 promoters = [
@@ -84,7 +84,6 @@ promoters = [
     CombinatorialPromoter("combinatorial_promoter", regulators = [Species("S1"), Species("S2")])
     ]
 
-from biocrnpyler import Terminator
 #list of possible terminators
 terminators = [
     Terminator("terminator")

@@ -8,6 +8,7 @@ from ..mechanisms.binding import One_Step_Binding
 from ..mechanisms.enzyme import MichaelisMenten
 from ..mechanisms.txtl import Energy_Transcription_MM, Energy_Translation_MM
 
+
 class BasicPURE(Mixture):
     """Reconstituted protein synthesis system with resource limits.
 
@@ -23,10 +24,20 @@ class BasicPURE(Mixture):
     Energy usage for transcription and translation is length dependent.
 
     """
+
     def __init__(
-            self, name='PURE', rnap='RNAP', ribosome='Ribo', rnaase='RNAase',
-            ntps='NTPs', ndps='NDPs', amino_acids='AAs', fuel='ATP',
-            parameter_file='mixtures/pure_parameters.tsv', **kwargs):
+        self,
+        name='PURE',
+        rnap='RNAP',
+        ribosome='Ribo',
+        rnaase='RNAase',
+        ntps='NTPs',
+        ndps='NDPs',
+        amino_acids='AAs',
+        fuel='ATP',
+        parameter_file='mixtures/pure_parameters.tsv',
+        **kwargs,
+    ):
         """
         :param name: name of the mixture
         :param rnap: name of the RNA polymerase, default: RNAP
@@ -43,7 +54,8 @@ class BasicPURE(Mixture):
 
         """
         Mixture.__init__(
-            self, name=name, parameter_file=parameter_file, **kwargs)
+            self, name=name, parameter_file=parameter_file, **kwargs
+        )
 
         # create default Components to represent cellular machinery
         self.rnap = Protein(rnap)
@@ -66,18 +78,19 @@ class BasicPURE(Mixture):
         # Create default TX-TL Mechanisms
         mech_tx = Energy_Transcription_MM(
             rnap=self.rnap.get_species(),
-            fuels=[self.fuel.get_species()] +       # TODO: one ATP per bp
-                [self.ntps.get_species()],
-            wastes=[]
+            fuels=[self.fuel.get_species()]  # TODO: one ATP per bp
+            + [self.ntps.get_species()],
+            wastes=[],
         )
         mech_tl = Energy_Translation_MM(
             ribosome=self.ribosome.get_species(),
-            fuels=4 * [self.fuel.get_species()] +   # TODO: why 4 ATP per AA?
-                [self.amino_acids.get_species()],
+            fuels=4 * [self.fuel.get_species()]  # TODO: why 4 ATP per AA?
+            + [self.amino_acids.get_species()],
             wastes=[],
         )
         mech_rna_deg = Degradation_mRNA_MM(
-            nuclease=self.rnaase.get_species())     # TODO: add fuel usage?
+            nuclease=self.rnaase.get_species()
+        )  # TODO: add fuel usage?
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 

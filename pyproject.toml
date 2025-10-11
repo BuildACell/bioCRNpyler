@@ -71,3 +71,7 @@ ignore = [
     'F403',			# ignore import .module * in __init__
     'F405',			# allow local wildcard import (for now)
 ]
+
+[tool.ruff.format]
+quote-style = 'single'		# for initial run
+# quote-style = 'preserve'	# after first run
