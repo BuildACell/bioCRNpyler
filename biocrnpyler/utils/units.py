@@ -55,12 +55,6 @@ def biocrnpyler_supported_units():
         'unit_scale':[-9, 0],
         'unit_multiplier':[1,1]},
 
-        'mM': 
-        {'unit_kind':[libsbml.UNIT_KIND_MOLE, libsbml.UNIT_KIND_LITRE],
-        'unit_exponents':[1, -1],
-        'unit_scale':[-3, 0],
-        'unit_multiplier':[1,1]},
-        
         # Time units
         'hour': 
         {'unit_kind':[libsbml.UNIT_KIND_SECOND],
