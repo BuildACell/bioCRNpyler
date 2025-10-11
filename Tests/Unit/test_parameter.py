@@ -12,18 +12,18 @@ class TestParameter(TestCase):
 
     def test_parameter(self):
         # test parameter name
-        with self.assertRaisesRegex(ValueError, f"parameter_name must be a string"):
+        with self.assertRaisesRegex(ValueError, "parameter_name must be a string"):
             Parameter(parameter_name=None, parameter_value=1.0)
         # test parameter value
-        with self.assertRaisesRegex(ValueError, f"parameter_value must be a float or int"):
+        with self.assertRaisesRegex(ValueError, "parameter_value must be a float or int"):
             Parameter(parameter_name="None", parameter_value=None)
 
         # test invalid value string
-        with self.assertRaisesRegex(ValueError, f"No valid parameter value! Accepted format"):
+        with self.assertRaisesRegex(ValueError, "No valid parameter value! Accepted format"):
             Parameter(parameter_name="None", parameter_value='2ba')
 
         # test invalid unit value
-        with self.assertRaisesRegex(ValueError, f"All units must be strings"):
+        with self.assertRaisesRegex(ValueError, "All units must be strings"):
             Parameter(parameter_name="None", parameter_value=1.0, unit = 0.0)
 
         # test string parameter values
@@ -41,7 +41,7 @@ class TestParameter(TestCase):
         self.assertTrue(Parameter(parameter_name="None", parameter_value="1.0", unit = "M").unit == "M")
 
         # testing invalid parameter name
-        with self.assertRaisesRegex(ValueError, f"parameter_name should be at least one character and cannot start with a number!"):
+        with self.assertRaisesRegex(ValueError, "parameter_name should be at least one character and cannot start with a number!"):
             Parameter(parameter_name="2", parameter_value=2)
 
     def test_parameter_entry(self):
@@ -69,7 +69,7 @@ class TestParameter(TestCase):
 
         #Invalid info
         param_info = "blah blah"
-        with self.assertRaisesRegex(ValueError, f"parameter_info must be None or a dictionary"):
+        with self.assertRaisesRegex(ValueError, "parameter_info must be None or a dictionary"):
             ParameterEntry(parameter_name="None", parameter_value=1.0, parameter_info = param_info)
 
     def test_model_parameter(self):
@@ -131,7 +131,7 @@ class TestParameter(TestCase):
     def test_load_parameters_from_file(self):
 
         # Bad parameter file keyword
-        with self.assertRaisesRegex(ValueError, f"parameter_file must be a string representing a file name and path."):
+        with self.assertRaisesRegex(ValueError, "parameter_file must be a string representing a file name and path."):
             ParameterDatabase(parameter_file={})
 
         # TODO track down why this test fails in python 3.6!
@@ -171,7 +171,7 @@ class TestParameter(TestCase):
                     'builtins.open', mock_open(read_data=example_csv),
                     create=True),
             ):
-                with self.assertWarnsRegex(Warning, f"No param_name column was found, could not load parameter!"):
+                with self.assertWarnsRegex(Warning, "No param_name column was found, could not load parameter!"):
                     ParameterDatabase(parameter_file='test_file.tsv')
 
         else:
@@ -181,7 +181,7 @@ class TestParameter(TestCase):
     def test_load_parameters_from_dictionary(self):
 
         # bad parameter_dictionary keyword
-        with self.assertRaisesRegex(ValueError, f"parameter_dictionary must be None or a dictionary!"):
+        with self.assertRaisesRegex(ValueError, "parameter_dictionary must be None or a dictionary!"):
             PD = ParameterDatabase(parameter_dictionary='test_file')
 
         # proper parameter dictionary
@@ -198,13 +198,13 @@ class TestParameter(TestCase):
         #improper parameter dictionary
         k = ("M", "k")
         parameter_dict = {k:2.0}
-        with self.assertRaisesRegex(ValueError, f"parameter_key must be"):
+        with self.assertRaisesRegex(ValueError, "parameter_key must be"):
             PD = ParameterDatabase(parameter_dictionary = parameter_dict)
 
         #duplicate parameter dictionary
         key = (None, None, "k")  # noqa: F841
         parameter_dict = {"k":1, (None, None, "k"):1}
-        with self.assertRaisesRegex(ValueError, f"Duplicate parameter detected"):
+        with self.assertRaisesRegex(ValueError, "Duplicate parameter detected"):
             PD = ParameterDatabase(parameter_dictionary = parameter_dict)
 
     def test_iterator(self):
@@ -270,11 +270,11 @@ class TestParameter(TestCase):
         self.assertTrue(PD[("M", None, "k")].value == 4)
 
         #test incorrect accessing
-        with self.assertRaisesRegex(ValueError, f"parameter_key must be"):
+        with self.assertRaisesRegex(ValueError, "parameter_key must be"):
             PD[("M", "k")]
 
         #test accessing something not in the PD
-        with self.assertRaisesRegex(KeyError, f"ParameterKey"):
+        with self.assertRaisesRegex(KeyError, "ParameterKey"):
             PD["kb"]
 
         #test inserting values
@@ -297,12 +297,12 @@ class TestParameter(TestCase):
 
         #Test incorrect Overwriting
         PE = ParameterEntry("t", 1.0)
-        with self.assertRaisesRegex(ValueError, f"Parameter Key does not match"):
+        with self.assertRaisesRegex(ValueError, "Parameter Key does not match"):
             PD["test"] = PE
 
 
         #Invalid parameter key
-        with self.assertRaisesRegex(ValueError, f"parameter_key must be"):
+        with self.assertRaisesRegex(ValueError, "parameter_key must be"):
             PD[("M", "k")] = 10
 
         #Test overwriting

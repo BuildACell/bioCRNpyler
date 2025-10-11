@@ -824,8 +824,8 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
                 specie, PolymerConformation
             ):
                 raise NotImplementedError(
-                    f"OrderedPolymer and PolymerConformation cannot be "
-                    f"used as a Monomer at this time."
+                    "OrderedPolymer and PolymerConformation cannot be "
+                    "used as a Monomer at this time."
                 )
             elif isinstance(specie, Species) \
                  and isinstance(specie, OrderedMonomer):
@@ -1092,8 +1092,8 @@ class PolymerConformation(Species, MonomerCollection):
                     for p in old_polymers]):
             raise ValueError(
                 "All OrderedPolymerSpecies in old_polymers must be "
-                f"contained (as instances, not string equivalents) "
-                f"in pc.polymers."
+                "contained (as instances, not string equivalents) "
+                "in pc.polymers."
             )
 
         if len(old_polymers) != len(new_polymers):

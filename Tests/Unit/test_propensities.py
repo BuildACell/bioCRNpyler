@@ -168,11 +168,11 @@ def test_general_propensity():
         GeneralPropensity('S1^2 + S2^2 + S3^2', propensity_species=[], propensity_parameters=[S2])
 
     test_formula = 'S3^2'
-    with pytest.raises(ValueError, match=f'must be part of the formula'):
+    with pytest.raises(ValueError, match='must be part of the formula'):
         GeneralPropensity(test_formula, propensity_species=[S1], propensity_parameters=[])
 
     test_formula = 'k2*S3^2'
-    with pytest.raises(ValueError, match=f'must be part of the formula'):
+    with pytest.raises(ValueError, match='must be part of the formula'):
         GeneralPropensity(test_formula, propensity_species=[S3], propensity_parameters=[k1])
 
 

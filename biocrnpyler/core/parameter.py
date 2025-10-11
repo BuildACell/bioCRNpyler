@@ -83,8 +83,8 @@ class Parameter(object):
                 f"received {type(new_parameter_name)}.")
         if not re.search('^[a-z]+', new_parameter_name, re.IGNORECASE):
             raise ValueError(
-                f"parameter_name should be at least one character and "
-                f"cannot start with a number!")
+                "parameter_name should be at least one character and "
+                "cannot start with a number!")
 
         self._parameter_name = new_parameter_name
 

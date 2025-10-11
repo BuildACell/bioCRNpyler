@@ -46,7 +46,7 @@ class TestMixture(TestCase):
 
         species = Species('test_species')
         # species are invalid components
-        with self.assertRaisesRegex(ValueError,f'add_components expected a list of Components.'):
+        with self.assertRaisesRegex(ValueError,'add_components expected a list of Components.'):
             mixture.add_components(species)
 
     def test_get_component(self):

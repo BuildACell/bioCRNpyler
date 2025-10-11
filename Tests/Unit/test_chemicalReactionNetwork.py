@@ -56,17 +56,17 @@ class TestChemicalReactionNetwork(TestCase):
 
         rxn2 = Reaction.from_massaction(inputs=[self.s1], outputs=[self.s3], k_forward=0.1)
         # test warning raised if a species (in the reaction outputs) is detected which is not part of the species list
-        with self.assertWarnsRegex(Warning, f'are not part of any reactions in the CRN'):
+        with self.assertWarnsRegex(Warning, 'are not part of any reactions in the CRN'):
             ChemicalReactionNetwork.check_crn_validity(reactions=[rxn2], species=self.species_list, show_warnings=True)
 
         rxn3 = Reaction.from_massaction(inputs=[self.s4], outputs=[self.s2], k_forward=0.1)
         # test warning raised if a species (in the reaction inputs) is detected which is not part of the species list
-        with self.assertWarnsRegex(Warning, f'are not part of any reactions in the CRN'):
+        with self.assertWarnsRegex(Warning, 'are not part of any reactions in the CRN'):
             ChemicalReactionNetwork.check_crn_validity(reactions=[rxn3], species=self.species_list, show_warnings=True)
 
         # test warning if reaction has unlisted species
         rxn4 = Reaction.from_massaction(inputs=[self.s4, self.s3], outputs=[self.s2], k_forward=0.1)
-        with self.assertWarnsRegex(Warning, f'are not listed in the Species list, but part of the reactions'):
+        with self.assertWarnsRegex(Warning, 'are not listed in the Species list, but part of the reactions'):
             ChemicalReactionNetwork.check_crn_validity(reactions=[rxn4], species=[self.s4, self.s2], show_warnings=True)
 
         # test duplicate reactions are both added
