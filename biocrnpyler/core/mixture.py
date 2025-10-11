@@ -150,9 +150,9 @@ class Mixture(object):
             return species.get_species()
         else:
             raise ValueError(
-                'Invalid Species: string, chemical_reaction_network.Species '
-                'or Component with implemented .get_species() required as '
-                'input.'
+                "Invalid Species: string, chemical_reaction_network.Species "
+                "or Component with implemented .get_species() required as "
+                "input."
             )
 
     @property
@@ -184,7 +184,7 @@ class Mixture(object):
                     and comp.name == component.name
                 ):
                     raise ValueError(
-                        f'{comp} of the same type and name already in Mixture!'
+                        f"{comp} of the same type and name already in Mixture!"
                     )
             else:
                 # Components are copied before being added to Mixtures
@@ -200,7 +200,7 @@ class Mixture(object):
         """
         if not isinstance(mechanism_type, str):
             raise TypeError(
-                f'mechanism_type must be a string. Recievied {mechanism_type}.'
+                f"mechanism_type must be a string. Recievied {mechanism_type}."
             )
 
         if mechanism_type in self.mechanisms:
@@ -217,8 +217,8 @@ class Mixture(object):
                 self.add_component(component)
         else:
             raise ValueError(
-                f'add_components expected a list of Components. '
-                f'Received {components}'
+                f"add_components expected a list of Components. "
+                f"Received {components}"
             )
 
     def get_component(self, component=None, name=None, index=None):
@@ -235,17 +235,17 @@ class Mixture(object):
         """
         if [component, name, index].count(None) != 2:
             raise ValueError(
-                f'get_component requires a single keyword. '
-                f'Received component={component}, name={name}, index={index}.'
+                f"get_component requires a single keyword. "
+                f"Received component={component}, name={name}, index={index}."
             )
         if not (isinstance(component, Component) or component is None):
             raise ValueError(
-                f'component must be of type Component. Received {component}.'
+                f"component must be of type Component. Received {component}."
             )
         if not (isinstance(name, str) or name is None):
-            raise ValueError(f'name must be of type str. Received {name}.')
+            raise ValueError(f"name must be of type str. Received {name}.")
         if not (isinstance(index, int) or index is None):
-            raise ValueError(f'index must be of type int. Received {index}.')
+            raise ValueError(f"index must be of type int. Received {index}.")
 
         matches = []
         if index is not None:
@@ -267,8 +267,8 @@ class Mixture(object):
             return matches[0]
         else:
             warn(
-                'get_component found multiple matching components. '
-                'A list has been returned.'
+                "get_component found multiple matching components. "
+                "A list has been returned."
             )
             return matches
 
@@ -299,14 +299,14 @@ class Mixture(object):
 
         if not isinstance(mechanism, Mechanism):
             raise TypeError(
-                f'mechanism must be a Mechanism. Received {mechanism}.'
+                f"mechanism must be a Mechanism. Received {mechanism}."
             )
 
         if mech_type is None:
             mech_type = mechanism.mechanism_type
         if not isinstance(mech_type, str):
             raise TypeError(
-                f'mechanism keys must be strings. Received {mech_type}'
+                f"mechanism keys must be strings. Received {mech_type}"
             )
 
         if isinstance(mechanism, GlobalMechanism):
@@ -314,8 +314,8 @@ class Mixture(object):
         elif isinstance(mechanism, Mechanism):
             if mech_type in self._mechanisms and not overwrite:
                 raise ValueError(
-                    f'mech_type {mech_type} already in Mixture {self}. '
-                    f'To overwrite, use keyword overwrite = True.'
+                    f"mech_type {mech_type} already in Mixture {self}. "
+                    f"To overwrite, use keyword overwrite = True."
                 )
             else:
                 self._mechanisms[mech_type] = copy.deepcopy(mechanism)
@@ -344,8 +344,8 @@ class Mixture(object):
                 self.add_mechanism(mech, overwrite=overwrite)
         else:
             raise ValueError(
-                f'add_mechanisms expected a list of Mechanisms. '
-                f'Recieved {mechanisms}'
+                f"add_mechanisms expected a list of Mechanisms. "
+                f"Recieved {mechanisms}"
             )
 
     @property
@@ -386,20 +386,20 @@ class Mixture(object):
 
         if not isinstance(mechanism, GlobalMechanism):
             raise TypeError(
-                f'mechanism must be a GlobalMechanism. Recieved {mechanism}.'
+                f"mechanism must be a GlobalMechanism. Recieved {mechanism}."
             )
 
         if mech_type is None:
             mech_type = mechanism.mechanism_type
         if not isinstance(mech_type, str):
             raise TypeError(
-                f'mechanism keys must be strings. Recieved {mech_type}'
+                f"mechanism keys must be strings. Recieved {mech_type}"
             )
 
         if mech_type in self._mechanisms and not overwrite:
             raise ValueError(
-                f'mech_type {mech_type} already in Mixture {self}. '
-                f'To overwrite, use keyword overwrite = True.'
+                f"mech_type {mech_type} already in Mixture {self}. "
+                f"To overwrite, use keyword overwrite = True."
             )
         else:
             self._global_mechanisms[mech_type] = copy.deepcopy(mechanism)
@@ -460,8 +460,8 @@ class Mixture(object):
         for s in S:
             if not isinstance(s, Species):
                 raise ValueError(
-                    f'{s} is not a Species! Can only find initial '
-                    f'concentration of a Species.'
+                    f"{s} is not a Species! Can only find initial "
+                    f"concentration of a Species."
                 )
             init_conc = None
             # 1 Check the component
@@ -619,7 +619,7 @@ class Mixture(object):
 
         if len(comps_to_enumerate) > 0:
             warn(
-                'Mixture was left with unenumerated components '
+                "Mixture was left with unenumerated components "
                 + str(', '.join([str(c) for c in comps_to_enumerate]))
             )
         return all_components

@@ -25,8 +25,8 @@ class ComponentEnumerator:
 
         """
         warn(
-            f'Default update_components called for ComponentEnumerator = '
-            f'{self.name}.'
+            f"Default update_components called for ComponentEnumerator = "
+            f"{self.name}."
         )
         return []
 

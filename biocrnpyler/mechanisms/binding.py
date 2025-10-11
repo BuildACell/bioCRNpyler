@@ -42,7 +42,7 @@ class One_Step_Cooperative_Binding(Mechanism):
             )
         elif component is None and cooperativity is None:
             raise ValueError(
-                'Must pass in a Component or values for cooperativity'
+                "Must pass in a Component or values for cooperativity"
             )
 
         complexS = None
@@ -50,7 +50,7 @@ class One_Step_Cooperative_Binding(Mechanism):
             complexS = complex_species
         elif complex_species is not None:
             raise TypeError(
-                'complex_species keyword must be a Species, or None.'
+                "complex_species keyword must be a Species, or None."
             )
 
         if complexS is None:
@@ -92,7 +92,8 @@ class One_Step_Cooperative_Binding(Mechanism):
             kb is None or ku is None or cooperativity is None
         ):
             raise ValueError(
-                'Must pass in a Component or values for kb, ku, and coopertivity.'
+                "Must pass in a Component or values for kb, ku, and "
+                "coopertivity."
             )
 
         complexS = None
@@ -102,7 +103,7 @@ class One_Step_Cooperative_Binding(Mechanism):
             complexS = complex_species
         else:
             raise TypeError(
-                'complex_species keyword must be a str, Species, or None.'
+                "complex_species keyword must be a str, Species, or None."
             )
 
         if complexS is None:
@@ -160,7 +161,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
             )
         elif component is None and cooperativity is None:
             raise ValueError(
-                'Must pass in a Component or values for cooperativity'
+                "Must pass in a Component or values for cooperativity"
             )
 
         n_mer = None
@@ -168,7 +169,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
             n_mer = n_mer_species
         elif n_mer_species is not None:
             raise TypeError(
-                'n_mer_species keyword nust be a Species, or None. Not '
+                "n_mer_species keyword nust be a Species, or None. Not "
                 + str(n_mer_species)
             )
 
@@ -180,7 +181,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
             complexS = complex_species
         elif not complex_species is None:
             raise TypeError(
-                'complex_species keyword must be a Species, or None. Not '
+                "complex_species keyword must be a Species, or None. Not "
                 + str(complex_species)
             )
 
@@ -241,11 +242,12 @@ class Two_Step_Cooperative_Binding(Mechanism):
             kb is None or ku is None or cooperativity is None
         ):
             raise ValueError(
-                'Must pass in a Component or values for kb, ku, and cooperativity'
+                "Must pass in a Component or values for kb, ku, and "
+                "cooperativity"
             )
         elif len(kb) != len(ku) != 2:
             raise ValueError(
-                'kb and ku must contain 2 values each for ' 'two-step binding'
+                "kb and ku must contain 2 values each for 'two-step binding'"
             )
         else:
             kb1, kb2 = kb
@@ -352,7 +354,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                 coop_val = cooperativity[binder_partid]
             if component is None and (cooperativity is None):
                 raise ValueError(
-                    'Must pass in a Component or values for kb, ku, and coopertivity.'
+                    "Must pass in a Component or values for kb, ku, and "
+                    "coopertivity."
                 )
             cooperativity_dict[binder.name] = coop_val
 
@@ -391,7 +394,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                 kb = kbs[binder.name]
             elif type(kbs) != dict and component is None:
                 raise ValueError(
-                    'Must pass in a Component or values for kb, ku, and coopertivity.'
+                    "Must pass in a Component or values for kb, ku, and "
+                    "cooperativity."
                 )
             if (type(kus) == dict and binder not in kus) or (
                 kus is None and component is not None
@@ -403,7 +407,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                 ku = kus[binder.name]
             elif type(kus) != dict and component is None:
                 raise ValueError(
-                    'Must pass in a Component or values for kb, ku, and coopertivity.'
+                    "Must pass in a Component or values for kb, ku, and "
+                    "cooperativity."
                 )
             if (
                 (cooperativity is None)
@@ -425,7 +430,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                 kb is None or ku is None or cooperativity is None
             ):
                 raise ValueError(
-                    'Must pass in a Component or values for kb, ku, and coopertivity.'
+                    "Must pass in a Component or values for kb, ku, and "
+                    "cooperativity."
                 )
             binder_params[binder] = {
                 'kb': kb,
@@ -549,7 +555,7 @@ class One_Step_Binding(Mechanism):
             )
         elif component is None and (kb is None or ku is None):
             raise ValueError(
-                'Must pass in a Component or values for kb and ku'
+                "Must pass in a Component or values for kb and ku"
             )
 
         if complex_species is None:

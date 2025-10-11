@@ -81,14 +81,14 @@ class CombinatorialConformation(Component):
     def _assert_conformation(self, states, input_name='states'):
         if not all([isinstance(s, PolymerConformation) for s in states]):
             raise ValueError(
-                f'{input_name} must be a list of PolymerConformations. '
-                f'Recieved: {states}.'
+                f"{input_name} must be a list of PolymerConformations. "
+                f"Recieved: {states}."
             )
         if not all([len(s.polymers) == 1 for s in states]):
             raise ValueError(
-                f'All PolymerConformations in {input_name} must contain '
-                f'a single unique internal OrderedPolymerSpecies. '
-                f'Recieved: {states}.'
+                f"All PolymerConformations in {input_name} must contain "
+                f"a single unique internal OrderedPolymerSpecies. "
+                f"Recieved: {states}."
             )
 
         if self.internal_polymer is None:
@@ -103,9 +103,9 @@ class CombinatorialConformation(Component):
             ]
         ):
             raise ValueError(
-                f'All PolymerConformations in {input_name} must contain '
-                f'a single unique internal OrderedPolymerSpecies. '
-                f'Recieved: {states}.'
+                f"All PolymerConformations in {input_name} must contain "
+                f"a single unique internal OrderedPolymerSpecies. "
+                f"Recieved: {states}."
             )
 
     def get_species(self):
@@ -407,8 +407,8 @@ class CombinatorialConformation(Component):
                             sff,
                         ) in self.combination_dict[s0, si]:
                             part_id = (
-                                f'{self._get_part_id(s00)}'
-                                + f'-{self._get_part_id(sff)}'
+                                f"{self._get_part_id(s00)}"
+                                + f"-{self._get_part_id(sff)}"
                             )
                             species += mech_c.update_species(
                                 s0=s00,
@@ -435,8 +435,8 @@ class CombinatorialConformation(Component):
                             sff,
                         ) in self.combination_dict[si, sf]:
                             part_id = (
-                                f'{self._get_part_id(s00)}'
-                                + f'-{self._get_part_id(sff)}'
+                                f"{self._get_part_id(s00)}"
+                                + f"-{self._get_part_id(sff)}"
                             )
                             species += mech_c.update_species(
                                 s0=s00,
@@ -466,8 +466,8 @@ class CombinatorialConformation(Component):
                             sff,
                         ) in self.combination_dict[s0, sf]:
                             part_id = (
-                                f'{self._get_part_id(s00)}'
-                                + f'-{self._get_part_id(sff)}'
+                                f"{self._get_part_id(s00)}"
+                                + f"-{self._get_part_id(sff)}"
                             )
                             species += mech_c.update_species(
                                 s0=s00,
@@ -503,8 +503,8 @@ class CombinatorialConformation(Component):
                         if (s00, sff) not in reactions_added_dict:
                             reactions_added_dict[s00, sff] = True
                             part_id = (
-                                f'{self._get_part_id(s00)}'
-                                + f'-{self._get_part_id(sff)}'
+                                f"{self._get_part_id(s00)}"
+                                + f"-{self._get_part_id(sff)}"
                             )
                             reactions += mech_c.update_reactions(
                                 s0=s00,
@@ -529,8 +529,8 @@ class CombinatorialConformation(Component):
                         if (s00, sff) not in reactions_added_dict:
                             reactions_added_dict[s00, sff] = True
                             part_id = (
-                                f'{self._get_part_id(s00)}'
-                                + f'-{self._get_part_id(sff)}'
+                                f"{self._get_part_id(s00)}"
+                                + f"-{self._get_part_id(sff)}"
                             )
                             reactions += mech_c.update_reactions(
                                 s0=s00,
@@ -558,8 +558,8 @@ class CombinatorialConformation(Component):
                         if (s00, sff) not in reactions_added_dict:
                             reactions_added_dict[s00, sff] = True
                             part_id = (
-                                f'{self._get_part_id(s00)}'
-                                + f'-{self._get_part_id(sff)}'
+                                f"{self._get_part_id(s00)}"
+                                + f"-{self._get_part_id(sff)}"
                             )
                             reactions += mech_c.update_reactions(
                                 s0=s00,
@@ -651,8 +651,8 @@ class CombinatorialConformationPromoter(CombinatorialConformation, Promoter):
 
         if promoter_location not in range(len(self.internal_polymer)):
             raise ValueError(
-                f'promoter_location must be an index of the polymer '
-                f'{self.internal_polymer}. Recieved {promoter_location}.'
+                f"promoter_location must be an index of the polymer "
+                f"{self.internal_polymer}. Recieved {promoter_location}."
             )
         else:
             self.promoter_location = promoter_location
@@ -710,10 +710,10 @@ class CombinatorialConformationPromoter(CombinatorialConformation, Promoter):
                         active_state and len(self.promoter_states) > 0
                     ) or active_complex:
                         warnings.warn(
-                            'Inactive_complex conflicts with active_complex '
-                            'or active_state in '
-                            'CombinatorialConformationPromoter. '
-                            'Defaulting to inactive.'
+                            "Inactive_complex conflicts with active_complex "
+                            "or active_state in "
+                            "CombinatorialConformationPromoter. "
+                            "Defaulting to inactive."
                         )
 
                 if (active_state or active_complex) and not innactive_complex:
@@ -765,10 +765,10 @@ class CombinatorialConformationPromoter(CombinatorialConformation, Promoter):
                         active_state and len(self.promoter_states) > 0
                     ) or active_complex:
                         warnings.warn(
-                            'inactive_complex conflicts with active_complex '
-                            'or active_state in '
-                            'CombinatorialConformationPromoter. '
-                            'Defaulting to innactive.'
+                            "inactive_complex conflicts with active_complex "
+                            "or active_state in "
+                            "CombinatorialConformationPromoter. "
+                            "Defaulting to innactive."
                         )
 
                 if (active_state or active_complex) and not innactive_complex:

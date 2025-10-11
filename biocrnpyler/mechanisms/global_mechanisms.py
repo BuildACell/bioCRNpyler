@@ -111,7 +111,10 @@ class GlobalMechanism(Mechanism):
                         use_mechanism = fd[a]
                     elif use_mechanism != fd[a]:
                         warn(
-                            f'species {repr(s)} has multiple attributes(or material type) which conflict with global mechanism filter {repr(self)}. Using default value {self.default_on}.'
+                            f"species {repr(s)} has multiple attributes "
+                            "(or material type) which conflict with global "
+                            "mechanism filter {repr(self)}. Using default "
+                            f"value {self.default_on}."
                         )
                         use_mechanism = self.default_on
 
@@ -154,10 +157,10 @@ class GlobalMechanism(Mechanism):
         )
         if param is None:
             raise ValueError(
-                'No parameters can be found that match the '
-                '(mechanism, part_id, '
-                f'param_name)=({repr(self)}, {repr(species)}, '
-                f'{param_name}).'
+                "No parameters can be found that match the "
+                "(mechanism, part_id, "
+                f"param_name)=({repr(self)}, {repr(species)}, "
+                f"{param_name})."
             )
         else:
             return param

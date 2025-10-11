@@ -38,7 +38,7 @@ class BasicCatalysis(Mechanism):
             part_id = component.name
 
         if kcat is None and component is None:
-            raise ValueError('Must pass in either a component or kcat.')
+            raise ValueError("Must pass in either a component or kcat.")
         elif kcat is None:
             kcat = component.get_parameter(
                 'kcat', part_id=part_id, mechanism=self
@@ -90,7 +90,7 @@ class BasicProduction(Mechanism):
             part_id = component.name
 
         if kcat is None and component is None:
-            raise ValueError('Must pass in either a component or kcat.')
+            raise ValueError("Must pass in either a component or kcat.")
         elif kcat is None:
             kcat = component.get_parameter(
                 'kcat', part_id=part_id, mechanism=self
@@ -154,7 +154,7 @@ class MichaelisMenten(Mechanism):
 
         if component is None and (kb is None or ku is None or kcat is None):
             raise ValueError(
-                'Must pass in a Component or values for kb, ku, and kcat.'
+                "Must pass in a Component or values for kb, ku, and kcat."
             )
         if kb is None:
             kb = component.get_parameter(
@@ -247,7 +247,7 @@ class MichaelisMentenReversible(Mechanism):
 
         if component is None and (kb is None or ku is None or kcat is None):
             raise ValueError(
-                'Must pass in a Component or values for kb, ku, and kcat.'
+                "Must pass in a Component or values for kb, ku, and kcat."
             )
         if kb is None:
             kb1 = component.get_parameter(
@@ -373,7 +373,7 @@ class MichaelisMentenCopy(Mechanism):
             )
         if component is None and (kb is None or ku is None or kcat is None):
             raise ValueError(
-                'Must pass in a Component or values for kb, ku, and kcat.'
+                "Must pass in a Component or values for kb, ku, and kcat."
             )
         # substrate + Enz <--> substrate:Enz
         binding_rxn = Reaction.from_massaction(

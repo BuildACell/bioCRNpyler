@@ -75,7 +75,7 @@ class ConstructExplorer(LocalComponentEnumerator):
         """if we already went around the plasmid, then what we're checking for is continuing
         transcripts or proteins. We don't want to start making new transcripts
         because we already checked this area for promoters"""
-        logging.debug(f'loop count = {self.current_loop_count}')
+        logging.debug(f"loop count = {self.current_loop_count}")
         if self.current_loop_count >= self.max_loop_count:
             self.terminate_loop()
             return False
@@ -180,7 +180,8 @@ class TxExplorer(ConstructExplorer):
                 promoter.transcript = rna_construct.get_species()
             else:
                 warn(
-                    f'{promoter} makes empty transcript! Protein binding to this promoter will not be included in the CRN'
+                    f"{promoter} makes empty transcript! Protein binding to "
+                    "this promoter will not be included in the CRN."
                 )
         self.initialize_loop()
 

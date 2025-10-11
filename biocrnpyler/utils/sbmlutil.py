@@ -146,7 +146,7 @@ def add_species(
 
     # Construct the species ID
 
-    logger.debug(f'Adding species: {species_name}, id: {species_id}')
+    logger.debug(f"Adding species: {species_name}, id: {species_id}")
     sbml_species = model.createSpecies()
     sbml_species.setName(species_name)
     sbml_species.setId(species_id)
@@ -391,7 +391,7 @@ def _create_global_parameter(model, name, value, p_unit=None, constant=True):
     if p_unit is not None:
         if not isinstance(p_unit, str):
             raise ValueError(
-                'Units for a parameter must be passed as strings.'
+                "Units for a parameter must be passed as strings."
             )
         unit_added = False
         for unit_definition in model.getListOfUnitDefinitions():
@@ -565,7 +565,7 @@ def getSpeciesByName(model, name, compartment=''):
     to look for the species.
     """
     if type(name) is not str:
-        raise ValueError(f'"name" must be a string. Received {name}.')
+        raise ValueError(f"'name' must be a string. Received {name}.")
     species_found = []
     for species in model.getListOfSpecies():
         if species.getName() == name:
@@ -582,10 +582,10 @@ def getSpeciesByName(model, name, compartment=''):
     if len(species_found) == 1:
         return species_found[0]
     elif not species_found:
-        raise ValueError('The species ' + name + ' not found.')
+        raise ValueError("The species " + name + " not found.")
     else:
         warn(
-            'Multiple species with name ' + name + ' found. Returning a list'
+            "Multiple species with name " + name + " found. Returning a list."
         )
         return species_found
 
@@ -614,7 +614,7 @@ class validateSBML(object):
         errors = sbmlDoc.getNumErrors()
         if print_results:
             print(
-                'Validating SBML model with ID: {0}...'.format(
+                "Validating SBML model with ID: {0}...".format(
                     sbmlDoc.getModel().getId()
                 )
             )
@@ -690,6 +690,7 @@ def validate_sbml(sbml_document, enable_unit_check=False, print_results=True):
     )
     if validation_result > 0:
         warn(
-            'SBML model invalid. Run with print_results = False to hide print statements'
+            "SBML model invalid. Run with print_results=False to hide "
+            "print statements."
         )
     return validation_result

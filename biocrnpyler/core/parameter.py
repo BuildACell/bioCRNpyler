@@ -82,13 +82,13 @@ class Parameter(object):
     def parameter_name(self, new_parameter_name: str):
         if not isinstance(new_parameter_name, str):
             raise ValueError(
-                f'parameter_name must be a string: '
-                f'received {type(new_parameter_name)}.'
+                f"parameter_name must be a string: "
+                f"received {type(new_parameter_name)}."
             )
         if not re.search('^[a-z]+', new_parameter_name, re.IGNORECASE):
             raise ValueError(
-                'parameter_name should be at least one character and '
-                'cannot start with a number!'
+                "parameter_name should be at least one character and "
+                "cannot start with a number!"
             )
 
         self._parameter_name = new_parameter_name
@@ -104,8 +104,8 @@ class Parameter(object):
             or isinstance(new_parameter_value, str)
         ):
             raise ValueError(
-                f'parameter_value must be a float or int: '
-                f'received {type(new_parameter_value)}.'
+                f"parameter_value must be a float or int: "
+                f"received {type(new_parameter_value)}."
             )
         if isinstance(new_parameter_value, str):
             if (
@@ -118,8 +118,8 @@ class Parameter(object):
                 is None
             ):
                 raise ValueError(
-                    f'No valid parameter value! Accepted formats: '
-                    f'1.00 or 1e4 or 2/5, we got {new_parameter_value}'
+                    f"No valid parameter value! Accepted formats: "
+                    f"1.00 or 1e4 or 2/5, we got {new_parameter_value}"
                 )
 
             self._value = Parameter._convert_rational(new_parameter_value)
@@ -136,7 +136,7 @@ class Parameter(object):
             self._unit = ''
         elif type(new_unit) is not str:
             raise ValueError(
-                f'All units must be strings. Recieved {new_unit}.'
+                f"All units must be strings. Recieved {new_unit}."
             )
         else:
             self._unit = new_unit
@@ -157,11 +157,11 @@ class Parameter(object):
                 return self.value == float(other)
             except TypeError:
                 raise TypeError(
-                    f'Cannot compare parameter {self} with {other}.'
+                    f"Cannot compare parameter {self} with {other}."
                 )
 
     def __str__(self):
-        return f'Parameter {self.parameter_name} = {self.value}'
+        return f"Parameter {self.parameter_name} = {self.value}"
 
     def __hash__(self):
         return (
@@ -232,9 +232,9 @@ class ParameterEntry(Parameter):
             )
         else:
             raise ValueError(
-                f'parameter_key must be None, a dictionary, a ParameterKey, '
-                f'a {len(ParameterKey._fields)}-tuple, or a string '
-                f'(parameter name): received {new_key}.'
+                f"parameter_key must be None, a dictionary, a ParameterKey, "
+                f"a {len(ParameterKey._fields)}-tuple, or a string "
+                f"(parameter name): received {new_key}."
             )
 
     @property
@@ -274,8 +274,8 @@ class ParameterEntry(Parameter):
 
         else:
             raise ValueError(
-                f'parameter_info must be None or a dictionary: '
-                f'received {parameter_info}.'
+                f"parameter_info must be None or a dictionary: "
+                f"received {parameter_info}."
             )
 
     def get_sbml_id(self):
@@ -288,7 +288,7 @@ class ParameterEntry(Parameter):
         return sbml_id
 
     def __str__(self):
-        return f'ParameterEntry({self.parameter_key}) = {self.value}'
+        return f"ParameterEntry({self.parameter_key}) = {self.value}"
 
 
 class ModelParameter(ParameterEntry):
@@ -347,8 +347,8 @@ class ModelParameter(ParameterEntry):
 
     def __str__(self):
         return (
-            f'ModelParameter({self.parameter_key}) = '
-            + f'{self.value}\tsearch_key={self.search_key}'
+            f"ModelParameter({self.parameter_key}) = "
+            + f"{self.value}\tsearch_key={self.search_key}"
         )
 
 
@@ -381,13 +381,13 @@ class ParameterDatabase(object):
                     )
                 else:
                     raise ValueError(
-                        'parameter_file must be a string or list of strings '
-                        'representing file names and paths.'
+                        "parameter_file must be a string or list of strings "
+                        "representing file names and paths."
                     )
         elif parameter_file is not None:
             raise ValueError(
-                'parameter_file must be a string representing a file name '
-                'and path.'
+                "parameter_file must be a string representing a file name "
+                "and path."
             )
 
         if isinstance(parameter_dictionary, dict):
@@ -397,7 +397,7 @@ class ParameterDatabase(object):
             )
         elif parameter_dictionary is not None:
             raise ValueError(
-                'parameter_dictionary must be None or a dictionary!'
+                "parameter_dictionary must be None or a dictionary!"
             )
 
     # To check if a key or ParameterEntry is in a the ParameterDatabase
@@ -449,9 +449,9 @@ class ParameterDatabase(object):
         if isinstance(value, ParameterEntry):
             if key != value.parameter_key:
                 raise ValueError(
-                    f'Parameter Key does not match: ParameterDatabase key '
-                    f'{key} is not the same as ParameterEntry Key '
-                    f'{value.parameter_key}.'
+                    f"Parameter Key does not match: ParameterDatabase key "
+                    f"{key} is not the same as ParameterEntry Key "
+                    f"{value.parameter_key}."
                 )
             self.parameters[key] = value
         else:
@@ -507,9 +507,9 @@ class ParameterDatabase(object):
         # Update parameter dictionary
         if key in self.parameters and not overwrite_parameters:
             raise ValueError(
-                f'Duplicate parameter detected. Parameter with key = '
-                f'{key} is already in the ParameterDatabase. To Overwrite '
-                f'existing parameters, use overwrite_parameters = True.'
+                f"Duplicate parameter detected. Parameter with key = "
+                f"{key} is already in the ParameterDatabase. To Overwrite "
+                f"existing parameters, use overwrite_parameters = True."
             )
         else:
             self.parameters[key] = param
@@ -552,8 +552,8 @@ class ParameterDatabase(object):
         """
         if not isinstance(parameter_database, ParameterDatabase):
             raise TypeError(
-                f'paramater_database must be a ParamaterDatabase: '
-                f'recievied {parameter_database}.'
+                f"paramater_database must be a ParamaterDatabase: "
+                f"recievied {parameter_database}."
             )
 
         for k in parameter_database:
@@ -563,9 +563,9 @@ class ParameterDatabase(object):
                 ]
             else:
                 raise ValueError(
-                    f'Duplicate parameter detected. Parameter with key = '
-                    f'{k} is already in the ParameterDatabase. To Overwrite '
-                    f'existing parameters, use overwrite_parameters = True.'
+                    f"Duplicate parameter detected. Parameter with key = "
+                    f"{k} is already in the ParameterDatabase. To Overwrite "
+                    f"existing parameters, use overwrite_parameters = True."
                 )
 
     def load_parameters_from_file(
@@ -598,8 +598,8 @@ class ParameterDatabase(object):
                 delimiter = ','
             else:
                 raise ValueError(
-                    'Parameter files must be tab-seperated (.tsv or .txt) '
-                    'or comma-seperated (.csv) files.'
+                    "Parameter files must be tab-seperated (.tsv or .txt) "
+                    "or comma-seperated (.csv) files."
                 )
 
             csvreader = csv.DictReader(f, delimiter=delimiter)
@@ -624,7 +624,7 @@ class ParameterDatabase(object):
             # Determine which columns are in the CSV
             if field_names['param_name'] is None:
                 warn(
-                    'No param_name column was found, could not load parameter!'
+                    "No param_name column was found, could not load parameter!"
                 )
             if field_names['mechanism'] is None:
                 no_mechism_column = True
@@ -779,17 +779,17 @@ class ParameterDatabase(object):
 
         """
         if not isinstance(field_names, list):
-            raise ValueError('field_names must be a list of strings')
+            raise ValueError("field_names must be a list of strings")
         if isinstance(field_names, list) and len(field_names) == 0:
-            raise ValueError('field_names cannot be empty list!')
+            raise ValueError("field_names cannot be empty list!")
         if not isinstance(accepted_field_names, dict):
-            raise ValueError('accepted_field_names must be a dictionary')
+            raise ValueError("accepted_field_names must be a dictionary")
         if (
             isinstance(accepted_field_names, dict)
             and len(accepted_field_names) == 0
         ):
             raise ValueError(
-                'accepted_field_names cannot be empty dictionary'
+                "accepted_field_names cannot be empty dictionary"
             )
 
         return_field_names = dict.fromkeys(accepted_field_names.keys())
@@ -809,9 +809,9 @@ class ParameterDatabase(object):
                 # we have reached the end of the possible names
                 return_field_names[accepted_name] = None
                 warn(
-                    f'parameter file contains no {accepted_name} column! '
-                    f'Please add a column named '
-                    f'{accepted_field_names[accepted_name]}.'
+                    f"parameter file contains no {accepted_name} column! "
+                    "Please add a column named "
+                    f"{accepted_field_names[accepted_name]}."
                 )
             else:
                 return_field_names[accepted_name] = accepted_field_names[
@@ -852,8 +852,8 @@ class ParameterDatabase(object):
             mech_type = mechanism.mechanism_type
         elif mechanism is not None:
             raise ValueError(
-                f'mechanism keyword must be or string or have name and '
-                f'mechanism_type attributes: recievied {mechanism}.'
+                f"mechanism keyword must be or string or have name and "
+                f"mechanism_type attributes: recievied {mechanism}."
             )
         else:
             mech_name = None

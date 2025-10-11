@@ -115,9 +115,8 @@ class IntegraseSite(DNABindingSite):
                 myname += '_' + str(self.dinucleotide)
         else:
             warn(
-                'warning! site {} has site_type {} which is not recognized'.format(
-                    self.name, self.site_type
-                )
+                f"warning! site {self.name} has site_type {self.site_type} "
+                "which is not recognized"
             )
         if self.position is not None:
             myname += '_' + str(self.position)

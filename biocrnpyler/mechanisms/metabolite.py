@@ -37,7 +37,7 @@ class OneStepPathway(Mechanism):
             outputs = product
 
         if component is None and k is None:
-            raise ValueError('Must pass in a component or a rate k.')
+            raise ValueError("Must pass in a component or a rate k.")
         elif k is None:
             k = component.get_parameter('k', part_id=part_id, mechanism=self)
 

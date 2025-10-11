@@ -35,7 +35,7 @@ class Reaction(object):
         propensity_type: Propensity,
     ):
         if len(inputs) == 0 and len(outputs) == 0:
-            warn('Reaction Inputs and Outputs both contain 0 Species.')
+            warn("Reaction Inputs and Outputs both contain 0 Species")
 
         self.inputs = remove_bindloc(Species.flatten_list(inputs))
         self.outputs = remove_bindloc(Species.flatten_list(outputs))
@@ -53,8 +53,8 @@ class Reaction(object):
         """
         if not Propensity.is_valid_propensity(new_propensity_type):
             raise ValueError(
-                f'unknown propensity type: {new_propensity_type} '
-                f'({type(new_propensity_type)})!'
+                f"unknown propensity type: {new_propensity_type} "
+                f"({type(new_propensity_type)})!"
             )
 
         self._propensity_type = new_propensity_type
@@ -122,8 +122,8 @@ class Reaction(object):
                 ]
             ):
                 raise TypeError(
-                    f'inputs must be list of Species or list of '
-                    f'ChemicalComplexes! Recieved {complexes}'
+                    f"inputs must be list of Species or list of "
+                    f"ChemicalComplexes! Recieved {complexes}"
                 )
 
         # filter out duplicates and adjust stoichiometry
@@ -160,8 +160,8 @@ class Reaction(object):
             new_species, Species
         ):
             raise ValueError(
-                'both species and new_species argument must be an '
-                'instance of Species!'
+                "both species and new_species argument must be an "
+                "instance of Species!"
             )
 
         new_inputs = []
@@ -228,7 +228,7 @@ class Reaction(object):
             if 'stochastic' not in kwargs:
                 kwargs['stochastic'] = False
 
-            txt += '\n' + f'{self.propensity_type.pretty_print(**kwargs)}'
+            txt += '\n' + f"{self.propensity_type.pretty_print(**kwargs)}"
 
         return txt
 
@@ -237,8 +237,8 @@ class Reaction(object):
         and propensity."""
         if not isinstance(other, Reaction):
             raise TypeError(
-                f'Only reactions can be compared with reaction! '
-                f'We got {type(other)}.'
+                f"Only reactions can be compared with reaction! "
+                f"We got {type(other)}."
             )
 
         if len(self.inputs) != len(other.inputs) or len(self.outputs) != len(

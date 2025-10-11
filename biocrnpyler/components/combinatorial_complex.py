@@ -116,7 +116,8 @@ class CombinatorialComplex(Component):
         # all final_states must be ComplexSpecies
         if not all([isinstance(s, ComplexSpecies) for s in final_states]):
             raise ValueError(
-                f'final_states must be a list of {ComplexSpecies} (or subclasses thereof). Recieved: {final_states}.'
+                f"final_states must be a list of {ComplexSpecies} (or "
+                f"subclasses thereof). Recieved: {final_states}."
             )
 
         self._final_states = final_states
@@ -149,7 +150,9 @@ class CombinatorialComplex(Component):
                     )
                 ):
                     raise ValueError(
-                        f'Invalid initial species {s}; initial_states must either be contained in the final_states or a {ComplexSpecies} made of Species in the final_states.'
+                        f"Invalid initial species {s}; initial_states must "
+                        "either be contained in the final_states or a "
+                        "ComplexSpecies made of Species in the final_states."
                     )
             self._initial_states = initial_states
 
@@ -165,12 +168,14 @@ class CombinatorialComplex(Component):
         else:
             intermediate_states = list(self.set_species(intermediate_states))
 
-            # All intermediate_states must be ComplexSpecies or OrderdedComplexSpecies
+            # All intermediate_states must be ComplexSpecies or
+            # OrderdedComplexSpecies
             if not all(
                 [isinstance(s, ComplexSpecies) for s in intermediate_states]
             ):
                 raise ValueError(
-                    f'intermediate must be a list of {ComplexSpecies} (or subclasses thereof). Recieved: {intermediate_states}.'
+                    f"intermediate must be a list of {ComplexSpecies} "
+                    f"(or subclasses thereof). Recieved: {intermediate_states}."
                 )
             # All intermediate_states must be made of sub_species
             for s in intermediate_states:
@@ -182,7 +187,8 @@ class CombinatorialComplex(Component):
                     ]
                 ):
                     raise ValueError(
-                        f'intermediate species {s} contains subspecies not in the final_states.'
+                        f"intermediate species {s} contains subspecies not "
+                        "in the final_states."
                     )
 
             self._intermediate_states = intermediate_states
@@ -203,7 +209,7 @@ class CombinatorialComplex(Component):
         # Compute Species that need to be added to s0 to get the Complex sf
 
         if not isinstance(sf, ComplexSpecies):
-            raise ValueError(f'sf must be a ComplexSpecies. Recieved {sf}')
+            raise ValueError(f"sf must be a ComplexSpecies. Recieved {sf}")
 
         species_to_add = []
         for s in sf.species_set:

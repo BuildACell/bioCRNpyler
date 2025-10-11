@@ -70,19 +70,22 @@ class ChemicalReactionNetwork(object):
 
     @species.setter
     def species(self, species):
-        """Sets the species of the CRN object. If the species is not set,
-        it initializes an empty list and adds the species to it.
-        If the species is already set, it raises an AttributeError.
-        A _species_set is used to ensure that no duplicate species are added to the CRN.
-        In earlier BioCRNPyler versions, a _species_dict was used.
-        This dictionary had key as species, and value as "True", which is unintuitive.
-        Since, sets are designed to keep unique elements, so we use a set to keep track of species.
+        """Sets the species of the CRN object.
+
+        If the species is not set, it initializes an empty list and adds
+        the species to it.  If the species is already set, it raises an
+        AttributeError.  A _species_set is used to ensure that no duplicate
+        species are added to the CRN.  In earlier BioCRNPyler versions, a
+        _species_dict was used.  This dictionary had key as species, and
+        value as "True", which is unintuitive.  Since, sets are designed to
+        keep unique elements, so we use a set to keep track of species.
 
         Args:
             species (_type_): _description_
 
         Raises:
             AttributeError: _description_
+
         """
         if not hasattr(self, '_species'):
             self._species = []
@@ -90,7 +93,8 @@ class ChemicalReactionNetwork(object):
             self.add_species(species)
         else:
             raise AttributeError(
-                'The species in a CRN cannot be removed or modified. New Species can be added with CRN.add_species(...).'
+                "The species in a CRN cannot be removed or modified. "
+                "New Species can be added with CRN.add_species(...)."
             )
 
     @property
@@ -104,7 +108,8 @@ class ChemicalReactionNetwork(object):
             self.add_reactions(reactions)
         else:
             raise AttributeError(
-                'The reactions in a CRN cannot be removed or modified. New reactions can be added with CRN.add_reactions(...).'
+                "The reactions in a CRN cannot be removed or modified. "
+                "New reactions can be added with CRN.add_reactions(...)."
             )
 
     def add_species(self, species, copy_species=True, compartment=None):
@@ -127,7 +132,7 @@ class ChemicalReactionNetwork(object):
         for s in species:
             if not isinstance(s, Species):  # check species are Species
                 raise ValueError(
-                    'A non-species object was used as a species!'
+                    "A non-species object was used as a species!"
                 )
             if s not in self._species_set:  # Do not add duplicate Species
                 if (
@@ -175,7 +180,7 @@ class ChemicalReactionNetwork(object):
                     r, Reaction
                 ):  # check reactions and Reactions
                     raise ValueError(
-                        'A non-reaction object was used as a reaction!'
+                        "A non-reaction object was used as a reaction!"
                     )
 
                 # add all the Species in the reaction to the CRN
@@ -200,7 +205,7 @@ class ChemicalReactionNetwork(object):
             for s in initial_concentration_dict:
                 if s not in self._species_set:
                     raise ValueError(
-                        f'Trying to set the initial concentration of a Species {s} not in the CRN'
+                        f"Trying to set the initial concentration of a Species {s} not in the CRN"
                     )
                 elif parameter_to_value(initial_concentration_dict[s]) >= 0:
                     self.initial_concentration_dict[s] = (
@@ -208,7 +213,7 @@ class ChemicalReactionNetwork(object):
                     )
                 else:
                     raise ValueError(
-                        f'Trying to set a species {s} to a negative concentration {initial_concentration_dict[s]}'
+                        f"Trying to set a species {s} to a negative concentration {initial_concentration_dict[s]}"
                     )
 
     @staticmethod
@@ -224,23 +229,23 @@ class ChemicalReactionNetwork(object):
         """
 
         if not all(isinstance(r, Reaction) for r in reactions):
-            raise ValueError('A non-reaction object was used as a reaction!')
+            raise ValueError("A non-reaction object was used as a reaction!")
 
         if not all(isinstance(s, Species) for s in species):
-            raise ValueError('A non-species object was used as a species!')
+            raise ValueError("A non-species object was used as a species!")
 
         for r in reactions:
             if reactions.count(r) > 1 and show_warnings:
                 warn(
-                    f'Reaction {r} may be duplicated in CRN definitions. '
-                    f'Duplicates have NOT been removed.'
+                    f"Reaction {r} may be duplicated in CRN definitions. "
+                    "Duplicates have NOT been removed."
                 )
 
         for s in species:
             if species.count(s) > 1 and show_warnings:
                 warn(
-                    f'Species {s} is duplicated in the CRN definition. '
-                    f'Duplicates have NOT been removed.'
+                    f"Species {s} is duplicated in the CRN definition. "
+                    "Duplicates have NOT been removed."
                 )
 
         # check that all species in the reactions are also in the species list and vice versa
@@ -254,12 +259,14 @@ class ChemicalReactionNetwork(object):
             )
             if species_without_reactions and show_warnings:
                 warn(
-                    f'These Species {list(species_without_reactions)} are not part of any reactions in the CRN!'
+                    f"These Species {list(species_without_reactions)} are "
+                    "not part of any reactions in the CRN!"
                 )
             unlisted_reactions = all_species_in_reactions - unique_species
             if unlisted_reactions and show_warnings:
                 warn(
-                    f'These Species {list(unlisted_reactions)} are not listed in the Species list, but part of the reactions!'
+                    f"These Species {list(unlisted_reactions)} are not "
+                    "listed in the Species list, but part of the reactions!"
                 )
 
         return reactions, species
@@ -295,7 +302,7 @@ class ChemicalReactionNetwork(object):
         `show_compartment` toggles whether species.compartment is printed
         """
 
-        txt = 'Species' + f'(N = {len(self._species)}) = ' + '{\n'
+        txt = 'Species' + f"(N = {len(self._species)}) = " + '{\n'
 
         def ics(s):
             return (
@@ -320,20 +327,20 @@ class ChemicalReactionNetwork(object):
             )
 
             if show_initial_concentration:
-                txt += f' (@ {parameter_to_value(init_conc)}),  '
+                txt += f" (@ {parameter_to_value(init_conc)}),  "
 
                 if show_keys:  # shows where the initial conditions came from
                     if isinstance(init_conc, ModelParameter):
-                        txt += f'\n    found_key=(mech={init_conc.found_key.mechanism}, partid={init_conc.found_key.part_id}, name={init_conc.found_key.name}).\n    search_key=(mech={init_conc.search_key.mechanism}, partid={init_conc.search_key.part_id}, name={init_conc.search_key.name}).\n'
+                        txt += f"\n    found_key=(mech={init_conc.found_key.mechanism}, partid={init_conc.found_key.part_id}, name={init_conc.found_key.name}).\n    search_key=(mech={init_conc.search_key.mechanism}, partid={init_conc.search_key.part_id}, name={init_conc.search_key.name}).\n"
             txt += '\n'
 
         txt += '}\n'
-        txt += f'\nReactions ({len(self._reactions)}) = [\n'
+        txt += f"\nReactions ({len(self._reactions)}) = [\n"
 
         for rind in range(len(self._reactions)):
             r = self._reactions[rind]
             txt += (
-                f'{rind}. '
+                f"{rind}. "
                 + r.pretty_print(
                     show_rates=show_rates,
                     show_material=show_material,
@@ -364,7 +371,7 @@ class ChemicalReactionNetwork(object):
         return_list = []
         if not isinstance(species, Species):
             raise ValueError(
-                'species argument must be an instance of Species!'
+                "species argument must be an instance of Species!"
             )
 
         for s in self._species:
@@ -383,12 +390,12 @@ class ChemicalReactionNetwork(object):
 
         if not isinstance(species, Species):
             raise ValueError(
-                'species argument must be an instance of Species!'
+                "species argument must be an instance of Species!"
             )
 
         if not isinstance(new_species, Species):
             raise ValueError(
-                'species argument must be an instance of Species!'
+                "species argument must be an instance of Species!"
             )
 
         new_species_list = []
@@ -446,7 +453,8 @@ class ChemicalReactionNetwork(object):
 
         if document.getNumErrors():
             warn(
-                'SBML model generated has errors. Use document.getErrorLog() to print all errors.'
+                "SBML model generated has errors. Use document.getErrorLog() "
+                "to print all errors."
             )
         return document, model
 
@@ -487,7 +495,9 @@ class ChemicalReactionNetwork(object):
         """
         result = None
         warnings.warn(
-            'simulate_with_bioscrape is depricated and will cease working in a future release. Instead, please use simulate_with_bioscrape_via_sbml.'
+            "simulate_with_bioscrape is depricated and will cease working in "
+            "a future release. Instead, please use "
+            "simulate_with_bioscrape_via_sbml."
         )
 
         result = self.simulate_with_bioscrape_via_sbml(
@@ -536,7 +546,7 @@ class ChemicalReactionNetwork(object):
                 file_name = filename
             else:
                 raise ValueError(
-                    f'filename must be None or a string. Recievied: {filename}'
+                    f"filename must be None or a string. Recievied: {filename}"
                 )
 
             if 'sbml_warnings' in kwargs:
@@ -558,7 +568,7 @@ class ChemicalReactionNetwork(object):
                 return_dataframe=return_dataframe,
             )
         except ModuleNotFoundError:
-            warnings.warn('bioscrape was not found, please install bioscrape')
+            warnings.warn("bioscrape was not found, please install bioscrape")
 
         if return_model:
             return result, m
@@ -599,7 +609,7 @@ class ChemicalReactionNetwork(object):
             rr = roadrunner.RoadRunner(string_out.getvalue())
             if initial_condition_dict:
                 for species, value in initial_condition_dict.items():
-                    rr.model[f'init([{species}])'] = value
+                    rr.model[f"init([{species}])"] = value
 
             if return_roadrunner:
                 return rr
@@ -610,6 +620,6 @@ class ChemicalReactionNetwork(object):
                 res_ar = result
         except ModuleNotFoundError:
             warnings.warn(
-                'libroadrunner was not found, please install libroadrunner'
+                "libroadrunner was not found, please install libroadrunner"
             )
         return res_ar

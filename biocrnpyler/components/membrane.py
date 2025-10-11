@@ -110,13 +110,15 @@ class IntegralMembraneProtein(Component):
             and compartment.name == 'Internal'
         ):
             warnings.warn(
-                'Inconsistent compartments, prioritizing membrane protein compartment.',
+                "Inconsistent compartments, prioritizing membrane protein "
+                "compartment.",
                 UserWarning,
             )
             compartment = self.membrane_protein.compartment
         else:
             warnings.warn(
-                'Inconsistent compartments, prioritizing integral membrane protein compartment.',
+                "Inconsistent compartments, prioritizing integral membrane "
+                "protein compartment.",
                 UserWarning,
             )
             self.membrane_protein.compartment = compartment

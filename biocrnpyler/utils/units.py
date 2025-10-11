@@ -135,13 +135,13 @@ def create_new_unit_definition(model, unit_id):
     supported_units = biocrnpyler_supported_units()
     if type(unit_id) is not str:
         raise ValueError(
-            'The arguments are not of expected type. unit_id must be a string.'
+            "The arguments are not of expected type. unit_id must be a string."
         )
     if unit_id not in supported_units.keys():
         warnings.warn(
-            'The string identifier for the unit {0} is not supported by BioCRNpyler. Add this to the dictionary in biocrnpyler/units.py if you want this unit.'.format(
-                unit_id
-            )
+            f"The string identifier for the unit {unit_id} is not supported "
+            "by BioCRNpyler. Add this to the dictionary in "
+            "biocrnpyler/units.py if you want this unit."
         )
         return None
     unit_kind = supported_units[unit_id]['unit_kind']
@@ -160,7 +160,7 @@ def create_new_unit_definition(model, unit_id):
     elif type(unit_kind) is list and type(unit_scale) is list:
         if len(unit_kind) != len(unit_scale):
             raise ValueError(
-                'Lengths of unit_scale and unit kind lists are not equal'
+                "Lengths of unit_scale and unit kind lists are not equal"
             )
         unit_scaleList = unit_scale[:]
 
@@ -173,7 +173,7 @@ def create_new_unit_definition(model, unit_id):
     elif type(unit_kind) is list and type(unit_multiplier) is list:
         if len(unit_kind) != len(unit_multiplier):
             raise ValueError(
-                'Lengths of unit kind and unit_multiplier lists are not equal'
+                "Lengths of unit kind and unit_multiplier lists are not equal"
             )
         unit_multiplierList = unit_multiplier[:]
 
@@ -187,17 +187,18 @@ def create_new_unit_definition(model, unit_id):
             unit_exponents = unit_exponents[0]
         if type(unit_scale) is not int or type(unit_multiplier) is not int:
             raise ValueError(
-                'Scale and unit_multiplier must be integers when there is only one unit kind'
+                "Scale and unit_multiplier must be integers when there is "
+                "only one unit kind"
             )
         unit_scaleList = [unit_scale]
         unit_multiplierList = [unit_multiplier]
     if type(unit_exponents) is not list:
         if type(unit_exponents) is not int:
-            raise ValueError('All unit_exponentss should be integers')
+            raise ValueError("All unit_exponentss should be integers")
         unit_exponents = [unit_exponents]
     if len(unit_kind) != len(unit_exponents):
         raise ValueError(
-            'Lengths of unit kind and unit unit_exponents lists must be equal'
+            "Lengths of unit kind and unit unit_exponents lists must be equal"
         )
 
     for kind, expo, unit_scale, unit_multiplier in zip(

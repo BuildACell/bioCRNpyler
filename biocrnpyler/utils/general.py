@@ -153,7 +153,8 @@ def member_dictionary_search(member, dictionary):
                         cur_value = dictionary[mech_str]
                     if out_value is not None and cur_value != out_value:
                         warn(
-                            f'dictionary search output was {out_value} but now it will be {cur_value}'
+                            f"dictionary search output was {out_value} "
+                            f"but now it will be {cur_value}"
                         )
                     out_value = cur_value
         except KeyError:

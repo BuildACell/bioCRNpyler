@@ -201,8 +201,9 @@ class Polymer_transformation:
                             ):  # if you have a material type of part then you are
                                 # part of a polymer and thus will be replaced
                                 core_parts += [spec]
-                        # now we should have found only one core part. If there are multiple core parts then
-                        # we might have to get crazy.
+                        # Now we should have found only one core part. If
+                        # there are multiple core parts then we might have
+                        # to get crazy.
                         new_part = part.dna_species
                         if len(core_parts) == 1:
                             new_part = template_part.replace_species(
@@ -210,14 +211,16 @@ class Polymer_transformation:
                             )
                         else:
                             raise KeyError(
-                                f'{template_part} contained more than one species with material_type="part", they were {core_parts}'
+                                f"{template_part} contained more than one "
+                                "species with material_type='part', they "
+                                f"were {core_parts}"
                             )
                         outpart = new_part
                     else:
                         outpart = part.dna_species
             else:
-                # parts that don't come from input1 or input2.
-                # they need to be either DNA_part or species objects, depending on
+                # Parts that don't come from input1 or input2.  They need
+                # to be either DNA_part or species objects, depending on
                 # what kind of object we are making in the end.
                 if isinstance(polymer_dict['input1'], Construct):
                     outpart = part
@@ -342,7 +345,7 @@ class IntegraseRule:
         assert site1.integrase == site2.integrase
         assert (
             site1.integrase == self.integrase_species
-        ), f'sites have integrase {site1.integrase} but should be {self.integrase_species}'
+        ), f"sites have integrase {site1.integrase} but should be {self.integrase_species}"
         assert site1.dinucleotide == site2.dinucleotide
         integrase = site1.integrase
         dinucleotide = site1.dinucleotide
@@ -353,18 +356,14 @@ class IntegraseRule:
             prod1 = self.reactions[rxn1]
         else:
             raise KeyError(
-                '{} not found to react with {} in {}'.format(
-                    site1, site2, self.reactions
-                )
+                f"{site1} not found to react with {site2} in {self.reactions}"
             )
 
         if rxn2 in self.reactions:
             prod2 = self.reactions[rxn2]
         else:
             raise KeyError(
-                '{} not found to react with {} in {}'.format(
-                    site2, site1, self.reactions
-                )
+                f"{site2} not found to react with {site1} in {self.reactions}"
             )
 
         part_prod1 = IntegraseSite(
@@ -451,9 +450,9 @@ class IntegraseRule:
         if existing_dna_constructs is None:
             existing_dna_constructs = []
         if not (isinstance(site1.parent, Construct)):
-            raise ValueError('{} not part of a construct'.format(site1))
+            raise ValueError(f"{site1} not part of a construct")
         elif not (isinstance(site2.parent, Construct)):
-            raise ValueError('{} not part of a construct'.format(site2))
+            raise ValueError(f"{site2} not part of a construct")
         cutpos1 = site1.position
         cutpos2 = site2.position
         # below are the references to the sites in the products
@@ -723,7 +722,8 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                 if matched_construct is not None:
                     # a construct must not match two constructs, since they are generated and checked in order
                     raise KeyError(
-                        f'{construct} matches with {matched_construct} but also {other_construct}'
+                        f"{construct} matches with {matched_construct} "
+                        f"but also {other_construct}"
                     )
                 matched_construct = other_construct
         if matched_construct is None:

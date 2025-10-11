@@ -31,7 +31,7 @@ class TestMechanism(TestCase):
         # warning if update_species on a mechanism object
         with self.assertWarnsRegex(
             Warning,
-            f'Default Update Species Called for Mechanism = {self.mech_name}.',
+            f'Default update_species called for mechanism {self.mech_name}',
         ):
             self.mechanism.update_species()
 
@@ -39,7 +39,7 @@ class TestMechanism(TestCase):
         # warning if update_reaction on a mechanism object
         with self.assertWarnsRegex(
             Warning,
-            f'Default Update Reactions Called for Mechanism = {self.mech_name}.',
+            f'Default update_reactions called for mechanism {self.mech_name}',
         ):
             self.mechanism.update_reactions()
 

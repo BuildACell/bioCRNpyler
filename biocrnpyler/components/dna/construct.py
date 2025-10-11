@@ -105,21 +105,21 @@ class Construct(Component, OrderedPolymer):
 
         if [part, name, index, part_type].count(None) != 3:
             raise ValueError(
-                f'get_component requires a single keyword. '
-                f'Recieved component={part}, name={name}, index={index}.'
+                f"get_component requires a single keyword. "
+                f"Recieved component={part}, name={name}, index={index}."
             )
         if not (isinstance(part, DNA_part) or part is None):
             raise ValueError(
-                f'component must be of type DNA_part. Recieved {part}.'
+                f"component must be of type DNA_part. Recieved {part}."
             )
         if not (type(part_type) == type or part_type is None):
             raise ValueError(
-                f'part_type must be a type. Recieved {part_type}.'
+                f"part_type must be a type. Recieved {part_type}."
             )
         if not (isinstance(name, str) or name is None):
-            raise ValueError(f'name must be of type str. Recieved {name}.')
+            raise ValueError(f"name must be of type str. Recieved {name}.")
         if not (isinstance(index, int) or index is None):
-            raise ValueError(f'index must be of type int. Recieved {index}.')
+            raise ValueError(f"index must be of type int. Recieved {index}.")
 
         matches = []
         if index is not None:
@@ -141,8 +141,8 @@ class Construct(Component, OrderedPolymer):
             return matches[0]
         else:
             warn(
-                'get_part found multiple matching components. '
-                'A list has been returned.'
+                "get_part found multiple matching components. "
+                "A list has been returned."
             )
             return matches
 
@@ -173,7 +173,7 @@ class Construct(Component, OrderedPolymer):
 
         """
         if not self.circular:
-            return ValueError('cannot circularly permute linear construct')
+            return ValueError("cannot circularly permute linear construct")
         else:
             return DNA_construct(
                 self.parts_list[new_first_position:]
@@ -906,8 +906,8 @@ class DNA_part(Component, OrderedMonomer):
         """
         if 'initial_concentration' in kwargs:
             raise AttributeError(
-                'DNA_part should not recieve initial_concentration keyword. '
-                'Pass this into the DNAassembly or DNA_construct instead.'
+                "DNA_part should not recieve initial_concentration keyword. "
+                "Pass this into the DNAassembly or DNA_construct instead."
             )
 
         # Store/Process DNA part keywords

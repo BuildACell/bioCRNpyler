@@ -35,7 +35,7 @@ class Simple_Diffusion(Mechanism):
             part_id = component.name
 
         if component is None and (k_diff is None):
-            raise ValueError('Must pass in a Component or values for k_diff.')
+            raise ValueError("Must pass in a Component or values for k_diff.")
         if k_diff is None:
             k_diff = component.get_parameter(
                 'k_diff', part_id=part_id, mechanism=self
@@ -175,7 +175,9 @@ class Simple_Transport(Mechanism):
     ):
         if membrane_channel.attributes[0] != 'Passive':
             raise ValueError(
-                'Protein is not classified as a channel with passive transport of small molecules. Use mechanism Facilitated_Passive_Transport instead.'
+                "Protein is not classified as a channel with passive "
+                "transport of small molecules. Use mechanism "
+                "Facilitated_Passive_Transport instead"
             )
 
         return [membrane_channel, substrate, product]
@@ -196,7 +198,7 @@ class Simple_Transport(Mechanism):
 
         if component is None and (k_trnsp is None):
             raise ValueError(
-                'Must pass in a Component or values for k_trnsp.'
+                "Must pass in a Component or values for k_trnsp."
             )
         if k_trnsp is None:
             k_trnsp = component.get_parameter(
@@ -300,7 +302,7 @@ class Facilitated_Transport_MM(Mechanism):
         # Facilitated membrane protein transport
         # Sub + MC --> Sub:MC
         prop_subMC = GeneralPropensity(
-            f'kb_subMC*{substrate}*{membrane_carrier}*Heaviside({substrate}-{product})-kb_subMC*{product}*{membrane_carrier}*Heaviside({substrate}-{product})',
+            f"kb_subMC*{substrate}*{membrane_carrier}*Heaviside({substrate}-{product})-kb_subMC*{product}*{membrane_carrier}*Heaviside({substrate}-{product})",
             propensity_species=[product, substrate, membrane_carrier],
             propensity_parameters=[kb_subMC],
         )
@@ -466,7 +468,7 @@ class Primary_Active_Transport_MM(Mechanism):
         # Active membrane protein transport
         # Sub + MP<--> Sub:MP
         prop_subMP = GeneralPropensity(
-            f'kb_subMP*{substrate}*{membrane_pump}*Heaviside({membrane_pump})',
+            f"kb_subMP*{substrate}*{membrane_pump}*Heaviside({membrane_pump})",
             propensity_species=[substrate, membrane_pump],
             propensity_parameters=[kb_subMP],
         )
@@ -485,7 +487,7 @@ class Primary_Active_Transport_MM(Mechanism):
         # Sub:MP + E <--> Sub:MP:E
 
         prop_subMPnATP = GeneralPropensity(
-            f'kb_subMPnATP*{complex1}*{energy}*Heaviside({complex1})',
+            f"kb_subMPnATP*{complex1}*{energy}*Heaviside({complex1})",
             propensity_species=[complex1, energy],
             propensity_parameters=[kb_subMPnATP],
         )

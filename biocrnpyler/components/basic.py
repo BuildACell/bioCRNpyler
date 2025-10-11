@@ -242,8 +242,8 @@ class ChemicalComplex(Component):
         """
         if not isinstance(species, list) or len(species) < 2:
             raise ValueError(
-                f'Invalid Species {species}. Species must be a list of '
-                'Species, strings, or Component objects.'
+                f"Invalid Species {species}. Species must be a list of "
+                "Species, strings, or Component objects."
             )
 
         self.internal_species = []  # a list of species inside the complex

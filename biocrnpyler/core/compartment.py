@@ -33,7 +33,7 @@ class Compartment:
     @name.setter
     def name(self, name: str):
         if name is None:
-            raise TypeError('Compartment name must be a string.')
+            raise TypeError("Compartment name must be a string.")
         elif type(name) is str:
             no_underscore_string = name.replace('_', '')
             if (
@@ -45,12 +45,12 @@ class Compartment:
                 self._name = name
             else:
                 raise ValueError(
-                    f'name attribute {name} must consist of letters, '
-                    f'numbers, or underscores and cannot contained double '
-                    'underscores or begin/end with a special character.'
+                    f"name attribute {name} must consist of letters, "
+                    f"numbers, or underscores and cannot contained double "
+                    "underscores or begin/end with a special character."
                 )
         else:
-            raise ValueError('Compartment name must be a string.')
+            raise ValueError("Compartment name must be a string.")
 
     @property
     def spatial_dimensions(self):
@@ -60,11 +60,11 @@ class Compartment:
     def spatial_dimensions(self, spatial_dimensions: int):
         if type(spatial_dimensions) is not int:
             raise ValueError(
-                'Compartment spatial dimension must be an integer.'
+                "Compartment spatial dimension must be an integer."
             )
         elif spatial_dimensions < 0:
             raise ValueError(
-                'Compartment spatial dimension must be non-negative.'
+                "Compartment spatial dimension must be non-negative."
             )
         else:
             self._spatial_dimensions = spatial_dimensions
@@ -76,9 +76,9 @@ class Compartment:
     @size.setter
     def size(self, size: float):
         if type(size) not in [float, int]:
-            raise ValueError('Compartment size must be a float or int.')
+            raise ValueError("Compartment size must be a float or int.")
         elif size < 0:
-            raise ValueError('Compartment size must be non-negative.')
+            raise ValueError("Compartment size must be non-negative.")
         else:
             self._size = size
 
@@ -91,8 +91,8 @@ class Compartment:
         if unit is not None:
             if not isinstance(unit, str):
                 raise ValueError(
-                    'Unit of compartment must be a string representing '
-                    'compartment size.'
+                    "Unit of compartment must be a string representing "
+                    "compartment size."
                 )
             self._unit = unit
         else:
@@ -117,8 +117,8 @@ class Compartment:
                 or self.spatial_dimensions != other.spatial_dimensions
             ):
                 raise ValueError(
-                    'Compartments with same names must have the same size '
-                    'and spatial dimensions.'
+                    "Compartments with same names must have the same size "
+                    "and spatial dimensions."
                 )
             return True
         else:

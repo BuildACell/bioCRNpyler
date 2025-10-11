@@ -99,7 +99,8 @@ class Propensity(object):
 
         else:
             raise TypeError(
-                f"Invalid item in propensity_diction['parameter']: {p}. Only numbers of ParameterEntries accepted."
+                f"Invalid item in propensity_diction['parameter']: {p}. "
+                "Only numbers of ParameterEntries accepted."
             )
 
     def _check_parameter(self, parameter, allow_None=False, positive=True):
@@ -117,11 +118,13 @@ class Propensity(object):
         else:
             if positive:
                 raise ValueError(
-                    f'Propensity parameters must be Parameters or floats with positive values. Recieved {type(parameter)}.'
+                    f"Propensity parameters must be Parameters or floats "
+                    f"with positive values. Recieved {type(parameter)}."
                 )
             else:
                 raise ValueError(
-                    f'Propensity parameters must be Parameters or floats. Recieved {type(parameter)}.'
+                    "Propensity parameters must be Parameters or floats. "
+                    f"Recieved {type(parameter)}."
                 )
 
     def _check_species(self, species, allow_None=False):
@@ -132,7 +135,7 @@ class Propensity(object):
             return species
         else:
             raise TypeError(
-                f'Propensity expected a Species: received {type(species)}.'
+                f"Propensity expected a Species: received {type(species)}."
             )
 
     def pretty_print(self, show_parameters=True, **kwargs):
@@ -143,7 +146,7 @@ class Propensity(object):
 
     def pretty_print_rate(self, **kwargs):
         raise NotImplementedError(
-            'class Propensity is meant to be subclassed!'
+            "class Propensity is meant to be subclassed!"
         )
 
     def pretty_print_parameters(self, show_keys=True, **kwargs):
@@ -151,12 +154,12 @@ class Propensity(object):
         for k in self.propensity_dict['parameters']:
             p = self.propensity_dict['parameters'][k]
             if isinstance(p, Parameter):
-                txt += f'  {k}={p.value}'  # p.pretty_print(**kwargs)+"\n"
+                txt += f"  {k}={p.value}"  # p.pretty_print(**kwargs)+"\n"
                 if isinstance(p, ModelParameter) and show_keys:
-                    txt += f'\n  found_key=(mech={p.found_key.mechanism}, partid={p.found_key.part_id}, name={p.found_key.name}).\n  search_key=(mech={p.search_key.mechanism}, partid={p.search_key.part_id}, name={p.search_key.name}).'
+                    txt += f"\n  found_key=(mech={p.found_key.mechanism}, partid={p.found_key.part_id}, name={p.found_key.name}).\n  search_key=(mech={p.search_key.mechanism}, partid={p.search_key.part_id}, name={p.search_key.name})."
                 txt += '\n'
             elif p is not None:
-                txt += f'  {k}={p}\n'
+                txt += f"  {k}={p}\n"
         return txt
 
     @property
@@ -185,7 +188,7 @@ class Propensity(object):
         self, reaction, reverse_reaction, stochastic, **kwargs
     ):
         raise NotImplementedError(
-            'class Propensity is meant to be subclassed!'
+            "class Propensity is meant to be subclassed!"
         )
 
     @classmethod
@@ -292,20 +295,20 @@ class GeneralPropensity(Propensity):
         if len(propensity_species) > 0 and not all(
             isinstance(s, Species) for s in propensity_species
         ):
-            raise TypeError('propensity_species must be a list of Species!')
+            raise TypeError("propensity_species must be a list of Species!")
 
         if len(propensity_parameters) > 0 and not all(
             isinstance(s, ParameterEntry) for s in propensity_parameters
         ):
             raise TypeError(
-                'propensity_parameter must be a list of ParameterEntry!'
+                "propensity_parameter must be a list of ParameterEntry!"
             )
 
         for species in propensity_species:
             if str(species) not in self.propensity_function:
                 raise ValueError(
-                    f'species: {species} must be part of the formula: '
-                    f'{self.propensity_function}'
+                    f"species: {species} must be part of the formula: "
+                    f"{self.propensity_function}"
                 )
 
             self.propensity_dict['species'].update({str(species): species})
@@ -313,8 +316,8 @@ class GeneralPropensity(Propensity):
         for parameter in propensity_parameters:
             if parameter.parameter_name not in self.propensity_function:
                 raise ValueError(
-                    f'species: {parameter.parameter_name} must be part of '
-                    f'the formula: {self.propensity_function}'
+                    f"species: {parameter.parameter_name} must be part of "
+                    f"the formula: {self.propensity_function}"
                 )
 
             self.propensity_dict['parameters'].update(
@@ -354,8 +357,8 @@ class GeneralPropensity(Propensity):
         flag = ratelaw.setMath(math_ast)
         if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
             raise ValueError(
-                'Could not write the rate law for reaction to SBML. '
-                'Check the propensity functions of reactions.'
+                "Could not write the rate law for reaction to SBML. "
+                "Check the propensity functions of reactions."
             )
         return ratelaw
 
@@ -432,7 +435,7 @@ class MassAction(Propensity):
     ):
         if (crn_reaction := kwargs.pop('crn_reaction', None)) is None:
             raise ValueError(
-                'crn_reaction reference is needed for Massaction kinetics!'
+                "crn_reaction reference is needed for Massaction kinetics!"
             )
 
         # create a kinetic law for the sbml_reaction
@@ -474,8 +477,8 @@ class MassAction(Propensity):
         flag = ratelaw.setMath(math_ast)
         if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
             raise ValueError(
-                'Could not write the rate law for reaction to SBML. '
-                'Check the propensity functions of reactions.'
+                "Could not write the rate law for reaction to SBML. "
+                "Check the propensity functions of reactions."
             )
         annotation_string = self._create_annotation(
             model, propensity_dict_in_sbml=propensity_dict_in_sbml, **kwargs
@@ -492,10 +495,10 @@ class MassAction(Propensity):
         for species_id, weighted_species in reactant_species.items():
             if stochastic:
                 ratestring += '*'
-                ratestring += f'{species_id}'
+                ratestring += f"{species_id}"
                 ratestring += '*'
                 ratestring += '*'.join(
-                    f' ( {species_id} - {i} )'
+                    f" ( {species_id} - {i} )"
                     for i in range(1, weighted_species.stoichiometry)
                 )
 
@@ -505,11 +508,11 @@ class MassAction(Propensity):
             else:
                 if weighted_species.stoichiometry > 1:
                     ratestring += (
-                        f' * {species_id}^'
-                        + f'{weighted_species.stoichiometry}'
+                        f" * {species_id}^"
+                        + f"{weighted_species.stoichiometry}"
                     )
                 else:
-                    ratestring += f' * {species_id}'
+                    ratestring += f" * {species_id}"
         return ratestring
 
 
@@ -579,9 +582,9 @@ class Hill(Propensity):
 
     def pretty_print_rate(self, show_parameters=True, **kwargs):
         raise NotImplementedError(
-            'Propensity class Hill is meant to be subclassed: '
-            'try HillPositive, HillNegative, ProportionalHillPositive, '
-            'or ProportionalHillNegative.'
+            "Propensity class Hill is meant to be subclassed: "
+            "try HillPositive, HillNegative, ProportionalHillPositive, "
+            "or ProportionalHillNegative."
         )
 
     def create_kinetic_law(self, model, sbml_reaction, stochastic, **kwargs):
@@ -591,7 +594,7 @@ class Hill(Propensity):
             and kwargs['reverse_reaction'] is True
         ):
             raise ValueError(
-                'reverse reactions cannot exist for Hill type Propensities!'
+                "reverse reactions cannot exist for Hill type Propensities!"
             )
 
         ratelaw = sbml_reaction.createKineticLaw()
@@ -614,15 +617,15 @@ class Hill(Propensity):
         flag = ratelaw.setMath(math_ast)
         if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
             raise ValueError(
-                'Could not write the rate law for reaction to SBML. '
-                'Check the propensity functions of reactions.'
+                "Could not write the rate law for reaction to SBML. "
+                "Check the propensity functions of reactions."
             )
 
         return ratelaw
 
     def _get_rate_formula(self, propensity_dict):
         raise NotImplementedError(
-            'Hill does not have a rate formula! Check out the subclasses.'
+            "Hill does not have a rate formula! Check out the subclasses."
         )
 
 
@@ -645,8 +648,8 @@ class HillPositive(Hill):
 
     def pretty_print_rate(self, show_parameters=True, **kwargs):
         return (
-            f' Kf = k {self.s1.pretty_print(**kwargs)}^n / '
-            + f'( K^n + {self.s1.pretty_print(**kwargs)}^n )'
+            f" Kf = k {self.s1.pretty_print(**kwargs)}^n / "
+            + f"( K^n + {self.s1.pretty_print(**kwargs)}^n )"
         )
 
     def _get_rate_formula(self, propensity_dict):
@@ -654,7 +657,7 @@ class HillPositive(Hill):
         n = propensity_dict['parameters']['n']
         K = propensity_dict['parameters']['K']
         s1 = propensity_dict['species']['s1']
-        rate_formula = f'{k}*{s1}^{n} / ( {K}^{n} + {s1}^{n} )'
+        rate_formula = f"{k}*{s1}^{n} / ( {K}^{n} + {s1}^{n} )"
         return rate_formula
 
 
@@ -677,14 +680,14 @@ class HillNegative(Hill):
         self.name = 'hillnegative'
 
     def pretty_print_rate(self, show_parameters=True, **kwargs):
-        return f' Kf = k / ( 1 + ({self.s1.pretty_print(**kwargs)}/K)^n )'
+        return f" Kf = k / ( 1 + ({self.s1.pretty_print(**kwargs)}/K)^n )"
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']
         n = propensity_dict['parameters']['n']
         K = propensity_dict['parameters']['K']
         s1 = propensity_dict['species']['s1']
-        rate_formula = f'{k} / ( 1 + ({s1}/{K})^{n} )'
+        rate_formula = f"{k} / ( 1 + ({s1}/{K})^{n} )"
         return rate_formula
 
 
@@ -707,9 +710,9 @@ class ProportionalHillPositive(HillPositive):
 
     def pretty_print_rate(self, show_parameters=True, **kwargs):
         return (
-            f' Kf = k {self.d.pretty_print(**kwargs)} '
-            + f'{self.s1.pretty_print(**kwargs)}^n / '
-            + f'( K^n + {self.s1.pretty_print(**kwargs)}^n )'
+            f" Kf = k {self.d.pretty_print(**kwargs)} "
+            + f"{self.s1.pretty_print(**kwargs)}^n / "
+            + f"( K^n + {self.s1.pretty_print(**kwargs)}^n )"
         )
 
     def _get_rate_formula(self, propensity_dict):
@@ -718,7 +721,7 @@ class ProportionalHillPositive(HillPositive):
         K = propensity_dict['parameters']['K']
         s1 = propensity_dict['species']['s1']
         d = propensity_dict['species']['d']
-        return f'{k}*{d}*{s1}^{n} / ( {K}^{n} + {s1}^{n} )'
+        return f"{k}*{d}*{s1}^{n} / ( {K}^{n} + {s1}^{n} )"
 
 
 class ProportionalHillNegative(HillNegative):
@@ -741,8 +744,8 @@ class ProportionalHillNegative(HillNegative):
 
     def pretty_print_rate(self, show_parameters=True, **kwargs):
         return (
-            f' Kf = k {self.d.pretty_print(**kwargs)} / '
-            + f'( 1 + ({self.s1.pretty_print(**kwargs)}/K)^{self.n} )'
+            f" Kf = k {self.d.pretty_print(**kwargs)} / "
+            + f"( 1 + ({self.s1.pretty_print(**kwargs)}/K)^{self.n} )"
         )
 
     def _get_rate_formula(self, propensity_dict):
@@ -751,4 +754,4 @@ class ProportionalHillNegative(HillNegative):
         K = propensity_dict['parameters']['K']
         s1 = propensity_dict['species']['s1']
         d = propensity_dict['species']['d']
-        return f'{k}*{d} / ( 1 + ({s1}/{K})^{n} )'
+        return f"{k}*{d} / ( 1 + ({s1}/{K})^{n} )"

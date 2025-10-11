@@ -176,7 +176,7 @@ def graphPlot(
     """
     random.seed(rseed)
     if not PLOT_NETWORK:
-        warn('network plotting disabled because some libraries are not found')
+        warn("network plotting disabled because some libraries are not found")
         return
     if layout == 'force':
         # below are parameters for the force directed graph visualization
@@ -388,7 +388,7 @@ def generate_networkx_graph(
     CRNreactionsonly: a DiGraph object with only reactions
     """
     if not PLOT_NETWORK:
-        warn('network plotting disabled because some libraries are not found')
+        warn("network plotting disabled because some libraries are not found")
         return None, None, None
     if colordict is None:
         colordict = {
@@ -607,7 +607,8 @@ class CRNPlotter:
                 if recursion == 0:
                     # this is likely to happen if everything in the multipart is marked as "non binding"
                     raise ValueError(
-                        f'reached maximum recursion when trying to populate multipart {self}'
+                        "reached maximum recursion when trying to populate "
+                        f"multipart {self}"
                     )
             # actually changing the direction of each part inside the MultiPart
             new_multipart.parts_list = [
@@ -888,11 +889,11 @@ class CRNPlotter:
         if rna_renderer is None and self.rna_renderer is not None:
             rna_renderer = self.rna_renderer
         else:
-            raise ValueError('rna_renderer cannot be None')
+            raise ValueError("rna_renderer cannot be None")
         if dna_renderer is None and self.dna_renderer is not None:
             dna_renderer = self.dna_renderer
         else:
-            raise ValueError('dna_renderer cannot be None')
+            raise ValueError("dna_renderer cannot be None")
         self.clear_dicts()
         if compiled_components is None:
             # this only happens if CRN and mixture are both given
@@ -957,11 +958,11 @@ class CRNPlotter:
         if rna_renderer is None and self.rna_renderer is not None:
             rna_renderer = self.rna_renderer
         else:
-            raise ValueError('rna_renderer cannot be None')
+            raise ValueError("rna_renderer cannot be None")
         if dna_renderer is None and self.dna_renderer is not None:
             dna_renderer = self.dna_renderer
         else:
-            raise ValueError('dna_renderer cannot be None')
+            raise ValueError("dna_renderer cannot be None")
         a = self.make_dpls_from_construct(construct_obj)
         outaxs = [a.renderDNA(dna_renderer)]
         if render_rna:
@@ -986,7 +987,7 @@ class CRNPlotter:
                 self.color_counter = 0
             return out_color
         else:
-            raise ValueError('No colormap set')
+            raise ValueError("No colormap set")
 
     def make_dpls_from_construct(self, construct, save_in_dict=True):
         if construct in self.construct_dpl_dict:
@@ -1290,6 +1291,6 @@ def render_network_bokeh(
     )
     if export:
         if export_name is None:
-            raise ValueError('To export you must supply export_name keyword.')
+            raise ValueError("To export you must supply export_name keyword.")
         export_svgs(plot, filename=export_name + '.svg')
     return plot

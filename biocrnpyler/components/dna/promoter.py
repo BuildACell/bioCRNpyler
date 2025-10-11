@@ -63,14 +63,17 @@ class Promoter(DNA_part):
             and keywords['initial_concentration'] is not None
         ):
             raise AttributeError(
-                'Cannot set initial_concentration of a Promoter. Must set initial_concentration for the DNAassembly or DNAConstruct.'
+                "Cannot set initial_concentration of a Promoter. Must set "
+                "initial_concentration for the DNAassembly or DNAConstruct"
             )
         if (
             'initial_condition_dictionary' in keywords.values()
             and keywords['initial_condition_dictionary'] is not None
         ):
             raise AttributeError(
-                'Cannot set initial_condition_dictionary of a Promoter. Must set initial_condition_dictionary for the DNAassembly or DNAconstruct.'
+                "Cannot set initial_condition_dictionary of a Promoter. Must "
+                "set initial_condition_dictionary for the DNAassembly or "
+                "DNAconstruct."
             )
 
         DNA_part.__init__(
@@ -136,7 +139,8 @@ class Promoter(DNA_part):
             return out_component
         else:
             raise TypeError(
-                f'Unknown parent class {type(self.parent)}, expect either DNA_construct or RNA_construct'
+                f"Unknown parent class {type(self.parent)}, expect either "
+                "DNA_construct or RNA_construct"
             )
 
     # Used for expression mixtures where transcripts are replaced by proteins
@@ -170,7 +174,8 @@ class Promoter(DNA_part):
             )
         else:
             raise TypeError(
-                f'Promoter can be initialized from string or another promoter! We got {type(name)}'
+                "Promoter can be initialized from string or another "
+                f"promoter! We got {type(name)}"
             )
         return promoter_instance
 
@@ -624,11 +629,11 @@ class CombinatorialPromoter(Promoter):
 
             if self.tx_capable_complexes == []:
                 if self.leak_complexes is None or self.leak_complexes == []:
-                    # if it's still zero after running update_species then we could be in trouble
+                    # if it's still zero after running update_species
+                    # then we could be in trouble
                     warn(
-                        'nothing can transcribe from combinatorial promoter {}'.format(
-                            self.name
-                        )
+                        "nothing can transcribe from combinatorial promoter "
+                        f"{self.name}"
                     )
 
         if len(self.tx_capable_complexes) > 0:

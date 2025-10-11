@@ -54,7 +54,7 @@ class TestSBML(TestCase):
             'S1',
         )
         with self.assertRaisesRegex(
-            ValueError, '"name" must be a string. Received 24.'
+            ValueError, "'name' must be a string. Received 24."
         ):
             getSpeciesByName(model, 24)
 
@@ -517,7 +517,9 @@ def test_sbml_basics():
         )
     with pytest.warns(
         Warning,
-        match='The string identifier for the unit 1_s is not supported by BioCRNpyler. Add this to the dictionary in biocrnpyler/units.py if you want this unit.',
+        match="The string identifier for the unit 1_s is not supported by "
+        "BioCRNpyler. Add this to the dictionary in biocrnpyler/units.py "
+        "if you want this unit",
     ):
         global_param = _create_global_parameter(
             model, 'k_global', value=10, p_unit='1_s'

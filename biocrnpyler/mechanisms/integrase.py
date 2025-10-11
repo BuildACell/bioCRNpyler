@@ -44,7 +44,7 @@ class BasicIntegration(Mechanism):
             part_id = component.name
 
         if kint is None and component is None:
-            raise ValueError('Must pass in either a component or kint.')
+            raise ValueError("Must pass in either a component or kint.")
         elif kint is None:
             kint = component.get_parameter(
                 'kint', part_id=part_id, mechanism=self
@@ -95,7 +95,7 @@ class EnzymeIntegration(Mechanism):
             part_id = component.name
 
         if kint is None and component is None:
-            raise ValueError('Must pass in either a component or kint.')
+            raise ValueError("Must pass in either a component or kint.")
 
         elif kint is None:
             kint = component.get_parameter(

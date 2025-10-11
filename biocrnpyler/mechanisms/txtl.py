@@ -49,7 +49,7 @@ class OneStepGeneExpression(Mechanism):
                 'kexpress', part_id=part_id, mechanism=self
             )
         elif component is None and kexpress is None:
-            raise ValueError('Must pass in component or a value for kexpress')
+            raise ValueError("Must pass in component or a value for kexpress")
 
         if protein is not None:
             return [
@@ -102,9 +102,10 @@ class SimpleTranscription(Mechanism):
                 'ktx', part_id=part_id, mechanism=self
             )
         elif component == None and ktx == None:
-            raise ValueError('Must pass in component or a value for ktx')
+            raise ValueError("Must pass in component or a value for ktx")
 
-        # First case only true in Mixtures without transcription (eg Expression Mixtures)
+        # First case only true in Mixtures without transcription (eg
+        # Expression Mixtures)
         if transcript is None and protein is not None:
             ktl = component.get_parameter(
                 'ktl', part_id=part_id, mechanism=self
@@ -165,9 +166,10 @@ class SimpleTranslation(Mechanism):
                 'ktl', part_id=part_id, mechanism=self
             )
         elif component is None and ktl is None:
-            raise ValueError('Must pass in component or a value for ktl')
+            raise ValueError("Must pass in component or a value for ktl")
 
-        # First case only true in Mixtures without transcription (eg Expression Mixtures)
+        # First case only true in Mixtures without transcription (eg
+        # Expression Mixtures)
         if transcript is None and protein is not None:
             rxns = []
         else:
@@ -473,7 +475,7 @@ class Translation_MM(MichaelisMentenCopy):
         if isinstance(ribosome, Species):
             self.ribosome = ribosome
         else:
-            raise ValueError('ribosome must be a Species!')
+            raise ValueError("ribosome must be a Species!")
         MichaelisMentenCopy.__init__(
             self=self, name=name, mechanism_type='translation'
         )
@@ -564,13 +566,13 @@ class Energy_Transcription_MM(Mechanism):
             self.fuels = fuels
         else:
             raise ValueError(
-                'recieved a non-Species object in the fuels list.'
+                "recieved a non-Species object in the fuels list."
             )
 
         if all([isinstance(s, Species) for s in fuels]):
             self.wastes = wastes
         else:
-            raise ValueError('wastes must be a list of Species!')
+            raise ValueError("wastes must be a list of Species!")
 
         Mechanism.__init__(
             self=self, name=name, mechanism_type='transcription'
@@ -650,17 +652,17 @@ class Energy_Translation_MM(Mechanism):
         if isinstance(ribosome, Species):
             self.ribosome = ribosome
         else:
-            raise ValueError('ribosome must be a Species!')
+            raise ValueError("ribosome must be a Species!")
 
         if all([isinstance(s, Species) for s in fuels]):
             self.fuels = fuels
         else:
-            raise ValueError('Fuels must be a list of Species!')
+            raise ValueError("Fuels must be a list of Species!")
 
         if all([isinstance(s, Species) for s in fuels]):
             self.wastes = wastes
         else:
-            raise ValueError('wastes must be a list of Species!')
+            raise ValueError("wastes must be a list of Species!")
 
         Mechanism.__init__(self=self, name=name, mechanism_type='translation')
 

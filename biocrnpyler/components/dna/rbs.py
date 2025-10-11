@@ -88,7 +88,7 @@ class RBS(DNA_part):
                 return None
             else:
                 raise AttributeError(
-                    f'Unknown direction {self.direction} encountered in {self}'
+                    f"Unknown direction {self.direction} encountered in {self}"
                 )
         else:
             return None
@@ -118,6 +118,7 @@ class RBS(DNA_part):
             )
         else:
             raise TypeError(
-                f'RBS can be initialized from string or another RBS! We got {type(name)}'
+                "RBS can be initialized from string or another RBS! We got "
+                f"{type(name)}"
             )
         return rbs_instance

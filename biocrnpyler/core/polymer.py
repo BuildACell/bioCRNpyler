@@ -64,8 +64,8 @@ class OrderedPolymer(MonomerCollection):
                 partdir = item.direction
             else:
                 raise ValueError(
-                    '{} is not an OrderedMonomer or '.format(str(item))
-                    + 'a list of the form [OrderedMonomer,direction]'
+                    f"{str(item)} is not an OrderedMonomer or "
+                    "a list of the form [OrderedMonomer,direction]"
                 )
 
             # OrderedMonomers are always copied when inserted into an
@@ -253,7 +253,7 @@ class OrderedMonomer:
             self._parent = parent
         else:
             raise ValueError(
-                f'parent must be an MonomerCollection. Recieved {parent}'
+                f"parent must be an MonomerCollection. Recieved {parent}"
             )
 
     @property
@@ -271,9 +271,7 @@ class OrderedMonomer:
     @position.setter
     def position(self, position):
         if self.parent is not None and position is None:
-            raise ValueError(
-                '{} is part of a polymer with no position!'.format(self)
-            )
+            raise ValueError(f"{self} is part of a polymer with no position!")
         else:
             self._position = position
 
@@ -286,16 +284,16 @@ class OrderedMonomer:
                 if specie.is_polymer_component:
                     if outpolymer is not None:
                         raise ValueError(
-                            'multiple species are part of the polymer '
-                            'in the same place!!'
+                            "multiple species are part of the polymer "
+                            "in the same place!!"
                         )
                     else:
                         outpolymer = specie
         if self.is_polymer_component:
             if outpolymer is not None:
                 raise ValueError(
-                    'multiple species are part of the polymer '
-                    'in the same place!!'
+                    "multiple species are part of the polymer "
+                    "in the same place!!"
                 )
             else:
                 outpolymer = self
@@ -305,16 +303,12 @@ class OrderedMonomer:
         self, parent: OrderedPolymer, position: int, direction=None
     ):
         if position is None:
-            raise ValueError(
-                '{} has no position to be inserted at!'.format(self)
-            )
+            raise ValueError(f"{self} has no position to be inserted at!")
         if direction is None:
             if self.direction is not None:
                 direction = self.direction
         if parent is None:
-            raise ValueError(
-                '{} is trying to be inserted into nothing!'.format(self)
-            )
+            raise ValueError(f"{self} is trying to be inserted into nothing!")
         if self.is_polymer_component is False:
             if self.find_polymer_component() is None:
                 self.is_polymer_component = True
