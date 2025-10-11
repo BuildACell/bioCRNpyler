@@ -346,6 +346,7 @@ class TestParameter(TestCase):
 
 def test_findpath():
     import os
+    import platform
     import biocrnpyler as bcp
 
     # Make sure files that don't exist return None
@@ -365,7 +366,10 @@ def test_findpath():
     # Make sure we can find files in the path
     open('../__testfile__.tsv', 'w')
     assert bcp.find_file_in_bcp_path('__testfile__.tsv') is None
-    os.environ['BCP_PATH'] = '/tmp:.:..'
+    if platform.system() == "Windows":
+        os.environ['BCP_PATH'] = '/tmp;.;..'
+    else:
+        os.environ['BCP_PATH'] = '/tmp:.:..'
     assert os.path.exists(
         bcp.find_file_in_bcp_path('__testfile__.tsv'))
     os.remove('../__testfile__.tsv')
