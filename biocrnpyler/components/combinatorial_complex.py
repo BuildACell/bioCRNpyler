@@ -9,7 +9,7 @@ from ..core.species import Complex, ComplexSpecies
 
 
 class CombinatorialComplex(Component):
-    """A class to represent a Complex of many Species which can bind together in many different ways."""
+    """Complex of many Species which bind together in many different ways."""
 
     def __init__(
         self,
@@ -22,68 +22,94 @@ class CombinatorialComplex(Component):
     ):
         """Initialize combinatorial complex.
 
-        Binding reactions will be generated to form all the
-        ComplexSpecies in final_states from all the species in
-        initial_states (or, if initial_states is None, from all the
-        individual species inside each ComplexSpecies). Intermediate
-        states restricts the binding reactions to only form species in
-        this list. Excluded states are not allowed to be reactants or
-        products.  At a high level this generates the following
-        reactions:
+        Binding reactions will be generated to form all the ComplexSpecies in
+        final_states from all the species in initial_states (or, if
+        initial_states is None, from all the individual species inside each
+        ComplexSpecies). Intermediate states restricts the binding reactions
+        to only form species in this list. Excluded states are not allowed to
+        be reactants or products.  At a high level this generates the
+        following reactions:
 
         If just final_states are given:
-            final_states_internal_species <-[Combinatorial Binding]-> final_states
+            final_states_internal_species
+              <-[Combinatorial Binding]-> final_states
 
         if initial_states are given:
             intial_states <-[Combinatorial Binding]-> final_states
 
         if intermediate_states are given:
-            final_states_internal_species <-[Combinatorial Binding]-> intermediate_states <-[Combinatorial Binding]->final_states
+            final_states_internal_species
+              <-[Combinatorial Binding]-> intermediate_states
+              <-[Combinatorial Binding]-> final_states
 
         if initial_states and intermediate_states are given:
-            intial_states <-[Combinatorial Binding]-> intermediate_states <-[Combinatorial Binding]->final_states
+            intial_states <-[Combinatorial Binding]->
+            intermediate_states <-[Combinatorial Binding]-> final_states
 
 
-        :param final_states: a single ComplexSpecies or a list of ComplexSpecies.
-        :param initial_states: a list of initial Species which are bound together to form the ComplexSpecies in final_states.
-                                If None defaults to the members of the ComplexSpecies in final_states.
-        :param intermediate_states: a list of intermediate ComplexSpecies formed when converting initial_states to final_states.
-                                    If None: all possible intermediate ComplexSpecies are enumerated.
-        :param excluded_states: a list of ComplexSpecies which are NOT allowed to form when converting initial states to final states.
-                                If None: no ComplexSpecies are excluded.
+        :param final_states: a single ComplexSpecies or a list of
+            ComplexSpecies.
+        :param initial_states: a list of initial Species which are bound
+            together to form the ComplexSpecies in final_states. If None,
+            defaults to the members of the ComplexSpecies in final_states.
+        :param intermediate_states: a list of intermediate ComplexSpecies
+            formed when converting initial_states to final_states. If None,
+            all possible intermediate ComplexSpecies are enumerated.
+        :param excluded_states: a list of ComplexSpecies which are NOT
+            allowed to form when converting initial states to final states.
+            If None, no ComplexSpecies are excluded.
 
 
-        Example 1: final_states = ComplexSpecies([A, B, C]). initial_states = None, intermediate_states = None.
-                   initial_states will default to A, B, C. All intermediate states [A, B], [A, C], [B, C] will be enumerated.
-                   This results in the 6 reversible reactions:
-                   1. A + B <--> Complex([A, B])
-                   2. A + C <--> Complex([A, C])
-                   3. B + C <--> Complex([B, C])
-                   4. Complex([A, B]) + C <--> Complex([A, B, C])
-                   5. Complex([A, C]) + B <--> Complex([A, B, C])
-                   6. Complex([B, C]) + A <--> Complex([A, B, C])
+        Example 1:
+            final_states=ComplexSpecies([A, B, C])
+            initial_states=None
+            intermediate_states=None
 
-        Example 2: final_states = ComplexSpecies([A, B, C]), intial_states = [Complex([A, B]), Complex([A, C])], intermediate_states = None
-                   This results in the reactions:
-                   1. Complex([A, B]) + C <--> Complex([A, B, C])
-                   2. Complex([A, C]) + B <--> Complex([A, B, C])
+            initial_states will default to A, B, C. All intermediate states
+            [A, B], [A, C], [B, C] will be enumerated.
 
-        Example 3: final_states = ComplexSpecies([A, B, C]). initial_states = None, intermaied_states = [Complex([A, B]), Complex([A, C])].
-                   This results in reactions:
-                   1. A + B <--> Complex([A, B])
-                   2. A + C <--> Complex([A, C])
-                   3. Complex([A, B]) + C <--> Complex([A, B, C])
-                   4. Complex([A, C]) + B <--> Complex([A, B, C])
+            This results in the 6 reversible reactions:
+                1. A + B <--> Complex([A, B])
+                2. A + C <--> Complex([A, C])
+                3. B + C <--> Complex([B, C])
+                4. Complex([A, B]) + C <--> Complex([A, B, C])
+                5. Complex([A, C]) + B <--> Complex([A, B, C])
+                6. Complex([B, C]) + A <--> Complex([A, B, C])
 
-        Example 4: final_states = [Complex([A, A, B], Complex([A, B, B]))], initial_states = None, intermediate_states = None
-                   This results in the reactions:
-                   1. A + A <--> Complex([A, A])
-                   2. Complex([A, A]) + B <--> Complex ([A, A, B])
-                   3. B + B <--> Complex([B, B])
-                   4. Complex([B, B]) + A <--> Complex ([A, B, B])
-                   5. A + B <--> Complex([A, B])
-                   6. Complex([A, B]) + A <--> Complex ([A, A, B])
-                   7. Complex([A, B]) + B <--> Complex ([A, B, B])
+        Example 2:
+            final_states=ComplexSpecies([A, B, C])
+            initial_states=[Complex([A, B]), Complex([A, C])]
+            intermediate_states=None
+
+            This results in the reactions:
+                1. Complex([A, B]) + C <--> Complex([A, B, C])
+                2. Complex([A, C]) + B <--> Complex([A, B, C])
+
+        Example 3:
+            final_states=ComplexSpecies([A, B, C])
+            initial_states=None,
+            intermediate_states=[Complex([A, B]), Complex([A, C])])
+
+            This results in reactions:
+                1. A + B <--> Complex([A, B])
+                2. A + C <--> Complex([A, C])
+                3. Complex([A, B]) + C <--> Complex([A, B, C])
+                4. Complex([A, C]) + B <--> Complex([A, B, C])
+
+        Example 4:
+            final_states=[Complex([A, A, B], Complex([A, B, B]))]
+            initial_states=None
+            intermediate_states=None
+
+            This results in the reactions:
+                1. A + A <--> Complex([A, A])
+                2. Complex([A, A]) + B <--> Complex ([A, A, B])
+                3. B + B <--> Complex([B, B])
+                4. Complex([B, B]) + A <--> Complex ([A, B, B])
+                5. A + B <--> Complex([A, B])
+                6. Complex([A, B]) + A <--> Complex ([A, A, B])
+                7. Complex([A, B]) + B <--> Complex ([A, B, B])
+
         """
         # The order these run in is important!
 
@@ -125,7 +151,8 @@ class CombinatorialComplex(Component):
 
         self._final_states = final_states
 
-        # Then create a list of all sub-species included in final_states Complexes
+        # Then create a list of all sub-species included in
+        # final_states Complexes
         self.sub_species = []
         for s in self.final_states:
             self.sub_species += s.species_set
@@ -159,7 +186,8 @@ class CombinatorialComplex(Component):
                     )
             self._initial_states = initial_states
 
-    # Intermediate states allows the user to restrict the complexes formed between the intial state and final state
+    # Intermediate states allows the user to restrict the complexes
+    # formed between the intial state and final state
     @property
     def intermediate_states(self):
         return self._intermediate_states
@@ -178,7 +206,8 @@ class CombinatorialComplex(Component):
             ):
                 raise ValueError(
                     f"intermediate must be a list of {ComplexSpecies} "
-                    f"(or subclasses thereof). Recieved: {intermediate_states}."
+                    "(or subclasses thereof). "
+                    f"Recieved: {intermediate_states}."
                 )
             # All intermediate_states must be made of sub_species
             for s in intermediate_states:
@@ -196,7 +225,8 @@ class CombinatorialComplex(Component):
 
             self._intermediate_states = intermediate_states
 
-    # Excluded states allows the user to exclude specific Species from being enumerated
+    # Excluded states allows the user to exclude specific Species from
+    # being enumerated
     @property
     def excluded_states(self):
         return self._excluded_states
@@ -218,12 +248,14 @@ class CombinatorialComplex(Component):
         for s in sf.species_set:
             if s0.monomer_eq(
                 s
-            ):  # this is used instead of == to deal with the potential for different parents
+            ):  # this is used instead of == to deal with the
+                # potential for different parents
                 s0_count = 1
             elif isinstance(s0, ComplexSpecies):
                 s0_count = s0.monomer_count(
                     s
-                )  # This is used instead of .count to deal with species with different parents
+                )  # This is used instead of .count to deal with
+                # species with different parents
             else:
                 s0_count = 0
 
@@ -232,7 +264,9 @@ class CombinatorialComplex(Component):
             if s0_count < sf_count:
                 species_to_add += (sf_count - s0_count) * [s]
             elif s0_count > sf_count:
-                species_to_add = None  # In this case, s0 contains more stuff than sf, so nothing should be returned
+                species_to_add = None  # In this case, s0 contains
+                # more stuff than sf, so
+                # nothing should be returned
                 break
             else:
                 pass  # if they have the same number, do not add it
@@ -259,7 +293,7 @@ class CombinatorialComplex(Component):
         return species_to_add
 
     def get_combinations_between(self, s0, sf):
-        """Returns all combinations of Species to create the Complex sf from s0."""
+        """All combinations of Species to create the Complex sf from s0."""
         species_to_add = self.compute_species_to_add(s0, sf)
 
         if species_to_add is None or len(species_to_add) == 0:
@@ -298,8 +332,10 @@ class CombinatorialComplex(Component):
     def update_species(self):
         mech_b = self.get_mechanism('binding')
         species = []
-        species_added_dict = {}  # save which combinations have already been added
-        self.combination_dict = {}  # this should be recomputed every updated species
+        species_added_dict = {}  # save which combinations have
+        # already been added
+        self.combination_dict = {}  # this should be recomputed every
+        # updated species
 
         # If there are intermediates, compute combinations in two steps
         if self.intermediate_states is not None:
@@ -311,7 +347,8 @@ class CombinatorialComplex(Component):
                             self.get_combinations_between(s0, si)
                         )
 
-                    # iterate through combinations of species between s0 and si
+                    # iterate through combinations of species between
+                    # s0 and si
                     for binder, bindee, cs in self.combination_dict[s0, si]:
                         if (binder, bindee, cs) not in species_added_dict:
                             species_added_dict[binder, bindee, cs] = True
@@ -335,7 +372,8 @@ class CombinatorialComplex(Component):
                             self.get_combinations_between(si, sf)
                         )
 
-                    # iterate through combinations of species between si and sf
+                    # iterate through combinations of species between
+                    # si and sf
                     for binder, bindee, cs in self.combination_dict[si, sf]:
                         if (binder, bindee, cs) not in species_added_dict:
                             species_added_dict[binder, bindee, cs] = True
@@ -351,7 +389,8 @@ class CombinatorialComplex(Component):
                                 + str(bindee),
                             )
 
-        # If there are no intermediate restrictions, compute combinations in onestep
+        # If there are no intermediate restrictions, compute
+        # combinations in onestep
         else:
             for s0 in self.initial_states:
                 for sf in self.final_states:
@@ -361,7 +400,8 @@ class CombinatorialComplex(Component):
                             self.get_combinations_between(s0, sf)
                         )
 
-                    # iterate through combinations of species between s0 and sf
+                    # iterate through combinations of species between
+                    # s0 and sf
                     for binder, bindee, cs in self.combination_dict[s0, sf]:
                         if (binder, bindee, cs) not in species_added_dict:
                             species_added_dict[binder, bindee, cs] = True
@@ -382,7 +422,9 @@ class CombinatorialComplex(Component):
     def update_reactions(self):
         mech_b = self.get_mechanism('binding')
         reactions = []
-        reactions_added_dict = {}  # save which combinations have already been added in order to not add duplicates
+        reactions_added_dict = {}  # save which combinations have
+        # already been added in order to
+        # not add duplicates
 
         # If there are intermediates, compute combinations in two steps
         if self.intermediate_states is not None:
@@ -394,7 +436,8 @@ class CombinatorialComplex(Component):
                             self.get_combinations_between(s0, si)
                         )
 
-                    # iterate through combinations of species between s0 and si
+                    # iterate through combinations of species between
+                    # s0 and si
                     for binder, bindee, cs in self.combination_dict[s0, si]:
                         if (
                             binder,
@@ -426,7 +469,8 @@ class CombinatorialComplex(Component):
                             self.get_combinations_between(si, sf)
                         )
 
-                    # iterate through combinations of species between si and sf
+                    # iterate through combinations of species between
+                    # si and sf
                     for binder, bindee, cs in self.combination_dict[si, sf]:
                         if (
                             binder,
@@ -450,7 +494,8 @@ class CombinatorialComplex(Component):
                                 + str(bindee),
                             )
 
-        # If there are no intermediate restrictions, compute combinations in onestep
+        # If there are no intermediate restrictions, compute
+        # combinations in onestep
         else:
             for s0 in self.initial_states:
                 for sf in self.final_states:
@@ -460,7 +505,8 @@ class CombinatorialComplex(Component):
                             self.get_combinations_between(s0, sf)
                         )
 
-                    # iterate through combinations of species between s0 and sf
+                    # iterate through combinations of species between
+                    # s0 and sf
                     for binder, bindee, cs in self.combination_dict[s0, sf]:
                         if (
                             binder,

@@ -6,7 +6,7 @@ from ..core.mechanism import Mechanism
 from ..core.reaction import Reaction
 from ..core.species import Species
 
-# from ..core.component import Component  # Commented out to avoid circular import
+# from ..core.component import Component  # avoid circular import
 
 
 class BasicIntegration(Mechanism):
@@ -27,8 +27,9 @@ class BasicIntegration(Mechanism):
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(self, DNA_inputs, DNA_outputs=None, **keywords):
-        # this doesn't make any species because I use a Binding mechanism for that
-        # maybe if we do the tetramerization mechanism then this would do something
+        # this doesn't make any species because I use a Binding
+        # mechanism for that maybe if we do the tetramerization
+        # mechanism then this would do something
         return []
 
     def update_reactions(
@@ -58,7 +59,13 @@ class BasicIntegration(Mechanism):
 
 
 class EnzymeIntegration(Mechanism):
-    """Mechanism for the schema integrase+DNA1 + DNA2 --> integrase+DNA3 + DNA4."""
+    """Enzymatic integrase mechanism.
+
+    Mechanism for the schema:
+
+      integrase + DNA1 + DNA2 --> integrase + DNA3 + DNA4.
+
+    """
 
     def __init__(
         self,
@@ -78,8 +85,9 @@ class EnzymeIntegration(Mechanism):
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(self, DNA_inputs, DNA_outputs=None, **keywords):
-        # this doesn't make any species because I use a Binding mechanism for that
-        # maybe if we do the tetramerization mechanism then this would do something
+        # this doesn't make any species because I use a Binding
+        # mechanism for that maybe if we do the tetramerization
+        # mechanism then this would do something
         return []
 
     def update_reactions(

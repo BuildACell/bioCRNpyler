@@ -38,7 +38,9 @@ class Propensity(object):
         """Returns a set of all subclasses of cls (recursively calculated).
 
         Source:
-        https://stackoverflow.com/questions/3862310/how-to-find-all-the-subclasses-of-a-class-given-its-name
+        https://stackoverflow.com/questions/3862310/
+            how-to-find-all-the-subclasses-of-a-class-given-its-name
+
         :param cls: A class in the codebase, for example Propensity
         :return: set of all subclasses from cls
         """
@@ -59,12 +61,18 @@ class Propensity(object):
     ):
         """Creates an sbml parameter for a parameter of the given name.
 
-        if self.propensity_dict["parameter"]["parameter_name"] is a Parameter,
-            creates a global parameter "Parameter.name_Parameter.part_id_Parameter.mechanism"
-            where part_id and mechanism can be empty (but _ will always be incldued for uniqueness).
-        if self.propensity_dict["parameter"]["parameter_name"] is a Number,
-            creates a local parameter "parameter_name".
-        rename_dict allows for param.name to be changed to rename_dict[param.name]
+        if self.propensity_dict["parameter"]["parameter_name"] is a
+        Parameter, creates a global parameter
+        "Parameter.name_Parameter.part_id_Parameter.mechanism" where
+        part_id and mechanism can be empty (but _ will always be
+        incldued for uniqueness).
+
+        if self.propensity_dict["parameter"]["parameter_name"] is a
+        Number, creates a local parameter "parameter_name".
+
+        rename_dict allows for param.name to be changed to
+        rename_dict[param.name]
+
         """
         p = self.propensity_dict['parameters'][parameter_name]
         if isinstance(p, ParameterEntry):
@@ -104,7 +112,7 @@ class Propensity(object):
             )
 
     def _check_parameter(self, parameter, allow_None=False, positive=True):
-        """A helper function used in setters to set parameters and do type checking."""
+        """Helper function to set parameters and do type checking."""
         if isinstance(parameter, Parameter) and (
             parameter.value > 0 or not positive
         ):
@@ -128,7 +136,7 @@ class Propensity(object):
                 )
 
     def _check_species(self, species, allow_None=False):
-        """A helper function used in setters to set species and do type checking."""
+        """Helper function to set species and do type checking."""
         if isinstance(species, Species):
             return species
         elif species is None and allow_None:
@@ -156,7 +164,14 @@ class Propensity(object):
             if isinstance(p, Parameter):
                 txt += f"  {k}={p.value}"  # p.pretty_print(**kwargs)+"\n"
                 if isinstance(p, ModelParameter) and show_keys:
-                    txt += f"\n  found_key=(mech={p.found_key.mechanism}, partid={p.found_key.part_id}, name={p.found_key.name}).\n  search_key=(mech={p.search_key.mechanism}, partid={p.search_key.part_id}, name={p.search_key.name})."
+                    txt += (
+                        f"\n  found_key=(mech={p.found_key.mechanism}, "
+                        f"partid={p.found_key.part_id}, "
+                        f"name={p.found_key.name})."
+                        f"\n  search_key=(mech={p.search_key.mechanism}, "
+                        f"partid={p.search_key.part_id}, "
+                        f"name={p.search_key.name})."
+                    )
                 txt += '\n'
             elif p is not None:
                 txt += f"  {k}={p}\n"
@@ -208,7 +223,7 @@ class Propensity(object):
         # Add your own simulator specific annotations here
 
         # For the bioscrape simulator:
-        # Check if `for_bioscrape` keyword argument has been passed in **kwargs
+        # Check if `for_bioscrape` keyword argument was passed in **kwargs
         if 'for_bioscrape' in kwargs:
             for_bioscrape = kwargs.get('for_bioscrape')
         else:
@@ -282,7 +297,8 @@ class GeneralPropensity(Propensity):
     ):
         """A class to define a general propensity.
 
-        :param propensity_function: valid propensity formula defined as a string
+        :param propensity_function: valid propensity formula defined as a
+            string
         :param propensity_species: list of species that are part of
             the propensity_function
         :param propensity_parameters: list of parameters that are part of

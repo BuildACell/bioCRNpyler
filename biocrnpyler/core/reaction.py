@@ -232,7 +232,12 @@ class Reaction(object):
         return txt
 
     def __eq__(self, other):
-        """Two reactions are equivalent if they have the same inputs, outputs, and propensity."""
+        """Check if reactions are equivalent.
+
+        Two reactions are equivalent if they have the same inputs,
+        outputs, and propensity.
+
+        """
         if not isinstance(other, Reaction):
             raise TypeError(
                 f"Only reactions can be compared with reaction! "
@@ -253,11 +258,13 @@ class Reaction(object):
     def __contains__(self, item: Species):
         """It checks whether a species is part of a reaction.
 
-         it checks the input and output lists as well as the propensity type for the species
+         Checks the input and output lists as well as the propensity
+         type for the species.
 
         :param item: a Species instance
         :return: bool
         :exception NotImplementedError for non-Species objects
+
         """
         if isinstance(item, Species):
             if (

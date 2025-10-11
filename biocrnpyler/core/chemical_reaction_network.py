@@ -116,7 +116,8 @@ class ChemicalReactionNetwork(object):
         """Adds a Species or a list of Species to the CRN object.
 
         :param species: Species instance or list of Species instances
-        :param copy_species: whether to deep copy Species added to the CRN. Protects CRN validity at teh expense of speed.
+        :param copy_species: whether to deep copy Species added to the CRN.
+            Protects CRN validity at teh expense of speed.
 
         """
         if not isinstance(species, list):
@@ -164,7 +165,8 @@ class ChemicalReactionNetwork(object):
         if not isinstance(reactions, list):
             reactions = [reactions]
 
-        # It is recommended to copy reactions before adding them to the CRN, so they are "protected"
+        # It is recommended to copy reactions before adding them to
+        # the CRN, so they are "protected"
         if copy_reactions:
             reactions = copy.deepcopy(
                 reactions
@@ -205,7 +207,8 @@ class ChemicalReactionNetwork(object):
             for s in initial_concentration_dict:
                 if s not in self._species_set:
                     raise ValueError(
-                        f"Trying to set the initial concentration of a Species {s} not in the CRN"
+                        "Trying to set the initial concentration of a "
+                        f"Species {s} not in the CRN"
                     )
                 elif parameter_to_value(initial_concentration_dict[s]) >= 0:
                     self.initial_concentration_dict[s] = (
@@ -213,18 +216,20 @@ class ChemicalReactionNetwork(object):
                     )
                 else:
                     raise ValueError(
-                        f"Trying to set a species {s} to a negative concentration {initial_concentration_dict[s]}"
+                        f"Trying to set a species {s} to a negative "
+                        f"concentration {initial_concentration_dict[s]}"
                     )
 
     @staticmethod
     def check_crn_validity(
         reactions: List[Reaction], species: List[Species], show_warnings=True
     ) -> Tuple[List[Reaction], List[Species]]:
-        """Checks that the given list of reactions and list of species can form a valid CRN.
+        """Checks that lists of reactions of species can form a valid CRN.
 
         :param reactions: list of reaction
         :param species: list of species
-        :param show_warnings: whether to show warning when duplicated reactions/species was found
+        :param show_warnings: whether to show warning when duplicated
+            reactions/species was found
         :return: tuple(reaction,species)
         """
         if not all(isinstance(r, Reaction) for r in reactions):
@@ -247,7 +252,8 @@ class ChemicalReactionNetwork(object):
                     "Duplicates have NOT been removed."
                 )
 
-        # check that all species in the reactions are also in the species list and vice versa
+        # check that all species in the reactions are also in the
+        # species list and vice versa
         unique_species = set(species)
         all_species_in_reactions = set(
             Species.flatten_list([r.species for r in reactions])
@@ -329,7 +335,16 @@ class ChemicalReactionNetwork(object):
 
                 if show_keys:  # shows where the initial conditions came from
                     if isinstance(init_conc, ModelParameter):
-                        txt += f"\n    found_key=(mech={init_conc.found_key.mechanism}, partid={init_conc.found_key.part_id}, name={init_conc.found_key.name}).\n    search_key=(mech={init_conc.search_key.mechanism}, partid={init_conc.search_key.part_id}, name={init_conc.search_key.name}).\n"
+                        txt += (
+                            "\n    found_key=("
+                            f"mech={init_conc.found_key.mechanism}, "
+                            f"partid={init_conc.found_key.part_id}, "
+                            f"name={init_conc.found_key.name})."
+                            "\n    search_key=("
+                            f"mech={init_conc.search_key.mechanism}, "
+                            f"partid={init_conc.search_key.part_id}, "
+                            f"name={init_conc.search_key.name}).\n"
+                        )
             txt += '\n'
 
         txt += '}\n'
@@ -363,7 +378,7 @@ class ChemicalReactionNetwork(object):
     def get_all_species_containing(
         self, species: Species, return_as_strings=False
     ):
-        """Returns all species (complexes and otherwise) containing a given species (or string)."""
+        """Return all species (complexes) containing given species."""
         return_list = []
         if not isinstance(species, Species):
             raise ValueError(
@@ -412,11 +427,12 @@ class ChemicalReactionNetwork(object):
         check_validity=True,
         **keywords,
     ):
-        """Creates an new SBML model and populates with the species and reactions in the ChemicalReactionNetwork object.
+        """Create new SBML model and populate with CRN species and reactions.
 
         :param stochastic_model: whether the model is stochastic
         :param show_warnings: of from check crn validity
-        :param keywords: extra keywords pass onto create_sbml_model() and add_all_reactions()
+        :param keywords: extra keywords pass onto create_sbml_model() and
+            add_all_reactions()
         :return: tuple: (document,model) SBML objects
         """
         if check_validity:
@@ -462,7 +478,8 @@ class ChemicalReactionNetwork(object):
         """Writes CRN object to a SBML file.
 
         :param file_name: name of the file where the SBML model gets written
-        :param stochastic_model: export an SBML file which ready for stochastic simulations
+        :param stochastic_model: export an SBML file which ready for
+            stochastic simulations
         :param keywords: keywords that passed into generate_sbml_model()
         :return: bool, show whether the writing process was successful
         """
@@ -484,7 +501,9 @@ class ChemicalReactionNetwork(object):
         return_dataframe=True,
         safe=False,
     ):
-        """Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
+        """Simulate CRN model with bioscrape.
+
+        [Bioscrape on GitHub](https://github.com/biocircuits/bioscrape).
 
         Returns the data for all species as Pandas dataframe.
         """
@@ -518,7 +537,7 @@ class ChemicalReactionNetwork(object):
         check_validity=True,
         **kwargs,
     ):
-        """Simulate CRN model with bioscrape via writing a SBML file temporarily.
+        """Simulate CRN model with bioscrape via temporary SBML file.
 
         [Bioscrape on GitHub](https://github.com/biocircuits/bioscrape).
 
@@ -542,7 +561,8 @@ class ChemicalReactionNetwork(object):
                 file_name = filename
             else:
                 raise ValueError(
-                    f"filename must be None or a string. Recievied: {filename}"
+                    "filename must be None or a string. Recievied: "
+                    f"{filename}"
                 )
 
             if 'sbml_warnings' in kwargs:
@@ -550,7 +570,8 @@ class ChemicalReactionNetwork(object):
             else:
                 sbml_warnings = False
             m = Model(sbml_filename=file_name, sbml_warnings=sbml_warnings)
-            # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
+            # Uncomment if you want a bioscrape XML written as well.
+            # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml')
             if initial_condition_dict is not None:
                 processed = process_initial_concentration_dict(
                     initial_condition_dict
@@ -584,11 +605,14 @@ class ChemicalReactionNetwork(object):
         timepoints: The array of time points to run the simulation for.
         initial_condition_dict:
 
-        Returns the results array as returned by RoadRunner OR a Roadrunner model object.
+        Returns the results array as returned by RoadRunner OR a
+        Roadrunner model object.
 
-        Refer to the libRoadRunner simulator library documentation
-        for details on simulation results: (http://libroadrunner.org/)[http://libroadrunner.org/]
+        Refer to the libRoadRunner simulator library documentation for
+        details on simulation results: https://libroadrunner.org/.
+
         NOTE : Needs roadrunner package installed to simulate.
+
         """
         res_ar = None
         try:
@@ -600,10 +624,12 @@ class ChemicalReactionNetwork(object):
                 stochastic_model=False, check_validity=check_validity
             )
             sbml_string = libsbml.writeSBMLToString(document)
-            # write the sbml_string into a temporary file in memory instead of a file
+            # write the sbml_string into a temporary file in memory instead of
+            # a file
             string_out = io.StringIO()
             string_out.write(sbml_string)
-            # use the temporary file in memory to load the model into libroadrunner
+            # use the temporary file in memory to load the model into
+            # libroadrunner
             rr = roadrunner.RoadRunner(string_out.getvalue())
             if initial_condition_dict:
                 for species, value in initial_condition_dict.items():

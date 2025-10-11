@@ -118,7 +118,12 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
         part_id=None,
         **keywords,
     ):
-        """This always requires the inputs component and part_id to find the relevant parameters."""
+        """Update reactions for membrane signaling pathway.
+
+        This always requires the inputs component and part_id to find
+        the relevant parameters.
+
+        """
         # Get Parameters
         kb_sigMS = component.get_parameter(
             'kb_sigMS', part_id=part_id, mechanism=self

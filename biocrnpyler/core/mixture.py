@@ -184,7 +184,7 @@ class Mixture(object):
                     and comp.name == component.name
                 ):
                     raise ValueError(
-                        f"{comp} of the same type and name already in Mixture!"
+                        f"{comp} of same type and name already in Mixture!"
                     )
             else:
                 # Components are copied before being added to Mixtures
@@ -200,7 +200,7 @@ class Mixture(object):
         """
         if not isinstance(mechanism_type, str):
             raise TypeError(
-                f"mechanism_type must be a string. Recievied {mechanism_type}."
+                f"mechanism_type must be a string. Received {mechanism_type}."
             )
 
         if mechanism_type in self.mechanisms:
@@ -285,7 +285,8 @@ class Mixture(object):
     def add_mechanism(self, mechanism, mech_type=None, overwrite=False):
         """Add mechanism to mixture dictionary.
 
-        Adds a mechanism of type mech_type to the Mixture mechanism_dictionary.
+        Adds a mechanism of type mech_type to the Mixture
+        mechanism_dictionary.
 
         :param mechanism: a Mechanism instance
         :param mech_type: the type of mechanism. defaults to
@@ -293,6 +294,7 @@ class Mixture(object):
         :param overwrite: whether to overwrite existing mechanisms of
             the same type (default False)
         :return:
+
         """
         if not hasattr(self, '_mechanisms'):
             self._mechanisms = {}
@@ -681,7 +683,7 @@ class Mixture(object):
         add_reaction_species: bool = True,
         compartment: Compartment = None,
     ) -> ChemicalReactionNetwork:
-        """Creates a chemical reaction network from the species and reactions associated with a mixture object (with compartment).
+        """Create chemical reaction network from mixture species, reactions.
 
         :param initial_concentration_dict: a dictionary to overwrite initial
             concentrations at the end of compile time

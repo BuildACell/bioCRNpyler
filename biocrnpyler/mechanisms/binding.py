@@ -287,7 +287,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
 
 class Combinatorial_Cooperative_Binding(Mechanism):
-    """A reaction where some number of binders bind combinatorially to a bindee."""
+    """Reaction where some number binders bind combinatorially to bindee."""
 
     def __init__(
         self,
@@ -296,13 +296,21 @@ class Combinatorial_Cooperative_Binding(Mechanism):
     ):
         """Initializes a Combinatorial_Cooperative_Binding instance.
 
-        :param name: name of the Mechanism, default: Combinatorial_Cooperative_binding
-        :param mechanism_type: type of the Mechanism, default: cooperative_binding
+        :param name: name of the Mechanism, default: \
+            Combinatorial_Cooperative_binding
+        :param mechanism_type: type of the Mechanism, default: \
+            cooperative_binding
         """
         Mechanism.__init__(self, name, mechanism_type)
 
     def make_cooperative_complex(self, combo, bindee, cooperativity):
-        """Given a list of binders and their cooperativities, make a complex that contains the binders present N number of times where N is each one's cooperativity."""
+        """Make complex containing multipple binders.
+
+        Given a list of binders and their cooperativities, make a complex that
+        contains the binders present N number of times where N is each one's
+        cooperativity.
+
+        """
         complexed_species_list = []
         for binder in combo:
             binder_cooperativity = int(cooperativity[binder.name])
@@ -339,8 +347,9 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                 )
                 and (component is not None)
             ):
-                # here we are extracting the relevant cooperativity value from the dictionary which should be passed
-                # in as the cooperativity argument
+                # here we are extracting the relevant cooperativity value from
+                # the dictionary which should be passed in as the
+                # cooperativity argument
                 coop_val = component.get_parameter(
                     'cooperativity',
                     part_id=binder_partid,
@@ -361,8 +370,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
 
         for i in range(1, len(binders) + 1):
             for combo in it.combinations(binders, i):
-                # go through every possible combination of reactants and dna and make
-                # all the complexes
+                # go through every possible combination of reactants and dna
+                # and make all the complexes
                 out_species += [
                     self.make_cooperative_complex(
                         combo, bindee, cooperativity_dict
@@ -460,7 +469,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                     reactant = tuple(set(combo) - set([binder]))
                     rxn_prototype = (binder, reactant)
 
-                    # this part makes a describer of the reaction; which reactants are combining?
+                    # this part makes a describer of the reaction; which
+                    # reactants are combining?
                     # print(rxn_prototype)
                     # print(rxndict)
                     if rxn_prototype in rxndict:

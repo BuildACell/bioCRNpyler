@@ -53,9 +53,10 @@ class CombinatorialConformation(Component):
         :param final_states: one or more PolymerConformations.
         :param initial_states: a list of initial PolymerConformations
             which can bind/unbind to become the final_state
-        :param intermediate_states: a list of intermediate PolymerConformations
-            formed when converting initial_states to final_states. If None,
-            all possible intermediate PolymerConformations are enumerated.
+        :param intermediate_states: a list of intermediate
+            PolymerConformations formed when converting initial_states to
+            final_states. If None, all possible intermediate
+            PolymerConformations are enumerated.
         :param excluded_states: a list of intermediate PolymerConformations
             which will not be formed during enumeration. If None, no
             intermediates will be excluded.
@@ -344,7 +345,7 @@ class CombinatorialConformation(Component):
 
                     new_complex = Complex(species_list)
 
-                    # Determine which complexes to remove from the conformation
+                    # Determine which complexes to remove from conformation
                     if complexes_to_merge is None:
                         merged_complexes = None
                     else:
@@ -385,7 +386,7 @@ class CombinatorialConformation(Component):
     def update_species(self):
         mech_c = self.get_mechanism('conformation_change')
         species = []
-        self.combination_dict = {}  # should be recomputed every updated species
+        self.combination_dict = {}  # should recompute every updated species
 
         # If there are intermediates, compute combinations in two steps
         if self.intermediate_states is not None:
@@ -495,7 +496,7 @@ class CombinatorialConformation(Component):
                             self.get_combinations_between(s0, si)
                         )
 
-                    # iterate through combinations of species between s0 and si
+                    # Iterate thru combinations of species between s0 and si
                     for s00, additional_species, sff in self.combination_dict[
                         s0, si
                     ]:
@@ -521,7 +522,7 @@ class CombinatorialConformation(Component):
                             self.get_combinations_between(si, sf)
                         )
 
-                    # iterate through combinations of species between si and sf
+                    # Iterate thru combinations of species between si and sf
                     for s00, additional_species, sff in self.combination_dict[
                         si, sf
                     ]:
@@ -550,7 +551,7 @@ class CombinatorialConformation(Component):
                             self.get_combinations_between(s0, sf)
                         )
 
-                    # iterate through combinations of species between s0 and sf
+                    # Iterate thru combinations of species between s0 and sf
                     for s00, additional_species, sff in self.combination_dict[
                         s0, sf
                     ]:

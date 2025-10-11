@@ -58,8 +58,9 @@ class Construct(Component, OrderedPolymer):
             initial_concentration=initial_concentration,
             **kwargs,
         )
-        # TODO: material_type is not used; setting it here generates an error
-        # self.material_type = material_type  # RMM, 14 Sep '25: was not being set
+        # TODO: material_type is not used; setting it here generates
+        # an error self.material_type = material_type # RMM, 14 Sep
+        # '25: was not being set
         self.update_parameters()
         self.transcripts = []
         self.out_components = None
@@ -189,7 +190,12 @@ class Construct(Component, OrderedPolymer):
             part.set_mixture(mixture)
 
     def update_permutation_hash(self):
-        """Update the unique string generated to represent the content of this dna construct regardless of orientation and rotation."""
+        """Update hash for this DNA construct.
+
+        Update the unique string generated to represent the content of
+        this dna construct regardless of orientation and rotation.
+
+        """
         self.directionless_hash, _, _ = Construct.omnihash(self)
 
     def update_base_species(self, base_name=None, attributes=None):
@@ -244,7 +250,7 @@ class Construct(Component, OrderedPolymer):
         return 'Construct = ' + self.make_name()
 
     def __contains__(self, obj2):
-        """Checks if this construct contains a certain part, or a copy of a certain part."""
+        """Checks if construct contains a certain part (or copy)."""
         if isinstance(obj2, DNA_part):
             # if we got a DNA part it could mean one of two things:
             # 1 we want to know if a dna part is anywhere
@@ -270,7 +276,7 @@ class Construct(Component, OrderedPolymer):
             return obj2 in str(self)
 
     def get_species(self):
-        """Returns the species of this dna construct, using OrderedPolymerSpecies."""
+        """Returns species of DNA construct, using OrderedPolymerSpecies."""
         ocomplx = []
         for part in self.parts_list:
             partspec = copy.copy(part.dna_species)
@@ -324,7 +330,7 @@ class Construct(Component, OrderedPolymer):
         comb_list = all_comb(compacted_indexes)
 
         def recursive_path(in_list):
-            """This function takes every possible "path" through a list of lists.
+            """Takes every possible "path" through a list of lists.
 
             For example:
             input:  [[A,B],[C],[D,E]]
@@ -368,7 +374,8 @@ class Construct(Component, OrderedPolymer):
         """Makes polymers from lists of species.
 
         inputs:
-        species_lists: list of species which are to be assembled into a polymer
+        species_lists: list of species which are to be assembled into a
+            polymer
         backbone: the base_species which all these polymers should have
         """
         polymers = []
@@ -449,7 +456,10 @@ class Construct(Component, OrderedPolymer):
         return new_constructs
 
     def combinatorial_enumeration(self):
-        """Returns a list of new components that are copies of existing components, but with a different species placed inside.
+        """Generate combination of components.
+
+        Returns a list of new components that are copies of existing
+        components, but with a different species placed inside.
 
         This different species represents different combinatorial
         states of the polymer.  for example:
@@ -549,7 +559,12 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def get_partstring(cls, part):
-        """A string name of a part including its name and direction (and not position)."""
+        """Get string name of a part (including direction).
+
+        A string name of a part including its name and direction (and
+        not position).
+
+        """
         orphan = part.get_orphan()
         orphan.direction = None
         orphan.position = None
@@ -559,7 +574,12 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def get_partlist_hash(cls, partlist):
-        """Creates a string containing the name and direction of all parts in a list of parts (but not their position)."""
+        """Get hash for a list of parts.
+
+        Creates a string containing the name and direction of all
+        parts in a list of parts (but not their position).
+
+        """
         partlist_str = '_'.join(
             [
                 str(a[0]) + str(b)
@@ -570,7 +590,12 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def create_hashless_reverse(cls, construct):
-        """Create a reverse construct but don't calculate its hash (because that would make an infinite loop)."""
+        """Create reverse construction without hash.
+
+        Create a reverse construct but don't calculate its hash (because that
+        would make an infinite loop).
+
+        """
         rev_con = [a.get_orphan() for a in construct]
         for rev_part, origpart in zip(rev_con, construct):
             rev_part.direction = {'forward': 'reverse', 'reverse': 'forward'}[
@@ -584,7 +609,10 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def rotation_free_hash(cls, construct):
-        """Calculates a unique circular permutation that is the most alphabetically ordered.
+        """Compute alphabetically ordered, circular permutation.
+
+        Calculates a unique circular permutation that is the most
+        alphabetically ordered.
 
         Every part is considered as a potential starting point, and the most
         alphabetically ordered order is then chosen as the best permutation
@@ -661,7 +689,7 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def direction_rotation_free_hash(cls, construct):
-        """Computes the best circular permutation of a construct, forward and reverse.
+        """Best circular permutation of a construct, forward and reverse.
 
         Then returns whichever one of those comes alphabetically first.
 
@@ -685,7 +713,7 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def linear_direction_free_hash(cls, construct):
-        """Creates a string representing the construct forward or reverse, and returns whichever of those is alphabetically first.
+        """String representing the construct forward or reverse.
 
         Returns:
         hash of the most alphabetical ordering, direction of the ordering
@@ -732,7 +760,10 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def omnihash(cls, construct):
-        """A construct can exist forwards or backwards, and circularly permuted (but only if it's a circular construct).
+        """Construct best circullar permutation and ordering.
+
+        A construct can exist forwards or backwards, and circularly permuted
+        (but only if it's a circular construct).
 
         This function creates the "best" circular permutation and ordering
         of a construct. But the circular permutation is only calculated if
@@ -765,7 +796,12 @@ class Construct(Component, OrderedPolymer):
         return OrderedPolymer.__hash__(self)
 
     def __eq__(self, construct2):
-        """Equality means comparing the parts list in a way that is not too deep."""
+        """Compare two constructs to see if they are equal.
+
+        Equality means comparing the parts list in a way that is not too
+        deep.
+
+        """
         # TODO: make this be a python object comparison
         if self.__repr__() == construct2.__repr__() and (
             self.name == construct2.name

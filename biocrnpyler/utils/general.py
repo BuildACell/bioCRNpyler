@@ -46,7 +46,8 @@ def remove_bindloc(spec_list):
 
     out_sp_list = []
     for s in spec_list:
-        # go through the species and replace species with their parents, recursively
+        # go through the species and replace species with their
+        # parents, recursively
         if isinstance(s, WeightedSpecies):
             parent = recursive_parent(s.species)
             s.species = parent
@@ -94,7 +95,7 @@ def combine_dictionaries(dict1, dict2):
 
 
 def member_dictionary_search(member, dictionary):
-    """Searches through a dictionary for keys relevant to the given data member.
+    """Searches dictionary for keys relevant to the given data member.
 
     Order of returning:
     repr

@@ -625,7 +625,8 @@ class ParameterDatabase(object):
             # Determine which columns are in the CSV
             if field_names['param_name'] is None:
                 warn(
-                    "No param_name column was found, could not load parameter!"
+                    "No param_name column was found, "
+                    "could not load parameter!"
                 )
             if field_names['mechanism'] is None:
                 no_mechism_column = True
@@ -769,11 +770,12 @@ class ParameterDatabase(object):
     def _get_field_names(
         field_names: List[str], accepted_field_names: Dict[str, List[str]]
     ) -> Dict[str, str]:
-        """Searches through valid field names and finds the currently used one.
+        """Searches through valid field names and finds currently used one.
 
         It builds a dictionary of currently used field names.
 
-        :param field_names: list of field names (columns) found in the csv file
+        :param field_names: list of field names (columns) found in the
+            csv file
         :param accepted_field_names: dictionary of possible field names and
             their valid aliases
         :return: dictionary of currently used field names (aliases)

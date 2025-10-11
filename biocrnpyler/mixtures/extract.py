@@ -22,9 +22,11 @@ from ..mechanisms.txtl import (
 
 
 class ExpressionExtract(Mixture):
-    """A Model for Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.).
+    """Gene expression without any machinery (ribosomes, polymerases, etc.).
 
-    Here transcription and Translation are lumped into one reaction: expression.
+    Here transcription and Translation are lumped into one reaction:
+    expression.
+
     """
 
     def __init__(self, name='', **kwargs):
@@ -54,17 +56,24 @@ class ExpressionExtract(Mixture):
         self.add_mechanisms(default_mechanisms)
 
     def compile_crn(self, **keywords) -> ChemicalReactionNetwork:
-        """Overwriting compile_crn to turn off transcription in all DNAassemblies.
+        """Compile CRN, turning off transcription.
+
+        Overwriting compile_crn to turn off transcription in all
+        DNAassemblies.
 
         :return: compiled CRN instance
+
         """
         for component in self.components:
             if isinstance(component, DNAassembly):
-                # Only turn off transcription for an Assembly that makes a Protein.
-                # Some assemblies might only make RNA!
+                # Only turn off transcription for an Assembly that
+                # makes a Protein.  Some assemblies might only make
+                # RNA!
                 if component.protein is not None:
-                    # This will turn off transcription and set Promoter.transcript = False
-                    # Mechanisms that recieve no transcript but a protein will use the protein instead.
+                    # This will turn off transcription and set
+                    # Promoter.transcript = False Mechanisms that
+                    # recieve no transcript but a protein will use the
+                    # protein instead.
                     component.update_transcript(False)
 
         # Call the superclass function
@@ -72,9 +81,10 @@ class ExpressionExtract(Mixture):
 
 
 class SimpleTxTlExtract(Mixture):
-    """A Model for Transcription and Translation in an extract any Machinery (eg Ribosomes, Polymerases, etc.).
+    """Transcription and translation in extract w/out any machinery.
 
-    RNA is degraded via a global mechanism.
+    Transcriptoin and translation without ribosomes, polymerases,
+    etc.  RNA is degraded via a global mechanism.
 
     """
 
@@ -112,7 +122,10 @@ class SimpleTxTlExtract(Mixture):
 
 
 class TxTlExtract(Mixture):
-    """A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
+    """Transcription and translation with expression machinery.
+
+    A Model for Transcription and Translation in Cell Extract with
+    Ribosomes, Polymerases, and Endonucleases.
 
     This model does not include any energy.
 
@@ -159,7 +172,7 @@ class TxTlExtract(Mixture):
 
 
 class EnergyTxTlExtract(Mixture):
-    """A Model for Transcription and Translation in Cell Extract with Ribosomes, Polymerases, and Endonucleases.
+    """Transcription and translation in extract with machinery, energy.
 
     This model include energy carrier molcules in the form of NTPs,
     Amino Acids, and a Fuel Species (such as 3PGA) used for NTP

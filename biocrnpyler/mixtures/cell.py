@@ -19,10 +19,12 @@ from ..mechanisms.txtl import (
 
 
 class ExpressionDilutionMixture(Mixture):
-    """A Model for in-vivo Gene Expression without any Machinery (eg Ribosomes, Polymerases, etc.).
+    """In vivo gene expression without any machinery.
 
-    Here transcription and Translation are lumped into one reaction: expression.
-    A global mechanism is used to dilute all non-dna species
+    Here transcription and translation are lumped into one reaction:
+    expression, without RNA polymerase or ribosomes.  A global mechanism is
+    used to dilute all non-DNA species.
+
     """
 
     def __init__(self, name='', **kwargs):
@@ -57,19 +59,22 @@ class ExpressionDilutionMixture(Mixture):
         self.add_mechanisms(global_mechanisms)
 
     def compile_crn(self, **keywords) -> ChemicalReactionNetwork:
-        """Overwriting compile_crn to replace transcripts with proteins for all DNA_assemblies.
+        """Compile CRN, replacing transcripts with proteins.
 
-        Overwriting compile_crn to turn off transcription in all DNAassemblies
+        Overwriting compile_crn to turn off transcription in all
+        DNAassemblies.
 
         :return: compiled CRN instance
+
         """
         for component in self.components:
             if isinstance(component, DNAassembly):
-                # Only turn off transcription for an Assembly that makes a Protein.
-                # Some assemblies might only make RNA!
+                # Only turn off transcription for an Assembly that makes a
+                # Protein.  Some assemblies might only make RNA!
                 if component.protein is not None:
-                    # This will turn off transcription and set Promoter.transcript = False
-                    # Mechanisms that recieve no transcript but a protein will use the protein instead.
+                    # This will turn off transcription and set
+                    # Promoter.transcript = False Mechanisms that recieve no
+                    # transcript but a protein will use the protein instead.
                     component.update_transcript(False)
 
         # Call the superclass function
@@ -79,8 +84,10 @@ class ExpressionDilutionMixture(Mixture):
 class SimpleTxTlDilutionMixture(Mixture):
     """Mixture with continuous dilution for non-DNA species.
 
-    Transcription and Translation are both modeled as catalytic with no cellular machinery.
-    mRNA is also degraded via a separate reaction to represent endonucleases
+    Transcription and Translation are both modeled as catalytic with no
+    cellular machinery.  mRNA is also degraded via a separate reaction to
+    represent endonucleases.
+
     """
 
     def __init__(self, name='', **keywords):
@@ -128,7 +135,7 @@ class SimpleTxTlDilutionMixture(Mixture):
 
 
 class TxTlDilutionMixture(Mixture):
-    """A Model for Transcription and Translation with Ribosomes, Polymerases, and Endonucleases labelled as Machinery.
+    """Transcription and translation with expression machinery.
 
     This model includes a background load "cellular processes" which
     represents innate loading effects in the cell.  Effects of loading

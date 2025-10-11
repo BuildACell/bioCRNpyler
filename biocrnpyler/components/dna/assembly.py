@@ -57,7 +57,8 @@ class DNAassembly(DNA):
         self.rbs = None
         self.transcript = None
 
-        # This has to be called at the end so mechanisms are set for the promoter, RBS, etc.
+        # This has to be called at the end so mechanisms are set for
+        # the promoter, RBS, etc.
         DNA.__init__(
             self,
             name,
@@ -268,9 +269,13 @@ class DNAassembly(DNA):
         if self.rbs is not None:
             species += self.rbs.update_species()
 
-        # deg_mech = self.get_mechanism("rna_degradation", optional_mechanism=True)
-        # if deg_mech is not None and self.promoter is not None and self.transcript is not None:
-        #    species += deg_mech.update_species(rna=self.transcript, component=self.promoter, part_id=self.transcript.name)
+        # deg_mech = self.get_mechanism(
+        #    "rna_degradation", optional_mechanism=True)
+        # if deg_mech is not None and self.promoter is not None \
+        #    and self.transcript is not None:
+        #    species += deg_mech.update_species(
+        #        rna=self.transcript, component=self.promoter,
+        #        part_id=self.transcript.name)
 
         return species
 
@@ -286,9 +291,13 @@ class DNAassembly(DNA):
         if self.rbs is not None:
             reactions += self.rbs.update_reactions()
 
-        # deg_mech = self.get_mechanism("rna_degradation", optional_mechanism=True)
-        # if deg_mech is not None and self.promoter is not None and self.transcript is not None:
-        #    reactions += deg_mech.update_reactions(rna=self.transcript, component=self.promoter, part_id=self.transcript.name)
+        # deg_mech = self.get_mechanism(
+        #     "rna_degradation", optional_mechanism=True)
+        # if deg_mech is not None and self.promoter is not None \
+        #    and self.transcript is not None:
+        #    reactions += deg_mech.update_reactions(
+        #        rna=self.transcript, component=self.promoter,
+        #        part_id=self.transcript.name)
 
         return reactions
 
@@ -333,15 +342,17 @@ class DNAassembly(DNA):
         overwrite: bool = False,
         optional_mechanism: bool = False,
     ) -> None:
-        """Adds a mechanism of type mech_type to the Component Mechanism dictionary.
+        """Adds mechanism to the Component mechanism dictionary.
 
-        DNA_assembly also adds the mechanisms to its promoter and rbs (but never overwrites them!)
+        DNA_assembly also adds the mechanisms to its promoter and rbs
+        (but never overwrites them!).
 
         :param mechanism: reference to a Mechanism instance
         :param mech_type: type of mechanism
         :param overwrite: whether to overwrite the mechanism in Component
         :param optional_mechanism:
         :return: None
+
         """
         Component.add_mechanism(
             self,

@@ -78,7 +78,7 @@ class RBS(DNA_part):
         return reactions
 
     def update_component(self, internal_species=None, **keywords):
-        """Returns a copy of this component, except with the proper fields updated."""
+        """Copy of component, except with the proper fields updated."""
         if isinstance(self.parent, DNA):
             return None
         elif isinstance(self.parent, RNA):
@@ -90,7 +90,8 @@ class RBS(DNA_part):
                 return None
             else:
                 raise AttributeError(
-                    f"Unknown direction {self.direction} encountered in {self}"
+                    f"Unknown direction {self.direction} encountered in "
+                    f"{self}"
                 )
         else:
             return None
@@ -98,7 +99,7 @@ class RBS(DNA_part):
 
     @classmethod
     def from_rbs(cls, name, assembly, transcript, protein):
-        """Helper function to initialize a rbs instance from another rbs or str.
+        """Initialize an RBS instance from another RBS or str.
 
         :param name: either string or an other rbs instance
         :param assembly:

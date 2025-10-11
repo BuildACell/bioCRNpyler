@@ -1,7 +1,10 @@
-"""The classes OrderedPolymer and OrderedMonomer are datastructures used to represent Polymers and their associatd components.
+"""Polymer support module.
 
-These classes are used by Chemical Reaction Network Species as well as
-certain Components such as DNA_construct.
+The classes OrderedPolymer and OrderedMonomer are datastructures used
+to represent Polymers and their associatd components.
+
+These classes are used by Chemical Reaction Network Species as well as certain
+Components such as DNA_construct.
 
 """
 
@@ -97,7 +100,8 @@ class OrderedPolymer(MonomerCollection):
         pass
 
     def insert(self, position, part, direction=None):
-        # OrderedMonomers are always copied when inserted into an OrderedPolymer
+        # OrderedMonomers are always copied when inserted into an
+        # OrderedPolymer
         part_copy = copy.copy(part)
 
         if direction is None:
@@ -235,9 +239,11 @@ class OrderedMonomer:
         """The default is that the monomer is not part of a polymer."""
         self.parent = None
         self.direction = None
-        # Set position to prevent weird testing errors of not having attributes
+        # Set position to prevent weird testing errors of not having
+        # attributes
         self.position = None
-        # by default, we assume that an orderedmonomer is not part of a polymer
+        # by default, we assume that an orderedmonomer is not part of a
+        # polymer
         self.is_polymer_component = False
         # Set properties correctly
         self.parent = parent

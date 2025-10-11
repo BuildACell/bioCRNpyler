@@ -12,7 +12,7 @@ from .enzyme import MichaelisMentenCopy
 
 
 class OneStepGeneExpression(Mechanism):
-    """A mechanism to model gene expression without transcription or translation.
+    """Gene expression without transcription or translation.
 
     G --> G + P
     """
@@ -186,7 +186,7 @@ class SimpleTranslation(Mechanism):
 
 
 class PositiveHillTranscription(Mechanism):
-    """A mechanism to model transcription as a proprotional positive hill function.
+    """Model transcription as a proprotional positive Hill function.
 
     G --> G + P
 
@@ -203,7 +203,8 @@ class PositiveHillTranscription(Mechanism):
     ):
         """Initializes a PositiveHillTranscription instance.
 
-        :param name: name of the Mechanism, default: positivehill_transcription
+        :param name: name of the Mechanism, default:
+             positivehill_transcription
         :param mechanism_type: type of the Mechanism, default: transcription
 
         """
@@ -224,7 +225,7 @@ class PositiveHillTranscription(Mechanism):
         if protein is not None:
             species += [protein]
 
-        return species  # it is best to return all species that will be involved in the reactions
+        return species  # return all species involved in the reactions
 
     def update_reactions(
         self,
@@ -237,7 +238,10 @@ class PositiveHillTranscription(Mechanism):
         protein=None,
         **keywords,
     ):
-        """This always requires the inputs component and part_id to find the relevant parameters.
+        """Update reactions for positive Hill transcription.
+
+        This always requires the inputs component and part_id to find
+        the relevant parameters.
 
         :param dna:
         :param regulator:
@@ -248,6 +252,7 @@ class PositiveHillTranscription(Mechanism):
         :param protein:
         :param keywords:
         :return:
+
         """
         ktx = component.get_parameter('k', part_id=part_id, mechanism=self)
         n = component.get_parameter('n', part_id=part_id, mechanism=self)
@@ -262,7 +267,8 @@ class PositiveHillTranscription(Mechanism):
 
         reactions = []
 
-        # First case only true in Mixtures without transcription (eg Expression Mixtures)
+        # First case only true in Mixtures without transcription (eg
+        # Expression Mixtures)
         if transcript is None and protein is not None:
             tx_output = protein
         else:
@@ -288,7 +294,7 @@ class PositiveHillTranscription(Mechanism):
 
 
 class NegativeHillTranscription(Mechanism):
-    """A mechanism to model transcription as a proprotional negative hill function.
+    """Model transcription as a proportional negative Hill function.
 
     G --> G + P
 
@@ -305,7 +311,8 @@ class NegativeHillTranscription(Mechanism):
     ):
         """Initializes a NegativeHillTranscription instance.
 
-        :param name: name of the Mechanism, default: negativehill_transcription
+        :param name: name of the Mechanism, default:
+            negativehill_transcription
         :param mechanism_type: type of the Mechanism, default: transcription
 
         """
@@ -326,7 +333,7 @@ class NegativeHillTranscription(Mechanism):
         if protein is not None:
             species += [protein]
 
-        return species  # it is best to return all species that will be involved in the reactions
+        return species  # return all species involved in the reactions
 
     def update_reactions(
         self,
@@ -339,7 +346,10 @@ class NegativeHillTranscription(Mechanism):
         protein=None,
         **keywords,
     ):
-        """This always requires the inputs component and part_id to find the relevant parameters.
+        """Update reactions for negative Hill transcription.
+
+        This always requires the inputs component and part_id to find
+        the relevant parameters.
 
         :param dna:
         :param regulator:
@@ -350,6 +360,7 @@ class NegativeHillTranscription(Mechanism):
         :param protein:
         :param keywords:
         :return:
+
         """
         ktx = component.get_parameter('k', part_id=part_id, mechanism=self)
         n = component.get_parameter('n', part_id=part_id, mechanism=self)
@@ -364,7 +375,8 @@ class NegativeHillTranscription(Mechanism):
 
         reactions = []
 
-        # First case only true in Mixtures without transcription (eg Expression Mixtures)
+        # First case only true in Mixtures without transcription (eg
+        # Expression Mixtures)
         if transcript is None and protein is not None:
             tx_output = protein
         else:
@@ -539,11 +551,16 @@ class Energy_Transcription_MM(Mechanism):
     """Michaelis Menten Transcription that consumed energy.
 
     G + RNAP <--> G:RNAP
-    Fuel + G:RNAP --> G + RNAP + T + Fuel (Transcription can only happen when there is fuel)
-        at rate ktx/L (length dependent transcription rate)
+    Fuel + G:RNAP --> G + RNAP + T + Fuel
 
-    Fuel + G:RNAP --> G:RNAP +wastes (Fuel consumption treated faster)
-        at rate ktx (This occurs L times faster than the above, resulting in the correct fuel use)
+    Transcription can only happen when there is fuel, at rate ktx/L
+    (length dependent transcription rate)
+
+    Fuel + G:RNAP --> G:RNAP + wastes
+
+    Fuel consumption treated faster at rate ktx. This occurs L times
+    faster than the above, resulting in the correct fuel use.
+
     """
 
     def __init__(
@@ -649,7 +666,8 @@ class Energy_Translation_MM(Mechanism):
         """Initializes a Translation_MM instance.
 
         :param ribosome: Species instance that is representing a ribosome
-        :param fuels: List of fuel Species that are consumed during translation
+        :param fuels: List of fuel Species that are consumed during
+            translation
         :param wastes: List of Species consumed during translation
         :param name: name of the Mechanism, default: energy_translation_mm
         """
@@ -732,9 +750,11 @@ class multi_tx(Mechanism):
     DNA:RNAp_n_c --> DNA:RNAp_0_c + n RNAp + n mRNA
 
     n --> number of open configuration RNAp on DNA
-    max_occ --> Physical maximum number of RNAp on DNA (based on RNAp and DNA dimensions)
+    max_occ --> Physical maximum number of RNAp on DNA (based on
+        RNAp and DNA dimensions)
     DNA:RNAp_n --> DNA with n open configuration RNAp on it
-    DNA:RNAp_n_c --> DNA with n open configuration RNAp and 1 closed configuration RNAp on it
+    DNA:RNAp_n_c --> DNA with n open configuration RNAp and 1 closed
+        configuration RNAp on it
 
     For more details, see examples/MultiTX_Demo.ipynb
     """
@@ -748,7 +768,8 @@ class multi_tx(Mechanism):
     ):
         """Initializes a multi_tx instance.
 
-        :param pol: reference to a species instance that represents a polymerase
+        :param pol: reference to a species instance that represents a
+            polymerase
         :param name: name of the Mechanism, default: multi_tx
         :param mechanism_type: type of the mechanism, default: transcription
         :param keywords:
@@ -852,7 +873,12 @@ class multi_tx(Mechanism):
             )
             for n in range(0, max_occ - 1)
         ]
-        # rxn_open_pr = [Reaction.from_massaction(inputs=[cp_closed[n + 1]], outputs=[self.pol, cp_open[n], ], k_forward=k2) for n in range(0, max_occ - 1)]
+        # rxn_open_pr = [
+        #    Reaction.from_massaction(
+        #        inputs=[cp_closed[n + 1]], outputs=[self.pol, cp_open[n], ],
+        #        k_forward=k2)
+        #    for n in range(0, max_occ - 1)
+        #    ]
 
         # isomerization
         # complex(n)_closes --> complex(n)
@@ -918,9 +944,11 @@ class multi_tl(Mechanism):
     mRNA:RBZ_n_c --> mRNA:RBZ_0_c + n RBZ + n Protein
 
     n --> number of open configuration RBZ on mRNA
-    max_occ --> Physical maximum number of RBZ on mRNA (based on RBZ and mRNA dimensions)
+    max_occ --> Physical maximum number of RBZ on mRNA
+        (based on RBZ and mRNA dimensions)
     mRNA:RBZ_n --> mRNA with n open configuration RBZ on it
-    mRNA:RBZ_n_c --> mRNA with n open configuration RBZ and 1 closed configuration RBZ on it
+    mRNA:RBZ_n_c --> mRNA with n open configuration RBZ and 1
+        closed configuration RBZ on it
 
     For more details, see examples/MultiTX_Demo.ipynb
     """
@@ -1074,7 +1102,9 @@ class multi_tl(Mechanism):
             k_forward=kb,
             k_reverse=ku,
         )
-        # rxn_m2 = Reaction.from_massaction(inputs=[cp_closed[0]], outputs=[transcript, self.ribosome], k_forward=kur)
+        # rxn_m2 = Reaction.from_massaction(
+        #     inputs=[cp_closed[0]], outputs=[transcript, self.ribosome],
+        #     k_forward=kur)
 
         rxn_all = (
             [rxn_m1]

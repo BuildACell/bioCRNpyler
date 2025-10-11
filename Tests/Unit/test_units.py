@@ -49,6 +49,6 @@ class TestUnits(TestCase):
             check(unit_definition, 'create new unit definition')
         with self.assertRaisesRegex(
             ValueError,
-            'The arguments are not of expected type. unit_id must be a string.',
+            'Arguments are not of expected type. unit_id must be a string.',
         ):
             create_new_unit_definition(sbml_model, 24)

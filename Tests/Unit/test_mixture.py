@@ -47,7 +47,7 @@ class TestMixture(TestCase):
         # test that the same component cannot be added again
         with self.assertRaisesRegex(
             ValueError,
-            f'{component} of the same type and name already in Mixture!',
+            f'{component} of same type and name already in Mixture!',
         ):
             mixture.add_component(component)
 

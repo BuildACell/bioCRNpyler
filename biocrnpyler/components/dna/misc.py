@@ -52,7 +52,8 @@ class DNABindingSite(DNA_part):
                     component=self,
                     part_id=binder.name,
                 )
-                # TODO: different proteins probably have different affinity to bind this sequence
+                # TODO: different proteins probably have different
+                # affinity to bind this sequence
         return spec
 
     def update_reactions(self):
@@ -69,7 +70,7 @@ class DNABindingSite(DNA_part):
         return rxns
 
     def update_component(self, internal_species=None, **keywords):
-        """Returns a copy of this component, except with the proper fields updated."""
+        """Copy of component, except with the proper fields updated."""
         if isinstance(self.parent, DNA):
             out_component = copy.copy(self)
             out_component.dna_to_bind = internal_species
@@ -137,39 +138,39 @@ class IntegraseSite(DNABindingSite):
         return recomp
 
     def update_component(self, internal_species=None, **keywords):
-        """Returns a copy of this component, except with the proper fields updated."""
+        """Copy of  component, except with the proper fields updated."""
         newcomp = DNABindingSite.update_component(
             self, internal_species=internal_species
         )
-        # above is updating the component to take into account integrase binding (the default feature of DNABindingSite)
+        # above is updating the component to take into account
+        # integrase binding (the default feature of DNABindingSite)
         if newcomp is None:
-            # if nothing binds, then nothing else happens. Since, integrase must be bound in order for integrase sites to do anything
+            # if nothing binds, then nothing else happens. Since,
+            # integrase must be bound in order for integrase sites to
+            # do anything
             return None
         elif 'practice_run' in keywords and keywords['practice_run']:
-            # combinatorial enumeration calls update_component twice.
-            # an integrase site must inform all the sites it is linked to that it has been
-            # updated. In certain cases the status of whether a site has been updated is informative
-            # intramolecular sites only output reactions if they haven't been updated
-            # intermolecular sites only output reactions if they have been updated
-            # a site can be both types, it depends on the contents of self.linked_sites[site]
+            # combinatorial enumeration calls update_component twice.  an
+            # integrase site must inform all the sites it is linked to that it
+            # has been updated. In certain cases the status of whether a site
+            # has been updated is informative intramolecular sites only output
+            # reactions if they haven't been updated intermolecular sites only
+            # output reactions if they have been updated a site can be both
+            # types, it depends on the contents of self.linked_sites[site]
 
-            # however, during the practice run we are trying to preserve the "initial" configuration
-            # that the sites get after they are first created.
-            # schematic:
-            # site1 <===> site2
-            #  ||        /\
-            # update      /
-            #  ||       /
-            # \../     /
-            # copy(site1)
+            # however, during the practice run we are trying to preserve the
+            # "initial" configuration that the sites get after they are first
+            # created.  schematic: site1 <===> site2 || /\ update / || / \../
+            # / copy(site1)
             #
             # this site is linked to site2 but site2 is not linked to the copy
             # this is what we are trying to fix here
             for othersite_tpl in self.linked_sites:
                 othersite = othersite_tpl[0]
                 intermolecular = othersite_tpl[1]
-                # what we are doing here is swapping out the link to this site with
-                # a link to the returned component (the copied site)
+                # what we are doing here is swapping out the link to
+                # this site with a link to the returned component (the
+                # copied site)
                 self_tuple = (self, intermolecular)
                 mystuff = copy.copy(othersite.linked_sites[self_tuple])
                 del othersite.linked_sites[self_tuple]
@@ -179,15 +180,18 @@ class IntegraseSite(DNABindingSite):
             for othersite_tpl in self.linked_sites:
                 othersite = othersite_tpl[0]
                 intermolecular = othersite_tpl[1]
-                populate = True  # by default, add the appropriate data members to the other site
+                populate = True  # by default, add the appropriate
+                # data members to the other site
                 if not intermolecular:
                     # the reaction with the site in question is intramolecular
-                    # that means we should only populate the other site if our internal_species
-                    # has the proper location bound by integrase
-                    # if the reaction is intramolecular, that means that this component knows everything in order to decide
-                    # create the reaction.
-                    # the linked site is populated because then the linked site knows not to create the reaction.
-                    # after all, there is one reaction per two sites
+                    # that means we should only populate the other site if our
+                    # internal_species has the proper location bound by
+                    # integrase if the reaction is intramolecular, that means
+                    # that this component knows everything in order to decide
+                    # create the reaction.  the linked site is populated
+                    # because then the linked site knows not to create the
+                    # reaction.  after all, there is one reaction per two
+                    # sites
 
                     if self.integrase_binding:
                         otherisbound = (
@@ -202,9 +206,11 @@ class IntegraseSite(DNABindingSite):
                     if not otherisbound:
                         populate = False
                 if populate:
-                    # if the reaction is intermolecular then the linked site is populated.
-                    # this means only a fully populated site would have all the information to create the reaction
-                    # once again this results in one out of two sites that actually outputs a "reaction" object, as required
+                    # if the reaction is intermolecular then the linked site
+                    # is populated.  this means only a fully populated site
+                    # would have all the information to create the reaction
+                    # once again this results in one out of two sites that
+                    # actually outputs a "reaction" object, as required
                     mystuff = copy.copy(
                         othersite.linked_sites[(self, intermolecular)]
                     )
@@ -250,7 +256,8 @@ class IntegraseSite(DNABindingSite):
             # only return the reaction if the pair HASN'T been processed
             populate = True
             if not intermolecular:
-                # this is an intramolecular reaction so we don't care about the other site's DNAs
+                # this is an intramolecular reaction so we don't care about
+                # the other site's DNAs
                 integrated_dnas = []
                 site_is_bound = (
                     site.integrase in complex_parent[site.position]
@@ -262,7 +269,9 @@ class IntegraseSite(DNABindingSite):
                     (self.integrase_binding and site_is_bound)
                     or (not self.integrase_binding and site_isnt_bound)
                 ) and complex_parent in self.linked_sites[site_tpl][1]:
-                    # make sure that both this site and the other site are bound, or not depending on the value of "integrase_binding"
+                    # make sure that both this site and the other site are
+                    # bound, or not depending on the value of
+                    # "integrase_binding"
                     for integrase_function in self.linked_sites[site_tpl][0]:
                         integr = integrase_function.create_polymer(
                             [complex_parent]
@@ -276,14 +285,17 @@ class IntegraseSite(DNABindingSite):
                     )
                     populate = False
             else:
-                # this is for intermolecular reactions. now "other_dna" is possible
-                # go through all possible "other" dnas then calculate for each RNA
+                # this is for intermolecular reactions. now "other_dna" is
+                # possible go through all possible "other" dnas then calculate
+                # for each RNA
                 for other_dna in self.linked_sites[site_tpl][1]:
-                    # other_dna are placed there by other sites that already got evaluated
+                    # other_dna are placed there by other sites that already
+                    # got evaluated
                     integrated_dnas = []
                     for integrase_function in self.linked_sites[site_tpl][0]:
-                        # for every result that we could get, generate it
-                        # the next line generates the OrderedPolymerSpecies which results from recombination
+                        # for every result that we could get, generate it the
+                        # next line generates the OrderedPolymerSpecies which
+                        # results from recombination
                         integrated_dnas += [
                             integrase_function.create_polymer(
                                 [complex_parent, other_dna]
@@ -314,7 +326,12 @@ class IntegraseSite(DNABindingSite):
 
 class UserDefined(DNA_part):
     def __init__(self, name, dpl_type=None, **keywords):
-        """A user defined part is a part that doesn't do anything, just exists as a label basically."""
+        """User-defined part.
+
+        A user defined part is a part that doesn't do anything, just exists as
+        a label basically.
+
+        """
         DNA_part.__init__(self, name, **keywords)
         self.dpl_type = dpl_type
         self.name = name

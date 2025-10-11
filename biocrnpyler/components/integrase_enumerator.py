@@ -12,13 +12,16 @@ from .dna.construct import Construct, DNA_construct
 from .dna.misc import IntegraseSite
 
 
-class Polymer_transformation:
+class Polymer_transformation:  # TODO: rename using standard conventions
     def __init__(
         self, partslist, circular=False, parentsdict=None, material_type='dna'
     ):
-        """A Polymer transformation is like a generic transformation of a polymer sequence.
+        """Initalized a polymer transformation.
 
-        You specify a parts list that would make up the output polymer. This list can contain:
+        A Polymer transformation is like a generic transformation of a polymer
+        sequence.  You specify a parts list that would make up the output
+        polymer. This list can contain:
+
         parts from ordered polymers
         parts that aren't in any polymers (have parent = None)
         parts from ordered polymers are considered as "placeholders"
@@ -28,20 +31,35 @@ class Polymer_transformation:
 
         Example:
         valid partslist:
-        partslist = [Monomer(forward,3,"input1"),Monomer(reverse,1,"input2"),Promoter(forward,None,None)]
+        partslist = [
+            Monomer(forward,3,"input1"),
+            Monomer(reverse,1,"input2"),
+            Promoter(forward,None,None)
+        ]
 
-        then, self.create_polymer([polymer1,polymer2])
-        takes element 3 from polymer1 and puts it forward, element 1 from polymer 2, and a Promoter object and creates
-        a new polymer by feeding these three monomers into a polymer constructor.
+        then, self.create_polymer([polymer1,polymer2]) takes element 3 from
+        polymer1 and puts it forward, element 1 from polymer 2, and a Promoter
+        object and creates a new polymer by feeding these three monomers into
+        a polymer constructor.
 
-        new_polymer.parts_list = [polymer1[3].setdir("forward",polymer2[1].setdir("reverse"),[Promoter,"forward"]]
+        new_polymer.parts_list = [
+            polymer1[3].setdir("forward"),
+            polymer2[1].setdir("reverse"),
+            [Promoter,"forward"]
+        ]
+
         """
         if parentsdict is None:
-            parentsdict = {}  # the input to this function is a list of monomers that belong to various parents.
-            # each different parent that is represented in these monomers is converted into "input#" arbitrarily
-            # to keep it consistant, a link of that parent to the appropriate "input#" is kept in this dictionary.
-            # you can also pass a pre-populated dictionary into this function in order to control which parent gets
-            # which "input#". This is essential if we want to properly "reverse" a transformation (input1 becomes input2 and input2 becomes input1)
+            # the input to this function is a list of monomers that belong to
+            # various parents.  Each different parent that is represented in
+            # these monomers is converted into "input#" arbitrarily to keep it
+            # consistant, a link of that parent to the appropriate "input#" is
+            # kept in this dictionary.  You can also pass a pre-populated
+            # dictionary into this function in order to control which parent
+            # gets which "input#". This is essential if we want to properly
+            # "reverse" a transformation (input1 becomes input2 and input2
+            # becomes input1)
+            parentsdict = {}
         inputcount = 1
         actual_partslist = []
         partdir = (
@@ -52,19 +70,22 @@ class Polymer_transformation:
         new_parentsdict = {}
         for part in partslist:
             if isinstance(part, (list, tuple)):
-                # if the part is a list that means it looks like [OrderedMonomer,"direction"]
+                # if the part is a list that means it looks like
+                # [OrderedMonomer,"direction"]
                 part_ref = part[0]
                 partdir = part[1]
             else:
                 part_ref = part
                 partdir = part_ref.direction
-            # if the parent is populated, it means this part should be a placeholder
+            # if the parent is populated, it means this part should be a
+            # placeholder
             if part_ref.parent is not None:
                 # if we haven't tracked it already
                 if (part_ref.parent not in new_parentsdict) and (
                     part_ref.parent not in parentsdict
                 ):
-                    # create a 'blank' polymer based on the input, and give it a generic name
+                    # create a 'blank' polymer based on the input, and give it
+                    # a generic name
                     inputname = 'input' + str(inputcount)
                     while inputname in list(new_parentsdict.values()):
                         inputcount += 1
@@ -87,10 +108,12 @@ class Polymer_transformation:
                 ):
                     inputname = new_parentsdict[part_ref.parent]
                     dummyPolymer = self.dummify(part_ref.parent, inputname)
-                # this variable is the actual parts list that will be stored. It has mostly dummy parts
+                # this variable is the actual parts list that will be
+                # stored. It has mostly dummy parts
                 if part_ref.parent[part_ref.position] != part_ref:
-                    # this will be true only for situations where a component needs to be transformed into
-                    # another component but still needs to keep a reference to where it was in the parent
+                    # this will be true only for situations where a component
+                    # needs to be transformed into another component but still
+                    # needs to keep a reference to where it was in the parent
                     copied_part = part_ref.get_orphan()
                     copied_part.parent = dummyPolymer
                     actual_partslist += [[copied_part, partdir]]
@@ -127,7 +150,7 @@ class Polymer_transformation:
         self.partslist = new_partslist
 
     def get_renumbered(self, output_renumbering_function):
-        """Return a copy of this transformation, but the output indexes are renumbered."""
+        """Return copy of transformation with output indexes renumbered."""
         rxn_copied = copy.copy(self)
         rxn_copied.renumber_output(output_renumbering_function)
         return rxn_copied
@@ -193,8 +216,8 @@ class Polymer_transformation:
                     part.position
                 ]  # grab the part from the proper input
             elif (part.parent is not None) and hasattr(part, 'name'):
-                # in this case we are transforming a part into a different part, taking the complexes from
-                # the previous position
+                # in this case we are transforming a part into a different
+                # part, taking the complexes from the previous position
 
                 if isinstance(polymer_dict['input1'], Construct):
                     outpart = part.get_orphan()
@@ -203,19 +226,22 @@ class Polymer_transformation:
                         part.position
                     ]
                     if isinstance(template_part, ComplexSpecies):
-                        # in this case we have to replace the thing inside the complex with the new part, but leave
-                        # everything else the same.
+                        # in this case we have to replace the thing inside the
+                        # complex with the new part, but leave everything else
+                        # the same.
                         old_species = template_part.get_species(
                             recursive=True
                         )
                         core_parts = []
                         for spec in old_species:
+                            # if you have a material type of part then you are
+                            # part of a polymer and thus will be replaced
                             if (
                                 spec.material_type == 'part'
                                 and not spec == template_part
-                            ):  # if you have a material type of part then you are
-                                # part of a polymer and thus will be replaced
+                            ):
                                 core_parts += [spec]
+
                         # Now we should have found only one core part. If
                         # there are multiple core parts then we might have
                         # to get crazy.
@@ -244,8 +270,10 @@ class Polymer_transformation:
             # assuming the stored parts have a valid direction
             if hasattr(outpart, 'linked_sites'):
                 outpart = copy.copy(outpart)
-                outpart.linked_sites = {}  # make sure that any integrase sites we copy this way have no
-                # linked sites, as those would not be links created by the integrate() function
+                # make sure that any integrase sites we copy this way have no
+                # linked sites, as those would not be links created by the
+                # integrate() function
+                outpart.linked_sites = {}
             outlst += [[outpart, partdir]]
         if hasattr(outlst[0][0], 'material_type') and any(
             ['complex' in a[0].material_type for a in outlst]
@@ -265,9 +293,16 @@ class Polymer_transformation:
 
     @classmethod
     def dummify(cls, in_polymer, name):
-        """Create a simplified polymer that has the same number of monomers, direction of monomers, and name as the input polymer, but is otherwise disconnected."""
-        # this is used specifically with polymerTransformation. Dummified version of polymers are stored in
-        # polymerTransformation as generic "slots" for monomers to be properly placed into
+        """Create a simplified, disconnected polymer.
+
+        The polymer that has the same number of monomers, direction of
+        monomers, and name as the input polymer, but is otherwise
+        disconnected.
+
+        """
+        # this is used specifically with polymerTransformation. Dummified
+        # version of polymers are stored in polymerTransformation as generic
+        # "slots" for monomers to be properly placed into
         out_list = []
         for element in in_polymer:
             out_list += [OrderedMonomer(direction=element.direction)]
@@ -335,7 +370,8 @@ class IntegraseRule:
         for reaction in reactions:
             self.attsites += list(reaction) + [reactions[reaction]]
         self.attsites = list(set(self.attsites))
-        self.integrations_to_do = []  # these are the reactions that will be performed at compile time
+        # these are the reactions that will be performed at compile time
+        self.integrations_to_do = []
 
     def binds_to(self):
         return self.attsites
@@ -350,7 +386,7 @@ class IntegraseRule:
         return False
 
     def reactive_sites(self):
-        """Returns a list of attachment sites (strings) that participate in integrase reactions."""
+        """Attachment sites that participate in integrase reactions."""
         attsites = []
         for reaction in self.reactions:
             attsites += list(reaction)
@@ -358,12 +394,14 @@ class IntegraseRule:
         return attsites
 
     def generate_products(self, site1, site2, site2_parent=None):
-        """Generates DNA_part objects corresponding to the products of recombination."""
-        # the sites should have the same integrase and dinucleotide, otherwise it won't work
+        """DNA_part objects corresponding to the products of recombination."""
+        # the sites should have the same integrase and dinucleotide, otherwise
+        # it won't work
         assert site1.integrase == site2.integrase
-        assert (
-            site1.integrase == self.integrase_species
-        ), f"sites have integrase {site1.integrase} but should be {self.integrase_species}"
+        assert site1.integrase == self.integrase_species, (
+            f"sites have integrase {site1.integrase} but should "
+            f"be {self.integrase_species}"
+        )
         assert site1.dinucleotide == site2.dinucleotide
         integrase = site1.integrase
         dinucleotide = site1.dinucleotide
@@ -441,27 +479,31 @@ class IntegraseRule:
         There are four possible reactions:
         1) inversion
            two sites are part of the same dna construct
-           the result is another dna construct with the same circularity and the region in between the sites flipped
+           the result is another dna construct with the same circularity and
+           the region in between the sites flipped
         2) deletion
            two sites are part of the same dna construct
-           the result is two dna constructs: one with the same circularity but the region between the sites deleted, and another
+           the result is two dna constructs: one with the same circularity
+           but the region between the sites deleted, and another
            circular dna construct that contains the deleted portion
         3) integration
            the sites are on two different dna constructs
            the result is a single dna construct
         4) recombination
            the sites are on two different dna constructs
-           the results are two different dna constructs with the proper portions swapped
+           the results are two different dna constructs with the proper
+           portions swapped after the correct dna constructs are generated,
+           the reactions which were done to produce them are encoded into
+           polymer_transformations and "baked into" the integrase sites
+           themselves. So, each integrase site knows which specific integrase
+           reactions it should produce when it comes time to update_reactions.
 
-        after the correct dna constructs are generated, the reactions which were done to produce them
-        are encoded into polymer_transformations and "baked into" the integrase sites themselves. So,
-        each integrase site knows which specific integrase reactions it should produce when it comes
-        time to update_reactions.
+        also_inter controls whether intramolecular reactions should also
+        generate intermolecular reactions that occur between two copies of the
+        same plasmid.
 
-        also_inter controls whether intramolecular reactions should also generate intermolecular reactions
-        that occur between two copies of the same plasmid.
-
-        force_inter forces a reaction to be intermolecular even if the two sites are on the same plasmid
+        force_inter forces a reaction to be intermolecular even if the two
+        sites are on the same plasmid.
 
         """
         intermolecular = True  # by default, the reaction is intermolecular
@@ -480,14 +522,16 @@ class IntegraseRule:
         dna_inputs = []
         if site1.parent == site2.parent and not force_inter:
             intermolecular = False
-            # these sites are part of the same piece of DNA, so they are going to do an intramolecular reaction
+            # these sites are part of the same piece of DNA, so they are going
+            # to do an intramolecular reaction
             contains_no_inter = any(
                 ['no_inter' in a.attributes for a in site1.parent]
             )
             if also_inter and not contains_no_inter:
-                # we should generate the intermolecular reaction also!
-                # in this case we are generating multiple integration reactions at the same time
-                # i think the right thing to do is NOT return it?
+                # we should generate the intermolecular reaction also!  in
+                # this case we are generating multiple integration reactions
+                # at the same time i think the right thing to do is NOT return
+                # it?
                 new_dna_constructs += self.integrate(
                     site1,
                     site2,
@@ -499,10 +543,12 @@ class IntegraseRule:
                 cutpos2 = site1.position
                 cutpos1 = site2.position
                 prod1, prod2 = self.generate_products(site2, site1)
-                # integrase sites are converted into different sites according to this function
+                # integrase sites are converted into different sites according
+                # to this function
             else:
                 prod1, prod2 = self.generate_products(site1, site2)
-                # integrase sites are converted into different sites according to this function
+                # integrase sites are converted into different sites according
+                # to this function
 
             dna = site1.parent
             dna_inputs = [dna]
@@ -510,9 +556,10 @@ class IntegraseRule:
 
             if site1.direction == site2.direction:
                 if self.allow_deletion:
-                    # case 2: deletion
-                    # if the sites point in the same direction, then we are doing a deletion reaction
-                    # direction doesn't matter so we don't need to flip anything
+                    # case 2: deletion if the sites point in the same
+                    # direction, then we are doing a deletion reaction
+                    # direction doesn't matter so we don't need to flip
+                    # anything
                     cutdna_list_parts = (
                         list(dna[:cutpos1])
                         + [[prod1, dna[cutpos1].direction]]
@@ -568,13 +615,15 @@ class IntegraseRule:
                     ]
         else:
             if self.allow_integration:
-                # otherwise these sites are on different pieces of DNA, so they are going to combine
+                # otherwise these sites are on different pieces of DNA, so
+                # they are going to combine
                 dna1 = site1.parent
                 dna2 = site2.parent
                 circ1 = dna1.circular
                 circ2 = dna2.circular
                 if dna1 == dna2:
-                    # this will happen if we trying to do an intermolecular reaction between two copies of the same thing
+                    # this will happen if we trying to do an intermolecular
+                    # reaction between two copies of the same thing
                     dna2 = dna1.__class__(
                         dna1.parts_list,
                         dna1.name + '_duplicate',
@@ -632,9 +681,10 @@ class IntegraseRule:
 
                 if circ2:
                     # case 3: integration
-                    # in this case we are combining a circular plasmid with a circular or linear plasmid
-                    # either way the result is basically the same, except the result is either linear or circular
-                    # result is ONE PIECE OF DNA
+                    # in this case we are combining a circular plasmid with a
+                    # circular or linear plasmid either way the result is
+                    # basically the same, except the result is either linear
+                    # or circular result is ONE PIECE OF DNA
                     result = (
                         dna1_halves[0]
                         + [[prod1, 'forward']]
@@ -656,10 +706,12 @@ class IntegraseRule:
                         force_inter=force_inter,
                         existing_dna_constructs=existing_dna_constructs,
                     )
-                    # the above already populates the sites, so then we don't need to
+                    # the above already populates the sites, so then we don't
+                    # need to
                 elif not circ1 and not circ2:
                     # case 4: recombination
-                    # here we are recombining two linear dnas, so two linear dnas are produced
+                    # here we are recombining two linear dnas, so two linear
+                    # dnas are produced
                     result1 = (
                         dna1_halves[0] + [[prod1, 'forward']] + dna2_halves[1]
                     )
@@ -672,7 +724,8 @@ class IntegraseRule:
                     ]
         if len(integ_funcs) > 0:
             for integ_func in integ_funcs:
-                # generate new dna constructs and check if we already made them before
+                # generate new dna constructs and check if we already made
+                # them before
                 created_dna = integ_func.create_polymer(
                     [site1.parent, site2.parent]
                 )
@@ -680,7 +733,8 @@ class IntegraseRule:
                     created_dna, existing_dna_constructs + new_dna_constructs
                 )
                 if output is not None:
-                    # if the construct has already been made, then fix the integ_func so it outputs the right thing
+                    # if the construct has already been made, then fix the
+                    # integ_func so it outputs the right thing
                     integ_func.renumber_output(output[1])
                 else:
                     # otherwise, add it to the list
@@ -691,7 +745,8 @@ class IntegraseRule:
                 [a.reversed() for a in integ_funcs],
                 [],
             ]
-        # the return value of this function is used mostly only for generating constructs
+        # the return value of this function is used mostly only for generating
+        # constructs
         return new_dna_constructs
 
 
@@ -745,7 +800,8 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                 == other_construct.directionless_hash
             ):
                 if matched_construct is not None:
-                    # a construct must not match two constructs, since they are generated and checked in order
+                    # a construct must not match two constructs, since they
+                    # are generated and checked in order
                     raise KeyError(
                         f"{construct} matches with {matched_construct} "
                         f"but also {other_construct}"
@@ -804,8 +860,8 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         * serine integrases recombine B and P sites that turn into
           L and R sites, and only sites with the same dinucleotide can
           be recombined.
-        * serine integrases with directionality factors recombine L and R sites
-          with the same dinucleotide
+        * serine integrases with directionality factors recombine L and R
+          sites with the same dinucleotide
         * Invertases only do flipping reactions
         * resolvases only do deletion reactions
         * FLP or CRE react with homotypic sites, so site1+site1 = site1+site1.
@@ -833,9 +889,11 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         for integrase in int_dict:
             if integrase in self.int_mechanisms:
                 int_mech = self.int_mechanisms[integrase]
-                # now, going through each one, generate the reactions and species that arise
+                # now, going through each one, generate the reactions and
+                # species that arise
                 attsites = int_dict[integrase]
-                # but now we need to know what kind of integrase reactions are possible
+                # but now we need to know what kind of integrase reactions are
+                # possible
                 reactive_sites = int_mech.reactive_sites()
                 attcombos = [
                     a

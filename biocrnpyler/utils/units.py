@@ -128,14 +128,14 @@ def biocrnpyler_supported_units():
 
 
 def create_new_unit_definition(model, unit_id):
-    """Creates a new UnitDefinition inside the SBML Model object passed as model argument and other attributes.
+    """Creates UnitDefinition inside SBML Model object.
 
     Returns a pointer to the new libSBML object created for the unit type.
     """
     supported_units = biocrnpyler_supported_units()
     if not isinstance(unit_id, str):
         raise ValueError(
-            "The arguments are not of expected type. unit_id must be a string."
+            "Arguments are not of expected type. unit_id must be a string."
         )
     if unit_id not in supported_units.keys():
         warnings.warn(

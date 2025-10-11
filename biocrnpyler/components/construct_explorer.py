@@ -52,8 +52,9 @@ class ConstructExplorer(LocalComponentEnumerator):
                 self.max_loop_count = 1
             # iterate through the possible directions
             for direction in self.possible_directions:
-                # Set the loop count
-                self.current_loop_count = 0  # due to while loop, current_loop_count is instantly increment to 1
+                # Set the loop count (due to while loop, current_loop_count is
+                # instantly increment to 1)
+                self.current_loop_count = 0
                 self.initialize_loop(direction=direction)
 
                 # Deep Copy Component
@@ -132,14 +133,17 @@ class TxExplorer(ConstructExplorer):
         self.all_rnas = {}  # must clear this before filling it up again
 
     def initialize_loop(self, direction=None):
-        self.current_rnas = {}  # Stores RNA's being examined in loop promoter --> [(DNA_part, direction) list]
+        # Store RNA's being examined in loop promoter --> [(DNA_part,
+        # direction) list]
+        self.current_rnas = {}
 
     def iterate_part(self, part, reading_direction):
         # Part is a DNA_part
         # direction is the direction we are looking in along the DNA_construct
         """The explorer sees a dna_part.
 
-        1. it calculates effective direction of part relative to transcription direction
+        1. it calculates effective direction of part relative to
+           transcription direction
         2. it adds parts to growing transcripts
         3. it makes new transcripts and terminates growing transcripts.
         """
@@ -152,21 +156,24 @@ class TxExplorer(ConstructExplorer):
         else:
             effective_direction = 'reverse'
 
-        # Grow Existing Transcripts
-        # For each promoter being transcribed, we will add the part and its direction relative to that promoter
+        # Grow existing transcripts
+        #
+        # For each promoter being transcribed, we will add the part and its
+        # direction relative to that promoter
         for promoter in self.current_rnas:
             self.current_rnas[promoter] += [(part, effective_direction)]
 
         # Case for Different Parts doing different things
 
-        # Case 1: Promoter in the correct direction (and first loop around a circular plasmid)
+        # Case 1: Promoter in the correct direction (and first loop around a
+        # circular plasmid)
         if (
             effective_direction == 'forward'
             and isinstance(part, Promoter)
             and self.current_loop_count == 1
         ):
-            # this if statement makes sure that the current part wants to transcribe, and
-            # that is something that we are allowed to do
+            # this if statement makes sure that the current part wants to
+            # transcribe, and that is something that we are allowed to do
             self.current_rnas[part] = []
 
         # Case 2: Terminator
@@ -224,14 +231,17 @@ class TlExplorer(ConstructExplorer):
         self.all_proteins = {}  # Stores all proteins from the RNA_construct
 
     def initialize_loop(self, direction=None):
-        self.current_proteins = {}  # Stores proteins being examined in loop rbs --> [(DNA_part, direction) list]
+        # Store proteins being examined in loop rbs --> [(DNA_part, direction)
+        # list]
+        self.current_proteins = {}
 
     def iterate_part(self, part, reading_direction):
         # Part is a DNA_part
         # direction is the direction we are looking in along the DNA_construct
         """The explorer sees a dna_part.
 
-        1. it calculates effective direction of part relative to transcription direction
+        1. it calculates effective direction of part relative to
+           transcription direction
         2. it adds parts to growing transcripts
         3. it makes new transcripts and terminates growing transcripts.
         """
@@ -249,8 +259,8 @@ class TlExplorer(ConstructExplorer):
         else:
             effective_direction = 'reverse'
 
-        # count the number of RBSes that have been seen
-        # currently this can only be 0 or 1 because RBS coupling is not implemented
+        # Count the number of RBSes that have been seen.  Currently this can
+        # only be 0 or 1 because RBS coupling is not implemented
         rbses_translating = len(self.current_proteins)
 
         # Case for Different Parts doing different things
@@ -278,7 +288,8 @@ class TlExplorer(ConstructExplorer):
                 # if the part has stop codons, terminate
                 self.terminate_loop()
 
-        # Case 3: all other parts usually terminate, unless they are designed to allow read-through
+        # Case 3: all other parts usually terminate, unless they are designed
+        # to allow read-through
         elif rbses_translating > 0:
             if effective_direction not in part.no_stop_codons:
                 # if the part has stop codons, terminate

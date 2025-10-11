@@ -208,9 +208,9 @@ class Species(OrderedMonomer):
                 if i is not None:
                     txt += '_' + str(i)
         if self.compartment.name != 'default':
-            # Only add a compartment name if it is not the default one.
-            # if compartment name is already there with an underscore
-            # remove it from the string first to not repeat the compartment tag
+            # Only add a compartment name if it is not the default one.  if
+            # compartment name is already there with an underscore remove it
+            # from the string first to not repeat the compartment tag
             txt = txt.replace('_' + self.compartment.name, '')
             txt += '_' + self.compartment.name
         txt = txt.replace("'", '')
@@ -1684,7 +1684,8 @@ class Complex:
             # # appropriate monomer in the polymer
             #
             # new_pc = PolymerConformation.from_polymer_replacement(
-            #    parent_species.parent, [parent_species], [new_polymer_species])
+            #    parent_species.parent, [parent_species],
+            #    [new_polymer_species])
             #
             # # return the newly created Monomer attached to the new
             # # OrderedPolymerSpecies inside the new PolymerConformation

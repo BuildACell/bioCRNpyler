@@ -74,9 +74,7 @@ ignore = [
     'D100', 'D101', 'D102', 	# ignore missing docstrings for now
     'D103', 'D104', 'D105',
     'D105', 'D106', 'D107',
-    'D200',			# ignore long docstring first lines for now
     'D417',			# ignore missing argument descriptions for now
-    'E501',			# ignore long lines for now
 ]
 
 [tool.ruff.lint.per-file-ignores]

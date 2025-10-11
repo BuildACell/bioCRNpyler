@@ -26,7 +26,7 @@ class DiffusibleMolecule(Component):
         attributes=None,
         **keywords,
     ):
-        """Initialize a DiffusibleMolecule object to store molecule/substance related information.
+        """Initialize a DiffusibleMolecule object.
 
         :param substrate: name of the diffusible substrate, reference to
             an Species or Component
@@ -71,7 +71,7 @@ class DiffusibleMolecule(Component):
 
 
 class IntegralMembraneProtein(Component):
-    """Class representing transmembrane proteins or integral membrane proteins.
+    """Transmembrane proteins or integral membrane proteins.
 
     This membrane class is to classify a membrane channel that will intergrate
     into the membrane.  Uses a mechanism called "membrane_insertion".  Size is
@@ -91,15 +91,19 @@ class IntegralMembraneProtein(Component):
         attributes=None,
         **keywords,
     ):
-        """Initialize a IntegralMembraneProtein object to store membrane channel related information.
+        """Initialize a IntegralMembraneProtein object.
 
-        :param product: name of the membrane channel, reference to an Species or Component
-        :param direction: transport direction (str), set to "Passive" by default, undirectional unless specified
-        :param size: number of monomers needed for channel used in Membrane_Protein_Integration(Mechanism)
+        :param product: name of the membrane channel, reference to an
+            Species or Component
+        :param direction: transport direction (str), set to "Passive" by
+            default, undirectional unless specified
+        :param size: number of monomers needed for channel used in
+            Membrane_Protein_Integration(Mechanism)
         :param internal_compartment: name of internal compartment
         :param membrane_compartment: name of membrane compartment
         :param attributes: Species attribute.
         :param keywords: pass into the parent's (Component) initializer
+
         """
         # Creates compartment object if compartment is a str
         if isinstance(compartment, str):
@@ -169,7 +173,8 @@ class IntegralMembraneProtein(Component):
                     attributes=[direction],
                 )
 
-        # Indicates the number of monomers that compose the channel, will be used in Membrane_Protein_Integration(Mechanism)
+        # Indicates the number of monomers that compose the channel,
+        # will be used in Membrane_Protein_Integration(Mechanism)
         if size is None:
             self.membrane_protein.size = 1
         else:
@@ -222,9 +227,10 @@ class MembraneChannel(Component):
         attributes=None,
         **keywords,
     ):
-        """Initialize a MembraneChannel object to store transport membrane related information.
+        """Initialize a MembraneChannel object.
 
-        :param substrate: substrate to be transported (str, Species, Component)
+        :param substrate: substrate to be transported (str, Species,
+            Component)
         :param direction: direction of transport based on transporter action
         :param internal_compartment: name of internal compartment
         :param external_compartment: name of external compartment
@@ -349,9 +355,10 @@ class MembranePump(Component):
         attributes=None,
         **keywords,
     ):
-        """Initialize a MembranePump object to store Transport membrane related information.
+        """Initialize a MembranePump object.
 
-        :param substrate: name of the substrate, reference to an Species or Component
+        :param substrate: name of the substrate, reference to a Species
+            or Component
         :param direction: give direction of transport ref to vesicle
         :param internal_compartment: name of internal compartment
         :param external_compartment: name of external compartment
@@ -541,13 +548,18 @@ class MembraneSensor(Component):
         attributes=None,
         **keywords,
     ):
-        """Initialize a MembraneSensor object to store Transport membrane related information.
+        """Initialize a MembraneSensor object.
 
-        :param membrane_sensor_protein: name of the membrane protein in the TCS, reference to an Species or Component
-        :param response_protein: name of the response protein in the TCS, reference to an Species or Component
-        :param assigned_substrate: name of the assigned substrate in the TCS, reference to an Species or Component
-        :param signal_substrate: name of the signal substrate in the TCS, reference to an Species or Component
-        :param product: name of the product in the TCS, reference to an Species or Component
+        :param membrane_sensor_protein: name of the membrane protein in
+            the TCS, reference to an Species or Component
+        :param response_protein: name of the response protein in the TCS,
+            reference to an Species or Component
+        :param assigned_substrate: name of the assigned substrate in the TCS,
+             reference to an Species or Component
+        :param signal_substrate: name of the signal substrate in the TCS,
+             reference to an Species or Component
+        :param product: name of the product in the TCS, reference to an
+            Species or Component
         :param internal_compartment: name of internal compartment
         :param external_compartment: name of external compartment
         :param ATP: indicates the number of ATP required for transport

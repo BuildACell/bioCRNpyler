@@ -1,5 +1,5 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
-#  See LICENSE file in the project root directory for details.from .dna_part import DNA_part
+#  See LICENSE file in the project root directory for details
 
 from .construct import DNA_part
 

@@ -73,7 +73,7 @@ class Component:
                 )
             self.compartment = compartment
         else:
-            # Don't create a default compartment here to avoid circular imports
+            # Don't create default compartment here to avoid circular imports
             self._compartment = None
 
         self.parameter_database = ParameterDatabase(
@@ -174,7 +174,7 @@ class Component:
         compartment=None,
         attributes=None,
     ) -> Species:
-        """Helper function that allows species to be set from strings, species, or Components.
+        """Set species from strings, species, or Components.
 
         :param species: Species, str, Component
         :param material_type:
@@ -208,7 +208,9 @@ class Component:
             ]
         else:
             raise ValueError(
-                f"Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input. Recieved {species}"
+                "Invalid Species: string, chemical_reaction_network.Species "
+                "or Component with implemented .get_species() required "
+                f"as input. Recieved {species}"
             )
 
     def __hash__(self):
@@ -266,11 +268,14 @@ class Component:
     def get_mechanism(self, mechanism_type, optional_mechanism=False):
         """Searches the Component for a Mechanism of the correct type.
 
-        If the Component does not have the mechanism, searches the Components' Mixture for the Mechanism.
+        If the Component does not have the mechanism, searches the
+        Components' Mixture for the Mechanism.
 
         :param mechanism_type:
-        :param optional_mechanism: toggles whether an error is thrown if no mechanism is found
+        :param optional_mechanism: toggles whether an error is thrown if
+            no mechanism is found
         :return:
+
         """
         if not isinstance(mechanism_type, str):
             raise TypeError(
@@ -320,8 +325,10 @@ class Component:
 
         :param mechanism:
         :param mech_type:
-        :param overwrite: toggles whether the mechanism is added overwriting any mechanism with the same key.
-        :param optional_mechanism: toggles whether an error is thrown if a Mechanism is added that conflicts with an exising Mechanism
+        :param overwrite: toggles whether the mechanism is added overwriting
+            any mechanism with the same key.
+        :param optional_mechanism: toggles whether an error is thrown if a
+            Mechanism is added that conflicts with an exising Mechanism
         :return:
 
         """
@@ -354,11 +361,13 @@ class Component:
         overwrite=False,
         optional_mechanism=False,
     ):
-        """This function adds a list or dictionary of mechanisms to the mixture.
+        """Add a list or dictionary of mechanisms to the mixture.
 
         :param mechanisms: Can take both GlobalMechanisms and Mechanisms
-        :param overwrite: toggles whether the mechanism is added overwriting any mechanism with the same key.
-        :param optional_mechanism: toggles whether an error is thrown if a Mechanism is added that conflicts with an exising Mechanism
+        :param overwrite: toggles whether the mechanism is added overwriting
+            any mechanism with the same key.
+        :param optional_mechanism: toggles whether an error is thrown if a
+            Mechanism is added that conflicts with an exising Mechanism
         :return:
         """
         if isinstance(mechanisms, Mechanism):
@@ -400,15 +409,18 @@ class Component:
         """Get a parameter from different objects that hold parameters.
 
         Hierarchy:
-         1. tries to find the Parameter in Component.parameter_database
-         2. tries to find the parameter in Component.mixture.parameter_database
+         1. searches for the Parameter in Component.parameter_database
+         2. searches for the parameter in Component.mixture.parameter_database
 
         :param param_name:
         :param part_id:
         :param mechanism:
-        :param return_numerical: numerical value or the parameter object is returned
-        :param return_none: returns None instead of throwing an error if a parameter isn't found
-        :param check_mixture: toggle whether or not to check the Component's Mixture as well
+        :param return_numerical: numerical value or the parameter object is
+            returned
+        :param return_none: returns None instead of throwing an error if a
+            parameter isn't found
+        :param check_mixture: toggle whether or not to check the Component's
+            Mixture as well
         :return: Parameter object or a Real number
         """
         # Try the Component ParameterDatabase

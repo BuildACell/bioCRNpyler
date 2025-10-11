@@ -61,7 +61,8 @@ class Promoter(DNA_part):
             self.protein = protein
         else:
             self.protein = None
-        # Promoter should not have initial conditions. These need to be in DNAAssembly or DNAConstruct
+        # Promoter should not have initial conditions. These need to
+        # be in DNAAssembly or DNAConstruct
         if (
             'initial_concentration' in keywords.values()
             and keywords['initial_concentration'] is not None
@@ -134,7 +135,7 @@ class Promoter(DNA_part):
         return reactions
 
     def update_component(self, internal_species=None, **keywords):
-        """Returns a copy of this component, except with the proper fields updated."""
+        """Copy of component, except with the proper fields updated."""
         if isinstance(self.parent, RNA):
             return None
         elif isinstance(self.parent, DNA):
@@ -156,7 +157,7 @@ class Promoter(DNA_part):
 
     @classmethod
     def from_promoter(cls, name, assembly, transcript, protein):
-        """Helper function to initialize a promoter instance from another promoter or str.
+        """Initialize a promoter instance from another promoter or str.
 
         :param name: either string or an other promoter instance
         :param assembly:
@@ -312,7 +313,7 @@ class RegulatedPromoter(Promoter):
 
 
 class ActivatablePromoter(Promoter):
-    """A class for a promoter which can be activated by a single species, modelled as a positive Hill function."""
+    """Promoter activated by single species, modeled as Hill function."""
 
     def __init__(
         self, name, activator, transcript=None, leak=False, **keywords
@@ -321,19 +322,23 @@ class ActivatablePromoter(Promoter):
         Promoter.__init__(self, name=name, transcript=transcript, **keywords)
 
         # Set the Regulator
-        # Component.set_species(species, material_type = None, attributes = None)
-        # is a helper function that allows the input to be a Species, string, or Component.
+        # Component.set_species(
+        #     species, material_type = None, attributes = None)
+        # is a helper function that allows the input to be a Species,
+        # string, or Component.
         self.activator = self.set_species(activator)
 
         self.leak = leak  # toggles whether or not there is a leak reaction
 
-        # Non-default Mechanisms are added to the Component with .add_mechanism
+        # Non-default Mechanisms are added to the Component with
+        # .add_mechanism
         self.add_mechanism(
             PositiveHillTranscription(), 'transcription', overwrite=True
         )
 
     def update_species(self, **keywords):
-        # Mechanisms are stored in an automatically created dictionary: mechanism_type --> Mechanism Instance.
+        # Mechanisms are stored in an automatically created
+        # dictionary: mechanism_type --> Mechanism Instance.
         mech_tx = self.get_mechanism('transcription')
 
         species = []  # A list of species must be returned
@@ -368,7 +373,7 @@ class ActivatablePromoter(Promoter):
 
 
 class RepressiblePromoter(Promoter):
-    """A class for a promoter which can be repressed by a single species, modelled as a negative Hill function."""
+    """Promoter repressed by single species, modeled Hill function."""
 
     def __init__(
         self, name, repressor, transcript=None, leak=False, **keywords
@@ -377,19 +382,23 @@ class RepressiblePromoter(Promoter):
         Promoter.__init__(self, name=name, transcript=transcript, **keywords)
 
         # Set the Regulator
-        # Component.set_species(species, material_type = None, attributes = None)
-        # is a helper function that allows the input to be a Species, string, or Component.
+        # Component.set_species(
+        #    species, material_type = None, attributes = None)
+        # is a helper function that allows the input to be a Species,
+        # string, or Component.
         self.repressor = self.set_species(repressor)
 
         self.leak = leak  # toggles whether or not there is a leak reaction
 
-        # Mechanisms are inherited from the Mixture unless set specifically in self.default_mechanisms.
+        # Mechanisms are inherited from the Mixture unless set
+        # specifically in self.default_mechanisms.
         self.add_mechanism(
             NegativeHillTranscription(), 'transcription', overwrite=True
         )
 
     def update_species(self, **keywords):
-        # Mechanisms are stored in an automatically created dictionary: mechanism_type --> Mechanism Instance.
+        # Mechanisms are stored in an automatically created
+        # dictionary: mechanism_type --> Mechanism Instance.
         mech_tx = self.get_mechanism('transcription')
 
         species = []  # A list of species must be returned
@@ -440,16 +449,19 @@ class CombinatorialPromoter(Promoter):
         cooperativity=None,
         **keywords,
     ):
-        """A combinatorial promoter is something where binding multiple regulators result in qualitatively different transcription behaviour.
+        """Combinatorial promoter.
 
-        For example, maybe it's an AND gate promoter where it only transcribes
-        if two regulators are bound, but not if either one is bound.
+        Binding multiple regulators results in qualitatively different
+        transcription behavior.  For example, maybe it's an AND gate
+        promoter where it only transcribes if two regulators are
+        bound, but not if either one is bound.
 
         =============
         inputs
         =============
         name: the name of the promoter
-        regulators: a list of strings or species indicating all the possible regualtors that can bind
+        regulators: a list of strings or species indicating all
+            the possible regualtors that can bind
 
         leak: if true, then a promoter with nothing bound will transcribe
 
@@ -457,16 +469,22 @@ class CombinatorialPromoter(Promoter):
 
         transcript: the transcript that this promoter makes
 
-        length: the length in nt? I don't think this is used for anything at the moment
+        length: the length in nt? I don't think this is used for anything at
+            the moment
 
-        mechanisms: additional mechanisms. formatted with {"mechanism_type":mechanismObject(),...}
+        mechanisms: additional mechanisms. formatted with
+            {"mechanism_type":mechanismObject(),...}
 
-        parameters: promoter-specific parameters. Formatted as {("identifier1","identifier2"):value,...}
+        parameters: promoter-specific parameters. Formatted as
+            {("identifier1","identifier2"):value,...}
 
-        tx_capable_list: list of which combination of regulators bound will lead to transcription.
-                        formatted as [["regulator1","regulator2"],["regulator1"],...] regulators
-                        can be strings or Species
-        cooperativity: a dictionary of cooperativity values. For example, {"regulator":2,"regulator2":1,....}
+        tx_capable_list: list of which combination of regulators bound will
+            lead to transcription.  Formatted as
+            [["regulator1","regulator2"],["regulator1"],...] regulators can be
+            strings or Species
+
+        cooperativity: a dictionary of cooperativity values. For example,
+            {"regulator":2,"regulator2":1,....}
 
         """
         Promoter.__init__(
@@ -509,7 +527,8 @@ class CombinatorialPromoter(Promoter):
         elif isinstance(tx_capable_list, list):
             # if the user passed a list then the user knows what they want
             newlist = []
-            # this part converts any species in the tx_capable_list into a string
+            # this part converts any species in the tx_capable_list into a
+            # string
             for element in tx_capable_list:
                 sublist = []
                 for specie in element:
@@ -531,7 +550,8 @@ class CombinatorialPromoter(Promoter):
     def update_species(self):
         mech_tx = self.get_mechanism('transcription')
         mech_b = self.get_mechanism('binding')
-        # set the tx_capable_complexes to nothing because we havent updated species yet!
+        # set the tx_capable_complexes to nothing because we havent updated
+        # species yet!
         self.tx_capable_complexes = []
         self.leak_complexes = []
         species = [self.dna_to_bind] + self.regulators
@@ -544,8 +564,8 @@ class CombinatorialPromoter(Promoter):
             cooperativity=self.cooperativity,
             protein=self.protein,
         )
-        # above is all the species with DNA bound to regulators. Now, we need to extract only the ones which
-        # are transcribable
+        # above is all the species with DNA bound to regulators. Now, we need
+        # to extract only the ones which are transcribable
 
         if self.leak is not False:
             # this part takes care of the promoter not bound to anything
@@ -568,7 +588,8 @@ class CombinatorialPromoter(Promoter):
                 ):
                     species_inside += [regulator.name]
             if set(species_inside) in [set(a) for a in self.tx_capable_list]:
-                # only the transcribable complexes in tx_capable_list get transcription reactions
+                # only the transcribable complexes in tx_capable_list get
+                # transcription reactions
                 tx_capable_species = mech_tx.update_species(
                     dna=bound_complex,
                     transcript=self.transcript,
@@ -579,11 +600,12 @@ class CombinatorialPromoter(Promoter):
                 species += tx_capable_species
                 self.tx_capable_complexes += [bound_complex]
             else:
-                # in this case there's a combination of regulators which does not feature in tx_capable_list
-                # this means:
+                # in this case there's a combination of regulators which does
+                # not feature in tx_capable_list.  This means:
                 # 1) this complex does nothing so don't add it
-                # 2) we said we wanted leak, so then you should add this, but with the "_leak" parameters
-                #                                                         (that happens in update_reactions)
+                # 2) we said we wanted leak, so then you should add this,
+                #    but with the "_leak" parameters (that happens in
+                #    update_reactions)
                 if self.leak is not False:
                     leak_species = mech_tx.update_species(
                         dna=bound_complex,

@@ -32,7 +32,7 @@ def create_sbml_model(
     model_id=None,
     **kwargs,
 ):
-    """Creates an SBML Level 3 Version 2 model with some fixed standard settings.
+    """Creates SBML Level 3 Version 2 model with some fixed standard settings.
 
     Refer to python-libsbml for more information on SBML API.
     :param compartment_id:
@@ -94,8 +94,10 @@ def add_all_species(
 
     :param model: valid SBML model
     :param species: list of species to be added to the SBML model
-    :param compartment: compartment id, if empty species go to the first compartment
-    :param initial_concentration_dict: a dictionary s --> initial_concentration
+    :param compartment: compartment id, if empty species go to the first
+        compartment
+    :param initial_concentration_dict: a dictionary s -->
+        initial_concentration
     :return: None
     """
     elementlist = model.getSBMLDocument().getListOfAllElements()
@@ -112,7 +114,8 @@ def add_all_species(
     for s_ind, s in enumerate(species):
         s_id = all_sbml_ids[s_ind]
         if compartment is None or s.compartment is not None:
-            # If no compartment was passed in or if species (s) has its own compartment set:
+            # If no compartment was passed in or if species (s) has
+            # its own compartment set:
             compartment = get_compartment_by_name(model, s.compartment.name)
             if compartment is None:
                 compartment = add_compartment(model, s.compartment)
@@ -144,7 +147,8 @@ def add_species(
     :param model:
     :param compartment: a compartment in the SBML model
     :param species: must be chemical_reaction_network.species objects
-    :param initial_concentration: initial concentration of the species in the SBML model
+    :param initial_concentration: initial concentration of the species
+        in the SBML model
     :return: SBML species object
     """
     # Construct the species ID
@@ -197,15 +201,13 @@ def add_compartment(model, compartment, **keywords):
 
 
 def get_compartment_by_name(model, compartment_name):
-    """Helper function to find the SBML compartment object given the compartment name in the SBML file."""
+    """Find SBML compartment object from name in SBML file."""
     for compartment in model.getListOfCompartments():
         if compartment.getName() == compartment_name:
             return compartment
 
 
 # Helper function to add a parameter to the model
-
-
 def add_parameter(mixture, name, value=0, debug=False):
     model = mixture.model  # Get the model where we will store results
 
@@ -261,7 +263,8 @@ def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
             stochastic=stochastic,
             **kwargs,
         )
-        # Reversible reactions are always seperated into two seperate reactions
+        # Reversible reactions are always seperated into two seperate
+        # reactions
         if r.is_reversible:
             add_reaction(
                 model=model,
@@ -295,7 +298,8 @@ def add_reaction(
 
     sbml_reaction.setId(reaction_id)
     sbml_reaction.setName(sbml_reaction.getId())
-    # all reactions are set to be non-reversible in BioCRNpyler because this is correct in deterministic and stochastic simulation.
+    # all reactions are set to be non-reversible in BioCRNpyler because this
+    # is correct in deterministic and stochastic simulation.
     sbml_reaction.setReversible(False)
     # Create the reactants and products for the sbml_reaction
     if not reverse_reaction:
@@ -331,8 +335,8 @@ def add_reaction(
         **kwargs,
     )
 
-    # Create SpeciesModifierReference in SBML for species that are referred by the
-    # KineticLaw but not in reactants or products
+    # Create SpeciesModifierReference in SBML for species that are referred by
+    # the KineticLaw but not in reactants or products
     _create_modifiers(
         crn_reaction=crn_reaction, sbml_reaction=sbml_reaction, model=model
     )
@@ -475,7 +479,8 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
         # remember existing ids ...
         self.existingIds = ids
 
-        # The function actually doing the transforming. This function is called
+        # The function actually doing the transforming. This function is
+        # called
 
     # once for each SBase element in the model.
     def transform(self, element):
@@ -524,7 +529,8 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
             return Id
 
         return Id
-        # return Id[:-1] #this code was removing underscores at the end of ComplexSpecies needed for imbedded ComplexSpecies.
+        # return Id[:-1] #this code was removing underscores at the end of
+        # ComplexSpecies needed for imbedded ComplexSpecies.
 
     #
     # Generates the id out of the name, and ensures it is unique.
@@ -639,8 +645,8 @@ class validateSBML(object):
             errMsgRead = sbmlDoc.getErrorLog().toString()
 
         # If serious errors are encountered while reading an SBML document, it
-        # does not make sense to go on and do full consistency checking because
-        # the model may be nonsense in the first place.
+        # does not make sense to go on and do full consistency checking
+        # because the model may be nonsense in the first place.
 
         numCCErr = 0
         numCCWarn = 0
@@ -685,7 +691,7 @@ class validateSBML(object):
 
 
 def validate_sbml(sbml_document, enable_unit_check=False, print_results=True):
-    """Validates the generated SBML model by using libSBML SBML validation code."""
+    """Validates SBML model using libSBML SBML validation code."""
     validator = validateSBML(enable_unit_check)
     validation_result = validator.validate(
         sbml_document, print_results=print_results
