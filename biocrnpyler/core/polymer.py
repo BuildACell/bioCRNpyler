@@ -51,11 +51,11 @@ class OrderedPolymer(MonomerCollection):
     @polymer.setter
     def polymer(self, parts):
         polymer = []
-        assert (
-            type(parts) == list or type(parts) == tuple
+        assert isinstance(
+            parts, (list, tuple)
         ), 'OrderedPolymer must be instantiated with a list'
         for item in parts:
-            if isinstance(item, list) or isinstance(item, tuple):
+            if isinstance(item, (list, tuple)):
                 part = item[0]
                 if len(item) > 1:
                     partdir = item[1]
@@ -75,7 +75,7 @@ class OrderedPolymer(MonomerCollection):
             part_copy = copy.copy(part)
             polymer += [part_copy]
             position = len(polymer) - 1
-            if partdir == None:
+            if partdir is None:
                 partdir = self.default_direction
             part_copy.monomer_insert(self, position, partdir)
 
@@ -180,7 +180,7 @@ class OrderedPolymer(MonomerCollection):
                 if (
                     item1.direction == item2.direction
                     and item1.position == item2.position
-                    and type(item1) == type(item2)
+                    and type(item1) is type(item2)
                 ):
                     pass
                 else:

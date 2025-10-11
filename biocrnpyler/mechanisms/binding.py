@@ -34,7 +34,7 @@ class One_Step_Cooperative_Binding(Mechanism):
         if part_id is None:
             part_id = repr(binder) + '-' + repr(bindee)
 
-        if cooperativity is None and component != None:
+        if cooperativity is None and component is not None:
             cooperativity = component.get_parameter(
                 'cooperativity',
                 part_id=part_id,
@@ -153,7 +153,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
         if part_id is None:
             part_id = repr(binder) + '-' + repr(bindee)
 
-        if cooperativity is None and component != None:
+        if cooperativity is None and component is not None:
             cooperativity = component.get_parameter(
                 'cooperativity',
                 part_id=part_id,
@@ -180,7 +180,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
         complexS = None
         if isinstance(complex_species, Species):
             complexS = complex_species
-        elif not complex_species is None:
+        elif complex_species is not None:
             raise TypeError(
                 "complex_species keyword must be a Species, or None. Not "
                 + str(complex_species)
@@ -220,7 +220,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
             repr(binder) + '-' + repr(bindee)
         if (
             kb is None or ku is None or cooperativity is None
-        ) and component != None:
+        ) and component is not None:
             kb1 = component.get_parameter(
                 'kb1', part_id=part_id, mechanism=self
             )
@@ -334,7 +334,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
             if (
                 (cooperativity is None)
                 or (
-                    type(cooperativity) == dict
+                    isinstance(cooperativity, dict)
                     and binder_partid not in cooperativity
                 )
                 and (component is not None)
@@ -348,7 +348,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                     return_numerical=True,
                 )
             elif (
-                type(cooperativity) == dict and binder_partid in cooperativity
+                isinstance(cooperativity, dict)
+                and binder_partid in cooperativity
             ):
                 coop_val = cooperativity[binder_partid]
             if component is None and (cooperativity is None):
@@ -383,28 +384,28 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         binder_params = {}
         for binder in binders:
             binder_partid = part_id + '_' + binder.name
-            if (type(kbs) == dict and binder not in kbs) or (
-                type(kbs) != dict and component is not None
+            if (isinstance(kbs, dict) and binder not in kbs) or (
+                not isinstance(kbs, dict) and component is not None
             ):
                 kb = component.get_parameter(
                     'kb', part_id=binder_partid, mechanism=self
                 )
-            elif type(kbs) == dict and binder in kbs:
+            elif isinstance(kbs, dict) and binder in kbs:
                 kb = kbs[binder.name]
-            elif type(kbs) != dict and component is None:
+            elif not isinstance(kbs, dict) and component is None:
                 raise ValueError(
                     "Must pass in a Component or values for kb, ku, and "
                     "cooperativity."
                 )
-            if (type(kus) == dict and binder not in kus) or (
+            if (isinstance(kus, dict) and binder not in kus) or (
                 kus is None and component is not None
             ):
                 ku = component.get_parameter(
                     'ku', part_id=binder_partid, mechanism=self
                 )
-            elif type(kus) == dict and binder in kus:
+            elif isinstance(kus, dict) and binder in kus:
                 ku = kus[binder.name]
-            elif type(kus) != dict and component is None:
+            elif not isinstance(kus, dict) and component is None:
                 raise ValueError(
                     "Must pass in a Component or values for kb, ku, and "
                     "cooperativity."
@@ -412,7 +413,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
             if (
                 (cooperativity is None)
                 or (
-                    type(cooperativity) == dict
+                    isinstance(cooperativity, dict)
                     and binder.name not in cooperativity
                 )
                 and component is not None
@@ -423,7 +424,10 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                     mechanism=self,
                     return_numerical=True,
                 )
-            elif type(cooperativity) == dict and binder.name in cooperativity:
+            elif (
+                isinstance(cooperativity, dict)
+                and binder.name in cooperativity
+            ):
                 coop_val = cooperativity[binder.name]
             if component is None and (
                 kb is None or ku is None or cooperativity is None
@@ -545,7 +549,7 @@ class One_Step_Binding(Mechanism):
                 part_id += s.name + '_'
             part_id = part_id[:-1]
 
-        if (kb is None or ku is None) and component != None:
+        if (kb is None or ku is None) and component is not None:
             kb = component.get_parameter(
                 'kb', part_id=part_id, mechanism=self
             )

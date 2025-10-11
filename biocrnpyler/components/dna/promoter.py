@@ -44,7 +44,7 @@ class Promoter(DNA_part):
             self.transcript = None
         elif transcript is None:
             self.transcript = Species(assembly.name, material_type='rna')
-        elif type(transcript) == list:
+        elif isinstance(transcript, list):
             self.transcript = transcript
         else:
             self.transcript = self.set_species(

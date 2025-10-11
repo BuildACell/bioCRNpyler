@@ -64,10 +64,11 @@ line-length = 78
 
 [tool.ruff.lint]
 select = [
-       'F',			# pyflakes
-       'D',			# docstyle
-       'I',			# isort
-       'W'			# warnings (white space, line length)
+    'E',			# pycodestyle
+    'F',			# pyflakes
+    'D',			# docstyle
+    'I',			# isort
+    'W'				# warnings (white space, line length)
 ]
 ignore = [
     'D100', 'D101', 'D102', 	# ignore missing docstrings for now
@@ -75,16 +76,19 @@ ignore = [
     'D105', 'D106', 'D107',
     'D200',			# ignore long docstring first lines for now
     'D417',			# ignore missing argument descriptions for now
+    'E501',			# ignore long lines for now
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# Ignore `D` rules everywhere except for the `biocrnpyler/` directory.
-'!biocrnpyler/**.py' = ['D']
+# Ignore 'D' and 'E' rules everywhere except for the `biocrnpyler/` directory.
+'!biocrnpyler/**.py' = ['D', 'E']
 'Tests/**.py' = [
+    'E',			# ignore code style
     'F841',			# unused variables OK
     'F403', 'F405',		# star imports OK
 ]
 'examples/**.py' = [
+    'E',			# ignore code style
     'F403', 'F405',		# star imports OK
 ]
 '__init__.py' = ['F403']	# star imports OK

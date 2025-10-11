@@ -180,7 +180,7 @@ class Mixture(object):
             # Check if component is already in self._components
             for comp in self._components:
                 if (
-                    type(comp) == type(component)
+                    type(comp) is type(component)
                     and comp.name == component.name
                 ):
                     raise ValueError(
@@ -254,7 +254,7 @@ class Mixture(object):
             for comp in self.components:
                 if component is not None:
                     if (
-                        type(comp) == type(component)
+                        type(comp) is type(component)
                         and comp.name == component.name
                     ):
                         matches.append(comp)

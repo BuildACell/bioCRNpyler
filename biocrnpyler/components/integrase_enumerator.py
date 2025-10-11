@@ -51,7 +51,7 @@ class Polymer_transformation:
         inputname = None
         new_parentsdict = {}
         for part in partslist:
-            if type(part) == list or type(part) == tuple:
+            if isinstance(part, (list, tuple)):
                 # if the part is a list that means it looks like [OrderedMonomer,"direction"]
                 part_ref = part[0]
                 partdir = part[1]
@@ -630,7 +630,7 @@ class IntegraseRule:
                     )
                 # direction of everything should be forward
 
-                if circ2 == True:
+                if circ2:
                     # case 3: integration
                     # in this case we are combining a circular plasmid with a circular or linear plasmid
                     # either way the result is basically the same, except the result is either linear or circular
@@ -648,7 +648,7 @@ class IntegraseRule:
                             result, circ1, parentsdict=pdict
                         )
                     ]
-                elif circ2 == False and circ1 == True:
+                elif not circ2 and circ1:
                     # if the sites are backwards just reverse everything
                     new_dna_constructs += self.integrate(
                         site2,
@@ -657,7 +657,7 @@ class IntegraseRule:
                         existing_dna_constructs=existing_dna_constructs,
                     )
                     # the above already populates the sites, so then we don't need to
-                elif circ1 == False and circ1 == circ2:
+                elif not circ1 and not circ2:
                     # case 4: recombination
                     # here we are recombining two linear dnas, so two linear dnas are produced
                     result1 = (

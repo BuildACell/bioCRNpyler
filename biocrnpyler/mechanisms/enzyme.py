@@ -281,7 +281,7 @@ class MichaelisMentenReversible(Mechanism):
             complex1 = Complex([substrate, enzyme])
         else:
             complex1 = complex
-        if complex2 == None:
+        if complex2 is None:
             complex2 = Complex([product, enzyme])
 
         # substrate + Enz <--> substrate:Enz
@@ -333,7 +333,7 @@ class MichaelisMentenCopy(Mechanism):
 
         if product is None:
             return [enzyme, substrate, complexS]
-        elif type(product) == list:
+        elif isinstance(product, list):
             return [enzyme, substrate, complexS] + product
         else:
             return [enzyme, substrate, product, complexS]

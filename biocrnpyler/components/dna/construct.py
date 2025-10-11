@@ -110,7 +110,7 @@ class Construct(Component, OrderedPolymer):
             raise ValueError(
                 f"component must be of type DNA_part. Recieved {part}."
             )
-        if not (type(part_type) == type or part_type is None):
+        if not (isinstance(part_type, type) or part_type is None):
             raise ValueError(
                 f"part_type must be a type. Recieved {part_type}."
             )
@@ -125,7 +125,7 @@ class Construct(Component, OrderedPolymer):
         else:
             for comp in self.parts_list:
                 if part is not None:
-                    if type(part) == type(comp) and comp.name == part.name:
+                    if type(part) is type(comp) and comp.name == part.name:
                         matches.append(comp)
                 elif name is not None:
                     if comp.name == name:
@@ -254,7 +254,7 @@ class Construct(Component, OrderedPolymer):
             if obj2.parent == self:
                 # the object should already know if it's a part of me
                 return True
-            elif obj2.parent == None:
+            elif obj2.parent is None:
                 # this object has been orphaned.  that means we are
                 # looking for matching objects in any position
                 new_obj2 = copy.copy(obj2).unclone()
@@ -935,7 +935,7 @@ class DNA_part(Component, OrderedMonomer):
         return OrderedMonomer.__hash__(self) + hash(self.name)
 
     def __eq__(self, other):
-        if type(other) == type(self):
+        if type(other) is type(self):
             if self.name == other.name:
                 if self.assembly is not None and other.assembly is not None:
                     if str(self.assembly) == str(other.assembly):

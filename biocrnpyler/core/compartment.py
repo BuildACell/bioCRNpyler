@@ -34,7 +34,7 @@ class Compartment:
     def name(self, name: str):
         if name is None:
             raise TypeError("Compartment name must be a string.")
-        elif type(name) is str:
+        elif isinstance(name, str):
             no_underscore_string = name.replace('_', '')
             if (
                 no_underscore_string.isalnum()
@@ -58,7 +58,7 @@ class Compartment:
 
     @spatial_dimensions.setter
     def spatial_dimensions(self, spatial_dimensions: int):
-        if type(spatial_dimensions) is not int:
+        if not isinstance(spatial_dimensions, int):
             raise ValueError(
                 "Compartment spatial dimension must be an integer."
             )
@@ -75,7 +75,7 @@ class Compartment:
 
     @size.setter
     def size(self, size: float):
-        if type(size) not in [float, int]:
+        if not isinstance(size, (float, int)):
             raise ValueError("Compartment size must be a float or int.")
         elif size < 0:
             raise ValueError("Compartment size must be non-negative.")

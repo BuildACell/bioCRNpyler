@@ -36,9 +36,9 @@ class DiffusibleMolecule(Component):
         :param keywords: pass into the parent's (Component) initializer
         """
         # Creates compartment object if compartment is a str
-        if type(internal_compartment) is str:
+        if isinstance(internal_compartment, str):
             internal_compartment = Compartment(name=internal_compartment)
-        if type(external_compartment) is str:
+        if isinstance(external_compartment, str):
             external_compartment = Compartment(name=external_compartment)
 
         # Substrate
@@ -102,9 +102,9 @@ class IntegralMembraneProtein(Component):
         :param keywords: pass into the parent's (Component) initializer
         """
         # Creates compartment object if compartment is a str
-        if type(compartment) is str:
+        if isinstance(compartment, str):
             compartment = Compartment(name=compartment)
-        if type(membrane_compartment) is str:
+        if isinstance(membrane_compartment, str):
             membrane_compartment = Compartment(name=membrane_compartment)
 
         # Logic for prioritizing compartments
@@ -233,9 +233,9 @@ class MembraneChannel(Component):
 
         """
         # Creates compartment object if compartment is a str
-        if type(internal_compartment) is str:
+        if isinstance(internal_compartment, str):
             internal_compartment = Compartment(name=internal_compartment)
-        if type(external_compartment) is str:
+        if isinstance(external_compartment, str):
             external_compartment = Compartment(name=external_compartment)
 
         # Set up the integral membrane protein
@@ -360,9 +360,9 @@ class MembranePump(Component):
         :param keywords: pass into the parent's (Component) initializer
         """
         # Creates compartment object if compartment is a str
-        if type(internal_compartment) is str:
+        if isinstance(internal_compartment, str):
             internal_compartment = Compartment(name=internal_compartment)
-        if type(external_compartment) is str:
+        if isinstance(external_compartment, str):
             external_compartment = Compartment(name=external_compartment)
 
         # SUBSTRATE
@@ -396,7 +396,7 @@ class MembranePump(Component):
         )
 
         # PROTEIN
-        if type(membrane_pump) == str:
+        if isinstance(membrane_pump, str):
             if ATP is None:
                 ATP = 1
             else:
@@ -555,9 +555,9 @@ class MembraneSensor(Component):
         :param keywords: pass into the parent's (Component) initializer
         """
         # Creates compartment object if compartment is a str
-        if type(internal_compartment) is str:
+        if isinstance(internal_compartment, str):
             internal_compartment = Compartment(name=internal_compartment)
-        if type(external_compartment) is str:
+        if isinstance(external_compartment, str):
             external_compartment = Compartment(name=external_compartment)
 
         # RESPONSE PROTEIN

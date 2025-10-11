@@ -133,7 +133,7 @@ def create_new_unit_definition(model, unit_id):
     Returns a pointer to the new libSBML object created for the unit type.
     """
     supported_units = biocrnpyler_supported_units()
-    if type(unit_id) is not str:
+    if not isinstance(unit_id, str):
         raise ValueError(
             "The arguments are not of expected type. unit_id must be a string."
         )
@@ -152,12 +152,12 @@ def create_new_unit_definition(model, unit_id):
     unitdef = model.createUnitDefinition()
     unitdef.setId(unit_id)
     # Scale list
-    if type(unit_kind) is list and type(unit_scale) is not list:
+    if isinstance(unit_kind, list) and not isinstance(unit_scale, list):
         unit_scaleList = []
         for kind in unit_kind:
             unit_scaleList.append(unit_scale)
 
-    elif type(unit_kind) is list and type(unit_scale) is list:
+    elif isinstance(unit_kind, list) and isinstance(unit_scale, list):
         if len(unit_kind) != len(unit_scale):
             raise ValueError(
                 "Lengths of unit_scale and unit kind lists are not equal"
@@ -165,35 +165,37 @@ def create_new_unit_definition(model, unit_id):
         unit_scaleList = unit_scale[:]
 
     # Multiplier list
-    if type(unit_kind) is list and type(unit_multiplier) is not list:
+    if isinstance(unit_kind, list) and not isinstance(unit_multiplier, list):
         unit_multiplierList = []
         for kind in unit_kind:
             unit_multiplierList.append(unit_multiplier)
 
-    elif type(unit_kind) is list and type(unit_multiplier) is list:
+    elif isinstance(unit_kind, list) and isinstance(unit_multiplier, list):
         if len(unit_kind) != len(unit_multiplier):
             raise ValueError(
                 "Lengths of unit kind and unit_multiplier lists are not equal"
             )
         unit_multiplierList = unit_multiplier[:]
 
-    if type(unit_kind) is not list:
+    if not isinstance(unit_kind, list):
         unit_kind = [unit_kind]
-        if type(unit_scale) is list:
+        if isinstance(unit_scale, list):
             unit_scale = unit_scale[0]
-        if type(unit_multiplier) is list:
+        if isinstance(unit_multiplier, list):
             unit_multiplier = unit_multiplier[0]
-        if type(unit_exponents) is list:
+        if isinstance(unit_exponents, list):
             unit_exponents = unit_exponents[0]
-        if type(unit_scale) is not int or type(unit_multiplier) is not int:
+        if not isinstance(unit_scale, int) or not isinstance(
+            unit_multiplier, int
+        ):
             raise ValueError(
                 "Scale and unit_multiplier must be integers when there is "
                 "only one unit kind"
             )
         unit_scaleList = [unit_scale]
         unit_multiplierList = [unit_multiplier]
-    if type(unit_exponents) is not list:
-        if type(unit_exponents) is not int:
+    if not isinstance(unit_exponents, list):
+        if not isinstance(unit_exponents, int):
             raise ValueError("All unit_exponentss should be integers")
         unit_exponents = [unit_exponents]
     if len(unit_kind) != len(unit_exponents):

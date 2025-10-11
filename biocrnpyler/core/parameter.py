@@ -135,7 +135,7 @@ class Parameter(object):
     def unit(self, new_unit: str):
         if new_unit is None:
             self._unit = ''
-        elif type(new_unit) is not str:
+        elif not isinstance(new_unit, str):
             raise ValueError(
                 f"All units must be strings. Recieved {new_unit}."
             )

@@ -98,11 +98,11 @@ class SimpleTranscription(Mechanism):
         protein=None,
         **keywords,
     ):
-        if ktx == None and component != None:
+        if ktx is None and component is not None:
             ktx = component.get_parameter(
                 'ktx', part_id=part_id, mechanism=self
             )
-        elif component == None and ktx == None:
+        elif component is None and ktx is None:
             raise ValueError("Must pass in component or a value for ktx")
 
         # First case only true in Mixtures without transcription (eg
@@ -147,7 +147,7 @@ class SimpleTranslation(Mechanism):
         if protein is None:
             protein = Species(transcript.name, material_type='protein')
         outlst = [transcript]
-        if type(protein) == list:
+        if isinstance(protein, list):
             outlst += protein
         else:
             outlst += [protein]
@@ -435,7 +435,7 @@ class Transcription_MM(MichaelisMentenCopy):
         **keywords,
     ):
         # Get Parameters
-        if part_id == None and component != None:
+        if part_id is None and component is not None:
             part_id = component.name
 
         ktx = component.get_parameter('ktx', part_id=part_id, mechanism=self)
@@ -511,7 +511,7 @@ class Translation_MM(MichaelisMentenCopy):
         rxns = []
 
         # Get Parameters
-        if part_id == None and component != None:
+        if part_id is None and component is not None:
             part_id = component.name
 
         ktl = component.get_parameter('ktl', part_id=part_id, mechanism=self)
@@ -600,7 +600,7 @@ class Energy_Transcription_MM(Mechanism):
         **keywords,
     ):
         # Get Parameters
-        if part_id == None and component != None:
+        if part_id is None and component is not None:
             part_id = component.name
 
         ktx = component.get_parameter('ktx', part_id=part_id, mechanism=self)
@@ -687,7 +687,7 @@ class Energy_Translation_MM(Mechanism):
         **keywords,
     ):
         # Get Parameters
-        if part_id == None and component != None:
+        if part_id is None and component is not None:
             part_id = component.name
 
         ktl = component.get_parameter('ktl', part_id=part_id, mechanism=self)

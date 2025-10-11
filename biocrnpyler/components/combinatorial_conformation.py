@@ -270,7 +270,7 @@ class CombinatorialConformation(Component):
                     ]
         # If any complex cannot be created, return False
         if (
-            species_changes == False
+            species_changes is False
             or any([species_changes[k] is False for k in species_changes])
             or (len(species_changes) == 0 and len(merged_complexes) == 0)
         ):

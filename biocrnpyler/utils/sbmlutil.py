@@ -487,10 +487,7 @@ class SetIdFromNames(libsbml.IdentifierTransformer):
             return libsbml.LIBSBML_OPERATION_SUCCESS
 
             # or if there is nothing to do
-        if (
-            element.isSetName() == False
-            or element.getId() == element.getName()
-        ):
+        if not element.isSetName() or element.getId() == element.getName():
             return libsbml.LIBSBML_OPERATION_SUCCESS
 
             # find the new id
@@ -568,7 +565,7 @@ def getSpeciesByName(model, name, compartment=''):
     compartment : (Optional) argument to specify the compartment name in which
     to look for the species.
     """
-    if type(name) is not str:
+    if not isinstance(name, str):
         raise ValueError(f"'name' must be a string. Received {name}.")
     species_found = []
     for species in model.getListOfSpecies():

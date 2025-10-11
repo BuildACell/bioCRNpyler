@@ -181,7 +181,7 @@ class Species(OrderedMonomer):
                 f"species name: {self.name} contains a number as the "
                 f"first character and therefore requires a material_type."
             )
-        elif material_type == None:
+        elif material_type is None:
             self._material_type = None
         elif (
             material_type.replace('_', '').isalnum()
