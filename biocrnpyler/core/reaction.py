@@ -9,7 +9,7 @@ from warnings import warn
 
 from ..utils.general import remove_bindloc
 from .propensities import MassAction, Propensity
-from .species import *
+from .species import Species, WeightedSpecies
 
 
 class Reaction(object):

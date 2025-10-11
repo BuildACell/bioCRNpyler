@@ -67,10 +67,9 @@ select = [
        'F',			# pyflakes
        'D',			# docstyle
        'I',			# isort
+       'W'			# warnings (white space, line length)
 ]
 ignore = [
-    'F403',			# ignore import .module * in __init__
-    'F405',			# allow local wildcard import (for now)
     'D100', 'D101', 'D102', 	# ignore missing docstrings for now
     'D103', 'D104', 'D105',
     'D105', 'D106', 'D107',
@@ -81,7 +80,14 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 # Ignore `D` rules everywhere except for the `biocrnpyler/` directory.
 '!biocrnpyler/**.py' = ['D']
-'Tests/**.py' = ['F841']	# unused variables OK
+'Tests/**.py' = [
+    'F841',			# unused variables OK
+    'F403', 'F405',		# star imports OK
+]
+'examples/**.py' = [
+    'F403', 'F405',		# star imports OK
+]
+'__init__.py' = ['F403']	# star imports OK
 
 [tool.ruff.format]
 quote-style = 'preserve'
