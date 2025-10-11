@@ -3,8 +3,7 @@
 #  See LICENSE file in the project root directory for details.
 
 import pytest
-from biocrnpyler import Promoter, DNA_construct, Terminator, Transcription_MM,\
-                         Species, RBS, CDS, Polymer_transformation, NamedPolymer,\
+from biocrnpyler import Promoter, DNA_construct, Terminator, Species, RBS, CDS, Polymer_transformation, NamedPolymer,\
                          OrderedPolymer, IntegraseSite, IntegraseRule,Integrase_Enumerator, TxTlExtract
 import copy
 

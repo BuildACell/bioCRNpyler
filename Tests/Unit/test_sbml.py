@@ -1,5 +1,4 @@
 import pytest
-import warnings
 from unittest import TestCase
 from biocrnpyler.utils.sbmlutil import *
 from biocrnpyler import Species, Complex

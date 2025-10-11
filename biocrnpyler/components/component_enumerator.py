@@ -1,7 +1,7 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from typing import List, Union
+from typing import List
 from warnings import warn
 
 

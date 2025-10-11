@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from biocrnpyler.components import DNAassembly
 from biocrnpyler.mixtures import EnergyTxTlExtract
-import ipdb
 
 A = DNAassembly("A", promoter = "P",
                 rbs = "rbs",

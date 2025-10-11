@@ -4,7 +4,6 @@
 
 from unittest import TestCase
 from biocrnpyler import Reaction, Species, MassAction, WeightedSpecies
-import pytest
 
 
 class TestReaction(TestCase):

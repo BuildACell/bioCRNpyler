@@ -1,6 +1,5 @@
 from unittest import TestCase
 from biocrnpyler import *
-import sys
 
 def Component_CRN_validation(CRN, component, mixture):
 	#Helper function which ensures components are compiled into "reasonable" CRNs with

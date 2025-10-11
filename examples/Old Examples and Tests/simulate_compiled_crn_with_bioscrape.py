@@ -1,6 +1,5 @@
 from biocrnpyler import *
 
-import bioscrape
 import numpy as np
 import pylab as plt
 import time as pytime

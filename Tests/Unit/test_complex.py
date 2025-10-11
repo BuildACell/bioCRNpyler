@@ -2,7 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 import pytest
-from biocrnpyler import OrderedPolymer, OrderedMonomer, OrderedPolymerSpecies, Species, ComplexSpecies, Complex, OrderedComplexSpecies, PolymerConformation
+from biocrnpyler import OrderedPolymerSpecies, Species, ComplexSpecies, Complex, OrderedComplexSpecies, PolymerConformation
 
 def test_complex_no_polymer():
     a = Species('A')

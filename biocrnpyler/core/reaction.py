@@ -2,8 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 
-from .propensities import (HillNegative, HillPositive, MassAction, Propensity,
-                           ProportionalHillNegative, ProportionalHillPositive)
+from .propensities import (MassAction, Propensity)
 
 from .species import *
 import copy

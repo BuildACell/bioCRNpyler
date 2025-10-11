@@ -2,9 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 
-import pytest
 #from unittest import TestCase
-import copy
 
 from itertools import permutations
 from biocrnpyler import Promoter, RBS, CDS, Terminator, Transcription_MM, Translation_MM, RNA_construct, DNA_construct, Species

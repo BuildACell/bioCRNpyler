@@ -5,7 +5,6 @@
 from ..core.species import Complex, ComplexSpecies
 from ..core.component import Component
 from itertools import permutations
-import copy
 
 class CombinatorialComplex(Component):
     """

@@ -7,7 +7,7 @@ from warnings import warn
 
 from .construct import DNA_part
 from ...mechanisms.binding import One_Step_Cooperative_Binding
-from ...core.species import Species, ComplexSpecies, Complex
+from ...core.species import ComplexSpecies, Complex
 from ...mechanisms.integrase import BasicIntegration
 from ...core.component import Component
 from ..basic import DNA

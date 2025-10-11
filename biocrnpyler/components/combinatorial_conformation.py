@@ -1,10 +1,8 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from ..core.species import Complex, ComplexSpecies, OrderedPolymerSpecies, \
-    PolymerConformation
+from ..core.species import Complex, ComplexSpecies, PolymerConformation
 from ..core.component import Component
-from .combinatorial_complex import CombinatorialComplex
 from ..mechanisms.conformation import One_Step_Reversible_Conformation_Change
 from ..components.dna.promoter import Promoter
 from itertools import permutations

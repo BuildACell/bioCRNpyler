@@ -5,7 +5,7 @@
 from unittest import TestCase
 from unittest.mock import mock_open, patch
 from biocrnpyler import ChemicalReactionNetwork, Species, Reaction, Complex
-from biocrnpyler import ProportionalHillPositive, ParameterEntry, ParameterKey
+from biocrnpyler import ProportionalHillPositive
 import libsbml # type: ignore
 import warnings
 

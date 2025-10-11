@@ -3,7 +3,7 @@
 
 from unittest import TestCase
 from unittest.mock import patch, mock_open
-from biocrnpyler import Parameter, ParameterEntry, ModelParameter, ParameterDatabase, ParameterKey, Mechanism
+from biocrnpyler import Parameter, ParameterEntry, ModelParameter, ParameterDatabase, Mechanism
 import sys
 from warnings import warn
 

@@ -13,7 +13,6 @@ from .parameter import ParameterDatabase
 from .reaction import Reaction
 from .species import Species
 from .compartment import Compartment
-from ..utils.general import remove_bindloc
 
 
 class Mixture(object):

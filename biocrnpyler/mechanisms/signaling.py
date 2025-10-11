@@ -5,7 +5,6 @@
 from ..core.mechanism import Mechanism
 from ..core.reaction import Reaction
 from ..core.species import Complex
-from ..core.parameter import Parameter
 
 
 class Membrane_Signaling_Pathway_MM(Mechanism):

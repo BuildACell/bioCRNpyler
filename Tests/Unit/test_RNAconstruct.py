@@ -1,10 +1,8 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-import pytest
 #from unittest import TestCase
 from biocrnpyler import RBS, CDS, Translation_MM, RNA_construct, Species
-import copy
 
 
 def test_basic_RNAconstruct():

@@ -4,7 +4,6 @@
 
 from ..core.mechanism import Mechanism
 from ..core.reaction import Reaction
-from ..core.species import Complex, Species
 
 
 class One_Step_Reversible_Conformation_Change(Mechanism):

@@ -1,9 +1,7 @@
 #  Copyright (c) 2019, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-import pytest
-from unittest import TestCase
-from biocrnpyler import Species, Mixture, ExpressionExtract, Component, ParameterKey, ChemicalReactionNetwork, ChemicalComplex, parameter_to_value
+from biocrnpyler import Species, Mixture, ExpressionExtract, ParameterKey, ChemicalReactionNetwork, ChemicalComplex, parameter_to_value
 
 
 

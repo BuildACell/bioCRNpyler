@@ -1,8 +1,8 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
-from typing import Dict, List
+from typing import List
 from ..core.species import Species, ComplexSpecies
-from ..core.polymer import OrderedPolymer, OrderedMonomer, NamedPolymer
+from ..core.polymer import OrderedMonomer, NamedPolymer
 from .dna.construct import Construct, DNA_construct
 from .dna.misc import IntegraseSite
 from .component_enumerator import GlobalComponentEnumerator

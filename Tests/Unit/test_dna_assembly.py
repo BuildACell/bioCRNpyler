@@ -1,4 +1,3 @@
-import pytest
 from biocrnpyler import DNAassembly, Promoter, RBS, Mechanism, Species
 
 

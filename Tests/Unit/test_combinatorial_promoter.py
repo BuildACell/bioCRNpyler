@@ -3,10 +3,9 @@
 # copyright something or other
 
 from unittest import TestCase
-import warnings
 class TestCombinatorialPromoter(TestCase):
     def test_initialization(self):
-        from biocrnpyler import CombinatorialPromoter, Protein, Species, Combinatorial_Cooperative_Binding
+        from biocrnpyler import CombinatorialPromoter, Species, Combinatorial_Cooperative_Binding
         #initializing with one regulator that has no list
         newprom = CombinatorialPromoter("testprom","treg1")
         self.assertTrue(newprom.regulators == [Species("treg1",material_type="protein")])
@@ -35,8 +34,7 @@ class TestCombinatorialPromoter(TestCase):
         self.assertTrue(isinstance(newprom4.mechanisms["binding"],Combinatorial_Cooperative_Binding))
 
     def test_update_species(self):
-        from biocrnpyler import CombinatorialPromoter, Protein, Species, Combinatorial_Cooperative_Binding, \
-                                    DNAassembly,Transcription_MM, Translation_MM, Complex
+        from biocrnpyler import CombinatorialPromoter, Species, DNAassembly,Transcription_MM, Translation_MM, Complex
         #make a complicated promoter
         newprom = CombinatorialPromoter("testprom",["treg1",Species("treg2",material_type="rna")],\
                                 tx_capable_list = [["treg1","treg2"]],cooperativity={"testprom_treg2":1},leak=True)
@@ -90,8 +88,7 @@ class TestCombinatorialPromoter(TestCase):
     def test_update_reactions(self):
         """this function tests the CombinatorialPromoter for the ability to make
         reactions with the proper inputs and outputs."""
-        from biocrnpyler import CombinatorialPromoter, Protein, Species, Combinatorial_Cooperative_Binding, \
-                                    DNAassembly,Transcription_MM, Translation_MM, Complex, ParameterKey
+        from biocrnpyler import CombinatorialPromoter, Species, DNAassembly,Transcription_MM, Translation_MM, Complex, ParameterKey
         
         #make a relatively simple combinatorial promoter
         parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, 

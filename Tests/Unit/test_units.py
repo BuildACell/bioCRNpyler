@@ -4,8 +4,6 @@
 
 from unittest import TestCase
 from biocrnpyler.utils.sbmlutil import create_sbml_model
-import biocrnpyler.utils.units as units
-import pytest
 import libsbml
 from biocrnpyler.utils.units import *
 

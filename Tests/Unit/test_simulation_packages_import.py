@@ -57,7 +57,7 @@ def test_libroadrunner_import():
     from biocrnpyler import ChemicalReactionNetwork
     CRN = ChemicalReactionNetwork(species=[], reactions=[])
     try:
-        import roadrunner
+        import roadrunner       # noqa: F401
     except ModuleNotFoundError:
         # libroadrunner is not installed, let's check if it triggers a warning inside simulate_with_roadrunner()
         with pytest.warns(UserWarning, match='libroadrunner was not found, please install libroadrunner'):

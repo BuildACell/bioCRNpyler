@@ -1,8 +1,8 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from biocrnpyler import CombinatorialComplex, One_Step_Binding, Reaction, CombinatorialConformation
-from biocrnpyler import Species, OrderedPolymerSpecies, Complex, PolymerConformation
+from biocrnpyler import CombinatorialComplex, One_Step_Binding, Reaction
+from biocrnpyler import Species, Complex
 import pytest
 
 def test_CombinatorialComplex_init_and_properties():

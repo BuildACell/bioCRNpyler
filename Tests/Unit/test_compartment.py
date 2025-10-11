@@ -3,7 +3,7 @@
 
 from unittest import TestCase
 from biocrnpyler import Species, Compartment
-from biocrnpyler import Mixture, ChemicalReactionNetwork
+from biocrnpyler import Mixture
 from biocrnpyler.components.dna import ActivatablePromoter, DNAassembly
 from biocrnpyler.mixtures import EnergyTxTlExtract
 import tempfile

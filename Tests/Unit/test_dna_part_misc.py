@@ -1,4 +1,3 @@
-import pytest
 from biocrnpyler import UserDefined,Origin,DNABindingSite
 
 def test_user_defined():

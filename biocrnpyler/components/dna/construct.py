@@ -18,7 +18,6 @@ from ..basic import DNA, RNA
 from ...core.species import Species, ComplexSpecies, OrderedPolymer, \
     OrderedPolymerSpecies
 from ...utils import all_comb
-import logging
 
 class Construct(Component, OrderedPolymer):
     def __init__(

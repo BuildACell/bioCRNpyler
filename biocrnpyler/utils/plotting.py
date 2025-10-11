@@ -29,15 +29,15 @@ import copy
 
 HAVE_MATPLOTLIB = False
 try:
-    import matplotlib.pyplot as plt  # type: ignore
-    from matplotlib import cm  # type: ignore
+    import matplotlib.pyplot as plt     # noqa: F401
+    from matplotlib import cm           # noqa: F401
 
     HAVE_MATPLOTLIB = True
 except ModuleNotFoundError:
     pass
 PLOT_DNA = False
 try:
-    import dnaplotlib as dpl  # type: ignore
+    import dnaplotlib as dpl            # noqa: F401
 
     PLOT_DNA = True
 except ModuleNotFoundError:
@@ -62,10 +62,10 @@ try:
         TapTool,
         WheelZoomTool,
     )
-    from bokeh.plotting import from_networkx  # type: ignore
-    from bokeh.palettes import Spectral4  # type: ignore
-    from bokeh.io import export_svgs, output_notebook  # type: ignore
-    from fa2_modified import ForceAtlas2  # type: ignore
+    from bokeh.plotting import from_networkx            # noqa: F401
+    from bokeh.palettes import Spectral4                # noqa: F401
+    from bokeh.io import export_svgs, output_notebook   # noqa: F401
+    from fa2_modified import ForceAtlas2                # noqa: F401
 
     PLOT_NETWORK = True
 except ModuleNotFoundError:

@@ -5,7 +5,6 @@
 # See LICENSE file in the project root directory for details.
 
 import logging
-import warnings
 from random import randint
 from typing import List
 from warnings import warn

@@ -5,7 +5,6 @@ from ..core.mechanism import Mechanism
 from ..core.reaction import Reaction
 from ..core.species import Complex
 from ..core.propensities import ProportionalHillNegative, GeneralPropensity
-from ..core.parameter import Parameter, ParameterEntry
 
 
 class Simple_Diffusion(Mechanism):
