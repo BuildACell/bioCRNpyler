@@ -11,9 +11,12 @@ from ..core.species import Complex, Species
 from ..core.compartment import Compartment
 
 class DiffusibleMolecule(Component):
-    """A class to represent transmembrane proteins or integral membrane proteins.
-    This membrane class is to classify a membrane channel that will intergrate into the membrane.
-    By default, a DiffusibleMolecule uses a mechanism called "diffusion".
+    """A class to represent passive diffusion.
+
+    This class is to classify a molecule that will diffuse passively
+    through the membrane.  By default, a DiffusibleMolecule uses a
+    mechanism called 'diffusion'.
+
     """
     def __init__(self, substrate:Union[Species, str, Component], 
                  internal_compartment:Union[str, Compartment]='Internal', 
@@ -197,6 +200,10 @@ class MembraneChannel(Component):
         # sophisticated logic to set up the product, since the `set_species`
         # method will just return the existing species, without changing
         # the compartment.
+        #
+        # TODO: we should think about allowing a list of substrates to
+        # be supplied and/or some sort of attribute based import (eg,
+        # based on size).
 
         if substrate is None:
             self.substrate = None

@@ -38,8 +38,8 @@ RepressiblePromoter	Component	4. Promoters Transcriptional Regulation and Gene R
 Terminator	Component	7. Network Plotting Examples.ipynb
 BasicCatalysis	Mechanism	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
 Combinatorial_Cooperative_Binding	Mechanism	Specialized Tutorials/1. CombinatorialPromoter Details.ipynb
-Deg_Tagged_Degredation	Mechanism	6. Global Mechanisms.ipynb
-Degredation_mRNA_MM	Mechanism	3. DNA Assemblies gene expression transcription and translation.ipynb
+Deg_Tagged_Degradation	Mechanism	6. Global Mechanisms.ipynb
+Degradation_mRNA_MM	Mechanism	3. DNA Assemblies gene expression transcription and translation.ipynb
 Dilution	Mechanism	3. DNA Assemblies gene expression transcription and translation.ipynb
 Mechanism	Mechanism	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb
 MichaelisMenten	Mechanism	2. Compiling CRNs with Enzymes Catalysis and Binding.ipynb

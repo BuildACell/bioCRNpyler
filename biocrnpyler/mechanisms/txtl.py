@@ -371,7 +371,7 @@ class Transcription_MM(MichaelisMentenCopy):
             tx_output = transcript
 
         species += MichaelisMentenCopy.update_species(
-            self, Enzyme=self.rnap, Sub=dna, Prod=tx_output
+            self, enzyme=self.rnap, substrate=dna, product=tx_output
         )
 
         return species
@@ -404,9 +404,9 @@ class Transcription_MM(MichaelisMentenCopy):
 
         rxns += MichaelisMentenCopy.update_reactions(
             self,
-            Enzyme=self.rnap,
-            Sub=dna,
-            Prod=tx_output,
+            enzyme=self.rnap,
+            substrate=dna,
+            product=tx_output,
             complex=complex,
             kb=kb,
             ku=ku,
@@ -442,7 +442,8 @@ class Translation_MM(MichaelisMentenCopy):
             species += Species.flatten_list([protein])
         else:
             species += MichaelisMentenCopy.update_species(
-                self, Enzyme=self.ribosome, Sub=transcript, Prod=protein
+                self, enzyme=self.ribosome, substrate=transcript,
+                product=protein
             )
 
         return species
@@ -466,9 +467,9 @@ class Translation_MM(MichaelisMentenCopy):
         else:
             rxns += MichaelisMentenCopy.update_reactions(
                 self,
-                Enzyme=self.ribosome,
-                Sub=transcript,
-                Prod=protein,
+                enzyme=self.ribosome,
+                substrate=transcript,
+                product=protein,
                 complex=complex,
                 kb=kb,
                 ku=ku,

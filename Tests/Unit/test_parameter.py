@@ -140,10 +140,16 @@ class TestParameter(TestCase):
             example_csv = """mechanism_id	part_id	param_name	param_val	comments\ntranscription_mm	ptet_tetR	kb	10.	extra columns are okay!\ntranscription_mm	ptet_tetR	ku	.1	These are the parameters for transcription"""
             # !!! DO NOT reformat this string above !!!!
 
-            with patch('builtins.open', mock_open(read_data=example_csv), create=True):
+            from pathlib import Path
+            with (
+                patch.object(Path, 'exists', return_value=True),
+                patch.object(Path, 'is_file', return_value=True),
+                patch(
+                    'builtins.open', mock_open(read_data=example_csv),
+                    create=True),
+            ):
                 PD = ParameterDatabase(parameter_file='test_file.tsv')
 
-                
                 right_dict = {
                 ('transcription_mm', 'ptet_tetR', 'kb'): 10.0,
                 ('transcription_mm', 'ptet_tetR', 'ku'): 0.1
@@ -158,7 +164,13 @@ class TestParameter(TestCase):
         if sys.version_info[1] >= 7:
             example_csv = """mechanism_id"""
 
-            with patch('builtins.open', mock_open(read_data=example_csv), create=True):
+            with (
+                patch.object(Path, 'exists', return_value=True),
+                patch.object(Path, 'is_file', return_value=True),
+                patch(
+                    'builtins.open', mock_open(read_data=example_csv),
+                    create=True),
+            ):
                 with self.assertWarnsRegex(Warning, f"No param_name column was found, could not load parameter!"):
                     ParameterDatabase(parameter_file='test_file.tsv')
 
@@ -303,9 +315,9 @@ class TestParameter(TestCase):
 
         """Test the parameter defaulting heirarchy
         Parameter defaulting heirarchy:
-        (mechanism_name, part_id, param_name) --> param_val. If that particular parameter key cannot be found, 
-        the software will default to the following keys: 
-        (mechanism_type, part_id, param_name) >> (part_id, param_name) >> 
+        (mechanism_name, part_id, param_name) --> param_val. If that particular parameter key cannot be found,
+        the software will default to the following keys:
+        (mechanism_type, part_id, param_name) >> (part_id, param_name) >>
         (mechanism_name, param_name) >> (mechanism_type, param_name) >>
         (param_name) and give a warning. """
 
@@ -332,5 +344,32 @@ class TestParameter(TestCase):
         self.assertEqual(PD.find_parameter(mechanism = M1, part_id="pid", param_name = "k").value, 4.2)
 
 
+def test_findpath():
+    import os
+    import platform
+    import biocrnpyler as bcp
 
+    # Make sure files that don't exist return None
+    assert bcp.find_file_in_bcp_path('does_not_exist') is None
 
+    # Make sure that files in package can be found
+    assert os.path.exists(
+        bcp.find_file_in_bcp_path('components/tetr_parameters.tsv'))
+
+    # Make sure we can find files in current directory
+    assert bcp.find_file_in_bcp_path('__testfile__.tsv') is None
+    open('__testfile__.tsv', 'w')
+    assert os.path.exists(
+        bcp.find_file_in_bcp_path('__testfile__.tsv'))
+    os.remove('__testfile__.tsv')
+
+    # Make sure we can find files in the path
+    open('../__testfile__.tsv', 'w')
+    assert bcp.find_file_in_bcp_path('__testfile__.tsv') is None
+    if platform.system() == "Windows":
+        os.environ['BCP_PATH'] = '/tmp;.;..'
+    else:
+        os.environ['BCP_PATH'] = '/tmp:.:..'
+    assert os.path.exists(
+        bcp.find_file_in_bcp_path('__testfile__.tsv'))
+    os.remove('../__testfile__.tsv')

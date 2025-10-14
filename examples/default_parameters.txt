@@ -15,8 +15,8 @@ mechanism_id	part_id	param_name	param_val	comments
 		kb	100	assuming 10ms to diffuse across 1um (characteristic cell size)
 		ku	10	"""90% binding"""
 		kdil	0.001	assuming half life of ~20 minutes for everything (e coli doubling time)
-rna_degredation_mm		kdeg	0.001	assuming a half life of ~10 minutes for mRNA
-rna_degredation		kdil	0.001	assuming a half life of ~10 minutes for mRNA
+rna_degradation_mm		kdeg	0.001	assuming a half life of ~10 minutes for mRNA
+rna_degradation		kdil	0.001	assuming a half life of ~10 minutes for mRNA
 simple_transcription		ktx	0.1	Assuming ~10% of e coli rnap working at ktx above
 simple_translation		ktl	0.25	Assuming ~5% of e coli ribosomes working at ktx above
 gene_expression		kexpress	0.28125	The product of the above two rates

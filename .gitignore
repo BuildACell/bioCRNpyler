@@ -77,3 +77,4 @@ docs/build/
 ### Emacs backup files
 *~
 TAGS
+.DS_Store

@@ -283,13 +283,14 @@ class ChemicalReactionNetwork(object):
                 else 0
             )
 
-        species_sort_list = [(parameter_to_value(ics(s)), s) for s in self._species]
+        species_sort_list = [
+            (parameter_to_value(ics(s)), s) for s in self._species]
         species_sort_list.sort()
         species_sort_list.reverse()
         for sind, (init_conc, s) in enumerate(species_sort_list):
             init_conc = ics(s)
 
-            txt += s.pretty_print(
+            txt += "    " + s.pretty_print(
                 show_material=show_material,
                 show_compartment=show_compartment,
                 show_attributes=show_attributes,
@@ -301,9 +302,10 @@ class ChemicalReactionNetwork(object):
 
                 if show_keys:  # shows where the initial conditions came from
                     if isinstance(init_conc, ModelParameter):
-                        txt += f"\n   found_key=(mech={init_conc.found_key.mechanism}, partid={init_conc.found_key.part_id}, name={init_conc.found_key.name}).\n   search_key=(mech={init_conc.search_key.mechanism}, partid={init_conc.search_key.part_id}, name={init_conc.search_key.name}).\n"
+                        txt += f"\n    found_key=(mech={init_conc.found_key.mechanism}, partid={init_conc.found_key.part_id}, name={init_conc.found_key.name}).\n    search_key=(mech={init_conc.search_key.mechanism}, partid={init_conc.search_key.part_id}, name={init_conc.search_key.name}).\n"
+            txt += "\n"
 
-        txt += "\n}\n"
+        txt += "}\n"
         txt += f"\nReactions ({len(self._reactions)}) = [\n"
 
         for rind in range(len(self._reactions)):

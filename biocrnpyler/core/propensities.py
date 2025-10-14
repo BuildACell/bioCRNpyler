@@ -164,7 +164,8 @@ class Propensity(object):
         """returns the instance variables that are species type."""
         return list(self.propensity_dict['species'].values())
 
-    def create_kinetic_law(self, reaction, reverse_reaction, stochastic, **kwargs):
+    def create_kinetic_law(
+            self, reaction, reverse_reaction, stochastic, **kwargs):
         raise NotImplementedError(
             "class Propensity is meant to be subclassed!")
 
@@ -175,10 +176,11 @@ class Propensity(object):
         return cls(**merged)
 
     def _create_annotation(self, model, propensity_dict_in_sbml, **kwargs):
-        """Create simulator specific annotations to write to Kinetic laws or any other
-        part of the SBML model object.
+        """Create simulator specific annotations to part of SBML model object.
 
-        Annotations are used to take advantage of a simulator specific need/feature.
+        Annotations are used to take advantage of a simulator specific
+        need/feature.
+
         """
         annotation_string = ''
         # Add your own simulator specific annotations here
@@ -197,10 +199,15 @@ class Propensity(object):
         return annotation_string
 
     def _create_bioscrape_annotation(self, propensity_dict_in_sbml):
-        """Propensity Annotations are Used to take advantage of Bioscrape Propensity types
-        for faster simulation."""
+        """Add BioSCRAPE annotation.
+
+        Propensity Annotations are Used to take advantage of Bioscrape
+        Propensity types for faster simulation.
+
+        """
         annotation_dict = defaultdict()
-        for param_name, param_value in propensity_dict_in_sbml['parameters'].items():
+        for param_name, param_value \
+                in propensity_dict_in_sbml['parameters'].items():
             annotation_dict[param_name] = param_value
 
         for species_name, species in propensity_dict_in_sbml['species'].items():
@@ -215,8 +222,9 @@ class Propensity(object):
 
         # replace strings to match with bioscrape naming convention
         annotation_string = annotation_string.replace('k_forward', 'k', 1)
-        # Bioscrape doesn't have the concept of a reversible reaction - so for both the reverse and forward cases
-        # we just make the annotation parameter be called 'k'
+        # Bioscrape doesn't have the concept of a reversible reaction
+        # - so for both the reverse and forward cases.  We just make
+        # the annotation parameter be called 'k'.
         annotation_string = annotation_string.replace('k_reverse', 'k', 1)
         return annotation_string
 
@@ -226,8 +234,8 @@ class Propensity(object):
         for param_name in propensity_dict_in_sbml['parameters'].keys():
             parameter_in_sbml = self._create_sbml_parameter(
                 param_name, model, ratelaw)
-            propensity_dict_in_sbml['parameters'][param_name] = parameter_in_sbml.getId(
-            )
+            propensity_dict_in_sbml['parameters'][param_name] = \
+                parameter_in_sbml.getId()
 
         for species_name, species in propensity_dict_in_sbml['species'].items():
             propensity_dict_in_sbml['species'][species_name] = str(species)
@@ -236,34 +244,45 @@ class Propensity(object):
 
 
 class GeneralPropensity(Propensity):
-    def __init__(self, propensity_function: str, propensity_species: List[Species], propensity_parameters: List[ParameterEntry]):
+    def __init__(
+            self, propensity_function: str,
+            propensity_species: List[Species],
+            propensity_parameters: List[ParameterEntry]):
         """A class to define a general propensity.
 
         :param propensity_function: valid propensity formula defined as a string
-        :param propensity_species: list of species that are part of the propensity_function
-        :param propensity_parameters: list of parameters that are part of the propensity_function
+        :param propensity_species: list of species that are part of
+            the propensity_function
+        :param propensity_parameters: list of parameters that are part of
+            the propensity_function
+
         """
         super(GeneralPropensity, self).__init__()
         self.propensity_function = propensity_function
 
-        if len(propensity_species) > 0 and not all(isinstance(s, Species) for s in propensity_species):
-            raise TypeError('propensity_species must be a list of Species!')
+        if len(propensity_species) > 0 \
+           and not all(isinstance(s, Species) for s in propensity_species):
+            raise TypeError("propensity_species must be a list of Species!")
 
-        if len(propensity_parameters) > 0 and not all(isinstance(s, ParameterEntry) for s in propensity_parameters):
+        if len(propensity_parameters) > 0 \
+           and not all(isinstance(s, ParameterEntry)
+                       for s in propensity_parameters):
             raise TypeError(
                 'propensity_parameter must be a list of ParameterEntry!')
 
         for species in propensity_species:
             if str(species) not in self.propensity_function:
                 raise ValueError(
-                    f'species: {species} must be part of the formula: {self.propensity_function}')
+                    f"species: {species} must be part of the formula: "
+                    f"{self.propensity_function}")
 
             self.propensity_dict['species'].update({str(species): species})
 
         for parameter in propensity_parameters:
             if parameter.parameter_name not in self.propensity_function:
                 raise ValueError(
-                    f'species: {parameter.parameter_name} must be part of the formula: {self.propensity_function}')
+                    f"species: {parameter.parameter_name} must be part of "
+                    f"the formula: {self.propensity_function}")
 
             self.propensity_dict['parameters'].update(
                 {parameter.parameter_name: parameter.value})
@@ -274,19 +293,21 @@ class GeneralPropensity(Propensity):
         return self.propensity_function
 
     def create_kinetic_law(self, model, sbml_reaction, **kwargs):
-        """Creates KineticLaw object for SBML using the propensity_function string."""
+        """Creates SBML KineticLaw using the propensity_function string."""
         ratelaw = sbml_reaction.createKineticLaw()
 
         propensity_dict_in_sbml = self._translate_propensity_dict_to_sbml(
             model=model, ratelaw=ratelaw)
 
         # replacing the species defined in CRN with valid SBML names
-        for species_in_crn, species_in_sbml in propensity_dict_in_sbml['species'].items():
+        for species_in_crn, species_in_sbml \
+                in propensity_dict_in_sbml['species'].items():
             self.propensity_function = self.propensity_function.replace(
                 species_in_crn, species_in_sbml)
 
         # replacing the parameters defined in CRN with valid SBML names
-        for parameter_in_crn, parameter_in_sbml in propensity_dict_in_sbml['parameters'].items():
+        for parameter_in_crn, parameter_in_sbml \
+                in propensity_dict_in_sbml['parameters'].items():
             self.propensity_function = self.propensity_function.replace(
                 parameter_in_crn, parameter_in_sbml)
 
@@ -294,12 +315,15 @@ class GeneralPropensity(Propensity):
         flag = ratelaw.setMath(math_ast)
         if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
             raise ValueError(
-                "Could not write the rate law for reaction to SBML. Check the propensity functions of reactions.")
+                "Could not write the rate law for reaction to SBML. "
+                "Check the propensity functions of reactions.")
         return ratelaw
 
 
 class MassAction(Propensity):
-    def __init__(self, k_forward: Union[float, ParameterEntry], k_reverse: Union[float, ParameterEntry] = None):
+    def __init__(
+            self, k_forward: Union[float, ParameterEntry],
+            k_reverse: Union[float, ParameterEntry] = None):
         super(MassAction, self).__init__()
         self.k_forward = k_forward
         self.k_reverse = k_reverse
@@ -354,11 +378,11 @@ class MassAction(Propensity):
                     "k_reverse", kwargs["stochastic"], reactant_species)
         return txt
 
-    def create_kinetic_law(self, model, sbml_reaction, stochastic, reverse_reaction=False, **kwargs):
+    def create_kinetic_law(
+            self, model, sbml_reaction, stochastic,
+            reverse_reaction=False, **kwargs):
 
-        if 'crn_reaction' in kwargs:
-            crn_reaction = kwargs['crn_reaction']
-        else:
+        if (crn_reaction := kwargs.pop('crn_reaction', None)) is None:
             raise ValueError(
                 'crn_reaction reference is needed for Massaction kinetics!')
 
@@ -399,13 +423,15 @@ class MassAction(Propensity):
         flag = ratelaw.setMath(math_ast)
         if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
             raise ValueError(
-                "Could not write the rate law for reaction to SBML. Check the propensity functions of reactions.")
+                "Could not write the rate law for reaction to SBML. "
+                "Check the propensity functions of reactions.")
         annotation_string = self._create_annotation(
             model, propensity_dict_in_sbml=propensity_dict_in_sbml, **kwargs)
         sbml_reaction.appendAnnotation(annotation_string)
         return ratelaw
 
-    def _get_rate_formula(self, rate_coeff_name, stochastic, reactant_species) -> str:
+    def _get_rate_formula(
+            self, rate_coeff_name, stochastic, reactant_species) -> str:
 
         # Create Rate-strings for massaction propensities
         ratestring = rate_coeff_name
@@ -415,15 +441,17 @@ class MassAction(Propensity):
                 ratestring += '*'
                 ratestring += f"{species_id}"
                 ratestring += '*'
-                ratestring += '*'.join(f" ( {species_id} - {i} )" for i in range(
-                    1, weighted_species.stoichiometry))
+                ratestring += '*'.join(
+                    f" ( {species_id} - {i} )" for i in range(
+                        1, weighted_species.stoichiometry))
 
                 # Remove trailing *
                 if ratestring[len(ratestring)-1] == "*":
                     ratestring = ratestring[:-1]
             else:
                 if weighted_species.stoichiometry > 1:
-                    ratestring += f" * {species_id}^{weighted_species.stoichiometry}"
+                    ratestring += f" * {species_id}^" + \
+                        f"{weighted_species.stoichiometry}"
                 else:
                     ratestring += f" * {species_id}"
         return ratestring
@@ -495,7 +523,9 @@ class Hill(Propensity):
 
     def pretty_print_rate(self, show_parameters=True, **kwargs):
         raise NotImplementedError(
-            "Propensity class Hill is meant to be subclassed: try HillPositive, HillNegative, ProportionalHillPositive, or ProportionalHillNegative.")
+            "Propensity class Hill is meant to be subclassed: "
+            "try HillPositive, HillNegative, ProportionalHillPositive, "
+            "or ProportionalHillNegative.")
 
     def create_kinetic_law(self, model, sbml_reaction, stochastic, **kwargs):
         """This code is reused in all Hill Propensity subclasses."""
@@ -520,7 +550,8 @@ class Hill(Propensity):
         flag = ratelaw.setMath(math_ast)
         if not flag == libsbml.LIBSBML_OPERATION_SUCCESS or math_ast is None:
             raise ValueError(
-                "Could not write the rate law for reaction to SBML. Check the propensity functions of reactions.")
+                "Could not write the rate law for reaction to SBML. "
+                "Check the propensity functions of reactions.")
 
         return ratelaw
 
@@ -531,19 +562,24 @@ class Hill(Propensity):
 
 class HillPositive(Hill):
     def __init__(self, k: float, s1: Species, K: float, n: float):
-        """ Hill positive propensity is a nonlinear propensity with the following formula.
+        """Positive propensity function for a Hill rate law.
+
+        Hill positive propensity is a nonlinear propensity with the
+        following formula.
 
             p(s1; k, K, n) = k*s1^n/(s1^n + K)
 
         :param k: rate constant (float)
         :param s1: species (chemical_reaction_network.species)
         :param K: dissociation constant (float)
+
         """
         Hill.__init__(self=self, k=k, s1=s1, K=K, n=n, d=None)
         self.name = 'hillpositive'
 
     def pretty_print_rate(self, show_parameters=True, **kwargs):
-        return f' Kf = k {self.s1.pretty_print(**kwargs)}^n / ( K^n + {self.s1.pretty_print(**kwargs)}^n )'
+        return f" Kf = k {self.s1.pretty_print(**kwargs)}^n / " + \
+            f"( K^n + {self.s1.pretty_print(**kwargs)}^n )"
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']
@@ -556,7 +592,10 @@ class HillPositive(Hill):
 
 class HillNegative(Hill):
     def __init__(self, k: float, s1: Species, K: float, n: float):
-        """ Hill negative propensity is a nonlinear propensity with the following formula.
+        """Propensity function for a negative Hill rate law.
+
+        Hill negative propensity is a nonlinear propensity with the
+        following formula:
 
             p(s1; k, K, n) = k*1/(s1^n + K)
 
@@ -564,6 +603,7 @@ class HillNegative(Hill):
         :param s1: species (chemical_reaction_network.species)
         :param K: dissociation constant (float)
         :param n: cooperativity (float)
+
         """
         Hill.__init__(self=self, k=k, s1=s1, K=K, n=n, d=None)
         self.name = 'hillnegative'
@@ -582,7 +622,9 @@ class HillNegative(Hill):
 
 class ProportionalHillPositive(HillPositive):
     def __init__(self, k: float, s1: Species, K: float, n: float, d: Species):
-        """ proportional Hill positive propensity with the following formula.
+        """Propensity function for a proportional Hill runciton rate law.
+
+        Proportional Hill positive propensity with the following formula:
 
             p(s1, d; k, K, n) = k*d*s1^n/(s1^n + K)
 
@@ -596,7 +638,9 @@ class ProportionalHillPositive(HillPositive):
         self.name = 'proportionalhillpositive'
 
     def pretty_print_rate(self, show_parameters=True,  **kwargs):
-        return f' Kf = k {self.d.pretty_print(**kwargs)} {self.s1.pretty_print(**kwargs)}^n / ( K^n + {self.s1.pretty_print(**kwargs)}^n )'
+        return f" Kf = k {self.d.pretty_print(**kwargs)} " + \
+            f"{self.s1.pretty_print(**kwargs)}^n / " + \
+            f"( K^n + {self.s1.pretty_print(**kwargs)}^n )"
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']
@@ -609,7 +653,9 @@ class ProportionalHillPositive(HillPositive):
 
 class ProportionalHillNegative(HillNegative):
     def __init__(self, k: float, s1: Species, K: float, n: float, d: Species):
-        """ proportional Hill negative propensity with the following formula.
+        """Proportional Hill negative propensity.
+
+        Satisfies the following formula:
 
             p(s1, d; k, K, n) = k*d/(s1^n + K)
 
@@ -618,12 +664,14 @@ class ProportionalHillNegative(HillNegative):
         :param K: dissociation constant (float)
         :param n: cooperativity (float)
         :param d: species (chemical_reaction_network.species)
+
         """
         Hill.__init__(self=self, k=k, s1=s1, K=K, n=n, d=d)
         self.name = 'proportionalhillnegative'
 
     def pretty_print_rate(self, show_parameters=True, **kwargs):
-        return f' Kf = k {self.d.pretty_print(**kwargs)} / ( 1 + ({self.s1.pretty_print(**kwargs)}/K)^{self.n} )'
+        return f" Kf = k {self.d.pretty_print(**kwargs)} / " + \
+            f"( 1 + ({self.s1.pretty_print(**kwargs)}/K)^{self.n} )"
 
     def _get_rate_formula(self, propensity_dict):
         k = propensity_dict['parameters']['k']

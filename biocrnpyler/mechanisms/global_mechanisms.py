@@ -166,7 +166,7 @@ class GlobalMechanism(Mechanism):
 class Dilution(GlobalMechanism):
     """A global mechanism to represent dilution."""
 
-    def __init__(self, name="global_degredation_via_dilution",
+    def __init__(self, name="global_degradation_via_dilution",
                  mechanism_type="dilution", filter_dict=None,
                  default_on=True, recursive_species_filtering=True):
         GlobalMechanism.__init__(self, name=name,
@@ -202,15 +202,15 @@ class AnitDilutionConstiutiveCreation(GlobalMechanism):
         return [rxn]
 
 
-class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
-    """Michaelis Menten mRNA Degredation by Endonucleases
+class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
+    """Michaelis Menten mRNA Degradation by Endonucleases
        mRNA + Endo <--> mRNA:Endo --> Endo
        All species of type "rna" are degraded by this mechanisms, including those inside of a ComplexSpecies.
        ComplexSpecies are seperated by this process, including embedded ComplexSpecies. 
        OrderedPolymerSpecies are ignored.
     """
 
-    def __init__(self, nuclease, name="rna_degredation_mm", mechanism_type="rna_degredation",
+    def __init__(self, nuclease, name="rna_degradation_mm", mechanism_type="rna_degradation",
                  default_on=False, recursive_species_filtering=True, filter_dict=None, **keywords):
 
         if isinstance(nuclease, Species):
@@ -240,12 +240,12 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
             else:
                 prod = None
             species += MichaelisMenten.update_species(
-                self, Enzyme=self.nuclease, Sub=s, Prod=prod)
+                self, enzyme=self.nuclease, substrate=s, product=prod)
 
         # If the material type is simply RNA, break it up.
         elif s.material_type == "rna":
             species += MichaelisMenten.update_species(
-                self, Enzyme=self.nuclease, Sub=s, Prod=None)
+                self, enzyme=self.nuclease, substrate=s, product=None)
         else:
             # This case includes OrderedPolymerSpecies with RNA inside them and species with RNA in their name (but not mateiral type)
             species = []
@@ -271,7 +271,7 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
             else:
                 prod = None
             reactions += MichaelisMenten.update_reactions(
-                self, Enzyme=self.nuclease, Sub=s, Prod=prod, kb=kb, ku=ku, kcat=kdeg)
+                self, enzyme=self.nuclease, substrate=s, product=prod, kb=kb, ku=ku, kcat=kdeg)
 
         # If the material type is simply RNA, break it up.
         elif s.material_type == "rna":
@@ -280,7 +280,7 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
             ku = self.get_parameter(s, "ku", mixture)
 
             reactions += MichaelisMenten.update_reactions(
-                self, Enzyme=self.nuclease, Sub=s, Prod=None, kb=kb, ku=ku, kcat=kdeg)
+                self, enzyme=self.nuclease, substrate=s, product=None, kb=kb, ku=ku, kcat=kdeg)
         else:
             # This case includes OrderedPolymerSpecies with RNA inside them and species with RNA in their name (but not mateiral type)
             reactions = []
@@ -288,13 +288,13 @@ class Degredation_mRNA_MM(GlobalMechanism, MichaelisMenten):
         return reactions
 
 
-class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
-    """Michaelis Menten Degredation of deg-tagged proteins by degredase (such as proteases)
+class Deg_Tagged_Degradation(GlobalMechanism, MichaelisMenten):
+    """Michaelis Menten Degradation of deg-tagged proteins by degredase (such as proteases)
        Species_degtagged + degredase <--> Species_degtagged:degredase --> degredase
        All species with the attribute degtagged and material_type protein are degraded. The method is not recursive.
     """
 
-    def __init__(self, degredase, deg_tag="degtagged", name="deg_tagged_degredation", mechanism_type="degredation",
+    def __init__(self, degredase, deg_tag="degtagged", name="deg_tagged_degradation", mechanism_type="degradation",
                  filter_dict=None, recursive_species_filtering=False, default_on=False, **keywords):
         if isinstance(degredase, Species):
             self.degredase = degredase
@@ -312,7 +312,7 @@ class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
     def update_species(self, s, mixture):
         species = []
         species += MichaelisMenten.update_species(
-            self, Enzyme=self.degredase, Sub=s, Prod=None)
+            self, enzyme=self.degredase, substrate=s, product=None)
         return species
 
     def update_reactions(self, s, mixture):
@@ -323,5 +323,5 @@ class Deg_Tagged_Degredation(GlobalMechanism, MichaelisMenten):
 
         rxns = []
         rxns += MichaelisMenten.update_reactions(
-            self, Enzyme=self.degredase, Sub=s, Prod=None, kb=kb, ku=ku, kcat=kdeg)
+            self, enzyme=self.degredase, substrate=s, product=None, kb=kb, ku=ku, kcat=kdeg)
         return rxns

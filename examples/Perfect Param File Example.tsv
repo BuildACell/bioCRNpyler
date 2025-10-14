@@ -11,6 +11,6 @@ one_step_cooperative_binding	ptet_tetR	cooperativity	2
 translation_mm	BCD	ktl	2.0		These are parameters for translation
 translation_mm	BCD	ku	.25	per_hour	
 translation_mm	BCD	kb	10	litre_per_mole_per_hour	
-rna_degredation_mm		kb	10		"These are parameters for RNA degredation. "
-rna_degredation_mm		ku	.5		They will be the same for all RNAs because of parameter defaulting.
-rna_degredation_mm		kdeg	1.5		
+rna_degradation_mm		kb	10		"These are parameters for RNA degradation. "
+rna_degradation_mm		ku	.5		They will be the same for all RNAs because of parameter defaulting.
+rna_degradation_mm		kdeg	1.5		

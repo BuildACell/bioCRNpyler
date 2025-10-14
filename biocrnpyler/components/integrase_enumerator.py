@@ -9,8 +9,12 @@ from .component_enumerator import GlobalComponentEnumerator
 import itertools as it
 from ..utils import combine_dictionaries
 import copy
+
+
 class Polymer_transformation:
-    def __init__(self,partslist,circular=False,parentsdict = None,material_type="dna"):
+    def __init__(
+            self, partslist, circular=False, parentsdict=None,
+            material_type='dna'):
         """A Polymer transformation is like a generic transformation of a polymer sequence.
         You specify a parts list that would make up the output polymer. This list can contain:
         parts from ordered polymers
@@ -90,6 +94,7 @@ class Polymer_transformation:
         self.partslist = actual_partslist
         self.circular = circular
         self.material_type = material_type
+
     def renumber_output(self,output_renumbering_function):
         """change the ordering of the output list, using the output_renumbering_function which takes
         in an int and returns an int which is the new index of the part"""
@@ -131,7 +136,7 @@ class Polymer_transformation:
                     newname = new_name_dict[part[0].parent.name]
                     new_parentsdict[part[0].parent]=newname
             return Polymer_transformation(self.partslist,self.circular,parentsdict=new_parentsdict)
-    def create_polymer(self,polymer_list,**keywords):
+    def create_polymer(self,polymer_list,**kwargs):
         """this function creates a new polymer from the template saved inside this class.
         A polymer_list is a list of polymers from which the resulting polymer is made. Some of
         the parts which compose the output polymer don't have a parent, and therefore are new parts.
@@ -192,6 +197,7 @@ class Polymer_transformation:
         else:
             outpolymer = polymer_dict["input1"].__class__(outlst,circular = self.circular,material_type=self.material_type)
         return outpolymer
+
     @classmethod
     def dummify(cls,in_polymer,name):
         """creates a simplified polymer that has the same number of monomers, direction of monomers,
@@ -503,7 +509,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
                 else:
                     int_dict[part_integrase]=[part]
         return int_dict
-    def reset(self,components=None, **keywords):
+    def reset(self,components=None, **kwargs):
         """this resets the linked_sites member in any attachment sites"""
         for component in components:
             if(hasattr(component,"parts_list")):
@@ -543,7 +549,8 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
             elif(construct.get_reversed().get_species() == other_construct.get_species()):
                 return other_construct, (lambda a: (other_indexes[::-1][a],"r"))
 
-    def enumerate_components(self,components = None,previously_enumerated = None, **keywords):
+    def enumerate_components(
+            self, components=None, previously_enumerated=None, **kwargs):
         """this explores all the possible integrase-motivated DNA configurations. If some
         integrases aren't present, then define intnames to be a list of names of the
         integrases which are present.

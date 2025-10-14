@@ -6,7 +6,8 @@ from ..core.propensities import HillPositive
 
 # [precursors] --> [products] using Massaction (None OK)
 class OneStepPathway(Mechanism):
-    def __init__(self, name="one_step_pathway", mechanism_type="metabolic_pathway"):
+    def __init__(
+            self, name='one_step_pathway', mechanism_type='metabolic_pathway'):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     def update_species(self, precursor, product, **keywords):
@@ -17,7 +18,9 @@ class OneStepPathway(Mechanism):
             species += product
         return species
 
-    def update_reactions(self, precursor, product, component=None, part_id=None, k=None, **keywords):
+    def update_reactions(
+            self, precursor, product, component=None, part_id=None, k=None,
+            **keywords):
         if precursor is None:
             inputs = []
         else:

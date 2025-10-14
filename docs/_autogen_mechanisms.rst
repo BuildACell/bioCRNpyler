@@ -22,8 +22,8 @@ Global Mechanisms
 - :class:`biocrnpyler.mechanisms.global_mechanisms.GlobalMechanism`
 - :class:`biocrnpyler.mechanisms.global_mechanisms.Dilution`
 - :class:`biocrnpyler.mechanisms.global_mechanisms.AnitDilutionConstiutiveCreation`
-- :class:`biocrnpyler.mechanisms.global_mechanisms.Degredation_mRNA_MM`
-- :class:`biocrnpyler.mechanisms.global_mechanisms.Deg_Tagged_Degredation`
+- :class:`biocrnpyler.mechanisms.global_mechanisms.Degradation_mRNA_MM`
+- :class:`biocrnpyler.mechanisms.global_mechanisms.Deg_Tagged_Degradation`
 
 Integrase
 ---------
