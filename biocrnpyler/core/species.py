@@ -395,7 +395,7 @@ class WeightedSpecies:
 
     def pretty_print(self, **kwargs):
         return (
-            f"{self.stoichiometry if self.stoichiometry > 1 else ""}"
+            f"{self.stoichiometry if self.stoichiometry > 1 else ''}"
             + f"{self.species.pretty_print(**kwargs)}"
         )
 
