@@ -53,13 +53,24 @@ GitHub repository file and directory layout:
       + \*.ipynb - Jupyter notebooks
 
 
-Naming Conventions
-==================
+Naming Conventions and Code Style
+=================================
 
 Generally speaking, standard Python and NumPy naming conventions are
 used throughout the package.
 
 * Python PEP 8 (code style): https://peps.python.org/pep-0008/
+
+The `ruff <https://docs.astral.sh/ruff>`_ linter and code formatter
+should be used to maintain a consistent code style, using the
+following commands (from the main package directory):
+
+* `ruff format`: apply standard code style 
+* `ruff check`: check against standard coding and formating conventions
+
+The `pyproject.toml` file contains the appropriate
+directives to implement the desired style, which follows the `Black
+<https://pypi.org/project/black>`_ formatting conventions.
 
 
 Filenames

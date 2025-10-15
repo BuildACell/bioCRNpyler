@@ -1,61 +1,82 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-import pytest
-#from unittest import TestCase
-from biocrnpyler import RBS, CDS, Translation_MM, RNA_construct, Species
-import copy
+# from unittest import TestCase
+from biocrnpyler import CDS, RBS, RNA_construct, Species, Translation_MM
 
 
 def test_basic_RNAconstruct():
-    R = RBS("rbs")
-    C = CDS("gfp")
-    parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
-    mechs = {"translation":Translation_MM(Species("Ribo"))}
+    R = RBS('rbs')
+    C = CDS('gfp')
+    parameters = {
+        'cooperativity': 2,
+        'kb': 100,
+        'ku': 10,
+        'ktx': 0.05,
+        'ktl': 0.2,
+        'kdeg': 2,
+        'kint': 0.05,
+    }
+    mechs = {'translation': Translation_MM(Species('Ribo'))}
 
-    #minimal RNA translation
-    x = RNA_construct([R],mechanisms = mechs,parameters=parameters)
+    # minimal RNA translation
+    x = RNA_construct([R], mechanisms=mechs, parameters=parameters)
     y = x.enumerate_components()
-    assert(not (R in y)) #RBS is copied correctly
-    assert([x[0]] == y) #RBS with no protein is still active
-    assert(y[0].protein is None) #protein is nothing
+    assert not (R in y)  # RBS is copied correctly
+    assert [x[0]] == y  # RBS with no protein is still active
+    assert y[0].protein is None  # protein is nothing
 
-    x = RNA_construct([[R,"reverse"]],mechanisms = mechs,parameters=parameters)
+    x = RNA_construct(
+        [[R, 'reverse']], mechanisms=mechs, parameters=parameters
+    )
     y = x.enumerate_components()
-    assert(y == []) #reverse RBS is not an RBS
-    assert(x[0].protein is None) #protein is nothing
+    assert y == []  # reverse RBS is not an RBS
+    assert x[0].protein is None  # protein is nothing
 
-    #just a cds
-    x = RNA_construct([C],mechanisms = mechs,parameters=parameters)
+    # just a cds
+    x = RNA_construct([C], mechanisms=mechs, parameters=parameters)
     y = x.enumerate_components()
-    assert(y==[]) #just a CDS does nothing
+    assert y == []  # just a CDS does nothing
+
 
 def test_basic_RBS_CDS_RNAconstruct():
-    R = RBS("rbs")
-    C = CDS("gfp")
-    parameters={"cooperativity":2,"kb":100, "ku":10, "ktx":.05, "ktl":.2, "kdeg":2,"kint":.05}
-    mechs = {"translation":Translation_MM(Species("Ribo"))}
+    R = RBS('rbs')
+    C = CDS('gfp')
+    parameters = {
+        'cooperativity': 2,
+        'kb': 100,
+        'ku': 10,
+        'ktx': 0.05,
+        'ktl': 0.2,
+        'kdeg': 2,
+        'kint': 0.05,
+    }
+    mechs = {'translation': Translation_MM(Species('Ribo'))}
 
-    #minimal RNA translation
-    x = RNA_construct([R,C],mechanisms = mechs,parameters=parameters)
+    # minimal RNA translation
+    x = RNA_construct([R, C], mechanisms=mechs, parameters=parameters)
     y = x.enumerate_components()
-    assert(x[0] ==y[0])
-    assert(y[1].protein==Species("gfp",material_type="protein"))
-    assert(y[0].transcript.parent==x.get_species())
+    assert x[0] == y[0]
+    assert y[1].protein == Species('gfp', material_type='protein')
+    assert y[0].transcript.parent == x.get_species()
 
-    #minimal RNA transcription
-    x = RNA_construct([C,R],mechanisms = mechs,parameters=parameters)
+    # minimal RNA transcription
+    x = RNA_construct([C, R], mechanisms=mechs, parameters=parameters)
     y = x.enumerate_components()
-    assert(y==[x[1]])
-    assert(y[0].transcript.parent==x.get_species())
+    assert y == [x[1]]
+    assert y[0].transcript.parent == x.get_species()
 
-    #minimal RNA transcription
-    x = RNA_construct([[R,"reverse"],C],mechanisms = mechs,parameters=parameters)
+    # minimal RNA transcription
+    x = RNA_construct(
+        [[R, 'reverse'], C], mechanisms=mechs, parameters=parameters
+    )
     y = x.enumerate_components()
-    assert(y==[])
+    assert y == []
 
-    #minimal RNA transcription
-    x = RNA_construct([R,[C,"reverse"]],mechanisms = mechs,parameters=parameters)
+    # minimal RNA transcription
+    x = RNA_construct(
+        [R, [C, 'reverse']], mechanisms=mechs, parameters=parameters
+    )
     y = x.enumerate_components()
-    assert(y==[x[0]])
-    assert(y[0].transcript.parent==x.get_species())
+    assert y == [x[0]]
+    assert y[0].transcript.parent == x.get_species()

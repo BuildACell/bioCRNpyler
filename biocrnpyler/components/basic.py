@@ -11,7 +11,7 @@ from ..core.species import Complex, Species
 class DNA(Component):
     """DNA sequence that has a given length.
 
-    Notes
+    Notes:
     -----
     Produces no reactions.
     """
@@ -25,7 +25,8 @@ class DNA(Component):
         :param kwargs: pass into the parent's (Component) initializer
         """
         self.species = self.set_species(
-            name, material_type='dna', attributes=attributes)
+            name, material_type='dna', attributes=attributes
+        )
         # self.length = length  # RMM, 14 Sep '25: was not being set
         super().__init__(name=name, **kwargs)
 
@@ -43,7 +44,7 @@ class DNA(Component):
 class RNA(Component):
     """RNA sequence of a given length.
 
-    Notes
+    Notes:
     -----
     Produces no reactions.
     """
@@ -58,7 +59,8 @@ class RNA(Component):
 
         """
         self.species = self.set_species(
-            name, material_type='rna', attributes=attributes)
+            name, material_type='rna', attributes=attributes
+        )
         # self.length = length  # RMM, 14 Sep '25: was not being set
         super().__init__(name=name, **kwargs)
 
@@ -72,14 +74,16 @@ class RNA(Component):
     def update_reactions(self) -> List:
         return []
 
+
 class Protein(Component):
     """Protein/peptide of a given length.
 
-    Notes
+    Notes:
     -----
     Produces no reactions.
 
     """
+
     def __init__(self, name: str, length=0, attributes=None, **kwargs):
         """Initialize a Protein object to store Protein related information.
 
@@ -90,7 +94,8 @@ class Protein(Component):
 
         """
         self.species = self.set_species(
-            name, material_type='protein', attributes=attributes)
+            name, material_type='protein', attributes=attributes
+        )
         # self.length = length  # RMM, 14 Sep '25: was not being set
         super().__init__(name=name, **kwargs)
 
@@ -108,15 +113,21 @@ class Protein(Component):
 class Metabolite(Component):
     """Metabolic compounded that is produced, utilized, or degraded.
 
-    Notes
+    Notes:
     -----
     Metabolites look for 'metabolic_pathway' mechanism, but will not throw
     an error if it is not found.
 
     """
+
     def __init__(
-            self, name: str, attributes=None, precursors=None, products=None,
-            **kwargs):
+        self,
+        name: str,
+        attributes=None,
+        precursors=None,
+        products=None,
+        **kwargs,
+    ):
         """Initialize and store Metabolite related information.
 
         :param name: name of the protein
@@ -129,7 +140,8 @@ class Metabolite(Component):
 
         """
         self.species = self.set_species(
-            name, material_type='metabolite', attributes=attributes)
+            name, material_type='metabolite', attributes=attributes
+        )
 
         # Set percursor species list
         self.precursors = []
@@ -151,7 +163,6 @@ class Metabolite(Component):
                 else:
                     self.products.append(self.set_species(p))
 
-
         Component.__init__(self=self, name=name, **kwargs)
 
     def get_species(self) -> Species:
@@ -160,33 +171,47 @@ class Metabolite(Component):
     def update_species(self) -> List[Species]:
         species = [self.get_species()]
         mech_pathway = self.get_mechanism(
-            'metabolic_pathway', optional_mechanism=True)
+            'metabolic_pathway', optional_mechanism=True
+        )
 
         if mech_pathway is not None:
             if len(self.precursors) > 0:
                 species += mech_pathway.update_species(
-                    precursor=self.precursors, product=[self.get_species()],
-                    component=self, part_id=self.name + '_production')
+                    precursor=self.precursors,
+                    product=[self.get_species()],
+                    component=self,
+                    part_id=self.name + '_production',
+                )
             if len(self.products) > 0:
                 species += mech_pathway.update_species(
-                    precursor=[self.get_species()], product=self.products,
-                    component=self, part_id=self.name + '_degradation')
+                    precursor=[self.get_species()],
+                    product=self.products,
+                    component=self,
+                    part_id=self.name + '_degradation',
+                )
         return species
 
     def update_reactions(self) -> List:
         reactions = []
         mech_pathway = self.get_mechanism(
-            'metabolic_pathway', optional_mechanism=True)
+            'metabolic_pathway', optional_mechanism=True
+        )
 
         if mech_pathway is not None:
             if len(self.precursors) > 0:
                 reactions += mech_pathway.update_reactions(
-                    precursor=self.precursors, product=[self.get_species()],
-                    component=self, part_id=self.name + '_production')
+                    precursor=self.precursors,
+                    product=[self.get_species()],
+                    component=self,
+                    part_id=self.name + '_production',
+                )
             if len(self.products) > 0:
                 reactions += mech_pathway.update_reactions(
-                    precursor=[self.get_species()], product=self.products,
-                    component=self, part_id=self.name + '_degradation')
+                    precursor=[self.get_species()],
+                    product=self.products,
+                    component=self,
+                    part_id=self.name + '_degradation',
+                )
         return reactions
 
 
@@ -199,8 +224,13 @@ class ChemicalComplex(Component):
     """
 
     def __init__(
-            self, species: List[Species], name: str=None,
-            material_type='complex', attributes=None, **kwargs):
+        self,
+        species: List[Species],
+        name: str = None,
+        material_type='complex',
+        attributes=None,
+        **kwargs,
+    ):
         """Initialize and store ChemicalComplex related information.
 
         :param species: list of species inside a complex
@@ -213,7 +243,8 @@ class ChemicalComplex(Component):
         if not isinstance(species, list) or len(species) < 2:
             raise ValueError(
                 f"Invalid Species {species}. Species must be a list of "
-                "Species, strings, or Component objects.")
+                "Species, strings, or Component objects."
+            )
 
         self.internal_species = []  # a list of species inside the complex
 
@@ -222,8 +253,11 @@ class ChemicalComplex(Component):
         if attributes is None:
             attributes = []
         self.species = Complex(
-            species=self.internal_species, name=name,
-            material_type=material_type, attributes=attributes)
+            species=self.internal_species,
+            name=name,
+            material_type=material_type,
+            attributes=attributes,
+        )
 
         if name is None:
             name = self.species.name
@@ -238,8 +272,12 @@ class ChemicalComplex(Component):
         bindee = self.internal_species[0]
         binder = self.internal_species[1:]
         species = mech_b.update_species(
-            binder, bindee, complex_species=self.get_species(),
-            component=self, part_id=self.name)
+            binder,
+            bindee,
+            complex_species=self.get_species(),
+            component=self,
+            part_id=self.name,
+        )
         return species
 
     def update_reactions(self) -> List[Reaction]:
@@ -247,8 +285,12 @@ class ChemicalComplex(Component):
         bindee = self.internal_species[0]
         binder = self.internal_species[1:]
         reactions = mech_b.update_reactions(
-            binder, bindee, complex_species=self.get_species(),
-            component=self, part_id=self.name)
+            binder,
+            bindee,
+            complex_species=self.get_species(),
+            component=self,
+            part_id=self.name,
+        )
         return reactions
 
 
@@ -263,11 +305,15 @@ class Enzyme(Component):
 
     TODO: implement multiple substrates and multiple products
     """
+
     def __init__(
-            self, enzyme: Union[Species, str, Component],
-            substrates: List[Union[Species, str, Component]],
-            products: List[Union[Species, str, Component]],
-            attributes=None, **kwargs):
+        self,
+        enzyme: Union[Species, str, Component],
+        substrates: List[Union[Species, str, Component]],
+        products: List[Union[Species, str, Component]],
+        attributes=None,
+        **kwargs,
+    ):
         """Initialize and store enzyme related information.
 
         :param enzyme: name of the enzyme or reference to an Species
@@ -281,7 +327,8 @@ class Enzyme(Component):
 
         """
         self.enzyme = self.set_species(
-            enzyme, material_type='protein', attributes=attributes)
+            enzyme, material_type='protein', attributes=attributes
+        )
         self.substrates = substrates
         self.products = products
 
@@ -292,7 +339,9 @@ class Enzyme(Component):
         return self._substrates
 
     @substrates.setter
-    def substrates(self, new_substrates: List[Union[Species, str, Component]]):
+    def substrates(
+        self, new_substrates: List[Union[Species, str, Component]]
+    ):
         if not isinstance(new_substrates, list):
             new_substrates = [new_substrates]
         # convert the new substrates to Species
@@ -315,11 +364,17 @@ class Enzyme(Component):
     def update_species(self) -> List[Species]:
         mech_cat = self.get_mechanism('catalysis')
         return mech_cat.update_species(
-            enzyme=self.enzyme, substrate=self.substrates,
-            product=self.products)
+            enzyme=self.enzyme,
+            substrate=self.substrates,
+            product=self.products,
+        )
 
     def update_reactions(self) -> List[Reaction]:
         mech_cat = self.get_mechanism('catalysis')
         return mech_cat.update_reactions(
-            enzyme=self.enzyme, substrate=self.substrates,
-            product=self.products, component=self,  part_id=self.name)
+            enzyme=self.enzyme,
+            substrate=self.substrates,
+            product=self.products,
+            component=self,
+            part_id=self.name,
+        )

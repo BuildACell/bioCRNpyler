@@ -58,3 +58,45 @@ include = ["biocrnpyler", "biocrnpyler.*"]
 [tool.setuptools_scm]
 write_to = "biocrnpyler/_version.py"
 local_scheme = "no-local-version"
+
+[tool.ruff]
+line-length = 78
+
+[tool.ruff.lint]
+select = [
+    'E',			# pycodestyle
+    'F',			# pyflakes
+    'D',			# docstyle
+    'I',			# isort
+    'W'				# warnings (white space, line length)
+]
+ignore = [
+    'D100', 'D101', 'D102', 	# ignore missing docstrings for now
+    'D103', 'D104', 'D105',
+    'D105', 'D106', 'D107',
+    'D417',			# ignore missing argument descriptions for now
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore 'D' and 'E' rules everywhere except for the `biocrnpyler/` directory.
+'!biocrnpyler/**.py' = ['D', 'E']
+'Tests/**.py' = [
+    'E',			# ignore code style
+    'F841',			# unused variables OK
+    'F403', 'F405',		# star imports OK
+]
+'examples/**.py' = [
+    'E',			# ignore code style
+    'F403', 'F405',		# star imports OK
+]
+'__init__.py' = ['F403']	# star imports OK
+
+[tool.ruff.format]
+quote-style = 'preserve'
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.isort]
+profile = 'black'
+line_length = 78

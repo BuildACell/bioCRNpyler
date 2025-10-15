@@ -1,8 +1,9 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from biocrnpyler import Enzyme
 import pytest
+
+from biocrnpyler import Enzyme
 
 
 def test_enzyme():
@@ -17,8 +18,14 @@ def test_enzyme():
 
     assert e.get_species().name == 'E1'
 
-    with pytest.raises(KeyError, match='Unable to find mechanism of type catalysis in Component'):
+    with pytest.raises(
+        KeyError,
+        match='Unable to find mechanism of type catalysis in Component',
+    ):
         e.update_species()
 
-    with pytest.raises(KeyError, match='Unable to find mechanism of type catalysis in Component'):
+    with pytest.raises(
+        KeyError,
+        match='Unable to find mechanism of type catalysis in Component',
+    ):
         e.update_reactions()

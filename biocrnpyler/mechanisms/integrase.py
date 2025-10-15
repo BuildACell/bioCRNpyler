@@ -6,7 +6,7 @@ from ..core.mechanism import Mechanism
 from ..core.reaction import Reaction
 from ..core.species import Species
 
-# from ..core.component import Component  # Commented out to avoid circular import
+# from ..core.component import Component  # avoid circular import
 
 
 class BasicIntegration(Mechanism):
@@ -14,8 +14,8 @@ class BasicIntegration(Mechanism):
 
     def __init__(
         self,
-        name: str = "basic_integration",
-        mechanism_type: str = "integration",
+        name: str = 'basic_integration',
+        mechanism_type: str = 'integration',
         **keywords,
     ):
         """Initializes a BasicIntegration instance.
@@ -27,8 +27,9 @@ class BasicIntegration(Mechanism):
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(self, DNA_inputs, DNA_outputs=None, **keywords):
-        # this doesn't make any species because I use a Binding mechanism for that
-        # maybe if we do the tetramerization mechanism then this would do something
+        # this doesn't make any species because I use a Binding
+        # mechanism for that maybe if we do the tetramerization
+        # mechanism then this would do something
         return []
 
     def update_reactions(
@@ -46,7 +47,9 @@ class BasicIntegration(Mechanism):
         if kint is None and component is None:
             raise ValueError("Must pass in either a component or kint.")
         elif kint is None:
-            kint = component.get_parameter("kint", part_id=part_id, mechanism=self)
+            kint = component.get_parameter(
+                'kint', part_id=part_id, mechanism=self
+            )
 
         return [
             Reaction.from_massaction(
@@ -56,13 +59,19 @@ class BasicIntegration(Mechanism):
 
 
 class EnzymeIntegration(Mechanism):
-    """Mechanism for the schema integrase+DNA1 + DNA2 --> integrase+DNA3 + DNA4."""
+    """Enzymatic integrase mechanism.
+
+    Mechanism for the schema:
+
+      integrase + DNA1 + DNA2 --> integrase + DNA3 + DNA4.
+
+    """
 
     def __init__(
         self,
-        name: str = "enzyme_integration",
-        mechanism_type: str = "integration",
-        integrase="Int1",
+        name: str = 'enzyme_integration',
+        mechanism_type: str = 'integration',
+        integrase='Int1',
         **keywords,
     ):
         """Initializes a BasicIntegration instance.
@@ -72,12 +81,13 @@ class EnzymeIntegration(Mechanism):
         :param keywords:
         """
         # TODO ZAT: remove unused keywords argument
-        self.integrase = Species(name=integrase, material_type="protein")
+        self.integrase = Species(name=integrase, material_type='protein')
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(self, DNA_inputs, DNA_outputs=None, **keywords):
-        # this doesn't make any species because I use a Binding mechanism for that
-        # maybe if we do the tetramerization mechanism then this would do something
+        # this doesn't make any species because I use a Binding
+        # mechanism for that maybe if we do the tetramerization
+        # mechanism then this would do something
         return []
 
     def update_reactions(
@@ -89,7 +99,6 @@ class EnzymeIntegration(Mechanism):
         kint=None,
         **keywords,
     ):
-
         if part_id is None and component is not None:
             part_id = component.name
 
@@ -97,7 +106,9 @@ class EnzymeIntegration(Mechanism):
             raise ValueError("Must pass in either a component or kint.")
 
         elif kint is None:
-            kint = component.get_parameter("kint", part_id=part_id, mechanism=self)
+            kint = component.get_parameter(
+                'kint', part_id=part_id, mechanism=self
+            )
 
         return [
             Reaction.from_massaction(

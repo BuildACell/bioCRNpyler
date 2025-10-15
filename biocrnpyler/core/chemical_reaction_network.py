@@ -2,27 +2,27 @@
 #  See LICENSE file in the project root directory for details.
 
 import copy
+import numbers
 import warnings
 from typing import Dict, List, Tuple, Union
 from warnings import warn
-import numbers
 
 import libsbml  # type: ignore
 
-from .reaction import Reaction
-from ..utils.sbmlutil import (
-    add_all_reactions,
-    add_all_species,
-    add_all_compartments,
-    create_sbml_model,
-)
-from .species import Species
 from ..utils import (
-    process_initial_concentration_dict,
     parameter_to_value,
+    process_initial_concentration_dict,
     remove_bindloc,
 )
+from ..utils.sbmlutil import (
+    add_all_compartments,
+    add_all_reactions,
+    add_all_species,
+    create_sbml_model,
+)
 from .parameter import ModelParameter, Parameter
+from .reaction import Reaction
+from .species import Species
 
 
 class ChemicalReactionNetwork(object):
@@ -53,8 +53,12 @@ class ChemicalReactionNetwork(object):
     ):
         self.species = species
         self.reactions = reactions
-        self.initial_concentration_dict = None  # Create an unpopulated dictionary
-        self.initial_concentration_dict = initial_concentration_dict  # update it
+        self.initial_concentration_dict = (
+            None  # Create an unpopulated dictionary
+        )
+        self.initial_concentration_dict = (
+            initial_concentration_dict  # update it
+        )
 
         ChemicalReactionNetwork.check_crn_validity(
             self._reactions, self._species, show_warnings=show_warnings
@@ -66,27 +70,31 @@ class ChemicalReactionNetwork(object):
 
     @species.setter
     def species(self, species):
-        """Sets the species of the CRN object. If the species is not set,
-        it initializes an empty list and adds the species to it.
-        If the species is already set, it raises an AttributeError.
-        A _species_set is used to ensure that no duplicate species are added to the CRN.
-        In earlier BioCRNPyler versions, a _species_dict was used.
-        This dictionary had key as species, and value as "True", which is unintuitive.
-        Since, sets are designed to keep unique elements, so we use a set to keep track of species.
+        """Sets the species of the CRN object.
+
+        If the species is not set, it initializes an empty list and adds
+        the species to it.  If the species is already set, it raises an
+        AttributeError.  A _species_set is used to ensure that no duplicate
+        species are added to the CRN.  In earlier BioCRNPyler versions, a
+        _species_dict was used.  This dictionary had key as species, and
+        value as "True", which is unintuitive.  Since, sets are designed to
+        keep unique elements, so we use a set to keep track of species.
 
         Args:
             species (_type_): _description_
 
         Raises:
             AttributeError: _description_
+
         """
-        if not hasattr(self, "_species"):
+        if not hasattr(self, '_species'):
             self._species = []
             self._species_set = set()
             self.add_species(species)
         else:
             raise AttributeError(
-                "The species in a CRN cannot be removed or modified. New Species can be added with CRN.add_species(...)."
+                "The species in a CRN cannot be removed or modified. "
+                "New Species can be added with CRN.add_species(...)."
             )
 
     @property
@@ -95,19 +103,21 @@ class ChemicalReactionNetwork(object):
 
     @reactions.setter
     def reactions(self, reactions):
-        if not hasattr(self, "_reactions"):
+        if not hasattr(self, '_reactions'):
             self._reactions = []
             self.add_reactions(reactions)
         else:
             raise AttributeError(
-                "The reactions in a CRN cannot be removed or modified. New reactions can be added with CRN.add_reactions(...)."
+                "The reactions in a CRN cannot be removed or modified. "
+                "New reactions can be added with CRN.add_reactions(...)."
             )
 
     def add_species(self, species, copy_species=True, compartment=None):
-        """Adds a Species or a list of Species to the CRN object
+        """Adds a Species or a list of Species to the CRN object.
 
         :param species: Species instance or list of Species instances
-        :param copy_species: whether to deep copy Species added to the CRN. Protects CRN validity at teh expense of speed.
+        :param copy_species: whether to deep copy Species added to the CRN.
+            Protects CRN validity at teh expense of speed.
 
         """
         if not isinstance(species, list):
@@ -122,9 +132,14 @@ class ChemicalReactionNetwork(object):
 
         for s in species:
             if not isinstance(s, Species):  # check species are Species
-                raise ValueError("A non-species object was used as a species!")
+                raise ValueError(
+                    "A non-species object was used as a species!"
+                )
             if s not in self._species_set:  # Do not add duplicate Species
-                if compartment is not None and s.compartment.name == "default":
+                if (
+                    compartment is not None
+                    and s.compartment.name == 'default'
+                ):
                     s.compartment = compartment
                 self._species_set.add(s)
                 # copy the species and add it to the CRN
@@ -137,22 +152,25 @@ class ChemicalReactionNetwork(object):
         add_species=True,
         compartment=None,
     ) -> None:
-        """Adds a reaction or a list of reactions to the CRN object
+        """Adds a reaction or a list of reactions to the CRN object.
 
         :param reactions: Reaction instance or list of Reaction instances
         :param copy_reactions: whether to deep copy reactions before adding
                                 them to the CRN. Protects CRN validity at the
                                 expense of speed.
-        :param add_species: whether to add species in reactions to the CRN. 
+        :param add_species: whether to add species in reactions to the CRN.
                             Prevents errors at the expense of speed.
         :return: None
         """
         if not isinstance(reactions, list):
             reactions = [reactions]
 
-        # It is recommended to copy reactions before adding them to the CRN, so they are "protected"
+        # It is recommended to copy reactions before adding them to
+        # the CRN, so they are "protected"
         if copy_reactions:
-            reactions = copy.deepcopy(reactions)  # deep copy all the reactions
+            reactions = copy.deepcopy(
+                reactions
+            )  # deep copy all the reactions
 
         # Add the reactions to the CRN
         self._reactions += reactions
@@ -160,11 +178,17 @@ class ChemicalReactionNetwork(object):
         # Add species from reactions into the CRN
         if add_species:
             for r in reactions:
-                if not isinstance(r, Reaction):  # check reactions and Reactions
-                    raise ValueError("A non-reaction object was used as a reaction!")
+                if not isinstance(
+                    r, Reaction
+                ):  # check reactions and Reactions
+                    raise ValueError(
+                        "A non-reaction object was used as a reaction!"
+                    )
 
                 # add all the Species in the reaction to the CRN
-                reaction_species = list(set([w.species for w in r.inputs + r.outputs]))
+                reaction_species = list(
+                    set([w.species for w in r.inputs + r.outputs])
+                )
                 self.add_species(
                     reaction_species,
                     copy_species=copy_reactions,
@@ -183,27 +207,31 @@ class ChemicalReactionNetwork(object):
             for s in initial_concentration_dict:
                 if s not in self._species_set:
                     raise ValueError(
-                        f"Trying to set the initial concentration of a Species {s} not in the CRN"
+                        "Trying to set the initial concentration of a "
+                        f"Species {s} not in the CRN"
                     )
                 elif parameter_to_value(initial_concentration_dict[s]) >= 0:
-                    self.initial_concentration_dict[s] = initial_concentration_dict[s]
+                    self.initial_concentration_dict[s] = (
+                        initial_concentration_dict[s]
+                    )
                 else:
                     raise ValueError(
-                        f"Trying to set a species {s} to a negative concentration {initial_concentration_dict[s]}"
+                        f"Trying to set a species {s} to a negative "
+                        f"concentration {initial_concentration_dict[s]}"
                     )
 
     @staticmethod
     def check_crn_validity(
         reactions: List[Reaction], species: List[Species], show_warnings=True
     ) -> Tuple[List[Reaction], List[Species]]:
-        """Checks that the given list of reactions and list of species can form a valid CRN.
+        """Checks that lists of reactions of species can form a valid CRN.
 
         :param reactions: list of reaction
         :param species: list of species
-        :param show_warnings: whether to show warning when duplicated reactions/species was found
+        :param show_warnings: whether to show warning when duplicated
+            reactions/species was found
         :return: tuple(reaction,species)
         """
-
         if not all(isinstance(r, Reaction) for r in reactions):
             raise ValueError("A non-reaction object was used as a reaction!")
 
@@ -214,45 +242,50 @@ class ChemicalReactionNetwork(object):
             if reactions.count(r) > 1 and show_warnings:
                 warn(
                     f"Reaction {r} may be duplicated in CRN definitions. "
-                    f"Duplicates have NOT been removed."
+                    "Duplicates have NOT been removed."
                 )
 
         for s in species:
             if species.count(s) > 1 and show_warnings:
                 warn(
                     f"Species {s} is duplicated in the CRN definition. "
-                    f"Duplicates have NOT been removed."
+                    "Duplicates have NOT been removed."
                 )
 
-        # check that all species in the reactions are also in the species list and vice versa
+        # check that all species in the reactions are also in the
+        # species list and vice versa
         unique_species = set(species)
         all_species_in_reactions = set(
             Species.flatten_list([r.species for r in reactions])
         )
         if unique_species != all_species_in_reactions:
-            species_without_reactions = unique_species - all_species_in_reactions
+            species_without_reactions = (
+                unique_species - all_species_in_reactions
+            )
             if species_without_reactions and show_warnings:
                 warn(
-                    f"These Species {list(species_without_reactions)} are not part of any reactions in the CRN!"
+                    f"These Species {list(species_without_reactions)} are "
+                    "not part of any reactions in the CRN!"
                 )
             unlisted_reactions = all_species_in_reactions - unique_species
             if unlisted_reactions and show_warnings:
                 warn(
-                    f"These Species {list(unlisted_reactions)} are not listed in the Species list, but part of the reactions!"
+                    f"These Species {list(unlisted_reactions)} are not "
+                    "listed in the Species list, but part of the reactions!"
                 )
 
         return reactions, species
 
     def __repr__(self):
-        txt = "Species = "
+        txt = 'Species = '
         for s in self._species:
-            txt += repr(s) + ", "
-        txt = txt[:-2] + "\n"
-        txt += "Reactions = [\n"
+            txt += repr(s) + ', '
+        txt = txt[:-2] + '\n'
+        txt += 'Reactions = [\n'
 
         for r in self._reactions:
-            txt += "\t" + repr(r) + "\n"
-        txt += "]"
+            txt += '\t' + repr(r) + '\n'
+        txt += ']'
         return txt
 
     def pretty_print(
@@ -273,8 +306,7 @@ class ChemicalReactionNetwork(object):
         `show_rates` toggles whether reaction rate functions are printed
         `show_compartment` toggles whether species.compartment is printed
         """
-
-        txt = "Species" + f"(N = {len(self._species)}) = " + "{\n"
+        txt = 'Species' + f"(N = {len(self._species)}) = " + '{\n'
 
         def ics(s):
             return (
@@ -284,13 +316,14 @@ class ChemicalReactionNetwork(object):
             )
 
         species_sort_list = [
-            (parameter_to_value(ics(s)), s) for s in self._species]
+            (parameter_to_value(ics(s)), s) for s in self._species
+        ]
         species_sort_list.sort()
         species_sort_list.reverse()
         for sind, (init_conc, s) in enumerate(species_sort_list):
             init_conc = ics(s)
 
-            txt += "    " + s.pretty_print(
+            txt += '    ' + s.pretty_print(
                 show_material=show_material,
                 show_compartment=show_compartment,
                 show_attributes=show_attributes,
@@ -302,10 +335,19 @@ class ChemicalReactionNetwork(object):
 
                 if show_keys:  # shows where the initial conditions came from
                     if isinstance(init_conc, ModelParameter):
-                        txt += f"\n    found_key=(mech={init_conc.found_key.mechanism}, partid={init_conc.found_key.part_id}, name={init_conc.found_key.name}).\n    search_key=(mech={init_conc.search_key.mechanism}, partid={init_conc.search_key.part_id}, name={init_conc.search_key.name}).\n"
-            txt += "\n"
+                        txt += (
+                            "\n    found_key=("
+                            f"mech={init_conc.found_key.mechanism}, "
+                            f"partid={init_conc.found_key.part_id}, "
+                            f"name={init_conc.found_key.name})."
+                            "\n    search_key=("
+                            f"mech={init_conc.search_key.mechanism}, "
+                            f"partid={init_conc.search_key.part_id}, "
+                            f"name={init_conc.search_key.name}).\n"
+                        )
+            txt += '\n'
 
-        txt += "}\n"
+        txt += '}\n'
         txt += f"\nReactions ({len(self._reactions)}) = [\n"
 
         for rind in range(len(self._reactions)):
@@ -319,9 +361,9 @@ class ChemicalReactionNetwork(object):
                     show_keys=show_keys,
                     **kwargs,
                 )
-                + "\n"
+                + '\n'
             )
-        txt += "]"
+        txt += ']'
         return txt
 
     def initial_condition_vector(
@@ -333,13 +375,15 @@ class ChemicalReactionNetwork(object):
                 x0[idx] = init_cond_dict[s]
         return x0
 
-    def get_all_species_containing(self, species: Species, return_as_strings=False):
-        """Returns all species (complexes and otherwise) containing a given species
-        (or string).
-        """
+    def get_all_species_containing(
+        self, species: Species, return_as_strings=False
+    ):
+        """Return all species (complexes) containing given species."""
         return_list = []
         if not isinstance(species, Species):
-            raise ValueError("species argument must be an instance of Species!")
+            raise ValueError(
+                "species argument must be an instance of Species!"
+            )
 
         for s in self._species:
             if species in s.get_species(recursive=True):
@@ -354,12 +398,15 @@ class ChemicalReactionNetwork(object):
 
         Does not act in place: returns a new CRN.
         """
-
         if not isinstance(species, Species):
-            raise ValueError("species argument must be an instance of Species!")
+            raise ValueError(
+                "species argument must be an instance of Species!"
+            )
 
         if not isinstance(new_species, Species):
-            raise ValueError("species argument must be an instance of Species!")
+            raise ValueError(
+                "species argument must be an instance of Species!"
+            )
 
         new_species_list = []
         for s in self._species:
@@ -380,12 +427,12 @@ class ChemicalReactionNetwork(object):
         check_validity=True,
         **keywords,
     ):
-        """Creates an new SBML model and populates with the species and
-        reactions in the ChemicalReactionNetwork object
+        """Create new SBML model and populate with CRN species and reactions.
 
         :param stochastic_model: whether the model is stochastic
         :param show_warnings: of from check crn validity
-        :param keywords: extra keywords pass onto create_sbml_model() and add_all_reactions()
+        :param keywords: extra keywords pass onto create_sbml_model() and
+            add_all_reactions()
         :return: tuple: (document,model) SBML objects
         """
         if check_validity:
@@ -398,7 +445,9 @@ class ChemicalReactionNetwork(object):
         for species in self._species:
             if species.compartment not in all_compartments:
                 all_compartments.append(species.compartment)
-        add_all_compartments(model=model, compartments=all_compartments, **keywords)
+        add_all_compartments(
+            model=model, compartments=all_compartments, **keywords
+        )
 
         add_all_species(
             model=model,
@@ -414,25 +463,33 @@ class ChemicalReactionNetwork(object):
 
         if document.getNumErrors():
             warn(
-                "SBML model generated has errors. Use document.getErrorLog() to print all errors."
+                "SBML model generated has errors. Use document.getErrorLog() "
+                "to print all errors."
             )
         return document, model
 
     def write_sbml_file(
-        self, file_name=None, stochastic_model=False, check_validity=True, **keywords
+        self,
+        file_name=None,
+        stochastic_model=False,
+        check_validity=True,
+        **keywords,
     ) -> bool:
-        """ "Writes CRN object to a SBML file
+        """Writes CRN object to a SBML file.
 
         :param file_name: name of the file where the SBML model gets written
-        :param stochastic_model: export an SBML file which ready for stochastic simulations
+        :param stochastic_model: export an SBML file which ready for
+            stochastic simulations
         :param keywords: keywords that passed into generate_sbml_model()
         :return: bool, show whether the writing process was successful
         """
         document, _ = self.generate_sbml_model(
-            stochastic_model=stochastic_model, check_validity=check_validity, **keywords
+            stochastic_model=stochastic_model,
+            check_validity=check_validity,
+            **keywords,
         )
         sbml_string = libsbml.writeSBMLToString(document)
-        with open(file_name, "w") as f:
+        with open(file_name, 'w') as f:
             f.write(sbml_string)
         return True
 
@@ -444,12 +501,17 @@ class ChemicalReactionNetwork(object):
         return_dataframe=True,
         safe=False,
     ):
-        """Simulate CRN model with bioscrape (https://github.com/biocircuits/bioscrape).
+        """Simulate CRN model with bioscrape.
+
+        [Bioscrape on GitHub](https://github.com/biocircuits/bioscrape).
+
         Returns the data for all species as Pandas dataframe.
         """
         result = None
         warnings.warn(
-            "simulate_with_bioscrape is depricated and will cease working in a future release. Instead, please use simulate_with_bioscrape_via_sbml."
+            "simulate_with_bioscrape is depricated and will cease working in "
+            "a future release. Instead, please use "
+            "simulate_with_bioscrape_via_sbml."
         )
 
         result = self.simulate_with_bioscrape_via_sbml(
@@ -475,7 +537,8 @@ class ChemicalReactionNetwork(object):
         check_validity=True,
         **kwargs,
     ):
-        """Simulate CRN model with bioscrape via writing a SBML file temporarily.
+        """Simulate CRN model with bioscrape via temporary SBML file.
+
         [Bioscrape on GitHub](https://github.com/biocircuits/bioscrape).
 
         Returns the data for all species as Pandas dataframe.
@@ -488,27 +551,31 @@ class ChemicalReactionNetwork(object):
 
             if filename is None:
                 self.write_sbml_file(
-                    file_name="temp_sbml_file.xml",
+                    file_name='temp_sbml_file.xml',
                     stochastic_model=stochastic,
                     for_bioscrape=True,
                     check_validity=check_validity,
                 )
-                file_name = "temp_sbml_file.xml"
+                file_name = 'temp_sbml_file.xml'
             elif isinstance(filename, str):
                 file_name = filename
             else:
                 raise ValueError(
-                    f"filename must be None or a string. Recievied: {filename}"
+                    "filename must be None or a string. Recievied: "
+                    f"{filename}"
                 )
 
-            if "sbml_warnings" in kwargs:
-                sbml_warnings = kwargs.get("sbml_warnings")
+            if 'sbml_warnings' in kwargs:
+                sbml_warnings = kwargs.get('sbml_warnings')
             else:
                 sbml_warnings = False
             m = Model(sbml_filename=file_name, sbml_warnings=sbml_warnings)
-            # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml') # Uncomment if you want a bioscrape XML written as well.
+            # Uncomment if you want a bioscrape XML written as well.
+            # m.write_bioscrape_xml('temp_bs'+ file_name + '.xml')
             if initial_condition_dict is not None:
-                processed = process_initial_concentration_dict(initial_condition_dict)
+                processed = process_initial_concentration_dict(
+                    initial_condition_dict
+                )
                 m.set_species(processed)
             result = py_simulate_model(
                 timepoints,
@@ -533,29 +600,36 @@ class ChemicalReactionNetwork(object):
         check_validity=True,
     ):
         """To simulate using roadrunner.
+
         Arguments:
         timepoints: The array of time points to run the simulation for.
         initial_condition_dict:
 
-        Returns the results array as returned by RoadRunner OR a Roadrunner model object.
+        Returns the results array as returned by RoadRunner OR a
+        Roadrunner model object.
 
-        Refer to the libRoadRunner simulator library documentation
-        for details on simulation results: (http://libroadrunner.org/)[http://libroadrunner.org/]
+        Refer to the libRoadRunner simulator library documentation for
+        details on simulation results: https://libroadrunner.org/.
+
         NOTE : Needs roadrunner package installed to simulate.
+
         """
         res_ar = None
         try:
-            import roadrunner  # type: ignore
             import io
+
+            import roadrunner  # type: ignore
 
             document, _ = self.generate_sbml_model(
                 stochastic_model=False, check_validity=check_validity
             )
             sbml_string = libsbml.writeSBMLToString(document)
-            # write the sbml_string into a temporary file in memory instead of a file
+            # write the sbml_string into a temporary file in memory instead of
+            # a file
             string_out = io.StringIO()
             string_out.write(sbml_string)
-            # use the temporary file in memory to load the model into libroadrunner
+            # use the temporary file in memory to load the model into
+            # libroadrunner
             rr = roadrunner.RoadRunner(string_out.getvalue())
             if initial_condition_dict:
                 for species, value in initial_condition_dict.items():
@@ -564,8 +638,12 @@ class ChemicalReactionNetwork(object):
             if return_roadrunner:
                 return rr
             else:
-                result = rr.simulate(timepoints[0], timepoints[-1], len(timepoints))
+                result = rr.simulate(
+                    timepoints[0], timepoints[-1], len(timepoints)
+                )
                 res_ar = result
         except ModuleNotFoundError:
-            warnings.warn("libroadrunner was not found, please install libroadrunner")
+            warnings.warn(
+                "libroadrunner was not found, please install libroadrunner"
+            )
         return res_ar

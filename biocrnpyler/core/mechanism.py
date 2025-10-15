@@ -1,4 +1,3 @@
-
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
@@ -17,7 +16,7 @@ class Mechanism(object):
 
     """
 
-    def __init__(self, name: str, mechanism_type=""):
+    def __init__(self, name: str, mechanism_type=''):
         """Initializes a Mechanism instance.
 
         :param name: name of the Mechanism
@@ -25,24 +24,26 @@ class Mechanism(object):
         """
         self.name = name
         self.mechanism_type = mechanism_type
-        if mechanism_type == "" or mechanism_type is None:
-            warn(f"Mechanism {name} instantiated without a type. This could "
-                 "prevent the mechanism from being inherited properly.")
+        if mechanism_type == '' or mechanism_type is None:
+            warn(
+                f"Mechanism {name} instantiated without a type. This could "
+                "prevent the mechanism from being inherited properly."
+            )
 
     def update_species(self, component=None, part_id=None) -> List:
-        """the child class should implement this method.
+        """The child class should implement this method.
 
         :return: empty list
         """
-        warn(f"Default Update Species Called for Mechanism = {self.name}.")
+        warn(f"Default update_species called for mechanism {self.name}")
         return []
 
     def update_reactions(self, component=None, part_id=None) -> List:
-        """ the child class should implement this method.
+        """The child class should implement this method.
 
         :return: empty list
         """
-        warn(f"Default Update Reactions Called for Mechanism = {self.name}.")
+        warn(f"Default update_reactions called for mechanism {self.name}")
         return []
 
     def __repr__(self):

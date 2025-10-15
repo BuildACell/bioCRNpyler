@@ -6,9 +6,9 @@ from numbers import Real
 from typing import List, Union
 from warnings import warn
 
-from .mechanism import Mechanism
-from .compartment import Compartment
 from ..mechanisms.global_mechanisms import GlobalMechanism
+from .compartment import Compartment
+from .mechanism import Mechanism
 from .parameter import Parameter, ParameterDatabase, ParameterKey
 from .species import Species
 
@@ -24,18 +24,18 @@ class Component:
     """
 
     def __init__(
-            self,
-            name: Union[str, Species],
-            mechanisms=None,  # custom mechanisms
-            parameters=None,  # parameter configuration
-            parameter_file=None,  # custom parameter file
-            mixture=None,
-            compartment=None,
-            attributes=None,
-            # This is added as a parameter ("initial concentration",
-            # None, self.name):initial_concentration
-            initial_concentration=None,
-            initial_condition_dictionary=None,
+        self,
+        name: Union[str, Species],
+        mechanisms=None,  # custom mechanisms
+        parameters=None,  # parameter configuration
+        parameter_file=None,  # custom parameter file
+        mixture=None,
+        compartment=None,
+        attributes=None,
+        # This is added as a parameter ("initial concentration",
+        # None, self.name):initial_concentration
+        initial_concentration=None,
+        initial_condition_dictionary=None,
     ):
         """Initializes a Component object.
 
@@ -68,10 +68,12 @@ class Component:
 
         if compartment is not None:
             if not isinstance(compartment, Compartment):
-                raise TypeError("The compartment must be a Compartment object")
+                raise TypeError(
+                    "The compartment must be a Compartment object"
+                )
             self.compartment = compartment
         else:
-            # Don't create a default compartment here to avoid circular imports
+            # Don't create default compartment here to avoid circular imports
             self._compartment = None
 
         self.parameter_database = ParameterDatabase(
@@ -83,7 +85,9 @@ class Component:
         if initial_condition_dictionary is None:
             self.initial_condition_dictionary = {}
         else:
-            self.initial_condition_dictionary = dict(initial_condition_dictionary)
+            self.initial_condition_dictionary = dict(
+                initial_condition_dictionary
+            )
 
     @property
     def initial_concentration(self):
@@ -98,10 +102,12 @@ class Component:
                     f"this was given: {initial_concentration}"
                 )
             param_key = ParameterKey(
-                mechanism="initial concentration", part_id=None, name=self.name
+                mechanism='initial concentration',
+                part_id=None,
+                name=self.name,
             )
             self.parameter_database.add_parameter(
-                parameter_name="initial concentration",
+                parameter_name='initial concentration',
                 parameter_value=initial_concentration,
                 parameter_key=param_key,
                 overwrite_parameters=True,
@@ -124,20 +130,24 @@ class Component:
         :param compartment:
         :return: None
         """
-        if compartment is not None and not isinstance(compartment, Compartment):
+        if compartment is not None and not isinstance(
+            compartment, Compartment
+        ):
             raise TypeError("The compartment must be a Compartment object")
         if compartment is not None:
             self._compartment = compartment
-        if hasattr(self, "_compartment") and self._compartment:
-            if hasattr(self, "species"):
+        if hasattr(self, '_compartment') and self._compartment:
+            if hasattr(self, 'species'):
                 if isinstance(self.species, list):
                     for s in self.species:
-                        if s.compartment.name == "default":
+                        if s.compartment.name == 'default':
                             s.compartment = compartment
                 else:
-                    if self.species.compartment.name == "default":
+                    if self.species.compartment.name == 'default':
                         self.species.compartment = compartment
-        if compartment is not None and not isinstance(compartment, Compartment):
+        if compartment is not None and not isinstance(
+            compartment, Compartment
+        ):
             raise TypeError("The compartment must be a Compartment object")
 
     def set_mixture(self, mixture) -> None:
@@ -164,7 +174,7 @@ class Component:
         compartment=None,
         attributes=None,
     ) -> Species:
-        """Helper function that allows species to be set from strings, species, or Components
+        """Set species from strings, species, or Components.
 
         :param species: Species, str, Component
         :param material_type:
@@ -181,7 +191,10 @@ class Component:
                 compartment=compartment,
                 attributes=attributes,
             )
-        elif isinstance(species, Component) and species.get_species() is not None:
+        elif (
+            isinstance(species, Component)
+            and species.get_species() is not None
+        ):
             return species.get_species()
         elif isinstance(species, list):
             return [
@@ -195,7 +208,9 @@ class Component:
             ]
         else:
             raise ValueError(
-                f"Invalid Species: string, chemical_reaction_network.Species or Component with implemented .get_species() required as input. Recieved {species}"
+                "Invalid Species: string, chemical_reaction_network.Species "
+                "or Component with implemented .get_species() required "
+                f"as input. Recieved {species}"
             )
 
     def __hash__(self):
@@ -207,21 +222,26 @@ class Component:
                 self.add_attribute(attribute)
 
     def add_attribute(self, attribute: str):
-        assert isinstance(attribute, str) and attribute is not None, (
-            "Attribute: %s must be a str" % attribute
-        )
+        assert (
+            isinstance(attribute, str) and attribute is not None
+        ), f"Attribute: {attribute} must be a str"
 
         self.attributes.append(attribute)
-        if hasattr(self, "species") and self.species is not None:
+        if hasattr(self, 'species') and self.species is not None:
             self.species.add_attribute(attribute)
         else:
             raise Warning(
-                f"Component {self.name} has no internal species and therefore no attributes"
+                f"Component {self.name} has no internal species and "
+                "therefore no attributes"
             )
 
     def update_parameters(
-            self, parameter_file=None, parameters=None,
-            parameter_database=None, overwrite_parameters=True):
+        self,
+        parameter_file=None,
+        parameters=None,
+        parameter_database=None,
+        overwrite_parameters=True,
+    ):
         """Updates the ParameterDatabase inside a Component.
 
         Possible inputs:
@@ -230,7 +250,6 @@ class Component:
             parameter_database (ParameterDatabase)
 
         """
-
         if parameter_file is not None:
             self.parameter_database.load_parameters_from_file(
                 parameter_file, overwrite_parameters=overwrite_parameters
@@ -249,11 +268,14 @@ class Component:
     def get_mechanism(self, mechanism_type, optional_mechanism=False):
         """Searches the Component for a Mechanism of the correct type.
 
-        If the Component does not have the mechanism, searches the Components' Mixture for the Mechanism.
+        If the Component does not have the mechanism, searches the
+        Components' Mixture for the Mechanism.
 
         :param mechanism_type:
-        :param optional_mechanism: toggles whether an error is thrown if no mechanism is found
+        :param optional_mechanism: toggles whether an error is thrown if
+            no mechanism is found
         :return:
+
         """
         if not isinstance(mechanism_type, str):
             raise TypeError(
@@ -267,7 +289,8 @@ class Component:
             mech = self.mixture.get_mechanism(mechanism_type)
         if mech is None and not optional_mechanism:
             raise KeyError(
-                f"Unable to find mechanism of type {mechanism_type} in Component {self} or Mixture {self.mixture}."
+                f"Unable to find mechanism of type {mechanism_type} in "
+                f"Component {self} or Mixture {self.mixture}."
             )
         else:
             return mech
@@ -282,14 +305,19 @@ class Component:
         if isinstance(mechanisms, dict):
             for mech_type in mechanisms:
                 self.add_mechanism(
-                    mechanisms[mech_type], mech_type, overwrite=True)
+                    mechanisms[mech_type], mech_type, overwrite=True
+                )
         elif isinstance(mechanisms, list):
             for mech in mechanisms:
                 self.add_mechanism(mech, overwrite=True)
 
     def add_mechanism(
-            self, mechanism: Mechanism, mech_type=None, overwrite=False,
-            optional_mechanism=False):
+        self,
+        mechanism: Mechanism,
+        mech_type=None,
+        overwrite=False,
+        optional_mechanism=False,
+    ):
         """Add a mechanism to the component mechanism dictionary.
 
         Adds a mechanism of type mech_type to the Component Mechanism
@@ -297,27 +325,34 @@ class Component:
 
         :param mechanism:
         :param mech_type:
-        :param overwrite: toggles whether the mechanism is added overwriting any mechanism with the same key.
-        :param optional_mechanism: toggles whether an error is thrown if a Mechanism is added that conflicts with an exising Mechanism
+        :param overwrite: toggles whether the mechanism is added overwriting
+            any mechanism with the same key.
+        :param optional_mechanism: toggles whether an error is thrown if a
+            Mechanism is added that conflicts with an exising Mechanism
         :return:
 
         """
-        if not hasattr(self, "_mechanisms"):
+        if not hasattr(self, '_mechanisms'):
             self._mechanisms = {}
 
         if not isinstance(mechanism, Mechanism):
-            raise TypeError(f"mechanism must be a Mechanism. Received {mechanism}.")
+            raise TypeError(
+                f"mechanism must be a Mechanism. Received {mechanism}."
+            )
 
         if mech_type is None:
             mech_type = mechanism.mechanism_type
         if not isinstance(mech_type, str):
-            raise TypeError(f"mechanism keys must be strings. Received {mech_type}")
+            raise TypeError(
+                f"mechanism keys must be strings. Received {mech_type}"
+            )
 
         if mech_type not in self._mechanisms or overwrite:
             self._mechanisms[mech_type] = copy.deepcopy(mechanism)
         elif not optional_mechanism:
             raise ValueError(
-                f"mech_type {mech_type} already in component {self}. To overwrite, use keyword overwrite = True."
+                f"mech_type {mech_type} already in component {self}. "
+                "To overwrite, use keyword overwrite=True."
             )
 
     def add_mechanisms(
@@ -326,17 +361,20 @@ class Component:
         overwrite=False,
         optional_mechanism=False,
     ):
-        """This function adds a list or dictionary of mechanisms to the mixture.
+        """Add a list or dictionary of mechanisms to the mixture.
 
         :param mechanisms: Can take both GlobalMechanisms and Mechanisms
-        :param overwrite: toggles whether the mechanism is added overwriting any mechanism with the same key.
-        :param optional_mechanism: toggles whether an error is thrown if a Mechanism is added that conflicts with an exising Mechanism
+        :param overwrite: toggles whether the mechanism is added overwriting
+            any mechanism with the same key.
+        :param optional_mechanism: toggles whether an error is thrown if a
+            Mechanism is added that conflicts with an exising Mechanism
         :return:
         """
-
         if isinstance(mechanisms, Mechanism):
             self.add_mechanism(
-                mechanisms, overwrite=overwrite, optional_mechanism=optional_mechanism
+                mechanisms,
+                overwrite=overwrite,
+                optional_mechanism=optional_mechanism,
             )
         elif isinstance(mechanisms, dict):
             for mech_type in mechanisms:
@@ -349,11 +387,14 @@ class Component:
         elif isinstance(mechanisms, list):
             for mech in mechanisms:
                 self.add_mechanism(
-                    mech, overwrite=overwrite, optional_mechanism=optional_mechanism
+                    mech,
+                    overwrite=overwrite,
+                    optional_mechanism=optional_mechanism,
                 )
         else:
             raise ValueError(
-                f"add_mechanisms expected a list of Mechanisms. Received {mechanisms}"
+                f"add_mechanisms expected a list of Mechanisms. "
+                f"Received {mechanisms}"
             )
 
     def get_parameter(
@@ -368,19 +409,24 @@ class Component:
         """Get a parameter from different objects that hold parameters.
 
         Hierarchy:
-         1. tries to find the Parameter in Component.parameter_database
-         2. tries to find the parameter in Component.mixture.parameter_database
+         1. searches for the Parameter in Component.parameter_database
+         2. searches for the parameter in Component.mixture.parameter_database
 
         :param param_name:
         :param part_id:
         :param mechanism:
-        :param return_numerical: numerical value or the parameter object is returned
-        :param return_none: returns None instead of throwing an error if a parameter isn't found
-        :param check_mixture: toggle whether or not to check the Component's Mixture as well
+        :param return_numerical: numerical value or the parameter object is
+            returned
+        :param return_none: returns None instead of throwing an error if a
+            parameter isn't found
+        :param check_mixture: toggle whether or not to check the Component's
+            Mixture as well
         :return: Parameter object or a Real number
         """
         # Try the Component ParameterDatabase
-        param = self.parameter_database.find_parameter(mechanism, part_id, param_name)
+        param = self.parameter_database.find_parameter(
+            mechanism, part_id, param_name
+        )
 
         # Next try the Mixture ParameterDatabase
         if param is None and self.mixture is not None and check_mixture:
@@ -434,4 +480,4 @@ class Component:
         return []
 
     def __repr__(self):
-        return type(self).__name__ + ": " + self.name
+        return type(self).__name__ + ': ' + self.name

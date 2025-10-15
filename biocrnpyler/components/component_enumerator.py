@@ -1,12 +1,12 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details.
 
-from typing import List, Union
+from typing import List
 from warnings import warn
 
 
 class ComponentEnumerator:
-    def __init__(self, name:str):
+    def __init__(self, name: str):
         """Class to enumerate components.
 
         A component enumerator's job is to create new components in a
@@ -26,11 +26,13 @@ class ComponentEnumerator:
         """
         warn(
             f"Default update_components called for ComponentEnumerator = "
-            f"{self.name}.")
+            f"{self.name}."
+        )
         return []
 
     def __repr__(self):
         return self.name
+
 
 class LocalComponentEnumerator(ComponentEnumerator):
     """Class to enumerate local components.
@@ -40,8 +42,10 @@ class LocalComponentEnumerator(ComponentEnumerator):
     the single component that is passed in
 
     """
-    def __init__(self,name:str):
-        ComponentEnumerator.__init__(self,name=name)
+
+    def __init__(self, name: str):
+        ComponentEnumerator.__init__(self, name=name)
+
 
 class GlobalComponentEnumerator(ComponentEnumerator):
     def __init__(self, name: str):

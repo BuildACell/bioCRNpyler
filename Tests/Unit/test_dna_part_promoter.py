@@ -2,6 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 import pytest
+
 from biocrnpyler import Promoter, Species
 
 
@@ -17,7 +18,12 @@ def test_promoter_from_promoter():
     test_assembly = 'test_assembly'
     test_transcript = 'test_transcript'
     test_protein = 'test_protein'
-    prom2= Promoter.from_promoter(name=prom,assembly=test_assembly, transcript=test_transcript, protein=test_protein)
+    prom2 = Promoter.from_promoter(
+        name=prom,
+        assembly=test_assembly,
+        transcript=test_transcript,
+        protein=test_protein,
+    )
 
     assert prom2.assembly == test_assembly
     assert prom2.transcript == test_transcript
@@ -26,5 +32,13 @@ def test_promoter_from_promoter():
     assert prom2.name == test_name
     assert prom2.length == test_length
 
-    with pytest.raises(TypeError, match='Promoter can be initialized from string or another promoter!'):
-        Promoter.from_promoter(name=Species(name=test_name), assembly=test_assembly, transcript=test_transcript, protein=test_protein)
+    with pytest.raises(
+        TypeError,
+        match='Promoter can be initialized from string or another promoter!',
+    ):
+        Promoter.from_promoter(
+            name=Species(name=test_name),
+            assembly=test_assembly,
+            transcript=test_transcript,
+            protein=test_protein,
+        )

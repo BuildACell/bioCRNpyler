@@ -2,49 +2,65 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
+
+import pytest  # type: ignore
+
 from biocrnpyler import Species, WeightedSpecies
-import pytest # type: ignore
 
 
 class TestSpecies(TestCase):
-
     def test_species_initialization(self):
         # tests naming convention repr without species type or attributes
         species = Species(name='test_species')
         self.assertEqual(repr(species), species.name)
 
-        with self.assertRaisesRegex(ValueError, f"name attribute @test_species must consist of letters, numbers, or underscores and cannot contain double underscores or begin/end with a special character."):
-            species = Species(name="@test_species")
+        with self.assertRaisesRegex(
+            ValueError,
+            'name attribute @test_species must consist of letters, numbers, or underscores and cannot contain double underscores or begin/end with a special character.',
+        ):
+            species = Species(name='@test_species')
 
-        self.assertEqual(species.compartment.name, "default")
+        self.assertEqual(species.compartment.name, 'default')
         # tests naming convention for species with name and compartment
         species = Species(name='test_species', compartment='test_compartment')
-        self.assertEqual(repr(species), species.name + "_" + species.compartment.name)
+        self.assertEqual(
+            repr(species), species.name + '_' + species.compartment.name
+        )
         self.assertEqual(species.compartment.name, 'test_compartment')
 
         # tests material type
-        species = Species(name='test_species', material_type="dna")
-        self.assertTrue(species.material_type == "dna")
+        species = Species(name='test_species', material_type='dna')
+        self.assertTrue(species.material_type == 'dna')
         species.material_type = None
 
-        with self.assertRaisesRegex(ValueError, f"species name: 2test_species contains a number as the first character and therefore requires a material_type."):
+        with self.assertRaisesRegex(
+            ValueError,
+            'species name: 2test_species contains a number as the first character and therefore requires a material_type.',
+        ):
             species = Species(name='2test_species')
-        with self.assertRaisesRegex(ValueError, f"material_type 2dna must be alpha-numeric and start with a letter."):
-            species = Species(name="test_species", material_type="2dna")
+        with self.assertRaisesRegex(
+            ValueError,
+            'material_type 2dna must be alpha-numeric and start with a letter.',
+        ):
+            species = Species(name='test_species', material_type='2dna')
 
-        species2 = Species(name = "test_species2")
-        with self.assertRaisesRegex(ValueError, "species argument must be an instance of Species!"):
-            species.replace_species(species, "new_species")
-        with self.assertRaisesRegex(ValueError, "species argument must be an instance of Species!"):
-            species.replace_species("new_species", species)
+        species2 = Species(name='test_species2')  # noqa: F841
+        with self.assertRaisesRegex(
+            ValueError, 'species argument must be an instance of Species!'
+        ):
+            species.replace_species(species, 'new_species')
+        with self.assertRaisesRegex(
+            ValueError, 'species argument must be an instance of Species!'
+        ):
+            species.replace_species('new_species', species)
         # tests emtpy attributes
         self.assertTrue(isinstance(species.attributes, list))
 
-        species = Species(name='test_species', material_type="dna")
+        species = Species(name='test_species', material_type='dna')
         # tests naming convention via repr without attributes
         self.assertEqual(
-            repr(species),
-            species.material_type + "_" + species.name)
+            repr(species), species.material_type + '_' + species.name
+        )
 
         # tests adding attributes
         attr_list = ['atr1', 'atr2']
@@ -54,7 +70,7 @@ class TestSpecies(TestCase):
         # tests naming convention with attributes and no material
         correct_name = species.name
         for attribute in species.attributes:
-            correct_name += "_"+attribute
+            correct_name += '_' + attribute
         self.assertEqual(repr(species), correct_name)
 
         # test OrderedMonomer subclass
@@ -65,7 +81,9 @@ class TestSpecies(TestCase):
     def test_add_attribute(self):
         species = Species(name='test_species')
         # an attribute must be a string
-        with self.assertRaisesRegex(AssertionError, f'must be an alpha-numeric string'):
+        with self.assertRaisesRegex(
+            AssertionError, 'must be an alpha-numeric string'
+        ):
             species.add_attribute({'k': 'v'})
 
         species.add_attribute('attribute')
@@ -87,13 +105,18 @@ class TestSpecies(TestCase):
         # different material type: not the same species
         self.assertFalse(s1 == s4)
 
-        s5 = Species(name='a', material_type='mat1',
-                     attributes=['red', 'large'])
+        s5 = Species(
+            name='a', material_type='mat1', attributes=['red', 'large']
+        )
         # different attributes: not the same species
         self.assertFalse(s1 == s5)
 
-        s6 = Species(name='a', material_type='mat1', attributes=[
-                     'red'], compartment='test_compartment')
+        s6 = Species(
+            name='a',
+            material_type='mat1',
+            attributes=['red'],
+            compartment='test_compartment',
+        )
         # same species name in different compartments: not the same species
         self.assertFalse(s1 == s6)
 
@@ -105,10 +128,14 @@ def test_weighted_species_init():
     assert ws1.species == s1
     assert ws1.stoichiometry == 1
 
-    with pytest.raises(ValueError, match='Stoichiometry must be positive integer!'):
+    with pytest.raises(
+        ValueError, match='Stoichiometry must be positive integer!'
+    ):
         WeightedSpecies(species=s1, stoichiometry=0)
 
-    with pytest.raises(ValueError, match='Stoichiometry must be positive integer!'):
+    with pytest.raises(
+        ValueError, match='Stoichiometry must be positive integer!'
+    ):
         WeightedSpecies(species=s1, stoichiometry=-1)
 
     ws2 = WeightedSpecies(species=s1, stoichiometry=1.34)
