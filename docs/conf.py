@@ -54,6 +54,7 @@ extensions = [
     'nbsphinx',
     'nbsphinx_link',
     'recommonmark',
+    'numpydoc',
 ]
 
 source_suffix = ['.rst']
@@ -66,11 +67,12 @@ autosummary_generate = True
 autodoc_default_options = {
     'members': True,
     'inherited-members': True,
+    'special-members': True,
     'exclude-members': '__init__, __weakref__, __repr__, __str__',
 }
 
 # For classes, include both the class docstring and the init docstring
-autoclass_content = 'both'
+autoclass_content = 'class'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -80,6 +82,11 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build']
 
+# Don't automatically show all members of class in Methods & Attributes section
+numpydoc_show_class_members = False
+
+# Don't create a Sphinx TOC for the lists of class methods and attributes
+numpydoc_class_members_toctree = False
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -172,12 +179,13 @@ def linkcode_resolve(domain, info):
         linespec = ''
 
     base_url = "https://github.com/BuildACell/BioCRNPyler/blob/"
-    if release != version:      # development release
+    if release != version:  # development release
         # TODO: replace 'refactor-modules' with 'master' -> replaced with main
         # print("  --> ", base_url + "refactor-modules/control/%s%s" % (fn, linespec))
         return base_url + 'main/biocrnpyler/%s%s' % (fn, linespec)
-    else:                       # specific version
+    else:  # specific version
         return base_url + '%s/biocrnpyler/%s%s' % (version, fn, linespec)
+
 
 # -- Options for doctest ----------------------------------------------
 

@@ -10,38 +10,39 @@
 
 """Parameter processing module.
 
-#### Parameter Value Defaulting
+**Parameter Value Defaulting**
 
-Not all parameters need to have the required headings.  The only two
-required columns are "param_val" and "param_name".  BioCRNpyler uses a form
-of parameter name defaulting discussed below to find default parameters if
-no exact match is in the config file. This makes it easy to set default
-parameters for things like "ku" and "ktx" to quickly build models.
+Not all parameters need to have the required headings.  The only two required
+columns are 'param_val' and 'param_name'.  BioCRNpyler uses a form of
+parameter name defaulting discussed below to find default parameters if no
+exact match is in the config file. This makes it easy to set default
+parameters for things like 'ku' and 'ktx' to quickly build models.
 
-#### Parameters inside BioCRNpyler:
+**Parameters inside BioCRNpyler:**
 
-Inside of bioCRNpyler, parameters are stored as a dictionary key value
-pair: (mechanism_name, part_id, param_name) --> param_val. If that
-particular parameter key cannot be found, the software will default to the
-following keys: (mechanism_type, part_id, param_name) >> (part_id,
-param_name) >> (mechanism_name, param_name) >> (mechanism_type, param_name)
->> (param_name) and give a warning.  As a note, mechanism_name refers to
-the .name variable of a Mechanism. mechanism_type refers to the .type
-variable of a Mechanism.  Either of these can be used as a
-mechanism_id. This allows for models to be constructed easily using default
-parameter values and for parameters to be shared between different
-Mechanisms and/or Components.
+Inside of bioCRNpyler, parameters are stored as a dictionary key value pair:
+`(mechanism_name, part_id, param_name) --> param_val`. If that particular
+parameter key cannot be found, the software will default to the following
+keys: `(mechanism_type, part_id, param_name)` >> `(part_id, param_name)` >>
+`(mechanism_name, param_name)` >> `(mechanism_type, param_name)` >>
+`(param_name)` and give a warning.  As a note, `mechanism_name` refers to the
+`.name` variable of a `Mechanism`, and `mechanism_type` refers to the `.type`
+variable of a `Mechanism`.  Either of these can be used as a
+`mechanism_id`. This allows for models to be constructed easily using default
+parameter values and for parameters to be shared between different mechanisms
+and/or components.
 
-#### Initial Conditions are also Parameters
+Units are read directly read from the column labeled "units" in the
+parameter file.
 
-The initial condition of any Species (or Component) will also be looked up
+**Initial Conditions are also Parameters**
+
+The initial condition of any `Species` (or `Component`) will also be looked up
 as a parameters automatically.  Initial conditions can be customized in
-through the custom_initial_conditions keyword in the Mixture constructor.
-custom_initial_conditions will take precedent to parameter initial
-conditions.
+through the `custom_initial_conditions` keyword in the `Mixture` constructor.
+The `custom_initial_conditions` keyword will take precedent over parameter
+initial conditions.
 
-#### Units are read directly read from the column labeled "units" in the
-#### parameter file.
 """
 
 import csv
@@ -53,22 +54,103 @@ from warnings import warn
 
 # This could later be extended
 ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')
+"""Named tuple defining a parameter key.
+
+    Parameters
+    ----------
+    mechanism : str, Mechanism, or None
+        Mechanism identifier. Can be a string (used as both name and type), a
+        Mechanism object (uses .name and .mechanism_type), or None.
+    part_id : str or None
+        Part/component identifier for the parameter.
+    name : str
+        Name of the parameter. Must start with a letter and contain at
+        least one character.
+
+"""
 
 
 class Parameter(object):
+    """Base class for representing parameters in BioCRNpyler.
+
+    Parameters represent kinetic constants, initial concentrations, and
+    other numerical values used in chemical reaction networks. This class
+    provides validation for parameter names, values, and units.
+
+    Parameters
+    ----------
+    parameter_name : str
+        Name of the parameter. Must start with a letter and contain at
+        least one character.
+    parameter_value : float or str
+        Value of the parameter. Can be a number or a string in formats:
+        '1.00', '1e4', or '2/5' (rational). Strings are automatically
+        converted to numerical values.
+    unit : str, optional
+        Unit of the parameter (e.g., '1/s', 'nM', 'molecules'). If None,
+        defaults to empty string.
+
+    Attributes
+    ----------
+    parameter_name : str
+        The validated name of the parameter.
+    value : float
+        The numerical value of the parameter.
+    unit : str
+        The unit string associated with the parameter.
+
+    See Also
+    --------
+    ParameterEntry : Parameter with database lookup keys.
+    ModelParameter : Parameter with search and found keys for defaulting.
+    ParameterDatabase : Database for storing and retrieving parameters.
+
+    Notes
+    -----
+    This is the base class for all parameter types in BioCRNpyler. In
+    practice, subclasses `ParameterEntry` and `ModelParameter` are more
+    commonly used as they support the parameter lookup and defaulting
+    system.
+
+    Parameter values provided as strings are automatically converted:
+
+    - '1e4' -> 10000.0
+    - '2/5' -> 0.4
+    - '1.23' -> 1.23
+
+    Examples
+    --------
+    Create a basic parameter:
+
+    >>> param = bcp.Parameter('kb', 100.0, unit='1/s')
+    >>> param.parameter_name
+    'kb'
+    >>> param.value
+    100.0
+
+    Create a parameter from a string value:
+
+    >>> param = bcp.Parameter('ku', '1e-4', unit='1/s')
+    >>> param.value
+    0.0001
+
+    Create a parameter from a rational string:
+
+    >>> param = bcp.Parameter('ratio', '3/4')
+    >>> param.value
+    0.75
+
+    """
+
     def __init__(
         self,
         parameter_name: str,
         parameter_value: Union[str, numbers.Real],
         unit=None,
     ):
-        """A class for representing parameters in general.
+        """Initialize a Parameter object.
 
-        Only the below subclasses are ever used.
-
-        :param parameter_name: is the name of the parameter
-        :param parameter_value: is the value of the parameter
-        :param unit: is the unit of the parameter or a species
+        See class docstring for parameter descriptions.
 
         """
         self.parameter_name = parameter_name
@@ -77,10 +159,26 @@ class Parameter(object):
 
     @property
     def parameter_name(self) -> str:
+        """str: The name of the parameter."""
         return self._parameter_name
 
     @parameter_name.setter
     def parameter_name(self, new_parameter_name: str):
+        """Set the parameter name with validation.
+
+        Parameters
+        ----------
+        new_parameter_name : str
+            New name for the parameter. Must be a string starting with a
+            letter (not a number).
+
+        Raises
+        ------
+        ValueError
+            If `new_parameter_name` is not a string, or if it doesn't start
+            with a letter.
+
+        """
         if not isinstance(new_parameter_name, str):
             raise ValueError(
                 f"parameter_name must be a string: "
@@ -96,10 +194,26 @@ class Parameter(object):
 
     @property
     def value(self) -> numbers.Real:
+        """float: The numerical value of the parameter."""
         return self._value
 
     @value.setter
     def value(self, new_parameter_value: Union[str, numbers.Real]):
+        """Set the parameter value with validation and conversion.
+
+        Parameters
+        ----------
+        new_parameter_value : float or str
+            New value for the parameter. If a string, must be in format
+            '1.00', '1e4', or '2/5'. Strings are automatically converted
+            to float.
+
+        Raises
+        ------
+        ValueError
+            If `new_parameter_value` is not a number or valid string format.
+
+        """
         if not (
             isinstance(new_parameter_value, numbers.Real)
             or isinstance(new_parameter_value, str)
@@ -129,10 +243,24 @@ class Parameter(object):
 
     @property
     def unit(self) -> str:
+        """str: The unit string for the parameter."""
         return self._unit
 
     @unit.setter
     def unit(self, new_unit: str):
+        """Set the parameter unit.
+
+        Parameters
+        ----------
+        new_unit : str or None
+            Unit string for the parameter. If None, sets to empty string.
+
+        Raises
+        ------
+        ValueError
+            If `new_unit` is not a string or None.
+
+        """
         if new_unit is None:
             self._unit = ''
         elif not isinstance(new_unit, str):
@@ -144,6 +272,23 @@ class Parameter(object):
 
     @staticmethod
     def _convert_rational(p_value: str) -> numbers.Real:
+        """Convert a string parameter value to a numerical value.
+
+        Handles rational fractions (e.g., '2/5') and standard float
+        strings (e.g., '1.23' or '1e4').
+
+        Parameters
+        ----------
+        p_value : str
+            String representation of parameter value. Can be a fraction
+            ('2/5') or standard float format ('1.23', '1e4').
+
+        Returns
+        -------
+        float
+            Numerical value of the parameter.
+
+        """
         if '/' in p_value:
             nom, denom = p_value.split('/')
             return float(nom) / float(denom)
@@ -151,6 +296,25 @@ class Parameter(object):
             return float(p_value)
 
     def __eq__(self, other):
+        """Test equality between parameters or parameter and number.
+
+        Parameters
+        ----------
+        other : Parameter or float
+            Object to compare with. Can be another Parameter object or a
+            numerical value.
+
+        Returns
+        -------
+        bool
+            True if values are equal, False otherwise.
+
+        Raises
+        ------
+        TypeError
+            If `other` cannot be compared (not a Parameter or number).
+
+        """
         if isinstance(other, Parameter):
             return self.value == other.value
         else:
@@ -162,25 +326,100 @@ class Parameter(object):
                 )
 
     def __str__(self):
+        """Return string representation of the parameter.
+
+        Returns
+        -------
+        str
+            String in format 'Parameter <name> = <value>'.
+
+        """
         return f"Parameter {self.parameter_name} = {self.value}"
 
     def __hash__(self):
+        """Return hash value for the parameter.
+
+        Returns
+        -------
+        int
+            Hash value based on parameter name, value, and unit.
+
+        """
         return (
             hash(self._parameter_name) + hash(self._value) + hash(self._unit)
         )
 
 
 class ParameterEntry(Parameter):
-    """Parameter stored the ParameterDatabase.
+    """Parameter with database lookup key and metadata.
 
-    parameter_keys is a dictionary {key:value} or named_tuple (type
-    ParameterKey) of keys for looking up the parameter.
+    A `ParameterEntry` extends `Parameter` with a lookup key for database
+    storage and retrieval, plus additional metadata about the parameter's
+    origin and context.
 
-    parameter_info is a dictionary {key:value} of additional
-    information about the parameter.
+    Parameters
+    ----------
+    parameter_name : str
+        Name of the parameter.
+    parameter_value : float or str
+        Value of the parameter.
+    parameter_key : dict, ParameterKey, str, or None, optional
+        Lookup key for the parameter database.
+    parameter_info : dict, optional
+        Additional metadata about the parameter (e.g., source file,
+        comments). If dict contains 'unit' key, it will update the
+        parameter's unit.
+    **kwargs
+        Additional keyword arguments passed to Parameter constructor,
+        including 'unit'.
 
-    For example: additional columns in the parameter file or the
-    parameter file name.
+    Attributes
+    ----------
+    parameter_key : ParameterKey
+        The lookup key as a named tuple (mechanism, part_id, name).
+    parameter_info : dict
+        Dictionary of additional parameter metadata.
+
+    See Also
+    --------
+    Parameter : Base parameter class.
+    ModelParameter : Parameter with search and found keys.
+    ParameterDatabase : Database for storing parameter entries.
+
+    Notes
+    -----
+    The `parameter_key` value can be any of the following:
+
+        - dict: {'mechanism': ..., 'part_id': ..., 'name': ...}
+        - ParameterKey namedtuple: (mechanism, part_id, name)
+        - str: parameter name (other fields set to None)
+        - None: creates key with all fields None except name
+
+    using the following conventions:
+
+    - mechanism: str or None (mechanism name or type)
+    - part_id: str or None (component/part identifier)
+    - name: str (parameter name)
+
+    These keys enable flexible parameter lookup with defaulting behavior
+    in the ParameterDatabase.
+
+    Examples
+    --------
+    Create a parameter entry with full key:
+
+    >>> entry = bcp.ParameterEntry(
+    ...     'kb',
+    ...     100.0,
+    ...     parameter_key={'mechanism': 'binding', 'part_id': 'promoter1'},
+    ...     unit='1/s'
+    ... )
+
+    Create a parameter entry with just a name:
+
+    >>> entry = bcp.ParameterEntry('ku', 0.01, parameter_key='ku')
+    >>> entry.parameter_key
+    ParameterKey(mechanism=None, part_id=None, name='ku')
 
     """
 
@@ -192,6 +431,11 @@ class ParameterEntry(Parameter):
         parameter_info=None,
         **kwargs,
     ):
+        """Initialize a ParameterEntry object.
+
+        See class docstring for parameter descriptions.
+
+        """
         Parameter.__init__(self, parameter_name, parameter_value, **kwargs)
 
         self.parameter_key = parameter_key
@@ -202,6 +446,47 @@ class ParameterEntry(Parameter):
     def create_parameter_key(
         new_key: Union[Dict, ParameterKey, str], parameter_name=None
     ) -> ParameterKey:
+        """Convert various input types to a ParameterKey namedtuple.
+
+        Parameters
+        ----------
+        new_key : dict, ParameterKey, tuple, str, or None
+            Input to convert to ParameterKey:
+
+            - dict: Must have keys matching ParameterKey fields
+            - ParameterKey: Returned as-is
+            - 3-tuple: Converted to ParameterKey with proper field mapping
+            - str: Used as 'name', other fields set to None
+            - None: All fields set to None (requires parameter_name)
+
+        parameter_name : str, optional
+            Parameter name to use if not specified in new_key. Overrides
+            `name` field if provided in dict.
+
+        Returns
+        -------
+        ParameterKey
+            Named tuple with fields (mechanism, part_id, name).
+
+        Raises
+        ------
+        ValueError
+            If `new_key` is not a valid type or format.
+
+        Examples
+        --------
+        >>> key = bcp.ParameterEntry.create_parameter_key('kb')
+        >>> key
+        ParameterKey(mechanism=None, part_id=None, name='kb')
+
+        >>> key = bcp.ParameterEntry.create_parameter_key(
+        ...     {'mechanism': 'transcription', 'part_id': 'prom1'},
+        ...     parameter_name='ktx'
+        ... )
+        >>> key
+        ParameterKey(mechanism='transcription', part_id='prom1', name='ktx')
+
+        """
         # New Key can be a named_tuple
         if isinstance(new_key, dict):
             new_key = dict(new_key)
@@ -240,20 +525,46 @@ class ParameterEntry(Parameter):
 
     @property
     def parameter_key(self) -> ParameterKey:
+        """ParameterKey: The database lookup key for this parameter."""
         return self._parameter_key
 
     @parameter_key.setter
     def parameter_key(self, parameter_key: Union[Dict, ParameterKey, str]):
+        """Set the parameter lookup key.
+
+        Parameters
+        ----------
+        parameter_key : dict, ParameterKey, str, or None
+            New parameter key. Automatically converted to ParameterKey
+            namedtuple using `create_parameter_key`.
+
+        """
         self._parameter_key = self.create_parameter_key(
             parameter_key, self.parameter_name
         )
 
     @property
     def parameter_info(self) -> Dict:
+        """dict: Additional metadata about the parameter."""
         return self._parameter_info
 
     @parameter_info.setter
     def parameter_info(self, parameter_info: Dict):
+        """Set parameter metadata.
+
+        Parameters
+        ----------
+        parameter_info : dict or None
+            Dictionary of additional parameter information. If dict
+            contains 'unit' key, updates the parameter's unit attribute.
+
+        Raises
+        ------
+        ValueError
+            If `parameter_info` is not None or a dict, or if 'unit' in
+            dict conflicts with existing unit.
+
+        """
         if parameter_info is None:
             self._parameter_info = {}
         elif isinstance(parameter_info, dict):
@@ -280,6 +591,17 @@ class ParameterEntry(Parameter):
             )
 
     def get_sbml_id(self):
+        """Generate SBML-compatible identifier for the parameter.
+
+        Constructs an identifier string from the parameter key fields,
+        formatted as: '<name>_<part_id>_<mechanism>'.
+
+        Returns
+        -------
+        str
+            SBML-compatible identifier string.
+
+        """
         sbml_id = self.parameter_key.name + '_'
         if self.parameter_key.part_id is not None:
             sbml_id += self.parameter_key.part_id
@@ -289,17 +611,86 @@ class ParameterEntry(Parameter):
         return sbml_id
 
     def __str__(self):
+        """Return string representation of the parameter entry.
+
+        Returns
+        -------
+        str
+            String in format 'ParameterEntry(<key>) = <value>'.
+
+        """
         return f"ParameterEntry({self.parameter_key}) = {self.value}"
 
 
 class ModelParameter(ParameterEntry):
-    """A class for representing parameters used in the Model.
+    """Parameter with search and found keys for defaulting behavior.
 
-    search_key is a tuple searched for to find the parameter, eg
-    (mech_id, part_id, param_name),
+    A `ModelParameter` extends `ParameterEntry` with information about how
+    the parameter was looked up in the database. It tracks both the
+    original search key and the actual key where the parameter was found,
+    enabling parameter defaulting and debugging.
 
-    found_key is the tuple used after defaulting to find the
-    parameter eg (param_name)
+    Parameters
+    ----------
+    parameter_name : str
+        Name of the parameter.
+    parameter_value : float or str
+        Value of the parameter.
+    search_key : dict, ParameterKey, tuple, or str
+        The key originally searched for in the database. Usually includes
+        mechanism, part_id, and name.
+    found_key : dict, ParameterKey, tuple, or str
+        The key where the parameter was actually found after defaulting.
+        May have fewer fields than search_key.
+    unit : str, optional
+        Unit of the parameter.
+    parameter_key : dict, ParameterKey, str, or None, optional
+        Database lookup key (inherited from ParameterEntry).
+    parameter_info : dict, optional
+        Additional metadata (inherited from ParameterEntry).
+    **kwargs
+        Additional keyword arguments passed to ParameterEntry constructor.
+
+    Attributes
+    ----------
+    search_key : ParameterKey
+        The original lookup key as a named tuple.
+    found_key : ParameterKey
+        The key where parameter was found as a named tuple.
+
+    See Also
+    --------
+    Parameter : Base parameter class.
+    ParameterEntry : Parameter with database key.
+    ParameterDatabase : Database with parameter defaulting.
+
+    Notes
+    -----
+    The parameter defaulting hierarchy is:
+
+        1. (mechanism_name, part_id, param_name)
+        2. (mechanism_type, part_id, param_name)
+        3. (None, part_id, param_name)
+        4. (mechanism_name, None, param_name)
+        5. (mechanism_type, None, param_name)
+        6. (None, None, param_name)
+
+    The `search_key` shows what was requested, while `found_key` shows
+    which level of defaulting was used. This information is useful for
+    debugging parameter lookups.
+
+    Examples
+    --------
+    Create a model parameter showing search and found keys:
+
+    >>> model_param = bcp.ModelParameter(
+    ...     'kb',
+    ...     100.0,
+    ...     search_key={'mechanism': 'binding', 'part_id': 'prom1'},
+    ...     found_key={'mechanism': 'binding', 'part_id': None},
+    ...     unit='1/s'
+    ... )
+    >>> # Shows parameter was found using mechanism-level default
 
     """
 
@@ -314,6 +705,11 @@ class ModelParameter(ParameterEntry):
         parameter_info=None,
         **kwargs,
     ):
+        """Initialize a ModelParameter object.
+
+        See class docstring for parameter descriptions.
+
+        """
         ParameterEntry.__init__(
             self,
             parameter_name,
@@ -328,44 +724,173 @@ class ModelParameter(ParameterEntry):
 
     @property
     def search_key(self):
+        """ParameterKey: The key originally searched for in database."""
         return self._search_key
 
     @search_key.setter
     def search_key(self, search_key):
+        """Set the search key.
+
+        Parameters
+        ----------
+        search_key : dict, ParameterKey, tuple, or str
+            The key that was searched for. Automatically converted to
+            ParameterKey namedtuple.
+
+        """
         self._search_key = self.create_parameter_key(
             search_key, self.parameter_name
         )
 
     @property
     def found_key(self):
+        """ParameterKey: The key where parameter was actually found."""
         return self._found_key
 
     @found_key.setter
     def found_key(self, found_key):
+        """Set the found key.
+
+        Parameters
+        ----------
+        found_key : dict, ParameterKey, tuple, or str
+            The key where the parameter was found after defaulting.
+            Automatically converted to ParameterKey namedtuple.
+
+        """
         self._found_key = self.create_parameter_key(
             found_key, self.parameter_name
         )
 
     def __str__(self):
+        """Return string representation of the model parameter.
+
+        Returns
+        -------
+        str
+            String showing parameter key, value, and search key in format
+            'ModelParameter(<key>) = <value> search_key=<search_key>'.
+
+        """
         return (
             f"ModelParameter({self.parameter_key}) = "
-            + f"{self.value}\tsearch_key={self.search_key}"
+            + f"{self.value}\n    search_key={self.search_key}"
         )
 
 
 class ParameterDatabase(object):
+    """Database for storing and retrieving parameters with defaulting.
+
+    A `ParameterDatabase` stores parameters with flexible lookup keys that
+    enable parameter defaulting based on mechanism, part_id, and parameter
+    name. Parameters can be loaded from dictionaries, files, or other
+    databases.
+
+    Parameters
+    ----------
+    parameter_dictionary : dict, optional
+        Dictionary of parameters to load. Keys should be ParameterKey-like
+        (dict, tuple, or str) and values should be numerical or Parameter
+        objects.
+    parameter_file : str or list of str, optional
+        Path(s) to parameter file(s) to load. Files must be tab-separated
+        (.tsv, .txt) or comma-separated (.csv).
+    overwrite_parameters : bool, default=False
+        If True, allows overwriting existing parameters when loading. If
+        False, raises ValueError if duplicate keys are encountered.
+
+    Attributes
+    ----------
+    parameters : dict
+        Internal dictionary mapping ParameterKey to ParameterEntry objects.
+        Access via indexing or iteration rather than directly.
+
+    See Also
+    --------
+    Parameter : Base parameter class.
+    ParameterEntry : Parameter with database key.
+    ModelParameter : Parameter with search and found keys.
+
+    Notes
+    -----
+    **Parameter Lookup Hierarchy:**
+
+    When searching for a parameter with `find_parameter(mechanism,
+    part_id, param_name)`, the database searches in this order:
+
+    1. (mechanism.name, part_id, param_name)
+    2. (mechanism.type, part_id, param_name)
+    3. (None, part_id, param_name)
+    4. (mechanism.name, None, param_name)
+    5. (mechanism.type, None, param_name)
+    6. (None, None, param_name)
+
+    This enables flexible parameter specification where specific parameters
+    override more general ones.
+
+    **Parameter File Format:**
+
+    Parameter files should have these columns (column names are flexible):
+
+    - 'param_name' or 'parameter_name' (required)
+    - 'param_val' or 'value' (required)
+    - 'mechanism_id' or 'mechanism' (optional)
+    - 'part_id' or 'part' (optional)
+    - 'units' or 'unit' (optional)
+
+    Additional columns are stored in parameter_info.
+
+    **Parameter File Location:**
+
+    Parameter files are searched for in the following directories:
+
+    1. The current directory
+    2. All directories listed in the 'BCP_PATH' environment variable
+    3. The BioCRNpyler source code directory
+
+    The directories are search in this order and the first parameter file that
+    is found is returned.  For files in the BioCRNpyler source code directory,
+    common filename patterns are of the form '<type>/<name>_parameters.tsv'
+    where <type> is 'components', `mechanisms', or 'mixtures'.
+
+    Examples
+    --------
+    Create a parameter database from a dictionary:
+
+    >>> params = {
+    ...     'kb': 100.0,
+    ...     'ku': 0.01,
+    ...     ('transcription', None, 'ktx'): 0.05
+    ... }
+    >>> db = bcp.ParameterDatabase(parameter_dictionary=params)
+
+    Load parameters from a file:
+
+    >>> db = bcp.ParameterDatabase(
+    ...     parameter_file='mixtures/pure_parameters.tsv')
+
+    Look up a parameter with defaulting:
+
+    >>> param = db.find_parameter('transcription', 'promoter1', 'ktx')
+    >>> param.value
+    0.05
+
+    Add a new parameter:
+
+    >>> db.add_parameter('kcat', 10.0,
+    ...     parameter_key={'mechanism': 'catalysis', 'part_id': 'enzyme1'})
+
+    """
+
     def __init__(
         self,
         parameter_dictionary=None,
         parameter_file=None,
         overwrite_parameters=False,
     ):
-        """A class for storing parameters in Components and Mixtures.
+        """Initialize a ParameterDatabase object.
 
-        :param parameter_dictionary:
-        :param parameter_file:
-        :param overwrite_parameters: whether to overwrite existing entries
-             in the parameter database
+        See class docstring for parameter descriptions.
 
         """
         self.parameters = {}  # create an emtpy dictionary to get parameters.
@@ -403,6 +928,21 @@ class ParameterDatabase(object):
 
     # To check if a key or ParameterEntry is in a the ParameterDatabase
     def __contains__(self, val):
+        """Check if a key or ParameterEntry is in the database.
+
+        Parameters
+        ----------
+        val : ParameterEntry, dict, ParameterKey, tuple, or str
+            Value to check. Can be a ParameterEntry object or any valid
+            parameter key format.
+
+        Returns
+        -------
+        bool
+            True if the key exists in the database (and ParameterEntry
+            values match if val is a ParameterEntry), False otherwise.
+
+        """
         if isinstance(val, ParameterEntry):
             key = val.parameter_key
             if key in self.parameters and self.parameters[key] == val:
@@ -419,11 +959,32 @@ class ParameterDatabase(object):
     # Ability to loop through parameters eg
     # for entry in ParameterDatabase: ...
     def __iter__(self):
+        """Initialize iterator over parameter entries.
+
+        Returns
+        -------
+        ParameterDatabase
+            Self with iterator state initialized.
+
+        """
         self.keys = list(self.parameters.keys())
         self.current_key_ind = 0
         return self
 
     def __next__(self):
+        """Get next parameter entry in iteration.
+
+        Returns
+        -------
+        ParameterEntry
+            Next parameter entry in the database.
+
+        Raises
+        ------
+        StopIteration
+            When all parameters have been iterated.
+
+        """
         if self.current_key_ind < len(self.keys):
             key = self.keys[self.current_key_ind]
             entry = self.parameters[key]
@@ -434,17 +995,64 @@ class ParameterDatabase(object):
 
     # Length method
     def __len__(self):
+        """Return number of parameters in the database.
+
+        Returns
+        -------
+        int
+            Number of parameter entries stored.
+
+        """
         return len(self.parameters)
 
     # Gets a parameter from the database
     # Only returns exact matches.
     def __getitem__(self, key):
+        """Get a parameter by exact key match.
+
+        Parameters
+        ----------
+        key : dict, ParameterKey, tuple, or str
+            Parameter key to look up. No defaulting is performed.
+
+        Returns
+        -------
+        ParameterEntry
+            The parameter entry with the exact matching key.
+
+        Raises
+        ------
+        KeyError
+            If the exact key is not found in the database.
+
+        """
         param_key = ParameterEntry.create_parameter_key(key)
         return self.parameters[param_key]
 
     # Sets a parameter in the databases - useful for quickly changing
     # parameters, but add_parameter is recommended.
     def __setitem__(self, parameter_key, value):
+        """Set a parameter value by key.
+
+        Parameters
+        ----------
+        parameter_key : dict, ParameterKey, tuple, or str
+            Key for the parameter.
+        value : float, str, or ParameterEntry
+            New value or ParameterEntry object. If ParameterEntry, its key
+            must match parameter_key.
+
+        Raises
+        ------
+        ValueError
+            If value is ParameterEntry with mismatched key.
+
+        Notes
+        -----
+        This method automatically overwrites existing parameters.
+        For more control, use `add_parameter` instead.
+
+        """
         key = ParameterEntry.create_parameter_key(parameter_key)
 
         if isinstance(value, ParameterEntry):
@@ -465,6 +1073,14 @@ class ParameterDatabase(object):
             )
 
     def __str__(self):
+        """Return string representation of the parameter database.
+
+        Returns
+        -------
+        str
+            String listing all parameters in the database.
+
+        """
         txt = 'ParameterDatabase:'
         param_txt = '\n'.join([repr(p) for p in self.parameters])
         return txt + param_txt
@@ -478,16 +1094,39 @@ class ParameterDatabase(object):
         parameter_info=None,
         overwrite_parameters=False,
     ):
-        """Adds a parameter to the database with appropriate metadata.
+        """Add a parameter to the database.
 
-        :param parameter_name: the name of the parameter
-        :param parameter_value: the value of the parameter
-        :param parameter_origin:
-        :param parameter_key:
-        :param parameter_info:
-        :param overwrite_parameters: whether to overwrite existing entries
-            in the parameter database
-        :return:
+        Parameters
+        ----------
+        parameter_name : str
+            Name of the parameter.
+        parameter_value : float or str
+            Value of the parameter. Strings are converted to float.
+        parameter_origin : str, optional
+            Description of where the parameter came from (e.g., filename).
+            Stored in `parameter_info`.
+        parameter_key : dict, ParameterKey, str, or None, optional
+            Lookup key for the parameter. If None, creates key with only
+            the parameter name.
+        parameter_info : dict, optional
+            Additional metadata about the parameter. `parameter_origin` is
+            added to this dict if provided.
+        overwrite_parameters : bool, default=False
+            If True, allows overwriting existing parameters. If False,
+            raises ValueError if key already exists.
+
+        Raises
+        ------
+        ValueError
+            If key already exists in database and
+            `overwrite_parameters=False`.
+
+        Examples
+        --------
+        >>> db = bcp.ParameterDatabase()
+        >>> db.add_parameter('kb', 100.0)
+        >>> db.add_parameter('ku', 0.01,
+        ...     parameter_key={'mechanism': 'binding'})
 
         """
         # Put parameter origin into parameter_info
@@ -520,12 +1159,30 @@ class ParameterDatabase(object):
         parameter_dictionary: Dict[ParameterKey, Union[str, numbers.Real]],
         overwrite_parameters=False,
     ) -> None:
-        """Loads Parameters from a parameter dictionary.
+        """Load parameters from a dictionary.
 
-        :param parameter_dictionary: Dictionary with keys ParameterKey types
-            and values with real numbers
-        :param overwrite_parameters: whether to overwrite existing entries
-            in the parameter database
+        Parameters
+        ----------
+        parameter_dictionary : dict
+            Dictionary with keys as ParameterKey-like objects (dict, tuple,
+            or str) and values as numerical values or strings.
+        overwrite_parameters : bool, default=False
+            If True, allows overwriting existing parameters. If False,
+            raises ValueError if duplicate keys are encountered.
+
+        Raises
+        ------
+        ValueError
+            If duplicate keys exist and `overwrite_parameters=False`.
+
+        Examples
+        --------
+        >>> db = bcp.ParameterDatabase()
+        >>> params = {
+        ...     'kb': 100.0,
+        ...     ('binding', None, 'ku'): 0.01,
+        ... }
+        >>> db.load_parameters_from_dictionary(params)
 
         """
         for k in parameter_dictionary:
@@ -544,11 +1201,30 @@ class ParameterDatabase(object):
     def load_parameters_from_database(
         self, parameter_database, overwrite_parameters=False
     ) -> None:
-        """Loads parameters from another ParameterDatabase.
+        """Load parameters from another `ParameterDatabase`.
 
-        :param parameter_database: instance of another ParameterDatabase
-        :param overwrite_parameters:  whether to overwrite existing entries
-            in the parameter database.
+        Parameters
+        ----------
+        parameter_database : ParameterDatabase
+            Another ParameterDatabase instance to copy parameters from.
+        overwrite_parameters : bool, default=False
+            If True, allows overwriting existing parameters. If False,
+            raises ValueError if duplicate keys are encountered.
+
+        Raises
+        ------
+        TypeError
+            If `parameter_database` is not a ParameterDatabase instance.
+        ValueError
+            If duplicate keys exist and `overwrite_parameters=False`.
+
+        Examples
+        --------
+        >>> db1 = bcp.ParameterDatabase(parameter_dictionary={'kb': 100.0})
+        >>> db2 = bcp.ParameterDatabase()
+        >>> db2.load_parameters_from_database(db1)
+        >>> db2['kb'].value
+        100.0
 
         """
         if not isinstance(parameter_database, ParameterDatabase):
@@ -572,14 +1248,60 @@ class ParameterDatabase(object):
     def load_parameters_from_file(
         self, filename: str, overwrite_parameters=False
     ) -> None:
-        """Loads parameters from a file to the ParameterDatabase.
+        """Load parameters from a file.
 
-        Parameter files must be tab-separated (.tsv or .txt) or
-        comma-separated (.csv) files!
+        Reads parameters from a CSV or TSV file and adds them to the
+        database. The file must have 'param_name' and 'param_val' columns.
+        Optional columns include 'mechanism', 'part_id', and 'units'.
 
-        :param filename: name of the file (with valid file path)
-        :param overwrite_parameters: whether to overwrite existing entries
-            in the parameter database
+        Parameters
+        ----------
+        filename : str
+            Path to parameter file. Must be tab-separated (.tsv, .txt) or
+            comma-separated (.csv). File is searched in current directory
+            and BioCRNpyler package paths.
+        overwrite_parameters : bool, default=False
+            If True, allows overwriting existing parameters. If False,
+            raises ValueError if duplicate keys are encountered.
+
+        Raises
+        ------
+        ValueError
+            If file cannot be found, has invalid format, or contains
+            duplicate keys when `overwrite_parameters=False`.
+
+        Notes
+        -----
+        **Accepted Column Names (case-sensitive, first match used):**
+
+        - param_name: 'parameter_name', 'parameter', 'param', 'param_name'
+        - param_val: 'val', 'value', 'param_val', 'parameter_value'
+        - mechanism: 'mechanism', 'mechanism_id'
+        - part_id: 'part_id', 'part'
+        - unit: 'units', 'unit'
+
+        Additional columns are stored in parameter_info dictionary.
+
+        **File Format Example (CSV)::**
+
+        .. code::
+
+            mechanism,part_id,param_name,param_val,unit
+            binding,,kb,100,1/s
+            binding,,ku,0.01,1/s
+            transcription,prom1,ktx,0.05,1/s
+
+        Examples
+        --------
+        >>> db = bcp.ParameterDatabase(
+        ...    parameter_file='mixtures/pure_parameters.tsv')
+
+        Load multiple files:
+
+        >>> db = bcp.ParameterDatabase(
+        ...     parameter_file=[
+        ...         'mixtures/pure_parameters.tsv',
+        ...         'components/tetr_parameters.tsv'])
 
         """
         from ..utils.fileutil import find_file_in_bcp_path
@@ -770,15 +1492,35 @@ class ParameterDatabase(object):
     def _get_field_names(
         field_names: List[str], accepted_field_names: Dict[str, List[str]]
     ) -> Dict[str, str]:
-        """Searches through valid field names and finds currently used one.
+        """Map parameter file column names to standard field names.
 
-        It builds a dictionary of currently used field names.
+        Searches through column names in a parameter file to find which
+        valid aliases are being used, and creates a mapping dictionary.
 
-        :param field_names: list of field names (columns) found in the
-            csv file
-        :param accepted_field_names: dictionary of possible field names and
-            their valid aliases
-        :return: dictionary of currently used field names (aliases)
+        Parameters
+        ----------
+        field_names : list of str
+            List of column names found in the parameter file.
+        accepted_field_names : dict
+            Dictionary mapping standard field names to lists of valid
+            aliases. Format: {'field': ['alias1', 'alias2', ...]}.
+
+        Returns
+        -------
+        dict
+            Dictionary mapping standard field names to the actual column
+            names used in the file. Fields not found are set to None.
+
+        Raises
+        ------
+        ValueError
+            If `field_names` or `accepted_field_names` are invalid types or
+            empty.
+
+        Warns
+        -----
+        UserWarning
+            If a standard field has no matching column in the file.
 
         """
         if not isinstance(field_names, list):
@@ -824,24 +1566,86 @@ class ParameterDatabase(object):
         return return_field_names
 
     def find_parameter(self, mechanism, part_id, param_name):
-        """Searches the database for the best matching parameter.
+        """Search for a parameter with automatic defaulting.
 
-        Parameter defaulting hierarchy:
-        (mechanism_name, part_id, param_name) --> param_val.
-        If that particular parameter key cannot be found,
-        the software will default to the following keys:
-        (mechanism_type, part_id, param_name) >> (part_id, param_name) >>
-        (mechanism_name, param_name) >> (mechanism_type, param_name) >>
-        (param_name) and give a warning.
+        Searches the database for the best matching parameter using a
+        hierarchical defaulting system. If an exact match is not found,
+        progressively more general keys are tried.
 
-        As a note, mechanism_name refers to the .name variable of a
-        Mechanism.  mechanism_type refers to the .type variable of a
-        Mechanism.  Either of these can be used as a mechanism_id.  This
-        allows for models to be constructed easily using default parameter
-        values and for parameters to be shared between different Mechanisms
-        and/or Components.
+        Parameters
+        ----------
+        mechanism : str, Mechanism, or None
+            Mechanism identifier. Can be a string (used as both name and
+            type), a Mechanism object (uses .name and .mechanism_type), or
+            None.
+        part_id : str or None
+            Part/component identifier for the parameter.
+        param_name : str
+            Name of the parameter to find.
+
+        Returns
+        -------
+        ModelParameter or None
+            ModelParameter object with search_key and found_key attributes
+            showing how the parameter was found. Returns None if no match
+            found at any defaulting level.
+
+        Raises
+        ------
+        ValueError
+            If `mechanism` is not a string, Mechanism object, or None.
+
+        Notes
+        -----
+        **Parameter Defaulting Hierarchy:**
+
+        The method searches for parameters in this order:
+
+        1. (mechanism.name, part_id, param_name)
+        2. (mechanism.type, part_id, param_name)
+        3. (None, part_id, param_name)
+        4. (mechanism.name, None, param_name)
+        5. (mechanism.type, None, param_name)
+        6. (None, None, param_name)
+
+        This allows setting default parameters at various levels of
+        specificity. For example, a general 'kb' parameter can be
+        overridden for specific mechanisms or parts.
+
+        Examples
+        --------
+        >>> db = bcp.ParameterDatabase()
+        >>> db.add_parameter('kb', 100.0)
+        >>> db.add_parameter('kb', 200.0,
+        ...     parameter_key={'mechanism': 'binding'})
+
+        General lookup finds the general parameter
+
+        >>> param = db.find_parameter(None, None, 'kb')
+        >>> param.value
+        100.0
+
+        Mechanism-specific lookup finds the specific parameter
+
+        >>> param = db.find_parameter('binding', None, 'kb')
+        >>> param.value
+        200.0
 
         """
+        # Parameter defaulting hierarchy:
+        # (mechanism_name, part_id, param_name) --> param_val.
+        # If that particular parameter key cannot be found,
+        # the software will default to the following keys:
+        # (mechanism_type, part_id, param_name) >> (part_id, param_name) >>
+        # (mechanism_name, param_name) >> (mechanism_type, param_name) >>
+        # (param_name) and give a warning.
+        #
+        # As a note, mechanism_name refers to the .name variable of a
+        # Mechanism.  mechanism_type refers to the .type variable of a
+        # Mechanism.  Either of these can be used as a mechanism_id.  This
+        # allows for models to be constructed easily using default parameter
+        # values and for parameters to be shared between different Mechanisms
+        # and/or Components.
         # this is imported here because otherwise there are import loops
         from .mechanism import Mechanism
 

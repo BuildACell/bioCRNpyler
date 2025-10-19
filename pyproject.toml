@@ -74,12 +74,13 @@ ignore = [
     'D100', 'D101', 'D102', 	# ignore missing docstrings for now
     'D103', 'D104', 'D105',
     'D105', 'D106', 'D107',
+    'D401',			# ignore imperative docstring checking for now
     'D417',			# ignore missing argument descriptions for now
 ]
 
 [tool.ruff.lint.per-file-ignores]
 # Ignore 'D' and 'E' rules everywhere except for the `biocrnpyler/` directory.
-'!biocrnpyler/**.py' = ['D', 'E']
+'!biocrnpyler/**.py' = ['D', 'E', 'I']
 'Tests/**.py' = [
     'E',			# ignore code style
     'F841',			# unused variables OK
@@ -95,7 +96,7 @@ ignore = [
 quote-style = 'preserve'
 
 [tool.ruff.lint.pydocstyle]
-convention = "google"
+convention = "numpy"
 
 [tool.isort]
 profile = 'black'
