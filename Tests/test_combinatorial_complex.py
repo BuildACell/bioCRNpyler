@@ -401,3 +401,21 @@ def test_CombinatorialComplex_update_reactions():
         R([CXZ, X], [CXXZ]),
     ]
     assert all([r in r5_true for r in r5]) and all([r in r5 for r in r5_true])
+
+
+def test_singleton_arguments():
+    X, Y, Z = Species('X'), Species('Y'), Species('Z')
+
+    # Single final_state case
+    C1 = Complex([Y, Z, Z])
+    CC1 = CombinatorialComplex(final_states=C1)
+
+    # tests getters and setters
+    assert set(CC1.final_states) == set([C1])
+    assert set(CC1.sub_species) == set([Y, Z])
+    assert set(CC1.initial_states) == set([Y, Z])
+    assert CC1.intermediate_states is None
+
+    # Test with excluded states
+    C2 = Complex([X, X, Z, Z])
+    CC5 = CombinatorialComplex(final_states=[C2], excluded_states=C1)

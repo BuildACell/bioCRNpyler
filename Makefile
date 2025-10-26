@@ -34,5 +34,5 @@ docs :
 	cd docs; echo "Running Sphinx docs generator"; sphinx-apidoc -o source/ ../biocrnpyler; python generate_nblinks.py; make clean && make html;
 
 TAGS: biocrnpyler/*.py biocrnpyler/*/*.py biocrnpyler/*/*/*.py docs/*.rst \
-    docs/examples/*.ipynb
+    docs/examples/*.ipynb docs/examples/*/*.ipynb
 	ftags $^
