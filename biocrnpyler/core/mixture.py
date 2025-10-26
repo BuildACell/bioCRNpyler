@@ -107,7 +107,7 @@ class Mixture(object):
     The compilation process follows these steps:
 
     1. Global component enumeration (e.g., generating all interactions)
-    2. Local component enumeration (e.g., DNA -> RNA -> Protein)
+    2. Local component enumeration (e.g., DNA --> RNA --> Protein)
     3. Species generation from all enumerated components
     4. Reaction generation from all enumerated components
     5. Application of global mechanisms to all species
@@ -965,7 +965,7 @@ class Mixture(object):
 
         Calls each component's `enumerate_components` method repeatedly to
         expand high-level components into their constituent parts (e.g.,
-        DNA_construct -> RNA_construct -> Protein).
+        DNA_construct --> RNA_construct --> Protein).
 
         Parameters
         ----------
@@ -1147,7 +1147,7 @@ class Mixture(object):
 
         1. Add any directly-added species to the CRN
         2. Global component enumeration (generates component interactions)
-        3. Local component enumeration (e.g., DNA -> RNA -> Protein)
+        3. Local component enumeration (e.g., DNA --> RNA --> Protein)
         4. Generate species from all enumerated components
         5. Generate reactions from all enumerated components
         6. Apply global mechanisms to all species

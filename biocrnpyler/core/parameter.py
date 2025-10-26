@@ -114,9 +114,9 @@ class Parameter(object):
 
     Parameter values provided as strings are automatically converted:
 
-    - '1e4' -> 10000.0
-    - '2/5' -> 0.4
-    - '1.23' -> 1.23
+    - '1e4' --> 10000.0
+    - '2/5' --> 0.4
+    - '1.23' --> 1.23
 
     Examples
     --------

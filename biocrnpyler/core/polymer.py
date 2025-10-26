@@ -406,8 +406,8 @@ class OrderedPolymer(MonomerCollection):
         dirname : str, int, or None
             The direction to invert. Supported values:
 
-            - 'forward' <-> 'reverse'
-            - 0 <-> 1
+            - 'forward' <--> 'reverse'
+            - 0 <--> 1
             - None -> None
 
         Returns

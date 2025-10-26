@@ -74,7 +74,7 @@ class Reaction(object):
     **Stoichiometry Handling:**
 
     - Species lists automatically combine duplicates
-    - A + A -> B becomes 2A -> B
+    - A + A --> B becomes 2A --> B
     - Stoichiometry affects rate calculations in mass action kinetics
 
     **Propensity Types:**
@@ -104,7 +104,7 @@ class Reaction(object):
 
     Create a reaction with stoichiometry:
 
-    >>> rxn = bcp.Reaction([A, A], [B], prop)  # 2A <-> B
+    >>> rxn = bcp.Reaction([A, A], [B], prop)  # 2A <--> B
 
     Use the from_massaction class method:
 
@@ -284,8 +284,8 @@ class Reaction(object):
         -----
         Duplicate handling examples:
 
-        - [A, A, B] -> [2A, B]
-        - [WeightedSpecies(A, 2), A] -> [WeightedSpecies(A, 3)]
+        - [A, A, B] --> [2A, B]
+        - [WeightedSpecies(A, 2), A] --> [WeightedSpecies(A, 3)]
 
         """
         if all(
@@ -360,7 +360,7 @@ class Reaction(object):
         >>> C = bcp.Species('C')
         >>> rxn = bcp.Reaction.from_massaction([A, B], [C], k_forward=0.1)
         >>> D = bcp.Species('D')
-        >>> rxn2 = rxn.replace_species(A, D)  # D + B -> C
+        >>> rxn2 = rxn.replace_species(A, D)  # D + B --> C
 
         """
         if not isinstance(species, Species) or not isinstance(
@@ -512,7 +512,7 @@ class Reaction(object):
         -----
         Order of species in inputs/outputs doesn't matter:
 
-        - A + B -> C equals B + A -> C
+        - A + B --> C equals B + A --> C
         - Species are compared using sets
 
         """

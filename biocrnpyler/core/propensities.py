@@ -821,14 +821,14 @@ class MassAction(Propensity):
     -----
     **Deterministic (ODE) propensity:**
 
-    For reaction A + B -> C with rate constant k:
+    For reaction A + B --> C with rate constant k:
 
     .. math::
         \text{rate} = k [A] [B]
 
     **Stochastic (Gillespie) propensity:**
 
-    For reaction A + B -> C with rate constant k:
+    For reaction A + B --> C with rate constant k:
 
     .. math::
         \text{propensity} &= k \cdot A \cdot (B-1) \text{ if } A=B \\
