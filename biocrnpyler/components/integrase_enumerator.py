@@ -8,7 +8,7 @@ from ..core.polymer import NamedPolymer, OrderedMonomer
 from ..core.species import ComplexSpecies, Species
 from ..utils import combine_dictionaries
 from .component_enumerator import GlobalComponentEnumerator
-from .dna.construct import Construct, DNA_construct
+from .dna.construct import Construct, DNAconstruct
 from .dna.misc import IntegraseSite
 
 
@@ -390,7 +390,7 @@ class PolymerTransformation:
                         outpart = part.dna_species
             else:
                 # Parts that don't come from input1 or input2.  They need
-                # to be either DNA_part or species objects, depending on
+                # to be either DNApart or species objects, depending on
                 # what kind of object we are making in the end.
                 if isinstance(polymer_dict['input1'], Construct):
                     outpart = part
@@ -1413,7 +1413,7 @@ class IntegraseEnumerator(GlobalComponentEnumerator):
         Parameters
         ----------
         components : list of Component, optional
-            List of components to enumerate. Only DNA_construct objects
+            List of components to enumerate. Only DNAconstruct objects
             are processed.
         previously_enumerated : list of Component, optional
             List of components already enumerated (used for duplicate
@@ -1431,7 +1431,7 @@ class IntegraseEnumerator(GlobalComponentEnumerator):
         -----
         **Enumeration Algorithm:**
 
-        1. Extract all DNA_construct components
+        1. Extract all DNAconstruct components
         2. List all integrase sites by integrase type
         3. For each integrase in int_mechanisms:
 
@@ -1480,7 +1480,7 @@ class IntegraseEnumerator(GlobalComponentEnumerator):
         if previously_enumerated is None:
             previously_enumerated = []
         for component in components:
-            if isinstance(component, DNA_construct):
+            if isinstance(component, DNAconstruct):
                 construct_list += [component]
         int_dict = {}
         for construct in construct_list:

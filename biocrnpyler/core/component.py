@@ -758,9 +758,9 @@ class Component:
         Subclasses override this method to implement specific enumeration
         behavior. For example:
 
-        - A `DNA_construct` returns copies of its parts and `RNA_construct`
+        - A `DNAconstruct` returns copies of its parts and `RNAconstruct`
           objects representing transcripts.
-        - An `RNA_construct` returns copies of its parts and `Protein`
+        - An `RNAconstruct` returns copies of its parts and `Protein`
           components representing translation products.
 
         """

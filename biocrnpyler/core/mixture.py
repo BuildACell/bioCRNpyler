@@ -129,7 +129,7 @@ class Mixture(object):
     Add components to the mixture:
 
     >>> promoter = bcp.Promoter("pconst")
-    >>> gene = bcp.DNA_construct([promoter, bcp.RBS('rbs'), bcp.CDS('gfp')])
+    >>> gene = bcp.DNAconstruct([promoter, bcp.RBS('rbs'), bcp.CDS('gfp')])
     >>> mixture.add_component(gene)
 
     Compile the CRN:
@@ -965,7 +965,7 @@ class Mixture(object):
 
         Calls each component's `enumerate_components` method repeatedly to
         expand high-level components into their constituent parts (e.g.,
-        DNA_construct --> RNA_construct --> Protein).
+        DNAconstruct --> RNAconstruct --> Protein).
 
         Parameters
         ----------
