@@ -756,11 +756,12 @@ class Mixture(object):
         -----
         The parameter lookup hierarchy is:
 
-        1. Component's ParameterDatabase with mechanism='initial
-           concentration', part_id=mixture.name, and parameter names: str(s),
-           s.name, or component.name (if s is the component's primary species)
+        1. Component's `ParameterDatabase` with `mechanism='initial
+           concentration'`, `part_id=mixture.name`, and parameter names:
+           `str(s)`, `s.name`, or `component.name` (where `s` is the
+           component's primary species)
 
-        2. Mixture's ParameterDatabase with the same keys
+        2. Mixture's `ParameterDatabase` with the same keys
 
         3. Defaults to 0 if not found
 
@@ -1134,7 +1135,8 @@ class Mixture(object):
             the CRN. Ensures no missing species at the expense of compilation
             speed.
         compartment : Compartment, optional
-            Compartment to assign to all species and reactions. If None, uses
+            Compartment to assign to all species and reactions that are not
+            already assigned to a compartment. If None, uses
             `self.compartment`.
 
         Returns
