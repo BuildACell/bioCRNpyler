@@ -496,6 +496,7 @@ class MembraneChannel(Component):
             external_compartment = Compartment(name=external_compartment)
 
         # Set up the integral membrane protein
+        # TODO: allow integral_membrane_protein to be a Component
         if isinstance(integral_membrane_protein, str):
             integral_membrane_protein = self.set_species(
                 integral_membrane_protein,

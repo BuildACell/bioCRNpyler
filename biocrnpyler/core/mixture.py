@@ -177,7 +177,7 @@ class Mixture(object):
         if mechanisms is None and not hasattr(self, '_mechanisms'):
             self.mechanisms = {}
         else:
-            self.add_mechanisms(mechanisms)
+            self.add_mechanisms(mechanisms, overwrite=True)
 
         # process global_mechanisms:
         # Global mechanisms are applied just once ALL species generated from
@@ -511,8 +511,9 @@ class Mixture(object):
             The type key under which to store the mechanism. If None, uses
             the mechanism's `mechanism_type` attribute.
         overwrite : bool, default=False
-            If True, replaces any existing mechanism with the same key.
-            If False, raises ValueError when key already exists.
+            If True, replaces any existing mechanisms with the same keys. If
+            False, raises ValueError when keys already exist. If None, ignores
+            mechanisms that already exist.
 
         Raises
         ------
@@ -520,7 +521,7 @@ class Mixture(object):
             If `mechanism` is not a Mechanism object, or if `mech_type` is
             not a string.
         ValueError
-            If mechanism key already exists and `overwrite` is False.
+            If mechanism key already exists and `overwrite` is None.
 
         See Also
         --------
@@ -546,10 +547,11 @@ class Mixture(object):
             self.add_global_mechanism(mechanism, mech_type, overwrite)
         elif isinstance(mechanism, Mechanism):
             if mech_type in self._mechanisms and not overwrite:
-                raise ValueError(
-                    f"mech_type {mech_type} already in Mixture {self}. "
-                    f"To overwrite, use keyword overwrite = True."
-                )
+                if overwrite is False:
+                    raise ValueError(
+                        f"mech_type {mech_type} already in Mixture {self}. "
+                        f"To overwrite, use keyword overwrite=True."
+                    )
             else:
                 self._mechanisms[mech_type] = copy.deepcopy(mechanism)
 
@@ -567,8 +569,9 @@ class Mixture(object):
             mechanism types as keys and mechanisms as values, or a list of
             mechanisms.
         overwrite : bool, default=False
-            If True, replaces any existing mechanisms with the same keys.
-            If False, raises ValueError when keys already exist.
+            If True, replaces any existing mechanisms with the same keys. If
+            False, raises ValueError when keys already exist. If None, ignores
+            mechanisms that already exist.
 
         Raises
         ------

@@ -3,9 +3,9 @@
 
 from ..components.basic import Metabolite, Protein
 from ..core.mixture import Mixture
-from ..mechanisms.binding import One_Step_Binding
+from ..mechanisms.binding import OneStepBinding
 from ..mechanisms.enzyme import MichaelisMenten
-from ..mechanisms.global_mechanisms import Degradation_mRNA_MM
+from ..mechanisms.global_mechanisms import RNAdegradation_MM
 from ..mechanisms.txtl import Energy_Transcription_MM, Energy_Translation_MM
 
 
@@ -89,11 +89,11 @@ class BasicPURE(Mixture):
             + [self.amino_acids.get_species()],
             wastes=[],
         )
-        mech_rna_deg = Degradation_mRNA_MM(
+        mech_rna_deg = RNAdegradation_MM(
             nuclease=self.rnaase.get_species()
         )  # TODO: add fuel usage?
         mech_cat = MichaelisMenten()
-        mech_bind = One_Step_Binding()
+        mech_bind = OneStepBinding()
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
@@ -102,4 +102,4 @@ class BasicPURE(Mixture):
             mech_cat.mechanism_type: mech_cat,
             mech_bind.mechanism_type: mech_bind,
         }
-        self.add_mechanisms(default_mechanisms)
+        self.add_mechanisms(default_mechanisms, overwrite=None)

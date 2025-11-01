@@ -1,4 +1,5 @@
 mechanism	part_id	param_name	value	units	comments
+gene_expression		kexpress	0.28125		The product of the above two rates
 energy_transcription_mm		ktx	3.25		Tx_cat from Singhal et al.
 energy_transcription_mm		kb	4.48		For the promoter tested in Singhal et al Supplemental Table S2
 energy_transcription_mm		ku	2.48889E-06		For the promoter tested in Singhal et al Supplemental Table S2

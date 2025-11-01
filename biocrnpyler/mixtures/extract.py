@@ -6,9 +6,9 @@ from ..components.dna.assembly import DNAassembly
 from ..core.chemical_reaction_network import ChemicalReactionNetwork
 from ..core.mechanism import EmptyMechanism
 from ..core.mixture import Mixture
-from ..mechanisms.binding import One_Step_Binding
+from ..mechanisms.binding import OneStepBinding
 from ..mechanisms.enzyme import BasicCatalysis, MichaelisMenten
-from ..mechanisms.global_mechanisms import Degradation_mRNA_MM, Dilution
+from ..mechanisms.global_mechanisms import Dilution, RNAdegradation_MM
 from ..mechanisms.metabolite import OneStepPathway
 from ..mechanisms.txtl import (
     Energy_Transcription_MM,
@@ -33,7 +33,7 @@ class ExpressionExtract(Mixture):
         """Initializes an ExpressionExtract instance.
 
         :param name: name of the mixture
-        :param kwargs: keywords passed into the parent Class (Mixture)
+        :param kwargs: kwargs passed into the parent Class (Mixture)
         """
         # always call the superlcass Mixture.__init__(...)
         Mixture.__init__(self, name=name, **kwargs)
@@ -44,7 +44,7 @@ class ExpressionExtract(Mixture):
         )
         mech_expression = OneStepGeneExpression()
         mech_cat = BasicCatalysis()
-        mech_bind = One_Step_Binding()
+        mech_bind = OneStepBinding()
 
         default_mechanisms = {
             mech_expression.mechanism_type: mech_expression,
@@ -53,9 +53,9 @@ class ExpressionExtract(Mixture):
             mech_bind.mechanism_type: mech_bind,
         }
 
-        self.add_mechanisms(default_mechanisms)
+        self.add_mechanisms(default_mechanisms, overwrite=None)
 
-    def compile_crn(self, **keywords) -> ChemicalReactionNetwork:
+    def compile_crn(self, **kwargs) -> ChemicalReactionNetwork:
         """Compile CRN, turning off transcription.
 
         Overwriting compile_crn to turn off transcription in all
@@ -77,7 +77,7 @@ class ExpressionExtract(Mixture):
                     component.update_transcript(False)
 
         # Call the superclass function
-        return Mixture.compile_crn(self, **keywords)
+        return Mixture.compile_crn(self, **kwargs)
 
 
 class SimpleTxTlExtract(Mixture):
@@ -92,7 +92,7 @@ class SimpleTxTlExtract(Mixture):
         """Initializes a SimpleTxTlExtract instance.
 
         :param name: name of the mixture
-        :param kwargs: keywords passed into the parent Class (Mixture)
+        :param kwargs: kwargs passed into the parent Class (Mixture)
         """
         # Always call the superlcass Mixture.__init__(...)
         Mixture.__init__(self, name=name, **kwargs)
@@ -101,7 +101,7 @@ class SimpleTxTlExtract(Mixture):
         mech_tx = SimpleTranscription()
         mech_tl = SimpleTranslation()
         mech_cat = BasicCatalysis()
-        mech_bind = One_Step_Binding()
+        mech_bind = OneStepBinding()
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
@@ -109,7 +109,7 @@ class SimpleTxTlExtract(Mixture):
             mech_cat.mechanism_type: mech_cat,
             mech_bind.mechanism_type: mech_bind,
         }
-        self.add_mechanisms(default_mechanisms)
+        self.add_mechanisms(default_mechanisms, overwrite=False)
 
         # global mechanisms for dilution and rna degradation
         mech_rna_deg_global = Dilution(
@@ -118,7 +118,7 @@ class SimpleTxTlExtract(Mixture):
             default_on=False,
         )
         global_mechanisms = {'rna_degradation': mech_rna_deg_global}
-        self.add_mechanisms(global_mechanisms)
+        self.add_mechanisms(global_mechanisms, overwrite=None)
 
 
 class TxTlExtract(Mixture):
@@ -140,7 +140,7 @@ class TxTlExtract(Mixture):
         :param rnap: name of the RNA polymerase, default: RNAP
         :param ribosome: name of the ribosome, default: Ribo
         :param rnaase: name of the Ribonuclease, default: RNAase
-        :param kwargs: keywords passed into the parent Class (Mixture)
+        :param kwargs: kwargs passed into the parent Class (Mixture)
 
         """
         # Always call the superlcass Mixture.__init__(...)
@@ -157,9 +157,9 @@ class TxTlExtract(Mixture):
         # Create default TxTl Mechanisms
         mech_tx = Transcription_MM(rnap=self.rnap.get_species())
         mech_tl = Translation_MM(ribosome=self.ribosome.get_species())
-        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = RNAdegradation_MM(nuclease=self.rnaase.get_species())
         mech_cat = MichaelisMenten()
-        mech_bind = One_Step_Binding()
+        mech_bind = OneStepBinding()
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
@@ -168,7 +168,7 @@ class TxTlExtract(Mixture):
             mech_cat.mechanism_type: mech_cat,
             mech_bind.mechanism_type: mech_bind,
         }
-        self.add_mechanisms(default_mechanisms)
+        self.add_mechanisms(default_mechanisms, overwrite=None)
 
 
 class EnergyTxTlExtract(Mixture):
@@ -227,8 +227,8 @@ class EnergyTxTlExtract(Mixture):
         # These mechanisms are Component specific and only added to
         # the NTPs metabolite
         mech_pathway = OneStepPathway()
-        self.ntps.add_mechanisms(mech_pathway)
-        self.fuel.add_mechanisms(mech_pathway)
+        self.ntps.add_mechanisms(mech_pathway, overwrite=None)
+        self.fuel.add_mechanisms(mech_pathway, overwrite=None)
 
         default_components = [
             self.rnap,
@@ -252,9 +252,9 @@ class EnergyTxTlExtract(Mixture):
             + [self.amino_acids.get_species()],
             wastes=4 * [self.ndps.get_species()],
         )
-        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = RNAdegradation_MM(nuclease=self.rnaase.get_species())
         mech_cat = MichaelisMenten()
-        mech_bind = One_Step_Binding()
+        mech_bind = OneStepBinding()
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
@@ -263,4 +263,4 @@ class EnergyTxTlExtract(Mixture):
             mech_cat.mechanism_type: mech_cat,
             mech_bind.mechanism_type: mech_bind,
         }
-        self.add_mechanisms(default_mechanisms)
+        self.add_mechanisms(default_mechanisms, overwrite=None)

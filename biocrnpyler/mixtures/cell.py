@@ -6,9 +6,9 @@ from ..components.dna.assembly import DNAassembly
 from ..core.chemical_reaction_network import ChemicalReactionNetwork
 from ..core.mechanism import EmptyMechanism
 from ..core.mixture import Mixture
-from ..mechanisms.binding import One_Step_Binding
+from ..mechanisms.binding import OneStepBinding
 from ..mechanisms.enzyme import BasicCatalysis, MichaelisMenten
-from ..mechanisms.global_mechanisms import Degradation_mRNA_MM, Dilution
+from ..mechanisms.global_mechanisms import Dilution, RNAdegradation_MM
 from ..mechanisms.txtl import (
     OneStepGeneExpression,
     SimpleTranscription,
@@ -31,7 +31,7 @@ class ExpressionDilutionMixture(Mixture):
         """Initializes an ExpressionDilutionMixture instance.
 
         :param name: name of the mixture
-        :param kwargs: keywords passed into the parent Class (Mixture)
+        :param kwargs: kwargs passed into the parent Class (Mixture)
         """
         Mixture.__init__(self, name=name, **kwargs)
 
@@ -41,7 +41,7 @@ class ExpressionDilutionMixture(Mixture):
         )
         mech_expression = OneStepGeneExpression()
         mech_cat = BasicCatalysis()
-        mech_bind = One_Step_Binding()
+        mech_bind = OneStepBinding()
 
         default_mechanisms = {
             mech_expression.mechanism_type: mech_expression,
@@ -49,16 +49,16 @@ class ExpressionDilutionMixture(Mixture):
             mech_cat.mechanism_type: mech_cat,
             mech_bind.mechanism_type: mech_bind,
         }
-        self.add_mechanisms(default_mechanisms)
+        self.add_mechanisms(default_mechanisms, overwrite=None)
 
         # Create global mechanism for dilution
         dilution_mechanism = Dilution(
             name='dilution', filter_dict={'dna': False}, default_on=True
         )
         global_mechanisms = {'dilution': dilution_mechanism}
-        self.add_mechanisms(global_mechanisms)
+        self.add_mechanisms(global_mechanisms, overwrite=None)
 
-    def compile_crn(self, **keywords) -> ChemicalReactionNetwork:
+    def compile_crn(self, **kwargs) -> ChemicalReactionNetwork:
         """Compile CRN, replacing transcripts with proteins.
 
         Overwriting compile_crn to turn off transcription in all
@@ -78,7 +78,7 @@ class ExpressionDilutionMixture(Mixture):
                     component.update_transcript(False)
 
         # Call the superclass function
-        return Mixture.compile_crn(self, **keywords)
+        return Mixture.compile_crn(self, **kwargs)
 
 
 class SimpleTxTlDilutionMixture(Mixture):
@@ -90,21 +90,21 @@ class SimpleTxTlDilutionMixture(Mixture):
 
     """
 
-    def __init__(self, name='', **keywords):
+    def __init__(self, name='', **kwargs):
         """Initializes a SimpleTxTlDilutionMixture instance.
 
         :param name: name of the mixture
-        :param kwargs: keywords passed into the parent Class (Mixture)
+        :param kwargs: kwargs passed into the parent Class (Mixture)
         """
-        # Always call the superclass __init__ with **keywords
-        Mixture.__init__(self, name=name, **keywords)
+        # Always call the superclass __init__ with **kwargs
+        Mixture.__init__(self, name=name, **kwargs)
 
         # Create TxTl Mechanisms
         # Transcription will not involve machinery
         simple_transcription = SimpleTranscription()
         simple_translation = SimpleTranslation()
         mech_cat = BasicCatalysis()
-        mech_bind = One_Step_Binding()
+        mech_bind = OneStepBinding()
 
         default_mechanisms = {
             simple_transcription.mechanism_type: simple_transcription,
@@ -112,7 +112,7 @@ class SimpleTxTlDilutionMixture(Mixture):
             mech_cat.mechanism_type: mech_cat,
             mech_bind.mechanism_type: mech_bind,
         }
-        self.add_mechanisms(default_mechanisms)
+        self.add_mechanisms(default_mechanisms, overwrite=None)
 
         # Global Dilution Mechanisms
         # By Default Species are diluted S-->0 Unless:
@@ -131,7 +131,7 @@ class SimpleTxTlDilutionMixture(Mixture):
             'dilution': dilution_mechanism,
             'rna_degradation': deg_mrna,
         }
-        self.add_mechanisms(global_mechanisms)
+        self.add_mechanisms(global_mechanisms, overwrite=None)
 
 
 class TxTlDilutionMixture(Mixture):
@@ -154,7 +154,7 @@ class TxTlDilutionMixture(Mixture):
         :param rnap: name of the RNA polymerase, default: RNAP
         :param ribosome: name of the ribosome, default: Ribo
         :param rnaase: name of the Ribonuclease, default: RNAase
-        :param kwargs: keywords passed into the parent Class (Mixture)
+        :param kwargs: kwargs passed into the parent Class (Mixture)
         """
         Mixture.__init__(self, name=name, **kwargs)
 
@@ -198,13 +198,13 @@ class TxTlDilutionMixture(Mixture):
         mech_tx = Transcription_MM(rnap=self.rnap.get_species())
         mech_tl = Translation_MM(ribosome=self.ribosome.get_species())
         mech_cat = MichaelisMenten()
-        mech_bind = One_Step_Binding()
+        mech_bind = OneStepBinding()
 
         # Create Global Dilution Mechanisms
         dilution_mechanism = Dilution(
             filter_dict={'dna': False, 'machinery': False}, default_on=True
         )
-        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = RNAdegradation_MM(nuclease=self.rnaase.get_species())
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
@@ -215,4 +215,4 @@ class TxTlDilutionMixture(Mixture):
             'dilution': dilution_mechanism,
         }
 
-        self.add_mechanisms(default_mechanisms)
+        self.add_mechanisms(default_mechanisms, overwrite=None)

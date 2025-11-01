@@ -295,7 +295,7 @@ class Promoter(DNApart):
 
         In expression mixtures, transcription may be bypassed and translation
         may occur directly from DNA. This method returns the protein product
-        when no transcript is present.
+        when the gene is expressed.
 
         Returns
         -------
@@ -308,10 +308,7 @@ class Promoter(DNApart):
         omitted and translation occurs directly.
 
         """
-        if self.transcript is None:
-            return self.protein
-        else:
-            return None
+        return self.protein
 
     @classmethod
     def from_promoter(cls, name, assembly, transcript, protein):

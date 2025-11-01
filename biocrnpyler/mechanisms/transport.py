@@ -7,19 +7,106 @@ from ..core.reaction import Reaction
 from ..core.species import Complex
 
 
-class Simple_Diffusion(Mechanism):
-    """Diffusion of a substrate through a membrane channel.
+class SimpleDiffusion(Mechanism):
+    """Passive diffusion mechanism for substrate transport across membranes.
 
-    Does not require energy and follows diffusion rules.
-    Reaction schema: substrate <-> product
+    A 'diffusion' mechanism that models simple passive diffusion of
+    substrates through a membrane without requiring membrane proteins or
+    energy. The transport is bidirectional and follows Fick's law of
+    diffusion with equal forward and reverse rate constants.
+
+    The reaction follows the schema:
+
+    substrate <--> product
+
+    where substrate and product represent the same species on opposite sides
+    of the membrane.
+
+    Parameters
+    ----------
+    name : str, default='simple_diffusion'
+        Name identifier for this mechanism instance.
+    mechanism_type : str, default='diffusion'
+        Type classification of this mechanism.
+
+    Attributes
+    ----------
+    name : str
+        Name of the mechanism instance.
+    mechanism_type : str
+        Type classification ('diffusion').
+
+    See Also
+    --------
+    SimpleTransport : Passive transport through membrane channels.
+    FacilitatedTransport_MM : Facilitated diffusion with carriers.
+    Mechanism : Base class for all mechanisms.
+
+    Notes
+    -----
+    Simple diffusion models the movement of small, lipophilic molecules
+    across lipid bilayers without the assistance of membrane proteins. This
+    process is driven purely by concentration gradients and does not require
+    cellular energy.
+
+    Common examples include:
+
+    - Diffusion of gases (O2, CO2) across cell membranes
+    - Transport of small nonpolar molecules
+    - Movement of lipid-soluble substances
+
+    The mechanism generates a single reversible mass-action reaction with
+    equal forward and reverse rate constants, reflecting the thermodynamic
+    equilibrium of passive diffusion.
+
+    Required parameters for this mechanism:
+
+    - 'k_diff' : Diffusion rate constant (same for both directions)
+
+    Examples
+    --------
+    Model oxygen diffusion across a membrane:
+
+    >>> O2 = bcp.DiffusibleMolecule('O2')
+    >>> mechanism = bcp.SimpleDiffusion()
+    >>> mixture = bcp.Mixture(
+    ...     components=[O2],
+    ...     mechanisms={'diffusion': mechanism},
+    ...     parameters={'k_diff': 0.1}
+    ... )
+    >>> mixture.compile_crn()
+
     """
 
     def __init__(
-        self, name='simple_diffusion', mechanism_type='diffusion', **keywords
+        self, name='simple_diffusion', mechanism_type='diffusion', **kwargs
     ):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(self, substrate, product, **keywords):
+    def update_species(self, substrate, product, **kwargs):
+        """Generate species for simple diffusion.
+
+        Returns the substrate and product species involved in the diffusion
+        reaction.
+
+        Parameters
+        ----------
+        substrate : Species
+            The substrate species on one side of the membrane (typically
+            the intracellular side).
+        product : Species
+            The product species on the other side of the membrane (typically
+            the extracellular side). Usually the same molecular species as
+            substrate but in a different compartment.
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list of Species
+            List containing [substrate, product].
+
+        """
         return [substrate, product]
 
     def update_reactions(
@@ -29,8 +116,51 @@ class Simple_Diffusion(Mechanism):
         component=None,
         part_id=None,
         k_diff=None,
-        **keywords,
+        **kwargs,
     ):
+        """Generate reaction for simple diffusion.
+
+        Creates a single reversible mass-action reaction representing
+        passive diffusion across a membrane with equal forward and reverse
+        rate constants.
+
+        Parameters
+        ----------
+        substrate : Species
+            The substrate species on one side of the membrane.
+        product : Species
+            The product species on the other side of the membrane.
+        component : Component, optional
+            Component containing parameter values. Required if k_diff is not
+            provided directly.
+        part_id : str, optional
+            Identifier for parameter lookup. If None and component is
+            provided, defaults to component.name.
+        k_diff : Parameter or float, optional
+            Diffusion rate constant. If None, retrieved from component
+            parameters. Used as both forward and reverse rate constant.
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list of Reaction
+            List containing a single reversible mass-action reaction for
+            diffusion.
+
+        Raises
+        ------
+        ValueError
+            If component is None and k_diff is not provided.
+
+        Notes
+        -----
+        The reaction has equal forward and reverse rate constants, reflecting
+        the thermodynamic equilibrium of passive diffusion:
+
+        substrate <--> product (rates: 'k_diff', 'k_diff')
+
+        """
         # Get Parameters
         if part_id is None and component is not None:
             part_id = component.name
@@ -55,25 +185,134 @@ class Simple_Diffusion(Mechanism):
         return [diffusion_rxn]
 
 
-class Membrane_Protein_Integration(Mechanism):
-    """Integrate into the membrane protein in the membrane.
+class MembraneProteinIntegration(Mechanism):
+    """Membrane protein integration mechanism for protein insertion.
 
-    Reaction schema for monomers: monomer -> intergral membrane protein
-    Reaction schema for oligomer: monomer*[size] -> oligomer
-        -> intergral membrane protein
+    A 'membrane_insertion' mechanism that models the integration of newly
+    synthesized proteins into cellular membranes. Supports both monomeric
+    and oligomeric membrane proteins, handling oligomerization before
+    membrane insertion when required.
+
+    The reaction schema depends on protein oligomeric state:
+
+    For monomers (size = 1):
+        monomer --> integral membrane protein
+
+    For oligomers (size > 1):
+        monomer * size <--> oligomer --> integral membrane protein
+
+    Parameters
+    ----------
+    name : str, default='membrane_protein_integration'
+        Name identifier for this mechanism instance.
+    mechanism_type : str, default='membrane_insertion'
+        Type classification of this mechanism.
+
+    Attributes
+    ----------
+    name : str
+        Name of the mechanism instance.
+    mechanism_type : str
+        Type classification ('membrane_insertion').
+
+    See Also
+    --------
+    Mechanism : Base class for all mechanisms.
+
+    Notes
+    -----
+    This mechanism models the process by which proteins become embedded in
+    cellular membranes. For oligomeric proteins, multiple monomers must
+    first associate into a complex before integration can occur. The
+    integration step uses a `ProportionalHillNegative` propensity function to
+    model saturation kinetics and product inhibition.
+
+    The mechanism requires the integral membrane protein to have a size
+    attribute (integral_membrane_protein.size) that specifies the number of
+    monomers in the functional unit.
+
+    Common examples include:
+
+    - Integration of ion channels (often oligomeric)
+    - Insertion of receptor proteins (can be monomeric or oligomeric)
+    - Assembly and insertion of transporter complexes
+
+    Required parameters for this mechanism:
+
+    - 'kb_oligomer' : Forward oligomerization rate constant (for size > 1)
+    - 'ku_oligomer' : Reverse oligomerization rate constant (for size > 1)
+    - 'kex' : Maximum integration rate constant
+    - 'kcat' : Michaelis constant for integration
+
+    Examples
+    --------
+    Model integration of a tetrameric channel:
+
+    >>> channel = bcp.IntegralMembraneProtein(
+    ...     membrane_protein='Aquaporin',
+    ...     product='Aquaporin_channel',
+    ...     size=2,
+    ...     direction='passive'
+    ... )
+    >>> mechanism = bcp.MembraneProteinIntegration()
+    >>> mixture = bcp.Mixture(
+    ...     components=[channel],
+    ...     mechanisms={'membrane_insertion': mechanism},
+    ...     parameters={
+    ...         'kb_oligomer': 1.0, 'ku_oligomer': 0.1,
+    ...         'kex': 0.5, 'kcat': 10.0
+    ...     }
+    ... )
+    >>> mixture.compile_crn()
+
     """
 
     def __init__(
         self,
         name='membrane_protein_integration',
         mechanism_type='membrane_insertion',
-        **keywords,
+        **kwargs,
     ):
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(
-        self, integral_membrane_protein, product, complex=None, **keywords
+        self, integral_membrane_protein, product, complex=None, **kwargs
     ):
+        """Generate species for membrane protein integration.
+
+        Creates species for monomers, oligomeric complexes (if needed), and
+        the integrated membrane protein product.
+
+        Parameters
+        ----------
+        integral_membrane_protein : Species
+            The membrane protein monomer that will be integrated. Must have
+            a size attribute specifying oligomeric state.
+        product : Species
+            The integrated membrane protein product after insertion.
+        complex : Species, optional
+            Pre-specified oligomeric complex. If None and size > 1,
+            automatically creates a Complex of size monomers. Ignored for
+            monomeric proteins (size = 1).
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list
+            List containing [integral_membrane_protein, product, complex]
+            where complex is None for monomers or a Complex species for
+            oligomers.
+
+        Notes
+        -----
+        For monomeric proteins (size = 1), no oligomeric complex is formed
+        and the complex element in the return list is None.
+
+        For oligomeric proteins (size > 1), a complex containing 'size'
+        copies of the monomer is created or used if provided.
+
+        """
         if complex is None:
             size = integral_membrane_protein.size
             if size > 1:
@@ -95,12 +334,62 @@ class Membrane_Protein_Integration(Mechanism):
         complex=None,
         component=None,
         part_id=None,
-        **keywords,
+        **kwargs,
     ):
-        """Update reactions for membrane integration.
+        """Generate reactions for membrane protein integration.
 
-        This always requires the inputs component and part_id to find
-        the relevant parameters.
+        Creates reactions for oligomerization (if needed) and membrane
+        integration. For oligomeric proteins, generates both oligomerization
+        and integration reactions. For monomers, generates only the
+        integration reaction.
+
+        Parameters
+        ----------
+        integral_membrane_protein : Species
+            The membrane protein monomer. Must have a size attribute.
+        product : Species
+            The integrated membrane protein product.
+        complex : Species, optional
+            Pre-specified oligomeric complex. If None and size > 1,
+            automatically created.
+        component : Component
+            Component containing parameter values. Required for parameter
+            lookup.
+        part_id : str
+            Identifier for parameter lookup in the component's parameter
+            database. Required for parameter lookup.
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list of Reaction
+            For oligomers (size > 1): List of two reactions
+            [oligomerization, integration].
+            For monomers (size = 1): List of one reaction [integration].
+
+        Raises
+        ------
+        AttributeError
+            If component or part_id is None (required for parameter lookup).
+
+        Notes
+        -----
+        The reaction scheme depends on oligomeric state:
+
+        For oligomers (size > 1):
+
+        1. size * monomer <--> oligomer (rates: 'kb_oligomer',
+           'ku_oligomer')
+        2. oligomer --> product (ProportionalHillNegative with 'kex',
+           'kcat')
+
+        For monomers (size = 1):
+
+        1. monomer --> product (ProportionalHillNegative with 'kex', 'kcat')
+
+        The integration reaction uses `ProportionalHillNegative` kinetics with
+        Hill coefficient n=4 to model saturation and product inhibition.
 
         """
         # Get Parameters
@@ -163,12 +452,94 @@ class Membrane_Protein_Integration(Mechanism):
             return [integration_rxn1]
 
 
-class Simple_Transport(Mechanism):
-    """Transport of a substrate through a membrane channel.
+class SimpleTransport(Mechanism):
+    """Passive transport mechanism through membrane channel proteins.
 
-    Does not require energy and has unidirectional transport,
-    following diffusion rules.  Reaction schema: membrane_channel +
-    substrate <-> membrane_channel + product
+    A 'transport' mechanism that models passive, bidirectional transport of
+    substrates through membrane channel proteins. Unlike simple diffusion,
+    this mechanism requires a membrane channel protein but does not consume
+    energy. The channel acts catalytically, binding substrate and product
+    but not being consumed.
+
+    The reaction follows the schema:
+
+    membrane_channel + substrate <--> membrane_channel + product
+
+    Parameters
+    ----------
+    name : str, default='simple_membrane_protein_transport'
+        Name identifier for this mechanism instance.
+    mechanism_type : str, default='transport'
+        Type classification of this mechanism.
+
+    Attributes
+    ----------
+    name : str
+        Name of the mechanism instance.
+    mechanism_type : str
+        Type classification ('transport').
+
+    See Also
+    --------
+    SimpleDiffusion : Passive diffusion without proteins.
+    FacilitatedTransport_MM : Transport with MM kinetics.
+    PrimaryActiveTransport_MM : Energy-dependent active transport.
+    Mechanism : Base class for all mechanisms.
+
+    Notes
+    -----
+    This mechanism models passive transport through channel proteins such as
+    ion channels, aquaporins, and other pore-forming proteins. The channel
+    facilitates movement down concentration gradients without conformational
+    changes or energy expenditure.
+
+    The mechanism requires the membrane channel to have the 'passive'
+    attribute, distinguishing it from active transporters and carriers that
+    require different mechanisms.
+
+    Common examples include:
+
+    - Ion channels (K+, Na+, Ca2+ channels)
+    - Aquaporins for water transport
+    - Gap junctions between cells
+    - Porins in bacterial outer membranes
+
+    The transport is bidirectional with equal forward and reverse rate
+    constants, reflecting passive equilibration across the membrane.
+
+    Required parameters for this mechanism:
+
+    - 'k_trnsp' : Transport rate constant (same for both directions)
+
+    Examples
+    --------
+    Model potassium transport through an ion channel:
+
+    >>> protein = bcp.IntegralMembraneProtein(
+    ...     membrane_protein='Knck1',
+    ...     product='K_channel',
+    ...     direction='passive',
+    ...     compartment='cytoplasm',
+    ...     membrane_compartment='membrane',
+    ...     attributes=['passive']
+    ... )
+    >>> channel = bcp.MembraneChannel(
+    ...     integral_membrane_protein=protein.membrane_protein,
+    ...     substrate='K',
+    ...     direction='passive',
+    ...     internal_compartment='cytoplasm',
+    ...     external_compartment='external'
+    ... )
+    >>> mixture = bcp.Mixture(
+    ...     components=[protein, channel],
+    ...     mechanisms={
+    ...         'membrane_insertion': bcp.MembraneProteinIntegration(),
+    ...         'transport': bcp.SimpleTransport(),
+    ...     },
+    ...     parameters={'k_trnsp': 1.0},
+    ...     parameter_file='mechanisms/transport_parameters.tsv',
+    ... )
+    >>> mixture.compile_crn()
 
     """
 
@@ -176,18 +547,49 @@ class Simple_Transport(Mechanism):
         self,
         name='simple_membrane_protein_transport',
         mechanism_type='transport',
-        **keywords,
+        **kwargs,
     ):
         Mechanism.__init__(self, name, mechanism_type)
 
-    def update_species(
-        self, membrane_channel, substrate, product, **keywords
-    ):
-        if membrane_channel.attributes[0] != 'Passive':
+    def update_species(self, membrane_channel, substrate, product, **kwargs):
+        """Generate species for simple transport.
+
+        Returns the membrane channel, substrate, and product species
+        involved in the transport reaction. Validates that the channel has
+        the 'passive' attribute.
+
+        Parameters
+        ----------
+        membrane_channel : Species
+            The membrane channel protein through which transport occurs.
+            Must have 'passive' as its first attribute.
+        substrate : Species
+            The substrate species being transported (typically intracellular
+            side).
+        product : Species
+            The product species after transport (typically extracellular
+            side).
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list of Species
+            List containing [membrane_channel, substrate, product].
+
+        Raises
+        ------
+        ValueError
+            If membrane_channel does not have 'passive' as its first
+            attribute, indicating it should use FacilitatedTransport_MM
+            instead.
+
+        """
+        if membrane_channel.attributes[0] != 'passive':
             raise ValueError(
                 "Protein is not classified as a channel with passive "
                 "transport of small molecules. Use mechanism "
-                "Facilitated_Passive_Transport instead"
+                "FacilitatedTransport_MM instead"
             )
 
         return [membrane_channel, substrate, product]
@@ -200,8 +602,57 @@ class Simple_Transport(Mechanism):
         component=None,
         part_id=None,
         k_trnsp=None,
-        **keywords,
+        **kwargs,
     ):
+        """Generate reaction for simple membrane protein transport.
+
+        Creates a single reversible mass-action reaction representing
+        passive transport through a membrane channel with equal forward and
+        reverse rate constants. The channel acts catalytically and is not
+        consumed.
+
+        Parameters
+        ----------
+        membrane_channel : Species
+            The membrane channel protein facilitating transport.
+        substrate : Species
+            The substrate species being transported.
+        product : Species
+            The product species after transport.
+        component : Component, optional
+            Component containing parameter values. Required if k_trnsp is
+            not provided directly.
+        part_id : str, optional
+            Identifier for parameter lookup. If None and component is
+            provided, defaults to component.name.
+        k_trnsp : Parameter or float, optional
+            Transport rate constant. If None, retrieved from component
+            parameters. Used as both forward and reverse rate constant.
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list of Reaction
+            List containing a single reversible mass-action reaction for
+            transport.
+
+        Raises
+        ------
+        ValueError
+            If component is None and k_trnsp is not provided.
+
+        Notes
+        -----
+        The reaction has equal forward and reverse rate constants:
+
+        membrane_channel + substrate <--> membrane_channel + product
+        (rates: 'k_trnsp', 'k_trnsp')
+
+        The membrane channel appears on both sides of the reaction,
+        indicating it acts catalytically and is recycled.
+
+        """
         # Get Parameters
         if part_id is None and component is not None:
             part_id = component.name
@@ -228,13 +679,98 @@ class Simple_Transport(Mechanism):
         return [SimpleTransport_rxn]
 
 
-class Facilitated_Transport_MM(Mechanism):
-    """Michaelis-Menten transport of a substrate through a membrane carrier.
+class FacilitatedTransport_MM(Mechanism):
+    """Facilitated diffusion mechanism with Michaelis-Menten kinetics.
 
-    Mechanism follows Michaelis-Menten Type Reactions with products
-    that can bind to membrane carriers.  Mechanism for the schema:
+    A 'transport' mechanism that models facilitated diffusion of substrates
+    through membrane carrier proteins. Unlike simple channels, carriers
+    undergo conformational changes to transport substrates across membranes.
+    The mechanism follows Michaelis-Menten kinetics with explicit substrate
+    and product binding steps.
 
-        Sub+MC <--> Sub:MC --> Prod:MC --> Prod + MC
+    The reaction follows the schema:
+
+    Sub + MC <--> Sub:MC --> Prod:MC --> Prod + MC
+
+    where MC is the membrane carrier protein.
+
+    Parameters
+    ----------
+    name : str, default='facilitated_membrane_protein_transport'
+        Name identifier for this mechanism instance.
+    mechanism_type : str, default='transport'
+        Type classification of this mechanism.
+
+    Attributes
+    ----------
+    name : str
+        Name of the mechanism instance.
+    mechanism_type : str
+        Type classification ('transport').
+
+    See Also
+    --------
+    SimpleTransport : Passive transport through channels.
+    PrimaryActiveTransport_MM : Energy-dependent active transport.
+    MichaelisMenten : Enzyme mechanism with similar kinetics.
+    Mechanism : Base class for all mechanisms.
+
+    Notes
+    -----
+    This mechanism models facilitated diffusion by carrier proteins that
+    alternate between substrate-bound and product-bound conformations. The
+    carrier binds substrate on one side of the membrane, undergoes a
+    conformational change to transport it across, releases it as product,
+    and returns to the original conformation.
+
+    Key characteristics:
+
+    - Does not require ATP or other energy sources
+    - Transport is driven by concentration gradients
+    - Carrier proteins alternate between conformational states
+    - Follows Michaelis-Menten saturation kinetics
+
+    Common examples include:
+
+    - GLUT transporters for glucose
+    - Amino acid carriers
+    - Nucleoside transporters
+    - Urea transporters
+
+    The mechanism uses a GeneralPropensity with a Heaviside function for
+    the initial binding step to enforce directionality based on
+    concentration gradients.
+
+    Required parameters for this mechanism:
+
+    - 'kb_subMC' : Forward binding rate for substrate to membrane carrier
+    - 'ku_subMC' : Unbinding rate for substrate from carrier
+    - 'k_trnspMC' : Conformational change rate (transport step)
+    - 'ku_prodMC' : Unbinding rate for product from carrier
+
+    Examples
+    --------
+    Model glucose transport through a GLUT transporter:
+
+    >>> glc_in = bcp.Species('glucose', compartment='cytoplasm')
+    >>> glc_out = bcp.Species('glucose', compartment='external')
+    >>> carrier = bcp.MembraneChannel(
+    ...     integral_membrane_protein='GlucoseTransporter',
+    ...     substrate=glc_out,
+    ...     external_compartment='external',
+    ...     internal_compartment='cytoplasm',
+    ...     direction='importer'
+    ... )
+    >>> mechanism = bcp.FacilitatedTransport_MM()
+    >>> mixture = bcp.Mixture(
+    ...     components=[carrier],
+    ...     mechanisms={'transport': mechanism},
+    ...     parameters={
+    ...         'kb_subMC': 1.0, 'ku_subMC': 0.5,
+    ...         'k_trnspMC': 0.8, 'ku_prodMC': 0.5
+    ...     }
+    ... )
+    >>> mixture.compile_crn()
 
     """
 
@@ -242,7 +778,7 @@ class Facilitated_Transport_MM(Mechanism):
         self,
         name='facilitated_membrane_protein_transport',
         mechanism_type='transport',
-        **keywords,
+        **kwargs,
     ):
         Mechanism.__init__(self, name, mechanism_type)
 
@@ -252,8 +788,46 @@ class Facilitated_Transport_MM(Mechanism):
         substrate,
         product,
         complex_dict=None,
-        **keywords,
+        **kwargs,
     ):
+        """Generate species for facilitated transport.
+
+        Creates species for the membrane carrier, substrate, product, and
+        the two intermediate complexes formed during the transport cycle.
+
+        Parameters
+        ----------
+        membrane_carrier : Species
+            The membrane carrier protein that facilitates transport.
+        substrate : Species
+            The substrate species being transported (typically intracellular
+            side).
+        product : Species
+            The product species after transport (typically extracellular
+            side). Usually the same molecular species as substrate but in a
+            different compartment.
+        complex_dict : dict, optional
+            Pre-defined dictionary of complex species with keys 'sub:MC' and
+            'prod:MC'. If None, complexes are automatically created.
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list
+            List containing [membrane_carrier, substrate, product,
+            complex_array] where complex_array is a list of two Complex
+            species: [substrate:carrier, product:carrier].
+
+        Notes
+        -----
+        The method creates two complex species representing intermediates in
+        the transport cycle:
+
+        1. sub:MC : substrate:membrane_carrier complex
+        2. prod:MC : product:membrane_carrier complex
+
+        """
         if complex_dict is None:
             # Create empty dictionary for complexes
             complex_dict = {}
@@ -281,12 +855,60 @@ class Facilitated_Transport_MM(Mechanism):
         complex_dict=None,
         component=None,
         part_id=None,
-        **keywords,
+        **kwargs,
     ):
-        """Update reactions for facilitated transport mechanism.
+        """Generate reactions for facilitated transport.
 
-        This always requires the inputs component and part_id to find
-        the relevant parameters.
+        Creates four reactions representing the complete transport cycle:
+        substrate binding, substrate unbinding, conformational change
+        (transport), and product release.
+
+        Parameters
+        ----------
+        membrane_carrier : Species
+            The membrane carrier protein facilitating transport.
+        substrate : Species
+            The substrate species being transported.
+        product : Species
+            The product species after transport.
+        complex_dict : dict, optional
+            Pre-defined dictionary of complex species. If None, complexes
+            are automatically created using the same logic as in
+            update_species.
+        component : Component
+            Component containing parameter values. Required for parameter
+            lookup.
+        part_id : str
+            Identifier for parameter lookup in the component's parameter
+            database. Required for parameter lookup.
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list of Reaction
+            List of four reactions: [substrate_binding, substrate_unbinding,
+            transport_step, product_release].
+
+        Raises
+        ------
+        AttributeError
+            If component or part_id is None (required for parameter lookup).
+
+        Notes
+        -----
+        The reaction scheme follows this pathway:
+
+        1. MC + Sub <--> MC:Sub (GeneralPropensity with Heaviside function
+           using 'kb_subMC')
+        2. MC:Sub --> MC + Sub (irreversible, rate: 'ku_subMC')
+        3. MC:Sub --> MC:Prod (conformational change, rate: 'k_trnspMC')
+        4. MC:Prod --> MC + Prod (irreversible, rate: 'ku_prodMC')
+
+        The initial binding step uses a GeneralPropensity with a Heaviside
+        function to enforce concentration gradient-driven directionality.
+        The Heaviside function ensures transport only occurs when substrate
+        concentration exceeds product concentration.
 
         """
         # Get Parameters
@@ -357,14 +979,104 @@ class Facilitated_Transport_MM(Mechanism):
         return [binding_rxn1, unbinding_rxn1, transport_rxn, unbinding_rxn2]
 
 
-class Primary_Active_Transport_MM(Mechanism):
-    """Transport of a substrate through a membrane carrier.
+class PrimaryActiveTransport_MM(Mechanism):
+    """Primary active transport mechanism with ATP-dependent pumping.
 
-    Mechanism follows Michaelis-Menten Type Reactions with products
-    that can bind to membrane carriers.  Mechanism for the schema:
+    A 'transport' mechanism that models primary active transport where
+    substrates are moved against their concentration gradients using energy
+    from ATP hydrolysis. The mechanism follows Michaelis-Menten kinetics
+    with explicit binding, ATP hydrolysis, conformational change, and
+    product release steps.
 
-        Sub+MP <--> Sub:MP + E --> Sub:MP:E --> MP:Prod:E
-            --> Prod + MP:W --> Prod + MP+ W
+    The reaction follows the schema:
+
+    Sub + MP <--> Sub:MP + E --> Sub:MP:E --> MP:Prod:E
+    --> Prod + MP:W --> Prod + MP + W
+
+    where MP is the membrane pump, E is ATP (energy), and W is ADP (waste).
+
+    Parameters
+    ----------
+    name : str, default='active_membrane_protein_transport'
+        Name identifier for this mechanism instance.
+    mechanism_type : str, default='transport'
+        Type classification of this mechanism.
+
+    Attributes
+    ----------
+    name : str
+        Name of the mechanism instance.
+    mechanism_type : str
+        Type classification ('transport').
+
+    See Also
+    --------
+    FacilitatedTransport_MM : Passive facilitated diffusion.
+    SimpleTransport : Passive channel transport.
+    Mechanism : Base class for all mechanisms.
+
+    Notes
+    -----
+    This mechanism models primary active transporters such as P-type ATPases
+    (e.g., Na+/K+-ATPase, Ca2+-ATPase), ABC transporters, and other pumps
+    that directly couple ATP hydrolysis to substrate transport. The pump
+    undergoes conformational changes driven by ATP binding and hydrolysis to
+    move substrates against concentration gradients.
+
+    Key characteristics:
+
+    - Requires ATP or other energy source
+    - Can transport substrates against concentration gradients
+    - Undergoes ATP-dependent conformational changes
+    - Follows Michaelis-Menten saturation kinetics
+
+    Common examples include:
+
+    - Na+/K+-ATPase (maintains ion gradients in animal cells)
+    - Ca2+-ATPase (SERCA pump in muscle cells)
+    - H+-ATPases (proton pumps in various organisms)
+    - ABC transporters (drug efflux pumps)
+
+    The mechanism requires the membrane pump to have an ATP attribute
+    (membrane_pump.ATP) that specifies the number of ATP molecules required
+    per transport cycle.
+
+    The binding steps use GeneralPropensity with Heaviside functions to
+    ensure proper directionality based on species concentrations.
+
+    Required parameters for this mechanism:
+
+    - 'kb_subMP' : Forward binding rate for substrate to membrane pump
+    - 'ku_subMP' : Unbinding rate for substrate from pump
+    - 'kb_subMPnATP' : Forward binding rate for ATP to substrate:pump
+      complex
+    - 'ku_subMPnATP' : Unbinding rate for ATP from substrate:pump complex
+    - 'k_trnspMP' : Conformational change rate (transport step)
+    - 'ku_prodMP' : Unbinding rate for product from pump
+    - 'ku_MP' : Unbinding rate for ADP from pump
+
+    Examples
+    --------
+    Model active sodium transport by Na+/K+-ATPase:
+
+    >>> pump = bcp.MembranePump(
+    ...     membrane_pump='NaK_ATPase',
+    ...     substrate='Na',
+    ...     direction='exporter',
+    ...     ATP=1
+    ... )
+    >>> mechanism = bcp.PrimaryActiveTransport_MM()
+    >>> mixture = bcp.Mixture(
+    ...     components=[pump],
+    ...     mechanisms={'transport': mechanism},
+    ...     parameters={
+    ...         'kb_subMP': 1.0, 'ku_subMP': 0.1,
+    ...         'kb_subMPnATP': 1.0, 'ku_subMPnATP': 0.1,
+    ...         'k_trnspMP': 0.5, 'ku_prodMP': 1.0,
+    ...         'ku_MP': 1.0
+    ...     }
+    ... )
+    >>> mixture.compile_crn()
 
     """
 
@@ -372,7 +1084,7 @@ class Primary_Active_Transport_MM(Mechanism):
         self,
         name='active_membrane_protein_transport',
         mechanism_type='transport',
-        **keywords,
+        **kwargs,
     ):
         Mechanism.__init__(self, name, mechanism_type)
 
@@ -384,8 +1096,59 @@ class Primary_Active_Transport_MM(Mechanism):
         energy,
         waste,
         complex_dict=None,
-        **keywords,
+        **kwargs,
     ):
+        """Generate species for primary active transport.
+
+        Creates species for the membrane pump, substrate, product, ATP/ADP
+        energy species, and all intermediate complexes formed during the
+        ATP-driven transport cycle.
+
+        Parameters
+        ----------
+        membrane_pump : Species
+            The membrane pump protein that transports substrates using ATP.
+            Must have an ATP attribute specifying the number of ATP
+            molecules required per transport cycle.
+        substrate : Species
+            The substrate species being transported (typically intracellular
+            side).
+        product : Species
+            The product species after transport (typically extracellular
+            side). Usually the same molecular species as substrate but in a
+            different compartment.
+        energy : Species
+            ATP species used to drive active transport.
+        waste : Species
+            ADP species produced after ATP hydrolysis.
+        complex_dict : dict, optional
+            Pre-defined dictionary of complex species with keys 'Pump:Sub',
+            'Pump:Sub:ATP', 'Pump:Prod:ATP', and 'Pump:ADP'. If None,
+            complexes are automatically created.
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list
+            List containing [membrane_pump, substrate, product, energy,
+            waste, complex_array] where complex_array is a list of four
+            Complex species generated.
+
+        Notes
+        -----
+        The method creates four complex species representing intermediates
+        in the active transport cycle:
+
+        1. Pump:Sub : membrane_pump:substrate complex
+        2. Pump:Sub:ATP : membrane_pump:substrate:nATP complex
+        3. Pump:Prod:ATP : membrane_pump:product:nATP complex
+        4. Pump:ADP : membrane_pump:nADP complex
+
+        The number of ATP/ADP molecules (nATP) is determined by the
+        membrane_pump.ATP attribute.
+
+        """
         nATP = membrane_pump.ATP
 
         if complex_dict is None:
@@ -434,12 +1197,72 @@ class Primary_Active_Transport_MM(Mechanism):
         complex_dict=None,
         component=None,
         part_id=None,
-        **keywords,
+        **kwargs,
     ):
-        """Update reactions for primary active transport mechanism.
+        """Generate reactions for primary active transport.
 
-        This always requires the inputs component and part_id to find
-        the relevant parameters.
+        Creates seven reactions representing the complete ATP-driven
+        transport cycle: substrate binding/unbinding, ATP
+        binding/unbinding, conformational change (transport), product
+        release, and ADP release.
+
+        Parameters
+        ----------
+        membrane_pump : Species
+            The membrane pump protein. Must have an ATP attribute.
+        substrate : Species
+            The substrate species being transported.
+        product : Species
+            The product species after transport.
+        energy : Species
+            ATP species used for active transport.
+        waste : Species
+            ADP species produced after ATP hydrolysis.
+        complex_dict : dict, optional
+            Pre-defined dictionary of complex species. If None, complexes
+            are automatically created using the same logic as in
+            update_species.
+        component : Component
+            Component containing parameter values. Required for parameter
+            lookup.
+        part_id : str
+            Identifier for parameter lookup in the component's parameter
+            database. Required for parameter lookup.
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list of Reaction
+            List of seven reactions: [substrate_binding,
+            substrate_unbinding, ATP_binding, ATP_unbinding, transport_step,
+            product_release, ADP_release].
+
+        Raises
+        ------
+        AttributeError
+            If component or part_id is None (required for parameter lookup).
+
+        Notes
+        -----
+        The reaction scheme follows this pathway:
+
+        1. MP + Sub <--> MP:Sub (`GeneralPropensity with Heaviside using
+           'kb_subMP', reverse rate: 'ku_subMP')
+        2. MP:Sub + nATP <--> MP:Sub:nATP (GeneralPropensity with Heaviside
+           using 'kb_subMPnATP', reverse rate: 'ku_subMPnATP')
+        3. MP:Sub:nATP --> MP:Prod:nATP (conformational change, rate:
+           'k_trnspMP')
+        4. MP:Prod:nATP --> MP:nADP + Prod (product release, rate:
+           'ku_prodMP')
+        5. MP:nADP --> MP + nADP (ADP release, rate: 'ku_MP')
+
+        The binding steps use `GeneralPropensity` with Heaviside functions to
+        enforce proper directionality. The Heaviside functions ensure that
+        reactions only proceed when the required species are present.
+
+        The number of ATP/ADP molecules (nATP) is determined by
+        membrane_pump.ATP attribute.
 
         """
         # Get Parameters
@@ -562,3 +1385,11 @@ class Primary_Active_Transport_MM(Mechanism):
             unbinding_rxn3,
             unbinding_rxn4,
         ]
+
+
+# Legacy class names
+Simple_Diffusion = SimpleDiffusion
+Membrane_Protein_Integration = MembraneProteinIntegration
+Simple_Transport = SimpleTransport
+Facilitated_Transport_MM = FacilitatedTransport_MM
+Primary_Active_Transport_MM = PrimaryActiveTransport_MM
