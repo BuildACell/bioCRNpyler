@@ -128,9 +128,19 @@ def biocrnpyler_supported_units():
 
 
 def create_new_unit_definition(model, unit_id):
-    """Creates UnitDefinition inside SBML Model object.
+    """
+    Creates UnitDefinition inside SBML Model object.
 
-    Returns a pointer to the new libSBML object created for the unit type.
+    Parameters
+    ----------
+    model : libsbml.Model
+    unit_id : str
+
+    Returns
+    -------
+    libsbml.UnitDefinition
+        A pointer to the new libSBML object created for the unit type.
+
     """
     supported_units = biocrnpyler_supported_units()
     if not isinstance(unit_id, str):

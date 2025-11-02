@@ -35,16 +35,24 @@ def create_sbml_model(
     """Creates SBML Level 3 Version 2 model with some fixed standard settings.
 
     Refer to python-libsbml for more information on SBML API.
-    :param compartment_id:
-    :param time_units:
-    :param extent_units:
-    :param substance_units:
-    :param length_units:
-    :param area_units:
-    :param volume_units:
-    :param volume:
-    :param model_id:
-    :return:  the SBMLDocument and the Model object as a tuple
+
+    Parameters
+    ----------
+    compartment_id : str
+    time_units : str
+    extent_units : str
+    substance_units : str
+    length_units : str
+    area_units : str
+    volume_units : str
+    volume : float
+    model_id : str
+
+    Returns
+    -------
+    tuple
+        The SBMLDocument and the Model object as a tuple.
+
     """
     document = libsbml.SBMLDocument(3, 2)
     model = document.createModel()
@@ -92,13 +100,17 @@ def add_all_species(
 ):
     """Adds a list of Species to the SBML model.
 
-    :param model: valid SBML model
-    :param species: list of species to be added to the SBML model
-    :param compartment: compartment id, if empty species go to the first
-        compartment
-    :param initial_concentration_dict: a dictionary s -->
-        initial_concentration
-    :return: None
+    Parameters
+    ----------
+    model : libsbml.Model
+        Valid SBML model.
+    species : list
+        List of species to be added to the SBML model.
+    initial_condition_dictionary : dict
+        A dictionary s --> initial_concentration.
+    compartment : str, optional
+        Compartment id, if empty species go to the first compartment.
+
     """
     elementlist = model.getSBMLDocument().getListOfAllElements()
 
@@ -144,12 +156,21 @@ def add_species(
 ):
     """Helper function to add a species to the sbml model.
 
-    :param model:
-    :param compartment: a compartment in the SBML model
-    :param species: must be chemical_reaction_network.species objects
-    :param initial_concentration: initial concentration of the species
-        in the SBML model
-    :return: SBML species object
+    Parameters
+    ----------
+    model : libsbml.Model
+    compartment : libsbml.Compartment
+        A compartment in the SBML model.
+    species_name : str
+    species_id : str
+    initial_concentration : float, optional
+        Initial concentration of the species in the SBML model.
+
+    Returns
+    -------
+    libsbml.Species
+        SBML species object.
+
     """
     # Construct the species ID
 
@@ -169,23 +190,36 @@ def add_species(
     return sbml_species
 
 
-def add_all_compartments(model, compartments: List, **keywords):
+def add_all_compartments(model, compartments: List, **kwargs):
     """Adds the list of Compartment objects to the SBML model.
 
-    :param model: valid SBML model
-    :param compartments: list of compartments to be added to the SBML model
-    :return: None
+    Parameters
+    ----------
+    model : libsbml.Model
+        Valid SBML model.
+    compartments : list
+        List of compartments to be added to the SBML model.
+
     """
     for compartment in compartments:
-        add_compartment(model=model, compartment=compartment, **keywords)
+        add_compartment(model=model, compartment=compartment, **kwargs)
 
 
-def add_compartment(model, compartment, **keywords):
+def add_compartment(model, compartment, **kwargs):
     """Helper function to add a compartment to the SBML model.
 
-    :param model: a valid SBML model
-    :param compartment: a Compartment object
-    :return: SBML compartment object
+    Parameters
+    ----------
+    model : libsbml.Model
+        A valid SBML model.
+    compartment : bcp.Compartment
+        A Compartment object.
+
+    Returns
+    -------
+    libsbml.Compartment
+        SBML compartment object.
+
     """
     sbml_compartment = model.createCompartment()
     compartment_id = compartment.name
@@ -235,10 +269,15 @@ def find_parameter(mixture, id):
 def add_all_reactions(model, reactions: List, stochastic=False, **kwargs):
     """Adds a list of reactions to the SBML model.
 
-    :param model: an sbml model created by create_sbml_model()
-    :param reactions: list of Reactions
-    :param stochastic: binary flag for stochastic models
-    :return: None
+    Parameters
+    ----------
+    model : libsbml.Model
+        An sbml model created by create_sbml_model().
+    reactions : list
+        List of Reactions.
+    stochastic : bool
+        Binary flag for stochastic models.
+
     """
     elementlist = model.getSBMLDocument().getListOfAllElements()
 
@@ -286,12 +325,23 @@ def add_reaction(
 ):
     """Adds a sbml_reaction to an sbml model.
 
-    :param model: an sbml model created by create_sbml_model()
-    :param crn_reaction: must be a chemical_reaction_network.reaction object
-    :param reaction_id: unique id of the reaction
-    :param stochastic: stochastic model flag
-    :param reverse_reaction:
-    :return: SBML Reaction object
+    Parameters
+    ----------
+    model : libsbml.Model
+        An sbml model created by create_sbml_model().
+    crn_reaction : bcp.Reaction
+        Must be a chemical_reaction_network.reaction object.
+    reaction_id : str
+        Unique id of the reaction.
+    stochastic : bool
+        Stochastic model flag.
+    reverse_reaction : bool
+
+    Returns
+    -------
+    libsbml.Reaction
+        SBML Reaction object.
+
     """
     # Create the sbml_reaction in SBML
     sbml_reaction = model.createReaction()
@@ -568,8 +618,11 @@ def getAllIds(allElements):
 def getSpeciesByName(model, name, compartment=''):
     """Returns a list of species in the Model with the given name.
 
-    compartment : (Optional) argument to specify the compartment name in which
-    to look for the species.
+    Parameters
+    ----------
+    compartment : str, optional
+        Compartment name in which to look for the species.
+
     """
     if not isinstance(name, str):
         raise ValueError(f"'name' must be a string. Received {name}.")
@@ -598,25 +651,23 @@ def getSpeciesByName(model, name, compartment=''):
 
 
 # Validate SBML
-
-
 class validateSBML(object):
-    """libSBML class to validate the generated SBML models.
-
-    ## @brief   Validates SBMLDocument
-    ## @author  Akiya Jouraku (translated from libSBML C++ examples)
-    ## @author  Ben Bornstein
-    ## @author  Michael Hucka
-    """
+    """Class to validate the generated SBML models."""
 
     def __init__(self, ucheck):
         self.reader = libsbml.SBMLReader()
         self.ucheck = ucheck
 
     def validate(self, sbml_document, print_results=False):
-        """sbml_document: libSBML SBMLDocument object.
+        """Validate an SBML document.
 
-        print_results: Print toggle for validation warnings.
+        Parameters
+        ----------
+        sbml_document : libsbml.SBMLDocument
+            libSBML SBMLDocument object.
+        print_results : bool
+            Print toggle for validation warnings.
+
         """
         sbmlDoc = sbml_document
         errors = sbmlDoc.getNumErrors()
