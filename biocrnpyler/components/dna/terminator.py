@@ -1,10 +1,10 @@
 #  Copyright (c) 2020, Build-A-Cell. All rights reserved.
 #  See LICENSE file in the project root directory for details
 
-from .construct import DNApart
+from .construct import DNA_part
 
 
-class Terminator(DNApart):
+class Terminator(DNA_part):
     """Transcriptional terminator component for ending transcription.
 
     A Terminator represents a DNA sequence that signals the end of
@@ -19,7 +19,7 @@ class Terminator(DNApart):
     name : str
         Name of the terminator.
     **kwargs
-        Additional keyword arguments passed to the parent `DNApart` class.
+        Additional keyword arguments passed to the parent `DNA_part` class.
 
     Attributes
     ----------
@@ -30,7 +30,7 @@ class Terminator(DNApart):
     --------
     Promoter : Component that initiates transcription.
     DNAassembly : Container for terminators and other genetic parts.
-    DNApart : Base class for DNA component parts.
+    DNA_part : Base class for DNA component parts.
 
     Notes
     -----
@@ -54,7 +54,7 @@ class Terminator(DNApart):
     >>> rbs = bcp.RBS('RBS_standard')
     >>> cds = bcp.CDS('GFP')
     >>> terminator = bcp.Terminator('BBa_B0022')
-    >>> construct = bcp.DNAconstruct(
+    >>> construct = bcp.DNA_construct(
     ...     [promoter, rbs, cds, terminator],
     ...     name='complete_gene'
     ... )
@@ -69,7 +69,7 @@ class Terminator(DNApart):
     """
 
     def __init__(self, name, **kwargs):
-        DNApart.__init__(self, name, **kwargs)
+        DNA_part.__init__(self, name, **kwargs)
         self.name = name
 
     def update_species(self):

@@ -8,14 +8,14 @@ from ..core.polymer import NamedPolymer, OrderedMonomer
 from ..core.species import ComplexSpecies, Species
 from ..utils import combine_dictionaries
 from .component_enumerator import GlobalComponentEnumerator
-from .dna.construct import Construct, DNAconstruct
+from .dna.construct import Construct, DNA_construct
 from .dna.misc import IntegraseSite
 
 
-class PolymerTransformation:
+class Polymer_transformation:
     """Template for transforming polymer sequences through recombination.
 
-    A `PolymerTransformation` defines a template for creating new polymers
+    A `Polymer_transformation` defines a template for creating new polymers
     from existing ones through recombination reactions. The template
     specifies a parts list containing placeholders (monomers from input
     polymers) and new parts (with no parent). This enables complex DNA
@@ -82,7 +82,7 @@ class PolymerTransformation:
 
     >>> # Define template: take element 0 from input1, element 2 from
     >>> # input2 (reversed), and insert a promoter
-    >>> template = PolymerTransformation(
+    >>> template = Polymer_transformation(
     ...     partslist=[
     ...         polymer1[0],  # Placeholder for position 0
     ...         [polymer2[2], 'reverse'],  # Position 2, reversed
@@ -96,7 +96,7 @@ class PolymerTransformation:
     Integration reaction template:
 
     >>> # Combine two plasmids at cut sites
-    >>> template = PolymerTransformation(
+    >>> template = Polymer_transformation(
     ...     partslist=(
     ...         plasmid1[:cut1] +
     ...         [[prod_site1, 'forward']] +
@@ -234,7 +234,7 @@ class PolymerTransformation:
 
         Returns
         -------
-        PolymerTransformation
+        Polymer_transformation
             Copy of this transformation with renumbered output.
 
         """
@@ -251,7 +251,7 @@ class PolymerTransformation:
 
         Returns
         -------
-        PolymerTransformation
+        Polymer_transformation
             New transformation with rotated input assignments.
 
         Notes
@@ -285,7 +285,7 @@ class PolymerTransformation:
 
                     newname = new_name_dict[part[0].parent.name]
                     new_parentsdict[part[0].parent] = newname
-            return PolymerTransformation(
+            return Polymer_transformation(
                 self.partslist, self.circular, parentsdict=new_parentsdict
             )
 
@@ -390,7 +390,7 @@ class PolymerTransformation:
                         outpart = part.dna_species
             else:
                 # Parts that don't come from input1 or input2.  They need
-                # to be either DNApart or species objects, depending on
+                # to be either DNA_part or species objects, depending on
                 # what kind of object we are making in the end.
                 if isinstance(polymer_dict['input1'], Construct):
                     outpart = part
@@ -543,7 +543,7 @@ class IntegraseRule:
     --------
     IntegraseSite : DNA part representing attachment sites.
     Integrase_Enumerator : Enumerator using integrase rules.
-    PolymerTransformation : Template for DNA transformations.
+    Polymer_transformation : Template for DNA transformations.
 
     Notes
     -----
@@ -867,7 +867,7 @@ class IntegraseRule:
 
         **Transformation Storage:**
 
-        PolymerTransformation templates are stored in:
+        Polymer_transformation templates are stored in:
 
         - site1.linked_sites[(site2, intermolecular)]
         - site2.linked_sites[(site1, intermolecular)]
@@ -963,10 +963,10 @@ class IntegraseRule:
                     ] + list(dna[1 + cutpos1 : cutpos2])
 
                     integ_funcs += [
-                        PolymerTransformation(
+                        Polymer_transformation(
                             cutdna_list_parts, circular=circularity
                         ),
-                        PolymerTransformation(
+                        Polymer_transformation(
                             newdna_list_parts, circular=True
                         ),
                     ]
@@ -1002,7 +1002,7 @@ class IntegraseRule:
                     )
 
                     integ_funcs += [
-                        PolymerTransformation(
+                        Polymer_transformation(
                             invertdna_list, circular=circularity
                         )
                     ]
@@ -1087,7 +1087,7 @@ class IntegraseRule:
                         + dna1_halves[1]
                     )
                     integ_funcs += [
-                        PolymerTransformation(
+                        Polymer_transformation(
                             result, circ1, parentsdict=pdict
                         )
                     ]
@@ -1112,8 +1112,8 @@ class IntegraseRule:
                         dna2_halves[0] + [[prod2, 'forward']] + dna1_halves[1]
                     )
                     integ_funcs += [
-                        PolymerTransformation(result1, parentsdict=pdict),
-                        PolymerTransformation(result2, parentsdict=pdict),
+                        Polymer_transformation(result1, parentsdict=pdict),
+                        Polymer_transformation(result2, parentsdict=pdict),
                     ]
         if len(integ_funcs) > 0:
             for integ_func in integ_funcs:
@@ -1143,10 +1143,10 @@ class IntegraseRule:
         return new_dna_constructs
 
 
-class IntegraseEnumerator(GlobalComponentEnumerator):
+class Integrase_Enumerator(GlobalComponentEnumerator):
     """Global enumerator for integrase-mediated DNA recombination products.
 
-    An `IntegraseEnumerator` systematically enumerates all possible DNA
+    An `Integrase_Enumerator` systematically enumerates all possible DNA
     constructs that can result from integrase-mediated recombination
     reactions. Examines all components for integrase attachment sites and
     generates products for all allowed site pairs.
@@ -1169,7 +1169,7 @@ class IntegraseEnumerator(GlobalComponentEnumerator):
     GlobalComponentEnumerator : Base class for global enumeration.
     IntegraseRule : Defines integrase recombination rules.
     IntegraseSite : DNA part for attachment sites.
-    PolymerTransformation : Template for DNA rearrangements.
+    Polymer_transformation : Template for DNA rearrangements.
 
     Notes
     -----
@@ -1217,7 +1217,7 @@ class IntegraseEnumerator(GlobalComponentEnumerator):
     ...         ('attP', 'attB'): 'attR'
     ...     }
     ... )
-    >>> enumerator = bcp.IntegraseEnumerator(
+    >>> enumerator = bcp.Integrase_Enumerator(
     ...     name='integrase_enum',
     ...     int_mechanisms={'PhiC31': phi_c31}
     ... )
@@ -1413,7 +1413,7 @@ class IntegraseEnumerator(GlobalComponentEnumerator):
         Parameters
         ----------
         components : list of Component, optional
-            List of components to enumerate. Only DNAconstruct objects
+            List of components to enumerate. Only DNA_construct objects
             are processed.
         previously_enumerated : list of Component, optional
             List of components already enumerated (used for duplicate
@@ -1431,7 +1431,7 @@ class IntegraseEnumerator(GlobalComponentEnumerator):
         -----
         **Enumeration Algorithm:**
 
-        1. Extract all DNAconstruct components
+        1. Extract all DNA_construct components
         2. List all integrase sites by integrase type
         3. For each integrase in int_mechanisms:
 
@@ -1465,7 +1465,7 @@ class IntegraseEnumerator(GlobalComponentEnumerator):
         --------
         Enumerate integration products:
 
-        >>> enumerator = bcp.IntegraseEnumerator(
+        >>> enumerator = bcp.Integrase_Enumerator(
         ...     name='enum',
         ...     int_mechanisms={'PhiC31': phi_c31_rule}
         ... )
@@ -1480,7 +1480,7 @@ class IntegraseEnumerator(GlobalComponentEnumerator):
         if previously_enumerated is None:
             previously_enumerated = []
         for component in components:
-            if isinstance(component, DNAconstruct):
+            if isinstance(component, DNA_construct):
                 construct_list += [component]
         int_dict = {}
         for construct in construct_list:
@@ -1522,8 +1522,3 @@ class IntegraseEnumerator(GlobalComponentEnumerator):
                         constructlist += new_dnas
 
         return constructlist
-
-
-# Legacy names
-Polymer_transformation = PolymerTransformation
-Integrase_Enumerator = IntegraseEnumerator

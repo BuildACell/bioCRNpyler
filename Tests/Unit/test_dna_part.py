@@ -9,7 +9,7 @@ def test_instantiation():
 
     with pytest.raises(
         AttributeError,
-        match=r'DNApart should not recieve initial_concentration keyword. Pass this into the DNAassembly or DNAconstruct instead*',
+        match=r'DNA_part should not recieve initial_concentration keyword. Pass this into the DNAassembly or DNA_construct instead*',
     ):
         part2 = DNA_part('part 2', initial_concentration=10)  # noqa: F841
 

@@ -671,7 +671,7 @@ class PositiveHillTranscription(Mechanism):
     Model transcriptional activation by an inducer:
 
     >>> LacI = bcp.Protein('AraC')
-    >>> plac = bcp.ActivatablePromoter_Hill('pBAD', LacI)
+    >>> plac = bcp.ActivatablePromoter('pBAD', LacI)
     >>> gene = bcp.DNAassembly(
     ...    name='activiated_GFP',
     ...    promoter=plac, rbs='RBS_medium', protein='GFP')
@@ -920,7 +920,7 @@ class NegativeHillTranscription(Mechanism):
     Model transcriptional repression:
 
     >>> LacI = bcp.Protein('LacI')
-    >>> plac = bcp.RepressiblePromoter_Hill('plac', LacI)
+    >>> plac = bcp.RepressiblePromoter('plac', LacI)
     >>> gene = bcp.DNAassembly(
     ...    name='repressed_GFP',
     ...    promoter=plac, rbs='RBS_medium', protein='GFP')
@@ -1508,7 +1508,7 @@ class Translation_MM(MichaelisMentenCopy):
         return rxns
 
 
-class EnergyTranscription_MM(Mechanism):
+class Energy_Transcription_MM(Mechanism):
     """Michaelis-Menten transcription with explicit energy consumption.
 
     A 'transcription' mechanism that models transcription with explicit
@@ -1595,7 +1595,7 @@ class EnergyTranscription_MM(Mechanism):
     >>> rnap = bcp.Species('RNAP')
     >>> ntp = bcp.Species('NTP')
     >>> ppi = bcp.Species('PPi')
-    >>> mechanism = bcp.EnergyTranscription_MM(
+    >>> mechanism = bcp.Energy_Transcription_MM(
     ...     rnap=rnap,
     ...     fuels=[ntp],
     ...     wastes=[ppi]
@@ -1763,7 +1763,7 @@ class EnergyTranscription_MM(Mechanism):
         return [r1, r2, r3]
 
 
-class EnergyTranslation_MM(Mechanism):
+class Energy_Translation_MM(Mechanism):
     """Michaelis-Menten translation with explicit energy consumption.
 
     A 'translation' mechanism that models translation with explicit
@@ -1810,7 +1810,7 @@ class EnergyTranslation_MM(Mechanism):
     See Also
     --------
     Translation_MM : MM translation without explicit energy.
-    EnergyTranscription_MM : MM transcription with explicit energy.
+    Energy_Transcription_MM : MM transcription with explicit energy.
     MichaelisMentenCopy : Base class for MM copy mechanisms.
     Mechanism : Base class for all mechanisms.
 
@@ -1851,7 +1851,7 @@ class EnergyTranslation_MM(Mechanism):
     >>> ribosome = bcp.Species('Ribosome')
     >>> amino_acids = bcp.Species('AA')
     >>> waste = bcp.Species('waste')
-    >>> mechanism = bcp.EnergyTranslation_MM(
+    >>> mechanism = bcp.Energy_Translation_MM(
     ...     ribosome=ribosome,
     ...     fuels=[amino_acids],
     ...     wastes=[waste]
@@ -2013,7 +2013,7 @@ class EnergyTranslation_MM(Mechanism):
         return [r1, r2, r3]
 
 
-class MultipleOccupancyTranscription(Mechanism):
+class multi_tx(Mechanism):
     """Multi-polymerase transcription with isomerization and occupancy.
 
     A 'transcription' mechanism that explicitly models multiple RNA
@@ -2094,7 +2094,7 @@ class MultipleOccupancyTranscription(Mechanism):
     ...     name='dna_assembly',
     ...     promoter='pconst', rbs='RBS_medium', protein='GFP')
     >>> rnap = bcp.Species('RNAP')
-    >>> tx_mechanism = bcp.MultipleOccupancyTranscription(pol=rnap)
+    >>> tx_mechanism = bcp.multi_tx(pol=rnap)
     >>> mixture = bcp.Mixture(
     ...     components=[gene],
     ...     mechanisms={
@@ -2360,7 +2360,7 @@ class MultipleOccupancyTranscription(Mechanism):
         return rxn_all
 
 
-class MultipleOccupancyTranslation(Mechanism):
+class multi_tl(Mechanism):
     """Multi-ribosome translation with isomerization and occupancy.
 
     A 'translation' mechanism that explicitly models multiple ribosomes
@@ -2402,7 +2402,7 @@ class MultipleOccupancyTranslation(Mechanism):
     See Also
     --------
     Translation_MM : Simple Michaelis-Menten translation.
-    MultipleOccupancyTranscription : Multi-polymerase transcription mechanism.
+    multi_tx : Multi-polymerase transcription mechanism.
     Mechanism : Base class for all mechanisms.
 
     Notes
@@ -2446,7 +2446,7 @@ class MultipleOccupancyTranslation(Mechanism):
     ...     promoter='pconst', transcript='mRNA',
     ...     rbs='RBS_medium', protein='GFP')
     >>> ribosome = bcp.Species('Ribosome')
-    >>> tl_mechanism = bcp.MultipleOccupancyTranslation(ribosome=ribosome)
+    >>> tl_mechanism = bcp.multi_tl(ribosome=ribosome)
     >>> mixture = bcp.Mixture(
     ...     components=[gene],
     ...     mechanisms={
@@ -2702,8 +2702,3 @@ class MultipleOccupancyTranslation(Mechanism):
         )
 
         return rxn_all
-
-
-# Legacy class aliases
-multi_tx = MultipleOccupancyTranscription
-multi_tl = MultipleOccupancyTranslation

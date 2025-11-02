@@ -6,7 +6,7 @@ from ..core.reaction import Reaction
 from ..core.species import Complex
 
 
-class MembraneSignalingPathway_MM(Mechanism):
+class Membrane_Signaling_Pathway_MM(Mechanism):
     """Two-component system membrane sensor with Michaelis-Menten kinetics.
 
     A 'membrane_sensor' mechanism that models a two-component system (TCS)
@@ -94,7 +94,7 @@ class MembraneSignalingPathway_MM(Mechanism):
     ...     signal_substrate='Osmolarity',
     ...     ATP=2
     ... )
-    >>> mechanism = bcp.MembraneSignalingPathway_MM()
+    >>> mechanism = bcp.Membrane_Signaling_Pathway_MM()
     >>> mixture = bcp.Mixture(
     ...     components=[sensor, response],
     ...     mechanisms={'membrane_sensor': mechanism},
@@ -494,7 +494,3 @@ class MembraneSignalingPathway_MM(Mechanism):
             unbinding_rxn5,
             unbinding_rxn6,
         ]
-
-
-# Legacy bindings
-Membrane_Signaling_Pathway_MM = MembraneSignalingPathway_MM

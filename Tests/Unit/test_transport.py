@@ -127,7 +127,7 @@ class test_membrane_integration:
 class test_simple_transport:
     st = Simple_Transport()
     MC = Species('MC1')
-    MC.attributes = ['passive']
+    MC.attributes = ['Passive']
     substrate = Species('S1')
     product = Species('P1')
     c_fake = Species('C')
@@ -154,7 +154,7 @@ class test_simple_transport:
 class test_facilitated_transport_MM:
     ft = Facilitated_Transport_MM()
     MC = Species('MC1')
-    MC.attributes = ['importer']
+    MC.attributes = ['Importer']
     substrate = Species('S1')
     product = Species('P1')
     c1 = Complex([substrate, MC])
@@ -221,7 +221,7 @@ class test_active_transport_MM:
     pat = Primary_Active_Transport_MM()
     MP = Species('MC1')
     MP.ATP = 2
-    MP.attributes = ['exporter']
+    MP.attributes = ['Exporter']
     substrate = Species('S1')
     product = Species('P1')
     energy = Species('E1')

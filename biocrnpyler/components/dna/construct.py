@@ -1,5 +1,5 @@
 ################################################################
-# DNAconstruct: a higher level for construct compilation
+# DNA_construct: a higher level for construct compilation
 # Author: Andrey Shur
 # Latest update: 12/21/2020
 #
@@ -72,9 +72,9 @@ class Construct(Component, OrderedPolymer):
 
     See Also
     --------
-    DNAconstruct : DNA-specific construct implementation.
-    RNAconstruct : RNA-specific construct implementation.
-    DNApart : Base class for individual DNA parts.
+    DNA_construct : DNA-specific construct implementation.
+    RNA_construct : RNA-specific construct implementation.
+    DNA_part : Base class for individual DNA parts.
     OrderedPolymer : Base class for ordered polymer structures.
 
     Notes
@@ -107,7 +107,7 @@ class Construct(Component, OrderedPolymer):
 
     Create a circular plasmid:
 
-    >>> ori = bcp.DNApart('p15A')
+    >>> ori = bcp.DNA_part('p15A')
     >>> terminator = bcp.Terminator('BBa_B0022')
     >>> parts = [
     >>>     [ori, 'forward'], [promoter, 'forward'], [rbs, 'forward'],
@@ -188,7 +188,7 @@ class Construct(Component, OrderedPolymer):
         >>> promoter = bcp.Promoter('pLac')
         >>> rbs = bcp.CDS('RBS1')
         >>> cds = bcp.CDS('GFP')
-        >>> construct = bcp.DNAconstruct(
+        >>> construct = bcp.DNA_construct(
         ...     [[promoter, 'forward'], [rbs, 'forward'], [cds, 'forward']]
         ... )
         >>> construct.make_name()
@@ -196,7 +196,7 @@ class Construct(Component, OrderedPolymer):
 
         Linear construct with reversed part:
 
-        >>> construct = bcp.DNAconstruct(
+        >>> construct = bcp.DNA_construct(
         ...     [[promoter, 'forward'], [rbs, 'reverse'], [cds, 'forward']]
         ... )
         >>> construct.make_name()
@@ -204,7 +204,7 @@ class Construct(Component, OrderedPolymer):
 
         Circular construct:
 
-        >>> construct = bcp.DNAconstruct(
+        >>> construct = bcp.DNA_construct(
         ...     [[promoter, 'forward'], [rbs, 'forward'], [cds, 'forward']],
         ...     circular=True
         ... )
@@ -232,8 +232,8 @@ class Construct(Component, OrderedPolymer):
 
         Parameters
         ----------
-        part : DNApart, optional
-            A specific DNApart instance to find. Matches both type and name.
+        part : DNA_part, optional
+            A specific DNA_part instance to find. Matches both type and name.
         part_type : type, optional
             Find all parts that are instances of this type (e.g., Promoter).
         name : str, optional
@@ -243,7 +243,7 @@ class Construct(Component, OrderedPolymer):
 
         Returns
         -------
-        DNApart, list of DNApart, or None
+        DNA_part, list of DNA_part, or None
             Single matching part if exactly one match found. List of parts if
             multiple matches found. None if no matches found.
 
@@ -300,9 +300,9 @@ class Construct(Component, OrderedPolymer):
                 f"get_component requires a single keyword. "
                 f"Recieved component={part}, name={name}, index={index}."
             )
-        if not (isinstance(part, DNApart) or part is None):
+        if not (isinstance(part, DNA_part) or part is None):
             raise ValueError(
-                f"component must be of type DNApart. Recieved {part}."
+                f"component must be of type DNA_part. Recieved {part}."
             )
         if not (isinstance(part_type, type) or part_type is None):
             raise ValueError(
@@ -428,8 +428,8 @@ class Construct(Component, OrderedPolymer):
 
         Returns
         -------
-        DNAconstruct
-            A new circular DNAconstruct with parts reordered starting from
+        DNA_construct
+            A new circular DNA_construct with parts reordered starting from
             the specified position.
 
         Raises
@@ -447,23 +447,23 @@ class Construct(Component, OrderedPolymer):
         --------
         Permute a circular plasmid:
 
-        >>> ori = bcp.DNApart('p15A')
+        >>> ori = bcp.DNA_part('p15A')
         >>> promoter = bcp.Promoter('ptet')
         >>> cds = bcp.CDS('GFP')
-        >>> plasmid = bcp.DNAconstruct(
+        >>> plasmid = bcp.DNA_construct(
         ...     [[ori, 'forward'], [promoter, 'forward'], [cds, 'forward']],
         ...     circular=True
         ... )
         >>> plasmid
-        DNAconstruct = p15A_ptet_GFP_o
+        DNA_construct = p15A_ptet_GFP_o
         >>> plasmid.get_circularly_permuted(1)
-        DNAconstruct = ptet_GFP_p15A_o
+        DNA_construct = ptet_GFP_p15A_o
 
         """
         if not self.circular:
             return ValueError("cannot circularly permute linear construct")
         else:
-            return DNAconstruct(
+            return DNA_construct(
                 self.parts_list[new_first_position:]
                 + self.parts_list[:new_first_position],
                 circular=True,
@@ -538,7 +538,7 @@ class Construct(Component, OrderedPolymer):
         -----
         The base species serves as the chemical representation of the
         construct in CRN compilation, with material_type matching the
-        construct's material_type (e.g., 'dna' for DNAconstructs).
+        construct's material_type (e.g., 'dna' for DNA_constructs).
 
         """
         if base_name is None:
@@ -646,12 +646,12 @@ class Construct(Component, OrderedPolymer):
     def __contains__(self, obj2):
         """Check if the construct contains a specific part.
 
-        Tests whether a DNApart or copy of a DNApart exists in this
+        Tests whether a DNA_part or copy of a DNA_part exists in this
         construct's parts list.
 
         Parameters
         ----------
-        obj2 : DNApart
+        obj2 : DNA_part
             The part to search for in the construct.
 
         Returns
@@ -691,7 +691,7 @@ class Construct(Component, OrderedPolymer):
         False
 
         """
-        if isinstance(obj2, DNApart):
+        if isinstance(obj2, DNA_part):
             # if we got a DNA part it could mean one of two things:
             # 1 we want to know if a dna part is anywhere
             # 2 we want to know if a specific DNA part is in here
@@ -963,7 +963,7 @@ class Construct(Component, OrderedPolymer):
         """Run all enumerators to generate new construct variants.
 
         Applies all component enumerators to this construct to generate
-        derived constructs (e.g., RNAconstructs from transcription).
+        derived constructs (e.g., RNA_constructs from transcription).
 
         Parameters
         ----------
@@ -974,9 +974,9 @@ class Construct(Component, OrderedPolymer):
         Returns
         -------
         list of Construct
-            New constructs generated by all enumerators. For DNAconstructs
+            New constructs generated by all enumerators. For DNA_constructs
             with the default TxExplorer, this includes all possible
-            RNAconstruct transcripts.
+            RNA_construct transcripts.
 
         Notes
         -----
@@ -1033,7 +1033,7 @@ class Construct(Component, OrderedPolymer):
         combinations.
 
         """
-        # Looks at combinatorial states of constructs to generate DNAparts
+        # Looks at combinatorial states of constructs to generate DNA_parts
         # my_polymer = self.get_species()
         self.update_parameters()
 
@@ -1094,7 +1094,7 @@ class Construct(Component, OrderedPolymer):
         list of Component
             All new components and constructs generated, including:
 
-            - New constructs from enumerators (e.g., RNAconstructs)
+            - New constructs from enumerators (e.g., RNA_constructs)
             - Components for combinatorial binding states
 
         Notes
@@ -1120,8 +1120,8 @@ class Construct(Component, OrderedPolymer):
 
         **3. New constructs**
 
-        Generated by `enumerate_constructs()`. For example, a DNAconstruct
-        with promoter A generates an RNAconstruct containing `<B,C>`.
+        Generated by `enumerate_constructs()`. For example, a DNA_construct
+        with promoter A generates an RNA_construct containing `<B,C>`.
 
         """
         # Runs component enumerator to generate new constructs
@@ -1129,7 +1129,7 @@ class Construct(Component, OrderedPolymer):
             previously_enumerated=previously_enumerated
         )
 
-        # Looks at combinatorial states of constructs to generate DNAparts
+        # Looks at combinatorial states of constructs to generate DNA_parts
         combinatorial_components = self.combinatorial_enumeration()
 
         return combinatorial_components + new_constructs
@@ -1144,7 +1144,7 @@ class Construct(Component, OrderedPolymer):
 
         Parameters
         ----------
-        part : DNApart or OrderedMonomer
+        part : DNA_part or OrderedMonomer
             The part to generate a string identifier for.
 
         Returns
@@ -1522,11 +1522,11 @@ class Construct(Component, OrderedPolymer):
         Two circular constructs with the same parts in different rotations
         will produce the same omnihash:
 
-        >>> A, B, C = (bcp.DNApart(s) for s in ['A', 'B', 'C'])
-        >>> construct1 = bcp.DNAconstruct(
+        >>> A, B, C = (bcp.DNA_part(s) for s in ['A', 'B', 'C'])
+        >>> construct1 = bcp.DNA_construct(
         ...     [[A, 'forward'], [B, 'forward'], [C, 'forward']],
         ...     circular=True)
-        >>> construct2 = bcp.DNAconstruct(
+        >>> construct2 = bcp.DNA_construct(
         ...     [[B, 'forward'], [C, 'forward'], [A, 'forward']],
         ...     circular=True)
         >>> hash1, _, _ = bcp.Construct.omnihash(construct1)
@@ -1679,17 +1679,17 @@ class Construct(Component, OrderedPolymer):
         directly - reactions are generated by the parts within the construct
         through their associated mechanisms.
 
-        Subclasses like `DNAconstruct` and `RNAconstruct` may override this
+        Subclasses like `DNA_construct` and `RNA_construct` may override this
         to provide construct-specific reaction generation.
 
         """
         return []
 
 
-class DNAconstruct(Construct, DNA):
+class DNA_construct(Construct, DNA):
     """DNA construct representing a functional genetic circuit.
 
-    A DNAconstruct is a specialized Construct for DNA sequences that can
+    A DNA_construct is a specialized Construct for DNA sequences that can
     contain promoters, RBS sites, coding sequences, terminators, and other
     genetic elements. It supports transcription to generate RNA constructs and
     provides DNA-specific functionality. The class uses the 'transcription'
@@ -1700,7 +1700,7 @@ class DNAconstruct(Construct, DNA):
     ----------
     parts_list : list of list
         List of parts in format [[part, direction], ...] where each part
-        must be a DNApart or OrderedMonomer.
+        must be a DNA_part or OrderedMonomer.
     name : str, optional
         Name of the DNA construct. If None, automatically generated.
     circular : bool, default=False
@@ -1726,20 +1726,20 @@ class DNAconstruct(Construct, DNA):
     material_type : str
         Always 'dna' for DNA constructs.
     predicted_rnas : list or None
-        Cached list of RNAconstruct objects that can be transcribed.
+        Cached list of RNA_construct objects that can be transcribed.
     predicted_proteins : list or None
         Cached list of protein species that can be produced.
 
     See Also
     --------
     Construct : Base class for all constructs.
-    RNAconstruct : RNA version of constructs.
-    DNApart : Base class for DNA parts within constructs.
+    RNA_construct : RNA version of constructs.
+    DNA_part : Base class for DNA parts within constructs.
     TxExplorer : Default enumerator for transcriptional exploration.
 
     Notes
     -----
-    DNAconstructs support several key features:
+    DNA_constructs support several key features:
 
     - **Transcription enumeration**: Automatically identifies all possible
       transcripts based on promoter positions and orientations
@@ -1765,19 +1765,19 @@ class DNAconstruct(Construct, DNA):
     ...     [promoter, 'forward'], [rbs, 'forward'],
     ...     [cds, 'forward'], [terminator, 'forward']
     ... ]
-    >>> gene = bcp.DNAconstruct(
+    >>> gene = bcp.DNA_construct(
     ...     parts_list=parts,
     ...     name='expression_cassette'
     ... )
 
     Create a circular plasmid:
 
-    >>> ori = bcp.DNApart('p15A')
+    >>> ori = bcp.DNA_part('p15A')
     >>> plasmid_parts = [
     ...     [ori, 'forward'], [promoter, 'forward'], [rbs, 'forward'],
     ...     [gene, 'forward'], [terminator, 'forward']
     ... ]
-    >>> plasmid = bcp.DNAconstruct(
+    >>> plasmid = bcp.DNA_construct(
     ...     parts_list=plasmid_parts,
     ...     name='pUC19_GFP',
     ...     circular=True,
@@ -1820,10 +1820,10 @@ class DNAconstruct(Construct, DNA):
         DNA.__init__(self=self, name=self.name)
 
     def __repr__(self):
-        return 'DNAconstruct = ' + self.make_name()
+        return 'DNA_construct = ' + self.make_name()
 
 
-class RNAconstruct(Construct, RNA):
+class RNA_construct(Construct, RNA):
     """RNA construct representing a functional transcript.
 
     An RNA construct represents an RNA molecule that can be translated into
@@ -1863,13 +1863,13 @@ class RNAconstruct(Construct, RNA):
     See Also
     --------
     Construct : Base class for all constructs.
-    DNAconstruct : DNA version of constructs.
+    DNA_construct : DNA version of constructs.
     TlExplorer : Default enumerator for translational exploration.
     RNA : Base class for RNA components.
 
     Notes
     -----
-    RNAconstructs have several key characteristics:
+    RNA_constructs have several key characteristics:
 
     - **Linear only**: RNA molecules cannot be circular
     - **Translation focus**: Primarily generates protein products through
@@ -1888,7 +1888,7 @@ class RNAconstruct(Construct, RNA):
     >>> rbs1 = bcp.RBS('RBS1')
     >>> cds1 = bcp.CDS('GFP')
     >>> parts = [[rbs1, 'forward'], [cds1, 'forward']]
-    >>> mrna = bcp.RNAconstruct(
+    >>> mrna = bcp.RNA_construct(
     ...     parts_list=parts,
     ...     name='mRNA_GFP'
     ... )
@@ -1902,7 +1902,7 @@ class RNAconstruct(Construct, RNA):
     ...     [rbs1, 'forward'], [cds1, 'forward'],
     ...     [rbs2, 'forward'], [cds2, 'forward']
     ... ]
-    >>> polycistronic = bcp.RNAconstruct(
+    >>> polycistronic = bcp.RNA_construct(
     ...     parts_list=parts,
     ...     name='mRNA_operon',
     ...     promoter=strong_promoter
@@ -1939,21 +1939,21 @@ class RNAconstruct(Construct, RNA):
 
     def __repr__(self):
         # The name of an RNA should be different from DNA, right?
-        return 'RNAconstruct = ' + self.name
+        return 'RNA_construct = ' + self.name
 
 
-# DNApart: a component-like intermediate class necessary for DNAconstruct
+# DNA_part: a component-like intermediate class necessary for DNA_construct
 # Author: Andrey Shur
 # Latest update: 6/4/2020
 #
-class DNApart(Component, OrderedMonomer):
+class DNA_part(Component, OrderedMonomer):
     """Base class for individual DNA parts in constructs.
 
-    A DNApart represents a single functional genetic element (promoter, RBS,
+    A DNA_part represents a single functional genetic element (promoter, RBS,
     coding sequence, terminator, etc.) that can be assembled into larger
-    DNAconstructs. Parts have position and direction within constructs and
+    DNA_constructs. Parts have position and direction within constructs and
     serve as the modular building blocks for synthetic genetic circuits.
-    Unlike full Components, DNAparts do not have initial concentrations -
+    Unlike full Components, DNA_parts do not have initial concentrations -
     these must be set on the containing construct or assembly.
 
     Parameters
@@ -1975,7 +1975,7 @@ class DNApart(Component, OrderedMonomer):
         Material classification for the part.
     **kwargs
         Additional keyword arguments passed to Component constructor.
-        Note: 'initial_concentration' is not allowed for DNAparts.
+        Note: 'initial_concentration' is not allowed for DNA_parts.
 
     Attributes
     ----------
@@ -1996,19 +1996,19 @@ class DNApart(Component, OrderedMonomer):
 
     See Also
     --------
-    Promoter : DNApart for transcriptional control.
-    RBS : DNApart for translational control.
-    DNAconstruct : Container for multiple DNAparts.
+    Promoter : DNA_part for transcriptional control.
+    RBS : DNA_part for translational control.
+    DNA_construct : Container for multiple DNA_parts.
     OrderedMonomer : Base class for positioned elements.
 
     Raises
     ------
     AttributeError
-        If 'initial_concentration' is provided (not allowed for DNAparts).
+        If 'initial_concentration' is provided (not allowed for DNA_parts).
 
     Notes
     -----
-    DNAparts are the fundamental building blocks of genetic constructs:
+    DNA_parts are the fundamental building blocks of genetic constructs:
 
     - **Modular**: Can be reused in different constructs
     - **Directional**: Support forward and reverse orientations
@@ -2023,14 +2023,14 @@ class DNApart(Component, OrderedMonomer):
     --------
     Create a generic DNA part:
 
-    >>> part = bcp.DNApart(
+    >>> part = bcp.DNA_part(
     ...     name='regulatory_element',
     ...     direction='forward'
     ... )
 
     Create a part with sequence information:
 
-    >>> promoter_part = bcp.DNApart(
+    >>> promoter_part = bcp.DNA_part(
     ...     name='pLac',
     ...     sequence='ATGCGATCG...',
     ...     direction='forward'
@@ -2038,13 +2038,13 @@ class DNApart(Component, OrderedMonomer):
 
     Use within a construct:
 
-    >>> gene_part = bcp.DNApart(
+    >>> gene_part = bcp.DNA_part(
     ...    name='GFP',
     ...    sequence='TGAGTAAAGGAGAAGAA...',
     ...     direction='forward'
     ... )
     >>> parts = [[promoter_part, 'forward'], [gene_part, 'forward']]
-    >>> construct = bcp.DNAconstruct(parts_list=parts)
+    >>> construct = bcp.DNA_construct(parts_list=parts)
 
     """
 
@@ -2064,8 +2064,8 @@ class DNApart(Component, OrderedMonomer):
         # These get compiled into working components
         if 'initial_concentration' in kwargs:
             raise AttributeError(
-                "DNApart should not recieve initial_concentration keyword. "
-                "Pass this into the DNAassembly or DNAconstruct instead."
+                "DNA_part should not recieve initial_concentration keyword. "
+                "Pass this into the DNAassembly or DNA_construct instead."
             )
 
         # Store/Process DNA part keywords
@@ -2093,7 +2093,7 @@ class DNApart(Component, OrderedMonomer):
         """Species: The chemical species representation of this DNA part.
 
         Returns a Species object with material_type='part' representing this
-        DNApart as a chemical species in the CRN.
+        DNA_part as a chemical species in the CRN.
 
         """
         return Species(self.name, material_type='part')
@@ -2110,14 +2110,14 @@ class DNApart(Component, OrderedMonomer):
         return OrderedMonomer.__hash__(self) + hash(self.name)
 
     def __eq__(self, other):
-        """Test equality between two DNAparts.
+        """Test equality between two DNA_parts.
 
         Parts are equal if they have the same type, name, parent assembly/
         construct, direction, and position.
 
         Parameters
         ----------
-        other : DNApart
+        other : DNA_part
             The other part to compare with.
 
         Returns
@@ -2129,7 +2129,7 @@ class DNApart(Component, OrderedMonomer):
         -----
         Equality requires matching:
 
-        1. Type (both must be the same DNApart subclass)
+        1. Type (both must be the same DNA_part subclass)
         2. Name (identical names)
         3. Assembly/parent (same parent construct or both have None)
         4. Direction (both forward or both reverse)
@@ -2172,12 +2172,12 @@ class DNApart(Component, OrderedMonomer):
             Position in the parent DNA where this part should be placed.
         direction : str
             Orientation of the part: 'forward' or 'reverse'.
-        parent_dna : DNAconstruct or OrderedPolymer
+        parent_dna : DNA_construct or OrderedPolymer
             The DNA construct that will contain this part.
 
         Returns
         -------
-        DNApart
+        DNA_part
             Returns self after setting position and parent.
 
         Notes
@@ -2187,7 +2187,7 @@ class DNApart(Component, OrderedMonomer):
 
         """
         # Define where the part is in what piece of DNA.
-        # TODO add warning if DNApart is not cloned
+        # TODO add warning if DNA_part is not cloned
         self.insert(parent_dna, position, direction)
         return self
 
@@ -2199,7 +2199,7 @@ class DNApart(Component, OrderedMonomer):
 
         Returns
         -------
-        DNApart
+        DNA_part
             Returns self after removal from parent.
 
         Notes
@@ -2225,7 +2225,7 @@ class DNApart(Component, OrderedMonomer):
 
         Returns
         -------
-        DNApart
+        DNA_part
             Returns self after reversing direction.
 
         Notes
@@ -2236,9 +2236,3 @@ class DNApart(Component, OrderedMonomer):
         """
         OrderedMonomer.reverse(self)
         return self
-
-
-# Legacy names
-DNA_construct = DNAconstruct
-RNA_construct = RNAconstruct
-DNA_part = DNApart

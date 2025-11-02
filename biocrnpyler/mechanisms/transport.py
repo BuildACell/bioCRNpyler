@@ -7,7 +7,7 @@ from ..core.reaction import Reaction
 from ..core.species import Complex
 
 
-class SimpleDiffusion(Mechanism):
+class Simple_Diffusion(Mechanism):
     """Passive diffusion mechanism for substrate transport across membranes.
 
     A 'diffusion' mechanism that models simple passive diffusion of
@@ -38,8 +38,8 @@ class SimpleDiffusion(Mechanism):
 
     See Also
     --------
-    SimpleTransport : Passive transport through membrane channels.
-    FacilitatedTransport_MM : Facilitated diffusion with carriers.
+    Simple_Transport : Passive transport through membrane channels.
+    Facilitated_Transport_MM : Facilitated diffusion with carriers.
     Mechanism : Base class for all mechanisms.
 
     Notes
@@ -68,7 +68,7 @@ class SimpleDiffusion(Mechanism):
     Model oxygen diffusion across a membrane:
 
     >>> O2 = bcp.DiffusibleMolecule('O2')
-    >>> mechanism = bcp.SimpleDiffusion()
+    >>> mechanism = bcp.Simple_Diffusion()
     >>> mixture = bcp.Mixture(
     ...     components=[O2],
     ...     mechanisms={'diffusion': mechanism},
@@ -185,7 +185,7 @@ class SimpleDiffusion(Mechanism):
         return [diffusion_rxn]
 
 
-class MembraneProteinIntegration(Mechanism):
+class Membrane_Protein_Integration(Mechanism):
     """Membrane protein integration mechanism for protein insertion.
 
     A 'membrane_insertion' mechanism that models the integration of newly
@@ -252,9 +252,9 @@ class MembraneProteinIntegration(Mechanism):
     ...     membrane_protein='Aquaporin',
     ...     product='Aquaporin_channel',
     ...     size=2,
-    ...     direction='passive'
+    ...     direction='Passive'
     ... )
-    >>> mechanism = bcp.MembraneProteinIntegration()
+    >>> mechanism = bcp.Membrane_Protein_Integration()
     >>> mixture = bcp.Mixture(
     ...     components=[channel],
     ...     mechanisms={'membrane_insertion': mechanism},
@@ -452,7 +452,7 @@ class MembraneProteinIntegration(Mechanism):
             return [integration_rxn1]
 
 
-class SimpleTransport(Mechanism):
+class Simple_Transport(Mechanism):
     """Passive transport mechanism through membrane channel proteins.
 
     A 'transport' mechanism that models passive, bidirectional transport of
@@ -481,9 +481,9 @@ class SimpleTransport(Mechanism):
 
     See Also
     --------
-    SimpleDiffusion : Passive diffusion without proteins.
-    FacilitatedTransport_MM : Transport with MM kinetics.
-    PrimaryActiveTransport_MM : Energy-dependent active transport.
+    Simple_Diffusion : Passive diffusion without proteins.
+    Facilitated_Transport_MM : Transport with MM kinetics.
+    Primary_Active_Transport_MM : Energy-dependent active transport.
     Mechanism : Base class for all mechanisms.
 
     Notes
@@ -493,7 +493,7 @@ class SimpleTransport(Mechanism):
     facilitates movement down concentration gradients without conformational
     changes or energy expenditure.
 
-    The mechanism requires the membrane channel to have the 'passive'
+    The mechanism requires the membrane channel to have the 'Passive'
     attribute, distinguishing it from active transporters and carriers that
     require different mechanisms.
 
@@ -518,23 +518,23 @@ class SimpleTransport(Mechanism):
     >>> protein = bcp.IntegralMembraneProtein(
     ...     membrane_protein='Knck1',
     ...     product='K_channel',
-    ...     direction='passive',
+    ...     direction='Passive',
     ...     compartment='cytoplasm',
     ...     membrane_compartment='membrane',
-    ...     attributes=['passive']
+    ...     attributes=['Passive']
     ... )
     >>> channel = bcp.MembraneChannel(
     ...     integral_membrane_protein=protein.membrane_protein,
     ...     substrate='K',
-    ...     direction='passive',
+    ...     direction='Passive',
     ...     internal_compartment='cytoplasm',
     ...     external_compartment='external'
     ... )
     >>> mixture = bcp.Mixture(
     ...     components=[protein, channel],
     ...     mechanisms={
-    ...         'membrane_insertion': bcp.MembraneProteinIntegration(),
-    ...         'transport': bcp.SimpleTransport(),
+    ...         'membrane_insertion': bcp.Membrane_Protein_Integration(),
+    ...         'transport': bcp.Simple_Transport(),
     ...     },
     ...     parameters={'k_trnsp': 1.0},
     ...     parameter_file='mechanisms/transport_parameters.tsv',
@@ -556,13 +556,13 @@ class SimpleTransport(Mechanism):
 
         Returns the membrane channel, substrate, and product species
         involved in the transport reaction. Validates that the channel has
-        the 'passive' attribute.
+        the 'Passive' attribute.
 
         Parameters
         ----------
         membrane_channel : Species
             The membrane channel protein through which transport occurs.
-            Must have 'passive' as its first attribute.
+            Must have 'Passive' as its first attribute.
         substrate : Species
             The substrate species being transported (typically intracellular
             side).
@@ -580,16 +580,16 @@ class SimpleTransport(Mechanism):
         Raises
         ------
         ValueError
-            If membrane_channel does not have 'passive' as its first
-            attribute, indicating it should use FacilitatedTransport_MM
+            If membrane_channel does not have 'Passive' as its first
+            attribute, indicating it should use Facilitated_Transport_MM
             instead.
 
         """
-        if membrane_channel.attributes[0] != 'passive':
+        if membrane_channel.attributes[0] != 'Passive':
             raise ValueError(
                 "Protein is not classified as a channel with passive "
                 "transport of small molecules. Use mechanism "
-                "FacilitatedTransport_MM instead"
+                "Facilitated_Transport_MM instead"
             )
 
         return [membrane_channel, substrate, product]
@@ -670,16 +670,16 @@ class SimpleTransport(Mechanism):
 
         # Simple membrane protein transport
         # Sub (Internal) <--> Product (External)
-        SimpleTransport_rxn = Reaction.from_massaction(
+        Simple_Transport_rxn = Reaction.from_massaction(
             inputs=[substrate, membrane_channel],
             outputs=[product, membrane_channel],
             k_forward=k_trnsp,
             k_reverse=k_trnsp,
         )
-        return [SimpleTransport_rxn]
+        return [Simple_Transport_rxn]
 
 
-class FacilitatedTransport_MM(Mechanism):
+class Facilitated_Transport_MM(Mechanism):
     """Facilitated diffusion mechanism with Michaelis-Menten kinetics.
 
     A 'transport' mechanism that models facilitated diffusion of substrates
@@ -710,8 +710,8 @@ class FacilitatedTransport_MM(Mechanism):
 
     See Also
     --------
-    SimpleTransport : Passive transport through channels.
-    PrimaryActiveTransport_MM : Energy-dependent active transport.
+    Simple_Transport : Passive transport through channels.
+    Primary_Active_Transport_MM : Energy-dependent active transport.
     MichaelisMenten : Enzyme mechanism with similar kinetics.
     Mechanism : Base class for all mechanisms.
 
@@ -759,9 +759,9 @@ class FacilitatedTransport_MM(Mechanism):
     ...     substrate=glc_out,
     ...     external_compartment='external',
     ...     internal_compartment='cytoplasm',
-    ...     direction='importer'
+    ...     direction='Importer'
     ... )
-    >>> mechanism = bcp.FacilitatedTransport_MM()
+    >>> mechanism = bcp.Facilitated_Transport_MM()
     >>> mixture = bcp.Mixture(
     ...     components=[carrier],
     ...     mechanisms={'transport': mechanism},
@@ -979,7 +979,7 @@ class FacilitatedTransport_MM(Mechanism):
         return [binding_rxn1, unbinding_rxn1, transport_rxn, unbinding_rxn2]
 
 
-class PrimaryActiveTransport_MM(Mechanism):
+class Primary_Active_Transport_MM(Mechanism):
     """Primary active transport mechanism with ATP-dependent pumping.
 
     A 'transport' mechanism that models primary active transport where
@@ -1011,8 +1011,8 @@ class PrimaryActiveTransport_MM(Mechanism):
 
     See Also
     --------
-    FacilitatedTransport_MM : Passive facilitated diffusion.
-    SimpleTransport : Passive channel transport.
+    Facilitated_Transport_MM : Passive facilitated diffusion.
+    Simple_Transport : Passive channel transport.
     Mechanism : Base class for all mechanisms.
 
     Notes
@@ -1062,10 +1062,10 @@ class PrimaryActiveTransport_MM(Mechanism):
     >>> pump = bcp.MembranePump(
     ...     membrane_pump='NaK_ATPase',
     ...     substrate='Na',
-    ...     direction='exporter',
+    ...     direction='Exporter',
     ...     ATP=1
     ... )
-    >>> mechanism = bcp.PrimaryActiveTransport_MM()
+    >>> mechanism = bcp.Primary_Active_Transport_MM()
     >>> mixture = bcp.Mixture(
     ...     components=[pump],
     ...     mechanisms={'transport': mechanism},
@@ -1385,11 +1385,3 @@ class PrimaryActiveTransport_MM(Mechanism):
             unbinding_rxn3,
             unbinding_rxn4,
         ]
-
-
-# Legacy class names
-Simple_Diffusion = SimpleDiffusion
-Membrane_Protein_Integration = MembraneProteinIntegration
-Simple_Transport = SimpleTransport
-Facilitated_Transport_MM = FacilitatedTransport_MM
-Primary_Active_Transport_MM = PrimaryActiveTransport_MM

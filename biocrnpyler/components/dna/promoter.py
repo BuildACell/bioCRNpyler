@@ -7,26 +7,26 @@ from warnings import warn
 
 from ...core.species import Species
 from ...mechanisms.binding import (
-    CombinatorialCooperativeBinding,
-    OneStepCooperativeBinding,
+    Combinatorial_Cooperative_Binding,
+    One_Step_Cooperative_Binding,
 )
 from ...mechanisms.txtl import (
     NegativeHillTranscription,
     PositiveHillTranscription,
 )
 from ..basic import DNA, RNA
-from .construct import DNApart
+from .construct import DNA_part
 
 
-class Promoter(DNApart):
+class Promoter(DNA_part):
     """Basic promoter component for constitutive transcription.
 
     A promoter represents a DNA regulatory element that controls transcription
     of an RNA transcript. This base class implements constitutive
     (unregulated) transcription. The component uses the 'transcription'
     mechanism to generate species and reactions during CRN compilation. The
-    promoter must be included in a `DNAassembly` or `DNAconstruct` to function
-    properly.
+    promoter must be included in a `DNAassembly` or `DNA_construct` to
+    function properly.
 
     Parameters
     ----------
@@ -52,7 +52,7 @@ class Promoter(DNApart):
         The DNA species that serves as the transcription template. If None,
         uses the assembly's DNA when available.
     **kwargs
-        Additional keyword arguments passed to the parent `DNApart` class.
+        Additional keyword arguments passed to the parent `DNA_part` class.
 
     Attributes
     ----------
@@ -68,15 +68,15 @@ class Promoter(DNApart):
     See Also
     --------
     RegulatedPromoter : Promoter with independent regulator binding.
-    ActivatablePromoter_Hill : Promoter with Hill function activation.
-    RepressiblePromoter_Hill : Promoter with Hill function repression.
+    ActivatablePromoter : Promoter with Hill function activation.
+    RepressiblePromoter : Promoter with Hill function repression.
     CombinatorialPromoter : Promoter with combinatorial regulation.
     DNAassembly : Container for promoters and genetic constructs.
 
     Notes
     -----
     Promoters cannot have initial concentrations set directly. Initial
-    conditions must be set on the containing `DNAassembly` or `DNAconstruct`.
+    conditions must be set on the containing `DNAassembly` or `DNA_construct`.
 
     Examples
     --------
@@ -150,10 +150,10 @@ class Promoter(DNApart):
             raise AttributeError(
                 "Cannot set initial_condition_dictionary of a Promoter. Must "
                 "set initial_condition_dictionary for the DNAassembly or "
-                "DNAconstruct."
+                "DNA_construct."
             )
 
-        DNApart.__init__(
+        DNA_part.__init__(
             self,
             name=name,
             mechanisms=mechanisms,
@@ -286,7 +286,7 @@ class Promoter(DNApart):
         else:
             raise TypeError(
                 f"Unknown parent class {type(self.parent)}, expect either "
-                "DNAconstruct or RNAconstruct"
+                "DNA_construct or RNA_construct"
             )
 
     # Used for expression mixtures where transcripts are replaced by proteins
@@ -368,7 +368,7 @@ class RegulatedPromoter(Promoter):
     repressors) to bind independently to the promoter DNA. Each regulator
     binds independently, and transcription can occur from both bound and
     unbound states with different rates. The component uses the 'binding'
-    mechanism (`OneStepCooperativeBinding` by default) to generate
+    mechanism (`One_Step_Cooperative_Binding` by default) to generate
     DNA-regulator complexes and the 'transcription' mechanism to generate
     transcription reactions from each regulatory state.
 
@@ -407,8 +407,8 @@ class RegulatedPromoter(Promoter):
     See Also
     --------
     Promoter : Base promoter class.
-    ActivatablePromoter_Hill : Hill function-based activation.
-    RepressiblePromoter_Hill : Hill function-based repression.
+    ActivatablePromoter : Hill function-based activation.
+    RepressiblePromoter : Hill function-based repression.
     CombinatorialPromoter : Combinatorial regulation logic.
 
     Notes
@@ -474,7 +474,7 @@ class RegulatedPromoter(Promoter):
 
         self.leak = leak
 
-        self.add_mechanism(OneStepCooperativeBinding(), 'binding')
+        self.add_mechanism(One_Step_Cooperative_Binding(), 'binding')
         self.complexes = []
 
     def update_species(self):
@@ -604,7 +604,7 @@ class RegulatedPromoter(Promoter):
         return reactions
 
 
-class ActivatablePromoter_Hill(Promoter):
+class ActivatablePromoter(Promoter):
     r"""Promoter with Hill function-based activation.
 
     An activatable promoter models transcriptional activation by a single
@@ -636,7 +636,7 @@ class ActivatablePromoter_Hill(Promoter):
 
     See Also
     --------
-    RepressiblePromoter_Hill : Hill function-based repression.
+    RepressiblePromoter : Hill function-based repression.
     RegulatedPromoter : Independent regulator binding.
     PositiveHillTranscription : Mechanism for Hill activation.
 
@@ -656,7 +656,7 @@ class ActivatablePromoter_Hill(Promoter):
     --------
     Create an activatable promoter:
 
-    >>> promoter = bcp.ActivatablePromoter_Hill(
+    >>> promoter = bcp.ActivatablePromoter(
     ...     name='p_ara',
     ...     activator='protein_AraC',
     ...     leak=True
@@ -750,7 +750,7 @@ class ActivatablePromoter_Hill(Promoter):
         return reactions
 
 
-class RepressiblePromoter_Hill(Promoter):
+class RepressiblePromoter(Promoter):
     r"""Promoter with Hill function-based repression.
 
     A repressible promoter models transcriptional repression by a single
@@ -782,7 +782,7 @@ class RepressiblePromoter_Hill(Promoter):
 
     See Also
     --------
-    ActivatablePromoter_Hill : Hill function-based activation.
+    ActivatablePromoter : Hill function-based activation.
     RegulatedPromoter : Independent regulator binding.
     NegativeHillTranscription : Mechanism for Hill repression.
 
@@ -802,7 +802,7 @@ class RepressiblePromoter_Hill(Promoter):
     --------
     Create a repressible promoter:
 
-    >>> promoter = bcp.RepressiblePromoter_Hill(
+    >>> promoter = bcp.RepressiblePromoter(
     ...     name='p_lac',
     ...     repressor='protein_LacI',
     ...     leak=False
@@ -903,10 +903,10 @@ class CombinatorialPromoter(Promoter):
     A combinatorial promoter allows multiple regulators to bind cooperatively,
     where transcription behavior depends on the specific combination of bound
     regulators. The component uses the 'binding' mechanism
-    (`CombinatorialCooperativeBinding`) to generate all possible DNA-regulator
-    complexes and the 'transcription' mechanism to generate reactions for each
-    regulatory state. This enables complex logic gates (AND, OR, NOR, etc.)
-    and multi-input regulatory functions.
+    (`Combinatorial_Cooperative_Binding`) to generate all possible
+    DNA-regulator complexes and the 'transcription' mechanism to generate
+    reactions for each regulatory state. This enables complex logic gates
+    (AND, OR, NOR, etc.)  and multi-input regulatory functions.
 
     Parameters
     ----------
@@ -962,7 +962,7 @@ class CombinatorialPromoter(Promoter):
     See Also
     --------
     RegulatedPromoter : Independent regulatory binding.
-    CombinatorialCooperativeBinding : Binding mechanism used by this
+    Combinatorial_Cooperative_Binding : Binding mechanism used by this
         promoter.
 
     Notes
@@ -1076,7 +1076,7 @@ class CombinatorialPromoter(Promoter):
         self.tx_capable_complexes = []
         self.leak_complexes = []
         self.add_mechanism(
-            CombinatorialCooperativeBinding(), 'binding', overwrite=True
+            Combinatorial_Cooperative_Binding(), 'binding', overwrite=True
         )
 
     def update_species(self):
@@ -1287,8 +1287,3 @@ class CombinatorialPromoter(Promoter):
                 )
 
         return reactions
-
-
-# Legacy classes
-RepressiblePromoter = RepressiblePromoter_Hill
-ActivatablePromoter = ActivatablePromoter_Hill

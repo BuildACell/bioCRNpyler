@@ -1,5 +1,5 @@
 ################################################################
-#       DNAconstruct: a higher level for construct compilation
+#       DNA_construct: a higher level for construct compilation
 #       Author: Andrey Shur
 #       Latest update: 12/21/2020
 #
@@ -14,7 +14,7 @@ from warnings import warn
 
 from .component_enumerator import LocalComponentEnumerator
 from .dna.cds import CDS
-from .dna.construct import Construct, RNAconstruct
+from .dna.construct import Construct, RNA_construct
 from .dna.promoter import Promoter
 from .dna.rbs import RBS
 from .dna.terminator import Terminator
@@ -98,8 +98,8 @@ class ConstructExplorer(LocalComponentEnumerator):
         pass
 
     def iterate_part(self, part, direction):
-        # Part is a DNApart
-        # direction is the direction we are looking in along the DNAconstruct
+        # Part is a DNA_part
+        # direction is the direction we are looking in along the DNA_construct
         # runs on every part and does something!
         # MUST SUBCLASS
         pass
@@ -133,13 +133,13 @@ class TxExplorer(ConstructExplorer):
         self.all_rnas = {}  # must clear this before filling it up again
 
     def initialize_loop(self, direction=None):
-        # Store RNA's being examined in loop promoter --> [(DNApart,
+        # Store RNA's being examined in loop promoter --> [(DNA_part,
         # direction) list]
         self.current_rnas = {}
 
     def iterate_part(self, part, reading_direction):
-        # Part is a DNApart
-        # direction is the direction we are looking in along the DNAconstruct
+        # Part is a DNA_part
+        # direction is the direction we are looking in along the DNA_construct
         """The explorer sees a dna_part.
 
         1. it calculates effective direction of part relative to
@@ -188,7 +188,7 @@ class TxExplorer(ConstructExplorer):
         # Create RNA_Constructs for each promoter
         for promoter, rna_parts_list in self.current_rnas.items():
             if len(rna_parts_list) > 0:
-                rna_construct = RNAconstruct(
+                rna_construct = RNA_construct(
                     rna_parts_list, promoter=promoter
                 )
                 self.all_rnas[promoter] = rna_construct
@@ -200,7 +200,7 @@ class TxExplorer(ConstructExplorer):
                 )
         self.initialize_loop()
 
-    # Returns a list of RNAconstructs
+    # Returns a list of RNA_constructs
     def return_components(self, component, previously_enumerated=None):
         return_rnas = []
         for rna in self.all_rnas.values():
@@ -228,16 +228,16 @@ class TlExplorer(ConstructExplorer):
         )
 
     def reset_enumerator(self):
-        self.all_proteins = {}  # Stores all proteins from the RNAconstruct
+        self.all_proteins = {}  # Stores all proteins from the RNA_construct
 
     def initialize_loop(self, direction=None):
-        # Store proteins being examined in loop rbs --> [(DNApart, direction)
+        # Store proteins being examined in loop rbs --> [(DNA_part, direction)
         # list]
         self.current_proteins = {}
 
     def iterate_part(self, part, reading_direction):
-        # Part is a DNApart
-        # direction is the direction we are looking in along the DNAconstruct
+        # Part is a DNA_part
+        # direction is the direction we are looking in along the DNA_construct
         """The explorer sees a dna_part.
 
         1. it calculates effective direction of part relative to
@@ -248,7 +248,7 @@ class TlExplorer(ConstructExplorer):
         logging.debug('looking at ' + str(part))
         logging.debug('current_proteins are ' + str(self.current_proteins))
 
-        # The orientation of the part absolutely to the DNAconstruct
+        # The orientation of the part absolutely to the DNA_construct
         part_direction = part.direction
         # print("my part is ",part)
         # print("my direction is ",part.direction)

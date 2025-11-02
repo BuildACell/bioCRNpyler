@@ -214,7 +214,7 @@ class BasicProduction(Mechanism):
     See Also
     --------
     BasicCatalysis : Catalytic conversion requiring a substrate.
-    MichaelisMenten_Copy : Two-step kinetics preserving the substrate.
+    MichaelisMentenCopy : Two-step kinetics preserving the substrate.
     Mechanism : Base class for all mechanisms.
 
     Notes
@@ -404,8 +404,8 @@ class MichaelisMenten(Mechanism):
     See Also
     --------
     BasicCatalysis : Single-step catalysis without complex formation.
-    MichaelisMenten_Copy : Michaelis-Menten preserving substrate.
-    MichaelisMenten_Reversible : Michaelis-Menten with product binding.
+    MichaelisMentenCopy : Michaelis-Menten preserving substrate.
+    MichaelisMentenReversible : Michaelis-Menten with product binding.
     Mechanism : Base class for all mechanisms.
 
     Notes
@@ -622,7 +622,7 @@ class MichaelisMenten(Mechanism):
         return [binding_rxn, cat_rxn]
 
 
-class MichaelisMenten_Reversible(Mechanism):
+class MichaelisMentenReversible(Mechanism):
     """Reversible Michaelis-Menten kinetics with product binding.
 
     A 'catalysis' mechanism implementing Michaelis-Menten enzyme kinetics
@@ -654,7 +654,7 @@ class MichaelisMenten_Reversible(Mechanism):
     See Also
     --------
     MichaelisMenten : Standard Michaelis-Menten with irreversible catalysis.
-    MichaelisMenten_Copy : Michaelis-Menten preserving substrate.
+    MichaelisMentenCopy : Michaelis-Menten preserving substrate.
     Mechanism : Base class for all mechanisms.
 
     Notes
@@ -694,7 +694,7 @@ class MichaelisMenten_Reversible(Mechanism):
     >>> product = bcp.Species('P')
     >>> comp = bcp.Enzyme(
     ...     enzyme, substrates=[substrate], products=[product],
-    ...     mechanisms={'catalysis': bcp.MichaelisMenten_Reversible()},
+    ...     mechanisms={'catalysis': bcp.MichaelisMentenReversible()},
     ...     parameters={
     ...         'kb1': 2.0, 'ku1': 0.5,
     ...         'kb2': 1.5, 'ku2': 0.3,
@@ -909,7 +909,7 @@ class MichaelisMenten_Reversible(Mechanism):
         return [binding_rxn1, binding_rxn2, cat_rxn]
 
 
-class MichaelisMenten_Copy(Mechanism):
+class MichaelisMentenCopy(Mechanism):
     """Michaelis-Menten kinetics with substrate preservation.
 
     A 'copy' mechanism implementing Michaelis-Menten enzyme kinetics where
@@ -981,7 +981,7 @@ class MichaelisMenten_Copy(Mechanism):
     ... )
     >>> mixture = bcp.Mixture(
     ...     components=[comp],
-    ...     mechanisms={'catalysis': bcp.MichaelisMenten_Copy()},
+    ...     mechanisms={'catalysis': bcp.MichaelisMentenCopy()},
     ... )
     >>> mixture.compile_crn()
     Species = Ribo, mRNA, complex_Ribo_mRNA_, GFP
@@ -1154,8 +1154,3 @@ class MichaelisMenten_Copy(Mechanism):
         )
 
         return [binding_rxn, cat_rxn]
-
-
-# Legacy class names
-MichaelisMentenCopy = MichaelisMenten_Copy
-MichaelisMentenReversible = MichaelisMenten_Reversible

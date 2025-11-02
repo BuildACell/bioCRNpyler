@@ -3,10 +3,10 @@
 
 from ...core.chemical_reaction_network import Species
 from ...core.component import Component
-from .construct import DNApart
+from .construct import DNA_part
 
 
-class CDS(DNApart):
+class CDS(DNA_part):
     """Coding sequence component representing a protein-coding region.
 
     A CDS (coding sequence) represents a contiguous DNA sequence that codes
@@ -27,7 +27,7 @@ class CDS(DNApart):
         List of regions without stop codons, used for sequence validation or
         special handling of coding sequences.
     **kwargs
-        Additional keyword arguments passed to the parent `DNApart` class.
+        Additional keyword arguments passed to the parent `DNA_part` class.
 
     Attributes
     ----------
@@ -40,7 +40,7 @@ class CDS(DNApart):
     --------
     RBS : Component that controls translation of proteins.
     DNAassembly : Container for CDS and other genetic parts.
-    DNApart : Base class for DNA component parts.
+    DNA_part : Base class for DNA component parts.
 
     Notes
     -----
@@ -77,7 +77,7 @@ class CDS(DNApart):
     """
 
     def __init__(self, name, protein=None, no_stop_codons=[], **kwargs):
-        DNApart.__init__(self, name, no_stop_codons=no_stop_codons, **kwargs)
+        DNA_part.__init__(self, name, no_stop_codons=no_stop_codons, **kwargs)
         # TODO use set_species()
         if protein is None:
             self.protein = Species(name, material_type='protein')

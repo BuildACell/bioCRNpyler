@@ -4,7 +4,7 @@ The classes `OrderedPolymer` and `OrderedMonomer` are data structures used
 to represent Polymers and their associated components.
 
 These classes are used by `ChemicalReactionNetwork` species as well as certain
-components such as DNAconstruct.
+components such as DNA_construct.
 
 """
 

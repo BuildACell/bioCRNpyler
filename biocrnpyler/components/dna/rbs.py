@@ -5,17 +5,17 @@ import copy
 
 from ...core.species import Species
 from ..basic import DNA, RNA
-from .construct import DNApart
+from .construct import DNA_part
 
 
-class RBS(DNApart):
+class RBS(DNA_part):
     """Ribosome binding site component for translation control.
 
     An RBS (ribosome binding site) represents a regulatory element that
     controls translation of a protein from an RNA transcript. The component
     uses the 'translation' mechanism to generate species and reactions for
     ribosome binding and protein production. The RBS must be included in a
-    `DNAassembly` or `DNAconstruct` to function properly during CRN
+    `DNAassembly` or `DNA_construct` to function properly during CRN
     compilation.
 
     Parameters
@@ -38,7 +38,7 @@ class RBS(DNApart):
     parameters : dict, optional
         Parameter values specific to this RBS.
     **kwargs
-        Additional keyword arguments passed to the parent `DNApart` class.
+        Additional keyword arguments passed to the parent `DNA_part` class.
 
     Attributes
     ----------
@@ -55,12 +55,12 @@ class RBS(DNApart):
     --------
     Promoter : Component for transcription control.
     DNAassembly : Container for RBS and genetic constructs.
-    DNApart : Base class for DNA component parts.
+    DNA_part : Base class for DNA component parts.
 
     Notes
     -----
     The RBS cannot have initial concentrations set directly. Initial
-    conditions must be set on the containing `DNAassembly` or `DNAconstruct`.
+    conditions must be set on the containing `DNAassembly` or `DNA_construct`.
 
     The translation mechanism generates reactions for ribosome binding to
     the transcript and subsequent protein production.
@@ -97,7 +97,7 @@ class RBS(DNApart):
         **kwargs,
     ):
         self.length = length
-        DNApart.__init__(
+        DNA_part.__init__(
             self,
             name=name,
             mechanisms=mechanisms,

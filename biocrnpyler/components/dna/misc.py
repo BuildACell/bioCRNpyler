@@ -6,15 +6,15 @@ from warnings import warn
 
 from ...core.component import Component
 from ...core.species import Complex, ComplexSpecies
-from ...mechanisms.binding import OneStepCooperativeBinding
+from ...mechanisms.binding import One_Step_Cooperative_Binding
 from ...mechanisms.integrase import BasicIntegration
 from ..basic import DNA
-from .construct import DNApart
+from .construct import DNA_part
 
 integrase_sites = ['attB', 'attP', 'attL', 'attR', 'FLP', 'CRE']
 
 
-class DNABindingSite(DNApart):
+class DNABindingSite(DNA_part):
     """DNA binding site component for protein-DNA interactions.
 
     A DNABindingSite represents a specific DNA sequence where proteins can
@@ -36,7 +36,7 @@ class DNABindingSite(DNApart):
     assembly : DNAassembly, optional
         The DNA assembly containing this binding site.
     **kwargs
-        Additional keyword arguments passed to the parent `DNApart` class.
+        Additional keyword arguments passed to the parent `DNA_part` class.
 
     Attributes
     ----------
@@ -46,13 +46,13 @@ class DNABindingSite(DNApart):
         The DNA species that contains this binding site.
     mechanisms : dict
         Dictionary containing the binding mechanism (defaults to
-        `OneStepCooperativeBinding`).
+        `One_Step_Cooperative_Binding`).
 
     See Also
     --------
     IntegraseSite : Specialized binding site for integrase proteins.
-    DNApart : Base class for DNA component parts.
-    OneStepCooperativeBinding : Default binding mechanism used.
+    DNA_part : Base class for DNA component parts.
+    One_Step_Cooperative_Binding : Default binding mechanism used.
 
     Notes
     -----
@@ -89,8 +89,8 @@ class DNABindingSite(DNApart):
             self.binders = [self.set_species(a) for a in binders]
         else:
             self.binders = [binders]
-        self.mechanisms = {'binding': OneStepCooperativeBinding()}
-        DNApart.__init__(
+        self.mechanisms = {'binding': One_Step_Cooperative_Binding()}
+        DNA_part.__init__(
             self,
             name,
             no_stop_codons=no_stop_codons,
@@ -270,7 +270,7 @@ class IntegraseSite(DNABindingSite):
     --------
     DNABindingSite : Parent class for general DNA binding sites.
     BasicIntegration : Mechanism for integrase-mediated recombination.
-    OneStepCooperativeBinding : Mechanism for integrase binding.
+    One_Step_Cooperative_Binding : Mechanism for integrase binding.
 
     Notes
     -----
@@ -729,7 +729,7 @@ class IntegraseSite(DNABindingSite):
         return reactions
 
 
-class UserDefined(DNApart):
+class UserDefined(DNA_part):
     """User-defined DNA part with no intrinsic functionality.
 
     A UserDefined part serves as a placeholder or label in DNA constructs.
@@ -748,7 +748,7 @@ class UserDefined(DNApart):
         to specify the category or function of this part for external
         tools or databases.
     **kwargs
-        Additional keyword arguments passed to the parent `DNApart` class.
+        Additional keyword arguments passed to the parent `DNA_part` class.
 
     Attributes
     ----------
@@ -759,7 +759,7 @@ class UserDefined(DNApart):
 
     See Also
     --------
-    DNApart : Base class for DNA component parts.
+    DNA_part : Base class for DNA component parts.
     Origin : Specialized placeholder for origins of replication.
     Operator : Specialized placeholder for operator sequences.
 
@@ -799,7 +799,7 @@ class UserDefined(DNApart):
         #
         # A user defined part is a part that doesn't do anything, just exists
         # as a label basically.
-        DNApart.__init__(self, name, **kwargs)
+        DNA_part.__init__(self, name, **kwargs)
         self.dpl_type = dpl_type
         self.name = name
 
@@ -826,7 +826,7 @@ class UserDefined(DNApart):
         return []
 
 
-class Origin(DNApart):
+class Origin(DNA_part):
     """Origin of replication component for visualization.
 
     An Origin represents an origin of replication (ORI) in a DNA construct.
@@ -841,7 +841,7 @@ class Origin(DNApart):
     name : str
         Name of the origin of replication.
     **kwargs
-        Additional keyword arguments passed to the parent `DNApart` class.
+        Additional keyword arguments passed to the parent `DNA_part` class.
 
     Attributes
     ----------
@@ -850,7 +850,7 @@ class Origin(DNApart):
 
     See Also
     --------
-    DNApart : Base class for DNA component parts.
+    DNA_part : Base class for DNA component parts.
     UserDefined : General placeholder for non-functional parts.
     Operator : Placeholder for operator sequences.
 
@@ -878,7 +878,7 @@ class Origin(DNApart):
 
     def __init__(self, name, **kwargs):
         # An origin does nothing except look right when plotted.
-        DNApart.__init__(self, name, **kwargs)
+        DNA_part.__init__(self, name, **kwargs)
         self.name = name
 
     def update_species(self):
@@ -904,7 +904,7 @@ class Origin(DNApart):
         return []
 
 
-class Operator(DNApart):
+class Operator(DNA_part):
     """Operator sequence component for visualization.
 
     An Operator represents an operator DNA sequence (a regulatory element
@@ -924,7 +924,7 @@ class Operator(DNApart):
         a list of binders, or None. This is stored for reference but
         does not generate binding reactions.
     **kwargs
-        Additional keyword arguments passed to the parent `DNApart` class.
+        Additional keyword arguments passed to the parent `DNA_part` class.
 
     Attributes
     ----------
@@ -936,7 +936,7 @@ class Operator(DNApart):
 
     See Also
     --------
-    DNApart : Base class for DNA component parts.
+    DNA_part : Base class for DNA component parts.
     DNABindingSite : Functional binding site that generates reactions.
     RegulatedPromoter : Promoter with functional operator-like behavior.
 
@@ -985,7 +985,7 @@ class Operator(DNApart):
             binders = kwargs.pop('binder')
 
         # An operator does nothing except look right when plotted.
-        DNApart.__init__(self, name, **kwargs)
+        DNA_part.__init__(self, name, **kwargs)
         self.binders = []
         if binders is not None:
             if not isinstance(binders, list):

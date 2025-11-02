@@ -691,7 +691,7 @@ class CRNPlotter:
             label_size=13,
             added_opts=None,
         ):
-            """Simplified DNAconstruct with only plotting information."""
+            """Simplified DNA_construct with only plotting information."""
             self.name = name
             self.parts_list = parts_list
             self.circular = circular

@@ -99,7 +99,7 @@ class CombinatorialComplex(Component):
     >>> final = bcp.Complex([A, B, C])
     >>> cc = bcp.CombinatorialComplex(
     ...     final_states=final,
-    ...     mechanisms={'binding': bcp.OneStepBinding()},
+    ...     mechanisms={'binding': bcp.One_Step_Binding()},
     ...     parameters={'kb': 1e-1, 'ku': 1e-1})
 
     Initial states default to [A, B, C]. All intermediates
@@ -118,7 +118,7 @@ class CombinatorialComplex(Component):
     >>> initial = [bcp.Complex([A, B]), bcp.Complex([A, C])]
     >>> cc = bcp.CombinatorialComplex(
     ...     final_states=final, initial_states=initial,
-    ...     mechanisms={'binding': bcp.OneStepBinding()},
+    ...     mechanisms={'binding': bcp.One_Step_Binding()},
     ...     parameters={'kb': 1e-1, 'ku': 1e-1})
 
     Results in 2 reactions:
@@ -131,7 +131,7 @@ class CombinatorialComplex(Component):
     >>> inter = [bcp.Complex([A, B]), bcp.Complex([A, C])]
     >>> cc = bcp.CombinatorialComplex(
     ...     final_states=final, intermediate_states=inter,
-    ...     mechanisms={'binding': bcp.OneStepBinding()},
+    ...     mechanisms={'binding': bcp.One_Step_Binding()},
     ...     parameters={'kb': 1e-1, 'ku': 1e-1})
 
     Results in 4 reactions:
@@ -146,7 +146,7 @@ class CombinatorialComplex(Component):
     >>> final = [bcp.Complex([A, A, B]), bcp.Complex([A, B, B])]
     >>> cc = bcp.CombinatorialComplex(
     ...     final_states=final,
-    ...     mechanisms={'binding': bcp.OneStepBinding()},
+    ...     mechanisms={'binding': bcp.One_Step_Binding()},
     ...     parameters={'kb': 1e-1, 'ku': 1e-1})
 
     Results in 7 reactions including homodimer formation:

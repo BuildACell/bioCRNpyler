@@ -6,9 +6,9 @@ from ..components.dna.assembly import DNAassembly
 from ..core.chemical_reaction_network import ChemicalReactionNetwork
 from ..core.mechanism import EmptyMechanism
 from ..core.mixture import Mixture
-from ..mechanisms.binding import OneStepBinding
+from ..mechanisms.binding import One_Step_Binding
 from ..mechanisms.enzyme import BasicCatalysis, MichaelisMenten
-from ..mechanisms.global_mechanisms import Dilution, RNAdegradation_MM
+from ..mechanisms.global_mechanisms import Degradation_mRNA_MM, Dilution
 from ..mechanisms.txtl import (
     OneStepGeneExpression,
     SimpleTranscription,
@@ -116,7 +116,7 @@ class ExpressionDilutionMixture(Mixture):
       reactions (translation is disabled)
     - 'catalysis' : `BasicCatalysis` - Simple catalytic reactions without
       explicit enzyme binding
-    - 'binding' : `OneStepBinding` - Simple multi-species binding
+    - 'binding' : `One_Step_Binding` - Simple multi-species binding
     - 'dilution' : `Dilution` - Global dilution mechanism (Species --> ∅)
       applied to all non-DNA species to model growth/division
 
@@ -167,7 +167,7 @@ class ExpressionDilutionMixture(Mixture):
         )
         mech_expression = OneStepGeneExpression()
         mech_cat = BasicCatalysis()
-        mech_bind = OneStepBinding()
+        mech_bind = One_Step_Binding()
 
         default_mechanisms = {
             mech_expression.mechanism_type: mech_expression,
@@ -332,7 +332,7 @@ class SimpleTxTlDilutionMixture(Mixture):
       (mRNA --> mRNA + Protein) without explicit ribosome binding
     - 'catalysis' : `BasicCatalysis` - Simple catalytic reactions without
       explicit enzyme binding
-    - 'binding' : `OneStepBinding` - Simple multi-species binding
+    - 'binding' : `One_Step_Binding` - Simple multi-species binding
     - 'dilution' : `Dilution` - Global dilution mechanism (Species --> ∅)
       applied to all non-DNA species to model growth/division
     - 'rna_degradation' : `Dilution` - Separate RNA degradation mechanism
@@ -385,7 +385,7 @@ class SimpleTxTlDilutionMixture(Mixture):
         simple_transcription = SimpleTranscription()
         simple_translation = SimpleTranslation()
         mech_cat = BasicCatalysis()
-        mech_bind = OneStepBinding()
+        mech_bind = One_Step_Binding()
 
         default_mechanisms = {
             simple_transcription.mechanism_type: simple_transcription,
@@ -533,11 +533,11 @@ class TxTlDilutionMixture(Mixture):
     - 'translation' : `Translation_MM` - Michaelis-Menten translation with
       explicit ribosome binding (mRNA + Rib <--> mRNA:Rib --> mRNA + Rib +
       Protein)
-    - 'rna_degradation' : `RNAdegradation_MM` - Global RNA degradation by
+    - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
       RNase using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis
-    - 'binding' : `OneStepBinding` - Simple multi-species binding
+    - 'binding' : `One_Step_Binding` - Simple multi-species binding
     - 'dilution' : `Dilution` - Global dilution mechanism (Species --> ∅)
       applied to all species except DNA and machinery
 
@@ -634,13 +634,13 @@ class TxTlDilutionMixture(Mixture):
         mech_tx = Transcription_MM(rnap=self.rnap.get_species())
         mech_tl = Translation_MM(ribosome=self.ribosome.get_species())
         mech_cat = MichaelisMenten()
-        mech_bind = OneStepBinding()
+        mech_bind = One_Step_Binding()
 
         # Create Global Dilution Mechanisms
         dilution_mechanism = Dilution(
             filter_dict={'dna': False, 'machinery': False}, default_on=True
         )
-        mech_rna_deg = RNAdegradation_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,

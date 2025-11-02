@@ -8,7 +8,7 @@ from ..core.reaction import Reaction
 from ..core.species import Complex, Species, WeightedSpecies
 
 
-class OneStepCooperativeBinding(Mechanism):
+class One_Step_Cooperative_Binding(Mechanism):
     """Cooperative binding mechanism for single-step multi-ligand binding.
 
     A 'binding' mechanism where multiple copies of a binder molecule (A) bind
@@ -38,9 +38,9 @@ class OneStepCooperativeBinding(Mechanism):
 
     See Also
     --------
-    TwoStepCooperativeBinding : Sequential cooperative binding mechanism.
-    CombinatorialCooperativeBinding : Multiple distinct binders binding.
-    OneStepBinding : Simple binding without cooperativity.
+    Two_Step_Cooperative_Binding : Sequential cooperative binding mechanism.
+    Combinatorial_Cooperative_Binding : Multiple distinct binders binding.
+    One_Step_Binding : Simple binding without cooperativity.
     Mechanism : Base class for all mechanisms.
 
     Notes
@@ -75,7 +75,7 @@ class OneStepCooperativeBinding(Mechanism):
     ... )
     >>> mixture = bcp.Mixture(
     ...     components=[promoter],
-    ...     mechanisms={'binding': bcp.OneStepCooperativeBinding()},
+    ...     mechanisms={'binding': bcp.One_Step_Cooperative_Binding()},
     ...     parameters={'cooperativity': 2, 'kb': 0.1, 'ku': 0.01}
     ... )
 
@@ -297,7 +297,7 @@ class OneStepCooperativeBinding(Mechanism):
         return rxns
 
 
-class TwoStepCooperativeBinding(Mechanism):
+class Two_Step_Cooperative_Binding(Mechanism):
     """Sequential cooperative binding mechanism with oligomerization.
 
     A 'binding' mechanism where multiple binder molecules first oligomerize,
@@ -328,8 +328,8 @@ class TwoStepCooperativeBinding(Mechanism):
 
     See Also
     --------
-    OneStepCooperativeBinding : Single-step cooperative binding.
-    CombinatorialCooperativeBinding : Multiple distinct binders.
+    One_Step_Cooperative_Binding : Single-step cooperative binding.
+    Combinatorial_Cooperative_Binding : Multiple distinct binders.
     Mechanism : Base class for all mechanisms.
 
     Notes
@@ -358,7 +358,7 @@ class TwoStepCooperativeBinding(Mechanism):
     --------
     Model transcription factor dimerization followed by DNA binding:
 
-    >>> mech = bcp.TwoStepCooperativeBinding()
+    >>> mech = bcp.Two_Step_Cooperative_Binding()
     >>> # TF dimerizes (2*TF <-> TF2), then binds DNA (TF2 + DNA <-> TF2:DNA)
     >>> params = {
     ...     'cooperativity': 2,
@@ -368,7 +368,7 @@ class TwoStepCooperativeBinding(Mechanism):
 
     Model trimeric receptor assembly and activation:
 
-    >>> mech = bcp.TwoStepCooperativeBinding()
+    >>> mech = bcp.Two_Step_Cooperative_Binding()
     >>> params = {
     ...     'cooperativity': 3,  # Trimeric receptor
     ...     'kb1': 0.05, 'ku1': 0.1,   # Trimerization
@@ -625,7 +625,7 @@ class TwoStepCooperativeBinding(Mechanism):
         return rxns
 
 
-class CombinatorialCooperativeBinding(Mechanism):
+class Combinatorial_Cooperative_Binding(Mechanism):
     """Combinatorial binding mechanism for multiple distinct ligands.
 
     A 'binding' mechanism where different types of binder molecules can bind
@@ -654,7 +654,7 @@ class CombinatorialCooperativeBinding(Mechanism):
 
     See Also
     --------
-    OneStepCooperativeBinding : Single binder type cooperative binding.
+    One_Step_Cooperative_Binding : Single binder type cooperative binding.
     CombinatorialPromoter : Component that uses this mechanism.
     Mechanism : Base class for all mechanisms.
 
@@ -1048,7 +1048,7 @@ class CombinatorialCooperativeBinding(Mechanism):
         return [rxndict[a] for a in rxndict]
 
 
-class OneStepBinding(Mechanism):
+class One_Step_Binding(Mechanism):
     """Simple binding mechanism for multiple species without cooperativity.
 
     A 'binding' mechanism to model the simultaneous binding of multiple
@@ -1075,7 +1075,7 @@ class OneStepBinding(Mechanism):
 
     See Also
     --------
-    OneStepCooperativeBinding : Binding with cooperativity.
+    One_Step_Cooperative_Binding : Binding with cooperativity.
     Mechanism : Base class for all mechanisms.
 
     Notes
@@ -1109,7 +1109,7 @@ class OneStepBinding(Mechanism):
     --------
     Model receptor-ligand binding:
 
-    >>> mech = bcp.OneStepBinding()
+    >>> mech = bcp.One_Step_Binding()
     >>> ligand, receptor = bcp.Species('L'), bcp.Species('R')
     >>> mech.update_species(
     ...     binder=ligand,
@@ -1296,10 +1296,3 @@ class OneStepBinding(Mechanism):
                 k_reverse=ku,
             )
         ]
-
-
-# Legacy class names
-One_Step_Cooperative_Binding = OneStepCooperativeBinding
-Two_Step_Cooperative_Binding = TwoStepCooperativeBinding
-Combinatorial_Cooperative_Binding = CombinatorialCooperativeBinding
-One_Step_Binding = OneStepBinding

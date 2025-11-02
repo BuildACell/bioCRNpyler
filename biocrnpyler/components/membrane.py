@@ -73,7 +73,7 @@ class DiffusibleMolecule(Component):
 
     >>> mixture = bcp.Mixture(
     ...     components=[glucose],
-    ...     mechanisms={'diffusion': bcp.SimpleDiffusion()},
+    ...     mechanisms={'diffusion': bcp.Simple_Diffusion()},
     ...     parameters={'k_diff': 0.01}
     ... )
     >>> crn = mixture.compile_crn()
@@ -175,8 +175,8 @@ class IntegralMembraneProtein(Component):
         string name, or `Component`.
     direction : str, optional
         Transport direction attribute for the integrated protein.
-        Default is 'passive'. Common values: 'passive', 'importer',
-        'exporter'.
+        Default is 'Passive'. Common values: 'Passive', 'Importer',
+        'Exporter'.
     size : int, optional
         Number of monomers needed to form the functional channel. Used to
         model oligomeric channels (e.g., size=2 for dimers, size=3 for
@@ -226,7 +226,7 @@ class IntegralMembraneProtein(Component):
     >>> channel = bcp.IntegralMembraneProtein(
     ...     membrane_protein='ChannelProtein',
     ...     product='ChannelProtein_membrane',
-    ...     direction='passive'
+    ...     direction='Passive'
     ... )
 
     Create a dimeric channel protein:
@@ -235,7 +235,7 @@ class IntegralMembraneProtein(Component):
     ...     membrane_protein='Aquaporin',
     ...     product='Aquaporin_channel',
     ...     size=2,
-    ...     direction='passive'
+    ...     direction='Passive'
     ... )
 
     """
@@ -294,7 +294,7 @@ class IntegralMembraneProtein(Component):
                     product,
                     material_type='protein',
                     compartment=membrane_compartment,
-                    attributes=['passive'],
+                    attributes=['Passive'],
                 )
             else:
                 self.product = self.set_species(
@@ -309,7 +309,7 @@ class IntegralMembraneProtein(Component):
                     product,
                     material_type='protein',
                     compartment=membrane_compartment,
-                    attributes=['passive'],
+                    attributes=['Passive'],
                 )
             else:
                 self.product = self.set_species(
@@ -405,9 +405,9 @@ class MembraneChannel(Component):
         `Species` object, string name, or `Component`.
     direction : str, optional
         Direction of transport. If None, extracted from
-        integral_membrane_protein attributes. Common values: 'importer'
-        (external --> internal), 'exporter' (internal --> external),
-        'passive' (bidirectional).
+        integral_membrane_protein attributes. Common values: 'Importer'
+        (external --> internal), 'Exporter' (internal --> external),
+        'Passive' (bidirectional).
     internal_compartment : str or Compartment, default='Internal'
         The internal compartment. Can be a string name (creates new
         Compartment) or an existing `Compartment` object.
@@ -441,11 +441,11 @@ class MembraneChannel(Component):
     -----
     The transport mechanism generates reactions based on the direction:
 
-    - 'importer': substrate_external + channel
+    - 'Importer': substrate_external + channel
           --> substrate_internal + channel
-    - 'exporter': substrate_internal + channel
+    - 'Exporter': substrate_internal + channel
           --> substrate_external + channel
-    - 'passive': bidirectional transport following gradients
+    - 'Passive': bidirectional transport following gradients
 
     The component name is automatically generated as:
     '<integral_membrane_protein_name>_<compartment_name>'
@@ -457,7 +457,7 @@ class MembraneChannel(Component):
     >>> importer = bcp.MembraneChannel(
     ...     integral_membrane_protein='GlucoseTransporter',
     ...     substrate='Glucose',
-    ...     direction='importer'
+    ...     direction='Importer'
     ... )
 
     Create a passive channel:
@@ -465,14 +465,14 @@ class MembraneChannel(Component):
     >>> channel = bcp.MembraneChannel(
     ...     integral_membrane_protein='WaterChannel',
     ...     substrate='Water',
-    ...     direction='passive'
+    ...     direction='Passive'
     ... )
 
     Use with a mixture:
 
     >>> mixture = bcp.Mixture(
     ...     components=[importer],
-    ...     mechanisms={'transport': bcp.FacilitatedTransport_MM()},
+    ...     mechanisms={'transport': bcp.Facilitated_Transport_MM()},
     ...     parameter_file='mechanisms/transport_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
@@ -501,17 +501,17 @@ class MembraneChannel(Component):
             integral_membrane_protein = self.set_species(
                 integral_membrane_protein,
                 material_type='protein',
-                attributes='passive' if direction is None else direction,
+                attributes='Passive' if direction is None else direction,
             )
         self.integral_membrane_protein = integral_membrane_protein
 
         # Get the direction from the integral_membrane_protein, if not given
         # TODO: need more complete check for conflicting information
         if direction is None:
-            if 'importer' in integral_membrane_protein.attributes:
-                direction = 'importer'
-            elif 'exporter' in integral_membrane_protein.attributes:
-                direction = 'exporter'
+            if 'Importer' in integral_membrane_protein.attributes:
+                direction = 'Importer'
+            elif 'Exporter' in integral_membrane_protein.attributes:
+                direction = 'Exporter'
 
         # Substrate and product assignments.
         #
@@ -535,7 +535,7 @@ class MembraneChannel(Component):
             self.substrate = None
 
         else:
-            if direction == 'importer':
+            if direction == 'Importer':
                 self.substrate = self.set_species(
                     substrate,
                     compartment=external_compartment,
@@ -636,9 +636,9 @@ class MembranePump(Component):
         The substrate to be transported by the pump. Can be a `Species`
         object, string name, or `Component`.
     direction : str, optional
-        Direction of active transport. Common values: 'importer'
-        (external --> internal), 'exporter' (internal --> external),
-        'passive' (default). Affects substrate and ATP compartment
+        Direction of active transport. Common values: 'Importer'
+        (external --> internal), 'Exporter' (internal --> external),
+        'Passive' (default). Affects substrate and ATP compartment
         placement.
     internal_compartment : str or Compartment, default='Internal'
         The internal compartment. Can be a string name (creates new
@@ -696,7 +696,7 @@ class MembranePump(Component):
     >>> pump = bcp.MembranePump(
     ...     membrane_pump='CalciumPump',
     ...     substrate='Calcium',
-    ...     direction='exporter',
+    ...     direction='Exporter',
     ...     ATP=2
     ... )
 
@@ -705,7 +705,7 @@ class MembranePump(Component):
     >>> abc = bcp.MembranePump(
     ...     membrane_pump='ABC_Transporter',
     ...     substrate='Maltose',
-    ...     direction='importer',
+    ...     direction='Importer',
     ...     ATP=1
     ... )
 
@@ -713,7 +713,7 @@ class MembranePump(Component):
 
     >>> mixture = bcp.Mixture(
     ...     components=[pump],
-    ...     mechanisms={'transport': bcp.PrimaryActiveTransport_MM()},
+    ...     mechanisms={'transport': bcp.Primary_Active_Transport_MM()},
     ...     parameter_file='mechanisms/transport_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
@@ -778,7 +778,7 @@ class MembranePump(Component):
                 self.membrane_pump = self.set_species(
                     membrane_pump,
                     material_type='protein',
-                    attributes='passive',
+                    attributes='Passive',
                 )
                 self.membrane_pump.ATP = ATP
             else:
@@ -788,7 +788,7 @@ class MembranePump(Component):
                     attributes=direction,
                 )
                 self.membrane_pump.ATP = ATP
-                if direction == 'importer':
+                if direction == 'Importer':
                     if substrate is None:
                         self.substrate = None
                     else:
@@ -804,23 +804,23 @@ class MembranePump(Component):
                             attributes=attributes,
                         )
         else:
-            if membrane_pump.attributes[0] == 'passive':
+            if membrane_pump.attributes[0] == 'Passive':
                 self.integral_membrane_protein = self.set_species(
                     membrane_pump,
                     material_type='protein',
-                    attributes='passive',
+                    attributes='Passive',
                 )
-            elif membrane_pump.attributes[0] == 'exporter':
+            elif membrane_pump.attributes[0] == 'Exporter':
                 self.membrane_pump = self.set_species(
                     membrane_pump,
                     material_type='protein',
-                    attributes='exporter',
+                    attributes='Exporter',
                 )
-            elif membrane_pump.attributes[0] == 'importer':
+            elif membrane_pump.attributes[0] == 'Importer':
                 self.membrane_pump = self.set_species(
                     membrane_pump,
                     material_type='protein',
-                    attributes='importer',
+                    attributes='Importer',
                 )
                 self.energy = self.set_species(
                     'ATP',
@@ -1028,7 +1028,8 @@ class MembraneSensor(Component):
 
     >>> mixture = bcp.Mixture(
     ...     components=[tcs],
-    ...     mechanisms={'membrane_sensor': bcp.MembraneSignalingPathway_MM()},
+    ...     mechanisms={
+    ...         'membrane_sensor': bcp.Membrane_Signaling_Pathway_MM()},
     ...     parameter_file='mechanisms/transport_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()

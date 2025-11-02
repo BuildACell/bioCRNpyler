@@ -3,10 +3,10 @@
 
 from ..components.basic import Metabolite, Protein
 from ..core.mixture import Mixture
-from ..mechanisms.binding import OneStepBinding
+from ..mechanisms.binding import One_Step_Binding
 from ..mechanisms.enzyme import MichaelisMenten
-from ..mechanisms.global_mechanisms import RNAdegradation_MM
-from ..mechanisms.txtl import EnergyTranscription_MM, EnergyTranslation_MM
+from ..mechanisms.global_mechanisms import Degradation_mRNA_MM
+from ..mechanisms.txtl import Energy_Transcription_MM, Energy_Translation_MM
 
 
 class BasicPURE(Mixture):
@@ -78,8 +78,8 @@ class BasicPURE(Mixture):
     --------
     EnergyTxTlExtract : TX-TL with fuel regeneration.
     TxTlExtract : TX-TL with machinery but no energy.
-    EnergyTranscription_MM : Mechanism for energy-consuming transcription.
-    EnergyTranslation_MM : Mechanism for energy-consuming translation.
+    Energy_Transcription_MM : Mechanism for energy-consuming transcription.
+    Energy_Translation_MM : Mechanism for energy-consuming translation.
     Mixture : Base class for all mixtures.
 
     Notes
@@ -96,15 +96,15 @@ class BasicPURE(Mixture):
 
     Default mechanisms included:
 
-    - 'transcription' : `EnergyTranscription_MM` - Michaelis-Menten
+    - 'transcription' : `Energy_Transcription_MM` - Michaelis-Menten
       transcription with length-dependent ATP and NTP consumption
-    - 'translation' : `EnergyTranslation_MM` - Michaelis-Menten translation
+    - 'translation' : `Energy_Translation_MM` - Michaelis-Menten translation
       with length-dependent amino acid and ATP consumption
-    - 'rna_degradation' : `RNAdegradation_MM` - Global RNA degradation by
+    - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
       RNase using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis for user-defined enzymatic reactions
-    - 'binding' : `OneStepBinding` - Simple multi-species binding for
+    - 'binding' : `One_Step_Binding` - Simple multi-species binding for
       forming complexes
 
     Key features of this mixture:
@@ -209,23 +209,23 @@ class BasicPURE(Mixture):
         self.add_components(default_components)
 
         # Create default TX-TL Mechanisms
-        mech_tx = EnergyTranscription_MM(
+        mech_tx = Energy_Transcription_MM(
             rnap=self.rnap.get_species(),
             fuels=[self.fuel.get_species()]  # TODO: one ATP per bp
             + [self.ntps.get_species()],
             wastes=[],
         )
-        mech_tl = EnergyTranslation_MM(
+        mech_tl = Energy_Translation_MM(
             ribosome=self.ribosome.get_species(),
             fuels=4 * [self.fuel.get_species()]  # TODO: why 4 ATP per AA?
             + [self.amino_acids.get_species()],
             wastes=[],
         )
-        mech_rna_deg = RNAdegradation_MM(
+        mech_rna_deg = Degradation_mRNA_MM(
             nuclease=self.rnaase.get_species()
         )  # TODO: add fuel usage?
         mech_cat = MichaelisMenten()
-        mech_bind = OneStepBinding()
+        mech_bind = One_Step_Binding()
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,

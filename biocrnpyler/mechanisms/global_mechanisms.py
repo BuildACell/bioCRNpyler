@@ -92,7 +92,7 @@ class GlobalMechanism(Mechanism):
     See Also
     --------
     Dilution : Global mechanism for species dilution.
-    RNAdegradation_MM : Global mRNA degradation mechanism.
+    Degradation_mRNA_MM : Global mRNA degradation mechanism.
     Mechanism : Base class for all mechanisms.
 
     Notes
@@ -664,7 +664,7 @@ class AntiDilutionConstitutiveCreation(GlobalMechanism):
         return [rxn]
 
 
-class RNAdegradation_MM(GlobalMechanism, MichaelisMenten):
+class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
     """Michaelis-Menten mRNA degradation by endonucleases.
 
     A 'rna_degradation' mechanism that uses Michaelis-Menten kinetics to
@@ -717,7 +717,7 @@ class RNAdegradation_MM(GlobalMechanism, MichaelisMenten):
     See Also
     --------
     MichaelisMenten : Base enzyme kinetics mechanism.
-    DegTaggedDegradation : Targeted protein degradation.
+    Deg_Tagged_Degradation : Targeted protein degradation.
     GlobalMechanism : Base class for global mechanisms.
 
     Notes
@@ -750,7 +750,7 @@ class RNAdegradation_MM(GlobalMechanism, MichaelisMenten):
 
     >>> rnase = bcp.Protein('RNase')
     >>> mrna = bcp.RNA('mRNA')
-    >>> degradation = bcp.RNAdegradation_MM(nuclease=rnase.species)
+    >>> degradation = bcp.Degradation_mRNA_MM(nuclease=rnase.species)
     >>> mixture = bcp.Mixture(
     ...     components=[rnase, mrna],
     ...     mechanisms={'rna_degradation': degradation},
@@ -762,7 +762,7 @@ class RNAdegradation_MM(GlobalMechanism, MichaelisMenten):
     >>> rnase = bcp.Protein('RNase')
     >>> stable_rna = bcp.RNA('stable', attributes=['notdegradable'])
     >>> unstable_rna = bcp.RNA('unstable')
-    >>> degradation = bcp.RNAdegradation_MM(nuclease=rnase.species)
+    >>> degradation = bcp.Degradation_mRNA_MM(nuclease=rnase.species)
     >>> mixture = bcp.Mixture(
     ...     components=[rnase, stable_rna, unstable_rna],
     ...     mechanisms={'rna_degradation': degradation},
@@ -955,7 +955,7 @@ class RNAdegradation_MM(GlobalMechanism, MichaelisMenten):
         return reactions
 
 
-class DegTaggedDegradation(GlobalMechanism, MichaelisMenten):
+class Deg_Tagged_Degradation(GlobalMechanism, MichaelisMenten):
     """Michaelis-Menten degradation of deg-tagged proteins by degradase.
 
     A 'degradation' mechanism that uses Michaelis-Menten kinetics to model
@@ -1011,7 +1011,7 @@ class DegTaggedDegradation(GlobalMechanism, MichaelisMenten):
     See Also
     --------
     MichaelisMenten : Base enzyme kinetics mechanism.
-    RNAdegradation_MM : Global mRNA degradation mechanism.
+    Degradation_mRNA_MM : Global mRNA degradation mechanism.
     GlobalMechanism : Base class for global mechanisms.
 
     Notes
@@ -1049,7 +1049,7 @@ class DegTaggedDegradation(GlobalMechanism, MichaelisMenten):
     >>> clpxp = bcp.Protein('ClpXP')
     >>> stable_protein = bcp.Protein('stable')
     >>> tagged_protein = bcp.Protein('tagged', attributes=['degtagged'])
-    >>> degradation = bcp.DegTaggedDegradation(
+    >>> degradation = bcp.Deg_Tagged_Degradation(
     ...     degradase=clpxp.species,
     ...     deg_tag='degtagged'
     ... )
@@ -1063,7 +1063,7 @@ class DegTaggedDegradation(GlobalMechanism, MichaelisMenten):
 
     >>> proteasome = bcp.Protein('proteasome')
     >>> ubiquitinated = bcp.Protein('target', attributes=['ubiquitinated'])
-    >>> degradation = bcp.DegTaggedDegradation(
+    >>> degradation = bcp.Deg_Tagged_Degradation(
     ...     degradase=proteasome.species,
     ...     deg_tag='ubiquitinated'
     ... )
@@ -1169,8 +1169,3 @@ class DegTaggedDegradation(GlobalMechanism, MichaelisMenten):
             kcat=kdeg,
         )
         return rxns
-
-
-# Legacy class names
-Degradation_mRNA_MM = RNAdegradation_MM
-Deg_Tagged_Degradation = DegTaggedDegradation

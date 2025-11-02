@@ -575,10 +575,10 @@ class ChemicalComplex(Component):
 
     Use with a mixture and binding mechanism:
 
-    >>> from biocrnpyler.mechanisms import OneStepBinding
+    >>> from biocrnpyler.mechanisms import One_Step_Binding
     >>> mixture = bcp.Mixture(
     ...     components=[complex],
-    ...     mechanisms={'binding': OneStepBinding()},
+    ...     mechanisms={'binding': One_Step_Binding()},
     ...     parameters={'kb': 1.0, 'ku': 0.1}
     ... )
     >>> crn = mixture.compile_crn()

@@ -6,13 +6,13 @@ from ..components.dna.assembly import DNAassembly
 from ..core.chemical_reaction_network import ChemicalReactionNetwork
 from ..core.mechanism import EmptyMechanism
 from ..core.mixture import Mixture
-from ..mechanisms.binding import OneStepBinding
+from ..mechanisms.binding import One_Step_Binding
 from ..mechanisms.enzyme import BasicCatalysis, MichaelisMenten
-from ..mechanisms.global_mechanisms import Dilution, RNAdegradation_MM
+from ..mechanisms.global_mechanisms import Degradation_mRNA_MM, Dilution
 from ..mechanisms.metabolite import OneStepPathway
 from ..mechanisms.txtl import (
-    EnergyTranscription_MM,
-    EnergyTranslation_MM,
+    Energy_Transcription_MM,
+    Energy_Translation_MM,
     OneStepGeneExpression,
     SimpleTranscription,
     SimpleTranslation,
@@ -118,7 +118,7 @@ class ExpressionExtract(Mixture):
       reactions (translation is disabled)
     - 'catalysis' : `BasicCatalysis` - Simple catalytic reactions without
       explicit enzyme binding
-    - 'binding' : `OneStepBinding` - Simple multi-species binding
+    - 'binding' : `One_Step_Binding` - Simple multi-species binding
 
     Key features of this extract:
 
@@ -167,7 +167,7 @@ class ExpressionExtract(Mixture):
         )
         mech_expression = OneStepGeneExpression()
         mech_cat = BasicCatalysis()
-        mech_bind = OneStepBinding()
+        mech_bind = One_Step_Binding()
 
         default_mechanisms = {
             mech_expression.mechanism_type: mech_expression,
@@ -330,7 +330,7 @@ class SimpleTxTlExtract(Mixture):
       (mRNA --> ∅) applied to all RNA species
     - 'catalysis' : `BasicCatalysis` - Simple catalytic reactions without
       explicit enzyme binding
-    - 'binding' : `OneStepBinding` - Simple multi-species binding
+    - 'binding' : `One_Step_Binding` - Simple multi-species binding
 
     Key features of this extract:
 
@@ -376,7 +376,7 @@ class SimpleTxTlExtract(Mixture):
         mech_tx = SimpleTranscription()
         mech_tl = SimpleTranslation()
         mech_cat = BasicCatalysis()
-        mech_bind = OneStepBinding()
+        mech_bind = One_Step_Binding()
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
@@ -510,11 +510,11 @@ class TxTlExtract(Mixture):
     - 'translation' : `Translation_MM` - Michaelis-Menten translation with
       explicit ribosome binding (mRNA + Rib <--> mRNA:Rib --> mRNA + Rib +
       Protein)
-    - 'rna_degradation' : `RNAdegradation_MM` - Global RNA degradation by
+    - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
       RNase using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis
-    - 'binding' : `OneStepBinding` - Simple multi-species binding
+    - 'binding' : `One_Step_Binding` - Simple multi-species binding
 
     Key features of this mixture:
 
@@ -568,9 +568,9 @@ class TxTlExtract(Mixture):
         # Create default TxTl Mechanisms
         mech_tx = Transcription_MM(rnap=self.rnap.get_species())
         mech_tl = Translation_MM(ribosome=self.ribosome.get_species())
-        mech_rna_deg = RNAdegradation_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
         mech_cat = MichaelisMenten()
-        mech_bind = OneStepBinding()
+        mech_bind = One_Step_Binding()
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
@@ -695,8 +695,8 @@ class EnergyTxTlExtract(Mixture):
     --------
     TxTlExtract : TX-TL with machinery but no energy.
     SimpleTxTlExtract : TX-TL without machinery or energy.
-    EnergyTranscription_MM : Mechanism for energy-consuming transcription.
-    EnergyTranslation_MM : Mechanism for energy-consuming translation.
+    Energy_Transcription_MM : Mechanism for energy-consuming transcription.
+    Energy_Translation_MM : Mechanism for energy-consuming translation.
     Mixture : Base class for all mixtures.
 
     Notes
@@ -713,17 +713,17 @@ class EnergyTxTlExtract(Mixture):
 
     Default mechanisms included:
 
-    - 'transcription' : `EnergyTranscription_MM` - Michaelis-Menten
+    - 'transcription' : `Energy_Transcription_MM` - Michaelis-Menten
       transcription with length-dependent NTP consumption (DNA + RNAP <-->
       DNA:RNAP; NTP + DNA:RNAP --> DNA + RNAP + mRNA + NDP)
-    - 'translation' : `EnergyTranslation_MM` - Michaelis-Menten translation
+    - 'translation' : `Energy_Translation_MM` - Michaelis-Menten translation
       with length-dependent amino acid and NTP consumption (mRNA + Rib <-->
       mRNA:Rib; AA + NTP + mRNA:Rib --> mRNA + Rib + Protein + NDP)
-    - 'rna_degradation' : `RNAdegradation_MM` - Global RNA degradation by
+    - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
       RNase using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis
-    - 'binding' : `OneStepBinding` - Simple multi-species binding
+    - 'binding' : `One_Step_Binding` - Simple multi-species binding
     - 'pathway' : `OneStepPathway` - Metabolite conversion (added to NTPs
       and fuel components)
 
@@ -814,20 +814,20 @@ class EnergyTxTlExtract(Mixture):
         self.add_components(default_components)
 
         # Create default TxTl Mechanisms
-        mech_tx = EnergyTranscription_MM(
+        mech_tx = Energy_Transcription_MM(
             rnap=self.rnap.get_species(),
             fuels=[self.ntps.get_species()],
             wastes=[],
         )
-        mech_tl = EnergyTranslation_MM(
+        mech_tl = Energy_Translation_MM(
             ribosome=self.ribosome.get_species(),
             fuels=4 * [self.ntps.get_species()]
             + [self.amino_acids.get_species()],
             wastes=4 * [self.ndps.get_species()],
         )
-        mech_rna_deg = RNAdegradation_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
         mech_cat = MichaelisMenten()
-        mech_bind = OneStepBinding()
+        mech_bind = One_Step_Binding()
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,

@@ -5,7 +5,7 @@ from ..core.mechanism import Mechanism
 from ..core.reaction import Reaction
 
 
-class OneStepReversibleConformationChange(Mechanism):
+class One_Step_Reversible_Conformation_Change(Mechanism):
     """Reversible conformational change mechanism.
 
     A mechanism that models the reversible conformational change of a species
@@ -202,7 +202,3 @@ class OneStepReversibleConformationChange(Mechanism):
                 k_reverse=kr,
             )
         ]
-
-
-# Legacy class names
-One_Step_Reversible_Conformation_Change = OneStepReversibleConformationChange
