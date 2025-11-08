@@ -12,8 +12,9 @@ class DNA(Component):
     """DNA sequence component with specified length.
 
     A `DNA` component represents a DNA sequence with a given length in base
-    pairs. This is a basic component that produces no reactions on its own
-    but can be used as a building block for more complex genetic constructs.
+    pairs. This component has no associated mechanism to generate species or
+    reactions, but can be used as a building block for more complex genetic
+    constructs.
 
     Parameters
     ----------
@@ -37,12 +38,6 @@ class DNA(Component):
     RNA : RNA sequence component.
     Protein : Protein sequence component.
     Component : Base class for biomolecular components.
-
-    Notes
-    -----
-    The DNA component produces no reactions by itself. It is typically used
-    as a building block in more complex components like DNA assemblies,
-    promoters, or genes that can be transcribed.
 
     Examples
     --------
@@ -86,8 +81,8 @@ class DNA(Component):
         Returns
         -------
         list of Species
-            List containing only the DNA species itself, as DNA produces no
-            additional species.
+            List containing only the DNA species itself, as DNA has no
+            associated mechanism to produce additional species.
 
         """
         species = [self.get_species()]
@@ -99,7 +94,7 @@ class DNA(Component):
         Returns
         -------
         list
-            Empty list, as DNA produces no reactions.
+            Empty list, as DNA has no associated mechanism.
 
         """
         return []
@@ -108,9 +103,9 @@ class DNA(Component):
 class RNA(Component):
     """RNA sequence component with specified length.
 
-    An `RNA` component represents an RNA sequence with a given length in
-    base pairs. This is a basic component that produces no reactions on its
-    own but can be used to represent mRNA, tRNA, rRNA, or other RNA
+    An `RNA` component represents an RNA sequence with a given length in base
+    pairs. This component has no associated mechanism to generate species or
+    reactions, but can be used to represent mRNA, tRNA, rRNA, or other RNA
     molecules.
 
     Parameters
@@ -135,12 +130,6 @@ class RNA(Component):
     DNA : DNA sequence component.
     Protein : Protein sequence component.
     Component : Base class for biomolecular components.
-
-    Notes
-    -----
-    The RNA component produces no reactions by itself. It is typically used
-    to represent transcripts or can be part of more complex components that
-    implement translation or RNA degradation mechanisms.
 
     Examples
     --------
@@ -184,8 +173,8 @@ class RNA(Component):
         Returns
         -------
         list of Species
-            List containing only the RNA species itself, as RNA produces no
-            additional species.
+            List containing only the RNA species itself, as RNA has not
+            associated mechanism to produce additional species.
 
         """
         species = [self.get_species()]
@@ -197,7 +186,7 @@ class RNA(Component):
         Returns
         -------
         list
-            Empty list, as RNA produces no reactions.
+            Empty list, as RNA has no associated mechanism.
 
         """
         return []
@@ -206,9 +195,9 @@ class RNA(Component):
 class Protein(Component):
     """Protein component with specified length.
 
-    A `Protein` component represents a protein or peptide with a given
-    length in amino acids. This is a basic component that produces no
-    reactions on its own but can be used to represent enzymes, transcription
+    A `Protein` component represents a protein or peptide with a given length
+    in amino acids. This component has no associated mechanism to generate
+    species or reactions, but can be used to represent enzymes, transcription
     factors, structural proteins, or any other protein molecules.
 
     Parameters
@@ -236,12 +225,6 @@ class Protein(Component):
     RNA : RNA sequence component.
     Enzyme : Enzymatic protein component.
     Component : Base class for biomolecular components.
-
-    Notes
-    -----
-    The Protein component produces no reactions by itself. It is typically
-    used to represent translation products or can be part of more complex
-    components like enzymes or binding complexes.
 
     Examples
     --------
@@ -286,7 +269,7 @@ class Protein(Component):
         -------
         list of Species
             List containing only the protein species itself, as Protein
-            produces no additional species.
+            has no associated mechanism to produce additional species.
 
         """
         species = [self.get_species()]
@@ -298,7 +281,7 @@ class Protein(Component):
         Returns
         -------
         list
-            Empty list, as Protein produces no reactions.
+            Empty list, as Protein has no associated mechanism.
 
         """
         return []
@@ -433,7 +416,7 @@ class Metabolite(Component):
         return self.species
 
     def update_species(self) -> List[Species]:
-        """Generate species for metabolite production and degradation.
+        """Use 'metabolic_pathway' mechanism to generate species.
 
         Uses the 'metabolic_pathway' mechanism (if present) to generate
         species for production reactions (from precursors to metabolite) and
@@ -442,9 +425,9 @@ class Metabolite(Component):
         Returns
         -------
         list of Species
-            List of species including the metabolite itself and any
-            additional species generated by the metabolic_pathway mechanism.
-            If no mechanism is present, returns only the metabolite species.
+            List of species including the metabolite itself and any additional
+            species generated by the 'metabolic_pathway' mechanism.  If no
+            mechanism is present, returns only the metabolite species.
 
         """
         species = [self.get_species()]
@@ -470,7 +453,7 @@ class Metabolite(Component):
         return species
 
     def update_reactions(self) -> List:
-        """Generate reactions for metabolite production and degradation.
+        """Use 'metabolic_pathway' mechanism to generate reactions.
 
         Uses the 'metabolic_pathway' mechanism (if present) to generate
         production reactions (from precursors to metabolite) and degradation
@@ -629,7 +612,7 @@ class ChemicalComplex(Component):
         return self.species
 
     def update_species(self) -> List[Species]:
-        """Generate species for complex binding reactions.
+        """Use 'binding' mechanism to generate species for binding reactions.
 
         Uses the 'binding' mechanism to generate all species needed for
         binding and unbinding reactions, including the individual species
@@ -656,7 +639,7 @@ class ChemicalComplex(Component):
         return species
 
     def update_reactions(self) -> List[Reaction]:
-        """Generate binding and unbinding reactions for the complex.
+        """Use 'binding' mechanism to generate binding/unbinding reactions.
 
         Uses the 'binding' mechanism to generate reactions for complex
         formation (binding) and dissociation (unbinding).
@@ -866,7 +849,7 @@ class Enzyme(Component):
         return self.enzyme
 
     def update_species(self) -> List[Species]:
-        """Generate species required for enzymatic catalysis.
+        """Use 'catalysis' mechanism to generate enzymatic species.
 
         Uses the 'catalysis' mechanism to generate all species needed for
         the enzymatic reaction, including enzyme, substrates, products, and
@@ -888,7 +871,7 @@ class Enzyme(Component):
         )
 
     def update_reactions(self) -> List[Reaction]:
-        """Generate reactions for enzymatic catalysis.
+        """Use 'catalysis' mechanism to generate enzymatic reactions.
 
         Uses the 'catalysis' mechanism to generate all reactions needed for
         the enzymatic conversion of substrates to products.

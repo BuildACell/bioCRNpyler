@@ -115,7 +115,7 @@ class BasicCatalysis(Mechanism):
         part_id=None,
         kcat=None,
     ):
-        """Generate reaction for basic catalysis.
+        """Generate reactions for basic catalysis.
 
         Creates a single irreversible mass-action reaction for catalytic
         conversion of substrate to product.
@@ -303,7 +303,7 @@ class BasicProduction(Mechanism):
         part_id=None,
         kcat=None,
     ):
-        """Generate reaction for basic production.
+        """Generate reactions for basic production.
 
         Creates a single irreversible mass-action reaction for catalytic
         production, with or without substrate consumption.

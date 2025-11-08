@@ -78,8 +78,7 @@ class Terminator(DNA_part):
         Returns
         -------
         list of Species
-            Empty list. Terminator components do not generate species
-            directly.
+            Empty list as terminator components have no associated mechanism.
 
         """
         return []
@@ -90,9 +89,12 @@ class Terminator(DNA_part):
         Returns
         -------
         list of Reaction
-            Empty list. Terminator components do not generate reactions
-            directly. Termination behavior is typically modeled through
-            transcription mechanism parameters.
+            Empty list as terminator components have no associated mechanism.
+
+        Notes
+        -----
+        Termination behavior is typically modeled through
+        transcription mechanism parameters.
 
         """
         return []

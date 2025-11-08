@@ -639,7 +639,7 @@ class CombinatorialConformation(Component):
             return str(state)
 
     def update_species(self):
-        """Generate all species for combinatorial conformation changes.
+        """Use 'conformation_change' mechanism to generate species.
 
         Uses the 'conformation_change' mechanism to generate species for
         all possible conformation transformations between `initial_states`
@@ -756,7 +756,7 @@ class CombinatorialConformation(Component):
         return list(set(species))
 
     def update_reactions(self):
-        """Generate all combinatorial conformation change reactions.
+        """Use 'conformation_change' mechanism to generate reactions.
 
         Uses the 'conformation_change' mechanism to generate reactions for
         all possible conformation transformations between initial_states
@@ -1187,7 +1187,7 @@ class CombinatorialConformationPromoter(CombinatorialConformation, Promoter):
         For each conformation, determines if it is transcriptionally active
         using the same logic as update_species(). Only active
         conformations generate transcription reactions via
-        Promoter.update_reactions().
+        `Promoter.update_reactions`.
 
         The component name is temporarily changed to a state-specific name
         for each conformation to ensure unique reaction identifiers.

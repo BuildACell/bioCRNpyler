@@ -122,7 +122,7 @@ class DiffusibleMolecule(Component):
         return self.substrate
 
     def update_species(self):
-        """Generate species for diffusion reactions.
+        """Use 'diffusion' mechanism to generate diffusion species.
 
         Uses the 'diffusion' mechanism to generate species in both
         compartments.
@@ -138,7 +138,7 @@ class DiffusibleMolecule(Component):
         return mech_diff.update_species(self.substrate, self.product)
 
     def update_reactions(self):
-        """Generate bidirectional diffusion reactions.
+        """Use 'diffusion' mechanism to generate diffusion reactions.
 
         Uses the 'diffusion' mechanism to generate reactions for passive
         diffusion between compartments.
@@ -348,7 +348,7 @@ class IntegralMembraneProtein(Component):
         return self.membrane_protein
 
     def update_species(self):
-        """Generate species for membrane protein insertion.
+        """Use 'membrane_insertion' to generate membrane insertion species.
 
         Uses the 'membrane_insertion' mechanism to generate species for
         the protein before and after insertion.
@@ -364,7 +364,7 @@ class IntegralMembraneProtein(Component):
         return mech_ins.update_species(self.membrane_protein, self.product)
 
     def update_reactions(self):
-        """Generate reactions for membrane protein insertion.
+        """Use 'membrane_insertion' to generate membrane insertion reactions.
 
         Uses the 'membrane_insertion' mechanism to generate reactions for
         protein integration into the membrane.
@@ -579,7 +579,7 @@ class MembraneChannel(Component):
         return self.integral_membrane_protein
 
     def update_species(self):
-        """Generate species for channel-mediated transport.
+        """Use 'transport' mechanism to generate channel-mediated species.
 
         Uses the 'transport' mechanism to generate species including the
         channel protein, substrate, and product.
@@ -596,7 +596,7 @@ class MembraneChannel(Component):
         )
 
     def update_reactions(self):
-        """Generate reactions for channel-mediated transport.
+        """Use 'transport' mechanism to generate channel-mediated reactions.
 
         Uses the 'transport' mechanism to generate reactions for substrate
         transport through the channel.
@@ -877,7 +877,7 @@ class MembranePump(Component):
         return self.membrane_pump
 
     def update_species(self):
-        """Generate species for ATP-dependent transport.
+        """Use 'trasnport' mechanism to generate ATP-dependent species.
 
         Uses the 'transport' mechanism to generate species including the
         pump protein, substrate, product, ATP, and ADP.
@@ -899,7 +899,7 @@ class MembranePump(Component):
         )
 
     def update_reactions(self):
-        """Generate reactions for ATP-dependent transport.
+        """Use 'trasnport' mechanism to generate ATP-dependent reactions.
 
         Uses the 'transport' mechanism to generate reactions for active
         transport coupled to ATP hydrolysis.
@@ -1146,7 +1146,7 @@ class MembraneSensor(Component):
         return self.membrane_sensor_protein
 
     def update_species(self):
-        """Generate species for two-component signal transduction.
+        """Use 'membrane_sensor' to generate species signaling species.
 
         Uses the 'membrane_sensor' mechanism to generate all species
         involved in the signaling pathway including sensor, response
@@ -1170,7 +1170,7 @@ class MembraneSensor(Component):
         )
 
     def update_reactions(self):
-        """Generate reactions for two-component signal transduction.
+        """Use 'membrane_sensor' to generate species signaling reactions.
 
         Uses the 'membrane_sensor' mechanism to generate reactions for
         signal detection, ATP-dependent phosphorylation, and

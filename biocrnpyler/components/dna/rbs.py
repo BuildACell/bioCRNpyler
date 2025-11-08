@@ -24,7 +24,7 @@ class RBS(DNA_part):
         Name of the RBS.
     assembly : DNAassembly, optional
         The DNA assembly containing this RBS. If provided, the assembly's
-        name is used to create default transcript and protein species.
+        name is used to generate default transcript and protein species.
     transcript : RNA, str, or None, optional
         The RNA transcript containing this RBS. If None and `assembly` is
         provided, creates an RNA species using the assembly's name.
@@ -123,7 +123,7 @@ class RBS(DNA_part):
             self.protein = self.set_species(protein, material_type='protein')
 
     def update_species(self):
-        """Generate species for translation reactions.
+        """Use the 'translation' mechanism to generate translation species.
 
         Uses the 'translation' mechanism to generate species for ribosome
         binding and protein production from the RNA transcript.
@@ -146,7 +146,7 @@ class RBS(DNA_part):
         return species
 
     def update_reactions(self):
-        """Generate translation reactions.
+        """Use the 'translation' mechanism to generate translation reactions.
 
         Uses the 'translation' mechanism to generate reactions for ribosome
         binding to the transcript and protein production.

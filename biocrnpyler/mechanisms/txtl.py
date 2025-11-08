@@ -135,7 +135,7 @@ class OneStepGeneExpression(Mechanism):
         part_id=None,
         **kwargs,
     ):
-        """Generate reaction for one-step gene expression.
+        """Generate reactions for one-step gene expression.
 
         Creates a single mass-action reaction representing direct gene
         expression from DNA to protein without intermediate transcript.
@@ -326,7 +326,7 @@ class SimpleTranscription(Mechanism):
         protein=None,
         **kwargs,
     ):
-        """Generate reaction for simple transcription.
+        """Generate reactions for simple transcription.
 
         Creates a single mass-action reaction representing transcription from
         DNA to mRNA. In expression mixtures without explicit transcription,
@@ -528,7 +528,7 @@ class SimpleTranslation(Mechanism):
         protein=None,
         **kwargs,
     ):
-        """Generate reaction for simple translation.
+        """Generate reactions for simple translation.
 
         Creates a single mass-action reaction representing translation from
         mRNA to protein.

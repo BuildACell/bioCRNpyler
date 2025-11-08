@@ -255,11 +255,11 @@ class GlobalMechanism(Mechanism):
     def update_reactions_global(
         self, species_list: List[Species], mixture, compartment=None
     ):
-        """Apply mechanism's update_reactions to filtered species in a list.
+        """Apply mechanism's `update_reactions` to filtered species in a list.
 
         Iterates through all species in the list, applies the filter to
         determine which species the mechanism acts upon, and calls
-        update_reactions for each applicable species.
+        `update_reactions` for each applicable species.
 
         Parameters
         ----------

@@ -555,7 +555,7 @@ class CombinatorialComplex(Component):
             return combinations
 
     def update_species(self):
-        """Generate all species for combinatorial binding reactions.
+        """Use 'binding' mechanism to generate combinatorial species.
 
         Uses the 'binding' mechanism to generate species for all possible
         binding combinations between initial_states and final_states,
@@ -584,7 +584,7 @@ class CombinatorialComplex(Component):
 
         Duplicate species are automatically removed from the final list.
         The combination_dict is populated during this process for use by
-        update_reactions().
+        `update_reactions`.
 
         """
         mech_b = self.get_mechanism('binding')
@@ -677,7 +677,7 @@ class CombinatorialComplex(Component):
         return list(set(species))
 
     def update_reactions(self):
-        """Generate all combinatorial binding reactions.
+        """Use 'binding' mechanism to generate combinatorial reactions.
 
         Uses the 'binding' mechanism to generate reactions for all possible
         binding combinations between initial_states and final_states,

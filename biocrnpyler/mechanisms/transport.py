@@ -118,7 +118,7 @@ class Simple_Diffusion(Mechanism):
         k_diff=None,
         **kwargs,
     ):
-        """Generate reaction for simple diffusion.
+        """Generate reactions for simple diffusion.
 
         Creates a single reversible mass-action reaction representing
         passive diffusion across a membrane with equal forward and reverse
@@ -604,7 +604,7 @@ class Simple_Transport(Mechanism):
         k_trnsp=None,
         **kwargs,
     ):
-        """Generate reaction for simple membrane protein transport.
+        """Generate reactions for simple membrane protein transport.
 
         Creates a single reversible mass-action reaction representing
         passive transport through a membrane channel with equal forward and

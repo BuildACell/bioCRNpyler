@@ -201,7 +201,7 @@ class EmptyMechanism(Mechanism):
         Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
 
     def update_species(self, component=None, part_id=None, **kwargs):
-        """Generate no species.
+        """Generate empty list of species.
 
         Parameters
         ----------
@@ -221,7 +221,7 @@ class EmptyMechanism(Mechanism):
         return []
 
     def update_reactions(self, component=None, part_id=None, **kwargs):
-        """Generate no reactions.
+        """Generate empty list of reactions.
 
         Parameters
         ----------

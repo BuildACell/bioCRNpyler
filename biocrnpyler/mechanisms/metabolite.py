@@ -162,7 +162,7 @@ class OneStepPathway(Mechanism):
         k=None,
         **kwargs,
     ):
-        """Generate metabolic pathway reaction.
+        """Generate metabolic pathway reactions.
 
         Creates a single irreversible mass-action reaction for the
         metabolic conversion of precursors to products.
