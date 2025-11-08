@@ -73,7 +73,7 @@ class ComponentEnumerator:
         ----------
         component : Component, optional
             The input component to enumerate from. Can be None for
-            enumerators that don't require an input component.
+            enumerators that do not require an input component.
 
         Returns
         -------
@@ -219,7 +219,7 @@ class GlobalComponentEnumerator(ComponentEnumerator):
     - Creating interaction networks
     - Enumerating components based on global constraints
 
-    **Performance Note:** Global enumerators may be more computationally
+    Performance note: Global enumerators may be more computationally
     expensive than local enumerators since they must consider all
     components.
 

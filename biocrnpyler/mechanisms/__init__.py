@@ -9,6 +9,7 @@ and species described in the :ref:`core_ref` section.
 """
 
 from .binding import *
+from .conformation import *
 from .enzyme import *
 from .global_mechanisms import *
 from .integrase import *

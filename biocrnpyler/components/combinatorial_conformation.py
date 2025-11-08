@@ -72,17 +72,15 @@ class CombinatorialConformation(Component):
 
     Notes
     -----
-    **Key Differences from CombinatorialComplex:**
+    Key differences from `CombinatorialComplex`:
 
-    - Operates on PolymerConformations instead of simple Species
-    - All conformations must share the same OrderedPolymerSpecies
+    - Operates on `PolymerConformation` objects instead of simple `Species`
+    - All conformations must share the same `OrderedPolymerSpecies`
     - Adds groups of species simultaneously to form complexes
     - Uses 'conformation_change' mechanism instead of 'binding'
 
-    **Reaction Generation:**
-
-    The component generates conformation change reactions based on
-    constraints:
+    Reaction generation: The component generates conformation change
+    reactions based on constraints:
 
     - Without intermediate_states:
       initial_states <--> final_states
@@ -90,9 +88,7 @@ class CombinatorialConformation(Component):
     - With intermediate_states:
       initial_states <--> intermediate_states <--> final_states
 
-    **Validation Requirements:**
-
-    All conformations must:
+    Validation requirements: All conformations must:
 
     1. Be PolymerConformation objects
     2. Contain exactly one unique OrderedPolymerSpecies
@@ -161,8 +157,8 @@ class CombinatorialConformation(Component):
         Raises
         ------
         ValueError
-            If states are not PolymerConformations, don't contain exactly
-            one polymer, or don't share the same OrderedPolymerSpecies.
+            If states are not PolymerConformations, do not contain exactly
+            one polymer, or do not share the same OrderedPolymerSpecies.
 
         Notes
         -----
@@ -659,15 +655,6 @@ class CombinatorialConformation(Component):
 
         Notes
         -----
-        The method handles two cases:
-
-        **With `intermediate_states`:**
-            1. Generate species: `initial_states` --> `intermediate_states`
-            2. Generate species: `intermediate_states` --> `final_states`
-
-        **Without `intermediate_states`:**
-            Generate species: initial_states --> final_states directly
-
         Duplicate species are automatically removed from the final list.
         The `combination_dict` is populated during this process for use by
         `update_reactions`.
@@ -786,16 +773,17 @@ class CombinatorialConformation(Component):
         -----
         The method handles two cases:
 
-        **With intermediate_states:**
+        With intermediate_states:
+
             1. Generate reactions: initial_states <--> intermediate_states
             2. Generate reactions: intermediate_states <--> final_states
 
-        **Without intermediate_states:**
-            Generate reactions: initial_states <--> final_states directly
+        Without intermediate_states: generate reactions:
+        initial_states <--> final_states directly.
 
         Duplicate reactions are automatically filtered out using
-        reactions_added_dict. The method uses combination_dict computed by
-        update_species() or computes it if needed.
+        `reactions_added_dict`. The method uses `combination_dict` computed by
+        `update_species` or computes it if needed.
 
         """
         mech_c = self.get_mechanism('conformation_change')
@@ -948,8 +936,6 @@ class CombinatorialConformationPromoter(CombinatorialConformation, Promoter):
 
     Notes
     -----
-    **Transcription Activity Logic:**
-
     A conformation is transcriptionally active if:
 
     1. (conformation in promoter_states AND promoter_states_on=True) OR

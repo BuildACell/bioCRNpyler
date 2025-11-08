@@ -464,12 +464,12 @@ class IntegraseSite(DNABindingSite):
         This method manages the complex bookkeeping required for integrase
         site recombination:
 
-        **Practice Run Mode** ('practice_run'=True):
-        During combinatorial enumeration's practice run, the method preserves
-        the initial configuration of linked sites by updating references in
+        Practice Run Mode ('practice_run'=True): During combinatorial
+        enumeration's practice run, the method preserves the initial
+        configuration of linked sites by updating references in
         partner sites to point to the newly created copy.
 
-        **Normal Mode** ('practice_run'=False or not specified):
+        Normal Mode ('practice_run'=False or not specified):
 
         - For intramolecular reactions: Only populates linked sites if both
           recombination partners are bound by integrase (or both unbound if
@@ -605,24 +605,24 @@ class IntegraseSite(DNABindingSite):
 
         Notes
         -----
-        **Reaction Generation Logic:**
-
         For each linked partner site, the method determines whether to
         generate a recombination reaction based on:
 
-        **Intramolecular reactions** (same DNA molecule):
+        1. Intramolecular reactions (same DNA molecule):
 
-        - Only generates reaction if both sites are properly bound (or
-          unbound if integrase_binding is False)
-        - Prevents duplicate reactions by checking if complex_parent is
-          already in the linked sites data
-        - Creates DNA loops, deletions, or inversions
+           - Only generates reaction if both sites are properly bound (or
+             unbound if integrase_binding is False)
+           - Prevents duplicate reactions by checking if complex_parent is
+             already in the linked sites data
+           - Creates DNA loops, deletions, or inversions
 
-        **Intermolecular reactions** (different DNA molecules):
+        2. Intermolecular reactions (different DNA molecules):
 
-        - Generates reactions for all DNA molecules listed in linked_sites
-        - These DNAs are added by partner sites that were processed earlier
-        - Creates DNA joining, exchange, or integration events
+           - Generates reactions for all DNA molecules listed in
+             linked_sites
+           - These DNAs are added by partner sites that were processed
+             earlier
+           - Creates DNA joining, exchange, or integration events
 
         The method uses the 'integration' mechanism to generate the actual
         recombination reactions with appropriate kinetic parameters

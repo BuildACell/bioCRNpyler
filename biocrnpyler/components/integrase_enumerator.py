@@ -59,8 +59,6 @@ class Polymer_transformation:
 
     Notes
     -----
-    **Template Mechanism:**
-
     The transformation works by:
 
     1. Analyzing partslist to identify parent polymers
@@ -69,7 +67,7 @@ class Polymer_transformation:
     4. When applied via `create_polymer`, replacing placeholders with
        actual parts from input polymers
 
-    **Placeholder System:**
+    Placeholder system:
 
     - Parts from polymers become placeholders referencing position in
       'input#'
@@ -312,7 +310,7 @@ class Polymer_transformation:
 
         Notes
         -----
-        **Transformation Process:**
+        Transformation process:
 
         1. Map polymer_list to 'input#' names
         2. For each template part:
@@ -323,8 +321,6 @@ class Polymer_transformation:
            - Handle complex species bound to parts
 
         3. Create output polymer with specified circularity
-
-        **Complex Handling:**
 
         When transforming parts with bound complexes, the method attempts
         to preserve bindings by replacing core parts within complexes.
@@ -547,37 +543,37 @@ class IntegraseRule:
 
     Notes
     -----
-    **Integrase Mechanism Types:**
+    Integrase mechanism types:
 
-    1. **Serine Integrases:**
+    1. Serine Integrases:
 
        - Recombine attB + attP --> attL + attR
        - Require matching dinucleotides
        - With directionality factors: attL + attR --> attB + attP
 
-    2. **Tyrosine Recombinases (Cre, Flp):**
+    2. Tyrosine Recombinases (Cre, Flp):
 
        - Homotypic sites: loxP + loxP --> loxP + loxP
        - Can be palindromic (bidirectional)
 
-    3. **Invertases:**
+    3. Invertases:
 
        - Only perform inversion reactions
        - Set allow_deletion=False, allow_integration=False
 
-    4. **Resolvases:**
+    4. Resolvases:
 
        - Only perform deletion reactions
        - Set allow_inversion=False, allow_integration=False
 
-    **Reaction Types:**
+    Reaction Types:
 
-    - **Inversion:** Two sites on same DNA, opposite directions -->
+    - Inversion: Two sites on same DNA, opposite directions -->
       region between sites flips
-    - **Deletion:** Two sites on same DNA, same direction --> region
+    - Deletion: Two sites on same DNA, same direction --> region
       between sites excised (forms circular product)
-    - **Integration:** Sites on different DNAs --> DNAs join
-    - **Recombination:** Two linear DNAs --> two recombinant linear DNAs
+    - Integration: Sites on different DNAs --> DNAs join
+    - Recombination: Two linear DNAs --> two recombinant linear DNAs
 
     Examples
     --------
@@ -667,7 +663,7 @@ class IntegraseRule:
         Raises
         ------
         AssertionError
-            If sites have different integrases or don't match this
+            If sites have different integrases or do not match this
             integrase.
 
         """
@@ -841,31 +837,29 @@ class IntegraseRule:
 
         Notes
         -----
-        **Four Reaction Types:**
+        Four reaction types:
 
-        1. **Inversion (intramolecular, opposite directions):**
+        1. Inversion (intramolecular, opposite directions):
 
            - Same construct, sites point opposite directions
            - Result: Region between sites is flipped
            - Circularity preserved
 
-        2. **Deletion (intramolecular, same direction):**
+        2. Deletion (intramolecular, same direction):
 
            - Same construct, sites point same direction
            - Result: Two constructs - one with deleted region, one
              circular excised fragment
 
-        3. **Integration (intermolecular, one circular):**
+        3. Integration (intermolecular, one circular):
 
            - Sites on different constructs, one circular
            - Result: Single construct (circular if both were circular)
 
-        4. **Recombination (intermolecular, both linear):**
+        4. Recombination (intermolecular, both linear):
 
            - Sites on two linear constructs
            - Result: Two recombinant linear constructs
-
-        **Transformation Storage:**
 
         Polymer_transformation templates are stored in:
 
@@ -875,9 +869,7 @@ class IntegraseRule:
         These templates are used during CRN compilation to generate
         reactions and species.
 
-        **Duplicate Detection:**
-
-        Checks existing_dna_constructs for matches (including circular
+        Existing_dna_constructs are checked for matches (including circular
         permutations and reversals) to avoid creating duplicates.
 
         Examples
@@ -1173,7 +1165,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
 
     Notes
     -----
-    **Enumeration Process:**
+    Enumeration process:
 
     1. Identify all integrase attachment sites in components
     2. Group sites by integrase type
@@ -1186,13 +1178,11 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
 
     4. Return list of new DNA constructs
 
-    **Global Enumeration:**
-
     This is a global enumerator because integrase reactions can occur
     between sites on different constructs (intermolecular reactions).
     Access to all components is necessary.
 
-    **Integrase Types Supported:**
+    Integrase Types Supported:
 
     - Serine integrases (attB/attP --> attL/attR)
     - Tyrosine recombinases (Cre, Flp with homotypic sites)
@@ -1200,10 +1190,8 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
     - Resolvases (deletion only)
     - Custom integrase rules
 
-    **Duplicate Handling:**
-
-    Uses `find_dna_construct` to detect duplicates including circular
-    permutations and reversals, preventing redundant construct
+    The `find_dna_construct` method is used to detect duplicates including
+    circular permutations and reversals, preventing redundant construct
     generation.
 
     Examples
@@ -1328,20 +1316,18 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
 
         Notes
         -----
-        **Matching Logic:**
-
-        For circular constructs:
+        For circular constructs, the following matching logic is used:
 
         - Try all circular permutations
         - For each permutation, try forward and reverse orientations
 
-        For linear constructs:
+        For linear constructs, the following matching logic is used:
 
         - Try forward orientation
         - Try reverse orientation
 
-        Uses directionless_hash for fast initial filtering before
-        detailed species comparison.
+        Uses `directionless_hash` for fast initial filtering before detailed
+        species comparison.
 
         """
         matched_construct = None
@@ -1429,7 +1415,7 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
 
         Notes
         -----
-        **Enumeration Algorithm:**
+        Enumeration algorithm:
 
         1. Extract all DNA_construct components
         2. List all integrase sites by integrase type
@@ -1446,16 +1432,13 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
 
         4. Return all newly generated constructs
 
-        **Reaction Types Generated:**
-
-        Depending on IntegraseRule settings:
+        Depending on the `IntegraseRule` settings, the following reaction
+        types are generated:
 
         - Inversions (same construct, opposite directions)
         - Deletions (same construct, same direction)
         - Integrations (different constructs, at least one circular)
         - Recombinations (two linear constructs)
-
-        **Duplicate Prevention:**
 
         The `integrate` method checks existing_dna_constructs (includes
         both previously_enumerated and newly created constructs) to avoid

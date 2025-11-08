@@ -33,7 +33,7 @@ class Species(OrderedMonomer):
         The compartment containing this species. If None, uses default
         compartment. If str, creates a new Compartment with that name.
     **kwargs
-        Additional keyword arguments passed to `OrderedMonomer.__init__`.
+        Additional keyword arguments passed to `OrderedMonomer`.
 
     Attributes
     ----------
@@ -57,8 +57,6 @@ class Species(OrderedMonomer):
 
     Notes
     -----
-    **Naming Rules:**
-
     Species names must:
 
     - Contain only letters, numbers, and underscores
@@ -67,17 +65,15 @@ class Species(OrderedMonomer):
     - Start with a letter or number (if starting with number, requires
       material_type)
 
-    **String Representation:**
-
     Species are represented as strings in the format:
+
     `material_type_name_attribute1_attribute2_compartment`
 
     Components are omitted if empty or default values.
 
-    **Equality:**
-
-    Two species are equal if they have the same name, material_type,
-    attributes, compartment, parent, and position.
+    Two species
+    are equal if they have the same name, material_type, attributes,
+    compartment, parent, and position.
 
     Examples
     --------
@@ -832,29 +828,22 @@ class ComplexSpecies(Species):
 
     Notes
     -----
-    **String Representation:**
-
     ComplexSpecies add an additional '_' at the end of their string
     representation to differentiate edge cases.
 
-    **Order Independence:**
-
-    Species order does not affect equality:
-    ComplexSpecies([s1, s2]) == ComplexSpecies([s2, s1])
+    Species order does not affect equality: ComplexSpecies([s1, s2])
+    == ComplexSpecies([s2, s1])
 
     For ordered complexes, use `OrderedComplexSpecies`.
-
-    **Automatic Naming:**
 
     If no name is provided, the complex is named by concatenating all
     constituent species names with counts for duplicates.
 
-    **Creation:**
-
-    Always use the `Complex` function to create ComplexSpecies:
+    Always use the `Complex` function to create `ComplexSpecies`:
 
     >>> # Correct
     >>> complex_species = bcp.Complex([S1, S2])
+
     >>> # Incorrect (will raise warning)
     >>> complex_species = bcp.ComplexSpecies([S1, S2])
 
@@ -1201,22 +1190,17 @@ class OrderedComplexSpecies(ComplexSpecies):
 
     Notes
     -----
-    **Order Significance:**
-
     Unlike `ComplexSpecies`, the order of species matters:
     OrderedComplexSpecies([s1, s2]) != OrderedComplexSpecies([s2, s1])
 
-    **String Representation:**
-
     Similar to ComplexSpecies, OrderedComplexSpecies add an additional
     '_' at the end.
-
-    **Creation:**
 
     Always use `Complex` with `ordered=True`:
 
     >>> # Correct
     >>> complex_species = bcp.Complex([S1, S2], ordered=True)
+
     >>> # Incorrect (will raise warning)
     >>> complex_species = bcp.OrderedComplexSpecies([S1, S2])
 
@@ -1430,19 +1414,13 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
 
     Notes
     -----
-    **Reaction Flexibility:**
-
     When used as a reaction input, either the entire
     OrderedPolymerSpecies or one of its internal Species (with
     Species.parent = OrderedPolymerSpecies) can be passed to mechanisms.
 
-    **Internal Species:**
-
-    Species inside an OrderedPolymerSpecies model multiple binding sites
-    and/or functional regions. ComplexSpecies can be formed at specific
-    locations by passing the internal Species.
-
-    **Circular Topology:**
+    Species inside an `OrderedPolymerSpecies` model multiple binding
+    sites and/or functional regions. `ComplexSpecies` can be formed at
+    specific locations by passing the internal Species.
 
     The `circular` attribute indicates circular topology but does not
     automatically enforce circular constraints in operations.
@@ -1709,26 +1687,20 @@ class PolymerConformation(Species, MonomerCollection):
 
     Notes
     -----
-    **Naming Convention:**
-
     Auto-generated names follow the format:
     `conformation__[Polymer1]_[Polymer2]_[indices]_[Complex1]_[Complex2]__`
 
     where indices encode which polymers each complex binds to and the list of
-    PolymerSpecies and ComplexSpecies are in alphabetical order.
+    `PolymerSpecies` and `ComplexSpecies` are in alphabetical order.
 
-    **Hypergraph Structure:**
-
-    PolymerConformation represents a hypergraph where:
+    A `PolymerConformation` represents a hypergraph where:
 
     - Monomers are vertices
-    - ComplexSpecies are hyperedges connecting arbitrary numbers of
+    - `ComplexSpecies are hyperedges connecting arbitrary numbers of
       vertices
     - Multiple edges between the same vertices are allowed
 
-    **Creation:**
-
-    Users typically don't create PolymerConformations directly. The
+    Users typically do not create PolymerConformations directly. The
     `Complex` function automatically creates them when complexing
     monomers from OrderedPolymerSpecies.
 
@@ -2294,18 +2266,14 @@ class Complex:
 
     Notes
     -----
-    **Usage Cases:**
-
     The `__new__` method implements logic for different scenarios:
 
-    1. **No parents:** Creates ComplexSpecies or OrderedComplexSpecies
-    2. **Single polymer parent:** Creates OrderedPolymerSpecies with
+    1. No parents: Creates ComplexSpecies or OrderedComplexSpecies
+    2. Single polymer parent: Creates OrderedPolymerSpecies with
        complex at binding site
-    3. **Multiple polymer parents or conformations:** Creates
+    3. Multiple polymer parents or conformations: Creates
        PolymerConformation merging all complexes
-    4. **Error cases:** Raises exceptions for invalid combinations
-
-    **Automatic Type Selection:**
+    4. Error cases: Raises exceptions for invalid combinations
 
     The correct species type is automatically determined from the input,
     allowing flexible complex formation without explicit type selection.
@@ -2368,17 +2336,17 @@ class Complex:
 
         Notes
         -----
-        **Cases Handled:**
+        Cases handled:
 
-        1. No Species have parents -> ComplexSpecies or
-           OrderedComplexSpecies
-        2. Single Species has parent OrderedPolymerSpecies (no parent) ->
-           OrderedPolymerSpecies with complex at binding site
-        3. Multiple Species with OrderedPolymerSpecies parents (no
+        1. No Species have parents -> `ComplexSpecies` or
+           1OrderedComplexSpecies`
+        2. Single Species has parent `OrderedPolymerSpecies` (no parent) ->
+           `OrderedPolymerSpecies` with complex at binding site
+        3. Multiple Species with OrderedPolymerSpecies1` parents (no
            parents) -> Error (must use PolymerConformations)
         4. Entire OrderedPolymerSpecies in PolymerConformations -> Error
-        5. One or more Species from PolymerConformations ->
-           PolymerConformation merging all complexes
+        5. One or more `Species` from polymer Conformations ->
+           `PolymerConformation` merging all complexes
 
         """
         species = []

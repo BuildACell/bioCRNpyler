@@ -39,8 +39,8 @@ class ExpressionDilutionMixture(Mixture):
         Name of the mixture for identification and parameter lookup.
     mechanisms : dict, list, or Mechanism, optional
         Default mechanisms for components in this mixture. Can be a dict with
-        mechanism types (str) as keys and `Mechanism` objects as values, a
-        list of `Mechanism` objects, or a single `Mechanism`.
+        mechanism types (str) as keys and mechanism objects as values, a
+        list of mechanism objects, or a single `Mechanism`.
     components : list of Component or Component, optional
         Components to include in the mixture. Components are deep-copied when
         added to prevent modification of original objects.
@@ -255,8 +255,8 @@ class SimpleTxTlDilutionMixture(Mixture):
         Name of the mixture for identification and parameter lookup.
     mechanisms : dict, list, or Mechanism, optional
         Default mechanisms for components in this mixture. Can be a dict with
-        mechanism types (str) as keys and `Mechanism` objects as values, a
-        list of `Mechanism` objects, or a single `Mechanism`.
+        mechanism types (str) as keys and mechanism objects as values, a
+        list of mechanism objects, or a single `Mechanism`.
     components : list of Component or Component, optional
         Components to include in the mixture. Components are deep-copied when
         added to prevent modification of original objects.
@@ -443,8 +443,8 @@ class TxTlDilutionMixture(Mixture):
         Name for the ribonuclease protein species.
     mechanisms : dict, list, or Mechanism, optional
         Default mechanisms for components in this mixture. Can be a dict with
-        mechanism types (str) as keys and `Mechanism` objects as values, a
-        list of `Mechanism` objects, or a single `Mechanism`.
+        mechanism types (str) as keys and mechanism objects as values, a
+        list of mechanism objects, or a single `Mechanism`.
     components : list of Component or Component, optional
         Components to include in the mixture. Components are deep-copied when
         added to prevent modification of original objects.

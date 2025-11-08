@@ -336,9 +336,9 @@ class Two_Step_Cooperative_Binding(Mechanism):
     -----
     This mechanism models cooperative binding as a two-step process:
 
-    1. **Oligomerization**: Binder molecules first associate to form an
+    1. Oligomerization: Binder molecules first associate to form an
        oligomer (dimer, trimer, etc.)
-    2. **Binding**: The oligomer then binds to the target
+    2. Binding: The oligomer then binds to the target
 
     This is useful for modeling:
 
@@ -542,7 +542,8 @@ class Two_Step_Cooperative_Binding(Mechanism):
         ------
         ValueError
             If component is None and `kb`, `ku`, or `cooperativity` is not
-            provided, or if `kb` and `ku` don't contain exactly 2 values each.
+            provided, or if `kb` and `ku` do not contain exactly 2 values
+            each.
 
         Notes
         -----
@@ -1164,7 +1165,7 @@ class One_Step_Binding(Mechanism):
             Complex containing all binders and bindees.
         part_id : str, optional
             Identifier for parameter lookup. If None, automatically generated
-            from species names as 'name1_name2_..._nameN'.
+            from species names as `name1_name2_..._nameN`.
         **kwargs
             Additional keyword arguments (unused).
 

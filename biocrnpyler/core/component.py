@@ -17,7 +17,7 @@ class Component:
     """Base class for biomolecular components in BioCRNpyler.
 
     Component subclasses represent different kinds of biomolecules such as
-    DNA, RNA, proteins, and complexes. Components interact with `Mechanism`
+    DNA, RNA, proteins, and complexes. Components interact with mechanism
     objects to generate chemical reaction network (CRN) species and reactions
     during compilation. This class must be subclassed to provide functionality
     by overriding the `update_species` and `update_reactions` methods.
@@ -29,8 +29,8 @@ class Component:
         attribute will be used.
     mechanisms : dict or list, optional
         Custom mechanisms to override default mechanisms from the mixture.
-        Can be a dict with mechanism types (str) as keys and `Mechanism`
-        objects as values, or a list of `Mechanism` objects.
+        Can be a dict with mechanism types (str) as keys and mechanism
+        objects as values, or a list of mechanism objects.
     parameters : dict, optional
         Dictionary of parameter values to add to the component's parameter
         database. Keys follow the format (mechanism, part_id, param_name).

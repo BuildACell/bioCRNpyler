@@ -104,7 +104,7 @@ class GlobalMechanism(Mechanism):
     Filter dictionary usage:
 
     - Keys can be material_type, attribute names, or species names
-    - Values are boolean (True = apply mechanism, False = don't apply)
+    - Values are boolean (True = apply mechanism, False = do not apply)
     - When conflicts occur, a warning is issued and default_on is used
     - Attributes take precedence over material_type when both are present
 
@@ -724,10 +724,10 @@ class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
     -----
     This mechanism handles three cases:
 
-    1. **Pure RNA species**: Degraded completely (RNA --> ∅)
-    2. **RNA in ComplexSpecies**: Complex is broken apart, RNA is degraded,
+    1. Pure RNA species: Degraded completely (RNA --> ∅)
+    2. RNA in ComplexSpecies: Complex is broken apart, RNA is degraded,
        non-RNA components are released
-    3. **OrderedPolymerSpecies**: Not affected by this mechanism
+    3. OrderedPolymerSpecies: Not affected by this mechanism
 
     The mechanism generates Michaelis-Menten reactions with three rate
     constants per species. ComplexSpecies containing RNA are separated

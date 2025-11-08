@@ -10,7 +10,7 @@
 
 """Parameter processing module.
 
-**Parameter Value Defaulting**
+*Parameter Value Defaulting*
 
 Not all parameters need to have the required headings.  The only two required
 columns are 'param_val' and 'param_name'.  BioCRNpyler uses a form of
@@ -18,7 +18,7 @@ parameter name defaulting discussed below to find default parameters if no
 exact match is in the config file. This makes it easy to set default
 parameters for things like 'ku' and 'ktx' to quickly build models.
 
-**Parameters inside BioCRNpyler:**
+*Parameters inside BioCRNpyler*
 
 Inside of bioCRNpyler, parameters are stored as a dictionary key value pair:
 `(mechanism_name, part_id, param_name) --> param_val`. If that particular
@@ -35,7 +35,7 @@ and/or components.
 Units are read directly read from the column labeled "units" in the
 parameter file.
 
-**Initial Conditions are also Parameters**
+*Initial Conditions are also Parameters*
 
 The initial condition of any `Species` (or `Component`) will also be looked up
 as a parameters automatically.  Initial conditions can be customized in
@@ -813,8 +813,6 @@ class ParameterDatabase(object):
 
     Notes
     -----
-    **Parameter Lookup Hierarchy:**
-
     When searching for a parameter with `find_parameter(mechanism,
     part_id, param_name)`, the database searches in this order:
 
@@ -828,8 +826,6 @@ class ParameterDatabase(object):
     This enables flexible parameter specification where specific parameters
     override more general ones.
 
-    **Parameter File Format:**
-
     Parameter files should have these columns (column names are flexible):
 
     - 'param_name' or 'parameter_name' (required)
@@ -839,8 +835,6 @@ class ParameterDatabase(object):
     - 'units' or 'unit' (optional)
 
     Additional columns are stored in parameter_info.
-
-    **Parameter File Location:**
 
     Parameter files are searched for in the following directories:
 
@@ -1272,7 +1266,7 @@ class ParameterDatabase(object):
 
         Notes
         -----
-        **Accepted Column Names (case-sensitive, first match used):**
+        Accepted column names (case-sensitive, first match used):
 
         - param_name: 'parameter_name', 'parameter', 'param', 'param_name'
         - param_val: 'val', 'value', 'param_val', 'parameter_value'
@@ -1282,7 +1276,7 @@ class ParameterDatabase(object):
 
         Additional columns are stored in parameter_info dictionary.
 
-        **File Format Example (CSV)::**
+        File Format Example (CSV)::
 
         .. code::
 
@@ -1597,8 +1591,6 @@ class ParameterDatabase(object):
 
         Notes
         -----
-        **Parameter Defaulting Hierarchy:**
-
         The method searches for parameters in this order:
 
         1. (mechanism.name, part_id, param_name)

@@ -125,21 +125,15 @@ class OrderedPolymer(MonomerCollection):
 
     Notes
     -----
-    **Direction Convention:**
-
     Directions indicate the orientation of monomers in the polymer:
 
     - 'forward' or 0: Standard/positive orientation
     - 'reverse' or 1: Inverted/negative orientation
     - None: No specified orientation
 
-    **Immutability:**
-
     The polymer tuple is immutable, but monomers can be added via
     `insert`, `append`, or `replace` methods. Direct assignment to
     positions uses `__setitem__` which calls `replace`.
-
-    **Copying Behavior:**
 
     All monomers are deep-copied when added to ensure the polymer
     maintains independent references. This prevents external modifications
@@ -728,13 +722,9 @@ class OrderedMonomer:
 
     Notes
     -----
-    **Copying Behavior:**
-
     OrderedMonomers are deep-copied when inserted into polymers to ensure
     independence. Use `get_orphan` to create a copy without a parent
     reference, or `get_removed` to create a fully detached copy.
-
-    **Polymer Component Detection:**
 
     The `is_polymer_component` flag and `find_polymer_component` method
     support scenarios where monomers may be nested within complex species.

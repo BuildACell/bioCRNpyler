@@ -56,8 +56,6 @@ class Reaction(object):
 
     Notes
     -----
-    **Reaction Format:**
-
     A reaction has the form:
 
     .. math::
@@ -71,13 +69,11 @@ class Reaction(object):
     .. math::
         \sum_i n_i I_i \rightleftharpoons \sum_i m_i O_i
 
-    **Stoichiometry Handling:**
+    Stoichiometry is handled as follows:
 
     - Species lists automatically combine duplicates
     - A + A --> B becomes 2A --> B
     - Stoichiometry affects rate calculations in mass action kinetics
-
-    **Propensity Types:**
 
     Different propensity types implement different rate laws:
 

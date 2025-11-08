@@ -41,8 +41,8 @@ class ExpressionExtract(Mixture):
         Name of the mixture for identification and parameter lookup.
     mechanisms : dict, list, or Mechanism, optional
         Default mechanisms for components in this mixture. Can be a dict with
-        mechanism types (str) as keys and `Mechanism` objects as values, a
-        list of `Mechanism` objects, or a single `Mechanism`.
+        mechanism types (str) as keys and mechanism objects as values, a
+        list of mechanism objects, or a single `Mechanism`.
     components : list of Component or Component, optional
         Components to include in the mixture. Components are deep-copied when
         added to prevent modification of original objects.
@@ -250,8 +250,8 @@ class SimpleTxTlExtract(Mixture):
         Name of the mixture for identification and parameter lookup.
     mechanisms : dict, list, or Mechanism, optional
         Default mechanisms for components in this mixture. Can be a dict with
-        mechanism types (str) as keys and `Mechanism` objects as values, a
-        list of `Mechanism` objects, or a single `Mechanism`.
+        mechanism types (str) as keys and mechanism objects as values, a
+        list of mechanism objects, or a single `Mechanism`.
     components : list of Component or Component, optional
         Components to include in the mixture. Components are deep-copied when
         added to prevent modification of original objects.
@@ -324,8 +324,8 @@ class SimpleTxTlExtract(Mixture):
 
     - 'transcription' : `SimpleTranscription` - Simple catalytic
       transcription (DNA --> DNA + mRNA) without explicit RNAP binding
-    - 'translation' : `SimpleTranslation` - Simple catalytic translation
-      (mRNA --> mRNA + Protein) without explicit ribosome binding
+    - 'translation' : `SimpleTranslation` - Simple catalytic
+      translation (mRNA --> mRNA + Protein) without explicit ribosome binding
     - 'rna_degradation' : `Dilution` - Global RNA degradation mechanism
       (mRNA --> ∅) applied to all RNA species
     - 'catalysis' : `BasicCatalysis` - Simple catalytic reactions without
@@ -421,8 +421,8 @@ class TxTlExtract(Mixture):
         Name for the ribonuclease protein species.
     mechanisms : dict, list, or Mechanism, optional
         Default mechanisms for components in this mixture. Can be a dict with
-        mechanism types (str) as keys and `Mechanism` objects as values, a
-        list of `Mechanism` objects, or a single `Mechanism`.
+        mechanism types (str) as keys and mechanism objects as values, a
+        list of mechanism objects, or a single `Mechanism`.
     components : list of Component or Component, optional
         Components to include in the mixture. Components are deep-copied when
         added to prevent modification of original objects.
@@ -616,8 +616,8 @@ class EnergyTxTlExtract(Mixture):
         Name for the fuel species used for NTP regeneration (e.g., 3PGA).
     mechanisms : dict, list, or Mechanism, optional
         Default mechanisms for components in this mixture. Can be a dict with
-        mechanism types (str) as keys and `Mechanism` objects as values, a
-        list of `Mechanism` objects, or a single `Mechanism`.
+        mechanism types (str) as keys and mechanism objects as values, a
+        list of mechanism objects, or a single `Mechanism`.
     components : list of Component or Component, optional
         Components to include in the mixture. Components are deep-copied when
         added to prevent modification of original objects.

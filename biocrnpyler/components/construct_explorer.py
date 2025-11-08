@@ -80,7 +80,7 @@ class ConstructExplorer(LocalComponentEnumerator):
         """Check for loops in plasmids (?).
 
         If we already went around the plasmid, then what we're checking for is
-        continuing transcripts or proteins. We don't want to start making new
+        continuing transcripts or proteins. We do not want to start making new
         transcripts because we already checked this area for promoters.
 
         """

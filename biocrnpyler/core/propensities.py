@@ -633,7 +633,7 @@ class GeneralPropensity(Propensity):
         If propensity_species or propensity_parameters contain invalid
         types.
     ValueError
-        If species or parameters in lists don't appear in the formula.
+        If species or parameters in lists do not appear in the formula.
 
     See Also
     --------
@@ -819,18 +819,18 @@ class MassAction(Propensity):
 
     Notes
     -----
-    **Deterministic (ODE) propensity:**
-
-    For reaction A + B --> C with rate constant k:
+    Deterministic (ODE) propensity: For reaction A + B --> C with rate
+    constant k:
 
     .. math::
+
         \text{rate} = k [A] [B]
 
-    **Stochastic (Gillespie) propensity:**
-
-    For reaction A + B --> C with rate constant k:
+    Stochastic (Gillespie) propensity: For reaction A + B --> C with
+    rate constant k:
 
     .. math::
+
         \text{propensity} &= k \cdot A \cdot (B-1) \text{ if } A=B \\
         \text{propensity} &= k \cdot A \cdot B \text{ otherwise}
 
@@ -838,13 +838,13 @@ class MassAction(Propensity):
     selection. For stoichiometric coefficient n > 1:
 
     .. math::
+
         \text{factor} = S \cdot (S-1) \cdot ... \cdot (S-n+1)
 
-    **Reversibility:**
-
-    If k_reverse is provided, the reaction is reversible:
+    If `k_reverse` is provided, the reaction is reversible:
 
     .. math::
+
         A + B \rightleftharpoons C
 
     Two kinetic laws are created: one for forward, one for reverse.
@@ -1163,10 +1163,10 @@ class Hill(Propensity):
     -----
     This is an abstract base class. Use the specific subclasses:
 
-    - **HillPositive**: Activation, :math:`k s_1^n / (K^n + s_1^n)`
-    - **HillNegative**: Repression, :math:`k / (1 + (s_1/K)^n)`
-    - **ProportionalHillPositive**: :math:`k d s_1^n / (K^n + s_1^n)`
-    - **ProportionalHillNegative**: :math:`k d / (1 + (s_1/K)^n)`
+    - `HillPositive`: Activation, :math:`k s_1^n / (K^n + s_1^n)`
+    - `HillNegative`: Repression, :math:`k / (1 + (s_1/K)^n)`
+    - `ProportionalHillPositive`: :math:`k d s_1^n / (K^n + s_1^n)`
+    - `ProportionalHillNegative`: :math:`k d / (1 + (s_1/K)^n)`
 
     Hill functions are not reversible - k_reverse is not supported.
 
@@ -1416,12 +1416,13 @@ class HillPositive(Hill):
 
     Notes
     -----
-    **Mathematical Formula:**
+    The following formula is implemented:
 
     .. math::
-        p(s_1; k, K, n) = \frac{k s_1^n}{K^n + s_1^n}
 
-    **Behavior:**
+        p(s_1; k, K, n) = \frac{k s_1^n}{K^n + s_1^n},
+
+    leading to the following behaviors:
 
     - When s1 = 0: rate ≈ 0
     - When s1 = K: rate = k/2
@@ -1515,12 +1516,13 @@ class HillNegative(Hill):
 
     Notes
     -----
-    **Mathematical Formula:**
+    The following mathematical formula is implemented:
 
     .. math::
+
         p(s_1; k, K, n) = \frac{k}{1 + (s_1/K)^n}
 
-    **Behavior:**
+    leading to the following behavior:
 
     - When s1 = 0: rate = k
     - When s1 = K: rate = k/2
@@ -1614,18 +1616,19 @@ class ProportionalHillPositive(HillPositive):
 
     Notes
     -----
-    **Mathematical Formula:**
+    The following mathematical formula: is used for the popensity:
 
     .. math::
+
         p(s_1, d; k, K, n) = \frac{k d s_1^n}{K^n + s_1^n}
 
-    This is commonly used for transcription where:
+    This is commonly used for transcription, where
 
     - d = DNA template concentration
     - s1 = transcription factor concentration
     - Rate is proportional to both template and TF activation
 
-    **Behavior:**
+    This results in the following behaviors:
 
     - When d = 0: rate = 0 (no template/enzyme)
     - When s1 = 0: rate ≈ 0 (no activation)
@@ -1725,18 +1728,19 @@ class ProportionalHillNegative(HillNegative):
 
     Notes
     -----
-    **Mathematical Formula:**
+    The following mathematical formula: is used:
 
     .. math::
+
         p(s_1, d; k, K, n) = \frac{k d}{1 + (s_1/K)^n}
 
-    This is commonly used for repressed transcription where:
+    This is commonly used for repressed transcription where
 
     - d = DNA template concentration
     - s1 = repressor concentration
     - Rate is proportional to template but repressed by s1
 
-    **Behavior:**
+    and resulting in the following behaviors:
 
     - When d = 0: rate = 0 (no template/enzyme)
     - When s1 = 0: rate = k*d (fully derepressed)

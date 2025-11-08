@@ -319,11 +319,11 @@ class Metabolite(Component):
         Name of the metabolite.
     attributes : list of str, optional
         List of attribute tags to associate with the metabolite species.
-    precursors : list of (Species, str, Component, or None), optional
+    precursors : list of Species, str, Component, or None, optional
         List of chemical species that are directly transformed into this
         metabolite via the production mechanism. None represents
         constitutive production (production from nothing).
-    products : list of (Species, str, Component, or None), optional
+    products : list of Species, str, Component, or None, optional
         List of chemical species produced from this metabolite via the
         degradation mechanism. None represents total degradation
         (degradation to nothing).
@@ -516,7 +516,7 @@ class ChemicalComplex(Component):
 
     Parameters
     ----------
-    species : list of (Species, str, or Component)
+    species : list of Species, str, or Component
         List of species that form the complex. Must contain at least two
         elements. Each element can be a `Species` object, string name, or
         `Component` with an associated species.
@@ -695,11 +695,11 @@ class Enzyme(Component):
         The enzyme species that catalyzes the reaction. Can be a `Species`
         object, a string name (creates new protein Species), or a
         `Component` with an associated species.
-    substrates : list of (Species, str, or Component)
+    substrates : list of Species, str, or Component
         List of substrate species that are consumed by the enzymatic
         reaction. Each element can be a `Species` object, string name, or
         `Component`.
-    products : list of (Species, str, or Component)
+    products : list of Species, str, or Component
         List of product species that are produced by the enzymatic
         reaction. Each element can be a `Species` object, string name, or
         `Component`.

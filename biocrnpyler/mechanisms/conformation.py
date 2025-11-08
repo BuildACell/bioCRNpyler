@@ -42,11 +42,11 @@ class One_Step_Reversible_Conformation_Change(Mechanism):
     -----
     This mechanism is used to model conformational changes including:
 
-    - **Protein folding**: Native <--> denatured states
-    - **Allosteric transitions**: Inactive <--> active enzyme forms
-    - **DNA structural changes**: B-DNA <--> Z-DNA transitions
-    - **Receptor activation**: Closed <--> open channel states
-    - **Molecular switches**: Any two-state molecular system
+    - Protein folding: Native <--> denatured states
+    - Allosteric transitions: Inactive <--> active enzyme forms
+    - DNA structural changes: B-DNA <--> Z-DNA transitions
+    - Receptor activation: Closed <--> open channel states
+    - Molecular switches: Any two-state molecular system
 
     The mechanism requires two rate constants:
 

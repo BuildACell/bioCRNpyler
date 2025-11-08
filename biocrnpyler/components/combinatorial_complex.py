@@ -23,14 +23,14 @@ class CombinatorialComplex(Component):
     final_states : ComplexSpecies or list of ComplexSpecies
         The final complex(es) to be formed. All binding reactions
         ultimately lead to these states.
-    initial_states : list of (Species or ComplexSpecies), optional
+    initial_states : list of Species or ComplexSpecies, optional
         Starting species that bind together to form final_states. If None,
         defaults to all individual species contained within final_states.
     intermediate_states : list of ComplexSpecies, optional
         Allowed intermediate complexes formed during binding. Restricts
         the binding pathway. If None, all possible intermediates are
         enumerated.
-    excluded_states : list of (Species or ComplexSpecies), optional
+    excluded_states : list of Species or ComplexSpecies, optional
         Species or complexes that are NOT allowed to form. If None, no
         complexes are excluded.
     name : str, optional
@@ -255,7 +255,7 @@ class CombinatorialComplex(Component):
 
         Parameters
         ----------
-        initial_states : list of (Species or ComplexSpecies), optional
+        initial_states : list of Species or ComplexSpecies, optional
             Starting species for combinatorial binding. If None, defaults
             to all individual species in final_states (sub_species).
 
@@ -377,7 +377,7 @@ class CombinatorialComplex(Component):
 
         Parameters
         ----------
-        excluded_states : list of (Species or ComplexSpecies), optional
+        excluded_states : list of Species or ComplexSpecies, optional
             Species or complexes that are NOT allowed to form. If None,
             no exclusions are applied (empty list).
 

@@ -45,10 +45,10 @@ class OneStepPathway(Mechanism):
     with rate constant 'k'. It provides flexibility to model various types
     of metabolic processes:
 
-    - **Standard conversion**: Multiple precursors convert to multiple
+    - Standard conversion: Multiple precursors convert to multiple
       products
-    - **Creation**: Products appear spontaneously (precursor=None)
-    - **Degradation**: Precursors disappear (product=None)
+    - Creation: Products appear spontaneously (precursor=None)
+    - Degradation: Precursors disappear (product=None)
 
     The mechanism does not explicitly model enzymes or intermediate
     complexes, making it suitable for:
@@ -203,9 +203,9 @@ class OneStepPathway(Mechanism):
         The reaction follows mass-action kinetics with rate constant 'k'.
         The mechanism supports three modes:
 
-        - **Standard**: precursors --> products
-        - **Creation**: [] --> products (when precursor is None)
-        - **Degradation**: precursors --> [] (when product is None)
+        - Standard: precursors --> products
+        - Creation: [] --> products (when precursor is None)
+        - Degradation: precursors --> [] (when product is None)
 
         Multiple species of the same type in the precursor or product list
         determine the stoichiometry of that species in the reaction.
