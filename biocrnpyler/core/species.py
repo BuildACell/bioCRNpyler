@@ -1696,7 +1696,7 @@ class PolymerConformation(Species, MonomerCollection):
     A `PolymerConformation` represents a hypergraph where:
 
     - Monomers are vertices
-    - `ComplexSpecies are hyperedges connecting arbitrary numbers of
+    - `ComplexSpecies` are hyperedges connecting arbitrary numbers of
       vertices
     - Multiple edges between the same vertices are allowed
 

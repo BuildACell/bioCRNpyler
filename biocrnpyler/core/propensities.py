@@ -645,7 +645,7 @@ class GeneralPropensity(Propensity):
     The propensity_function string must be a valid mathematical expression
     that can be parsed by libsbml.parseL3Formula(). It can include:
 
-    - Arithmetic operators: +, -, *, /, ^
+    - Arithmetic operators: `+, -, *, /, ^`
     - Mathematical functions: exp, log, sin, cos, etc.
     - Species names (as strings matching their representation)
     - Parameter names (matching ParameterEntry.parameter_name)

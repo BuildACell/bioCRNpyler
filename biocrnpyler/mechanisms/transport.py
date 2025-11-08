@@ -1241,15 +1241,16 @@ class Primary_Active_Transport_MM(Mechanism):
         Raises
         ------
         AttributeError
-            If component or part_id is None (required for parameter lookup).
+            If `component` or `part_id` is None (required for parameter
+            lookup).
 
         Notes
         -----
         The reaction scheme follows this pathway:
 
-        1. MP + Sub <--> MP:Sub (`GeneralPropensity with Heaviside using
+        1. MP + Sub <--> MP:Sub (`GeneralPropensity` with Heaviside using
            'kb_subMP', reverse rate: 'ku_subMP')
-        2. MP:Sub + nATP <--> MP:Sub:nATP (GeneralPropensity with Heaviside
+        2. MP:Sub + nATP <--> MP:Sub:nATP (`GeneralPropensity` with Heaviside
            using 'kb_subMPnATP', reverse rate: 'ku_subMPnATP')
         3. MP:Sub:nATP --> MP:Prod:nATP (conformational change, rate:
            'k_trnspMP')

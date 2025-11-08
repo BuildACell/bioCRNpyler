@@ -845,7 +845,7 @@ class ParameterDatabase(object):
     The directories are search in this order and the first parameter file that
     is found is returned.  For files in the BioCRNpyler source code directory,
     common filename patterns are of the form '<type>/<name>_parameters.tsv'
-    where <type> is 'components', `mechanisms', or 'mixtures'.
+    where <type> is 'components', 'mechanisms', or 'mixtures'.
 
     Examples
     --------

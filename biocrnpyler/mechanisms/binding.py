@@ -1233,7 +1233,7 @@ class One_Step_Binding(Mechanism):
             Complex containing all binders and bindees.
         part_id : str, optional
             Identifier for parameter lookup. If None, automatically generated
-            from species names as 'name1_name2_..._nameN'.
+            from species names as `name1_name2_..._nameN`.
         kb : Parameter or float, optional
             Forward binding rate constant. If None, retrieved from component
             parameters.
