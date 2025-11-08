@@ -1,62 +1,170 @@
 Binding
 -------
-- :class:`biocrnpyler.mechanisms.binding.One_Step_Cooperative_Binding`
-- :class:`biocrnpyler.mechanisms.binding.Two_Step_Cooperative_Binding`
-- :class:`biocrnpyler.mechanisms.binding.Combinatorial_Cooperative_Binding`
-- :class:`biocrnpyler.mechanisms.binding.One_Step_Binding`
+
+.. automodule:: biocrnpyler.mechanisms.binding
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mechanisms
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    One_Step_Cooperative_Binding
+    Two_Step_Cooperative_Binding
+    Combinatorial_Cooperative_Binding
+    One_Step_Binding
 
 Conformation
 ------------
-- :class:`biocrnpyler.mechanisms.conformation.One_Step_Reversible_Conformation_Change`
+
+.. automodule:: biocrnpyler.mechanisms.conformation
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mechanisms
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    One_Step_Reversible_Conformation_Change
 
 Enzyme
 ------
-- :class:`biocrnpyler.mechanisms.enzyme.BasicCatalysis`
-- :class:`biocrnpyler.mechanisms.enzyme.BasicProduction`
-- :class:`biocrnpyler.mechanisms.enzyme.MichaelisMenten`
-- :class:`biocrnpyler.mechanisms.enzyme.MichaelisMentenReversible`
-- :class:`biocrnpyler.mechanisms.enzyme.MichaelisMentenCopy`
+
+.. automodule:: biocrnpyler.mechanisms.enzyme
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mechanisms
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    BasicCatalysis
+    BasicProduction
+    MichaelisMenten
+    MichaelisMentenReversible
+    MichaelisMentenCopy
 
 Global Mechanisms
 -----------------
-- :class:`biocrnpyler.mechanisms.global_mechanisms.GlobalMechanism`
-- :class:`biocrnpyler.mechanisms.global_mechanisms.Dilution`
-- :class:`biocrnpyler.mechanisms.global_mechanisms.AnitDilutionConstiutiveCreation`
-- :class:`biocrnpyler.mechanisms.global_mechanisms.Degradation_mRNA_MM`
-- :class:`biocrnpyler.mechanisms.global_mechanisms.Deg_Tagged_Degradation`
+
+.. automodule:: biocrnpyler.mechanisms.global_mechanisms
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mechanisms
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    GlobalMechanism
+    Dilution
+    AntiDilutionConstitutiveCreation
+    Degradation_mRNA_MM
+    Deg_Tagged_Degradation
 
 Integrase
 ---------
-- :class:`biocrnpyler.mechanisms.integrase.BasicIntegration`
-- :class:`biocrnpyler.mechanisms.integrase.EnzymeIntegration`
+
+.. automodule:: biocrnpyler.mechanisms.integrase
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mechanisms
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    BasicIntegration
+    EnzymeIntegration
 
 Metabolite
 ----------
-- :class:`biocrnpyler.mechanisms.metabolite.OneStepPathway`
+
+.. automodule:: biocrnpyler.mechanisms.metabolite
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mechanisms
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    OneStepPathway
 
 Signaling
 ---------
-- :class:`biocrnpyler.mechanisms.signaling.Membrane_Signaling_Pathway_MM`
+
+.. automodule:: biocrnpyler.mechanisms.signaling
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mechanisms
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    Membrane_Signaling_Pathway_MM
 
 Transport
 ---------
-- :class:`biocrnpyler.mechanisms.transport.Simple_Diffusion`
-- :class:`biocrnpyler.mechanisms.transport.Membrane_Protein_Integration`
-- :class:`biocrnpyler.mechanisms.transport.Simple_Transport`
-- :class:`biocrnpyler.mechanisms.transport.Facilitated_Transport_MM`
-- :class:`biocrnpyler.mechanisms.transport.Primary_Active_Transport_MM`
+
+.. automodule:: biocrnpyler.mechanisms.transport
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mechanisms
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    Simple_Diffusion
+    Membrane_Protein_Integration
+    Simple_Transport
+    Facilitated_Transport_MM
+    Primary_Active_Transport_MM
 
 Txtl
 ----
-- :class:`biocrnpyler.mechanisms.txtl.OneStepGeneExpression`
-- :class:`biocrnpyler.mechanisms.txtl.SimpleTranscription`
-- :class:`biocrnpyler.mechanisms.txtl.SimpleTranslation`
-- :class:`biocrnpyler.mechanisms.txtl.PositiveHillTranscription`
-- :class:`biocrnpyler.mechanisms.txtl.NegativeHillTranscription`
-- :class:`biocrnpyler.mechanisms.txtl.Transcription_MM`
-- :class:`biocrnpyler.mechanisms.txtl.Translation_MM`
-- :class:`biocrnpyler.mechanisms.txtl.Energy_Transcription_MM`
-- :class:`biocrnpyler.mechanisms.txtl.Energy_Translation_MM`
-- :class:`biocrnpyler.mechanisms.txtl.multi_tx`
-- :class:`biocrnpyler.mechanisms.txtl.multi_tl`
+
+.. automodule:: biocrnpyler.mechanisms.txtl
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mechanisms
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    OneStepGeneExpression
+    SimpleTranscription
+    SimpleTranslation
+    PositiveHillTranscription
+    NegativeHillTranscription
+    Transcription_MM
+    Translation_MM
+    Energy_Transcription_MM
+    Energy_Translation_MM
+    multi_tx
+    multi_tl
 
