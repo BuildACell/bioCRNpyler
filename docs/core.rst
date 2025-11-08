@@ -16,16 +16,16 @@ are occassions when it is easier to work directly at this level.
 
 
 BioCRNpyler represents chemical reaction networks using
-:class:`~core.species.Species`, :class:`~core.reaction.Reaction`, and
-:class:`~core.propensities.Propensity` objects.
+:class:`~core.Species`, :class:`~core.Reaction`, and
+:class:`~core.Propensity` objects.
 
 Species
 -------
 
-A :class:`~core.species.Species` represents a molecular type or state
+A :class:`~core.Species` represents a molecular type or state
 in the model. Species can be simple chemicals, labeled complexes, or
 structured entities with attributes such as name, material type, and
-optional :class:`~core.compartment.Compartment`.
+optional :class:`~core.Compartment`.
 
 Key features:
 
@@ -41,9 +41,9 @@ Example:
     RNAP = bcp.Species('RNAP', material_type='protein')
     GFP_DNA = bcp.Species('GFP', material_type='dna', compartment='cell')
 
-Species objects are used throughout BioCRNpyler to define reactants and 
-products in reactions. They also support automatic naming conventions 
-during compilation.
+Species objects are used throughout BioCRNpyler to define reactants
+and products in reactions. They also support automatic naming
+conventions during compilation.
 
 The `material_type` attribute specifies the biological category of the
 species, such as DNA, RNA, protein, or small molecules
@@ -69,7 +69,7 @@ about defining and using compartments are provided below.
 Reactions
 ---------
 
-A :class:`~core.reaction.Reaction` defines a chemical transformation with:
+A :class:`~core.Reaction` defines a chemical transformation with:
 
 - Inputs (reactants)
 - Outputs (products)
@@ -119,13 +119,15 @@ phenomenological approximations.
 
 Built-in propensity types:
 
-- :class:`~core.propensities.MassAction`: classic law-of-mass-action
-  kinetics 
-- :class:`~core.propensities.HillPositive` and
-  :class:`~core.propensities.HillNegative`: for regulatory logic 
-- :class:`~core.propensities.GeneralHill`: custom cooperativity
-- :class:`~core.propensities.CustomPropensity`: user-defined symbolic
-  expressions 
+- :class:`~core.MassAction`: classic law-of-mass-action
+  kinetics
+- :class:`~core.HillPositive` and
+  :class:`~core.HillNegative`: for regulatory logic
+- :class:`~core.ProportionalHillPositive` and
+  :class:`~core.ProportionalHillNegative`: positive and negative Hill
+  functions proportional to a species concentration
+- :class:`~core.GeneralPropensity`: user-defined symbolic
+  expressions
 
 For example, a Hill repression propensity models regulatory effects with
 a rate law of the form:
@@ -154,15 +156,15 @@ repressor)::
 Compartments
 ------------
 
-A :class:`~core.compartment.Compartment` represents a physical or
-logical groupings of :class:`~core.species.Species`. They can model:
+A :class:`~core.Compartment` represents a physical or
+logical groupings of :class:`~core.Species`. They can model:
 
 - Cellular compartments (e.g. cytoplasm, nucleus)
 - Vesicles or other spatial domains
 - Logical labels for species organization
 
-Compartments help structure large models and support SBML location-aware 
-exports.
+Compartments help structure large models and support SBML
+location-aware exports.
 
 Example::
 
@@ -188,13 +190,13 @@ section).
 Compiling and Simulating CRNs
 ------------------------------
 
-Once you have defined Species and Reactions in BioCRNpyler, you can 
-combine them into a Chemical Reaction Network (CRN) object for export 
-or simulation. This is the final, fully specified form of your model, 
+Once you have defined species and reactions in BioCRNpyler, you can
+combine them into a chemical reaction network (CRN) object for export
+or simulation. This is the final, fully specified form of your model,
 ready for analysis with other tools.
 
-You can create a CRN manually by specifying the list of Species and 
-Reactions::
+You can create a CRN manually by specifying the list of species and
+reactions::
 
     crn = bcp.ChemicalReactionNetwork(
         species=[s1, s2, ..., sN],
@@ -202,40 +204,40 @@ Reactions::
         initial_concentration_dict=initial_conditions
     )
 
-Here, `initial_concentration_dict` is an optional dictionary mapping 
-Species to their initial values::
+Here, `initial_concentration_dict` is an optional dictionary mapping
+species to their initial values::
 
     initial_conditions = {
         A: 10,
         B: 1
     }
 
-Any Species not given an explicit initial condition will default to 0. 
-This manual approach is useful for building small models directly or 
+Any species not given an explicit initial condition will default to 0.
+This manual approach is useful for building small models directly or
 for custom post-processing.
 
-More typically in BioCRNpyler, you generate a CRN by *compiling* a 
-Mixture. The Mixture contains Components, Mechanisms, and parameters 
+More typically in BioCRNpyler, you generate a CRN by *compiling* a
+mixture. The mixture contains components, mechanisms, and parameters
 that automatically generate all the required Species and Reactions::
 
     crn = mixture.compile_crn()
 
-This method applies the Mixture's Mechanisms to its Components, builds
+This method applies the mixture's mechanisms to its components, builds
 all Species and Reactions, and returns a fully defined CRN object. The
 resulting CRN can then be exported or simulated. More information on
 components, mixtures, and mechanisms is given in subsequent chapters.
 
-BioCRNpyler supports exporting CRNs to the SBML standard for broad 
-compatibility with other modeling tools. The `write_sbml_file` method 
+BioCRNpyler supports exporting CRNs to the SBML standard for broad
+compatibility with other modeling tools. The `write_sbml_file` method
 saves the CRN in SBML format to a specified file::
 
     crn.write_sbml_file('my_model.xml')
 
-This file can be opened in simulation software such as COPASI or 
+This file can be opened in simulation software such as COPASI or
 MATLAB's SimBiology and shared with collaborators.
 
-For direct simulation in Python, BioCRNpyler also supports integration 
-with the bioscrape simulator. The `simulate_with_bioscrape` function 
+For direct simulation in Python, BioCRNpyler also supports integration
+with the bioscrape simulator. The `simulate_with_bioscrape` function
 runs stochastic or deterministic simulations of the CRN::
 
     result = crn.simulate_with_bioscrape_via_sbml(
@@ -251,21 +253,6 @@ This function returns simulation results as a NumPy array or pandas
 DataFrame (default), making it easy to analyze trajectories, plot
 dynamics, or fit parameters.
 
-Together, these tools make it easy to go from a high-level BioCRNpyler 
-design to a fully specified, exportable, and simulatable chemical 
+Together, these tools make it easy to go from a high-level BioCRNpyler
+design to a fully specified, exportable, and simulatable chemical
 reaction network model.
-
-
-API Reference
--------------
-
-More information on the core elements of chemical reaction networks
-can be found in the following modules:
-
-
-.. autosummary::
-
-   biocrnpyler.core.compartment
-   biocrnpyler.core.propensities
-   biocrnpyler.core.reaction
-   biocrnpyler.core.species

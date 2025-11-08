@@ -5,10 +5,10 @@ BioCRNpyler Tutorials
 The following Jupyter notebooks provide a set of tutorial
 introductions to BioCRNpyler functionality.
 
-.. rubric:: Note
+.. note::
 
-The tutorials here should probably eventually become independent
-chapters in the User Guide.
+   The tutorials here should probably eventually become independent
+   chapters in the User Guide.
 
 .. toctree::
    :maxdepth: 1
@@ -21,3 +21,17 @@ chapters in the User Guide.
    examples/7. Network Plotting Examples.ipynb
    examples/8. Developer Overview.ipynb
    examples/9. DNA_construct Examples.ipynb
+
+In addition, the following specialized tutorials are available.
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/1. Combinatorial Promoters.ipynb
+   examples/2. Membrane Models.ipynb
+   examples/3. Multiple Occupancy in TX-TL.ipynb
+   examples/4. Combinatorial Conformation Modeling.ipynb
+   examples/5. TX-TL Toolbox.ipynb
+   examples/6. Integrase Examples.ipynb
+   examples/7. Transport_Models.ipynb
+   examples/8. Multicellular_Transport.ipynb
