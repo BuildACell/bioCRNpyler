@@ -81,6 +81,11 @@ class ChemicalReactionNetwork(object):
     Once created, species and reactions cannot be removed, only added. This
     ensures CRN validity is maintained throughout its lifetime.
 
+    Chemical reaction networks can be simulated by writing the output
+    as SMBL using `write_sbml_file` and then loading into an external
+    simulator, or by using the bioscrape package, which can be called
+    directly using `simulate_with_bioscrape_via_sbml`.
+
     Examples
     --------
     Create a simple CRN manually:
