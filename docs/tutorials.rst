@@ -5,11 +5,6 @@ BioCRNpyler Tutorials
 The following Jupyter notebooks provide a set of tutorial
 introductions to BioCRNpyler functionality.
 
-.. note::
-
-   The tutorials here should probably eventually become independent
-   chapters in the User Guide.
-
 .. toctree::
    :maxdepth: 1
 
@@ -28,7 +23,6 @@ In addition, the following specialized tutorials are available.
    :maxdepth: 1
 
    examples/1. Combinatorial Promoters.ipynb
-   examples/2. Membrane Models.ipynb
    examples/3. Multiple Occupancy in TX-TL.ipynb
    examples/4. Combinatorial Conformation Modeling.ipynb
    examples/5. TX-TL Toolbox.ipynb
