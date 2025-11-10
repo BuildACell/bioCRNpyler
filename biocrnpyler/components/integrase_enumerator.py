@@ -12,43 +12,104 @@ from .dna.construct import Construct, DNA_construct
 from .dna.misc import IntegraseSite
 
 
-class Polymer_transformation:  # TODO: rename using standard conventions
+class Polymer_transformation:
+    """Template for transforming polymer sequences through recombination.
+
+    A `Polymer_transformation` defines a template for creating new polymers
+    from existing ones through recombination reactions. The template
+    specifies a parts list containing placeholders (monomers from input
+    polymers) and new parts (with no parent). This enables complex DNA
+    rearrangements like integration, deletion, and inversion.
+
+    Parameters
+    ----------
+    partslist : list
+        List of parts defining the output polymer. Can contain:
+
+        - OrderedMonomers from existing polymers (placeholders)
+        - Parts with parent=None (inserted into new polymer)
+        - Tuples of (part, direction)
+
+    circular : bool, default=False
+        Whether the output polymer should be circular.
+    parentsdict : dict, optional
+        Dictionary mapping parent polymers to input names ('input1',
+        'input2', etc.). If None, automatically generated.
+    material_type : str, default='dna'
+        Material type for the created polymer.
+
+    Attributes
+    ----------
+    number_of_inputs : int
+        Number of distinct input polymers required.
+    parentsdict : dict
+        Mapping from parent polymers to generic input names.
+    partslist : list
+        Template parts list with dummy placeholders.
+    circular : bool
+        Whether output is circular.
+    material_type : str
+        Material type of output polymer.
+
+    See Also
+    --------
+    IntegraseRule : Defines integrase recombination rules.
+    Integrase_Enumerator : Enumerates integrase products.
+    OrderedMonomer : Monomer in ordered polymer.
+
+    Notes
+    -----
+    The transformation works by:
+
+    1. Analyzing partslist to identify parent polymers
+    2. Creating generic 'input#' placeholders for each parent
+    3. Storing template with dummy placeholders
+    4. When applied via `create_polymer`, replacing placeholders with
+       actual parts from input polymers
+
+    Placeholder system:
+
+    - Parts from polymers become placeholders referencing position in
+      'input#'
+    - Parts with parent=None are copied directly into output
+    - Complexes bound to parts are transferred to new positions
+
+    Examples
+    --------
+    Create a simple transformation template:
+
+    >>> # Define template: take element 0 from input1, element 2 from
+    >>> # input2 (reversed), and insert a promoter
+    >>> template = Polymer_transformation(
+    ...     partslist=[
+    ...         polymer1[0],  # Placeholder for position 0
+    ...         [polymer2[2], 'reverse'],  # Position 2, reversed
+    ...         promoter  # New part (parent=None)
+    ...     ],
+    ...     circular=False
+    ... )
+    >>> # Apply template to create new polymer
+    >>> new_polymer = template.create_polymer([polymer1, polymer2])
+
+    Integration reaction template:
+
+    >>> # Combine two plasmids at cut sites
+    >>> template = Polymer_transformation(
+    ...     partslist=(
+    ...         plasmid1[:cut1] +
+    ...         [[prod_site1, 'forward']] +
+    ...         plasmid2[cut2+1:] +
+    ...         [[prod_site2, 'forward']] +
+    ...         plasmid1[cut1+1:]
+    ...     ),
+    ...     circular=True
+    ... )
+
+    """
+
     def __init__(
         self, partslist, circular=False, parentsdict=None, material_type='dna'
     ):
-        """Initalized a polymer transformation.
-
-        A Polymer transformation is like a generic transformation of a polymer
-        sequence.  You specify a parts list that would make up the output
-        polymer. This list can contain:
-
-        parts from ordered polymers
-        parts that aren't in any polymers (have parent = None)
-        parts from ordered polymers are considered as "placeholders"
-        parts with parent = None are inserted into the new polymer.
-
-        Also you can specify if the output should be circular or not.
-
-        Example:
-        valid partslist:
-        partslist = [
-            Monomer(forward,3,"input1"),
-            Monomer(reverse,1,"input2"),
-            Promoter(forward,None,None)
-        ]
-
-        then, self.create_polymer([polymer1,polymer2]) takes element 3 from
-        polymer1 and puts it forward, element 1 from polymer 2, and a Promoter
-        object and creates a new polymer by feeding these three monomers into
-        a polymer constructor.
-
-        new_polymer.parts_list = [
-            polymer1[3].setdir("forward"),
-            polymer2[1].setdir("reverse"),
-            [Promoter,"forward"]
-        ]
-
-        """
         if parentsdict is None:
             # the input to this function is a list of monomers that belong to
             # various parents.  Each different parent that is represented in
@@ -131,10 +192,22 @@ class Polymer_transformation:  # TODO: rename using standard conventions
         self.material_type = material_type
 
     def renumber_output(self, output_renumbering_function):
-        """Change the ordering of the output list.
+        """Change the ordering of the output parts list.
 
-        Use the output_renumbering_function, which takes in an int and
-        returns an int which is the new index of the part.
+        Applies a renumbering function to rearrange the parts in the
+        template, useful for handling circular permutations or reversals.
+
+        Parameters
+        ----------
+        output_renumbering_function : callable
+            Function that takes an index (int) and returns tuple of
+            (new_index, direction), where direction is 'f' (forward) or
+            'r' (reverse).
+
+        Notes
+        -----
+        Modifies self.partslist in place. Used to adjust transformations
+        when matching against existing constructs.
 
         """
         new_partslist = []
@@ -150,17 +223,40 @@ class Polymer_transformation:  # TODO: rename using standard conventions
         self.partslist = new_partslist
 
     def get_renumbered(self, output_renumbering_function):
-        """Return copy of transformation with output indexes renumbered."""
+        """Return copy of transformation with output indexes renumbered.
+
+        Parameters
+        ----------
+        output_renumbering_function : callable
+            Function mapping old indexes to (new_index, direction) tuples.
+
+        Returns
+        -------
+        Polymer_transformation
+            Copy of this transformation with renumbered output.
+
+        """
         rxn_copied = copy.copy(self)
         rxn_copied.renumber_output(output_renumbering_function)
         return rxn_copied
 
     def reversed(self):
-        """Return a circularly permuted version of self.
+        """Return circularly permuted version with rotated inputs.
 
-        That means the inputs are shuffled around For example, we had input1,
-        input2, input3. Now we will have input1=input2, input2=input3,
-        input3=input1.
+        Creates a new transformation where inputs are shuffled: input1
+        becomes input2, input2 becomes input3, ..., last input becomes
+        input1. Used for handling symmetric integrase reactions.
+
+        Returns
+        -------
+        Polymer_transformation
+            New transformation with rotated input assignments.
+
+        Notes
+        -----
+        For single-input transformations, returns self unchanged. Essential
+        for bidirectional integrase reactions where site1/site2 roles can
+        be swapped.
 
         """
         new_parentsdict = {}
@@ -192,13 +288,42 @@ class Polymer_transformation:  # TODO: rename using standard conventions
             )
 
     def create_polymer(self, polymer_list, **kwargs):
-        """Create a new polymer from the template saved inside this class.
+        """Create a new polymer from the template using input polymers.
 
-        A polymer_list is a list of polymers from which the resulting polymer
-        is made. Some of the parts which compose the output polymer don't have
-        a parent, and therefore are new parts.  In these cases anything bound
-        to the previous location of these parts will be bound to the new ones
-        as well.
+        Applies the transformation template to concrete input polymers,
+        replacing placeholders with actual parts and inserting new parts.
+
+        Parameters
+        ----------
+        polymer_list : list of Polymer
+            List of input polymers. Must have at least number_of_inputs
+            polymers. Order matters: first polymer is 'input1', second is
+            'input2', etc.
+        **kwargs
+            Additional keyword arguments (currently unused).
+
+        Returns
+        -------
+        Polymer
+            New polymer created by applying the transformation. Type
+            matches the input polymers' class.
+
+        Notes
+        -----
+        Transformation process:
+
+        1. Map polymer_list to 'input#' names
+        2. For each template part:
+
+           - If placeholder: grab part from appropriate input polymer at
+             specified position
+           - If new part: insert the part or its dna_species
+           - Handle complex species bound to parts
+
+        3. Create output polymer with specified circularity
+
+        When transforming parts with bound complexes, the method attempts
+        to preserve bindings by replacing core parts within complexes.
 
         """
         polymer_dict = {
@@ -293,11 +418,30 @@ class Polymer_transformation:  # TODO: rename using standard conventions
 
     @classmethod
     def dummify(cls, in_polymer, name):
-        """Create a simplified, disconnected polymer.
+        """Create a simplified placeholder polymer.
 
-        The polymer that has the same number of monomers, direction of
-        monomers, and name as the input polymer, but is otherwise
-        disconnected.
+        Generates a generic polymer with the same structure (length,
+        directions, circularity) as the input but without specific parts.
+        Used for creating template placeholders.
+
+        Parameters
+        ----------
+        in_polymer : Polymer
+            The polymer to simplify.
+        name : str
+            Name for the dummy polymer (e.g., 'input1').
+
+        Returns
+        -------
+        NamedPolymer
+            Simplified polymer with generic OrderedMonomers at each
+            position.
+
+        Notes
+        -----
+        The dummy polymer preserves only structural information (number of
+        monomers, their directions, and circularity) while removing
+        specific part identities.
 
         """
         # this is used specifically with polymerTransformation. Dummified
@@ -312,6 +456,15 @@ class Polymer_transformation:  # TODO: rename using standard conventions
         return NamedPolymer(out_list, name, circular=circular)
 
     def __repr__(self):
+        """Return string representation of the transformation.
+
+        Returns
+        -------
+        str
+            Human-readable string showing the transformation template with
+            part names, positions, and directions.
+
+        """
         part_texts = []
         for plist in self.partslist:
             part = plist[0]
@@ -339,6 +492,122 @@ class Polymer_transformation:  # TODO: rename using standard conventions
 
 
 class IntegraseRule:
+    """Rules defining integrase recombination reactions and products.
+
+    An `IntegraseRule` specifies how an integrase enzyme acts on
+    attachment sites to generate recombined DNA products. Defines which
+    site pairs can react, what products they form, and which reaction
+    types (deletion, integration, inversion) are allowed.
+
+    Parameters
+    ----------
+    name : str, optional
+        Name of the integrase (default='int1').
+    reactions : dict, optional
+        Dictionary mapping (site1_type, site2_type) tuples to product
+        site type. Default: {('attB', 'attP'): 'attL',
+        ('attP', 'attB'): 'attR'}
+    allow_deletion : bool, default=True
+        Whether to allow deletion reactions (intramolecular, same
+        direction).
+    allow_integration : bool, default=True
+        Whether to allow integration reactions (intermolecular).
+    allow_inversion : bool, default=True
+        Whether to allow inversion reactions (intramolecular, opposite
+        directions).
+
+    Attributes
+    ----------
+    name : str
+        Integrase name.
+    integrase_species : Species
+        The integrase protein species.
+    reactions : dict
+        Reaction rules mapping site pairs to products.
+    attsites : list
+        All attachment site types involved in reactions.
+    allow_deletion : bool
+        Whether deletions are allowed.
+    allow_integration : bool
+        Whether integrations are allowed.
+    allow_inversion : bool
+        Whether inversions are allowed.
+    integrations_to_do : list
+        List of integrations to perform during compilation.
+
+    See Also
+    --------
+    IntegraseSite : DNA part representing attachment sites.
+    Integrase_Enumerator : Enumerator using integrase rules.
+    Polymer_transformation : Template for DNA transformations.
+
+    Notes
+    -----
+    Integrase mechanism types:
+
+    1. Serine Integrases:
+
+       - Recombine attB + attP --> attL + attR
+       - Require matching dinucleotides
+       - With directionality factors: attL + attR --> attB + attP
+
+    2. Tyrosine Recombinases (Cre, Flp):
+
+       - Homotypic sites: loxP + loxP --> loxP + loxP
+       - Can be palindromic (bidirectional)
+
+    3. Invertases:
+
+       - Only perform inversion reactions
+       - Set allow_deletion=False, allow_integration=False
+
+    4. Resolvases:
+
+       - Only perform deletion reactions
+       - Set allow_inversion=False, allow_integration=False
+
+    Reaction Types:
+
+    - Inversion: Two sites on same DNA, opposite directions -->
+      region between sites flips
+    - Deletion: Two sites on same DNA, same direction --> region
+      between sites excised (forms circular product)
+    - Integration: Sites on different DNAs --> DNAs join
+    - Recombination: Two linear DNAs --> two recombinant linear DNAs
+
+    Examples
+    --------
+    Define a standard serine integrase:
+
+    >>> int_rule = bcp.IntegraseRule(
+    ...     name='PhiC31',
+    ...     reactions={
+    ...         ('attB', 'attP'): 'attL',
+    ...         ('attP', 'attB'): 'attR'
+    ...     }
+    ... )
+
+    Define a Cre recombinase (homotypic):
+
+    >>> cre_rule = bcp.IntegraseRule(
+    ...     name='Cre',
+    ...     reactions={
+    ...         ('loxP', 'loxP'): 'loxP',
+    ...         ('loxP', 'loxP'): 'loxP'  # Symmetric
+    ...     }
+    ... )
+
+    Define an invertase (inversion only):
+
+    >>> inv_rule = bcp.IntegraseRule(
+    ...     name='Hin',
+    ...     reactions={('hixL', 'hixR'): 'hixL', ('hixR', 'hixL'): 'hixR'},
+    ...     allow_deletion=False,
+    ...     allow_integration=False
+    ... )
+
+    """
+
     def __init__(
         self,
         name=None,
@@ -347,14 +616,6 @@ class IntegraseRule:
         allow_integration=True,
         allow_inversion=True,
     ):
-        """The integrase mechanism is a mechanism at the level of DNA.
-
-        It creates DNA species which the integrase manipulations would lead
-        to. This mechanism does not create any reaction rates.  We need to
-        figure out how integrase binding will work before being able to create
-        reactions and their corresponding rates
-
-        """
         if reactions is None:
             reactions = {('attB', 'attP'): 'attL', ('attP', 'attB'): 'attR'}
         if name is None:
@@ -374,9 +635,38 @@ class IntegraseRule:
         self.integrations_to_do = []
 
     def binds_to(self):
+        """Get all attachment site types this integrase binds to.
+
+        Returns
+        -------
+        list of str
+            List of all site types involved in integrase reactions.
+
+        """
         return self.attsites
 
     def reaction_allowed(self, site1, site2):
+        """Check if two sites can undergo integrase recombination.
+
+        Parameters
+        ----------
+        site1 : IntegraseSite
+            First attachment site.
+        site2 : IntegraseSite
+            Second attachment site.
+
+        Returns
+        -------
+        bool
+            True if sites can react according to reaction rules.
+
+        Raises
+        ------
+        AssertionError
+            If sites have different integrases or do not match this
+            integrase.
+
+        """
         assert isinstance(site1, IntegraseSite)
         assert isinstance(site2, IntegraseSite)
         assert site1.integrase == site2.integrase
@@ -386,7 +676,14 @@ class IntegraseRule:
         return False
 
     def reactive_sites(self):
-        """Attachment sites that participate in integrase reactions."""
+        """Get attachment site types that participate in reactions.
+
+        Returns
+        -------
+        list of str
+            List of site types that can be reactants (not just products).
+
+        """
         attsites = []
         for reaction in self.reactions:
             attsites += list(reaction)
@@ -394,7 +691,41 @@ class IntegraseRule:
         return attsites
 
     def generate_products(self, site1, site2, site2_parent=None):
-        """DNA_part objects corresponding to the products of recombination."""
+        """Generate product sites from recombination of two sites.
+
+        Creates IntegraseSite objects for the products of site1 + site2
+        recombination according to the reaction rules.
+
+        Parameters
+        ----------
+        site1 : IntegraseSite
+            First attachment site (determines product ordering).
+        site2 : IntegraseSite
+            Second attachment site.
+        site2_parent : Polymer, optional
+            Parent polymer for site2 (used in intermolecular reactions).
+
+        Returns
+        -------
+        tuple of (IntegraseSite, IntegraseSite)
+            Product sites at positions corresponding to site1 and site2.
+
+        Raises
+        ------
+        AssertionError
+            If sites have mismatched integrases or dinucleotides.
+        KeyError
+            If site pair is not in reaction rules.
+
+        Notes
+        -----
+        Product sites inherit dinucleotides and integrase from reactants.
+        Product order depends on site1 direction:
+
+        - site1 forward: return (prod1, prod2)
+        - site1 reverse: return (prod2, prod1) with swapped directions
+
+        """
         # the sites should have the same integrase and dinucleotide, otherwise
         # it won't work
         assert site1.integrase == site2.integrase
@@ -471,39 +802,93 @@ class IntegraseRule:
         force_inter=False,
         existing_dna_constructs=None,
     ):
-        """Perform an integration reaction between the chosen sites.
+        """Perform integrase recombination between two attachment sites.
 
-        Make new DNA_constructs site1 and site2 are integrase site dna_parts
-        which have parents that are DNA_constructs.
+        Executes an integration reaction between site1 and site2, creating
+        new DNA constructs based on the reaction type (inversion, deletion,
+        integration, or recombination). Stores transformation templates in
+        the sites' linked_sites attribute.
 
-        There are four possible reactions:
-        1) inversion
-           two sites are part of the same dna construct
-           the result is another dna construct with the same circularity and
-           the region in between the sites flipped
-        2) deletion
-           two sites are part of the same dna construct
-           the result is two dna constructs: one with the same circularity
-           but the region between the sites deleted, and another
-           circular dna construct that contains the deleted portion
-        3) integration
-           the sites are on two different dna constructs
-           the result is a single dna construct
-        4) recombination
-           the sites are on two different dna constructs
-           the results are two different dna constructs with the proper
-           portions swapped after the correct dna constructs are generated,
-           the reactions which were done to produce them are encoded into
-           polymer_transformations and "baked into" the integrase sites
-           themselves. So, each integrase site knows which specific integrase
-           reactions it should produce when it comes time to update_reactions.
+        Parameters
+        ----------
+        site1 : IntegraseSite
+            First attachment site (must have Construct parent).
+        site2 : IntegraseSite
+            Second attachment site (must have Construct parent).
+        also_inter : bool, default=True
+            If True and reaction is intramolecular, also generate
+            intermolecular version (between two copies of same plasmid).
+        force_inter : bool, default=False
+            Force reaction to be treated as intermolecular even if sites
+            are on same construct.
+        existing_dna_constructs : list of Construct, optional
+            List of previously generated constructs to check for
+            duplicates.
 
-        also_inter controls whether intramolecular reactions should also
-        generate intermolecular reactions that occur between two copies of the
-        same plasmid.
+        Returns
+        -------
+        list of Construct
+            List of newly created DNA constructs from the integration.
 
-        force_inter forces a reaction to be intermolecular even if the two
-        sites are on the same plasmid.
+        Raises
+        ------
+        ValueError
+            If either site is not part of a Construct.
+
+        Notes
+        -----
+        Four reaction types:
+
+        1. Inversion (intramolecular, opposite directions):
+
+           - Same construct, sites point opposite directions
+           - Result: Region between sites is flipped
+           - Circularity preserved
+
+        2. Deletion (intramolecular, same direction):
+
+           - Same construct, sites point same direction
+           - Result: Two constructs - one with deleted region, one
+             circular excised fragment
+
+        3. Integration (intermolecular, one circular):
+
+           - Sites on different constructs, one circular
+           - Result: Single construct (circular if both were circular)
+
+        4. Recombination (intermolecular, both linear):
+
+           - Sites on two linear constructs
+           - Result: Two recombinant linear constructs
+
+        Polymer_transformation templates are stored in:
+
+        - site1.linked_sites[(site2, intermolecular)]
+        - site2.linked_sites[(site1, intermolecular)]
+
+        These templates are used during CRN compilation to generate
+        reactions and species.
+
+        Existing_dna_constructs are checked for matches (including circular
+        permutations and reversals) to avoid creating duplicates.
+
+        Examples
+        --------
+        Inversion reaction:
+
+        >>> # Two sites on same plasmid, opposite directions
+        >>> int_rule.integrate(attB_site, attP_site_reversed)
+        # Creates inverted plasmid
+
+        Integration reaction:
+
+        >>> # Sites on different plasmids
+        >>> int_rule.integrate(
+        ...     plasmid1_attB,
+        ...     plasmid2_attP,
+        ...     existing_dna_constructs=prev_constructs
+        ... )
+        # Creates integrated plasmid
 
         """
         intermolecular = True  # by default, the reaction is intermolecular
@@ -751,6 +1136,97 @@ class IntegraseRule:
 
 
 class Integrase_Enumerator(GlobalComponentEnumerator):
+    """Global enumerator for integrase-mediated DNA recombination products.
+
+    An `Integrase_Enumerator` systematically enumerates all possible DNA
+    constructs that can result from integrase-mediated recombination
+    reactions. Examines all components for integrase attachment sites and
+    generates products for all allowed site pairs.
+
+    Parameters
+    ----------
+    name : str
+        Name identifier for the enumerator.
+    int_mechanisms : dict, optional
+        Dictionary mapping integrase names (str) to IntegraseRule objects.
+        Default: {'int1': IntegraseRule()}
+
+    Attributes
+    ----------
+    int_mechanisms : dict
+        Dictionary of integrase rules.
+
+    See Also
+    --------
+    GlobalComponentEnumerator : Base class for global enumeration.
+    IntegraseRule : Defines integrase recombination rules.
+    IntegraseSite : DNA part for attachment sites.
+    Polymer_transformation : Template for DNA rearrangements.
+
+    Notes
+    -----
+    Enumeration process:
+
+    1. Identify all integrase attachment sites in components
+    2. Group sites by integrase type
+    3. For each integrase:
+
+       a. Find all valid site pairs (from reactive_sites)
+       b. Check if pair can react (reaction_allowed)
+       c. Perform integration to generate products
+       d. Store transformation templates in sites
+
+    4. Return list of new DNA constructs
+
+    This is a global enumerator because integrase reactions can occur
+    between sites on different constructs (intermolecular reactions).
+    Access to all components is necessary.
+
+    Integrase Types Supported:
+
+    - Serine integrases (attB/attP --> attL/attR)
+    - Tyrosine recombinases (Cre, Flp with homotypic sites)
+    - Invertases (inversion only)
+    - Resolvases (deletion only)
+    - Custom integrase rules
+
+    The `find_dna_construct` method is used to detect duplicates including
+    circular permutations and reversals, preventing redundant construct
+    generation.
+
+    Examples
+    --------
+    Create an integrase enumerator:
+
+    >>> phi_c31 = bcp.IntegraseRule(
+    ...     name='PhiC31',
+    ...     reactions={
+    ...         ('attB', 'attP'): 'attL',
+    ...         ('attP', 'attB'): 'attR'
+    ...     }
+    ... )
+    >>> enumerator = bcp.Integrase_Enumerator(
+    ...     name='integrase_enum',
+    ...     int_mechanisms={'PhiC31': phi_c31}
+    ... )
+
+    Use in a mixture:
+
+    >>> mixture = bcp.Mixture(
+    ...     components=[plasmid1, plasmid2],
+    ...     global_component_enumerators=[enumerator]
+    ... )
+    >>> # Enumerator automatically called during compilation
+    >>> crn = mixture.compile_crn()
+
+    Manual enumeration:
+
+    >>> constructs = [plasmid_with_attB, plasmid_with_attP]
+    >>> new_constructs = enumerator.enumerate_components(constructs)
+    >>> # new_constructs contains integrated plasmids
+
+    """
+
     def __init__(self, name: str, int_mechanisms=None):
         if int_mechanisms is None:
             int_mechanisms = {'int1': IntegraseRule()}
@@ -758,7 +1234,20 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         GlobalComponentEnumerator.__init__(self, name=name)
 
     def list_integrase(self, construct):
-        """Lists all the parts that can be acted on by integrases."""
+        """List all integrase attachment sites in a construct.
+
+        Parameters
+        ----------
+        construct : Construct
+            DNA construct to examine.
+
+        Returns
+        -------
+        dict
+            Dictionary mapping integrase names (str) to lists of
+            IntegraseSite objects.
+
+        """
         int_dict = {}
         for part in construct.parts_list:
             if isinstance(part, IntegraseSite) and part.integrase is not None:
@@ -772,7 +1261,24 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
         return int_dict
 
     def reset(self, components=None, **kwargs):
-        """This resets the linked_sites member in any attachment sites."""
+        """Reset linked_sites attribute in all attachment sites.
+
+        Clears stored integration reactions from all integrase sites in
+        components, preparing for fresh enumeration.
+
+        Parameters
+        ----------
+        components : list of Component
+            Components containing integrase sites to reset.
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Notes
+        -----
+        Called at the start of enumeration to clear previous integration
+        data.
+
+        """
         for component in components:
             if hasattr(component, 'parts_list'):
                 for part in component:
@@ -783,13 +1289,46 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
     def find_dna_construct(
         cls, construct: Construct, conlist: List[Construct]
     ):
-        """Find a construct that matches the input 'construct'.
+        """Find matching construct in list (handles permutations/reversals).
 
-        Can be reverse or circularly permuted.
+        Searches for a construct equivalent to the input, accounting for
+        circular permutations and reversals.
 
-        returns: found_construct, index_function(index) =>
-            (new_index,"f" or "r" if it must be reversed)
-            or, None, if no matching construct is found
+        Parameters
+        ----------
+        construct : Construct
+            Construct to find.
+        conlist : list of Construct
+            List of constructs to search.
+
+        Returns
+        -------
+        tuple of (Construct, callable) or None
+            If found: (matched_construct, index_function), where
+            index_function maps old indexes to (new_index, direction).
+            If not found: None.
+
+        Raises
+        ------
+        KeyError
+            If construct matches multiple constructs in list (should not
+            happen with proper generation order).
+
+        Notes
+        -----
+        For circular constructs, the following matching logic is used:
+
+        - Try all circular permutations
+        - For each permutation, try forward and reverse orientations
+
+        For linear constructs, the following matching logic is used:
+
+        - Try forward orientation
+        - Try reverse orientation
+
+        Uses `directionless_hash` for fast initial filtering before detailed
+        species comparison.
+
         """
         matched_construct = None
         for other_construct in conlist:
@@ -851,23 +1390,71 @@ class Integrase_Enumerator(GlobalComponentEnumerator):
     def enumerate_components(
         self, components=None, previously_enumerated=None, **kwargs
     ):
-        """Explort all the possible integrase-motivated DNA configurations.
+        """Enumerate all possible integrase-mediated DNA configurations.
 
-        If some integrases aren't present, then define intnames to be a list
-        of names of the integrases which are present.
+        Systematically generates all DNA constructs that can result from
+        integrase recombination between attachment sites in the input
+        components.
 
-        An integrase can act in different ways:
-        * serine integrases recombine B and P sites that turn into
-          L and R sites, and only sites with the same dinucleotide can
-          be recombined.
-        * serine integrases with directionality factors recombine L and R
-          sites with the same dinucleotide
-        * Invertases only do flipping reactions
-        * resolvases only do deletion reactions
-        * FLP or CRE react with homotypic sites, so site1+site1 = site1+site1.
-          But there are still different types of sites which are orthogonal.
-          For example, a CRE type 1 or a CRE type 2 site. The sites can also
-          be palindromic, which means that they can react in either direction.
+        Parameters
+        ----------
+        components : list of Component, optional
+            List of components to enumerate. Only DNA_construct objects
+            are processed.
+        previously_enumerated : list of Component, optional
+            List of components already enumerated (used for duplicate
+            detection).
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list of Construct
+            List of newly created DNA constructs from all allowed
+            integrase reactions.
+
+        Notes
+        -----
+        Enumeration algorithm:
+
+        1. Extract all DNA_construct components
+        2. List all integrase sites by integrase type
+        3. For each integrase in int_mechanisms:
+
+           a. Get all attachment sites for that integrase
+           b. Find reactive site types from IntegraseRule
+           c. Generate all site pairs (combinations)
+           d. For each valid pair:
+
+              - Check if reaction_allowed
+              - Perform `integrate` to generate products
+              - Add new constructs to output list
+
+        4. Return all newly generated constructs
+
+        Depending on the `IntegraseRule` settings, the following reaction
+        types are generated:
+
+        - Inversions (same construct, opposite directions)
+        - Deletions (same construct, same direction)
+        - Integrations (different constructs, at least one circular)
+        - Recombinations (two linear constructs)
+
+        The `integrate` method checks existing_dna_constructs (includes
+        both previously_enumerated and newly created constructs) to avoid
+        generating duplicates.
+
+        Examples
+        --------
+        Enumerate integration products:
+
+        >>> enumerator = bcp.Integrase_Enumerator(
+        ...     name='enum',
+        ...     int_mechanisms={'PhiC31': phi_c31_rule}
+        ... )
+        >>> plasmids = [donor_plasmid, target_plasmid]
+        >>> products = enumerator.enumerate_components(plasmids)
+        >>> # products contains integrated plasmids
 
         """
         if previously_enumerated is None:

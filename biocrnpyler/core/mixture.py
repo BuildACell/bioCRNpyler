@@ -16,6 +16,131 @@ from .species import Species
 
 
 class Mixture(object):
+    """Container for components, mechanisms, and parameters in a CRN model.
+
+    A Mixture holds together all components (DNA, RNA, Protein, etc.),
+    mechanisms (transcription, translation, binding, etc.), and parameters
+    needed to compile a chemical reaction network (CRN). Mixtures can include
+    default mechanisms that apply to all components, as well as global
+    mechanisms that affect all species (e.g., dilution, degradation).
+
+    Parameters
+    ----------
+    name : str, default=''
+        Name of the mixture for identification and parameter lookup.
+    mechanisms : dict, list, or Mechanism, optional
+        Default mechanisms for components in this mixture. Can be a dict with
+        mechanism types (str) as keys and mechanism objects as values, a
+        list of mechanism objects, or a single `Mechanism`.
+    components : list of Component or Component, optional
+        Components to include in the mixture. Components are deep-copied when
+        added to prevent modification of original objects.
+    parameters : dict, optional
+        Dictionary of parameter values. Keys follow the format
+        (mechanism, part_id, param_name).
+    compartment : Compartment, optional
+        Default compartment for all components and species in this mixture.
+    parameter_file : str, optional
+        Path to a CSV or TSV file containing parameters to load.
+    overwrite_parameters : bool, default=False
+        If True, parameters from file/dict overwrite existing parameters.
+        If False, existing parameters are preserved.
+    global_mechanisms : dict, list, or GlobalMechanism, optional
+        Global mechanisms that apply to all species after component
+        compilation (e.g., dilution, global degradation). Can be a dict,
+        list, or single `GlobalMechanism`.
+    species : list of Species or Species, optional
+        Additional species to add directly to the CRN without going through
+        component compilation.
+    initial_condition_dictionary : dict, optional
+        Dictionary mapping species to initial concentration values. Deprecated
+        in favor of using parameters with mechanism='initial concentration'.
+    global_component_enumerators : list, optional
+        List of global component enumerators for advanced component generation
+        patterns (e.g., creating all pairwise interactions).
+    global_recursion_depth : int, default=4
+        Maximum recursion depth for global component enumeration during
+        compilation.
+    local_recursion_depth : int, optional
+        Maximum recursion depth for local component enumeration. If None,
+        defaults to `global_recursion_depth + 2`.
+
+    Attributes
+    ----------
+    name : str
+        Name of the mixture.
+    compartment : Compartment or None
+        Default compartment for the mixture.
+    components : list of Component
+        List of components in the mixture (deep copies of added components).
+    mechanisms : dict
+        Dictionary of default mechanisms, keyed by mechanism type (str).
+    global_mechanisms : dict
+        Dictionary of global mechanisms, keyed by mechanism type (str).
+    parameter_database : ParameterDatabase
+        Database storing all parameters for this mixture.
+    added_species : list of Species
+        List of species added directly to the mixture.
+    global_component_enumerators : list
+        List of global component enumerators.
+    global_recursion_depth : int
+        Recursion depth for global component enumeration.
+    local_recursion_depth : int
+        Recursion depth for local component enumeration.
+    crn : ChemicalReactionNetwork or None
+        The compiled CRN, created by calling `compile_crn`.
+
+    See Also
+    --------
+    Component : Base class for biomolecular components.
+    Mechanism : Base class for reaction generation schemas.
+    GlobalMechanism : Mechanisms that apply to all species.
+    ChemicalReactionNetwork : Container for species and reactions.
+
+    Notes
+    -----
+    Components added to a Mixture are deep-copied to prevent unintended
+    modifications. Each component's `mixture` attribute is set to reference
+    this Mixture, allowing components to access default mechanisms and
+    parameters.
+
+    The compilation process follows these steps:
+
+    1. Global component enumeration (e.g., generating all interactions)
+    2. Local component enumeration (e.g., DNA --> RNA --> Protein)
+    3. Species generation from all enumerated components
+    4. Reaction generation from all enumerated components
+    5. Application of global mechanisms to all species
+
+    Examples
+    --------
+    Create a basic mixture with components and mechanisms:
+
+    >>> # Create a simple transcription-translation mixture
+    >>> mixture = bcp.Mixture(
+    ...     name="txtl_extract",
+    ...     mechanisms={
+    ...         'transcription': bcp.SimpleTranscription(),
+    ...         'translation': bcp.SimpleTranslation()
+    ...     },
+    ...     parameters={'ktx': 0.05, 'ktl': 0.01}
+    ... )
+
+    Add components to the mixture:
+
+    >>> promoter = bcp.Promoter("pconst")
+    >>> gene = bcp.DNA_construct([promoter, bcp.RBS('rbs'), bcp.CDS('gfp')])
+    >>> mixture.add_component(gene)
+
+    Compile the CRN:
+
+    >>> crn = mixture.compile_crn()
+    >>> print(
+    ...     f"CRN has {len(crn.species)} species "
+    ...     f"and {len(crn.reactions)} reactions")
+
+    """
+
     def __init__(
         self,
         name='',
@@ -32,27 +157,6 @@ class Mixture(object):
         global_recursion_depth=4,
         local_recursion_depth=None,
     ):
-        """Mixture object holding components, mechanisms, and parameters.
-
-        A Mixture object holds together all the components
-        (DNA,Protein, etc), mechanisms (Transcription, Translation),
-        and parameters related to the mixture itself
-        (e.g. Transcription rate). Default components and mechanisms
-        can be added as well as global mechanisms that impacts all
-        species (e.g. cell growth).
-
-        :param name: Name of the mixture
-        :param mechanisms: Dictionary of mechanisms
-        :param components: List of components in the mixture (list of
-            Components)
-        :param parameters: Dictionary of parameters (check parameters
-            documentation for the keys)
-        :param parameter_file: Parameters can be loaded from a parameter file
-        :param default_mechanisms:
-        :param global_mechanisms: dict of global mechanisms that impacts
-            all species (e.g. cell growth)
-
-        """
         # Initialize instance variables
         self.name = name  # Save the name of the mixture
         self.compartment = compartment
@@ -73,7 +177,7 @@ class Mixture(object):
         if mechanisms is None and not hasattr(self, '_mechanisms'):
             self.mechanisms = {}
         else:
-            self.add_mechanisms(mechanisms)
+            self.add_mechanisms(mechanisms, overwrite=True)
 
         # process global_mechanisms:
         # Global mechanisms are applied just once ALL species generated from
@@ -107,6 +211,25 @@ class Mixture(object):
         self.crn = None
 
     def add_species(self, species: Union[List[Species], Species]):
+        """Add species directly to the mixture without component compilation.
+
+        Parameters
+        ----------
+        species : Species or list of Species
+            Species object(s) to add directly to the mixture. These species
+            will be included in the CRN during compilation.
+
+        Raises
+        ------
+        AssertionError
+            If any element in the list is not a Species object.
+
+        Notes
+        -----
+        Species added this way bypass component enumeration and are added
+        directly to the CRN during `compile_crn`.
+
+        """
         if not hasattr(self, 'added_species'):
             self.added_species = []
 
@@ -128,12 +251,31 @@ class Mixture(object):
         material_type=None,
         attributes=None,
     ):
-        """Used to set internal species from strings, Species or Components.
+        """Convert various inputs into Species objects.
 
-        :param species: name of a species or a species instance
-        :param material_type: material type of a species as a string
-        :param attributes: Species attribute
-        :return: Species in the mixture
+        Parameters
+        ----------
+        species : Species, str, or Component
+            The species to convert. Can be a `Species` object (returned
+            as-is), a string (creates new Species), or a `Component` (extracts
+            its species).
+        material_type : str, optional
+            Material type for the species (e.g., 'dna', 'rna', 'protein').
+            Only used when creating new Species from strings.
+        attributes : list of str, optional
+            Attributes to assign to the species. Only used when creating
+            new Species from strings.
+
+        Returns
+        -------
+        Species
+            The converted Species object.
+
+        Raises
+        ------
+        ValueError
+            If the input cannot be converted to a valid Species.
+
         """
         if isinstance(species, Species):
             return species
@@ -165,7 +307,31 @@ class Mixture(object):
         self.add_components(components)
 
     def add_component(self, component):
-        """This function adds a single component to the mixture."""
+        """Add a single component to the mixture.
+
+        Parameters
+        ----------
+        component : Component or list of Component
+            Component object to add to the mixture. If a list is provided,
+            calls `add_components` instead. The component is deep-copied
+            before being added.
+
+        Raises
+        ------
+        AssertionError
+            If the component is not a Component object.
+        ValueError
+            If a component with the same type and name already exists in
+            the mixture.
+
+        Notes
+        -----
+        Components are deep-copied when added to prevent modification of the
+        original component. The copied component's `mixture` attribute is set
+        to this Mixture, and its `compartment` is set to the mixture's
+        compartment.
+
+        """
         if not hasattr(self, '_components'):
             self.components = []
 
@@ -194,9 +360,24 @@ class Mixture(object):
                 self.components.append(component_copy)
 
     def get_mechanism(self, mechanism_type):
-        """Searches the Mixture for a Mechanism of the correct type.
+        """Retrieve a mechanism by type from the mixture.
 
-        If no Mechanism is found, None is returned.
+        Parameters
+        ----------
+        mechanism_type : str
+            The type identifier of the mechanism to retrieve (e.g.,
+            'transcription', 'translation', 'binding').
+
+        Returns
+        -------
+        Mechanism or None
+            The requested mechanism object, or None if not found.
+
+        Raises
+        ------
+        TypeError
+            If `mechanism_type` is not a string.
+
         """
         if not isinstance(mechanism_type, str):
             raise TypeError(
@@ -209,7 +390,25 @@ class Mixture(object):
             return None
 
     def add_components(self, components: Union[List[Component], Component]):
-        """This function adds a list of components to the mixture."""
+        """Add multiple components to the mixture.
+
+        Parameters
+        ----------
+        components : Component or list of Component
+            Component object(s) to add to the mixture. Each component is
+            deep-copied before being added.
+
+        Raises
+        ------
+        ValueError
+            If `components` is not a Component, list of Components, or if
+            any duplicate components are detected.
+
+        See Also
+        --------
+        add_component : Add a single component to the mixture.
+
+        """
         if isinstance(components, Component):
             self.add_component(components)
         elif isinstance(components, List):
@@ -222,16 +421,34 @@ class Mixture(object):
             )
 
     def get_component(self, component=None, name=None, index=None):
-        """Function to get components from Mixture._components.
+        """Retrieve components from the mixture by various criteria.
 
-        One of the 3 keywords must not be None.
+        Exactly one of the three parameters must be provided.
 
-        :param component: an instance of a component. Searches
-            Mixture._components for a Component with the same type and name.
-        :param name: str. Searches Mixture._components for a Component
-            with the same name
-        :param index: int. returns Mixture._components[index]
-        :return: if nothing is found, returns None.
+        Parameters
+        ----------
+        component : Component, optional
+            A component instance to search for. Returns components with
+            matching type and name.
+        name : str, optional
+            Name of the component to search for. Returns all components
+            with this name.
+        index : int, optional
+            Index of the component in the mixture's component list.
+
+        Returns
+        -------
+        Component, list of Component, or None
+            - Single Component if exactly one match is found or index is used
+            - List of Components if multiple matches are found
+            - None if no matches are found
+
+        Raises
+        ------
+        ValueError
+            If zero or more than one parameter is provided, or if parameters
+            are of incorrect types.
+
         """
         if [component, name, index].count(None) != 2:
             raise ValueError(
@@ -274,7 +491,7 @@ class Mixture(object):
 
     @property
     def mechanisms(self):
-        """Mechanisms stores Mixture Mechanisms."""
+        """Mechanism: Stores mixture mechanisms."""
         return self._mechanisms
 
     @mechanisms.setter
@@ -283,17 +500,32 @@ class Mixture(object):
         self.add_mechanisms(mechanisms, overwrite=True)
 
     def add_mechanism(self, mechanism, mech_type=None, overwrite=False):
-        """Add mechanism to mixture dictionary.
+        """Add a mechanism to the mixture's mechanism dictionary.
 
-        Adds a mechanism of type mech_type to the Mixture
-        mechanism_dictionary.
+        Parameters
+        ----------
+        mechanism : Mechanism or GlobalMechanism
+            The mechanism object to add. If a `GlobalMechanism` is provided,
+            it is automatically added to the global mechanisms dictionary.
+        mech_type : str, optional
+            The type key under which to store the mechanism. If None, uses
+            the mechanism's `mechanism_type` attribute.
+        overwrite : bool, default=False
+            If True, replaces any existing mechanisms with the same keys. If
+            False, raises ValueError when keys already exist. If None, ignores
+            mechanisms that already exist.
 
-        :param mechanism: a Mechanism instance
-        :param mech_type: the type of mechanism. defaults to
-            mechanism.mech_type if None
-        :param overwrite: whether to overwrite existing mechanisms of
-            the same type (default False)
-        :return:
+        Raises
+        ------
+        TypeError
+            If `mechanism` is not a Mechanism object, or if `mech_type` is
+            not a string.
+        ValueError
+            If mechanism key already exists and `overwrite` is None.
+
+        See Also
+        --------
+        add_global_mechanism : Add a global mechanism specifically.
 
         """
         if not hasattr(self, '_mechanisms'):
@@ -315,23 +547,41 @@ class Mixture(object):
             self.add_global_mechanism(mechanism, mech_type, overwrite)
         elif isinstance(mechanism, Mechanism):
             if mech_type in self._mechanisms and not overwrite:
-                raise ValueError(
-                    f"mech_type {mech_type} already in Mixture {self}. "
-                    f"To overwrite, use keyword overwrite = True."
-                )
+                if overwrite is False:
+                    raise ValueError(
+                        f"mech_type {mech_type} already in Mixture {self}. "
+                        f"To overwrite, use keyword overwrite=True."
+                    )
             else:
                 self._mechanisms[mech_type] = copy.deepcopy(mechanism)
 
     def add_mechanisms(self, mechanisms, overwrite=False):
-        """Add mechanism to mixture dictionary.
+        """Add multiple mechanisms to the mixture.
 
-        This function adds a list or dictionary of mechanisms to the
-        mixture.  Can take both GlobalMechanisms and Mechanisms.
+        Accepts mechanisms as a single object, list, or dictionary and adds
+        them to the mixture's mechanism dictionary. Can handle both regular
+        `Mechanism` and `GlobalMechanism` objects.
 
-        :param mechanisms: a Mechanism instance
-        :param overwrite: whether to overwrite existing mechanisms of
-            the same type (default False)
-        :return:
+        Parameters
+        ----------
+        mechanisms : Mechanism, GlobalMechanism, dict, or list
+            The mechanism(s) to add. Can be a single mechanism, a dict with
+            mechanism types as keys and mechanisms as values, or a list of
+            mechanisms.
+        overwrite : bool, default=False
+            If True, replaces any existing mechanisms with the same keys. If
+            False, raises ValueError when keys already exist. If None, ignores
+            mechanisms that already exist.
+
+        Raises
+        ------
+        ValueError
+            If `mechanisms` is not a valid type, or if mechanism key conflicts
+            occur with `overwrite=False`.
+
+        See Also
+        --------
+        add_mechanism : Add a single mechanism to the mixture.
 
         """
         if isinstance(mechanisms, Mechanism):
@@ -352,7 +602,7 @@ class Mixture(object):
 
     @property
     def global_mechanisms(self):
-        """Stores global Mechanisms in the Mixture."""
+        """Mechanism: Stores global mechanisms in the mixture."""
         return self._global_mechanisms
 
     @global_mechanisms.setter
@@ -372,15 +622,33 @@ class Mixture(object):
     ):
         """Add a global mechanism to the mixture.
 
-        Adds a mechanism of type mech_type to the Mixture
-        global_mechanism dictonary.
+        Global mechanisms are applied to all species after component
+        compilation, enabling operations like dilution or global degradation.
 
-        keywords:
-          mechanism: a Mechanism instance
-          mech_type: the type of mechanism. defaults to mechanism.mech_type
-             if None
-          overwrite: whether to overwrite existing mechanisms of the same \
-             type (default False)
+        Parameters
+        ----------
+        mechanism : GlobalMechanism
+            The global mechanism object to add. Must be a `GlobalMechanism`
+            instance.
+        mech_type : str, optional
+            The type key under which to store the mechanism. If None, uses
+            the mechanism's `mechanism_type` attribute.
+        overwrite : bool, default=False
+            If True, replaces any existing global mechanism with the same key.
+            If False, raises ValueError when key already exists.
+
+        Raises
+        ------
+        TypeError
+            If `mechanism` is not a GlobalMechanism object, or if `mech_type`
+            is not a string.
+        ValueError
+            If mechanism key already exists and `overwrite` is False.
+
+        Notes
+        -----
+        Global mechanisms are applied during `compile_crn` after all
+        component reactions have been generated.
 
         """
         if not hasattr(self, '_global_mechanisms'):
@@ -409,6 +677,20 @@ class Mixture(object):
     def update_parameters(
         self, parameter_file=None, parameters=None, overwrite_parameters=True
     ):
+        """Update the parameter database with new parameters.
+
+        Parameters
+        ----------
+        parameter_file : str, optional
+            Path to a CSV or TSV file containing parameters to load.
+        parameters : dict, optional
+            Dictionary of parameters to add. Keys follow the format
+            (mechanism, part_id, param_name).
+        overwrite_parameters : bool, default=True
+            If True, new parameter values overwrite existing ones. If False,
+            existing parameters are preserved.
+
+        """
         if parameter_file is not None:
             self.parameter_database.load_parameters_from_file(
                 parameter_file, overwrite_parameters=overwrite_parameters
@@ -420,6 +702,23 @@ class Mixture(object):
             )
 
     def get_parameter(self, mechanism, part_id, param_name):
+        """Retrieve a parameter from the mixture's parameter database.
+
+        Parameters
+        ----------
+        mechanism : str
+            Mechanism identifier for the parameter lookup key.
+        part_id : str
+            Part identifier for the parameter lookup key.
+        param_name : str
+            Name of the parameter to retrieve.
+
+        Returns
+        -------
+        Parameter or None
+            The parameter object, or None if not found.
+
+        """
         param = self.parameter_database.find_parameter(
             mechanism, part_id, param_name
         )
@@ -428,28 +727,43 @@ class Mixture(object):
     def get_initial_concentration(
         self, S: Union[List, Species], component=None
     ):
-        """Get initial concentration.
+        """Determine initial concentrations using parameter hierarchy.
 
-        Tries to find an initial condition of species s using the
-        parameter hierarchy using the key:
+        Searches for initial concentration parameters for species following a
+        hierarchical lookup strategy, defaulting to 0 if not found.
 
-        1. Searches Component's ParameterDatabase using the key:
-            mechanisms = "initial concentration"
-            part_id = mixture.name
-            parameter_name = str(s)
+        Parameters
+        ----------
+        S : Species or list of Species
+            Species object(s) for which to find initial concentrations. Lists
+            are automatically flattened.
+        component : Component, optional
+            The component that generated the species. Used for
+            component-specific parameter lookup.
 
-            if s == component.get_species, also checks with
-                parameter_name=component.name
+        Returns
+        -------
+        dict
+            Dictionary mapping each Species object to its initial
+            concentration value (float).
 
-        2. Searches the Mixture's ParameterDatabase using the key:
-            mechanisms = "initial concentration"
-            part_id = mixture.name
-            parameter_name = str(s)
+        Raises
+        ------
+        ValueError
+            If any element in `S` is not a Species object.
 
-            if s == component.get_species, also checks with
-                parameter_name=component.name
+        Notes
+        -----
+        The parameter lookup hierarchy is:
 
-        3. Defaults to 0
+        1. Component's `ParameterDatabase` with `mechanism='initial
+           concentration'`, `part_id=mixture.name`, and parameter names:
+           `str(s)`, `s.name`, or `component.name` (where `s` is the
+           component's primary species)
+
+        2. Mixture's `ParameterDatabase` with the same keys
+
+        3. Defaults to 0 if not found
 
         """
         if isinstance(S, Species):
@@ -531,6 +845,39 @@ class Mixture(object):
         copy_species=True,
         compartment=None,
     ):
+        """Add species to the CRN with initial concentrations.
+
+        Helper method that adds species to the CRN and automatically looks up
+        and assigns their initial concentrations.
+
+        Parameters
+        ----------
+        new_species : Species or list of Species
+            Species to add to the CRN.
+        component : Component, optional
+            The component that generated these species. Used for
+            component-specific initial concentration lookup.
+        no_initial_concentrations : bool, default=False
+            If True, skips initial concentration lookup and assignment.
+        copy_species : bool, default=True
+            If True, deep-copies species before adding them to the CRN.
+        compartment : Compartment, optional
+            Compartment to assign to the species. Overrides species'
+            existing compartments.
+
+        Returns
+        -------
+        list of Species
+            All species in the CRN after addition (may include pre-existing
+            species).
+
+        Notes
+        -----
+        This method tracks which species are newly added and only assigns
+        initial concentrations to those new species, preventing overwriting
+        of previously set initial concentrations.
+
+        """
         if self.crn is None:
             self.crn = ChemicalReactionNetwork(species=[], reactions=[])
 
@@ -572,8 +919,31 @@ class Mixture(object):
     def apply_global_mechanisms(
         self, species, compartment=None
     ) -> Tuple[List[Species], List[Reaction]]:
-        # update with global mechanisms
+        """Apply all global mechanisms to a set of species.
 
+        Calls each global mechanism's `update_species_global` and
+        `update_reactions_global` methods, then adds the resulting species
+        and reactions to the CRN.
+
+        Parameters
+        ----------
+        species : list of Species
+            Species to which global mechanisms should be applied.
+        compartment : Compartment, optional
+            Compartment for newly generated species and reactions.
+
+        Returns
+        -------
+        tuple of (list of Species, list of Reaction)
+            New species and reactions generated by global mechanisms.
+
+        Notes
+        -----
+        Global mechanisms are typically used for operations that affect all
+        species uniformly, such as dilution, global degradation, or
+        compartment transport.
+
+        """
         global_mech_species = []
         global_mech_reactions = []
         if self.global_mechanisms:
@@ -595,8 +965,34 @@ class Mixture(object):
     def component_enumeration(
         self, comps_to_enumerate=None, recursion_depth=10
     ) -> List[Component]:
-        # Components that produce components through Component Enumeration
+        """Recursively enumerate components to generate derived components.
 
+        Calls each component's `enumerate_components` method repeatedly to
+        expand high-level components into their constituent parts (e.g.,
+        DNA_construct --> RNA_construct --> Protein).
+
+        Parameters
+        ----------
+        comps_to_enumerate : list of Component, optional
+            Initial components to enumerate. If None, uses all components in
+            the mixture.
+        recursion_depth : int, default=10
+            Maximum number of enumeration iterations. Prevents infinite
+            recursion.
+
+        Returns
+        -------
+        list of Component
+            All components including the original components and all derived
+            components generated through enumeration.
+
+        Warns
+        -----
+        UserWarning
+            Warns if unenumerated components remain after reaching the
+            recursion depth limit.
+
+        """
         all_components = []
         new_components = []
         if comps_to_enumerate is None:
@@ -629,7 +1025,34 @@ class Mixture(object):
     def global_component_enumeration(
         self, comps_to_enumerate=None, recursion_depth=None
     ) -> List[Component]:
-        """Components that produce other components infinitely."""
+        """Apply global component enumerators to generate new components.
+
+        Global component enumerators create new components based on patterns
+        across all components (e.g., generating all pairwise binding
+        interactions between proteins).
+
+        Parameters
+        ----------
+        comps_to_enumerate : list of Component, optional
+            Initial components to pass to enumerators. If None, uses all
+            components in the mixture.
+        recursion_depth : int, optional
+            Maximum number of enumeration iterations. If None, uses
+            `self.global_recursion_depth`.
+
+        Returns
+        -------
+        list of Component
+            All components including original and newly generated components
+            from global enumeration.
+
+        Notes
+        -----
+        This method is called during `compile_crn` before local component
+        enumeration. Global enumerators are useful for creating complex
+        interaction networks without manually specifying every interaction.
+
+        """
         if recursion_depth is None:
             recursion_depth = self.global_recursion_depth
 
@@ -683,24 +1106,87 @@ class Mixture(object):
         add_reaction_species: bool = True,
         compartment: Compartment = None,
     ) -> ChemicalReactionNetwork:
-        """Create chemical reaction network from mixture species, reactions.
+        """Compile a chemical reaction network from the mixture.
 
-        :param initial_concentration_dict: a dictionary to overwrite initial
-            concentrations at the end of compile time
-        :param recursion_depth: how deep to run the Local and
-            Global Component Enumeration
-        :param return_enumerated_components: returns a list of all enumerated
-            components along with the CRN
-        :param initial_concentrations_at_end: if True does not look in
-            Components for Species' initial concentrations and only checks
-            the Mixture database at the end.
-        :param copy_objects: Species and Reactions will be copied when placed
-            into the CRN. Protects CRN validity at the expense of compilation
+        Enumerates components, generates species and reactions from each
+        component, applies global mechanisms, and returns a complete CRN.
+
+        Parameters
+        ----------
+        recursion_depth : int, optional
+            Maximum recursion depth for both local and global component
+            enumeration. If None, uses `self.global_recursion_depth`.
+        initial_concentration_dict : dict, optional
+            Dictionary mapping species to initial concentrations. This
+            overrides all other initial concentration settings and is applied
+            at the very end of compilation.
+        return_enumerated_components : bool, default=False
+            If True, returns a tuple of (CRN, enumerated_components) instead
+            of just the CRN.
+        initial_concentrations_at_end : bool, default=False
+            If True, initial concentrations are only set at the end using the
+            mixture's parameter database, ignoring component-specific initial
+            concentrations during compilation.
+        copy_objects : bool, default=True
+            If True, species and reactions are deep-copied when added to the
+            CRN. Protects CRN validity at the expense of compilation speed.
+        add_reaction_species : bool, default=True
+            If True, species appearing in reactions are automatically added to
+            the CRN. Ensures no missing species at the expense of compilation
             speed.
-        :param add_reaction_species: Species inside reactions will be
-            added to the CRN. Ensures no missing species at the expense
-            of compilation speed.
-        :return: ChemicalReactionNetwork
+        compartment : Compartment, optional
+            Compartment to assign to all species and reactions that are not
+            already assigned to a compartment. If None, uses
+            `self.compartment`.
+
+        Returns
+        -------
+        ChemicalReactionNetwork or tuple
+            If `return_enumerated_components` is False, returns the compiled
+            `ChemicalReactionNetwork`. If True, returns a tuple of
+            (ChemicalReactionNetwork, list of enumerated Components).
+
+        Notes
+        -----
+        The compilation process follows these steps:
+
+        1. Add any directly-added species to the CRN
+        2. Global component enumeration (generates component interactions)
+        3. Local component enumeration (e.g., DNA --> RNA --> Protein)
+        4. Generate species from all enumerated components
+        5. Generate reactions from all enumerated components
+        6. Apply global mechanisms to all species
+        7. Set initial concentrations
+
+        Examples
+        --------
+        Basic compilation:
+
+        >>> gene = bcp.DNAassembly(
+        ...     'GFP', promoter='pconst', rbs='RBS', protein='GFP')
+        >>> mixture = bcp.Mixture(
+        ...     name="txtl_extract",
+        ...     components=[gene],
+        ...     mechanisms={
+        ...         'transcription': bcp.SimpleTranscription(),
+        ...         'translation': bcp.SimpleTranslation()
+        ...     },
+        ...     parameters={'ktx': 0.05, 'ktl': 0.01}
+        ... )
+        >>> crn = mixture.compile_crn()
+
+        Compilation with custom initial concentrations:
+
+        >>> crn = mixture.compile_crn(
+        ...     initial_concentration_dict={gene.dna: 1, gene.transcript: 50}
+        ... )
+
+        Get both CRN and enumerated components:
+
+        >>> crn, components = mixture.compile_crn(
+        ...     return_enumerated_components=True
+        ... )
+
         """
         resetwarnings()
 
@@ -710,7 +1196,7 @@ class Mixture(object):
         self.crn = ChemicalReactionNetwork([], [])
 
         # helper to flatten & drop duplicates via ==, retagging
-        # default→compartment
+        # default -> compartment
         def _filter_new_by_eq(cands, existing_list):
             # flatten nested lists
             flat = []

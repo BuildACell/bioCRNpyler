@@ -10,18 +10,166 @@ from ..mechanisms.txtl import Energy_Transcription_MM, Energy_Translation_MM
 
 
 class BasicPURE(Mixture):
-    """Reconstituted protein synthesis system with resource limits.
+    """PURE cell-free protein synthesis system with energy consumption.
 
-    This model includes energy carrier molecules in the form of NTPs, amino
-    acids, and a fuel species (such as ATP) used for transcription,
-    translation, and other core mechanisms.  This model is equivalent to
-    `EnergyTxTlExtract`, but without a fuel generation mechanism.  Amino
-    acids and nucleotides are lumped together into a single meta-species.
+    A mixture that models the PURE (Protein synthesis Using Recombinant
+    Elements) reconstituted cell-free transcription-translation system with
+    explicit representation of RNA polymerase (RNAP), ribosomes, RNases, and
+    energy carrier molecules. This extract uses Michaelis-Menten kinetics
+    with length-dependent fuel consumption to model realistic TX-TL
+    energetics.
 
-    Note that fuel is modeled as a separate molecule so if the default
-    'ATP' is used, it is separate from the other nucleotides ('NTPs').
+    Unlike `EnergyTxTlExtract`, this mixture does not include fuel
+    regeneration mechanisms. Energy carriers (ATP, NTPs, amino acids) are
+    consumed but not regenerated, making this suitable for modeling
+    resource-limited PURE systems. Different amino acids and nucleotides are
+    lumped into single meta-species for simplicity.
 
-    Energy usage for transcription and translation is length dependent.
+    Note that fuel (default 'ATP') is modeled as a separate molecule from
+    other nucleotides ('NTPs'), allowing independent tracking of energy
+    consumption.
+
+    Energy usage for transcription and translation is length-dependent,
+    reflecting stoichiometric consumption during biopolymer synthesis.
+
+    Parameters
+    ----------
+    name : str, default='PURE'
+        Name identifier for the mixture.
+    rnap : str, default='RNAP'
+        Name for the RNA polymerase protein species.
+    ribosome : str, default='Ribo'
+        Name for the ribosome protein species.
+    rnaase : str, default='RNAase'
+        Name for the ribonuclease protein species.
+    ntps : str, default='NTPs'
+        Name for the nucleotide triphosphate species (lumped NTPs excluding
+        ATP).
+    ndps : str, default='NDPs'
+        Name for the nucleotide diphosphate species (lumped NDPs).
+    amino_acids : str, default='AAs'
+        Name for the amino acid species (lumped amino acids).
+    fuel : str, default='ATP'
+        Name for the primary energy carrier species (ATP).
+    parameter_file : str, default='mixtures/pure_parameters.tsv'
+        Path to file containing default parameter values for the PURE
+        system.
+    **kwargs
+        Additional keyword arguments passed to the parent Mixture class.
+
+    Attributes
+    ----------
+    rnap : Protein
+        RNA polymerase component.
+    ribosome : Protein
+        Ribosome component.
+    rnaase : Protein
+        Ribonuclease component.
+    ntps : Metabolite
+        Nucleotide triphosphate metabolite component (excluding ATP).
+    amino_acids : Metabolite
+        Amino acid metabolite component.
+    fuel : Metabolite
+        Fuel metabolite component (ATP).
+    name : str
+        Name of the mixture.
+
+    See Also
+    --------
+    EnergyTxTlExtract : TX-TL with fuel regeneration.
+    TxTlExtract : TX-TL with machinery but no energy.
+    Energy_Transcription_MM : Mechanism for energy-consuming transcription.
+    Energy_Translation_MM : Mechanism for energy-consuming translation.
+    Mixture : Base class for all mixtures.
+
+    Notes
+    -----
+    This mixture automatically adds the following components:
+
+    - RNA polymerase (RNAP)
+    - Ribosome
+    - Ribonuclease (RNase)
+    - Amino acids (lumped)
+    - NTPs (nucleotide triphosphates excluding ATP, lumped)
+    - NDPs (nucleotide diphosphates, lumped)
+    - Fuel (ATP for energy)
+
+    Default mechanisms included:
+
+    - 'transcription' : `Energy_Transcription_MM` - Michaelis-Menten
+      transcription with length-dependent ATP and NTP consumption
+    - 'translation' : `Energy_Translation_MM` - Michaelis-Menten translation
+      with length-dependent amino acid and ATP consumption
+    - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
+      RNase using Michaelis-Menten kinetics
+    - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
+      catalysis for user-defined enzymatic reactions
+    - 'binding' : `One_Step_Binding` - Simple multi-species binding for
+      forming complexes
+
+    Key features of this mixture:
+
+    - Explicit modeling of PURE system components
+    - Length-dependent energy consumption (realistic stoichiometry)
+    - No fuel regeneration mechanisms (finite resource pool)
+    - Resource competition effects (genes compete for RNAP and ribosomes)
+    - Resource depletion dynamics (ATP, NTPs, amino acids deplete)
+    - Enzyme sequestration in complexes
+    - RNA degradation by RNase
+    - Separate tracking of ATP vs other NTPs
+    - Suitable for modeling batch-mode PURE reactions
+
+    Energy model details:
+
+    - Transcription: Consumes L NTPs and L ATPs per mRNA of length L
+    - Translation: Consumes L amino acids and 4L ATPs per protein of length
+      L (4 ATPs per amino acid reflect GTP hydrolysis during elongation)
+    - No regeneration: ATP, NTPs, and amino acids are consumed but not
+      regenerated
+    - Energy depletion: Expression stops when resources are exhausted
+    - Length parameter L: Represents gene/protein length in appropriate
+      units
+    - Lumped species: Different nucleotides lumped into NTPs, different
+      amino acids lumped into single species
+    - Separate ATP: ATP tracked separately from other NTPs for independent
+      energy accounting
+
+    Differences from `EnergyTxTlExtract`:
+
+    - No fuel regeneration pathway (no NTP regeneration from 3PGA or other
+      fuel sources)
+    - ATP modeled as separate fuel species rather than included in NTPs
+    - Default parameter file points to PURE-specific parameters
+    - Intended for modeling finite-resource batch reactions
+    - More realistic for in vitro PURE systems
+
+    Common applications include:
+
+    - PURE cell-free TX-TL systems
+    - Resource-limited gene expression modeling
+    - TX-TL system optimization with fixed resource budgets
+    - Batch mode TX-TL reactions
+    - Energy budget and resource allocation studies
+    - Multi-gene expression burden analysis
+    - In vitro synthetic biology applications
+
+    Examples
+    --------
+    Create a PURE mixture for GFP expression:
+
+    >>> gfp_gene = bcp.DNAassembly(
+    ...     name='gfp_construct',
+    ...     promoter='pconst',
+    ...     rbs='bcd2',
+    ...     transcript='gfp_mrna',
+    ...     protein='GFP'
+    ... )
+    >>> mixture = bcp.BasicPURE(
+    ...     name='pure_mixture',
+    ...     components=[gfp_gene],
+    ...     parameter_file='mixtures/pure_parameters.tsv'
+    ... )
+    >>> crn = mixture.compile_crn()
 
     """
 
@@ -38,22 +186,6 @@ class BasicPURE(Mixture):
         parameter_file='mixtures/pure_parameters.tsv',
         **kwargs,
     ):
-        """Initialize the PURE mixture.
-
-        :param name: name of the mixture
-        :param rnap: name of the RNA polymerase, default: RNAP
-        :param ribosome: name of the ribosome, default: Ribo
-        :param rnaase: name of the Ribonuclease, default: RNAase
-        :param ntps: name of the nucleotide fuel source (eg ATP + GTP etc),
-            default: NTP
-        :param amino_acids: name of the amino acids species, default:
-            amino_acids
-        :param fuel: name of the energy carrier species
-        :param parameter_file: file containing default parameter values
-        :param parameter: dictionary with parameter values
-        :param kwargs: keywords passed into the parent Class (Mixture)
-
-        """
         Mixture.__init__(
             self, name=name, parameter_file=parameter_file, **kwargs
         )
@@ -102,4 +234,4 @@ class BasicPURE(Mixture):
             mech_cat.mechanism_type: mech_cat,
             mech_bind.mechanism_type: mech_bind,
         }
-        self.add_mechanisms(default_mechanisms)
+        self.add_mechanisms(default_mechanisms, overwrite=None)

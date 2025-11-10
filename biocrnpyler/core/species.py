@@ -12,8 +12,95 @@ from .polymer import MonomerCollection, OrderedMonomer, OrderedPolymer
 class Species(OrderedMonomer):
     """A formal species object for a chemical reaction network (CRN).
 
-    A Species must have a name. They may also have a material_type (such as
-    DNA, RNA, Protein), and a list of attributes.
+    Represents a chemical species in a CRN with a name, material type,
+    attributes, and compartment. Species inherits from `OrderedMonomer`,
+    allowing it to be part of polymer structures while also functioning as
+    an independent chemical entity in reactions.
+
+    Parameters
+    ----------
+    name : str
+        Name of the species. Must consist of letters, numbers, or
+        underscores, cannot contain double underscores, and cannot
+        begin/end with special characters.
+    material_type : str, default=''
+        Type of material (e.g., 'dna', 'rna', 'protein', 'complex').
+        Required if name starts with a number. Must start with a letter.
+    attributes : list of str or None, optional
+        List of attribute tags for the species (e.g., 'degraded',
+        'phosphorylated'). Each attribute must be alphanumeric.
+    compartment : Compartment, str, or None, optional
+        The compartment containing this species. If None, uses default
+        compartment. If str, creates a new Compartment with that name.
+    **kwargs
+        Additional keyword arguments passed to `OrderedMonomer`.
+
+    Attributes
+    ----------
+    name : str
+        The name of the species.
+    material_type : str
+        The material type of the species.
+    attributes : list of str
+        List of attribute tags associated with the species.
+    compartment : Compartment
+        The compartment containing this species.
+    direction : str, int, or None
+        Directional orientation (inherited from `OrderedMonomer`). When
+        set, the direction is also added as an attribute.
+
+    See Also
+    --------
+    ComplexSpecies : Species formed from multiple bound species.
+    OrderedPolymerSpecies : Polymer species for chemical reactions.
+    WeightedSpecies : Species with stoichiometry coefficient.
+
+    Notes
+    -----
+    Species names must:
+
+    - Contain only letters, numbers, and underscores
+    - Not contain double underscores ('__')
+    - Not end with an underscore
+    - Start with a letter or number (if starting with number, requires
+      material_type)
+
+    Species are represented as strings in the format:
+
+    `material_type_name_attribute1_attribute2_compartment`
+
+    Components are omitted if empty or default values.
+
+    Two species
+    are equal if they have the same name, material_type, attributes,
+    compartment, parent, and position.
+
+    Examples
+    --------
+    Create a simple species:
+
+    >>> S = bcp.Species('S')
+    >>> S.name
+    'S'
+
+    Create a protein with attributes:
+
+    >>> GFP = bcp.Species(
+    ...     name='GFP',
+    ...     material_type='protein',
+    ...     attributes=['fluorescent', 'degraded']
+    ... )
+    >>> repr(GFP)
+    'protein_GFP_fluorescent_degraded'
+
+    Create a species in a compartment:
+
+    >>> cytoplasm = bcp.Compartment('cytoplasm')
+    >>> enzyme = bcp.Species(
+    ...     name='enzyme',
+    ...     material_type='protein',
+    ...     compartment=cytoplasm
+    ... )
 
     """
 
@@ -52,7 +139,20 @@ class Species(OrderedMonomer):
             self._attributes = []
 
     def remove_attribute(self, attribute: str):
-        """Remove an attribute from a Species."""
+        """Remove an attribute from the species.
+
+        Parameters
+        ----------
+        attribute : str
+            The attribute to remove. Must be an alphanumeric string.
+
+        Notes
+        -----
+        If the attribute is not present or is None, no action is taken.
+        All occurrences of the attribute are removed from the attributes
+        list.
+
+        """
         if not hasattr(self, '_attributes') or attribute is None:
             return
         else:
@@ -62,7 +162,32 @@ class Species(OrderedMonomer):
             self._attributes = [a for a in self.attributes if a != attribute]
 
     def add_attribute(self, attribute: str):
-        """Adds attribute to a Species."""
+        """Add an attribute to the species.
+
+        Parameters
+        ----------
+        attribute : str
+            The attribute to add. Must be an alphanumeric string and
+            non-None.
+
+        Raises
+        ------
+        AssertionError
+            If attribute is not an alphanumeric string or is None.
+
+        Notes
+        -----
+        Duplicate attributes are not added - each attribute appears only
+        once in the attributes list.
+
+        Examples
+        --------
+        >>> species = bcp.Species('MyProtein')
+        >>> species.add_attribute('degraded')
+        >>> species.attributes
+        ['degraded']
+
+        """
         if not hasattr(self, '_attributes'):
             self._attributes = []
         assert (
@@ -112,10 +237,22 @@ class Species(OrderedMonomer):
 
     @direction.setter
     def direction(self, direction):
-        """Direction attribute.
+        """Set the directional orientation of the species.
 
-        This is inheritted from OrderedMonomer.  A species with direction
-        will use it as an attribute as well.  This is overwritten to make
+        Overrides `OrderedMonomer.direction` to automatically add the
+        direction as an attribute and remove the old direction attribute.
+
+        Parameters
+        ----------
+        direction : str, int, or None
+            The direction to assign. Common values include 'forward',
+            'reverse', 0, 1, or None. When set, the direction is added as
+            an attribute.
+
+        Notes
+        -----
+        This is inherited from `OrderedMonomer`. A species with direction
+        will use it as an attribute as well. This is overwritten to make
         direction an attribute.
 
         """
@@ -128,7 +265,17 @@ class Species(OrderedMonomer):
             self.add_attribute(direction)
 
     def remove(self):
-        """Remove direction as an attribute."""
+        """Remove the species from its parent polymer.
+
+        Overrides `OrderedMonomer.remove` to also remove the direction
+        attribute if present.
+
+        Returns
+        -------
+        Species
+            Returns self after removal for method chaining.
+
+        """
         if self.direction is not None:
             self.remove_attribute(self.direction)
         return OrderedMonomer.remove(self)  # call the OrderedMonomer function
@@ -136,11 +283,33 @@ class Species(OrderedMonomer):
     # Note: this is used because properties can't be overwritten without
     # setters being overwritten in subclasses.
     def _check_name(self, name):
-        """Check that name is in proper format.
+        """Validate that name follows proper formatting rules.
 
-        Check that the string contains only underscores and alpha-numeric
-        characters or is None.  Additionally cannot end in "_" or contain
-        double "__", also cannot start with a number.
+        Parameters
+        ----------
+        name : str or None
+            The name to validate.
+
+        Returns
+        -------
+        str or None
+            The validated name, unchanged if valid.
+
+        Raises
+        ------
+        ValueError
+            If name violates formatting rules.
+        TypeError
+            If name is not a string or None.
+
+        Notes
+        -----
+        Valid names must:
+
+        - Contain only underscores and alphanumeric characters
+        - Not contain double underscores ('__')
+        - Not end with an underscore
+        - Start with an alphanumeric character
 
         """
         if name is None:
@@ -207,7 +376,10 @@ class Species(OrderedMonomer):
             for i in self.attributes:
                 if i is not None:
                     txt += '_' + str(i)
-        if self.compartment.name != 'default':
+        if (
+            self.compartment is not None
+            and self.compartment.name != 'default'
+        ):
             # Only add a compartment name if it is not the default one.  if
             # compartment name is already there with an underscore remove it
             # from the string first to not repeat the compartment tag
@@ -217,6 +389,30 @@ class Species(OrderedMonomer):
         return txt
 
     def replace_species(self, species, new_species):
+        """Replace a species with another species.
+
+        For a simple Species, returns `new_species` if this species equals
+        `species`, otherwise returns self. For complex species, acts
+        recursively.
+
+        Parameters
+        ----------
+        species : Species
+            The species to search for and replace.
+        new_species : Species
+            The species to replace with.
+
+        Returns
+        -------
+        Species
+            Either `new_species` (if self == species) or self.
+
+        Raises
+        ------
+        ValueError
+            If either argument is not a Species instance.
+
+        """
         if not isinstance(species, Species):
             raise ValueError(
                 "species argument must be an instance of Species!"
@@ -233,10 +429,19 @@ class Species(OrderedMonomer):
             return self
 
     def get_species(self, recursive=None):
-        """Get species list.
+        """Get a list containing this species.
 
-        Used in some recursive calls where ComplexSpecies returns a list
-        and Species will return just themselves (in a list).
+        Returns
+        -------
+        list of Species
+            A list containing only this species: [self].
+
+        Notes
+        -----
+        This method is used in recursive calls where `ComplexSpecies`
+        returns a list of constituent species while `Species` returns just
+        itself in a list. The `recursive` parameter is accepted for
+        compatibility but not used in the base Species class.
 
         """
         return [self]
@@ -249,12 +454,40 @@ class Species(OrderedMonomer):
         show_initial_condition=False,
         **kwargs,  # TODO: allows spurious keywords; fix...
     ):
-        """A more powerful printing function.
+        """Generate a human-readable string representation of the species.
 
-        Useful for understanding CRNs but does not return string
-        identifiers.  show_material toggles whether species.material is
-        printed.  show_attributes toggles whether species.attributes is
-        printed
+        Parameters
+        ----------
+        show_material : bool, default=True
+            If True, includes material_type in brackets around the species.
+        show_compartment : bool, default=False
+            If True, shows the compartment name in the representation.
+        show_attributes : bool, default=True
+            If True, includes attributes in parentheses after the name.
+        show_initial_condition : bool, default=False
+            Placeholder for compatibility with CRN printing.
+        **kwargs
+            Additional keyword arguments (currently unused).
+
+        Returns
+        -------
+        str
+            Formatted string representation of the species.
+
+        Notes
+        -----
+        This method provides more detailed output than `__repr__`,
+        useful for understanding CRNs but does not return string
+        identifiers compatible with parsers.
+
+        Format: `material_type[name(attr1, attr2)-direction]`
+
+        Examples
+        --------
+        >>> S = bcp.Species('S', material_type='protein',
+        ...                 attributes=['active'])
+        >>> S.pretty_print()
+        'protein[S(active)]'
 
         """
         txt = ''
@@ -288,16 +521,25 @@ class Species(OrderedMonomer):
     def __eq__(self, other):
         """Check if two species are equivalent.
 
-        Overrides the default implementation.  Two species are equivalent
-        if they have the same name, type, and attributes.
+        Two species are equal if they have the same name, material_type,
+        attributes (as sets), parent, compartment, and position.
 
-        :param other: Species instance
+        Parameters
+        ----------
+        other : Species
+            The species to compare with.
 
-        :return: boolean
+        Returns
+        -------
+        bool
+            True if species are equivalent, False otherwise.
+
+        Notes
+        -----
+        Equality between parents and children can result in loops, so
+        string equality is used for parent comparison.
 
         """
-        # Note: "==" equality between parents and children can result in
-        # loops, so string equality is used
         if (
             isinstance(other, Species)
             and self.material_type == other.material_type
@@ -312,10 +554,24 @@ class Species(OrderedMonomer):
             return False
 
     def monomer_eq(self, other):
-        """Check if two monomers are equal.
+        """Check if two monomers are equal, ignoring parent and position.
 
-        Same as normal equality, but does not check for parents or
-        positions.
+        Parameters
+        ----------
+        other : Species
+            The species to compare with.
+
+        Returns
+        -------
+        bool
+            True if species have the same name, material_type, attributes,
+            and compartment, regardless of parent or position.
+
+        Notes
+        -----
+        This is the same as normal equality but does not check for parents
+        or positions. Useful for comparing species that may be in different
+        polymer contexts.
 
         """
         if (
@@ -342,10 +598,25 @@ class Species(OrderedMonomer):
         return item in self.get_species()
 
     def contains_species_monomer(self, s):
-        """Checks if the Species has a monomer (Species) inside of it.
+        """Check if the species contains a monomer, ignoring context.
 
-        Checks without checking Species.parent, Species.position, or
-        direction. In effect, a less stringent version of __contains__.
+        Parameters
+        ----------
+        s : Species
+            The species monomer to search for.
+
+        Returns
+        -------
+        bool
+            True if the species contains a monomer equal to `s` (ignoring
+            parent, position, and direction), False otherwise.
+
+        Notes
+        -----
+        This is a less stringent version of `__contains__` that checks
+        without considering Species.parent, Species.position, or direction.
+        Useful for determining if a species is present regardless of its
+        polymer context.
 
         """
         s_copy = copy.deepcopy(s)
@@ -359,7 +630,28 @@ class Species(OrderedMonomer):
 
     @staticmethod
     def flatten_list(in_list) -> List:
-        """Helper function to flatten lists."""
+        """Recursively flatten a nested list of species.
+
+        Parameters
+        ----------
+        in_list : list or Species
+            A potentially nested list of species, or a single species.
+
+        Returns
+        -------
+        list
+            Flattened list containing all species. None elements are
+            filtered out.
+
+        Examples
+        --------
+        >>> S1 = bcp.Species('S1')
+        >>> S2 = bcp.Species('S2')
+        >>> nested = [S1, [S2, None]]
+        >>> bcp.Species.flatten_list(nested)
+        [S1, S2]
+
+        """
         out_list = []
         if not isinstance(in_list, list):
             out_list.append(in_list)
@@ -375,8 +667,43 @@ class Species(OrderedMonomer):
 
 
 class WeightedSpecies:
+    """Container for a species with stoichiometric coefficient.
+
+    Wraps a `Species` object together with its stoichiometry for use in
+    reactions. This class is primarily used internally by the Reaction
+    class to represent reactants and products with their coefficients.
+
+    Parameters
+    ----------
+    species : Species
+        The species object.
+    stoichiometry : int, default=1
+        The stoichiometric coefficient. Must be a positive integer.
+
+    Attributes
+    ----------
+    species : Species
+        The wrapped species object.
+    stoichiometry : int
+        The stoichiometric coefficient (positive integer).
+
+    See Also
+    --------
+    Species : Base class for chemical species.
+    Reaction : Chemical reaction containing weighted species.
+
+    Examples
+    --------
+    Create a weighted species:
+
+    >>> S = bcp.Species('S')
+    >>> ws = bcp.WeightedSpecies(species=S, stoichiometry=2)
+    >>> ws.stoichiometry
+    2
+
+    """
+
     def __init__(self, species: Species, stoichiometry: int = 1):
-        """Container object for all types of species and its stoichiometry."""
         self.species: Species = species
         self.stoichiometry: int = stoichiometry
 
@@ -404,18 +731,31 @@ class WeightedSpecies:
 
     @staticmethod
     def _count_weighted_species(weighted_species: List):
-        """Merge the same species in a list with different stoichiometry.
+        """Merge species in a list with different stoichiometry.
 
-        >>> s1 = Species(name='a')
-        >>> ws1 = WeightedSpecies(species=s1, stoichiometry=2)
-        >>> ws2 = WeightedSpecies(species=s1, stoichiometry=5)
+        Combines `WeightedSpecies` objects with the same species by summing
+        their stoichiometric coefficients.
+
+        Parameters
+        ----------
+        weighted_species : list of WeightedSpecies
+            List of weighted species to merge.
+
+        Returns
+        -------
+        dict
+            Dictionary mapping unique `WeightedSpecies` to their total
+            stoichiometry.
+
+        Examples
+        --------
+        >>> s1 = bcp.Species(name='a')
+        >>> ws1 = bcp.WeightedSpecies(species=s1, stoichiometry=2)
+        >>> ws2 = bcp.WeightedSpecies(species=s1, stoichiometry=5)
         >>> ws_list = [ws1, ws2]
-        >>> freq_dict = WeightedSpecies._count_weighted_species(ws_list)
+        >>> freq_dict = bcp.WeightedSpecies._count_weighted_species(ws_list)
         >>> len(freq_dict)
         1
-
-        :param weighted_species: list of weighted_species
-        :return: unique list of weighted_species, i.e. set(weighted_species)
 
         """
         # convert to set doesn't work because we need only species equality
@@ -447,18 +787,78 @@ class WeightedSpecies:
 
 
 class ComplexSpecies(Species):
-    """Internal representation of a complex species.
+    """Species formed from multiple bound species.
 
-    ComplexSpecies and OrderedComplexSpecies should ALWAYS be created with
-    the Complex function.
+    A special kind of species representing a complex of two or more bound
+    species. ComplexSpecies should always be created using the `Complex`
+    function, not directly. Order of species in the list does not matter:
+    ComplexSpecies([s1, s2]) == ComplexSpecies([s2, s1]).
 
-    A special kind of species which is formed as a complex of two or more
-    species.  Used for attribute inheritance and storing groups of bounds
-    Species.  Note that in a ComplexSpecies, the order of the species list
-    does not matter.  This means that ComplexSpecies([s1, s2]) =
-    ComplexSpecies([s2, s1]).  This is good for modelling order-indpendent
-    binding complexes.  For a case where species order matters
-    (e.g. polymers) use OrderedComplexSpecies
+    Parameters
+    ----------
+    species : list of Species or str
+        List of species forming the complex. Must contain at least 2
+        species.
+    name : str or None, optional
+        Custom name for the complex. If None, generates a name from
+        constituent species.
+    material_type : str, default='complex'
+        Material type identifier for the complex.
+    attributes : list of str or None, optional
+        Attributes for the complex species.
+    compartment : Compartment, str, or None, optional
+        Compartment containing the complex.
+    called_from_complex : bool, default=False
+        Internal flag to enforce use of `Complex` function.
+
+    Attributes
+    ----------
+    species : list of Species
+        Sorted list of constituent species in the complex.
+    species_set : list of Species
+        Unique species in the complex, sorted by string representation.
+    name : str
+        Name of the complex (auto-generated if not provided).
+
+    See Also
+    --------
+    Complex : Metaclass for creating ComplexSpecies.
+    OrderedComplexSpecies : Complex where species order matters.
+    Species : Base class for chemical species.
+
+    Notes
+    -----
+    ComplexSpecies add an additional '_' at the end of their string
+    representation to differentiate edge cases.
+
+    Species order does not affect equality: ComplexSpecies([s1, s2])
+    == ComplexSpecies([s2, s1])
+
+    For ordered complexes, use `OrderedComplexSpecies`.
+
+    If no name is provided, the complex is named by concatenating all
+    constituent species names with counts for duplicates.
+
+    Always use the `Complex` function to create `ComplexSpecies`:
+
+    >>> # Correct
+    >>> complex_species = bcp.Complex([S1, S2])
+
+    >>> # Incorrect (will raise warning)
+    >>> complex_species = bcp.ComplexSpecies([S1, S2])
+
+    Examples
+    --------
+    Create a complex (using Complex function):
+
+    >>> S1 = bcp.Species('S1')
+    >>> S2 = bcp.Species('S2')
+    >>> complex_species = bcp.Complex([S1, S2])
+
+    Check if a species is in a complex:
+
+    >>> S1 in complex_species
+    True
 
     """
 
@@ -496,10 +896,18 @@ class ComplexSpecies(Species):
         )
 
     def __repr__(self):
-        """String representation of ComplexSpecies.
+        """Generate string representation of ComplexSpecies.
 
-        ComplexSpecies add an additional "_" onto the end of their string
-        representation.  This ensures that some edge cases are
+        Returns
+        -------
+        str
+            String representation with an additional '_' at the end to
+            differentiate edge cases.
+
+        Notes
+        -----
+        ComplexSpecies add an additional '_' onto the end of their string
+        representation. This ensures that some edge cases are
         differentiated.
 
         """
@@ -526,7 +934,30 @@ class ComplexSpecies(Species):
         self._name = self._check_name(name)
 
     def __contains__(self, item):
-        """Returns a list of species inside the ComplexSpecies."""
+        """Check if a species is contained in the complex.
+
+        Parameters
+        ----------
+        item : Species
+            The species to search for.
+
+        Returns
+        -------
+        bool
+            True if the species is found in the complex or any nested
+            complexes, False otherwise.
+
+        Raises
+        ------
+        ValueError
+            If `item` is not a Species instance.
+
+        Notes
+        -----
+        This method searches recursively through nested ComplexSpecies to
+        find the target species.
+
+        """
         if not isinstance(item, Species):
             raise ValueError(
                 "Operator 'in' requires chemical_reaction_network.Species "
@@ -570,10 +1001,27 @@ class ComplexSpecies(Species):
             self._species = species
 
     def replace_species(self, species: Species, new_species: Species):
-        """Replace species with new_species in the entire Complex Species.
+        """Replace a species throughout the entire complex.
 
-        Acts recursively on nested ComplexSpecies Does not act in place -
-        returns a new ComplexSpecies.
+        Acts recursively on nested ComplexSpecies. Does not modify in
+        place - returns a new ComplexSpecies.
+
+        Parameters
+        ----------
+        species : Species
+            The species to replace.
+        new_species : Species
+            The species to replace with.
+
+        Returns
+        -------
+        ComplexSpecies
+            A new ComplexSpecies with the replacement applied.
+
+        Raises
+        ------
+        ValueError
+            If either argument is not a Species instance.
 
         """
         if not isinstance(species, Species):
@@ -603,10 +1051,19 @@ class ComplexSpecies(Species):
         )
 
     def get_species(self, recursive=False):
-        """Returns all species in the ComplexSpecies.
+        """Get all species in the complex.
 
-        If recursive = True, returns species inside internal ComplexSpecies
-        recursively as well.
+        Parameters
+        ----------
+        recursive : bool, default=False
+            If True, returns species inside nested ComplexSpecies
+            recursively. If False, returns only this ComplexSpecies.
+
+        Returns
+        -------
+        list of Species
+            List of species. If recursive=False, returns [self]. If
+            recursive=True, returns [self] plus all constituent species.
 
         """
         if not recursive:
@@ -671,21 +1128,92 @@ class ComplexSpecies(Species):
         return txt
 
     def monomer_count(self, m):
-        """Effectively self.species.count(m) using monomer_eq for equality."""
+        """Count occurrences of a monomer in the complex.
+
+        Parameters
+        ----------
+        m : Species
+            The monomer to count.
+
+        Returns
+        -------
+        int
+            Number of times the monomer appears in the complex, using
+            `monomer_eq` for equality comparison.
+
+        Notes
+        -----
+        This effectively implements `self.species.count(m)` but uses
+        `monomer_eq` for equality, which ignores parent and position.
+
+        """
         return sum([s.monomer_eq(m) for s in self.species])
 
 
 class OrderedComplexSpecies(ComplexSpecies):
-    """Create an ordered complex species.
+    """Complex species where species order is significant.
 
-    ComplexSpecies and OrderedComplexSpecies should ALWAYS be created with
-    the Complex function.
+    A special kind of species formed from a complex of two or more species
+    where the order matters. OrderedComplexSpecies should always be created
+    using the `Complex` function with `ordered=True`, not directly.
+    Unlike ComplexSpecies, [s1, s2, s3] != [s1, s3, s2].
 
-    A special kind of species which is formed as a complex of two or more
-    species.  In OrderedComplexSpecies the order in which the complex
-    subspecies are is defined denote different species, eg [s1, s2, s3] !=
-    [s1, s3, s2].  Used for attribute inheritance and storing groups of
-    bounds Species.
+    Parameters
+    ----------
+    species : list of Species or str
+        Ordered list of species forming the complex. Must contain at least
+        2 species.
+    name : str or None, optional
+        Custom name for the complex. If None, generates a name from
+        constituent species in order.
+    material_type : str, default='ordered_complex'
+        Material type identifier for the ordered complex.
+    attributes : list of str or None, optional
+        Attributes for the complex species.
+    compartment : Compartment, str, or None, optional
+        Compartment containing the complex.
+    called_from_complex : bool, default=False
+        Internal flag to enforce use of `Complex` function.
+
+    Attributes
+    ----------
+    species : list of Species
+        Ordered list of constituent species (NOT sorted).
+    name : str
+        Name of the complex (auto-generated if not provided).
+
+    See Also
+    --------
+    Complex : Metaclass for creating ordered complexes.
+    ComplexSpecies : Complex where species order doesn't matter.
+    OrderedPolymerSpecies : Ordered polymer for chemical reactions.
+
+    Notes
+    -----
+    Unlike `ComplexSpecies`, the order of species matters:
+    OrderedComplexSpecies([s1, s2]) != OrderedComplexSpecies([s2, s1])
+
+    Similar to ComplexSpecies, OrderedComplexSpecies add an additional
+    '_' at the end.
+
+    Always use `Complex` with `ordered=True`:
+
+    >>> # Correct
+    >>> complex_species = bcp.Complex([S1, S2], ordered=True)
+
+    >>> # Incorrect (will raise warning)
+    >>> complex_species = bcp.OrderedComplexSpecies([S1, S2])
+
+    Examples
+    --------
+    Create an ordered complex:
+
+    >>> S1 = bcp.Species('S1')
+    >>> S2 = bcp.Species('S2')
+    >>> ordered = bcp.Complex([S1, S2], ordered=True)
+    >>> reversed = bcp.Complex([S2, S1], ordered=True)
+    >>> ordered == reversed
+    False
 
     """
 
@@ -844,23 +1372,80 @@ class OrderedComplexSpecies(ComplexSpecies):
 
 
 class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
-    """OrderedPolymers which can also participate in chemical reactions.
+    """Ordered polymer that can participate in chemical reactions.
 
-    OrderedPolymerSpecies is made up of Species (which are also
-    OrderedMonomers).
+    A polymer composed of Species (which are also OrderedMonomers) that can
+    act as a reactant or product in chemical reactions. The internal
+    species represent multiple binding sites and/or functional regions.
 
-    The Species inside an OrderedPolymerSpecies are meant to model multiple
-    binding sites and/or functional regions. ComplexSpecies can be formed
-    inside an OrderedPolymer by passing the internal Species at a specific
-    location.
+    Parameters
+    ----------
+    species : list of Species or list of [Species, direction]
+        List of species monomers to form the polymer. Each element can be
+        a Species or a [Species, direction] pair.
+    name : str or None, optional
+        Custom name for the polymer. If None, auto-generated from
+        constituent species.
+    material_type : str, default='ordered_polymer'
+        Material type identifier for the polymer.
+    compartment : Compartment, str, or None, optional
+        Compartment containing the polymer.
+    attributes : list of str or None, optional
+        Attributes for the polymer species.
+    circular : bool, default=False
+        If True, the polymer has circular topology (e.g., plasmid).
 
-    When used as an input to a reaction, OrderedPolymerSpecies can be
-    passed or one if its internal Species (eg a Species with Species.parent
-    = OrderedPolymerSpecies) can also be used to produce the same
-    reaction. This allows flexibility in the arguments to different
-    Mechanisms. Sometimes, it is convenient to pass in the
-    OrderedPolymerSpecies, sometimes it is convenient to pass an internal
-    Species. Both will work from the point of view of any Mechanism.
+    Attributes
+    ----------
+    polymer : tuple of Species
+        Ordered tuple of species monomers in the polymer.
+    species : tuple of Species
+        Alias for `polymer` (inherited from OrderedPolymer).
+    circular : bool
+        Flag indicating circular topology.
+    default_material : str
+        Class attribute defining default material type.
+
+    See Also
+    --------
+    OrderedPolymer : Base class for ordered polymers.
+    OrderedComplexSpecies : Ordered complex base class.
+    PolymerConformation : Set of polymers with connections.
+
+    Notes
+    -----
+    When used as a reaction input, either the entire
+    OrderedPolymerSpecies or one of its internal Species (with
+    Species.parent = OrderedPolymerSpecies) can be passed to mechanisms.
+
+    Species inside an `OrderedPolymerSpecies` model multiple binding
+    sites and/or functional regions. `ComplexSpecies` can be formed at
+    specific locations by passing the internal Species.
+
+    The `circular` attribute indicates circular topology but does not
+    automatically enforce circular constraints in operations.
+
+    Examples
+    --------
+    Create a linear polymer:
+
+    >>> S1 = bcp.Species('S1')
+    >>> S2 = bcp.Species('S2')
+    >>> polymer = bcp.OrderedPolymerSpecies(
+    ...     species=[S1, S2],
+    ...     name='my_polymer'
+    ... )
+    >>> len(polymer)
+    2
+
+    Create a circular polymer (plasmid):
+
+    >>> plasmid = bcp.OrderedPolymerSpecies(
+    ...     species=[S1, S2],
+    ...     circular=True
+    ... )
+    >>> plasmid.circular
+    True
 
     """
 
@@ -922,10 +1507,39 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
 
     @classmethod
     def from_polymer_species(cls, ops, replace_dict, **kwargs):
-        """OrderedPolymerSpecies with certain monomers replaced.
+        """Create OrderedPolymerSpecies with specific monomers replaced.
 
-        inputs: replace_dict {monomer index --> new Species}
-        outputs: OrderedPolymerSpecies
+        Parameters
+        ----------
+        ops : OrderedPolymerSpecies
+            The original polymer species to modify.
+        replace_dict : dict
+            Dictionary mapping monomer indices (int) to new Species to
+            insert at those positions.
+        **kwargs
+            Additional keyword arguments for the new OrderedPolymerSpecies.
+            Defaults are inherited from `ops` if not specified.
+
+        Returns
+        -------
+        OrderedPolymerSpecies
+            New polymer with specified monomers replaced.
+
+        Notes
+        -----
+        If `replace_dict` is empty, returns a deep copy of `ops`.
+
+        Examples
+        --------
+        Replace monomer at position 1:
+
+        >>> S1 = bcp.Species('S1')
+        >>> S2 = bcp.Species('S2')
+        >>> S3 = bcp.Species('S3')
+        >>> polymer = bcp.OrderedPolymerSpecies([S1, S2])
+        >>> new_polymer = bcp.OrderedPolymerSpecies.from_polymer_species(
+        ...     polymer, {1: S3}
+        ... )
 
         """
         if replace_dict == {}:
@@ -1034,33 +1648,70 @@ class OrderedPolymerSpecies(OrderedComplexSpecies, OrderedPolymer):
 
 
 class PolymerConformation(Species, MonomerCollection):
-    """Set of polymers and connections in the form of ComplexSpecies.
+    """Set of polymers and their connections via ComplexSpecies.
 
-    This class stores a set of PolymerSpecies and a set of connections
-    between them in the form of ComplexSpecies containing Monomers inside
-    the PolymerSpecies.
+    Represents a conformation of one or more PolymerSpecies connected by
+    ComplexSpecies containing monomers from the polymers. This class
+    provides unique naming for conformations and serves as a data structure
+    for polymer hypergraphs.
 
-    The main function of this class is to provide a unique name to each
-    conformation. The name is given by:
+    Parameters
+    ----------
+    complexes : list of ComplexSpecies, optional
+        List of ComplexSpecies connecting monomers from
+        OrderedPolymerSpecies. Must contain monomers from the polymers.
+    polymer : OrderedPolymerSpecies or list of Species, optional
+        Single polymer or list of species to form a polymer. Exactly one
+        of `complexes` or `polymer` must be provided.
+    material_type : str, default='conformation'
+        Material type identifier.
+    name : str or None, optional
+        Custom name for the conformation. If None, auto-generated.
+    **kwargs
+        Additional keyword arguments passed to Species constructor.
 
-        conformation__[PolymerSpecies 1]_..._[PolymerSpecies N]
-           _[ComplexSpecies_1 parent Polymer indices]
-           _[ComplexSpecies_1]..._[ComplexSpecies_M]__
+    Attributes
+    ----------
+    polymers : list of OrderedPolymerSpecies
+        List of polymers in this conformation.
+    complexes : list of ComplexSpecies
+        List of complexes connecting monomers in the polymers.
+    name : str
+        Auto-generated name encoding polymer and complex structure.
 
-    where the list of PolymerSpecies and ComplexSpecies are in alphabetical
-    order.  The ComplexSpecies parent Polymer indices notes which Polymers
-    each Species in the ComplexSpecies comes from, with 'n' used for None.
+    See Also
+    --------
+    OrderedPolymerSpecies : Polymer species for chemical reactions.
+    ComplexSpecies : Complex of multiple bound species.
+    Complex : Metaclass for creating complexes.
 
-    In general, users should not produce PolymerConformations directly. The
-    Complex function will automatically produce these when a complex is
-    formed involving Multiple OrderedMonomers contained within one or more
-    PolymerSpecies.
+    Notes
+    -----
+    Auto-generated names follow the format:
+    `conformation__[Polymer1]_[Polymer2]_[indices]_[Complex1]_[Complex2]__`
 
-    In effect, this can be thought of as a data structure for a
-    hypergraph. The monomers of the PolymerSpecies are vertices and
-    ComplexSpecies form edges that connect an arbitrary number of vertices
-    (potentially including other Species as well). Note that this class
-    allows for multiple edges between the same sets of vertices.
+    where indices encode which polymers each complex binds to and the list of
+    `PolymerSpecies` and `ComplexSpecies` are in alphabetical order.
+
+    A `PolymerConformation` represents a hypergraph where:
+
+    - Monomers are vertices
+    - `ComplexSpecies` are hyperedges connecting arbitrary numbers of
+      vertices
+    - Multiple edges between the same vertices are allowed
+
+    Users typically do not create PolymerConformations directly. The
+    `Complex` function automatically creates them when complexing
+    monomers from OrderedPolymerSpecies.
+
+    Examples
+    --------
+    Create from a single polymer:
+
+    >>> S1 = bcp.Species('S1')
+    >>> S2 = bcp.Species('S2')
+    >>> polymer = bcp.OrderedPolymerSpecies([S1, S2])
+    >>> conformation = bcp.PolymerConformation(polymer=polymer)
 
     """
 
@@ -1072,12 +1723,6 @@ class PolymerConformation(Species, MonomerCollection):
         name=None,
         **kwargs,
     ):
-        """Initialize PolymerConformation class.
-
-        complexes: a list of ComplexSpecies each of which must contain
-        Monomers from the OrderedPolymerSpecies in the conformation
-
-        """
         Species.__init__(
             self, name=name, material_type=material_type, **kwargs
         )
@@ -1115,13 +1760,33 @@ class PolymerConformation(Species, MonomerCollection):
     def from_polymer_conformation(
         cls, pcs, complexes=None, complexes_to_remove=None, **kwargs
     ):
-        """New PolymerConformation from prevous conformaiton plus complexes.
+        """Create PolymerConformation from existing conformations.
 
-        This function produces a new PolymerConformation from previously
-        existing PolymerConformations and new Complexes.
+        Produces a new PolymerConformation by merging complexes from
+        previous PolymerConformations and adding new complexes.
 
-        pcs: a list of PolymerConformations
-        complexes: a list of complexes to add to the polymer conformation
+        Parameters
+        ----------
+        pcs : list of PolymerConformation
+            List of existing PolymerConformations to merge.
+        complexes : list of ComplexSpecies, optional
+            Additional complexes to add to the conformation. Default is an
+            empty list.
+        complexes_to_remove : list of ComplexSpecies, optional
+            Complexes to exclude from the merged conformation. Default is
+            an empty list.
+        **kwargs
+            Additional keyword arguments for the new PolymerConformation.
+
+        Returns
+        -------
+        PolymerConformation
+            New conformation merging all input conformations and complexes.
+
+        Raises
+        ------
+        TypeError
+            If `pcs` is not a list of PolymerConformations.
 
         """
         if not isinstance(pcs, list) or not any(
@@ -1148,17 +1813,43 @@ class PolymerConformation(Species, MonomerCollection):
     def from_polymer_replacement(
         cls, pc, old_polymers, new_polymers, **kwargs
     ):
-        """Replace old polymers with new polymers.
+        """Create PolymerConformation by replacing polymers.
 
-        This function produces a PolymerConformation from a previously
-        existing PolymerConformation by replacing old_polymers with
-        new_polymers
+        Produces a PolymerConformation from an existing one by replacing
+        specified polymers with new ones, updating all complexes
+        accordingly.
 
-        pc: the PolymerConformation to replace polymers from.
-        old_polymers: a list of PolymerSpecies instances. These must be
-            the same instances stored inside pc or an error is thrown.
-        new_polymers: a list of new PolymerSpecies instances to replace
-            each of the old_polymers. Must be the same length as old_polymers.
+        Parameters
+        ----------
+        pc : PolymerConformation
+            The conformation to modify.
+        old_polymers : list of OrderedPolymerSpecies
+            Polymers to replace. Must be the same instances (not just
+            equal) as those in `pc.polymers`.
+        new_polymers : list of OrderedPolymerSpecies
+            New polymers to use as replacements. Must be the same length
+            as `old_polymers`.
+        **kwargs
+            Additional keyword arguments for the new PolymerConformation.
+            Defaults are inherited from `pc` if not specified.
+
+        Returns
+        -------
+        PolymerConformation
+            New conformation with polymers replaced.
+
+        Raises
+        ------
+        TypeError
+            If arguments are not the correct types.
+        ValueError
+            If `old_polymers` are not instances in `pc.polymers`, or if
+            lists have different lengths.
+
+        Notes
+        -----
+        This method updates all complexes to reference monomers from the
+        new polymers at the same positions as in the old polymers.
 
         """
         if not isinstance(pc, PolymerConformation):
@@ -1537,49 +2228,125 @@ class PolymerConformation(Species, MonomerCollection):
 class Complex:
     """Metaclass for creating chemical complexes.
 
-    Complex is not a class that gets instantiated - it creates
-    ComplexSpecies and OrderedComplexSpecies.  The Logic encoded in
-    the __new__ function is used to insert these classes into the
-    binding sites of OrderedPolymerSpecies.
+    `Complex` is not a class that gets instantiated directly - it creates
+    instances of `ComplexSpecies`, `OrderedComplexSpecies`,
+    `OrderedPolymerSpecies`, or `PolymerConformation` based on the input
+    species and their parent relationships.
 
-    Arguments:
-    species: a list of species to put into ComplexSpecies or
-        OrderedComplexSpecies
+    Parameters
+    ----------
+    species : list of Species
+        List of species to combine into a complex. Can include standalone
+        Species, Species with parents (monomers in polymers), or entire
+        OrderedPolymerSpecies.
+    ordered : bool, default=False
+        If True, creates OrderedComplexSpecies where species order
+        matters. If False, creates ComplexSpecies where order is
+        irrelevant.
+    **kwargs
+        Additional keyword arguments passed to the created species class.
 
-    kwargs:
-    ordered: whether to produce an OrderedComplexSpecies (default = False)
+    Returns
+    -------
+    ComplexSpecies, OrderedComplexSpecies, OrderedPolymerSpecies, or
+    PolymerConformation
+        The type of species returned depends on the input structure:
+
+        - Simple species list -> ComplexSpecies or OrderedComplexSpecies
+        - Monomers from one polymer -> OrderedPolymerSpecies
+        - Monomers from multiple polymers/conformations ->
+          PolymerConformation
+
+    See Also
+    --------
+    ComplexSpecies : Unordered complex of multiple species.
+    OrderedComplexSpecies : Ordered complex of multiple species.
+    OrderedPolymerSpecies : Polymer species for reactions.
+    PolymerConformation : Multiple polymers with connections.
+
+    Notes
+    -----
+    The `__new__` method implements logic for different scenarios:
+
+    1. No parents: Creates ComplexSpecies or OrderedComplexSpecies
+    2. Single polymer parent: Creates OrderedPolymerSpecies with
+       complex at binding site
+    3. Multiple polymer parents or conformations: Creates
+       PolymerConformation merging all complexes
+    4. Error cases: Raises exceptions for invalid combinations
+
+    The correct species type is automatically determined from the input,
+    allowing flexible complex formation without explicit type selection.
+
+    Examples
+    --------
+    Create a simple complex:
+
+    >>> S1 = bcp.Species('S1')
+    >>> S2 = bcp.Species('S2')
+    >>> complex = bcp.Complex([S1, S2])
+    >>> type(complex)
+    biocrnpyler.core.species.ComplexSpecies
+
+    Create an ordered complex:
+
+    >>> ordered = bcp.Complex([S1, S2], ordered=True)
+    >>> type(ordered)
+    biocrnpyler.core.species.OrderedComplexSpecies
+
+    Create a complex at a polymer binding site:
+
+    >>> S3 = bcp.Species('S3')
+    >>> polymer = bcp.OrderedPolymerSpecies([S1, S2])
+    >>> # S1 is now inside the polymer at position 0
+    >>> complex = bcp.Complex([polymer[0], S3])
+    >>> type(complex.parent)
+    biocrnpyler.core.species.OrderedPolymerSpecies
 
     """
 
     def __new__(cls, *args, **kwargs):
-        """Produce an instace of the correct species type.
+        """Create an instance of the appropriate species type.
 
-        This function effectively produces the instance of the correct
-        Species Class based upon the arguments passed in.
+        This method analyzes the input species and their parent
+        relationships to determine which type of complex to create.
 
-        Cases: Here species refer to the Species in the Species list passed
-        into the construct.
+        Parameters
+        ----------
+        *args
+            Positional arguments, first should be the species list.
+        **kwargs
+            Keyword arguments including 'species' and 'ordered'.
 
-        1. No Species have parents.
-           Produces: an ComplexSpecies or an OrderedComplexSepcies
+        Returns
+        -------
+        ComplexSpecies, OrderedComplexSpecies, OrderedPolymerSpecies, or
+        PolymerConformation
+            The appropriate species type based on input structure.
 
-        2. A single Species S has a parent which is an
-           OrderedPolymerSpecies with no parent.  Produces: an
-           OrderedPolymerSpecies with a ComplexSpecies or
-           OrderedComplexSpecies containing S in S's location in the
-           OrderedPolymerSpecies.
+        Raises
+        ------
+        TypeError
+            If species argument is not a list, or if trying to complex
+            entire OrderedPolymerSpecies that are already in
+            PolymerConformations, or if invalid parent types are found.
+        ValueError
+            If trying to form complexes between monomers from multiple
+            OrderedPolymerSpecies without PolymerConformations.
 
-        3. [Error Case] Multiple Species S have parents which are
-           OrderedPolymerSpecies without parents.
+        Notes
+        -----
+        Cases handled:
 
-        4. [Error Case] Entire OrderedPolymerSpecies inside
-           PolymerConformations are being Complexed Together.
-
-        5. One or More Species S have parents which are
-           OrderedPolymerSpecies with parents and/or PolymerConformations.
-
-        Produces: a (Ordered)ComplexSpecies containing all S inside a
-        PolymerConformation which merges all PolymerComformation Complexes.
+        1. No Species have parents -> `ComplexSpecies` or
+           1OrderedComplexSpecies`
+        2. Single Species has parent `OrderedPolymerSpecies` (no parent) ->
+           `OrderedPolymerSpecies` with complex at binding site
+        3. Multiple Species with OrderedPolymerSpecies1` parents (no
+           parents) -> Error (must use PolymerConformations)
+        4. Entire OrderedPolymerSpecies in PolymerConformations -> Error
+        5. One or more `Species` from polymer Conformations ->
+           `PolymerConformation` merging all complexes
 
         """
         species = []

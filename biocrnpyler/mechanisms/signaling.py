@@ -7,23 +7,111 @@ from ..core.species import Complex
 
 
 class Membrane_Signaling_Pathway_MM(Mechanism):
-    """A mechanism to model a two-component system (TCS) membrane sensor.
+    """Two-component system membrane sensor with Michaelis-Menten kinetics.
 
-    Includes the sensing of signal substrate (SigSub) and the phosphorylation
-    of the response protein (RP) but not include the reporter circuit.
-    Mechanism follows Michaelis-Menten type reactions.
+    A 'membrane_sensor' mechanism that models a two-component system (TCS)
+    for signal transduction across cellular membranes. This mechanism
+    includes signal substrate sensing, membrane sensor protein activation,
+    auto-phosphorylation via ATP, and phosphorylation of response proteins,
+    but does not include downstream reporter circuits.
 
-    Mechanism for the activation of the membrane sensor protein (MSP):
-      SP + SigSub <--> SP:SigSub --> SP*
+    The mechanism follows a multi-step Michaelis-Menten kinetic scheme with
+    the following reaction pathway:
 
-    Mechanism for the auto-phosphorylation:
-      SP* + nATP <--> SP*:nATP --> SP**:nADP --> SP** + nADP
+    1. Activation of membrane sensor protein (MSP):
 
-    Mechanism for the phosphorylation of response protein:
-      SP** + RP <--> SP**:RP --> SP*:RP* --> SP*+RP*
+       SP + SigSub <--> SP:SigSub --> SP*
 
-    Mechanism for the dephosphorylation of phosphoryled response protein:
-      RP* --> RP + Pi
+    2. Auto-phosphorylation via ATP:
+
+       SP* + nATP <--> SP*:nATP --> SP**:nADP --> SP** + nADP
+
+    3. Phosphorylation of response protein (RP):
+
+       SP** + RP <--> SP**:RP --> SP*:RP* --> SP* + RP*
+
+    4. Dephosphorylation of phosphorylated response protein:
+
+       RP* --> RP + Pi
+
+    Parameters
+    ----------
+    name : str, default='two_component_membrane_signaling'
+        Name identifier for this mechanism instance.
+    mechanism_type : str, default='membrane_sensor'
+        Type classification of this mechanism.
+
+    Attributes
+    ----------
+    name : str
+        Name of the mechanism instance.
+    mechanism_type : str
+        Type classification ('membrane_sensor').
+
+    See Also
+    --------
+    Mechanism : Base class for all mechanisms.
+    MichaelisMenten : Enzyme-substrate mechanism with MM kinetics.
+
+    Notes
+    -----
+    This mechanism models bacterial two-component signaling systems, which
+    are common environmental sensing pathways. The sensor protein spans the
+    membrane and undergoes conformational changes upon binding external
+    signals, leading to autophosphorylation and subsequent phosphotransfer
+    to response proteins that regulate gene expression.
+
+    The mechanism requires the membrane sensor protein to have an ATP
+    attribute (membrane_sensor_protein.ATP) that specifies the number of
+    ATP molecules required for autophosphorylation.
+
+    Required parameters for this mechanism:
+
+    - 'kb_sigMS' : Forward binding rate for signal substrate to membrane
+      sensor protein
+    - 'ku_sigMS' : Reverse unbinding rate for signal substrate from
+      membrane sensor protein
+    - 'kb_autoPhos' : Forward binding rate for ATP to activated membrane
+      sensor protein
+    - 'ku_autoPhos' : Reverse unbinding rate for ATP from activated
+      membrane sensor protein
+    - 'k_hydro' : ATP hydrolysis rate constant
+    - 'ku_waste' : Unbinding rate for ADP waste products
+    - 'kb_phosRP' : Forward binding rate for response protein to
+      phosphorylated membrane sensor
+    - 'ku_phosRP' : Reverse unbinding rate for response protein from
+      phosphorylated membrane sensor
+    - 'k_phosph' : Phosphotransfer rate constant to response protein
+    - 'ku_activeRP' : Unbinding rate for activated response protein
+    - 'ku_dephos' : Dephosphorylation rate constant for phosphorylated
+      response protein
+
+    Examples
+    --------
+    Create a two-component signaling system with default parameters:
+
+    >>> response = bcp.Protein(name='OmpR')
+    >>> sensor = bcp.MembraneSensor(
+    ...     membrane_sensor_protein='EnvZ',
+    ...     response_protein=response.species,
+    ...     assigned_substrate='Phosphate',
+    ...     signal_substrate='Osmolarity',
+    ...     ATP=2
+    ... )
+    >>> mechanism = bcp.Membrane_Signaling_Pathway_MM()
+    >>> mixture = bcp.Mixture(
+    ...     components=[sensor, response],
+    ...     mechanisms={'membrane_sensor': mechanism},
+    ...     parameters={
+    ...         'kb_sigMS': 1.0, 'ku_sigMS': 0.1,
+    ...         'kb_autoPhos': 1.0, 'ku_autoPhos': 0.1,
+    ...         'k_hydro': 0.5, 'ku_waste': 1.0,
+    ...         'kb_phosRP': 1.0, 'ku_phosRP': 0.1,
+    ...         'k_phosph': 0.5, 'ku_activeRP': 1.0,
+    ...         'ku_dephos': 0.01
+    ...     }
+    ... )
+    ... mixture.compile_crn()
 
     """
 
@@ -31,7 +119,7 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
         self,
         name='two_component_membrane_signaling',
         mechanism_type='membrane_sensor',
-        **keywords,
+        **kwargs,
     ):
         Mechanism.__init__(self, name, mechanism_type)
 
@@ -45,8 +133,70 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
         energy,
         waste,
         complex_dict=None,
-        **keywords,
+        **kwargs,
     ):
+        """Generate species for two-component membrane signaling pathway.
+
+        Creates all species involved in the signaling cascade, including the
+        membrane sensor protein, response protein, signal substrate, ATP/ADP
+        energy species, and all intermediate complexes formed during signal
+        transduction and phosphotransfer.
+
+        Parameters
+        ----------
+        membrane_sensor_protein : Species
+            The membrane sensor protein that detects the signal. Must have
+            an ATP attribute specifying the number of ATP molecules required
+            for autophosphorylation.
+        response_protein : Species
+            The response protein that receives the phosphate group and
+            becomes activated.
+        assigned_substrate : Species
+            The phosphate substrate (Pi) that is transferred during the
+            signaling cascade.
+        signal_substrate : Species
+            The external signal molecule that activates the membrane sensor
+            protein.
+        product : Species
+            The phosphorylated response protein product (RP*).
+        energy : Species
+            ATP species used for autophosphorylation.
+        waste : Species
+            ADP species produced after ATP hydrolysis.
+        complex_dict : dict, optional
+            Pre-defined dictionary of complex species with keys
+            'Activated_MSP', 'ATP:Activated_MSP', 'ADP:Activated_MSP:Sub',
+            'Activated_MSP:Sub', 'Activated_MSP:Sub:RP', and
+            'Activated_MSP:RP:Sub'. If None, complexes are automatically
+            created.
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list
+            List containing individual species and complex array:
+            [membrane_sensor_protein, response_protein,
+            assigned_substrate, signal_substrate, energy, waste,
+            complex_array] where complex_array is a list of all Complex
+            species generated.
+
+        Notes
+        -----
+        The method creates six different complex species representing the
+        intermediate states of the signaling cascade:
+
+        1. Activated_MSP : signal_substrate:membrane_sensor_protein
+        2. ATP:Activated_MSP : nATP:Activated_MSP
+        3. ADP:Activated_MSP:Sub : Activated_MSP:nADP:Pi
+        4. Activated_MSP:Sub : Activated_MSP:Pi (phosphorylated sensor)
+        5. Activated_MSP:Sub:RP : (Activated_MSP:Pi):response_protein
+        6. Activated_MSP:RP:Sub : Activated_MSP:(response_protein:Pi)
+
+        The number of ATP/ADP molecules (nATP) is determined by the
+        membrane_sensor_protein.ATP attribute.
+
+        """
         nATP = membrane_sensor_protein.ATP
 
         if complex_dict is None:
@@ -116,12 +266,86 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
         complex_dict=None,
         component=None,
         part_id=None,
-        **keywords,
+        **kwargs,
     ):
-        """Update reactions for membrane signaling pathway.
+        """Generate reactions for two-component membrane signaling pathway.
 
-        This always requires the inputs component and part_id to find
-        the relevant parameters.
+        Creates all eight reactions comprising the complete signaling
+        cascade from signal detection through response protein activation
+        and dephosphorylation. Reactions follow Michaelis-Menten kinetics
+        with reversible binding steps and irreversible catalytic steps.
+
+        Parameters
+        ----------
+        membrane_sensor_protein : Species
+            The membrane sensor protein that detects the signal. Must have
+            an ATP attribute specifying the number of ATP molecules required
+            for autophosphorylation.
+        response_protein : Species
+            The response protein that receives the phosphate group and
+            becomes activated.
+        assigned_substrate : Species
+            The phosphate substrate (Pi) that is transferred during the
+            signaling cascade.
+        signal_substrate : Species
+            The external signal molecule that activates the membrane sensor
+            protein.
+        product : Species
+            The phosphorylated response protein product (RP*).
+        energy : Species
+            ATP species used for autophosphorylation.
+        waste : Species
+            ADP species produced after ATP hydrolysis.
+        complex_dict : dict, optional
+            Pre-defined dictionary of complex species. If None, complexes
+            are automatically created using the same logic as in
+            update_species.
+        component : Component
+            Component containing parameter values. Required for parameter
+            lookup.
+        part_id : str
+            Identifier for parameter lookup in the component's parameter
+            database. Required for parameter lookup.
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        list of Reaction
+            List of eight reactions representing the complete signaling
+            cascade:
+
+            1. Signal binding (reversible)
+            2. ATP binding (reversible)
+            3. ATP hydrolysis (irreversible)
+            4. ADP release (irreversible)
+            5. Response protein binding (reversible)
+            6. Phosphotransfer (irreversible)
+            7. Activated response protein release (irreversible)
+            8. Response protein dephosphorylation (irreversible)
+
+        Raises
+        ------
+        AttributeError
+            If component or part_id is None (required for parameter lookup).
+
+        Notes
+        -----
+        The reaction scheme follows this pathway:
+
+        1. SP + SigSub <--> SP:SigSub (rates: 'kb_sigMS', 'ku_sigMS')
+        2. SP:SigSub + nATP <--> SP:SigSub:nATP
+           (rates: 'kb_autoPhos', 'ku_autoPhos')
+        3. SP:SigSub:nATP --> SP:SigSub:Pi:nADP (rate: 'k_hydro')
+        4. SP:SigSub:Pi:nADP --> SP:SigSub:Pi + nADP (rate: 'ku_waste')
+        5. SP:SigSub:Pi + RP <--> SP:SigSub:Pi:RP
+           (rates: 'kb_phosRP', 'ku_phosRP')
+        6. SP:SigSub:Pi:RP --> SP:SigSub:RP:Pi (rate: 'k_phosph')
+        7. SP:SigSub:RP:Pi --> SP:SigSub + RP:Pi (rate: 'ku_activeRP')
+        8. RP:Pi --> RP + Pi (rate: 'ku_dephos')
+
+        This method requires both component and part_id parameters to
+        retrieve rate constants from the component's parameter database.
 
         """
         # Get Parameters

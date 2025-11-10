@@ -1,0 +1,7 @@
+mechanism_id	part_id	param_name	param_val	units	comments
+		ktx	0.05	transcripts/sec/polymerase	Assuming 50nt/s and transcript length of 1000
+		ktl	0.05	proteins/sec/nM	Assuming 15aa/s and protein length of 300
+		cooperativity	2		
+		kb	100		assuming 10ms to diffuse across 1um (characteristic cell size)
+		ku	10		90% binding
+		kdil	0.001		assuming half life of ~20 minutes for everything (e coli doubling time)

@@ -1,5 +1,11 @@
 mechanism	part_id	param_name	value	units	comments
-energy_transcription_mm		ktx	3.25		Tx_cat from Singhal et al.
+gene_expression		kexpress	0.28125		The product of the above two rates
+		ktx	0.05		transcripts / second per polymerase assuming 50nt/s and transcript length of 1000
+		ktl	0.05		proteins / second per ribosome assuming 15aa/s and protein length of 300
+		kb	100		assuming 10ms to diffuse across 1um (characteristic cell size)
+		ku	10		90% binding
+		kdil	0.001		assuming half life of ~20 minutes for everything (e coli doubling time)
+energy_transcription_mm 	ktx     3.25            Tx_cat from Singhal et al.
 energy_transcription_mm		kb	4.48		For the promoter tested in Singhal et al Supplemental Table S2
 energy_transcription_mm		ku	2.48889E-06		For the promoter tested in Singhal et al Supplemental Table S2
 energy_transcription_mm		length	300		"This is a default length, gene specific ones should be set"

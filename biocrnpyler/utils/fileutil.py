@@ -1,5 +1,7 @@
-# findfile.py - find biocrnypyler file
+# fileutil.py - file utilities for biocrnpyler
 # RMM (via Claude), 19 Sep 2025
+#
+# Utilities for finding and managing files in the biocrnpyler package.
 
 import os
 from pathlib import Path
@@ -11,28 +13,45 @@ def find_file_in_bcp_path(
 ) -> Optional[str]:
     """Find a file by searching through biocrnpyler paths.
 
-    Search order:
-    1. Current directory
-    2. Directories specified in environment variable (default: BCP_PATH)
-    3. biocrnpyler package's 'defaults' subdirectory
+    Searches for a file in multiple locations in the following order:
 
-    Args:
-        filename (str): Name of file to find
-        env_var_name (str): Environment variable containing search paths
+    1. Current working directory
+    2. Directories specified in environment variable (default: 'BCP_PATH')
+    3. biocrnpyler package directory
 
-    Returns:
-        str: Full path to file if found, None if not found
+    The environment variable should contain a colon-separated (Unix) or
+    semicolon-separated (Windows) list of directory paths.
 
-    Example:
-        >>> # Set environment variable (in shell or programmatically)
-        >>> os.environ['BCP_PATH'] = '/path/to/models:/path/to/configs'
-        >>>
-        >>> # Find a file
-        >>> filepath = find_file_in_bcp_path('model.xml')
-        >>> if filepath:
-        >>>     print(f"Found file at: {filepath}")
-        >>> else:
-        >>>     print("File not found")
+    Parameters
+    ----------
+    filename : str
+        Name of file to find.
+    env_var_name : str, default='BCP_PATH'
+        Name of environment variable containing search paths.
+
+    Returns
+    -------
+    str or None
+        Full path to file if found, None otherwise.
+
+    Examples
+    --------
+    Set environment variable and find a file:
+
+    >>> import os
+    >>> os.environ['BCP_PATH'] = '/path/to/models:/path/to/configs'
+    >>> filepath = find_file_in_bcp_path('model.xml')
+    >>> if filepath:
+    ...     print(f'Found file at: {filepath}')
+    ... else:
+    ...     print('File not found')
+    Found file at: /path/to/models/model.xml
+
+    Search with a custom environment variable:
+
+    >>> filepath = find_file_in_bcp_path(
+    ...     'parameters.csv', env_var_name='MY_PARAMS_PATH')
+
     """
     search_paths = []
 

@@ -34,7 +34,7 @@ def recursive_parent(s):
 
 
 def remove_bindloc(spec_list):
-    """Go through every species on a list and remove any "bindloc" attributes.
+    """Go through every species on a list and remove any 'bindloc' attributes.
 
     This is used to convert monomers with a parent polymer into the
     correct species after combinatorial binding in things like
@@ -82,6 +82,7 @@ def combine_dictionaries(dict1, dict2):
     """Append lists that share the same key, and add new keys.
 
     WARNING: this only works if the dictionaries have values that are lists.
+
     """
     outdict = dict1
     for key in dict2:
@@ -97,7 +98,10 @@ def combine_dictionaries(dict1, dict2):
 def member_dictionary_search(member, dictionary):
     """Searches dictionary for keys relevant to the given data member.
 
+    Notes
+    -----
     Order of returning:
+
     repr
     name
     material_type

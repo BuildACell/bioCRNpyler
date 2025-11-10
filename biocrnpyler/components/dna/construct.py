@@ -20,6 +20,107 @@ from ..basic import DNA, RNA
 
 
 class Construct(Component, OrderedPolymer):
+    """Base class for ordered genetic constructs with multiple parts.
+
+    A Construct represents an ordered arrangement of genetic parts (promoters,
+    RBS, coding sequences, terminators, etc.) that form a functional unit.
+    This class provides the infrastructure for handling complex genetic
+    constructs with multiple components, their enumeration, and generation
+    of combinatorial variants. Constructs can be linear or circular and
+    support both forward and reverse orientations of their constituent parts.
+
+    Parameters
+    ----------
+    parts_list : list of list
+        List of parts in the format [[part, direction], [part, direction],
+        ...]  where each part must be an OrderedMonomer and direction is
+        'forward' or 'reverse'.
+    name : str, optional
+        Name of the construct. If None, automatically generated from parts.
+    circular : bool, default=False
+        If True, the construct is circular (e.g., plasmid). If False, linear.
+    mechanisms : dict or list, optional
+        Custom mechanisms for this construct, overriding mixture defaults.
+    parameters : dict, optional
+        Parameter values specific to this construct.
+    attributes : list of str, optional
+        List of attribute tags for the construct.
+    initial_concentration : float, optional
+        Initial concentration of the construct species.
+    component_enumerators : list, optional
+        List of enumerator objects that generate construct variants.
+    make_dirless_hash : bool, default=True
+        If True, generates direction-independent hash for construct
+        comparison.
+    **kwargs
+        Additional keyword arguments passed to Component constructor.
+
+    Attributes
+    ----------
+    parts_list : list
+        Ordered list of parts in the construct.
+    circular : bool
+        Whether the construct is circular.
+    component_enumerators : list
+        Enumerators for generating construct variants.
+    out_components : list or None
+        Cached list of output components from enumeration.
+    predicted_rnas : list or None
+        Cached list of predicted RNA species.
+    predicted_proteins : list or None
+        Cached list of predicted protein species.
+
+    See Also
+    --------
+    DNA_construct : DNA-specific construct implementation.
+    RNA_construct : RNA-specific construct implementation.
+    DNA_part : Base class for individual DNA parts.
+    OrderedPolymer : Base class for ordered polymer structures.
+
+    Notes
+    -----
+    Constructs support several advanced features:
+
+    - Part enumeration: Automatically generates all functional variants
+      based on the parts present (e.g., all promoter-RBS combinations)
+    - Combinatorial complexes: Generates all possible binding states
+      when regulatory proteins bind to different parts
+    - Direction-free comparison: Can identify equivalent constructs
+      regardless of orientation or circular permutation
+
+    The class maintains caches for enumerated components, RNA products, and
+    protein products to avoid redundant computation.
+
+    Examples
+    --------
+    Create a simple linear construct:
+
+    >>> promoter = bcp.Promoter('ptet')
+    >>> rbs = bcp.RBS('RBS_standard')
+    >>> cds = bcp.CDS('GFP')
+    >>> parts = [[promoter, 'forward'], [rbs, 'forward'], [cds, 'forward']]
+    >>> construct = bcp.Construct(
+    ...     parts_list=parts,
+    ...     name='gene_circuit',
+    ...     circular=False
+    ... )
+
+    Create a circular plasmid:
+
+    >>> ori = bcp.DNA_part('p15A')
+    >>> terminator = bcp.Terminator('BBa_B0022')
+    >>> parts = [
+    >>>     [ori, 'forward'], [promoter, 'forward'], [rbs, 'forward'],
+    >>>     [cds, 'forward'], [terminator, 'forward']
+    >>> ]
+    >>> plasmid = bcp.Construct(
+    ...     parts_list=parts,
+    ...     name='pExpression',
+    ...     circular=True
+    ... )
+
+    """
+
     def __init__(
         self,
         parts_list,
@@ -33,12 +134,6 @@ class Construct(Component, OrderedPolymer):
         make_dirless_hash=True,
         **kwargs,
     ):
-        """This represents a bunch of parts in a row.
-
-        A parts list has [[part, direction], [part, direction], ...].
-        Each part must be an OrderedMonomer.
-
-        """
         if component_enumerators is None:
             component_enumerators = []
         self.component_enumerators = component_enumerators
@@ -75,6 +170,48 @@ class Construct(Component, OrderedPolymer):
         return self.polymer
 
     def make_name(self):
+        """Generate a systematic name for the construct based on its parts.
+
+        Creates a name by concatenating all part names with underscores.
+        Parts in reverse orientation are suffixed with '_r', and circular
+        constructs are suffixed with '_o'.
+
+        Returns
+        -------
+        str
+            The generated construct name.
+
+        Examples
+        --------
+        Linear construct with forward parts:
+
+        >>> promoter = bcp.Promoter('pLac')
+        >>> rbs = bcp.CDS('RBS1')
+        >>> cds = bcp.CDS('GFP')
+        >>> construct = bcp.DNA_construct(
+        ...     [[promoter, 'forward'], [rbs, 'forward'], [cds, 'forward']]
+        ... )
+        >>> construct.make_name()
+        'pLac_RBS1_GFP'
+
+        Linear construct with reversed part:
+
+        >>> construct = bcp.DNA_construct(
+        ...     [[promoter, 'forward'], [rbs, 'reverse'], [cds, 'forward']]
+        ... )
+        >>> construct.make_name()
+        'pLac_RBS1_r_GFP'
+
+        Circular construct:
+
+        >>> construct = bcp.DNA_construct(
+        ...     [[promoter, 'forward'], [rbs, 'forward'], [cds, 'forward']],
+        ...     circular=True
+        ... )
+        >>> construct.make_name()
+        'pLac_RBS1_GFP_o'
+
+        """
         output = ''
         outlst = []
         for part in self.parts_list:
@@ -88,19 +225,75 @@ class Construct(Component, OrderedPolymer):
         return output
 
     def get_part(self, part=None, part_type=None, name=None, index=None):
-        """Function to get parts from Construct.parts_list.
+        """Find and return a part from the construct by various criteria.
 
-        One of the 3 keywords must not be None.
+        Searches the construct's parts list for a part matching the given
+        criteria. Only one search criterion should be provided at a time.
 
-        part: an instance of a DNA_part. Searches Construct.parts_list
-            for a DNA_part with the same type and name.
-        part_type: a class of DNA_part. For example, Promoter. Searches
-            Construct.parts_list for a DNA_part with the same type.
-        name: str. Searches Construct.parts_list for a DNA_part with
-            the same name
-        index: int. returns Construct.parts_list[index]
+        Parameters
+        ----------
+        part : DNA_part, optional
+            A specific DNA_part instance to find. Matches both type and name.
+        part_type : type, optional
+            Find all parts that are instances of this type (e.g., Promoter).
+        name : str, optional
+            Find part(s) with this exact name.
+        index : int, optional
+            Return the part at this position in parts_list.
 
-        If nothing is found, returns None.
+        Returns
+        -------
+        DNA_part, list of DNA_part, or None
+            Single matching part if exactly one match found. List of parts if
+            multiple matches found. None if no matches found.
+
+        Raises
+        ------
+        ValueError
+            If multiple search criteria are provided simultaneously, or if
+            invalid types are provided for parameters.
+
+        Warns
+        -----
+        UserWarning
+            If multiple matching parts are found (returns list).
+
+        Notes
+        -----
+        The search is performed with the following priority:
+
+        1. Index (direct lookup)
+        2. Part instance (type and name must match)
+        3. Name (string match)
+        4. Type (isinstance check)
+
+        Only one search criterion should be provided at a time.
+
+        Examples
+        --------
+        Find a part by name:
+
+        >>> promoter = bcp.Promoter('ptet')
+        >>> rbs = bcp.RBS('RBS_standard')
+        >>> cds = bcp.CDS('GFP')
+        >>> parts = [
+        ...     [promoter, 'forward'], [rbs, 'forward'], [cds, 'forward']
+        ... ]
+        >>> construct = bcp.Construct(
+        ...     parts_list=parts,
+        ...     name='gene_circuit',
+        ...     circular=False
+        ... )
+        >>> promoter = construct.get_part(name='ptet')
+
+        Get the third part in the construct:
+
+        >>> third_part = construct.get_part(index=2)
+
+        Find all RBS parts:
+
+        >>> all_rbs = construct.get_part(part_type=bcp.RBS)
+
         """
         if [part, name, index, part_type].count(None) != 3:
             raise ValueError(
@@ -146,12 +339,43 @@ class Construct(Component, OrderedPolymer):
             return matches
 
     def reverse(self):
-        """Reverses everything, without actually changing the DNA.
+        """Reverse the construct without modifying the underlying DNA.
 
-        Also updates the name and stuff, since this is now a different
-        Construct.
+        Creates a reversed representation of the construct where all parts
+        are in reverse order and each part's direction is flipped. This is
+        useful for generating the reverse complement of a construct.
+
+        Returns
+        -------
+        Construct
+            Returns self after reversing the parts list and flipping
+            directions.
+
+        Notes
+        -----
+        This method modifies the construct in place by:
+
+        1. Reversing the order of parts in the parts_list
+        2. Flipping each part's direction (forward <--> reverse)
+
+        The underlying DNA sequence is not modified, only the representation
+        changes.
+
+        Examples
+        --------
+        Reverse a simple construct:
+
+        >>> promoter = bcp.Promoter('ptet')
+        >>> gene = bcp.CDS('GFP')
+        >>> construct = bcp.Construct(
+        ...    [[promoter, 'forward'], [gene, 'forward']])
+        >>> construct.reverse()
+        Construct = GFP_r_pLac_r
 
         """
+        # Reverses everything, without actually changing the DNA.
+        # Also updates the name and stored, since this is now a different
+        # Construct.
         OrderedPolymer.reverse(self)
         self.reset_stored_data()
         self.name = self.make_name()
@@ -159,16 +383,81 @@ class Construct(Component, OrderedPolymer):
         return self
 
     def get_reversed(self):
-        """Reversed version of construct without changing the construct."""
+        """Create a deep copy of the construct with reversed orientation.
+
+        Returns a new construct that is the reverse complement of this
+        construct, with all parts in reverse order and flipped directions.
+        The original construct is not modified.
+
+        Returns
+        -------
+        Construct
+            A new construct object with reversed parts and directions.
+
+        See Also
+        --------
+        reverse : Reverse the construct in place.
+
+        Examples
+        --------
+        Get reversed version without modifying original:
+
+        >>> promoter = bcp.Promoter('ptet')
+        >>> cds = bcp.CDS('GFP')
+        >>> original = bcp.Construct(
+        ...     [[promoter, 'forward'], [cds, 'forward']])
+        >>> original.get_reversed()
+        Construct = GFP_r_ptet_r
+
+        """
         outcon = copy.deepcopy(self)
         outcon.reverse()
         return outcon
 
     def get_circularly_permuted(self, new_first_position):
-        """Circularly permute a construct.
+        """Create a circularly permuted version of this construct.
 
-        Returns a new construct which has the first position changed
-        to new_first_position.
+        Returns a new construct where the circular ordering of parts starts
+        at a different position. Only valid for circular constructs.
+
+        Parameters
+        ----------
+        new_first_position : int
+            The index of the part that should become the first position in
+            the new construct.
+
+        Returns
+        -------
+        DNA_construct
+            A new circular DNA_construct with parts reordered starting from
+            the specified position.
+
+        Raises
+        ------
+        ValueError
+            If the construct is linear (circular permutation only applies
+            to circular constructs).
+
+        Notes
+        -----
+        The parts list is rotated so that `parts_list[new_first_position]`
+        becomes the new first element, maintaining the circular structure.
+
+        Examples
+        --------
+        Permute a circular plasmid:
+
+        >>> ori = bcp.DNA_part('p15A')
+        >>> promoter = bcp.Promoter('ptet')
+        >>> cds = bcp.CDS('GFP')
+        >>> plasmid = bcp.DNA_construct(
+        ...     [[ori, 'forward'], [promoter, 'forward'], [cds, 'forward']],
+        ...     circular=True
+        ... )
+        >>> plasmid
+        DNA_construct = p15A_ptet_GFP_o
+        >>> plasmid.get_circularly_permuted(1)
+        DNA_construct = ptet_GFP_p15A_o
 
         """
         if not self.circular:
@@ -185,20 +474,73 @@ class Construct(Component, OrderedPolymer):
             )
 
     def set_mixture(self, mixture):
+        """Set the mixture containing this construct and all its parts.
+
+        Propagates the mixture reference to all parts in the construct,
+        ensuring they share access to the same parameter database and
+        mechanisms.
+
+        Parameters
+        ----------
+        mixture : Mixture
+            The mixture object that contains this construct.
+
+        Notes
+        -----
+        This method ensures that all parts in the construct have access to
+        the same mixture-level parameters and mechanisms, maintaining
+        consistency across the entire construct.
+
+        """
         self.mixture = mixture
         for part in self.parts_list:
             part.set_mixture(mixture)
 
     def update_permutation_hash(self):
-        """Update hash for this DNA construct.
+        """Update the direction-independent hash for this construct.
 
-        Update the unique string generated to represent the content of
-        this dna construct regardless of orientation and rotation.
+        Generates a unique string representation of the construct that is
+        invariant to direction (forward/reverse) and circular permutations
+        (for circular constructs). This enables comparison of functionally
+        equivalent constructs regardless of their representation.
+
+        Notes
+        -----
+        The hash is stored in the `directionless_hash` attribute and is used
+        for identifying equivalent constructs that differ only in orientation
+        or circular starting position.
+
+        The hash is computed using the `omnihash` class method, which finds
+        the most alphabetically ordered representation of the construct.
+
+        See Also
+        --------
+        omnihash : Class method that computes the direction and rotation-free
+                   hash.
 
         """
         self.directionless_hash, _, _ = Construct.omnihash(self)
 
     def update_base_species(self, base_name=None, attributes=None):
+        """Update the base species representation of this construct.
+
+        Sets the `base_species` attribute to a Species object representing
+        the construct's primary chemical species in the CRN.
+
+        Parameters
+        ----------
+        base_name : str, optional
+            Name for the base species. If None, uses the construct's name.
+        attributes : list of str, optional
+            Attribute tags to add to the species.
+
+        Notes
+        -----
+        The base species serves as the chemical representation of the
+        construct in CRN compilation, with material_type matching the
+        construct's material_type (e.g., 'dna' for DNA_constructs).
+
+        """
         if base_name is None:
             self.base_species = self.set_species(
                 self.name,
@@ -213,7 +555,30 @@ class Construct(Component, OrderedPolymer):
             )
 
     def update_parameters(self, overwrite_parameters=True):
-        """Update parameters of all parts in the construct."""
+        """Update parameters for the construct and all its parts.
+
+        Propagates parameter updates from the construct's parameter database
+        to all parts in the parts list, ensuring consistent parameters
+        throughout the construct.
+
+        Parameters
+        ----------
+        overwrite_parameters : bool, default=True
+            If True, new parameter values overwrite existing ones in the
+            parts. If False, existing parameters in parts are preserved.
+
+        Notes
+        -----
+        This method:
+
+        1. Updates the construct's own parameters via the parent Component
+           class
+        2. Propagates these parameters to each part in the construct
+
+        This ensures that all parts have access to the same parameter values
+        unless explicitly overridden at the part level.
+
+        """
         Component.update_parameters(
             self=self, parameter_database=self.parameter_database
         )
@@ -230,6 +595,36 @@ class Construct(Component, OrderedPolymer):
         overwrite=False,
         optional_mechanism=False,
     ):
+        """Add a mechanism to the construct and all its parts.
+
+        Adds the mechanism to the construct's mechanism dictionary and
+        propagates it to all parts in the construct.
+
+        Parameters
+        ----------
+        mechanism : Mechanism
+            The mechanism object to add.
+        mech_type : str, optional
+            The mechanism type key. If None, uses the mechanism's
+            `mechanism_type` attribute.
+        overwrite : bool, default=False
+            If True, overwrites existing mechanisms with the same type. If
+            False, raises ValueError for duplicate types.
+        optional_mechanism : bool, default=False
+            If True, suppresses ValueError when a mechanism key conflict
+            occurs and `overwrite` is False.
+
+        Notes
+        -----
+        This method:
+
+        1. Adds the mechanism to the construct via the parent Component
+           class
+        2. Propagates the mechanism to each part in the construct
+
+        This ensures mechanism consistency across the entire construct.
+
+        """
         Component.add_mechanism(
             self,
             mechanism,
@@ -246,11 +641,56 @@ class Construct(Component, OrderedPolymer):
             )
 
     def __repr__(self):
-        """This is just for display purposes."""
         return 'Construct = ' + self.make_name()
 
     def __contains__(self, obj2):
-        """Checks if construct contains a certain part (or copy)."""
+        """Check if the construct contains a specific part.
+
+        Tests whether a DNA_part or copy of a DNA_part exists in this
+        construct's parts list.
+
+        Parameters
+        ----------
+        obj2 : DNA_part
+            The part to search for in the construct.
+
+        Returns
+        -------
+        bool
+            True if the part (or a copy with the same name and type) is in
+            the construct, False otherwise.
+
+        Notes
+        -----
+        This method supports two types of containment checks:
+
+        1. Direct membership: The exact part object is in the construct
+           (checked via `obj2.parent == self`)
+        2. Copy membership: A different part object with the same type and
+           name exists in the construct
+
+        Examples
+        --------
+        Check if construct contains a part:
+
+        >>> promoter = bcp.Promoter('ptet')
+        >>> rbs = bcp.RBS('RBS_standard')
+        >>> cds = bcp.CDS('GFP')
+        >>> parts = [
+        ...    [promoter, 'forward'], [rbs, 'forward'], [cds, 'forward']
+        ... ]
+        >>> construct = bcp.Construct(
+        ...     parts_list=parts,
+        ...     name='gene_circuit'
+        ... )
+        >>> promoter in construct
+        True
+
+        >>> unknown_part = bcp.Promoter('plac')
+        >>> unknown_part in construct
+        False
+
+        """
         if isinstance(obj2, DNA_part):
             # if we got a DNA part it could mean one of two things:
             # 1 we want to know if a dna part is anywhere
@@ -288,16 +728,45 @@ class Construct(Component, OrderedPolymer):
         return out_species
 
     def located_allcomb(self, spec_list):
-        """Recursively trace all paths through a list.
+        """Generate all combinatorial placement dictionaries for species.
 
-        [[[part1,1],[part2,5]],[[part3,1]],[[part4,5],[part5,12]]]
-        ====================>
-        compacted_indexes = [1,5,12]
-        prototype_list = [[part1,part3],[part2,part4],[part5]]
-        comb_list = [[1],[5],[12],[1,5],[1,12],[5,12],[1,5,12]]
-        ===========================
-        then, take the lists from comb_list and create all possible lists
-        out of prototype_list that includes those elements
+        Creates all possible combinations of species placements when multiple
+        species can bind at different positions in the construct.
+
+        Parameters
+        ----------
+        spec_list : list of Species
+            List of species that have position attributes, typically
+            ComplexSpecies that can bind at specific locations.
+
+        Returns
+        -------
+        list of dict
+            List of dictionaries where each dict maps positions (int) to
+            [species, direction] pairs representing one possible combinatorial
+            binding state.
+
+        Notes
+        -----
+        This method handles the combinatorics of placing multiple binding
+        species at different positions. For example:
+
+        - Species A binds at position 0
+        - Species B binds at position 3
+        - Species C also binds at position 0
+
+        The method generates all valid combinations: `{0: [A, direction]}`,
+        `{0: [C, direction]}`, `{0: [A, direction], 3: [B, direction]}`,
+        `{0: [C, direction], 3: [B, direction]}`, etc.
+
+        The algorithm:
+
+        1. Extracts positions from spec_list
+        2. Groups species by position into prototype_list
+        3. Generates all position combinations via all_comb
+        4. For each position combination, generates all possible species
+           selections at those positions
+
         """
         # first we have to construct the list we are tracing paths through
 
@@ -371,12 +840,39 @@ class Construct(Component, OrderedPolymer):
         return outdict_list
 
     def make_polymers(self, species_lists, backbone):
-        """Makes polymers from lists of species.
+        """Create polymer species from combinatorial binding combinations.
 
-        inputs:
-        species_lists: list of species which are to be assembled into a
-            polymer
-        backbone: the base_species which all these polymers should have
+        Generates OrderedPolymerSpecies by replacing specific monomers in a
+        backbone polymer with bound versions according to the replacement
+        dictionaries.
+
+        Parameters
+        ----------
+        species_lists : list of dict
+            List of replacement dictionaries where each dict maps positions
+            (int) to [species, direction] pairs indicating which monomers
+            to replace with bound versions.
+        backbone : OrderedPolymerSpecies
+            The base polymer species serving as the template for creating
+            bound variants.
+
+        Returns
+        -------
+        list of OrderedPolymerSpecies
+            List of polymer species representing all specified combinatorial
+            binding states.
+
+        Notes
+        -----
+        This method takes a backbone polymer (typically the unbound construct)
+        and creates variants where specific positions contain bound complexes.
+
+        For example, given backbone `<A,B,C>` and replacements:
+
+        - `{0: [A:RNAP, forward]}` creates `<[A:RNAP],B,C>`
+        - `{0: [A:RNAP, forward], 1: [B:RNAP, forward]}` creates
+          `<[A:RNAP],[B:RNAP],C>`
+
         """
         polymers = []
         for combo in species_lists:
@@ -394,25 +890,43 @@ class Construct(Component, OrderedPolymer):
         return polymers
 
     def update_combinatorial_complexes(self, active_components):
-        """Update complexes formed by combinations of components.
+        """Generate all combinatorial binding state species for the construct.
 
-        Given an input list of components, we produce all complexes yielded
-        by those components, mixed and matched to make all possible
-        combinatorial complexes, where each component is assumed to only
-        care about binding to one spot.
+        Given components that can bind to different positions in the
+        construct, this method generates all possible combinations of binding
+        states by mixing and matching bound species at different locations.
 
-        First, the components are asked what species they make, then these
-        species are sifted to reveal only the ones which are versions of
-        the same polymer, just with different locations bound.  Then,
-        combinatorial combinations are made.  for example:
+        Parameters
+        ----------
+        active_components : list of Component
+            Components that generate binding complexes with the construct.
+            Each is assumed to bind at only one position.
 
-            construct: <A,B,C>
+        Returns
+        -------
+        list of OrderedPolymerSpecies
+            All possible combinatorial binding states of the construct,
+            including the unbound state and all single and multiple binding
+            combinations.
 
-        two new species are possible: <[A:RNAP],B,C>; <A,[B:RNAP],C>
+        Notes
+        -----
+        The method:
 
-        Combinatorial species is also possible (since A and B are assumed
-        to act independantly) <[A:RNAP],[B:RNAP], C> complexes, where each
-        component is assumed to only care about binding to one spot.
+        1. Collects all binary complex species from each active component
+        2. Identifies unique positioned complexes
+        3. Generates all combinatorial placements using `located_allcomb`
+        4. Creates polymer species for each combination using `make_polymers`
+
+        For example, given construct `<A,B,C>` with two components that
+        create `<[A:RNAP],B,C>` and `<A,[B:RNAP],C>`, this method generates:
+
+        - `<A,B,C>` (unbound)
+        - `<[A:RNAP],B,C>` (A bound)
+        - `<A,[B:RNAP],C>` (B bound)
+        - `<[A:RNAP],[B:RNAP],C>` (both bound)
+
+        assuming A and B act independently.
 
         """
         species = []
@@ -446,7 +960,37 @@ class Construct(Component, OrderedPolymer):
 
     # Overwrite Component.enumerate_components
     def enumerate_constructs(self, previously_enumerated=None):
-        """Runs all our component enumerators to generate new constructs."""
+        """Run all enumerators to generate new construct variants.
+
+        Applies all component enumerators to this construct to generate
+        derived constructs (e.g., RNA_constructs from transcription).
+
+        Parameters
+        ----------
+        previously_enumerated : set or list, optional
+            Collection of constructs that have already been enumerated, used
+            to prevent infinite recursion and duplicate enumeration.
+
+        Returns
+        -------
+        list of Construct
+            New constructs generated by all enumerators. For DNA_constructs
+            with the default TxExplorer, this includes all possible
+            RNA_construct transcripts.
+
+        Notes
+        -----
+        Each enumerator's `enumerate_components` method is called with this
+        construct and the previously enumerated set, allowing enumerators to
+        explore transcriptional units, translational products, or other
+        construct-derived components.
+
+        See Also
+        --------
+        TxExplorer : Default enumerator for DNA transcription exploration.
+        TlExplorer : Default enumerator for RNA translation exploration.
+
+        """
         new_constructs = []
         for enumerator in self.component_enumerators:
             new_comp = enumerator.enumerate_components(
@@ -456,26 +1000,37 @@ class Construct(Component, OrderedPolymer):
         return new_constructs
 
     def combinatorial_enumeration(self):
-        """Generate combination of components.
+        """Generate components for all combinatorial binding states.
 
-        Returns a list of new components that are copies of existing
-        components, but with a different species placed inside.
+        Creates copies of parts that can react with different combinatorial
+        binding states of the construct, ensuring reactions are generated for
+        all possible binding configurations.
 
-        This different species represents different combinatorial
-        states of the polymer.  for example:
+        Returns
+        -------
+        list of Component
+            Components configured to react with different combinatorial
+            binding states of the construct.
 
-            construct: <A,B,C>
+        Notes
+        -----
+        This method handles the generation of components that account for
+        multiple simultaneous binding events. For example, given construct
+        `<A,B,C>` where both A and B can bind RNAP:
 
-        two new species are possible: <[A:RNAP],B,C>; <A,[B:RNAP],C>
-        combinatorial species is also possible (since A and B are
-        assumed to act independantly)
+        - Binary complexes: `<[A:RNAP],B,C>` and `<A,[B:RNAP],C>`
+        - Combinatorial complex: `<[A:RNAP],[B:RNAP],C>`
 
-                                        <[A:RNAP],[B:RNAP],C>
+        The method returns multiple versions of components A and B, each
+        configured to bind to different pre-existing binding states:
 
-        Thus, this function returns A which binds to <A,B,C> (creating
-        <[A:RNAP],B,C>) AND also A which binds to <A,[B:RNAP],C>
-        (creating <[A:RNAP],[B:RNAP],C>). Likewise for B In total two
-        A components are returned, and two B components are returned.
+        - A component binding to `<A,B,C>` --> `<[A:RNAP],B,C>`
+        - A component binding to `<A,[B:RNAP],C>` --> `<[A:RNAP],[B:RNAP],C>`
+        - B component binding to `<A,B,C>` --> `<A,[B:RNAP],C>`
+        - B component binding to `<[A:RNAP],B,C>` --> `<[A:RNAP],[B:RNAP],C>`
+
+        This ensures proper reaction enumeration for all binding
+        combinations.
 
         """
         # Looks at combinatorial states of constructs to generate DNA_parts
@@ -522,29 +1077,48 @@ class Construct(Component, OrderedPolymer):
         return combinatorial_components
 
     def enumerate_components(self, previously_enumerated=None):
-        """Returns a list of new components and constructs.
+        """Generate all derived components and constructs from this construct.
 
-        New components are generated if:
-        - a component creates a species which results in binding to part of
-          the construct
-            Example: <A,B,C> -> <[A:RNAP],B,C>
-          Then, A would be returned since a new species is created
+        Combines both construct enumeration (e.g., transcripts) and
+        combinatorial component enumeration (for binding states) to produce
+        a complete set of derived components.
 
-        - more than one such component exist in the same construct, for
-          example: construct: <A,B,C>
-          two new species are possible: <[A:RNAP],B,C>; <A,[B:RNAP],C>
+        Parameters
+        ----------
+        previously_enumerated : set or list, optional
+            Collection of components already enumerated, used to prevent
+            infinite recursion.
 
-          combinatorial species is also possible (since A and B are assumed
-          to act independantly)
-                                         <[A:RNAP],[B:RNAP], C>
+        Returns
+        -------
+        list of Component
+            All new components and constructs generated, including:
 
-          Thus, this function returns A which binds to <A, B, C> (creating
-          <[A:RNAP], B, C>) AND also A which binds to <A, [B:RNAP], C>
-          (creating <[A:RNAP], [B:RNAP], C>). Likewise for B.  In total two
-          A components are returned, and two B components are returned.
-          New constructs are generated if: self.enumerate_construcs() says
-          so.  For example, in <A, B, C>, A is a promoter and makes an
-          RNA_construct containing <B, C>
+            - New constructs from enumerators (e.g., RNA_constructs)
+            - Components for combinatorial binding states
+
+        Notes
+        -----
+        This method generates new components in two scenarios:
+
+        1. Binding-induced species: When a component creates a species
+           that binds to part of the construct. For example, `<A,B,C>`
+           --> `<[A:RNAP],B,C>` would return component A configured
+           for this binding.
+
+        2. Combinatorial binding states: When multiple components can
+           bind simultaneously. For construct `<A,B,C>` where both A
+           and B can bind RNAP:
+
+           - Binary species: `<[A:RNAP],B,C>` and `<A,[B:RNAP],C>`
+           - Combinatorial: `<[A:RNAP],[B:RNAP],C>`
+
+           Returns components A and B configured to bind to various pre-bound
+           states, ensuring all binding combinations are enumerated.
+
+        3. New constructs: Generated by `enumerate_constructs()`. For example,
+           a DNA_construct with promoter A generates an RNA_construct
+           containing `<B,C>`.
 
         """
         # Runs component enumerator to generate new constructs
@@ -559,10 +1133,28 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def get_partstring(cls, part):
-        """Get string name of a part (including direction).
+        """Generate a string identifier for a part including its direction.
 
-        A string name of a part including its name and direction (and
-        not position).
+        Creates a unique string representation of a part that includes its
+        name and direction but not its position, useful for construct
+        comparison.
+
+        Parameters
+        ----------
+        part : DNA_part or OrderedMonomer
+            The part to generate a string identifier for.
+
+        Returns
+        -------
+        str
+            String combining the part's name and direction (e.g.,
+            'promoter_pLacforward' or 'gene_GFPreverse').
+
+        Notes
+        -----
+        This method creates an "orphan" copy of the part (without position
+        or direction) to get the base name, then appends the direction to
+        create a direction-aware identifier.
 
         """
         orphan = part.get_orphan()
@@ -574,10 +1166,28 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def get_partlist_hash(cls, partlist):
-        """Get hash for a list of parts.
+        """Generate a hash string for an ordered list of parts.
 
-        Creates a string containing the name and direction of all
-        parts in a list of parts (but not their position).
+        Creates a unique string identifier for a parts list by concatenating
+        part names with position indices, capturing the order and content of
+        parts (but not their absolute positions).
+
+        Parameters
+        ----------
+        partlist : list
+            List of (part_string, part) tuples where part_string is typically
+            generated by `get_partstring`.
+
+        Returns
+        -------
+        str
+            Hash string representing the ordered parts list.
+
+        Notes
+        -----
+        The hash format concatenates each part's string representation with
+        its index in the list, separated by underscores. This creates a
+        unique identifier for the parts sequence.
 
         """
         partlist_str = '_'.join(
@@ -590,10 +1200,32 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def create_hashless_reverse(cls, construct):
-        """Create reverse construction without hash.
+        """Create a reversed construct without computing its hash.
 
-        Create a reverse construct but don't calculate its hash (because that
-        would make an infinite loop).
+        Generates a reversed version of the construct with parts in reverse
+        order and flipped directions, but skips hash computation to avoid
+        infinite recursion during hash calculations.
+
+        Parameters
+        ----------
+        construct : Construct
+            The construct to reverse.
+
+        Returns
+        -------
+        Construct
+            A new construct with reversed parts order and flipped directions,
+            with `make_dirless_hash=False` to prevent hash computation.
+
+        Notes
+        -----
+        This method is used internally by hash computation routines that need
+        to compare forward and reverse orientations. Setting
+        `make_dirless_hash=False` prevents infinite loops where hash
+        computation would trigger reverse computation, which would trigger
+        hash computation, etc.
+
+        The circularity status of the construct is preserved.
 
         """
         rev_con = [a.get_orphan() for a in construct]
@@ -609,22 +1241,47 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def rotation_free_hash(cls, construct):
-        """Compute alphabetically ordered, circular permutation.
+        """Compute the most alphabetically ordered circular permutation hash.
 
-        Calculates a unique circular permutation that is the most
-        alphabetically ordered.
+        Finds the circular permutation of the construct that produces the
+        most alphabetically ordered sequence of parts, providing a canonical
+        representation for circular constructs regardless of starting
+        position.
 
-        Every part is considered as a potential starting point, and the most
-        alphabetically ordered order is then chosen as the best permutation
+        Parameters
+        ----------
+        construct : Construct
+            The circular construct to hash. Should have `circular=True`.
 
-        Returns:
-        hash of the most alphabetical ordering, direction of the ordering
-        (always 1), first position of the best rotation.  Thus, to recreate
-        the conformation of the construct used to make this hash you would
-        have to
+        Returns
+        -------
+        hash : str
+            String hash of the most alphabetically ordered permutation.
+        direction : int
+            Always 1 (forward direction, since only rotation is considered).
+        first_position : int
+            The position that should be used as the first position to
+            recreate this canonical permutation.
 
-        1) invert the construct (or not), then
-        2) use the indicated position as the first position
+        Notes
+        -----
+        This method evaluates every possible starting position for a circular
+        construct and selects the permutation that produces the most
+        alphabetically ordered sequence when parts are compared
+        lexicographically.
+
+        To recreate the canonical form from the original construct:
+
+        1. Rotate to start at `first_position`
+
+        The direction is always 1 because this method only considers
+        rotations, not reversals.
+
+        Examples
+        --------
+        For a circular construct with parts A, B, C, if starting at C gives
+        the most alphabetically ordered sequence (C, A, B), then
+        `first_position` would be 2.
 
         """
 
@@ -689,18 +1346,43 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def direction_rotation_free_hash(cls, construct):
-        """Best circular permutation of a construct, forward and reverse.
+        """Compute the best hash considering both rotation and direction.
 
-        Then returns whichever one of those comes alphabetically first.
+        Finds the most alphabetically ordered representation of a circular
+        construct by evaluating all rotations in both forward and reverse
+        orientations.
 
-        Returns:
-        hash of the most alphabetical ordering, direction of the ordering
-        (1 or -1), first position of the best rotation
+        Parameters
+        ----------
+        construct : Construct
+            The circular construct to hash.
 
-        thus, to recreate the conformation of the construct used to make
-        this hash you would have to
-        1) invert the construct (or not), then
-        2) use the indicated position as the first position
+        Returns
+        -------
+        hash : str
+            String hash of the most alphabetically ordered permutation in
+            either direction.
+        direction : int
+            Direction of the best ordering: 1 for forward, -1 for reverse.
+        first_position : int
+            The position that should be used as the first position in the
+            best permutation.
+
+        Notes
+        -----
+        This method:
+
+        1. Computes the best forward rotation using `rotation_free_hash`
+        2. Creates a reversed construct and computes its best rotation
+        3. Returns whichever produces the more alphabetically ordered hash
+
+        To recreate the canonical form:
+
+        1. If direction is -1, reverse the construct
+        2. Rotate to start at `first_position`
+
+        This provides complete normalization for circular constructs,
+        accounting for both rotation and direction symmetries.
 
         """
         rev_con = Construct.create_hashless_reverse(construct)
@@ -713,16 +1395,39 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def linear_direction_free_hash(cls, construct):
-        """String representing the construct forward or reverse.
+        """Compute the best hash for a linear construct in either direction.
 
-        Returns:
-        hash of the most alphabetical ordering, direction of the ordering
-        (1 or -1), first position of the best rotation (always 0)
+        Determines which orientation (forward or reverse) produces the most
+        alphabetically ordered sequence for a linear construct.
 
-        thus, to recreate the conformation of the construct used to make
-        this hash you would have to
-        1) invert the construct (or not), then
-        2) use the indicated position as the first position
+        Parameters
+        ----------
+        construct : Construct
+            The linear construct to hash.
+
+        Returns
+        -------
+        hash : str
+            String hash of the most alphabetically ordered orientation.
+        direction : int
+            Direction of the best ordering: 1 for forward, -1 for reverse.
+        first_position : int
+            Always 0 for linear constructs (no circular permutation).
+
+        Notes
+        -----
+        This method compares forward and reverse orientations part-by-part,
+        stopping as soon as one orientation is determined to be more
+        alphabetically ordered than the other.
+
+        To recreate the canonical form:
+
+        1. If direction is -1, reverse the construct
+        2. Start at position 0 (always the first position for linear
+           constructs)
+
+        Unlike circular constructs, linear constructs have a defined start
+        and end, so the first_position is always 0.
 
         """
         rev_con = Construct.create_hashless_reverse(construct)
@@ -760,25 +1465,69 @@ class Construct(Component, OrderedPolymer):
 
     @classmethod
     def omnihash(cls, construct):
-        """Construct best circullar permutation and ordering.
+        """Compute a canonical hash for the construct.
 
-        A construct can exist forwards or backwards, and circularly permuted
-        (but only if it's a circular construct).
+        Creates the most alphabetically ordered representation of a construct,
+        accounting for direction (forward/reverse) and, for circular
+        constructs, rotation. This provides a unique canonical identifier
+        for functionally equivalent constructs.
 
-        This function creates the "best" circular permutation and ordering
-        of a construct. But the circular permutation is only calculated if
-        the construct is circular. Best is calculated based on which
-        orientation/ permutation has the most part names in alphabetical
-        order.
+        Parameters
+        ----------
+        construct : Construct
+            The construct to hash (can be linear or circular).
 
-        Returns:
-        hash of the most alphabetical ordering (string), direction of the
-        ordering (1 or -1), first position of the best rotation
+        Returns
+        -------
+        hash : str
+            Canonical hash string with 'circular' or 'linear' suffix
+            indicating construct topology.
+        direction : int
+            Direction of the canonical form: 1 for forward, -1 for reverse.
+        first_position : int
+            Starting position for the canonical form. For circular constructs,
+            this is the optimal rotation point. For linear constructs, always
+            0.
 
-        thus, to recreate the conformation of the construct used to make
-        this hash you would have to
-        1) invert the construct (or not), then
-        2) use the indicated position as the first position
+        Notes
+        -----
+        For circular constructs:
+
+        1. Evaluates all rotations in both orientations
+        2. Selects the most alphabetically ordered permutation
+        3. Appends 'circular' to the hash
+
+        For linear constructs:
+
+        1. Compares forward and reverse orientations
+        2. Selects the most alphabetically ordered orientation
+        3. Appends 'linear' to the hash
+
+        To recreate the canonical form:
+
+        1. If direction is -1, reverse the construct
+        2. For circular constructs, rotate to start at `first_position`
+        3. For linear constructs, `first_position` is always 0
+
+        This hash enables identification of equivalent constructs that differ
+        only in representation (rotation or direction).
+
+        Examples
+        --------
+        Two circular constructs with the same parts in different rotations
+        will produce the same omnihash:
+
+        >>> A, B, C = (bcp.DNA_part(s) for s in ['A', 'B', 'C'])
+        >>> construct1 = bcp.DNA_construct(
+        ...     [[A, 'forward'], [B, 'forward'], [C, 'forward']],
+        ...     circular=True)
+        >>> construct2 = bcp.DNA_construct(
+        ...     [[B, 'forward'], [C, 'forward'], [A, 'forward']],
+        ...     circular=True)
+        >>> hash1, _, _ = bcp.Construct.omnihash(construct1)
+        >>> hash2, _, _ = bcp.Construct.omnihash(construct2)
+        >>> hash1 == hash2
+        True
 
         """
         if construct.circular:
@@ -796,10 +1545,32 @@ class Construct(Component, OrderedPolymer):
         return OrderedPolymer.__hash__(self)
 
     def __eq__(self, construct2):
-        """Compare two constructs to see if they are equal.
+        """Test equality between two constructs.
 
-        Equality means comparing the parts list in a way that is not too
-        deep.
+        Two constructs are considered equal if they have the same string
+        representation and the same name.
+
+        Parameters
+        ----------
+        construct2 : Construct
+            The other construct to compare with.
+
+        Returns
+        -------
+        bool
+            True if constructs are equal, False otherwise.
+
+        Notes
+        -----
+        This is a simple equality test based on string representation. It
+        does not use deep comparison of parts or the direction-independent
+        hash. For more sophisticated equivalence testing that accounts for
+        rotations and reversals, use the `omnihash` method.
+
+        See Also
+        --------
+        omnihash : Compute canonical hash accounting for rotation and
+                   direction.
 
         """
         # TODO: make this be a python object comparison
@@ -811,23 +1582,205 @@ class Construct(Component, OrderedPolymer):
             return False
 
     def update_species(self):
+        """Generate species for the construct.
+
+        Returns
+        -------
+        list of Species
+            List containing the construct's primary species representation.
+
+        Notes
+        -----
+        This method is called during CRN compilation by
+        `Mixture.compile_crn()` to generate the species associated with this
+        construct. For most constructs, this returns a single species
+        representing the entire construct.
+
+        """
         species = [self.get_species()]
         return species
 
     def reset_stored_data(self):
+        """Clear all cached enumeration and prediction data.
+
+        Resets the cached results from component enumeration, RNA prediction,
+        and protein prediction, forcing these to be recomputed on the next
+        access.
+
+        Notes
+        -----
+        This method should be called whenever the construct is modified in a
+        way that would invalidate cached data, such as:
+
+        - Reversing the construct
+        - Changing parts
+        - Updating mechanisms or parameters
+
+        The cached attributes that are reset:
+
+        - `out_components`: Results from `enumerate_components`
+        - `predicted_rnas`: List of predicted RNA products
+        - `predicted_proteins`: List of predicted protein products
+
+        """
         self.out_components = None
         self.predicted_rnas = None
         self.predicted_proteins = None
 
     def changed(self):
+        """Handle construct changes by resetting caches and updating name.
+
+        Called when the construct has been modified, this method resets all
+        cached data and regenerates the construct's name to reflect its
+        current state.
+
+        Notes
+        -----
+        This method performs two operations:
+
+        1. Resets all cached enumeration and prediction data via
+           `reset_stored_data`
+        2. Regenerates the construct name via `make_name` to ensure it
+           reflects the current parts configuration
+
+        This should be called after any structural modification to the
+        construct.
+
+        """
         self.reset_stored_data()
         self.name = self.make_name()
 
     def update_reactions(self, norna=False):
+        """Generate reactions for the construct.
+
+        Returns
+        -------
+        list of Reaction
+            Empty list. Base `Construct` class does not generate reactions
+            directly. Subclasses override this method to provide specific
+            reaction generation.
+
+        Parameters
+        ----------
+        norna : bool, default=False
+            If True, RNA-related reactions are excluded (used in some
+            subclass implementations).
+
+        Notes
+        -----
+        This method is called during CRN compilation by
+        `Mixture.compile_crn()`. The base implementation returns an empty
+        list because the base Construct class does not generate reactions
+        directly - reactions are generated by the parts within the construct
+        through their associated mechanisms.
+
+        Subclasses like `DNA_construct` and `RNA_construct` may override this
+        to provide construct-specific reaction generation.
+
+        """
         return []
 
 
 class DNA_construct(Construct, DNA):
+    """DNA construct representing a functional genetic circuit.
+
+    A DNA_construct is a specialized Construct for DNA sequences that can
+    contain promoters, RBS sites, coding sequences, terminators, and other
+    genetic elements. It supports transcription to generate RNA constructs and
+    provides DNA-specific functionality. The class uses the 'transcription'
+    mechanism to generate RNA products and related species/reactions during
+    CRN compilation.
+
+    Parameters
+    ----------
+    parts_list : list of list
+        List of parts in format [[part, direction], ...] where each part
+        must be a DNA_part or OrderedMonomer.
+    name : str, optional
+        Name of the DNA construct. If None, automatically generated.
+    circular : bool, default=False
+        If True, represents a circular DNA molecule (e.g., plasmid).
+    mechanisms : dict or list, optional
+        Custom mechanisms for this construct, overriding mixture defaults.
+    parameters : dict, optional
+        Parameter values specific to this construct.
+    attributes : list of str, optional
+        List of attribute tags for the construct.
+    initial_concentration : float, optional
+        Initial concentration of the DNA construct.
+    copy_parts : bool, default=True
+        If True, makes deep copies of parts when adding to construct.
+    component_enumerators : list, optional
+        List of enumerators for generating construct variants. Defaults to
+        [TxExplorer()] which explores transcriptional variants.
+    **kwargs
+        Additional keyword arguments passed to parent constructors.
+
+    Attributes
+    ----------
+    material_type : str
+        Always 'dna' for DNA constructs.
+    predicted_rnas : list or None
+        Cached list of RNA_construct objects that can be transcribed.
+    predicted_proteins : list or None
+        Cached list of protein species that can be produced.
+
+    See Also
+    --------
+    Construct : Base class for all constructs.
+    RNA_construct : RNA version of constructs.
+    DNA_part : Base class for DNA parts within constructs.
+    TxExplorer : Default enumerator for transcriptional exploration.
+
+    Notes
+    -----
+    DNA_constructs support several key features:
+
+    - Transcription enumeration: Automatically identifies all possible
+      transcripts based on promoter positions and orientations
+    - Protein prediction: Predicts protein products from transcripts
+      containing RBS sites
+    - Circular DNA: Special handling for plasmids and other circular
+      DNA molecules
+    - Component enumeration: Generates functional variants based on
+      the genetic parts present
+
+    The default TxExplorer enumerator automatically explores all possible
+    transcriptional units in the construct.
+
+    Examples
+    --------
+    Create a simple gene expression construct:
+
+    >>> promoter = bcp.Promoter('ptet')
+    >>> rbs = bcp.RBS('RBS_standard')
+    >>> cds = bcp.CDS('GFP')
+    >>> terminator = bcp.Terminator('BBa_B0022')
+    >>> parts = [
+    ...     [promoter, 'forward'], [rbs, 'forward'],
+    ...     [cds, 'forward'], [terminator, 'forward']
+    ... ]
+    >>> gene = bcp.DNA_construct(
+    ...     parts_list=parts,
+    ...     name='expression_cassette'
+    ... )
+
+    Create a circular plasmid:
+
+    >>> ori = bcp.DNA_part('p15A')
+    >>> plasmid_parts = [
+    ...     [ori, 'forward'], [promoter, 'forward'], [rbs, 'forward'],
+    ...     [gene, 'forward'], [terminator, 'forward']
+    ... ]
+    >>> plasmid = bcp.DNA_construct(
+    ...     parts_list=plasmid_parts,
+    ...     name='pUC19_GFP',
+    ...     circular=True,
+    ...     initial_concentration=10
+    ... )
+
+    """
+
     def __init__(
         self,
         parts_list,
@@ -866,6 +1819,92 @@ class DNA_construct(Construct, DNA):
 
 
 class RNA_construct(Construct, RNA):
+    """RNA construct representing a functional transcript.
+
+    An RNA construct represents an RNA molecule that can be translated into
+    proteins. Unlike DNA constructs, RNA constructs can only be linear (not
+    circular) and primarily support translation rather than transcription.
+    This class uses the 'translation' mechanism to generate protein products
+    and related species/reactions during CRN compilation.
+
+    Parameters
+    ----------
+    parts_list : list of list
+        List of parts in format [[part, direction], ...] where parts
+        represent functional RNA elements (RBS sites, coding sequences, etc.).
+    name : str, optional
+        Name of the RNA construct. If None, automatically generated.
+    promoter : Promoter, optional
+        Reference to the promoter that produced this RNA transcript.
+    component_enumerators : list, optional
+        List of enumerators for generating construct variants. Defaults to
+        [TlExplorer()] which explores translational variants.
+    length : int, default=0
+        Length of the RNA molecule in nucleotides.
+    **kwargs
+        Additional keyword arguments passed to parent constructors.
+
+    Attributes
+    ----------
+    material_type : str
+        Always 'rna' for RNA constructs.
+    promoter : Promoter or None
+        The promoter that controls transcription of this RNA.
+    length : int
+        Length of the RNA transcript.
+    circular : bool
+        Always False for RNA (RNA cannot be circular).
+
+    See Also
+    --------
+    Construct : Base class for all constructs.
+    DNA_construct : DNA version of constructs.
+    TlExplorer : Default enumerator for translational exploration.
+    RNA : Base class for RNA components.
+
+    Notes
+    -----
+    RNA_constructs have several key characteristics:
+
+    - Linear only: RNA molecules cannot be circular
+    - Translation focus: Primarily generates protein products through
+      translation mechanisms
+    - RBS enumeration: Automatically identifies all ribosome binding
+      sites and potential translation products
+    - No transcription: RNA cannot be transcribed to produce other RNA
+
+    The default TlExplorer enumerator automatically explores all possible
+    translational units in the RNA construct based on RBS positions.
+
+    Examples
+    --------
+    Create an mRNA with RBS and coding sequence:
+
+    >>> rbs1 = bcp.RBS('RBS1')
+    >>> cds1 = bcp.CDS('GFP')
+    >>> parts = [[rbs1, 'forward'], [cds1, 'forward']]
+    >>> mrna = bcp.RNA_construct(
+    ...     parts_list=parts,
+    ...     name='mRNA_GFP'
+    ... )
+
+    Create a polycistronic mRNA with multiple RBS-CDS pairs:
+
+    >>> rbs2 = bcp.RBS('RBS2')
+    >>> cds2 = bcp.CDS('RFP')
+    >>> strong_promoter = bcp.Promoter('pstrong')
+    >>> parts = [
+    ...     [rbs1, 'forward'], [cds1, 'forward'],
+    ...     [rbs2, 'forward'], [cds2, 'forward']
+    ... ]
+    >>> polycistronic = bcp.RNA_construct(
+    ...     parts_list=parts,
+    ...     name='mRNA_operon',
+    ...     promoter=strong_promoter
+    ... )
+
+    """
+
     def __init__(
         self,
         parts_list,
@@ -875,12 +1914,6 @@ class RNA_construct(Construct, RNA):
         length=0,
         **kwargs,
     ):
-        """Linear RNA sequence for translation.
-
-        An RNA_construct is a lot like a DNA_construct except it can
-        only translate, and can only be linear.
-
-        """
         self.material_type = 'rna'
         self.promoter = promoter
         self.length = length
@@ -900,19 +1933,116 @@ class RNA_construct(Construct, RNA):
         RNA.__init__(self=self, name=self.name)
 
     def __repr__(self):
-        """The name of an RNA should be different from DNA, right?"""
+        # The name of an RNA should be different from DNA, right?
         return 'RNA_construct = ' + self.name
 
 
-#
 # DNA_part: a component-like intermediate class necessary for DNA_construct
 # Author: Andrey Shur
 # Latest update: 6/4/2020
 #
-#
-
-
 class DNA_part(Component, OrderedMonomer):
+    """Base class for individual DNA parts in constructs.
+
+    A DNA_part represents a single functional genetic element (promoter, RBS,
+    coding sequence, terminator, etc.) that can be assembled into larger
+    DNA_constructs. Parts have position and direction within constructs and
+    serve as the modular building blocks for synthetic genetic circuits.
+    Unlike full Components, DNA_parts do not have initial concentrations -
+    these must be set on the containing construct or assembly.
+
+    Parameters
+    ----------
+    name : str
+        Name of the DNA part.
+    assembly : DNAassembly or OrderedPolymer, optional
+        The assembly or construct containing this part.
+    direction : str, optional
+        Orientation of the part: 'forward' or 'reverse'.
+    pos : int, optional
+        Position of this part within its parent construct.
+    sequence : str, optional
+        DNA sequence of the part (for future sequence-level modeling).
+    no_stop_codons : list, optional
+        List of reading frames without stop codons. Used for identifying
+        potential coding sequences. Default is empty list.
+    material_type : str, default='part'
+        Material classification for the part.
+    **kwargs
+        Additional keyword arguments passed to Component constructor.
+        Note: 'initial_concentration' is not allowed for DNA_parts.
+
+    Attributes
+    ----------
+    name : str
+        Name of the part.
+    sequence : str or None
+        DNA sequence of the part.
+    material_type : str
+        Material classification ('part').
+    no_stop_codons : list
+        Reading frames without stop codons.
+    assembly : DNAassembly or None
+        Reference to containing assembly.
+    position : int or None
+        Position within parent construct.
+    direction : str
+        Orientation ('forward' or 'reverse').
+
+    See Also
+    --------
+    Promoter : DNA_part for transcriptional control.
+    RBS : DNA_part for translational control.
+    DNA_construct : Container for multiple DNA_parts.
+    OrderedMonomer : Base class for positioned elements.
+
+    Raises
+    ------
+    AttributeError
+        If 'initial_concentration' is provided (not allowed for DNA_parts).
+
+    Notes
+    -----
+    DNA_parts are the fundamental building blocks of genetic constructs:
+
+    - Modular: Can be reused in different constructs
+    - Directional: Support forward and reverse orientations
+    - Positional: Track their location within constructs
+    - No concentration: Cannot have initial concentrations (only
+      constructs/assemblies can)
+
+    The no_stop_codons attribute is used to identify potential open reading
+    frames for translation.
+
+    Examples
+    --------
+    Create a generic DNA part:
+
+    >>> part = bcp.DNA_part(
+    ...     name='regulatory_element',
+    ...     direction='forward'
+    ... )
+
+    Create a part with sequence information:
+
+    >>> promoter_part = bcp.DNA_part(
+    ...     name='pLac',
+    ...     sequence='ATGCGATCG...',
+    ...     direction='forward'
+    ... )
+
+    Use within a construct:
+
+    >>> gene_part = bcp.DNA_part(
+    ...    name='GFP',
+    ...    sequence='TGAGTAAAGGAGAAGAA...',
+    ...     direction='forward'
+    ... )
+    >>> parts = [[promoter_part, 'forward'], [gene_part, 'forward']]
+    >>> construct = bcp.DNA_construct(parts_list=parts)
+
+    """
+
     def __init__(
         self,
         name,
@@ -924,11 +2054,9 @@ class DNA_part(Component, OrderedMonomer):
         material_type='part',
         **kwargs,
     ):
-        """Modular component sequence.
-
-        These get compiled into working components
-
-        """
+        # Modular component sequence.
+        #
+        # These get compiled into working components
         if 'initial_concentration' in kwargs:
             raise AttributeError(
                 "DNA_part should not recieve initial_concentration keyword. "
@@ -957,6 +2085,12 @@ class DNA_part(Component, OrderedMonomer):
 
     @property
     def dna_species(self):
+        """Species: The chemical species representation of this DNA part.
+
+        Returns a Species object with material_type='part' representing this
+        DNA_part as a chemical species in the CRN.
+
+        """
         return Species(self.name, material_type='part')
 
     def __repr__(self):
@@ -971,6 +2105,36 @@ class DNA_part(Component, OrderedMonomer):
         return OrderedMonomer.__hash__(self) + hash(self.name)
 
     def __eq__(self, other):
+        """Test equality between two DNA_parts.
+
+        Parts are equal if they have the same type, name, parent assembly/
+        construct, direction, and position.
+
+        Parameters
+        ----------
+        other : DNA_part
+            The other part to compare with.
+
+        Returns
+        -------
+        bool
+            True if parts are equal, False otherwise.
+
+        Notes
+        -----
+        Equality requires matching:
+
+        1. Type (both must be the same DNA_part subclass)
+        2. Name (identical names)
+        3. Assembly/parent (same parent construct or both have None)
+        4. Direction (both forward or both reverse)
+        5. Position (same position in parent construct)
+
+        Parts are considered equal even if their parent constructs are
+        different objects, as long as the string representations of the
+        parents match.
+
+        """
         if type(other) is type(self):
             if self.name == other.name:
                 if self.assembly is not None and other.assembly is not None:
@@ -995,16 +2159,75 @@ class DNA_part(Component, OrderedMonomer):
         return False
 
     def clone(self, position, direction, parent_dna):
-        """This defines where the part is in what piece of DNA."""
+        """Attach this part to a specific position in a DNA construct.
+
+        Parameters
+        ----------
+        position : int
+            Position in the parent DNA where this part should be placed.
+        direction : str
+            Orientation of the part: 'forward' or 'reverse'.
+        parent_dna : DNA_construct or OrderedPolymer
+            The DNA construct that will contain this part.
+
+        Returns
+        -------
+        DNA_part
+            Returns self after setting position and parent.
+
+        Notes
+        -----
+        This method establishes the relationship between a part and its
+        containing construct, setting the part's position and orientation.
+
+        """
+        # Define where the part is in what piece of DNA.
         # TODO add warning if DNA_part is not cloned
         self.insert(parent_dna, position, direction)
         return self
 
     def unclone(self):
-        """Removes the current part from anything."""
+        """Remove this part from its parent construct.
+
+        Detaches the part from any parent construct or assembly, resetting
+        its position and parent references.
+
+        Returns
+        -------
+        DNA_part
+            Returns self after removal from parent.
+
+        Notes
+        -----
+        This method calls the `remove` method from the `OrderedMonomer` base
+        class to detach the part from its parent polymer structure.
+
+        After calling this method, the part becomes "orphaned" and can be
+        attached to a different construct using `clone`.
+
+        See Also
+        --------
+        clone : Attach the part to a construct at a specific position.
+
+        """
         self.remove()
         return self
 
     def reverse(self):
+        """Reverse the orientation of this DNA part.
+
+        Flips the direction of the part between 'forward' and 'reverse'.
+
+        Returns
+        -------
+        DNA_part
+            Returns self after reversing direction.
+
+        Notes
+        -----
+        This method is typically called when a containing construct is
+        reversed, ensuring all parts maintain proper relative orientation.
+
+        """
         OrderedMonomer.reverse(self)
         return self

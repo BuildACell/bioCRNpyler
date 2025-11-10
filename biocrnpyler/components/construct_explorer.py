@@ -80,7 +80,7 @@ class ConstructExplorer(LocalComponentEnumerator):
         """Check for loops in plasmids (?).
 
         If we already went around the plasmid, then what we're checking for is
-        continuing transcripts or proteins. We don't want to start making new
+        continuing transcripts or proteins. We do not want to start making new
         transcripts because we already checked this area for promoters.
 
         """
@@ -200,7 +200,7 @@ class TxExplorer(ConstructExplorer):
                 )
         self.initialize_loop()
 
-    # Returns a list of RNAconstructs
+    # Returns a list of RNA_constructs
     def return_components(self, component, previously_enumerated=None):
         return_rnas = []
         for rna in self.all_rnas.values():
