@@ -19,7 +19,7 @@ class One_Step_Cooperative_Binding(Mechanism):
     The binding reaction is given by
 
     .. math::
-        n*A + B <--> A_n:B
+        n*A + B \leftrightarrow A_n:B
 
     where :math:`n` is the cooperativity (number of binders).
 
@@ -308,8 +308,8 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
     The binding process follows two sequential reactions:
 
-    1. :math:`n*A <--> A_n` (oligomerization)
-    2. :math:`A_n + B <--> A_n:B` (binding)
+    1. :math:`n*A \leftrightarrow A_n` (oligomerization)
+    2. :math:`A_n + B \leftrightarrow A_n:B` (binding)
 
     where :math:`n` is the cooperativity.
 

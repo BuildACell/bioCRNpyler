@@ -72,7 +72,7 @@ class Reaction(object):
     Stoichiometry is handled as follows:
 
     - Species lists automatically combine duplicates
-    - A + A --> B becomes 2A --> B
+    - :math:`A + A \rightarrow B` becomes :math:`2A \rightarrow B`
     - Stoichiometry affects rate calculations in mass action kinetics
 
     Different propensity types implement different rate laws:
