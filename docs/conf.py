@@ -53,7 +53,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.linkcode',
     'sphinx.ext.doctest',
-    'sphinx.ext.imgmath',
+    'sphinx.ext.mathjax',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx_copybutton',
@@ -115,7 +115,14 @@ html_theme = 'sphinx_rtd_theme'
 default_role = 'py:obj'
 
 # Align inline math with text
-imgmath_use_preview = True
+# imgmath_use_preview = True
+mathjax3_config = {
+    "tex": {
+        "inlineMath": [["\\(", "\\)"], ["$", "$"]],
+        "displayMath": [["\\[", "\\]"], ["$$", "$$"]],
+    }
+}
+
 
 # Skip prompts when using copy button
 copybutton_prompt_text = r'>>> |\.\.\. '
