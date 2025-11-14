@@ -508,8 +508,9 @@ class Reaction(object):
         -----
         Order of species in inputs/outputs doesn't matter:
 
-        - A + B --> C equals B + A --> C
-        - Species are compared using sets
+        :math:`A + B \rightarrow C` equals :math:`B + A \rightarrow C`
+        
+        since species are compared using sets.
 
         """
         # Check if reactions are equivalent.

@@ -237,7 +237,7 @@ This file can be opened in simulation software such as COPASI or
 MATLAB's SimBiology and shared with collaborators.
 
 For direct simulation in Python, BioCRNpyler also supports integration
-with the bioscrape simulator. The `simulate_with_bioscrape` function
+with the bioscrape simulator. The `simulate_with_bioscrape_via_sbml` function
 runs stochastic or deterministic simulations of the CRN::
 
     result = crn.simulate_with_bioscrape_via_sbml(

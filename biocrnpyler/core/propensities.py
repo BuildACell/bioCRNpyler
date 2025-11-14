@@ -611,7 +611,7 @@ class GeneralPropensity(Propensity):
     Parameters
     ----------
     propensity_function : str
-        Valid mathematical formula as a string (e.g., 'k*S1*S2'). Must
+        Valid mathematical formula as a string (e.g., :math:`k*S1*S2`). Must
         contain all referenced species and parameters.
     propensity_species : list of Species
         List of Species objects used in the formula. Each species must
@@ -819,14 +819,14 @@ class MassAction(Propensity):
 
     Notes
     -----
-    Deterministic (ODE) propensity: For reaction A + B --> C with rate
+    Deterministic (ODE) propensity: For reaction :math:`A + B \rightarrow C` with rate
     constant k:
 
     .. math::
 
         \text{rate} = k [A] [B]
 
-    Stochastic (Gillespie) propensity: For reaction A + B --> C with
+    Stochastic (Gillespie) propensity: For reaction :math:`A + B \rightarrow C` with
     rate constant k:
 
     .. math::
@@ -1086,8 +1086,8 @@ class MassAction(Propensity):
 
         Notes
         -----
-        For deterministic: rate = k * [A]^n * [B]^m
-        For stochastic: rate = k * A * (A-1) * ... * (A-n+1) * B * ...
+        For deterministic: rate = :math:`k * [A]^n * [B]^m`
+        For stochastic: rate = :math:`k * A * (A-1) * \ldots * (A-n+1) * B * \ldots`
 
         """
         # Create Rate-strings for massaction propensities

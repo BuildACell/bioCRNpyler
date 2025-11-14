@@ -20,19 +20,25 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
 
     1. Activation of membrane sensor protein (MSP):
 
-       SP + SigSub <--> SP:SigSub --> SP*
+    .. math::
+
+       SP + SigSub \leftrightarrow SP:SigSub \rightarrow SP*
 
     2. Auto-phosphorylation via ATP:
 
-       SP* + nATP <--> SP*:nATP --> SP**:nADP --> SP** + nADP
+    .. math::
+
+       SP* + nATP \leftrightarrow SP*:nATP \rightarrow SP**:nADP \rightarrow SP** + nADP
 
     3. Phosphorylation of response protein (RP):
 
-       SP** + RP <--> SP**:RP --> SP*:RP* --> SP* + RP*
+    .. math::
+       SP** + RP \leftrightarrow SP**:RP \rightarrow SP*:RP* \rightarrow SP* + RP*
 
     4. Dephosphorylation of phosphorylated response protein:
 
-       RP* --> RP + Pi
+    .. math::
+       RP* \rightarrow RP + Pi
 
     Parameters
     ----------
@@ -332,7 +338,7 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
         Notes
         -----
         The reaction scheme follows this pathway:
-
+        
         1. SP + SigSub <--> SP:SigSub (rates: 'kb_sigMS', 'ku_sigMS')
         2. SP:SigSub + nATP <--> SP:SigSub:nATP
            (rates: 'kb_autoPhos', 'ku_autoPhos')
