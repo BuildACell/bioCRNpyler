@@ -13,7 +13,7 @@ have unique reaction parameters derived from the literature or
 experiments. This parameter system is designed to work automatically,
 so all users have to do is specify a parameter file of the proper
 format or a parameter dictionary.  Parameters have default values that
-can be overriden at the Component, Mixture, or Part level.
+can be overriden at the component, mixture, or Part level.
 
 Describing Parameters
 =====================
@@ -48,10 +48,10 @@ commonly stored in files.  Parameter files can be .tsv (or .txt) or
 following headings are required (in any order): mechanism_id, part_id,
 param_name, and param_val (spaces can be substituted for underscores
 and headings are not case sensitive). The mechanism_id is the name of
-the Mechanism or the kind of mechanism that will use this parameter,
+the mechanism or the kind of mechanism that will use this parameter,
 for example 'transcription' or 'transcription_mm' for Mechalis-Menten
 transcription would go in this column. The part_id refers to the name
-supplied by the Component that will use this mechanism, for example
+supplied by the component that will use this mechanism, for example
 'ptet' for a TetR repressed promoter and 'ptet_leak' for leak
 reactions of that promoter. The param_name field refers to the name of
 the model parameter, for example 'ktx', 'kb', or 'ku'. The value of
@@ -71,31 +71,31 @@ The `show_rates` keyword toggles whether reaction rates are shown. The
 parameter values used in the rates will be shown below the rate
 function. The `show_keys` keyword toggles whether the ParameterKey
 used to search and find these rates is displayed. The printed output
-will show the search_key for the Mechanism and Component and indicate
+will show the search_key for the mechanism and component and indicate
 the found_key where the parameter was found after applying the
 defaulting mechanism.
 
 Parameter Value Defaulting
 ==========================
 
-Parameters can be passed into Components and Mixtures as both files
-and/or dictionaries. Parameters into Components will be used by
-reactions created by that Component:
+Parameters can be passed into components and mixtures as both files
+and/or dictionaries. Parameters into components will be used by
+reactions created by that component:
 
     Component(... parameters = parameters, parameter_file = "file_name" ...)
 
-If a Component cannot find its own parameters, it will use parameters
-passed into the Mixture:
+If a component cannot find its own parameters, it will use parameters
+passed into the mixture:
 
     Mixture(... parameters=parameters, parameter_file='file_name', ...)
 
-At both the Mixture and Component levels, BioCRNpyler does nto require
-an exact keyword match. When Mechanisms are called by Components to
+At both the mixture and component levels, BioCRNpyler does nto require
+an exact keyword match. When mechanisms are called by components to
 produce reactions, they will initially look for
 
     ParameterKey(
         mechanism='mechanism_name', part_id='part_id',
-	name='parameter_name') --> param_val. 
+	name='parameter_name') --> param_val
 
 If that particular parameter key cannot be found, the software will
 default to the following keys in this order:
@@ -110,22 +110,22 @@ default to the following keys in this order:
         mechanism='mechanism_type', part_id=None , name='parameter_name')
     ParameterKey(
         mechanism= None, part_id=None , name='parameter_name')
-    
+
 As a note, mechanism_name refers to the .name variable of a
 Mechanism. mechanism_type refers to the .type variable of a
 Mechanism. Either of these can be used as a mechanism_id. This allows
 for models to be constructed easily using default parameter values and
-for parameters to be shared between different Mechanisms and/or
+for parameters to be shared between different mechanisms and/or
 Components.
 
-Parameters passed into a Component supercede mixture level parameters
-in reactions produced by that Component.
+Parameters passed into a component supercede mixture level parameters
+in reactions produced by that component.
 
-Components and Mixtures can both have one more multiple parameter
+Components and mixtures can both have one more multiple parameter
 files by passing in a list of filenames instead of a single filename
 to the parameter_file keyword. Components use parameters loaded from
 their file(s) before defaulting to the file(s) supplied to a
-Mixture. The last file in any list will take precedent and overwrite
+mixture. The last file in any list will take precedent and overwrite
 parameter files which were written earlier.
 
 When parameters are specified via parameter files, a set of
@@ -168,7 +168,7 @@ particular unit:
 
 1. Time units: second ("second"), minute ("minute"), hour ("hour").
 2. Concentration units: nanomolar ("nM"), micromolar ("uM"),
-   millimolar ("mM"), molar ("M"). 
+   millimolar ("mM"), molar ("M").
 3. Volume units: nanolitre ("nL"), microlitre ("uL"), millilitre ("mL"),
    litre ("L").
 4. Common parameter units: per second ("per_second"), per hour ("per_hour"),

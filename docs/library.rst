@@ -10,34 +10,20 @@ components, mechanisms, and mixtures is also included here, in
 individual sections of this chapter.
 
 .. automodule:: biocrnpyler
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
-Subpackages
-===========
+Core Classes
+============
 
-The BioCRNpyler package is organized as a set of subpackages that
-define the differrent functions and objects used to model a system.
-Information on the individual subpackages can be accessed via the
-table below.  Information on all components, mechanisms, and mixtures
-contained in the package are described further down on the page.
+Prefix: `biocrnpyler.core`
 
-.. currentmodule:: biocrnpyler
+.. automodule:: biocrnpyler.core
 
-.. autosummary::
-   :toctree: generated/
-   :nosignatures:
-   :recursive:
+The core classes in BioCRNpyler define the low-level objects that are
+used to specify chemical reaction networks as well as defining the
+base classes for components, mechanisms as mixtures.
 
-   core
-   components
-   mechanisms
-   mixtures
-   utils
-
-Low-Level Classes
-=================
+Chemical Reaction Networks (CRNs)
+---------------------------------
 
 Low-level chemical reaction networks can be implemented by defining
 species and reactions directly.  The following classes are used to
@@ -49,22 +35,94 @@ implement this functionality.
    :recursive:
 
    ChemicalReactionNetwork
-   Complex
-   Parameter
+   Compartment
+   ModelParameter
    Reaction
    Species
 
-More detailed information about specialized subclasses for
-representing species can be found in the
-:mod:`biocrnpyler.core.species` module.
+Species types
+-------------
+
+A number of different species are used internally to keep track of
+different types of molecular constructs.  These are normally not
+accessed at the user level, but are useful when defining components
+and mechanisms.
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+   Complex
+   ComplexSpecies
+   MonomerCollection
+   NamedPolymer
+   OrderedComplexSpecies
+   OrderedMonomer
+   OrderedPolymer
+   OrderedPolymerSpecies
+   PolymerConformation
+   WeightedSpecies
+
+
+Propensities
+------------
+
+    Propensities define the rate laws for chemical reactions in a CRN.
+    Different propensity types implement different kinetic models such as
+    mass action, Hill functions, and custom formulas. Propensities can be
+    deterministic (ODE) or stochastic (Gillespie).
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+   Propensity
+   GeneralPropensity
+   Hill
+   HillNegative
+   HillPositive
+   MassAction
+   ProportionalHillPositive
+   ProportionalHillNegative
+
+Parameter databases
+-------------------
+
+Parameters are organized into databases that allow hierarchical searching.
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+
+   ParameterDatabase
+   ParameterEntry
+
+
+Base classes
+------------
+
+The base classes define the primary objects used to represent a model
+and compile it into a chemical reaction network.  These classes are
+not called directly, but are utilized for the components, mechanisms,
+and mixtures that make up the BioCRNpyler library.
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+
+   Component
+   Mechanism
+   Mixture
+   Parameter
 
 Components
 ==========
 
+Prefix: `biocrnpyler.components`
+
 .. automodule:: biocrnpyler.components
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 The following subsections provide a list of all components currently
 available in the BioCRNpyler package.
@@ -75,13 +133,13 @@ available in the BioCRNpyler package.
 
 .. include:: _autogen_components.rst
 
+
 Mechanisms
 ==========
 
+Prefix: `biocrnpyler.mechanisms`
+
 .. automodule:: biocrnpyler.mechanisms
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 The following subsections provide a list of all mechanisms currently
 available in the BioCRNpyler package.
@@ -92,13 +150,13 @@ available in the BioCRNpyler package.
 
 .. include:: _autogen_mechanisms.rst
 
+
 Mixtures
 ========
 
+Prefix: `biocrnpyler.mixtures`
+
 .. automodule:: biocrnpyler.mixtures
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 The following subsections provide a list of all mixtures currently
 available in the BioCRNpyler package.
@@ -108,4 +166,3 @@ available in the BioCRNpyler package.
     :caption: Mixtures
 
 .. include:: _autogen_mixtures.rst
-

@@ -1,65 +1,161 @@
-Components
-----------
-- :class:`biocrnpyler.components.basic.DNA`
-- :class:`biocrnpyler.components.basic.RNA`
-- :class:`biocrnpyler.components.basic.Protein`
-- :class:`biocrnpyler.components.basic.Metabolite`
-- :class:`biocrnpyler.components.basic.ChemicalComplex`
-- :class:`biocrnpyler.components.basic.Enzyme`
-- :class:`biocrnpyler.components.combinatorial_complex.CombinatorialComplex`
-- :class:`biocrnpyler.components.combinatorial_conformation.CombinatorialConformation`
-- :class:`biocrnpyler.components.combinatorial_conformation.CombinatorialConformationPromoter`
-- :class:`biocrnpyler.components.component_enumerator.ComponentEnumerator`
-- :class:`biocrnpyler.components.component_enumerator.LocalComponentEnumerator`
-- :class:`biocrnpyler.components.component_enumerator.GlobalComponentEnumerator`
-- :class:`biocrnpyler.components.construct_explorer.ConstructExplorer`
-- :class:`biocrnpyler.components.construct_explorer.TxExplorer`
-- :class:`biocrnpyler.components.construct_explorer.TlExplorer`
-- :class:`biocrnpyler.components.integrase_enumerator.Polymer_transformation`
-- :class:`biocrnpyler.components.integrase_enumerator.IntegraseRule`
-- :class:`biocrnpyler.components.integrase_enumerator.Integrase_Enumerator`
-- :class:`biocrnpyler.components.membrane.DiffusibleMolecule`
-- :class:`biocrnpyler.components.membrane.IntegralMembraneProtein`
-- :class:`biocrnpyler.components.membrane.MembraneChannel`
-- :class:`biocrnpyler.components.membrane.MembranePump`
-- :class:`biocrnpyler.components.membrane.MembraneSensor`
+Basic
+-----
 
-DNA: Assembly
--------------
-- :class:`biocrnpyler.components.dna.assembly.DNAassembly`
+.. automodule:: biocrnpyler.components.basic
+   :no-index:
 
-DNA: Cds
+.. currentmodule:: biocrnpyler.components
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    DNA
+    RNA
+    Protein
+    Metabolite
+    ChemicalComplex
+    Enzyme
+
+Combinatorial Complex
+---------------------
+
+.. automodule:: biocrnpyler.components.combinatorial_complex
+   :no-index:
+
+.. currentmodule:: biocrnpyler.components
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    CombinatorialComplex
+
+Combinatorial Conformation
+--------------------------
+
+.. automodule:: biocrnpyler.components.combinatorial_conformation
+   :no-index:
+
+.. currentmodule:: biocrnpyler.components
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    CombinatorialConformation
+    CombinatorialConformationPromoter
+
+Component Enumerator
+--------------------
+
+.. automodule:: biocrnpyler.components.component_enumerator
+   :no-index:
+
+.. currentmodule:: biocrnpyler.components
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    ComponentEnumerator
+    LocalComponentEnumerator
+    GlobalComponentEnumerator
+
+Construct Explorer
+------------------
+
+.. automodule:: biocrnpyler.components.construct_explorer
+   :no-index:
+
+.. currentmodule:: biocrnpyler.components
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    ConstructExplorer
+    TxExplorer
+    TlExplorer
+
+Integrase Enumerator
+--------------------
+
+.. automodule:: biocrnpyler.components.integrase_enumerator
+   :no-index:
+
+.. currentmodule:: biocrnpyler.components
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    Polymer_transformation
+    IntegraseRule
+    Integrase_Enumerator
+
+Membrane
 --------
-- :class:`biocrnpyler.components.dna.cds.CDS`
 
-DNA: Construct
+.. automodule:: biocrnpyler.components.membrane
+   :no-index:
+
+.. currentmodule:: biocrnpyler.components
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    DiffusibleMolecule
+    IntegralMembraneProtein
+    MembraneChannel
+    MembranePump
+    MembraneSensor
+
+DNA Assemblies
 --------------
-- :class:`biocrnpyler.components.dna.construct.Construct`
-- :class:`biocrnpyler.components.dna.construct.DNA_construct`
-- :class:`biocrnpyler.components.dna.construct.RNA_construct`
-- :class:`biocrnpyler.components.dna.construct.DNA_part`
 
-DNA: Misc
----------
-- :class:`biocrnpyler.components.dna.misc.DNABindingSite`
-- :class:`biocrnpyler.components.dna.misc.IntegraseSite`
-- :class:`biocrnpyler.components.dna.misc.UserDefined`
-- :class:`biocrnpyler.components.dna.misc.Origin`
-- :class:`biocrnpyler.components.dna.misc.Operator`
+.. automodule:: biocrnpyler.components.dna
+   :no-index:
 
-DNA: Promoter
--------------
-- :class:`biocrnpyler.components.dna.promoter.Promoter`
-- :class:`biocrnpyler.components.dna.promoter.RegulatedPromoter`
-- :class:`biocrnpyler.components.dna.promoter.ActivatablePromoter`
-- :class:`biocrnpyler.components.dna.promoter.RepressiblePromoter`
-- :class:`biocrnpyler.components.dna.promoter.CombinatorialPromoter`
+.. currentmodule:: biocrnpyler.components.dna
 
-DNA: Rbs
---------
-- :class:`biocrnpyler.components.dna.rbs.RBS`
 
-DNA: Terminator
----------------
-- :class:`biocrnpyler.components.dna.terminator.Terminator`
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+   DNAassembly
+   CDS
+   Construct
+   DNA_construct
+   RNA_construct
+   DNA_part
+   DNABindingSite
+   IntegraseSite
+   UserDefined
+   Origin
+   Operator
+   Promoter
+   RegulatedPromoter
+   ActivatablePromoter
+   RepressiblePromoter
+   CombinatorialPromoter
+   RBS
+   Terminator
 
