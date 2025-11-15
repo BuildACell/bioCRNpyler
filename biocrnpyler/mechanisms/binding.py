@@ -18,10 +18,11 @@ class One_Step_Cooperative_Binding(Mechanism):
 
     The binding reaction is given by
 
-    .. math::
-        n*A + B \leftrightarrow A_n:B
+    $$
+        n A + B \leftrightarrow A_n:B
+    $$
 
-    where :math:`n` is the cooperativity (number of binders).
+    where $n$ is the cooperativity (number of binders).
 
     Parameters
     ----------
@@ -308,10 +309,10 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
     The binding process follows two sequential reactions:
 
-    1. :math:`n*A \leftrightarrow A_n` (oligomerization)
-    2. :math:`A_n + B \leftrightarrow A_n:B` (binding)
+    1. $n*A \leftrightarrow A_n$ (oligomerization)
+    2. $A_n + B \leftrightarrow A_n:B$ (binding)
 
-    where :math:`n` is the cooperativity.
+    where $n$ is the cooperativity.
 
     Parameters
     ----------
@@ -1060,8 +1061,9 @@ class One_Step_Binding(Mechanism):
 
     The binding reaction follows:
 
-    .. math::
+    $$
         S1 + S2 + \ldots + Sn \leftrightarrow S1:S2:\ldots:Sn
+    $$
 
     Parameters
     ----------

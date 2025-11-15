@@ -58,21 +58,22 @@ class Reaction(object):
     -----
     A reaction has the form:
 
-    .. math::
+    $$
         \sum_i n_i I_i \rightarrow \sum_i m_i O_i
-
-    where :math:`n_i` is the stoichiometry of reactant :math:`I_i` and
-    :math:`m_i` is the stoichiometry of product :math:`O_i`.
+    $$
+    where $n_i$ is the stoichiometry of reactant $I_i$ and
+    $m_i$ is the stoichiometry of product $O_i$.
 
     For reversible reactions:
 
-    .. math::
+    $$
         \sum_i n_i I_i \rightleftharpoons \sum_i m_i O_i
+    $$
 
     Stoichiometry is handled as follows:
 
     - Species lists automatically combine duplicates
-    - :math:`A + A \rightarrow B` becomes :math:`2A \rightarrow B`
+    - $A + A \rightarrow B$ becomes $2A \rightarrow B$
     - Stoichiometry affects rate calculations in mass action kinetics
 
     Different propensity types implement different rate laws:
@@ -508,7 +509,7 @@ class Reaction(object):
         -----
         Order of species in inputs/outputs doesn't matter:
 
-        :math:`A + B \rightarrow C` equals :math:`B + A \rightarrow C`
+        $A + B \rightarrow C$ equals $B + A \rightarrow C$
         
         since species are compared using sets.
 

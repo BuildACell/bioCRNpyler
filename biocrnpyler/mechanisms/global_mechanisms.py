@@ -391,8 +391,9 @@ class Dilution(GlobalMechanism):
 
     The dilution reaction for each species is
 
-    .. math::
+    $$
         S \rightarrow \emptyset
+    $$
 
     where S is any species and the rate is determined by 'kdil'.
 
@@ -512,7 +513,7 @@ class Dilution(GlobalMechanism):
         Returns
         -------
         list of Reaction
-            List containing a single reaction: :math:`S \rightarrow \emptyset` with rate 'kdil'.
+            List containing a single reaction: $S \rightarrow \emptyset$ with rate 'kdil'.
 
         """
         k_dil = self.get_parameter(s, 'kdil', mixture)
@@ -532,9 +533,9 @@ class AntiDilutionConstitutiveCreation(GlobalMechanism):
     mechanisms.
 
     The production reaction for each species is
-    .. math::
-
+    $$
         \emptyset \rightarrow S
+    $$
 
     where S is any species and the rate is determined by 'kdil' (matching
     the dilution rate to maintain steady state).

@@ -53,6 +53,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.linkcode',
     'sphinx.ext.doctest',
+    # 'sphinx_math_dollar',
     'sphinx.ext.mathjax',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
@@ -61,7 +62,7 @@ extensions = [
     'nbsphinx',
     'nbsphinx_link',
     'recommonmark',
-    'numpydoc',
+    'numpydoc'
 ]
 
 source_suffix = ['.rst']
@@ -116,13 +117,21 @@ default_role = 'py:obj'
 
 # Align inline math with text
 # imgmath_use_preview = True
-mathjax3_config = {
-    "tex": {
-        "inlineMath": [["\\(", "\\)"], ["$", "$"]],
-        "displayMath": [["\\[", "\\]"], ["$$", "$$"]],
-    }
+
+
+mathjax_config = {
+    'tex2jax': {
+        'inlineMath': [ ["\\(","\\)"] ],
+        'displayMath': [["\\[","\\]"] ],
+    },
 }
 
+mathjax3_config = {
+  "tex": {
+    "inlineMath": [['\\(', '\\)']],
+    "displayMath": [["\\[", "\\]"]],
+  }
+}
 
 # Skip prompts when using copy button
 copybutton_prompt_text = r'>>> |\.\.\. '

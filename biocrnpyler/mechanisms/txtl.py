@@ -22,8 +22,9 @@ class OneStepGeneExpression(Mechanism):
 
     The reaction follows the schema:
 
-    .. math::
+    $$
         G \rightarrow G + P
+    $$
 
     where G is the gene (DNA) and P is the protein product.
 
@@ -211,8 +212,9 @@ class SimpleTranscription(Mechanism):
 
     The reaction follows the schema:
 
-    .. math::
+    $$
         G \rightarrow G + T
+    $$
 
     where G is the gene (DNA) and T is the transcript (mRNA).
 
@@ -416,8 +418,9 @@ class SimpleTranslation(Mechanism):
 
     The reaction follows the schema:
 
-    .. math::
+    $$
         T \rightarrow T + P
+    $$
 
     where T is the transcript (mRNA) and P is the protein.
 
@@ -609,13 +612,15 @@ class PositiveHillTranscription(Mechanism):
 
     The reaction follows the schema:
 
-    .. math::
+    $$
         G \rightarrow G + T
+    $$
 
     with rate:
 
-    .. math::
+    $$
         \text{rate} = k * G * \frac{R^n}{K + R^n}
+    $$
 
     where R is the regulator (activator), n is the Hill coefficient, and K
     is the activation constant. Optionally includes a basal leak reaction at
@@ -859,13 +864,12 @@ class NegativeHillTranscription(Mechanism):
     capturing cooperative binding and repression.
 
     The reaction follows the schema:
-    
-    .. math::
-        G \rightarrow G + T
 
-    with rate:
-    .. math::
-        \text{rate} = k * G * \frac{1}{K + R^n}
+    $$
+        G \rightarrow G + T
+    $$
+
+    with rate: $\\text{rate} = k * G * \frac{1}{K + R^n}$
 
     where R is the regulator (repressor), n is the Hill coefficient, and K
     is the repression constant. Optionally includes a basal leak reaction at

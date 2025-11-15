@@ -611,7 +611,7 @@ class GeneralPropensity(Propensity):
     Parameters
     ----------
     propensity_function : str
-        Valid mathematical formula as a string (e.g., :math:`k*S1*S2`). Must
+        Valid mathematical formula as a string (e.g., $k*S1*S2$). Must
         contain all referenced species and parameters.
     propensity_species : list of Species
         List of Species objects used in the formula. Each species must
@@ -819,33 +819,31 @@ class MassAction(Propensity):
 
     Notes
     -----
-    Deterministic (ODE) propensity: For reaction :math:`A + B \rightarrow C` with rate
+    Deterministic (ODE) propensity: For reaction $A + B \rightarrow C$ with rate
     constant k:
 
-    .. math::
-
+    $$
         \text{rate} = k [A] [B]
-
-    Stochastic (Gillespie) propensity: For reaction :math:`A + B \rightarrow C` with
+    $$
+    Stochastic (Gillespie) propensity: For reaction $A + B \rightarrow C$ with
     rate constant k:
 
-    .. math::
-
+    $$
         \text{propensity} &= k \cdot A \cdot (B-1) \text{ if } A=B \\
         \text{propensity} &= k \cdot A \cdot B \text{ otherwise}
-
+    $$
     The stochastic formulation accounts for combinatorics of molecule
     selection. For stoichiometric coefficient n > 1:
 
-    .. math::
-
+    $$
         \text{factor} = S \cdot (S-1) \cdot ... \cdot (S-n+1)
+    $$
 
     If `k_reverse` is provided, the reaction is reversible:
 
-    .. math::
-
+    $$
         A + B \rightleftharpoons C
+    $$
 
     Two kinetic laws are created: one for forward, one for reverse.
 
@@ -1086,8 +1084,8 @@ class MassAction(Propensity):
 
         Notes
         -----
-        For deterministic: rate = :math:`k * [A]^n * [B]^m`
-        For stochastic: rate = :math:`k * A * (A-1) * \ldots * (A-n+1) * B * \ldots`
+        For deterministic: rate = $k * [A]^n * [B]^m$
+        For stochastic: rate = $k * A * (A-1) * \ldots * (A-n+1) * B * \ldots$
 
         """
         # Create Rate-strings for massaction propensities
@@ -1163,10 +1161,10 @@ class Hill(Propensity):
     -----
     This is an abstract base class. Use the specific subclasses:
 
-    - `HillPositive`: Activation, :math:`k s_1^n / (K^n + s_1^n)`
-    - `HillNegative`: Repression, :math:`k / (1 + (s_1/K)^n)`
-    - `ProportionalHillPositive`: :math:`k d s_1^n / (K^n + s_1^n)`
-    - `ProportionalHillNegative`: :math:`k d / (1 + (s_1/K)^n)`
+    - `HillPositive`: Activation, $k s_1^n / (K^n + s_1^n)$
+    - `HillNegative`: Repression, $k / (1 + (s_1/K)^n)$
+    - `ProportionalHillPositive`: $k d s_1^n / (K^n + s_1^n)$
+    - `ProportionalHillNegative`: $k d / (1 + (s_1/K)^n)$
 
     Hill functions are not reversible - k_reverse is not supported.
 
@@ -1418,9 +1416,9 @@ class HillPositive(Hill):
     -----
     The following formula is implemented:
 
-    .. math::
-
+    $$
         p(s_1; k, K, n) = \frac{k s_1^n}{K^n + s_1^n},
+    $$
 
     leading to the following behaviors:
 
@@ -1518,9 +1516,9 @@ class HillNegative(Hill):
     -----
     The following mathematical formula is implemented:
 
-    .. math::
-
+    $$
         p(s_1; k, K, n) = \frac{k}{1 + (s_1/K)^n}
+    $$
 
     leading to the following behavior:
 
@@ -1618,9 +1616,9 @@ class ProportionalHillPositive(HillPositive):
     -----
     The following mathematical formula: is used for the popensity:
 
-    .. math::
-
+    $$
         p(s_1, d; k, K, n) = \frac{k d s_1^n}{K^n + s_1^n}
+    $$
 
     This is commonly used for transcription, where
 
@@ -1730,9 +1728,9 @@ class ProportionalHillNegative(HillNegative):
     -----
     The following mathematical formula: is used:
 
-    .. math::
-
+    $$
         p(s_1, d; k, K, n) = \frac{k d}{1 + (s_1/K)^n}
+    $$
 
     This is commonly used for repressed transcription where
 
