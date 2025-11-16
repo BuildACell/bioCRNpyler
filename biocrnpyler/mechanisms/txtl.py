@@ -1302,7 +1302,7 @@ class Translation_MM(MichaelisMentenCopy):
 
     The reaction follows the schema:
 
-        $$ \textrm{mRNA} + \textrm{Rib} \leftrightarrow \textrm{mRNA:Rib} \rightarrow \textrm{mRNA} + \textrm{Rib} + \textrm{Protein}$$
+        $$ \text{mRNA} + \text{Rib} \leftrightarrow \text{mRNA:Rib} \rightarrow \text{mRNA} + \text{Rib} + \text{Protein}$$
 
     Parameters
     ----------
@@ -1519,9 +1519,9 @@ class Energy_Transcription_MM(Mechanism):
 
     $$ G + RNAP \leftrightarrow G:RNAP $$
 
-    $$ \textrm{Fuel} + G:RNAP \rightarrow G + RNAP + T $$
+    $$ \text{Fuel} + G:RNAP \rightarrow G + RNAP + T $$
     
-    $$ \textrm{Fuel} + G:RNAP \rightarrow G:RNAP + \textrm{wastes} $$
+    $$ \text{Fuel} + G:RNAP \rightarrow G:RNAP + \text{wastes} $$
 
     Transcription occurs at rate 'ktx' / L (length-dependent), while fuel
     consumption occurs at rate 'ktx', resulting in L times more fuel
@@ -1774,11 +1774,11 @@ class Energy_Translation_MM(Mechanism):
 
     The reaction follows the schema:
 
-    $$ \textrm{mRNA} + \textrm{Rib} \leftrightarrow \textrm{mRNA:Rib} $$
+    $$ \text{mRNA} + \text{Rib} \leftrightarrow \text{mRNA:Rib} $$
     
-    $$ \textrm{Fuel} + \textrm{mRNA:Rib} \rightarrow \textrm{mRNA} + \textrm{Rib} + \textrm{Protein} + \textrm{Fuel} $$
+    $$ \text{Fuel} + \text{mRNA:Rib} \rightarrow \text{mRNA} + \text{Rib} + \text{Protein} + \text{Fuel} $$
     
-    $$ \textrm{Fuel} + \textrm{mRNA:Rib} \rightarrow \textrm{mRNA:Rib} + \textrm{wastes} $$
+    $$ \text{Fuel} + \text{mRNA:Rib} \rightarrow \text{mRNA:Rib} + \text{wastes} $$
 
     Translation occurs at rate 'ktl' / L (length-dependent), while fuel
     consumption occurs at rate 'ktl', resulting in L times more fuel

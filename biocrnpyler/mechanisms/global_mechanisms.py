@@ -673,7 +673,7 @@ class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
 
     The degradation reaction scheme is
 
-    $$ \textrm{mRNA} + \textrm{Endo} \leftrightarrow \textrm{mRNA:Endo} \rightarrow \textrm{Endo}$$
+    $$ \text{mRNA} + \text{Endo} \leftrightarrow \text{mRNA:Endo} \rightarrow \text{Endo}$$
 
     where mRNA is any RNA species and Endo is the endonuclease.
 
@@ -964,7 +964,7 @@ class Deg_Tagged_Degradation(GlobalMechanism, MichaelisMenten):
 
     The degradation reaction scheme is
 
-    $$ \textrm{Protein_degtagged} + \textrm{degradase} \leftrightarrow \textrm{Protein_degtagged:degradase} \rightarrow \textrm{degradase}$$
+    $$ \text{Protein_degtagged} + \text{degradase} \leftrightarrow \text{Protein_degtagged:degradase} \rightarrow \text{degradase}$$
 
     where Protein_degtagged is any protein with the degradation tag.
 
