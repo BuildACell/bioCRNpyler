@@ -822,28 +822,21 @@ class MassAction(Propensity):
     Deterministic (ODE) propensity: For reaction $A + B \rightarrow C$ with rate
     constant k:
 
-    $$
-        \text{rate} = k [A] [B]
-    $$
+    $$\text{rate} = k [A] [B]$$
     Stochastic (Gillespie) propensity: For reaction $A + B \rightarrow C$ with
     rate constant k:
 
-    $$
-        \text{propensity} &= k \cdot A \cdot (B-1) \text{ if } A=B \\
-        \text{propensity} &= k \cdot A \cdot B \text{ otherwise}
-    $$
+    $$\text{propensity} &= k \cdot A \cdot (B-1) \text{ if } A=B $$
+    $$\text{propensity} &= k \cdot A \cdot B \text{ otherwise}$$
+
     The stochastic formulation accounts for combinatorics of molecule
     selection. For stoichiometric coefficient n > 1:
 
-    $$
-        \text{factor} = S \cdot (S-1) \cdot ... \cdot (S-n+1)
-    $$
+    $$\text{factor} = S \cdot (S-1) \cdot ... \cdot (S-n+1)$$
 
     If `k_reverse` is provided, the reaction is reversible:
 
-    $$
-        A + B \rightleftharpoons C
-    $$
+    $$A + B \rightleftharpoons C$$
 
     Two kinetic laws are created: one for forward, one for reverse.
 
@@ -1060,7 +1053,7 @@ class MassAction(Propensity):
     def _get_rate_formula(
         self, rate_coeff_name, stochastic, reactant_species
     ) -> str:
-        """Generate mass action rate formula string.
+        r"""Generate mass action rate formula string.
 
         Creates the mathematical formula for mass action kinetics,
         accounting for stoichiometry and stochastic vs deterministic
@@ -1416,9 +1409,7 @@ class HillPositive(Hill):
     -----
     The following formula is implemented:
 
-    $$
-        p(s_1; k, K, n) = \frac{k s_1^n}{K^n + s_1^n},
-    $$
+    $$p(s_1; k, K, n) = \frac{k s_1^n}{K^n + s_1^n},$$
 
     leading to the following behaviors:
 
@@ -1516,9 +1507,7 @@ class HillNegative(Hill):
     -----
     The following mathematical formula is implemented:
 
-    $$
-        p(s_1; k, K, n) = \frac{k}{1 + (s_1/K)^n}
-    $$
+    $$p(s_1; k, K, n) = \frac{k}{1 + (s_1/K)^n}$$
 
     leading to the following behavior:
 
@@ -1616,9 +1605,7 @@ class ProportionalHillPositive(HillPositive):
     -----
     The following mathematical formula: is used for the popensity:
 
-    $$
-        p(s_1, d; k, K, n) = \frac{k d s_1^n}{K^n + s_1^n}
-    $$
+    $$p(s_1, d; k, K, n) = \frac{k d s_1^n}{K^n + s_1^n}$$
 
     This is commonly used for transcription, where
 
@@ -1728,9 +1715,7 @@ class ProportionalHillNegative(HillNegative):
     -----
     The following mathematical formula: is used:
 
-    $$
-        p(s_1, d; k, K, n) = \frac{k d}{1 + (s_1/K)^n}
-    $$
+    $$p(s_1, d; k, K, n) = \frac{k d}{1 + (s_1/K)^n}$$
 
     This is commonly used for repressed transcription where
 

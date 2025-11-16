@@ -680,7 +680,7 @@ class Simple_Transport(Mechanism):
 
 
 class Facilitated_Transport_MM(Mechanism):
-    """Facilitated diffusion mechanism with Michaelis-Menten kinetics.
+    r"""Facilitated diffusion mechanism with Michaelis-Menten kinetics.
 
     A 'transport' mechanism that models facilitated diffusion of substrates
     through membrane carrier proteins. Unlike simple channels, carriers
@@ -690,7 +690,7 @@ class Facilitated_Transport_MM(Mechanism):
 
     The reaction follows the schema:
 
-    Sub + MC <--> Sub:MC --> Prod:MC --> Prod + MC
+    $$Sub + MC \leftrightarrow Sub:MC \rightarrow Prod:MC \rightarrow Prod + MC$$
 
     where MC is the membrane carrier protein.
 
@@ -980,7 +980,7 @@ class Facilitated_Transport_MM(Mechanism):
 
 
 class Primary_Active_Transport_MM(Mechanism):
-    """Primary active transport mechanism with ATP-dependent pumping.
+    r"""Primary active transport mechanism with ATP-dependent pumping.
 
     A 'transport' mechanism that models primary active transport where
     substrates are moved against their concentration gradients using energy
@@ -990,8 +990,8 @@ class Primary_Active_Transport_MM(Mechanism):
 
     The reaction follows the schema:
 
-    Sub + MP <--> Sub:MP + E --> Sub:MP:E --> MP:Prod:E
-    --> Prod + MP:W --> Prod + MP + W
+    $$Sub + MP \leftrightarrow Sub:MP + E \rightarrow Sub:MP:E \rightarrow MP:Prod:E \rightarrow Prod + MP:W \rightarrow Prod + MP + W$$
+    $$\rightarrow Prod + MP:W \rightarrow Prod + MP + W$$
 
     where MP is the membrane pump, E is ATP (energy), and W is ADP (waste).
 

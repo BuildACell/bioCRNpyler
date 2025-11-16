@@ -9,7 +9,7 @@ from ..core.species import Complex, ComplexSpecies
 
 
 class CombinatorialComplex(Component):
-    """Complex formed through combinatorial binding of multiple species.
+    r"""Complex formed through combinatorial binding of multiple species.
 
     A `CombinatorialComplex` component represents a complex that can form
     through multiple combinatorial binding pathways. The component
@@ -69,22 +69,22 @@ class CombinatorialComplex(Component):
     Case 1 - only `final_states` given: all species in final_states bind
     combinatorially:
 
-        individual_species <--> all_intermediates <--> final_states
+        $$ \text{individual_species} \leftrightarrow \text{all_intermediates} \leftrightarrow \text{final_states} $$
 
     Case 2 - `final_states` + `initial_states`: binding starts from
     specified initial states directly to final states:
 
-        initial_states <--> final_states
+        $$ initial_states \leftrightarrow final_states $$
 
     Case 3 - `final_states` + `intermediate_states`: binding restricted to
     specified intermediates:
 
-        individual_species <--> intermediate_states <--> final_states
+        $$ \text{individual_species} \leftrightarrow \text{intermediate_states} \leftrightarrow \text{final_states} $$
 
     Case 4 - `final_states` + `initial_states` + `intermediate_states`: both
     initial and intermediate constraints applied:
 
-        initial_states <--> intermediate_states <--> final_states
+        $$ initial_states \leftrightarrow intermediate_states \leftrightarrow final_states $$
 
     The component name is automatically generated as a concatenation of
     final_states names separated by underscores if not provided.

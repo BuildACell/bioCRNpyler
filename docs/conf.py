@@ -53,7 +53,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.linkcode',
     'sphinx.ext.doctest',
-    # 'sphinx_math_dollar',
+    'sphinx_math_dollar',
     'sphinx.ext.mathjax',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',

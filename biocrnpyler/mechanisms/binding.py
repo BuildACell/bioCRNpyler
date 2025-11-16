@@ -9,7 +9,7 @@ from ..core.species import Complex, Species, WeightedSpecies
 
 
 class One_Step_Cooperative_Binding(Mechanism):
-    """Cooperative binding mechanism for single-step multi-ligand binding.
+    r"""Cooperative binding mechanism for single-step multi-ligand binding.
 
     A 'binding' mechanism where multiple copies of a binder molecule (A) bind
     cooperatively to a single bindee molecule (B) in one concerted step.  This
@@ -18,9 +18,7 @@ class One_Step_Cooperative_Binding(Mechanism):
 
     The binding reaction is given by
 
-    $$
-        n A + B \leftrightarrow A_n:B
-    $$
+    $$n A + B \leftrightarrow A_n:B$$
 
     where $n$ is the cooperativity (number of binders).
 
@@ -300,7 +298,7 @@ class One_Step_Cooperative_Binding(Mechanism):
 
 
 class Two_Step_Cooperative_Binding(Mechanism):
-    """Sequential cooperative binding mechanism with oligomerization.
+    r"""Sequential cooperative binding mechanism with oligomerization.
 
     A 'binding' mechanism where multiple binder molecules first oligomerize,
     then the oligomer binds to the bindee in a two-step process. This models
@@ -309,7 +307,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
     The binding process follows two sequential reactions:
 
-    1. $n*A \leftrightarrow A_n$ (oligomerization)
+    1. $n A \leftrightarrow A_n$ (oligomerization)
     2. $A_n + B \leftrightarrow A_n:B$ (binding)
 
     where $n$ is the cooperativity.
@@ -1052,7 +1050,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
 
 
 class One_Step_Binding(Mechanism):
-    """Simple binding mechanism for multiple species without cooperativity.
+    r"""Simple binding mechanism for multiple species without cooperativity.
 
     A 'binding' mechanism to model the simultaneous binding of multiple
     species into a single complex in one concerted step. Unlike cooperative
@@ -1061,9 +1059,7 @@ class One_Step_Binding(Mechanism):
 
     The binding reaction follows:
 
-    $$
-        S1 + S2 + \ldots + Sn \leftrightarrow S1:S2:\ldots:Sn
-    $$
+    $$S_1 + S_2 + \ldots + S_n \leftrightarrow S_1:S_2:\ldots:S_n$$
 
     Parameters
     ----------

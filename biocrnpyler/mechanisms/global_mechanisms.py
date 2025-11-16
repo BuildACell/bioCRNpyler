@@ -382,7 +382,7 @@ class GlobalMechanism(Mechanism):
 
 
 class Dilution(GlobalMechanism):
-    """Global mechanism for species dilution or degradation.
+    r"""Global mechanism for species dilution or degradation.
 
     A 'dilution' mechanism that removes species from the system at a rate
     proportional to their concentration. This models dilution due to cell
@@ -391,9 +391,7 @@ class Dilution(GlobalMechanism):
 
     The dilution reaction for each species is
 
-    $$
-        S \rightarrow \emptyset
-    $$
+    $$S \rightarrow \emptyset$$
 
     where S is any species and the rate is determined by 'kdil'.
 
@@ -524,7 +522,7 @@ class Dilution(GlobalMechanism):
 
 
 class AntiDilutionConstitutiveCreation(GlobalMechanism):
-    """Global mechanism for constitutive species creation to counter dilution.
+    r"""Global mechanism for constitutive species creation to counter dilution.
 
     A 'dilution' mechanism that constitutively creates species at a constant
     rate to maintain their concentration despite dilution. This is useful for
@@ -533,9 +531,7 @@ class AntiDilutionConstitutiveCreation(GlobalMechanism):
     mechanisms.
 
     The production reaction for each species is
-    $$
-        \emptyset \rightarrow S
-    $$
+    $$\emptyset \rightarrow S$$
 
     where S is any species and the rate is determined by 'kdil' (matching
     the dilution rate to maintain steady state).
@@ -668,7 +664,7 @@ class AntiDilutionConstitutiveCreation(GlobalMechanism):
 
 
 class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
-    """Michaelis-Menten mRNA degradation by endonucleases.
+    r"""Michaelis-Menten mRNA degradation by endonucleases.
 
     A 'rna_degradation' mechanism that uses Michaelis-Menten kinetics to
     model the enzymatic degradation of mRNA by endonucleases. All species
@@ -677,7 +673,7 @@ class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
 
     The degradation reaction scheme is
 
-    mRNA + Endo <--> mRNA:Endo --> Endo
+    $$ \textrm{mRNA} + \textrm{Endo} \leftrightarrow \textrm{mRNA:Endo} \rightarrow \textrm{Endo}$$
 
     where mRNA is any RNA species and Endo is the endonuclease.
 
@@ -959,7 +955,7 @@ class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
 
 
 class Deg_Tagged_Degradation(GlobalMechanism, MichaelisMenten):
-    """Michaelis-Menten degradation of deg-tagged proteins by degradase.
+    r"""Michaelis-Menten degradation of deg-tagged proteins by degradase.
 
     A 'degradation' mechanism that uses Michaelis-Menten kinetics to model
     the targeted enzymatic degradation of proteins tagged for degradation
@@ -968,8 +964,7 @@ class Deg_Tagged_Degradation(GlobalMechanism, MichaelisMenten):
 
     The degradation reaction scheme is
 
-    Protein_degtagged + degradase <--> Protein_degtagged:degradase
-    --> degradase
+    $$ \textrm{Protein_degtagged} + \textrm{degradase} \leftrightarrow \textrm{Protein_degtagged:degradase} \rightarrow \textrm{degradase}$$
 
     where Protein_degtagged is any protein with the degradation tag.
 

@@ -58,17 +58,13 @@ class Reaction(object):
     -----
     A reaction has the form:
 
-    $$
-        \sum_i n_i I_i \rightarrow \sum_i m_i O_i
-    $$
+    $$\sum_i n_i I_i \rightarrow \sum_i m_i O_i$$
     where $n_i$ is the stoichiometry of reactant $I_i$ and
     $m_i$ is the stoichiometry of product $O_i$.
 
     For reversible reactions:
 
-    $$
-        \sum_i n_i I_i \rightleftharpoons \sum_i m_i O_i
-    $$
+    $$\sum_i n_i I_i \rightleftharpoons \sum_i m_i O_i$$
 
     Stoichiometry is handled as follows:
 

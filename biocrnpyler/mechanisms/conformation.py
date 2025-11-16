@@ -6,7 +6,7 @@ from ..core.reaction import Reaction
 
 
 class One_Step_Reversible_Conformation_Change(Mechanism):
-    """Reversible conformational change mechanism.
+    r"""Reversible conformational change mechanism.
 
     A mechanism that models the reversible conformational change of a species
     from one state to another. This can represent protein folding/unfolding,
@@ -16,7 +16,7 @@ class One_Step_Reversible_Conformation_Change(Mechanism):
 
     The reaction follows:
 
-    s0 [+ additional species] <--> sf [+ additional species]
+    $$s_0 + \text{additional species} \leftrightarrow s_f + \text{additional species}$$
 
     where s0 is the initial conformation and sf is the final conformation.
 

@@ -9,7 +9,7 @@ from ..core.species import Complex, Species
 
 
 class DNA(Component):
-    """DNA sequence component with specified length.
+    r"""DNA sequence component with specified length.
 
     A `DNA` component represents a DNA sequence with a given length in base
     pairs. This component has no associated mechanism to generate species or
@@ -665,7 +665,7 @@ class ChemicalComplex(Component):
 
 
 class Enzyme(Component):
-    """Enzyme that catalyzes conversion of substrates to products.
+    r"""Enzyme that catalyzes conversion of substrates to products.
 
     An `Enzyme` component represents an enzyme that catalyzes the conversion
     of one or more substrates into one or more products. The enzyme itself
@@ -712,7 +712,7 @@ class Enzyme(Component):
     The `Enzyme` component assumes all substrates are converted to all
     products in a single enzymatic step:
 
-        S1 + S2 + ... + SN + E --> P1 + P2 + ... + PM + E
+        $$S1 + S2 + ... + SN + E \rightarrow P1 + P2 + ... + PM + E$$
 
     For enzymes that catalyze multiple distinct reactions, create separate
     `Enzyme` components with the same internal enzyme species.

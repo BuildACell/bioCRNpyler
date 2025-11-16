@@ -10,7 +10,7 @@ from ..core.species import Species
 
 
 class DiffusibleMolecule(Component):
-    """Molecule that diffuses passively through a membrane.
+    r"""Molecule that diffuses passively through a membrane.
 
     A `DiffusibleMolecule` component represents a molecule that undergoes
     passive diffusion across a membrane between two compartments. The
@@ -53,8 +53,8 @@ class DiffusibleMolecule(Component):
     Passive diffusion follows concentration gradients and does not require
     energy. The diffusion mechanism generates bidirectional reactions:
 
-    - Forward: substrate_internal --> substrate_external
-    - Reverse: substrate_external --> substrate_internal
+    - Forward: $\textrm{substrate_internal} \rightarrow \textrm{substrate_external}$
+    - Reverse: $\textrm{substrate_external} \rightarrow \textrm{substrate_internal}$
 
     If not specified using the `name` keyword, the component name is
     automatically generated as: '<substrate_name>_<internal_compartment_name>'
@@ -877,7 +877,7 @@ class MembranePump(Component):
         return self.membrane_pump
 
     def update_species(self):
-        """Use 'trasnport' mechanism to generate ATP-dependent species.
+        r"""Use 'transport' mechanism to generate ATP-dependent species.
 
         Uses the 'transport' mechanism to generate species including the
         pump protein, substrate, product, ATP, and ADP.
@@ -899,7 +899,7 @@ class MembranePump(Component):
         )
 
     def update_reactions(self):
-        """Use 'trasnport' mechanism to generate ATP-dependent reactions.
+        """Use 'transport' mechanism to generate ATP-dependent reactions.
 
         Uses the 'transport' mechanism to generate reactions for active
         transport coupled to ATP hydrolysis.
@@ -923,7 +923,7 @@ class MembranePump(Component):
 
 
 class MembraneSensor(Component):
-    """Two-component system (TCS) membrane sensor protein.
+    r"""Two-component system (TCS) membrane sensor protein.
 
     A `MembraneSensor` component represents a membrane sensor protein in a
     two-component signaling system. The sensor detects external signal
@@ -996,8 +996,7 @@ class MembraneSensor(Component):
 
     The general reaction scheme:
 
-        signal + sensor + ATP + response_protein -->
-        signal + sensor + ADP + response_protein-P
+        $$ \textrm{signal} + \textrm{sensor} + \textrm{ATP} + \textrm{response_protein} \rightarrow \textrm{signal} + \textrm{sensor} + \textrm{ADP} + \textrm{response_protein-P} $$
 
     The component name is automatically generated as:
     '<membrane_sensor_protein_name>_<compartment_name>'

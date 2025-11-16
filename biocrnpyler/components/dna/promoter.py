@@ -792,10 +792,7 @@ class RepressiblePromoter(Promoter):
     -----
     The repression follows a Hill function:
 
-    $$
-        \text{rate} = k_{\text{max}} \frac{K_d^n}{K_d^n + [R]^n}
-            + k_{\text{leak}}
-    $$
+    $$\text{rate} = k_{\text{max}} \frac{K_d^n}{K_d^n + [R]^n} + k_{\text{leak}}$$
 
     where [R] is repressor concentration, n is the Hill coefficient, and
     $K_d$ is the dissociation constant.
