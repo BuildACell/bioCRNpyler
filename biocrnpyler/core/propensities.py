@@ -819,15 +819,18 @@ class MassAction(Propensity):
 
     Notes
     -----
-    Deterministic (ODE) propensity: For reaction $A + B \rightarrow C$ with rate
-    constant k:
+    Deterministic (ODE) propensity: For reaction $A + B \rightarrow C$ with
+    rate constant $k$:
+    $$
+    \text{rate} = k [A] [B]
+    $$
 
-    $$\text{rate} = k [A] [B]$$
     Stochastic (Gillespie) propensity: For reaction $A + B \rightarrow C$ with
     rate constant k:
-
-    $$\text{propensity} &= k \cdot A \cdot (B-1) \text{ if } A=B $$
-    $$\text{propensity} &= k \cdot A \cdot B \text{ otherwise}$$
+    $$
+    \text{propensity} &= k \cdot A \cdot (B-1) \text{ if } A=B
+    \text{propensity} &= k \cdot A \cdot B \text{ otherwise}
+    $$
 
     The stochastic formulation accounts for combinatorics of molecule
     selection. For stoichiometric coefficient n > 1:

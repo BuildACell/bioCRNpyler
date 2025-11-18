@@ -19,20 +19,26 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
     the following reaction pathway:
 
     1. Activation of membrane sensor protein (MSP):
-
-    $$SP + SigSub \leftrightarrow SP:SigSub \rightarrow SP^*$$
+    $$
+    SP + SigSub \leftrightarrow SP:SigSub \rightarrow SP^*
+    $$
 
     2. Auto-phosphorylation via ATP:
-
-    $$SP^* + nATP \leftrightarrow SP^*:nATP \rightarrow SP^{**}:nADP \rightarrow SP^{**} + nADP$$
+    $$
+    SP^* + nATP \leftrightarrow SP^*:nATP \rightarrow SP^{**}:nADP
+    \rightarrow SP^{**} + nADP
+    $$
 
     3. Phosphorylation of response protein (RP):
-
-    $$SP^{**} + RP \leftrightarrow SP^{**}:RP \rightarrow SP^*:RP^* \rightarrow SP^* + RP^*$$
+    $$
+    SP^{**} + RP \leftrightarrow SP^{**}:RP \rightarrow
+    SP^*:RP^* \rightarrow SP^* + RP^*
+    $$
 
     4. Dephosphorylation of phosphorylated response protein:
-
-    $$RP^* \rightarrow RP + Pi$$
+    $$
+    RP^* \rightarrow RP + Pi
+    $$
 
     Parameters
     ----------

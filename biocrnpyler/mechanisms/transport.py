@@ -689,9 +689,9 @@ class Facilitated_Transport_MM(Mechanism):
     and product binding steps.
 
     The reaction follows the schema:
-
-    $$Sub + MC \leftrightarrow Sub:MC \rightarrow Prod:MC \rightarrow Prod + MC$$
-
+    $$
+    Sub + MC \leftrightarrow Sub:MC \rightarrow Prod:MC \rightarrow Prod + MC
+    $$
     where MC is the membrane carrier protein.
 
     Parameters
@@ -989,10 +989,12 @@ class Primary_Active_Transport_MM(Mechanism):
     product release steps.
 
     The reaction follows the schema:
-
-    $$Sub + MP \leftrightarrow Sub:MP + E \rightarrow Sub:MP:E \rightarrow MP:Prod:E \rightarrow Prod + MP:W \rightarrow Prod + MP + W$$
-    $$\rightarrow Prod + MP:W \rightarrow Prod + MP + W$$
-
+    $$
+    & Sub + MP \leftrightarrow Sub:MP + E \rightarrow Sub:MP:E & \\
+    & \rightarrow MP:Prod:E \rightarrow Prod + MP:W \rightarrow
+    Prod + MP + W & \\
+    & \rightarrow Prod + MP:W \rightarrow Prod + MP + W &
+    $$
     where MP is the membrane pump, E is ATP (energy), and W is ADP (waste).
 
     Parameters

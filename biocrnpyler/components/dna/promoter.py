@@ -646,11 +646,9 @@ class ActivatablePromoter(Promoter):
     Notes
     -----
     The activation follows a Hill function:
-
-    \[
-        \text{rate} = k_{\text{max}} \frac{[A]^n}{K_d^n + [A]^n} + k_{\text{leak}}
-    \]
-
+    $$
+    \text{rate} = k_{\text{max}} \frac{[A]^n}{K_d^n + [A]^n} + k_{\text{leak}}
+    $$
     where [A] is activator concentration, n is the Hill coefficient, and
     $K_d$ is the dissociation constant.
 
@@ -791,9 +789,9 @@ class RepressiblePromoter(Promoter):
     Notes
     -----
     The repression follows a Hill function:
-
-    $$\text{rate} = k_{\text{max}} \frac{K_d^n}{K_d^n + [R]^n} + k_{\text{leak}}$$
-
+    $$
+    \text{rate} = k_{\text{max}} \frac{K_d^n}{K_d^n + [R]^n} + k_{\text{leak}}
+    $$
     where [R] is repressor concentration, n is the Hill coefficient, and
     $K_d$ is the dissociation constant.
 

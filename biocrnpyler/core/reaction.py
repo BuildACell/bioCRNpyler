@@ -480,7 +480,7 @@ class Reaction(object):
         return txt
 
     def __eq__(self, other):
-        """Test equality between reactions.
+        r"""Test equality between reactions.
 
         Two reactions are equal if they have the same inputs, outputs,
         and propensity (in any order).

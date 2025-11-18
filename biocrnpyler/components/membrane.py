@@ -53,8 +53,11 @@ class DiffusibleMolecule(Component):
     Passive diffusion follows concentration gradients and does not require
     energy. The diffusion mechanism generates bidirectional reactions:
 
-    - Forward: $\text{substrate_internal} \rightarrow \text{substrate_external}$
-    - Reverse: $\text{substrate_external} \rightarrow \text{substrate_internal}$
+    - Forward:
+      $\text{substrate_internal} \rightarrow \text{substrate_external}$
+
+    - Reverse:
+      $\text{substrate_external} \rightarrow \text{substrate_internal}$
 
     If not specified using the `name` keyword, the component name is
     automatically generated as: '<substrate_name>_<internal_compartment_name>'
@@ -442,9 +445,11 @@ class MembraneChannel(Component):
     The transport mechanism generates reactions based on the direction:
 
     - 'Importer': substrate_external + channel
-          --> substrate_internal + channel
+      --> substrate_internal + channel
+
     - 'Exporter': substrate_internal + channel
-          --> substrate_external + channel
+      --> substrate_external + channel
+
     - 'Passive': bidirectional transport following gradients
 
     The component name is automatically generated as:
@@ -679,9 +684,10 @@ class MembranePump(Component):
     against concentration gradients. The typical reaction scheme is:
 
     - Exporter: substrate_internal + ATP + pump -->
-                substrate_external + ADP + pump
+      substrate_external + ADP + pump
+
     - Importer: substrate_external + ATP + pump -->
-                substrate_internal + ADP + pump
+      substrate_internal + ADP + pump
 
     The ATP parameter controls the stoichiometry of ATP consumption per
     transport event.
@@ -995,8 +1001,11 @@ class MembraneSensor(Component):
     4. Activated response regulator regulates gene expression
 
     The general reaction scheme:
-
-        $$ \text{signal} + \text{sensor} + \text{ATP} + \text{response_protein} \rightarrow \text{signal} + \text{sensor} + \text{ADP} + \text{response_protein-P} $$
+    $$
+    \text{signal} + \text{sensor} + \text{ATP} + \text{response_protein}
+    \rightarrow \text{signal} + \text{sensor} + \text{ADP} +
+    \text{response_protein-P}
+    $$
 
     The component name is automatically generated as:
     '<membrane_sensor_protein_name>_<compartment_name>'

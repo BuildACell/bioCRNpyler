@@ -1087,8 +1087,10 @@ class Transcription_MM(MichaelisMentenCopy):
     needed.
 
     The reaction follows the schema:
-
-    $$G + \text{RNAP} \leftrightarrow \text{G:RNAP} \rightarrow G + \text{RNAP} + \text{mRNA}$$
+    $$
+    G + \text{RNAP} \leftrightarrow \text{G:RNAP} \rightarrow
+    G + \text{RNAP} + \text{mRNA}
+    $$
 
     Parameters
     ----------
@@ -1301,8 +1303,10 @@ class Translation_MM(MichaelisMentenCopy):
     or when explicit modeling of ribosome-mRNA interactions is needed.
 
     The reaction follows the schema:
-
-        $$ \text{mRNA} + \text{Rib} \leftrightarrow \text{mRNA:Rib} \rightarrow \text{mRNA} + \text{Rib} + \text{Protein}$$
+    $$
+    \text{mRNA} + \text{Rib} \leftrightarrow \text{mRNA:Rib}
+    \rightarrow \text{mRNA} + \text{Rib} + \text{Protein}
+    $$
 
     Parameters
     ----------
@@ -1773,13 +1777,13 @@ class Energy_Translation_MM(Mechanism):
     energetics.
 
     The reaction follows the schema:
-
-    $$ \text{mRNA} + \text{Rib} \leftrightarrow \text{mRNA:Rib} $$
-
-    $$ \text{Fuel} + \text{mRNA:Rib} \rightarrow \text{mRNA} + \text{Rib} + \text{Protein} + \text{Fuel} $$
-
-    $$ \text{Fuel} + \text{mRNA:Rib} \rightarrow \text{mRNA:Rib} + \text{wastes} $$
-
+    $$
+    & \text{mRNA} + \text{Rib} \leftrightarrow \text{mRNA:Rib} & \\
+    & \text{Fuel} + \text{mRNA:Rib} \rightarrow \text{mRNA} +
+    \text{Rib} + \text{Protein} + \text{Fuel} & \\
+    & \text{Fuel} + \text{mRNA:Rib} \rightarrow \text{mRNA:Rib}
+    + \text{wastes} & \\
+    $$
     Translation occurs at rate 'ktl' / L (length-dependent), while fuel
     consumption occurs at rate 'ktl', resulting in L times more fuel
     consumption than proteins produced.
@@ -2025,13 +2029,12 @@ class multi_tx(Mechanism):
     transcriptional queueing and interference effects.
 
     The reaction scheme follows:
-
-        $$DNA:RNAp_n + RNAp \leftrightarrow DNA:RNAp_{n_c} \rightarrow DNA:RNAp_{n+1}$$
-
-        $$ DNA:RNAp_n \rightarrow DNA:RNAp_0 + n RNAp + n mRNA$$
-
-        $$DNA:RNAp_{n_c} \rightarrow DNA:RNAp_{0_c} + n RNAp + n mRNA$$
-
+    $$
+    & DNA:RNAp_n + RNAp \leftrightarrow DNA:RNAp_{n_c}
+    \rightarrow DNA:RNAp_{n+1} \\
+    & DNA:RNAp_n \rightarrow DNA:RNAp_0 + n RNAp + n mRNA \\
+    & DNA:RNAp_{n_c} \rightarrow DNA:RNAp_{0_c} + n RNAp + n mRNA
+    $$
     where:
 
     - n = {0, 1, ..., $\max_{occ}$} is the number of polymerases
@@ -2366,7 +2369,7 @@ class multi_tx(Mechanism):
 
 
 class multi_tl(Mechanism):
-    """Multi-ribosome translation with isomerization and occupancy.
+    r"""Multi-ribosome translation with isomerization and occupancy.
 
     A 'translation' mechanism that explicitly models multiple ribosomes
     binding to a single mRNA simultaneously, accounting for ribosome spacing,
@@ -2375,12 +2378,12 @@ class multi_tl(Mechanism):
     ribosome traffic effects.
 
     The reaction scheme follows:
-
-        $$mRNA:RBZ_n + RBZ \leftrightarrow mRNA:RBZ_{n_c} \rightarrow mRNA:RBZ_{n+1}$$
-
-        $$mRNA:RBZ_n \rightarrow mRNA:RBZ_0 + n RBZ + n Protein$$
-
-        $$mRNA:RBZ_{n_c} \rightarrow mRNA:RBZ_{0_c} + n RBZ + n Protein$$
+    $$
+    & mRNA:RBZ_n + RBZ \leftrightarrow mRNA:RBZ_{n_c}
+    \rightarrow mRNA:RBZ_{n+1} \\
+    & mRNA:RBZ_n \rightarrow mRNA:RBZ_0 + n RBZ + n Protein \\
+    & mRNA:RBZ_{n_c} \rightarrow mRNA:RBZ_{0_c} + n RBZ + n Protein
+    $$
     where:
 
     - n = {0, 1, ..., max_occ} is the number of ribosomes

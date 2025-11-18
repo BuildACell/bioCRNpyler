@@ -394,9 +394,9 @@ class Component:
         ['fluorescent', 'ssrAtagged']
 
         """
-        assert (
-            isinstance(attribute, str) and attribute is not None
-        ), f"Attribute: {attribute} must be a str"
+        assert isinstance(attribute, str) and attribute is not None, (
+            f"Attribute: {attribute} must be a str"
+        )
 
         self.attributes.append(attribute)
         if hasattr(self, 'species') and self.species is not None:

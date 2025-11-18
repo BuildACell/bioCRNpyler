@@ -14,11 +14,13 @@ class One_Step_Reversible_Conformation_Change(Mechanism):
     conformational switch. Additional species (cofactors, ions, etc.) can be
     required for the conformational change.
 
-    The reaction follows:
-
-    $$s_0 + \text{additional species} \leftrightarrow s_f + \text{additional species}$$
-
-    where s0 is the initial conformation and sf is the final conformation.
+    The reaction follows
+    $$
+    s_0 + \text{additional species} \leftrightarrow
+    s_f + \text{additional species},
+    $$
+    where $s_0$ is the initial conformation and $s_f$ is the final
+    conformation.
 
     Parameters
     ----------

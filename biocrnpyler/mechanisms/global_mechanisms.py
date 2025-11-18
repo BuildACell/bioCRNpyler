@@ -496,7 +496,7 @@ class Dilution(GlobalMechanism):
         )
 
     def update_reactions(self, s: Species, mixture):
-        """Generate dilution reaction for a single species.
+        r"""Generate dilution reaction for a single species.
 
         Creates an irreversible mass-action reaction that removes the
         species from the system at rate 'kdil'.
@@ -511,7 +511,8 @@ class Dilution(GlobalMechanism):
         Returns
         -------
         list of Reaction
-            List containing a single reaction: $S \rightarrow \emptyset$ with rate 'kdil'.
+            List containing a single reaction: $S \rightarrow \emptyset$ with
+            rate 'kdil'.
 
         """
         k_dil = self.get_parameter(s, 'kdil', mixture)
@@ -522,7 +523,7 @@ class Dilution(GlobalMechanism):
 
 
 class AntiDilutionConstitutiveCreation(GlobalMechanism):
-    r"""Global mechanism for constitutive species creation to counter dilution.
+    r"""Global mechanism for constitutive creation to counter dilution.
 
     A 'dilution' mechanism that constitutively creates species at a constant
     rate to maintain their concentration despite dilution. This is useful for
@@ -672,9 +673,10 @@ class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
     ComplexSpecies.
 
     The degradation reaction scheme is
-
-    $$ \text{mRNA} + \text{Endo} \leftrightarrow \text{mRNA:Endo} \rightarrow \text{Endo}$$
-
+    $$
+    \text{mRNA} + \text{Endo} \leftrightarrow
+    \text{mRNA:Endo} \rightarrow \text{Endo}
+    $$
     where mRNA is any RNA species and Endo is the endonuclease.
 
     Parameters
@@ -963,9 +965,10 @@ class Deg_Tagged_Degradation(GlobalMechanism, MichaelisMenten):
     tag attribute and material_type 'protein' are degraded.
 
     The degradation reaction scheme is
-
-    $$ \text{Protein_degtagged} + \text{degradase} \leftrightarrow \text{Protein_degtagged:degradase} \rightarrow \text{degradase}$$
-
+    $$
+    \text{Protein_degtagged} + \text{degradase} \leftrightarrow
+    \text{Protein_degtagged:degradase} \rightarrow \text{degradase}
+    $$
     where Protein_degtagged is any protein with the degradation tag.
 
     Parameters

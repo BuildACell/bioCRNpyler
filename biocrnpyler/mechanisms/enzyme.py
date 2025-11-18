@@ -623,7 +623,7 @@ class MichaelisMenten(Mechanism):
 
 
 class MichaelisMentenReversible(Mechanism):
-    """Reversible Michaelis-Menten kinetics with product binding.
+    r"""Reversible Michaelis-Menten kinetics with product binding.
 
     A 'catalysis' mechanism implementing Michaelis-Menten enzyme kinetics
     where the product can also bind reversibly to the enzyme. Both the
@@ -661,9 +661,14 @@ class MichaelisMentenReversible(Mechanism):
     -----
     This mechanism generates three mass-action reactions:
 
-    1. Reversible substrate binding: $S + E \leftrightarrow S:E$ (rates 'kb1' and 'ku1')
-    2. Reversible product binding: $P + E \leftrightarrow E:P$ (rates 'kb2' and 'ku2')
-    3. Reversible catalysis: $S:E \leftrightarrow E:P$ (rates 'kcat' and 'kcat_rev')
+    1. Reversible substrate binding:
+    $S + E \leftrightarrow S:E$ (rates 'kb1' and 'ku1')
+
+    2. Reversible product binding:
+    $P + E \leftrightarrow E:P$ (rates 'kb2' and 'ku2')
+
+    3. Reversible catalysis:
+    $S:E \leftrightarrow E:P$ (rates 'kcat' and 'kcat_rev')
 
     Common applications include:
 

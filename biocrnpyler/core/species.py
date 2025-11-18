@@ -156,9 +156,9 @@ class Species(OrderedMonomer):
         if not hasattr(self, '_attributes') or attribute is None:
             return
         else:
-            assert (
-                isinstance(attribute, str) and attribute.isalnum()
-            ), f"Attribute: {attribute} must be an alpha-numeric string"
+            assert isinstance(attribute, str) and attribute.isalnum(), (
+                f"Attribute: {attribute} must be an alpha-numeric string"
+            )
             self._attributes = [a for a in self.attributes if a != attribute]
 
     def add_attribute(self, attribute: str):
