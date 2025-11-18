@@ -917,8 +917,8 @@ class MichaelisMentenCopy(Mechanism):
     substrate acts as a template that is copied or read, producing a
     product while preserving the original substrate.
 
-    The reaction scheme is 
-    
+    The reaction scheme is
+
     $$ S + E \leftrightarrow S:E \rightarrow S + E + P $$
 
     where S is the substrate (template), E is the enzyme, S:E is the

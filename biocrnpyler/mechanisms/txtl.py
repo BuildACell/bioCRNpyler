@@ -1520,7 +1520,7 @@ class Energy_Transcription_MM(Mechanism):
     $$ G + RNAP \leftrightarrow G:RNAP $$
 
     $$ \text{Fuel} + G:RNAP \rightarrow G + RNAP + T $$
-    
+
     $$ \text{Fuel} + G:RNAP \rightarrow G:RNAP + \text{wastes} $$
 
     Transcription occurs at rate 'ktx' / L (length-dependent), while fuel
@@ -1775,9 +1775,9 @@ class Energy_Translation_MM(Mechanism):
     The reaction follows the schema:
 
     $$ \text{mRNA} + \text{Rib} \leftrightarrow \text{mRNA:Rib} $$
-    
+
     $$ \text{Fuel} + \text{mRNA:Rib} \rightarrow \text{mRNA} + \text{Rib} + \text{Protein} + \text{Fuel} $$
-    
+
     $$ \text{Fuel} + \text{mRNA:Rib} \rightarrow \text{mRNA:Rib} + \text{wastes} $$
 
     Translation occurs at rate 'ktl' / L (length-dependent), while fuel
@@ -2375,11 +2375,11 @@ class multi_tl(Mechanism):
     ribosome traffic effects.
 
     The reaction scheme follows:
-    
+
         $$mRNA:RBZ_n + RBZ \leftrightarrow mRNA:RBZ_{n_c} \rightarrow mRNA:RBZ_{n+1}$$
-        
+
         $$mRNA:RBZ_n \rightarrow mRNA:RBZ_0 + n RBZ + n Protein$$
-        
+
         $$mRNA:RBZ_{n_c} \rightarrow mRNA:RBZ_{0_c} + n RBZ + n Protein$$
     where:
 

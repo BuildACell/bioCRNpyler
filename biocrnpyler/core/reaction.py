@@ -506,7 +506,7 @@ class Reaction(object):
         Order of species in inputs/outputs doesn't matter:
 
         $A + B \rightarrow C$ equals $B + A \rightarrow C$
-        
+
         since species are compared using sets.
 
         """
