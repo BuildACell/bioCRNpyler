@@ -13,6 +13,7 @@
 import inspect
 import os
 import sys
+import sphinx
 
 sys.path.insert(0, os.path.abspath('..'))
 
@@ -116,19 +117,21 @@ html_theme = 'sphinx_rtd_theme'
 default_role = 'py:obj'
 
 # Use mathjax for formatting equations
-mathjax_config = {
-    'tex2jax': {
-        'inlineMath': [ ["\\(","\\)"] ],
-        'displayMath': [["\\[","\\]"] ],
-    },
-}
-
-mathjax3_config = {
-  "tex": {
-    "inlineMath": [['\\(', '\\)']],
-    "displayMath": [["\\[", "\\]"]],
-  }
-}
+sphinx_version = tuple(int(x) for x in sphinx.__version__.split('.')[:2])
+if sphinx_version >= (4, 0):
+    mathjax3_config = {
+        "tex": {
+            "inlineMath": [['\\(', '\\)']],
+            "displayMath": [["\\[", "\\]"]],
+        }
+    }
+else:
+    mathjax_config = {
+        'tex2jax': {
+            'inlineMath': [ ["\\(","\\)"] ],
+            'displayMath': [["\\[","\\]"] ],
+        },
+    }
 
 # Skip prompts when using copy button
 copybutton_prompt_text = r'>>> |\.\.\. '
