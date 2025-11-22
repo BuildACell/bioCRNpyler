@@ -68,30 +68,23 @@ class CombinatorialComplex(Component):
 
     Case 1 - only `final_states` given: all species in final_states bind
     combinatorially:
-    $$
-    \text{individual_species} \leftrightarrow
-    \text{all_intermediates} \leftrightarrow \text{final_states}
-    $$
+
+      $$'individual species' <--> 'all intermediates' <--> 'final states'$$
 
     Case 2 - `final_states` + `initial_states`: binding starts from
     specified initial states directly to final states:
-    $$
-    \text{initial_states} \leftrightarrow \text{final_states}
-    $$
+
+      $$'initial_states' <--> 'final_states'$$
 
     Case 3 - `final_states` + `intermediate_states`: binding restricted to
     specified intermediates:
-    $$
-    \text{individual_species} \leftrightarrow
-    \text{intermediate_states} \leftrightarrow \text{final_states}
-    $$
+
+      $$'individual species' <--> 'intermediate states' <--> 'final states'$$
 
     Case 4 - `final_states` + `initial_states` + `intermediate_states`: both
     initial and intermediate constraints applied:
-    $$
-    \text{initial_states} \leftrightarrow
-    \text{intermediate_states} \leftrightarrow \text{final_states}
-    $$
+
+      $$'initial states' <--> 'intermediate states' <--> 'final states'$$
 
     The component name is automatically generated as a concatenation of
     final_states names separated by underscores if not provided.
@@ -707,6 +700,7 @@ class CombinatorialComplex(Component):
             2. Generate reactions: intermediate_states <--> final_states
 
         Without intermediate_states:
+
             Generate reactions: initial_states <--> final_states directly
 
         Duplicate reactions are automatically filtered out. The method uses

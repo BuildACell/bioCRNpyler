@@ -179,7 +179,8 @@ Consider the following diffusion step for the diffusion of nitrate (NO\
 
 .. math::
 
-    (NO_3)_{internal} \rightleftharpoons (NO_3)_{internal}
+    (\text{NO}_3)_\text{internal} \rightleftharpoons
+    (\text{NO}_3)_\text{internal}
 
 To model the example above using the `~components.Diffusible_Molecule`
 component and the `~mechanisms.Simple_Diffusion` mechanism, we must first
@@ -271,19 +272,19 @@ Key Optional Parameters:
   unidirectional transporters.  The flux of the substrates, based on the
   `direction`, follows the general transport below.
 
-    - Exporter: :math:`S_{in} \rightarrow S_{out}`
-    - Importer: :math:`S_{in} \leftarrow S_{out}`
-    - Passive: :math:`S_{in} \leftrightarrow S_{out}`
+    - Exporter: :math:`\text{S}_\text{in} \rightarrow \text{S}_\text{out}`
+    - Importer: :math:`\text{S}_\text{in} \leftarrow \text{S}_\text{out}`
+    - Passive: :math:`\text{S}_\text{in} \leftrightarrow \text{S}_\text{out}`
 
 - `size`: Defines the number of monomers required for the integral membrane
   used in `~mechanisms.Membrane_Protein_Integration` and the subsequent
   reactions. For homo-oligomer membrane proteins, we can include an input
   for `size` as either a numerical string or an integer.
 
-    - If provided: :math:`MP_{monomer} * size \rightarrow MP_{oligomer}
-      \rightarrow IMP`
+    - If provided: :math:`\text{MP}_\text{monomer} * size \rightarrow
+      \text{MP}_\text{oligomer} \rightarrow \text{IMP}`
 
-    - If not: :math:`MP \rightarrow IMP`
+    - If not: :math:`\text{MP} \rightarrow \text{IMP}`
 
 .. _membrane—protein-integration:
 
@@ -325,13 +326,15 @@ Consider the following membrane integration steps for alpha-hemolysin.
 
 .. math::
 
-    7\alpha HL_{monomer} \rightarrow \alpha HL_{homoheptamer}
+    7 \alpha \text{HL}_\text{monomer} \rightarrow \alpha
+    \text{HL}_\text{homoheptamer}
 
 2. Integration of membrane protein in the membrane:
 
 .. math::
 
-    \alpha HL_{homoheptamer} \rightarrow \alpha HL_{channel}
+    \alpha \text{HL}_\text{homoheptamer} \rightarrow \alpha
+    \text{HL}_\text{channel}
 
 To model the example above using the `~components.IntegralMembraneProtein`
 component and the `~mechanisms.Membrane_Protein_Integration` mechanism, we
@@ -448,7 +451,8 @@ following the resulting reaction is a reversible diffusion-like process:
 
 .. math::
 
-    S_{internal} + MC \leftrightarrow S_{external} + MC
+    \text{S}_\text{internal} + \text{MC} \leftrightarrow
+    \text{S}_\text{external} + \text{MC}
 
 The mechanism for simple transport can be implemented and stored in a
 dictionary.
@@ -476,8 +480,9 @@ alpha-hemolysin pore:
 
 .. math::
 
-    ATP_{internal} + \alpha HL_{channel} \leftrightarrow ATP_{external} +
-    \alpha HL_{channel}
+    \text{ATP}_\text{internal} + \alpha \text{HL}_\text{channel}
+    \leftrightarrow \text{ATP}_\text{external}
+    + \alpha \text{HL}_\text{channel}
 
 To model the example above using the `~components.Membrane_Channel`
 component and the `~mechanisms.Simple_Transport` mechanism, we use the
@@ -542,14 +547,16 @@ an 'Importer', the resulting reactions are:
 
 .. math::
 
-    S_{external} + MC \rightarrow S_{external}:MC_{channel} \rightarrow
-    S_{internal}:MC
+    \text{S}_\text{external} + \text{MC} \rightarrow
+    \text{S}_\text{external} \mathord{:} \text{MC}_\text{channel}
+    \rightarrow \text{S}_\text{internal} \mathord{:} \text{MC}
 
 2. Unbinding substrate from transporter:
 
 .. math::
 
-    S_{internal}:MC_{channel} \rightarrow S_{internal} + MC_{channel}
+    \text{S}_\text{internal} \mathord{:} \text{MC}_\text{channel}
+    \rightarrow \text{S}_\text{internal} + \text{MC}_\text{channel}
 
 To use `~mechanisms.Facilitated_Transport_MM`, we need to redefine the membrane
 channel to include a transport direction designation, such as 'Importer' or
@@ -590,22 +597,25 @@ Consider the following reactions of the transport of glucose by GLUT1.
 
 .. math::
 
-    GLUT1_{monomer} \rightarrow GLUT1_{channel}
+    \text{GLUT1}_\text{monomer} \rightarrow \text{GLUT1}_\text{channel}
 
 2. Binding and transport of glucose across the membrane:
 
 .. math::
 
-    glucose_{external} + GLUT1_{channel} \rightarrow
-    glucose_{external}:GLUT1_{channel} \rightarrow
-    glucose_{internal}:GLUT1_{channel}
+   & \text{glucose}_\text{external} + \text{GLUT1}_\text{channel}
+     \rightarrow \text{glucose}_\text{external} \mathord{:}
+     \text{GLUT1}_\text{channel} \\
+   & \qquad \rightarrow \text{glucose}_\text{internal} \mathord{:}
+     \text{GLUT1}_\text{channel}
 
 3. Unbinding glucose from transporter:
 
 .. math::
 
-    glucose_{internal}:GLUT1_{channel} \rightarrow glucose_{internal} +
-    GLUT1_{channel}
+    \text{glucose}_\text{internal} \mathord{:} \text{GLUT1}_\text{channel}
+    \rightarrow \text{glucose}_\text{internal} +
+    \text{GLUT1}_\text{channel}
 
 
 To model the example above using the `~components.MembraneChannel`
@@ -747,34 +757,40 @@ unbinding steps. For example, if the membrane pump is classified as an
 
 .. math::
 
-    S_{internal} + MP_{exporter} \rightleftharpoons S_{internal}:MP_{exporter}
+    \text{S}_\text{internal} + \text{MP}_\text{exporter} \rightleftharpoons
+    \text{S}_\text{internal} \mathord{:} \text{MP}_\text{exporter}
 
 2. Binding of ATP to the complex of S with MP:
 
 .. math::
 
-    ATP_{internal} + S_{internal}:MP_{exporter} \rightleftharpoons
-    ATP_{internal}:S_{internal}:MP_{exporter}
+    \text{ATP}_\text{internal} + \text{S}_\text{internal} \mathord{:}
+    \text{MP}_\text{exporter} \rightleftharpoons \text{ATP}_\text{internal}
+    \mathord{:} S_\text{internal} \mathord{:} \text{MP}_\text{exporter}
 
 3. Export of S from the internal compartment to the external compartment:
 
 .. math::
 
-    ATP_{internal}:S_{internal}:MP_{exporter} \rightarrow
-    ATP_{internal}:S_{external}:MP_{exporter}
+    \text{ATP}_\text{internal} \mathord{:} \text{S}_\text{internal}
+    \mathord{:} \text{MP}_\text{exporter} \rightarrow
+    \text{ATP}_\text{internal} \mathord{:} \text{S}_\text{external}
+    \mathord{:} \text{MP}_\text{exporter}
 
 4. Unbinding of S:
 
 .. math::
 
-    ATP_{internal}:S_{external}:MP_{exporter} \rightarrow
-    ADP_{internal}:MP_{exporter} + S_{external}
+    \text{ATP}_\text{internal} \mathord{:} \text{S}_\text{external} \mathord{:}
+    \text{MP}_\text{exporter} \rightarrow \text{ADP}_\text{internal}
+    \mathord{:} \text{MP}_\text{exporter} + \text{S}_\text{external}
 
 5. Unbinding of ADP from MP:
 
 .. math::
 
-    ADP_{internal}:MP_{exporter} \rightarrow ADP_{internal} + MP_{exporter}
+    \text{ADP}_\text{internal} \mathord{:} \text{MP}_\text{exporter}
+    \rightarrow \text{ADP}_\text{internal} + \text{MP}_\text{exporter}
 
 To use `~mechanisms.Primary_Active_Transport_MM`, we need to redefine the
 membrane channel to include a transport direction designation, such as
@@ -813,43 +829,49 @@ Consider the following reactions for the export of erythromycin by MsbA.
 
 .. math::
 
-    MsbA_{homodimer} \rightarrow MsbA_{exporter}
+   \text{MsbA}_\text{homodimer} \rightarrow \text{MsbA}_\text{exporter}
 
 2. Binding of antibiotic (Abx) substrate (e.g., erythromycin) to MsbA
    transporter:
 
 .. math::
 
-    Abx_{internal} + MsbA_{exporter} \leftrightarrow
-    Abx_{internal}:MsbA_{exporter}
+   \text{Abx}_\text{internal} + \text{MsbA}_\text{exporter} \leftrightarrow
+    \text{Abx}_\text{internal} \mathord{:} \text{MsbA}_\text{exporter}
 
 3. Binding of ATP to a complex of erythromycin with MsbA:
 
 .. math::
 
-    2ATP_{internal} + Abx_{internal}:MsbA_{exporter} \leftrightarrow
-    2ATP_{internal}:Abx_{internal}:MsbA_{exporter}
+    2 \text{ATP}_\text{internal} + \text{Abx}_\text{internal} \mathord{:}
+    \text{MsbA}_\text{exporter} \leftrightarrow 2
+    \text{ATP}_\text{internal} \mathord{:} \text{Abx}_\text{internal}
+    \mathord{:} \text{MsbA}_\text{exporter}
 
 4. Export of erythromycin lipid from inner membrane to outer membrane:
 
 .. math::
 
-    2ATP_{internal}:Abx_{internal}:MsbA_{exporter} \rightarrow
-    2ATP_{internal}:Abx_{external}:MsbA_{exporter}
+    2 \text{ATP}_\text{internal} \mathord{:} \text{Abx}_\text{internal}
+    \mathord{:} \text{MsbA}_\text{exporter} \rightarrow 2
+    \text{ATP}_\text{internal} \mathord{:} \text{Abx}_\text{external}
+    \mathord{:} \text{MsbA}_\text{exporter}
 
 5. Unbinding of erythromycin:
 
 .. math::
 
-    2ATP_{internal}:Abx_{external}:MsbA_{exporter} \rightarrow
-    2ADP_{internal}:MsbA_{exporter} + Abx_{external}
+   2 \text{ATP}_\text{internal} \mathord{:} \text{Abx}_\text{external}
+   \mathord{:} \text{MsbA}_\text{exporter} \rightarrow 2
+   \text{ADP}_\text{internal} \mathord{:} \text{MsbA}_\text{exporter} +
+   \text{Abx}_\text{external}
 
 6. Unbinding of ADP from MsbA:
 
 .. math::
 
-    2ADP_{internal}:MsbA_{exporter} \rightarrow 2ADP_{internal} +
-    MsbA_{exporter}
+   2 \text{ADP}_\text{internal} \mathord{:} \text{MsbA}_\text{exporter}
+   \rightarrow 2 \text{ADP}_\text{internal} + \text{MsbA}_\text{exporter}
 
 To model the example above using the `~components.MembranePump` component
 and the `~mechanisms.Primary_Active_Transport_MM` mechanism, we can either
@@ -1011,32 +1033,35 @@ substrate binding, phosphorylation, and dephosphorylation.
 
 .. math::
 
-    M_{\text{sensor}} + S_{\text{sig}} \rightleftharpoons
-    M_{\text{sensor}}{:}S_{\text{sig}} \equiv M^{*}_{\text{sensor}}
+   \text{M}_\text{sensor} + \text{S}_\text{sig} \rightleftharpoons
+   \text{M}_\text{sensor} \mathord{:} \text{S}_\text{sig} \equiv
+   \text{M}^*_\text{sensor}
 
 2. Auto-phosphorylation of the membrane sensor via ATP binding:
 
 .. math::
 
-    M^{*}_{\text{sensor}} + 2\,ATP_{\text{internal}} \rightleftharpoons
-      M^{*}_{\text{sensor}}{:}2\,ATP_{\text{internal}}
-    \rightarrow M^{*2P}_{\text{sensor}}{:}2\,ADP_{\text{internal}}
-    \rightarrow M^{*2P}_{\text{sensor}} + 2\,ADP_{\text{internal}}
+    & \text{M}^*_\text{sensor} + 2 \text{ATP}_\text{internal}
+    \rightleftharpoons \text{M}^*_\text{sensor} \mathord{:} 2
+    \text{ATP}_\text{internal} \\
+    & \qquad \rightarrow \text{M}^{*2\text{P}}_\text{sensor} \mathord{:} 2
+    \text{ADP}_\text{internal} \rightarrow
+    \text{M}^{*2\text{P}}_\text{sensor} + 2 \text{ADP}_\text{internal}
 
 3. Phosphorylation of the response protein (RP):
 
 .. math::
 
-    M^{*2P}_{\text{sensor}} + RP \rightleftharpoons
-        M^{*2P}_{\text{sensor}}{:}RP
-    \rightarrow M^{*}_{\text{sensor}}{:}RP^{*}
-    \rightarrow M^{*}_{\text{sensor}} + RP^{*}
+   \text{M}^{*2\text{P}}_\text{sensor} + \text{RP} \rightleftharpoons
+   \text{M}^{*2\text{P}}_\text{sensor} \mathord{:} \text{RP} \rightarrow
+   \text{M}^*_\text{sensor} \mathord{:} \text{RP}^* \rightarrow
+   \text{M}^*_\text{sensor} + \text{RP}^*
 
 4. Dephosphorylation of the phosphorylated response protein (RP*):
 
 .. math::
 
-    RP^{*} \rightarrow RP + P_{i}
+    RP^* \rightarrow RP + P_i
 
 Then, the mechanism for membrane signaling can be implemented and stored in
 a dictionary.
@@ -1066,44 +1091,46 @@ mechanisms for simulating this signaling cascade.
 
 .. math::
 
-    2\,NarX_{\text{monomer}} \rightarrow NarX_{\text{homodimer}}
+    2 \text{NarX}_\text{monomer} \rightarrow \text{NarX}_\text{homodimer}
 
 2. Integration of NarX homodimer into the membrane:
 
 .. math::
 
-    NarX_{\text{homodimer}} \rightarrow NarX_{\text{sensor}}
+    \text{NarX}_\text{homodimer} \rightarrow \text{NarX}_\text{sensor}
 
 3. Detection and binding of nitrate:
 
 .. math::
 
-    NarX_{\text{sensor}} + NO_{3} \rightleftharpoons
-    NarX_{\text{sensor}}{:}NO_{3} \equiv NarX^{*}_{\text{sensor}}
+    \text{NarX}_\text{sensor} + \text{NO}_3 \rightleftharpoons
+    \text{NarX}_\text{sensor} \mathord{:} \text{NO}_3 \equiv
+    \text{NarX}^*_\text{sensor}
 
 4. Auto-phosphorylation of activated NarX sensor:
 
 .. math::
 
-    NarX^{*}_{\text{sensor}} + 2\,ATP_{\text{internal}} \rightleftharpoons
-        NarX^{*}_{\text{sensor}}{:}2\,ATP_{\text{internal}}
-    \rightarrow NarX^{*2P}_{\text{sensor}}{:}2\,ADP_{\text{internal}}
-    \rightarrow NarX^{*2P}_{\text{sensor}} + 2\,ADP_{\text{internal}}
+   & \text{NarX}^*_\text{sensor} + 2 ATP_\text{internal} \rightleftharpoons
+   \text{NarX}^*_\text{sensor} \mathord{:} 2 ATP_\text{internal} \\
+   & \qquad \rightarrow \text{NarX}^{*2\text{P}}_\text{sensor} \mathord{:} 2
+   \text{ADP}_\text{internal} \rightarrow
+   \text{NarX}^{*2\text{P}}_\text{sensor} + 2 \text{ADP}_\text{internal}
 
 5. Phosphorylation of the response regulator NarL:
 
 .. math::
 
-    NarX^{*2P}_{\text{sensor}} + NarL \rightleftharpoons
-        NarX^{*2P}_{\text{sensor}}{:}NarL
-    \rightarrow NarX^{*}_{\text{sensor}}{:}NarL^{*}
-    \rightarrow NarX^{*}_{\text{sensor}} + NarL^{*}
+   \text{NarX}^{*2\text{P}}_\text{sensor} + \text{NarL} \rightleftharpoons
+   \text{NarX}^{*2\text{P}}_\text{sensor} \mathord{:} \text{NarL}
+   \rightarrow \text{NarX}^*_\text{sensor} \mathord{:} \text{NarL}^*
+   \rightarrow \text{NarX}^*_\text{sensor} + \text{NarL}^*
 
 6. Dephosphorylation of phosphorylated NarL (NarL\*):
 
 .. math::
 
-    NarL^{*} \rightarrow NarL + P_{i}
+   \text{NarL}^* \rightarrow \text{NarL} + \text{P}_i
 
 
 To model the example above using the `~components.MembraneSensor` component

@@ -19,7 +19,7 @@ from ..mechanisms.txtl import (
 
 
 class ExpressionDilutionMixture(Mixture):
-    """In vivo gene expression with dilution but without cellular machinery.
+    r"""In vivo gene expression with dilution but without cellular machinery.
 
     A simplified mixture that models gene expression as a single direct
     reaction from DNA to protein, without explicitly representing
@@ -117,7 +117,7 @@ class ExpressionDilutionMixture(Mixture):
     - 'catalysis' : `BasicCatalysis` - Simple catalytic reactions without
       explicit enzyme binding
     - 'binding' : `One_Step_Binding` - Simple multi-species binding
-    - 'dilution' : `Dilution` - Global dilution mechanism (Species --> ∅)
+    - 'dilution' : `Dilution` - Global dilution mechanism (Species --> {})
       applied to all non-DNA species to model growth/division
 
     Key features of this mixture:
@@ -333,10 +333,10 @@ class SimpleTxTlDilutionMixture(Mixture):
     - 'catalysis' : `BasicCatalysis` - Simple catalytic reactions without
       explicit enzyme binding
     - 'binding' : `One_Step_Binding` - Simple multi-species binding
-    - 'dilution' : `Dilution` - Global dilution mechanism (Species --> ∅)
+    - 'dilution' : `Dilution` - Global dilution mechanism (Species --> {})
       applied to all non-DNA species to model growth/division
     - 'rna_degradation' : `Dilution` - Separate RNA degradation mechanism
-      (mRNA --> ∅) applied to all RNA species to model endonuclease
+      (mRNA --> {}) applied to all RNA species to model endonuclease
       activity
 
     Key features of this mixture:
@@ -538,7 +538,7 @@ class TxTlDilutionMixture(Mixture):
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis
     - 'binding' : `One_Step_Binding` - Simple multi-species binding
-    - 'dilution' : `Dilution` - Global dilution mechanism (Species --> ∅)
+    - 'dilution' : `Dilution` - Global dilution mechanism (Species --> {})
       applied to all species except DNA and machinery
 
     Key features of this mixture:

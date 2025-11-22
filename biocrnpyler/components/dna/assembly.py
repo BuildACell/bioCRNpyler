@@ -18,10 +18,10 @@ class DNAassembly(DNA):
     """High-level representation of a gene expression construct.
 
     A DNAassembly represents a complete gene expression unit combining a
-    promoter region, ribosome binding site (RBS), coding sequence, and the
-    RNA and protein products. This class provides a convenient interface for
-    modeling the central dogma pathway: DNA --> RNA --> Protein, where the
-    promoter controls transcription and the RBS controls translation.
+    promoter region, ribosome binding site (RBS), coding sequence, and the RNA
+    and protein products. This class provides a convenient interface for
+    modeling the central dogma pathway: DNA --> RNA --> Protein, where
+    the promoter controls transcription and the RBS controls translation.
 
     Parameters
     ----------

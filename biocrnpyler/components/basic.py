@@ -712,7 +712,7 @@ class Enzyme(Component):
     The `Enzyme` component assumes all substrates are converted to all
     products in a single enzymatic step:
 
-        $$S1 + S2 + ... + SN + E \rightarrow P1 + P2 + ... + PM + E$$
+    $$ 'S1' + 'S2' + ... + 'S'_N + 'E' --> 'P1' + 'P2' + ... + 'P'_M + 'E' $$
 
     For enzymes that catalyze multiple distinct reactions, create separate
     `Enzyme` components with the same internal enzyme species.

@@ -39,13 +39,14 @@ For example, consider modeling transcription in two ways:
 
   .. math::
 
-     DNA \rightarrow DNA + RNA
+     \text{DNA} \rightarrow \text{DNA} + \text{RNA}
 
 - A mechanistic Michaelis-Menten form:
 
   .. math::
 
-     DNA + RNAP \leftrightharpoons DNA:RNAP \rightarrow DNA + RNAP + RNA
+     \text{DNA} + \text{RNAP} \leftrightharpoons
+         \text{DNA:RNAP} \rightarrow \text{DNA} + \text{RNAP} + \text{RNA}
 
 By changing which mechanism is supplied in the mixture, the same DNA
 component will compile into different sets of reactions, enabling easy
@@ -160,7 +161,7 @@ The reaction schema is:
 
 .. math::
 
-   DNA \xrightarrow{k} DNA + Protein
+   \text{DNA} \xrightarrow{k} \text{DNA} + \text{Protein}
 
 For example, you can create this mechanism in code as::
 
@@ -205,13 +206,13 @@ Transcription:
 
 .. math::
 
-   DNA \xrightarrow{k_{tx}} DNA + mRNA
+   DNA \xrightarrow{k_\text{tx}} DNA + mRNA
 
 Translation:
 
 .. math::
 
-   mRNA \xrightarrow{k_{tl}} mRNA + Protein
+   mRNA \xrightarrow{k_\text{tl}} mRNA + Protein
 
 You can create these mechanisms in code as::
 
@@ -403,9 +404,10 @@ Transcription steps:
 .. math::
 
    \begin{aligned}
-     {} & DNA + RNAP \leftrightharpoons DNA:RNAP_{closed}
-       \rightarrow DNA:RNAP_{open} \\
-     {} & DNA:RNAP_{open} \rightarrow DNA + RNAP + mRNA
+     {} & \text{DNA} + \text{RNAP} \leftrightharpoons \text{DNA:RNAP}_{closed}
+       \rightarrow \text{DNA:RNAP}_{open} \\
+     {} & \text{DNA:RNAP}_{open} \rightarrow \text{DNA} + \text{RNAP}
+       + \text{mRNA}
    \end{aligned}
 
 Translation steps:
@@ -413,9 +415,11 @@ Translation steps:
 .. math::
 
    \begin{aligned}
-     {} & mRNA + Ribo \leftrightharpoons mRNA:Ribo_{bound}
-       \rightarrow mRNA:Ribo_{active} \\
-     {} & mRNA:Ribo_{active} \rightarrow mRNA + Ribo + Protein
+     {} & \text{mRNA} + \text{Ribo} \leftrightharpoons
+       \text{mRNA:Ribo}_\text{bound}
+       \rightarrow \text{mRNA:Ribo}_\text{active} \\
+     {} & \text{mRNA:Ribo}_\text{active} \rightarrow
+       \text{mRNA} + \text{Ribo} + \text{Protein}
    \end{aligned}
 
 You can create these mechanisms using::

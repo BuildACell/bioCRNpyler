@@ -15,12 +15,10 @@ class One_Step_Reversible_Conformation_Change(Mechanism):
     required for the conformational change.
 
     The reaction follows
-    $$
-    s_0 + \text{additional species} \leftrightarrow
-    s_f + \text{additional species},
-    $$
-    where $s_0$ is the initial conformation and $s_f$ is the final
-    conformation.
+
+        $$ 'S0' + 'additional species' <--> 'Sf' + 'additional species' $$
+
+    where S0 is the initial conformation and Sf is the final conformation.
 
     Parameters
     ----------
@@ -52,8 +50,8 @@ class One_Step_Reversible_Conformation_Change(Mechanism):
 
     The mechanism requires two rate constants:
 
-    - 'kf': Forward rate constant (s0 -> sf)
-    - 'kr': Reverse rate constant (sf -> s0)
+    - 'kf': Forward rate constant (s0 --> sf)
+    - 'kr': Reverse rate constant (sf --> s0)
 
     Additional species can participate in the conformational change without
     being modified (e.g., ATP required for a conformational switch but not
@@ -179,8 +177,8 @@ class One_Step_Reversible_Conformation_Change(Mechanism):
 
         The mechanism requires two parameters:
 
-        - 'kf': Forward rate constant (s0 -> sf transition)
-        - 'kr': Reverse rate constant (sf -> s0 transition)
+        - 'kf': Forward rate constant (s0 --> sf transition)
+        - 'kr': Reverse rate constant (sf --> s0 transition)
 
         Additional species are not consumed or produced; they facilitate the
         conformational change. This models situations where cofactors or ions

@@ -17,7 +17,7 @@ class Simple_Diffusion(Mechanism):
 
     The reaction follows the schema:
 
-    substrate <--> product
+        $$ 'substrate' <--> 'product' $$
 
     where substrate and product represent the same species on opposite sides
     of the membrane.
@@ -158,7 +158,7 @@ class Simple_Diffusion(Mechanism):
         The reaction has equal forward and reverse rate constants, reflecting
         the thermodynamic equilibrium of passive diffusion:
 
-        substrate <--> product (rates: 'k_diff', 'k_diff')
+          $$ 'substrate' <--> 'product' ('rates': 'k_diff', 'k_diff') $$
 
         """
         # Get Parameters
@@ -196,10 +196,12 @@ class Membrane_Protein_Integration(Mechanism):
     The reaction schema depends on protein oligomeric state:
 
     For monomers (size = 1):
-        monomer --> integral membrane protein
+
+      $$ 'monomer' --> 'integral membrane protein' $$
 
     For oligomers (size > 1):
-        monomer * size <--> oligomer --> integral membrane protein
+
+      $$ 'monomer' * 'size' <--> 'oligomer' --> 'integral membrane protein' $$
 
     Parameters
     ----------
@@ -463,7 +465,7 @@ class Simple_Transport(Mechanism):
 
     The reaction follows the schema:
 
-    membrane_channel + substrate <--> membrane_channel + product
+      $$'membrane_channel' + 'substrate' <--> 'membrane_channel' + 'product'$$
 
     Parameters
     ----------
@@ -604,7 +606,7 @@ class Simple_Transport(Mechanism):
         k_trnsp=None,
         **kwargs,
     ):
-        """Generate reactions for simple membrane protein transport.
+        r"""Generate reactions for simple membrane protein transport.
 
         Creates a single reversible mass-action reaction representing
         passive transport through a membrane channel with equal forward and
@@ -645,10 +647,10 @@ class Simple_Transport(Mechanism):
         Notes
         -----
         The reaction has equal forward and reverse rate constants:
-
-        membrane_channel + substrate <--> membrane_channel + product
-        (rates: 'k_trnsp', 'k_trnsp')
-
+        $$
+            'membrane_channel' + 'substrate' <--> 'membrane_channel'
+                + 'product' \quad ('rates': 'k_trnsp', 'k_trnsp')
+        $$
         The membrane channel appears on both sides of the reaction,
         indicating it acts catalytically and is recycled.
 
@@ -690,7 +692,7 @@ class Facilitated_Transport_MM(Mechanism):
 
     The reaction follows the schema:
     $$
-    Sub + MC \leftrightarrow Sub:MC \rightarrow Prod:MC \rightarrow Prod + MC
+        'Sub' + 'MC' <--> 'Sub':'MC' --> 'Prod':'MC' --> 'Prod' + 'MC'
     $$
     where MC is the membrane carrier protein.
 
@@ -990,10 +992,9 @@ class Primary_Active_Transport_MM(Mechanism):
 
     The reaction follows the schema:
     $$
-    & Sub + MP \leftrightarrow Sub:MP + E \rightarrow Sub:MP:E & \\
-    & \rightarrow MP:Prod:E \rightarrow Prod + MP:W \rightarrow
-    Prod + MP + W & \\
-    & \rightarrow Prod + MP:W \rightarrow Prod + MP + W &
+        'Sub' + 'MP' & <--> 'Sub':'MP' + 'E' --> 'Sub':'MP':'E' \\
+        & --> 'MP':'Prod':'E' --> 'Prod' + 'MP':'W' --> 'Prod' + 'MP' + 'W' \\
+        & --> 'Prod' + 'MP':'W' --> 'Prod' + 'MP' + 'W'
     $$
     where MP is the membrane pump, E is ATP (energy), and W is ADP (waste).
 

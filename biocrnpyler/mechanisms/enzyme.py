@@ -16,7 +16,7 @@ class BasicCatalysis(Mechanism):
 
     The catalytic reaction is given by
 
-    $$S + C \rightarrow P + C$$
+        $$ 'S' + 'C' --> 'P' + 'C' $$
 
     where S is the substrate, C is the catalyst (enzyme), and P is the
     product.
@@ -183,17 +183,18 @@ class BasicProduction(Mechanism):
 
     A 'catalysis' mechanism where a catalyst (enzyme) produces a product.
     Optionally, a substrate can be consumed during production, allowing for
-    both pure production ($C \rightarrow P + C$) and production with substrate
-    consumption ($S + C \rightarrow P + C$).
+    both pure production (C --> P + C) and production with substrate
+    consumption (S + C --> P + C).
 
     The production reaction can be either:
-
-    $C \rightarrow P + C$ (pure production, no substrate)
-
+    $$
+        'C' --> 'P' + 'C' \quad\text{(pure production, no substrate)}
+    $$
     or
-
-    $S + C \rightarrow P + C$ (production with substrate consumption)
-
+    $$
+        'S' + 'C' --> 'P' + 'C'
+             \quad\text{(production with substrate consumption)}
+    $$
     where S is the substrate, C is the catalyst (enzyme), and P is the
     product.
 
@@ -382,7 +383,7 @@ class MichaelisMenten(Mechanism):
 
     The reaction scheme is
 
-    $$S + E \leftrightarrow S:E \rightarrow E + P$$
+        $$ 'S' + 'E' <--> 'S':'E' --> 'E' + 'P' $$
 
     where S is the substrate, E is the enzyme, S:E is the enzyme-substrate
     complex, and P is the product.
@@ -412,8 +413,8 @@ class MichaelisMenten(Mechanism):
     -----
     This mechanism generates two mass-action reactions:
 
-    1. Reversible binding: $S + E \leftrightarrow S:E$ (rates 'kb' and 'ku')
-    2. Irreversible catalysis: $S:E \rightarrow E + P$ (rate 'kcat')
+    1. Reversible binding: S + E <--> S:E (rates 'kb' and 'ku')
+    2. Irreversible catalysis: S:E --> E + P (rate 'kcat')
 
     Common applications include:
 
@@ -429,7 +430,7 @@ class MichaelisMenten(Mechanism):
     - 'kcat' : Catalytic rate constant for product formation
 
     The mechanism can also model degradation reactions by setting product
-    to None, resulting in: $S + E \leftrightarrow S:E \rightarrow E$.
+    to None, resulting in: S + E <--> S:E --> E.
 
     Examples
     --------
@@ -568,12 +569,12 @@ class MichaelisMenten(Mechanism):
         -----
         The mechanism generates the following reactions:
 
-        1. $S + E \leftrightarrow S:E$ (binding, rates 'kb' and 'ku')
-        2. $S:E \rightarrow E + P$ (catalysis, rate 'kcat')
+        1. S + E <--> S:E (binding, rates 'kb' and 'ku')
+        2. S:E --> E + P (catalysis, rate 'kcat')
 
         For degradation (product is None):
 
-        2. $S:E \rightarrow E$ (degradation, rate 'kcat')
+        2. S:E --> E (degradation, rate 'kcat')
 
         """
         # Get parameters
@@ -632,7 +633,7 @@ class MichaelisMentenReversible(Mechanism):
 
     The reaction scheme is
 
-    $$S + E \leftrightarrow S:E \leftrightarrow E:P \leftrightarrow E + P$$
+        $$ 'S' + 'E' <--> 'S':'E' <--> 'E':'P' <--> 'E' + 'P', $$
 
     where S is the substrate, E is the enzyme, S:E is the enzyme-substrate
     complex, E:P is the enzyme-product complex, and P is the product.
@@ -661,14 +662,11 @@ class MichaelisMentenReversible(Mechanism):
     -----
     This mechanism generates three mass-action reactions:
 
-    1. Reversible substrate binding:
-    $S + E \leftrightarrow S:E$ (rates 'kb1' and 'ku1')
+    1. Reversible substrate binding: S + E <--> S:E (rates 'kb1' and 'ku1')
 
-    2. Reversible product binding:
-    $P + E \leftrightarrow E:P$ (rates 'kb2' and 'ku2')
+    2. Reversible product binding: P + E <--> E:P (rates 'kb2' and 'ku2')
 
-    3. Reversible catalysis:
-    $S:E \leftrightarrow E:P$ (rates 'kcat' and 'kcat_rev')
+    3. Reversible catalysis: S:E <--> E:P (rates 'kcat' and 'kcat_rev')
 
     Common applications include:
 
@@ -683,8 +681,8 @@ class MichaelisMentenReversible(Mechanism):
     - 'ku1' : Reverse unbinding rate for substrate-enzyme dissociation
     - 'kb2' : Forward binding rate for product-enzyme association
     - 'ku2' : Reverse unbinding rate for product-enzyme dissociation
-    - 'kcat' : Forward catalytic rate constant ($S:E \rightarrow E:P$)
-    - 'kcat_rev' : Reverse catalytic rate constant ($E:P \rightarrow S:E$)
+    - 'kcat' : Forward catalytic rate constant (S:E --> E:P)
+    - 'kcat_rev' : Reverse catalytic rate constant (E:P --> S:E)
 
     This mechanism is particularly useful when modeling reactions close to
     equilibrium where the reverse reaction and product binding cannot be
@@ -837,9 +835,9 @@ class MichaelisMentenReversible(Mechanism):
         -----
         The mechanism generates the following reactions:
 
-        1. $S + E \leftrightarrow S:E$ (binding, rates 'kb1' and 'ku1')
-        2. $P + E \leftrightarrow E:P$ (binding, rates 'kb2' and 'ku2')
-        3. $S:E \leftrightarrow E:P$ (catalysis, rates 'kcat' and 'kcat_rev')
+        1. S + E <--> S:E (binding, rates 'kb1' and 'ku1')
+        2. P + E <--> E:P (binding, rates 'kb2' and 'ku2')
+        3. S:E <--> E:P (catalysis, rates 'kcat' and 'kcat_rev')
 
         When providing parameters directly (not via component), kb, ku, and
         kcat should be tuples of two values each.
@@ -924,7 +922,7 @@ class MichaelisMentenCopy(Mechanism):
 
     The reaction scheme is
 
-    $$ S + E \leftrightarrow S:E \rightarrow S + E + P $$
+        $$ 'S' + 'E' <--> 'S':'E' --> 'S' + 'E' + 'P' $$
 
     where S is the substrate (template), E is the enzyme, S:E is the
     enzyme-substrate complex, and P is the product.
@@ -953,8 +951,8 @@ class MichaelisMentenCopy(Mechanism):
     -----
     This mechanism generates two mass-action reactions:
 
-    1. Reversible binding: $S + E \leftrightarrow S:E$ (rates 'kb' and 'ku')
-    2. Catalytic copying: $S:E \rightarrow S + E + P$ (rate 'kcat')
+    1. Reversible binding: S + E <--> S:E (rates 'kb' and 'ku')
+    2. Catalytic copying: S:E --> S + E + P (rate 'kcat')
 
     Common applications include:
 
@@ -1110,8 +1108,8 @@ class MichaelisMentenCopy(Mechanism):
         -----
         The mechanism generates the following reactions:
 
-        1. $S + E \leftrightarrow S:E$ (binding, rates 'kb' and 'ku')
-        2. $S:E \rightarrow S + E + P$ (copying, rate 'kcat')
+        1. S + E <--> S:E (binding, rates 'kb' and 'ku')
+        2. S:E --> S + E + P (copying, rate 'kcat')
 
         The key feature is that the substrate appears on both sides of the
         catalytic reaction, ensuring it is not consumed. This makes the

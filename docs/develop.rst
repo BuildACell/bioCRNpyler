@@ -162,21 +162,70 @@ guidelines:
     code is somewhat rare and the extra two backticks seem like a
     small sacrifice (and far from a "contortion").
 
-* Avoid the use of backticks and \:math\: for simple formulas where
-  the additional annotation or formatting does not add anything.  For
-  example "-c <= x <= c" (without the double quotes).
+* Mathematical equations in docstrings can be written using LaTeX
+  syntax.  Inline equations should be enclosed in a single set of
+  dollar signs ($), with no space before or afer the equation (so
+  `$A + B --> C$` to produce :math:`A + B \rightarrow C`.  Displayed
+  equations can be written in one of two ways::
 
-  - Some of these formulas might be interpreted as Python code
-    fragments, but they only need to be in double quotes if that makes
-    the documentation easier to understand.
+    text
 
-  - Examples:
+        $$ A + B --> C $$
 
-      * \`dt\` > 0 not \`\`dt > 0\`\` (`dt` is a parameter)
-      * \`squeeze\` = True not \`\`squeeze = True\`\` nor squeeze = True.
-      * -c <= x <= c not \`\`-c <= x <= c\`\` nor \:math\:\`-c \\leq x
-        \\leq c`.
-      * \:math\:\`|x| < \\epsilon\` (becomes :math:`|x| < \epsilon`)
+    text
+
+  or
+
+  .. code::
+
+     text
+     $$
+         A + B --> C
+     $$
+     text
+
+  both of which will produce:
+
+  .. math::
+    A + B \rightarrow C
+
+  The first form is prefered when the contents fit on a single line.
+  The second form can be used for equations that require more than one
+  line in the docstring.  Multi-line formulas are also possible, using
+  standard `aligned` syntax from LaTex.
+
+* Several string substitutions are implemented on equation to allow
+  docstrings that are easier to read in plain text while being
+  formatted in LaTex for sphinx-processed documentation:
+
+  - --> becomes :math:`\rightarrow`
+  - <--> becomes :math:`\rightleftharpoons`
+  - ... becomes :math:`\dots`
+  - >> becomes :math:`\gg`
+  - << becomes :math:`\ll`
+  - A:B becomes :math:`A \mathord{:} B` (no space)
+
+  In addition, any strings contained in single quotes will be
+  converted to text::
+
+    $$ 'substrate' + 'enzyme' --> 'substrate':'enzyme' $$
+
+  becomes:
+
+  .. math::
+
+     \text{substrate} + \text{enzyme} \rightarrow
+     \text{substrate} \mathord{:} \text{enzyme}
+
+  Note: docstrings are processed line by line, so any inline equations
+  (single $) must appear in the same line.
+
+* As a general rule, chemical species in reactions should be in regular
+  (non-math) font.  For chemical species that appear in regular text, no
+  annotations are required.  For chemical species in equations, use single
+  quotes to allow the preprocessing to convert to text.  When refering to
+  the concentration of a chemical species, use square brackets ([A]; the
+  chemical species will automatically be converted to regular text).
 
 * Built-in Python objects (True, False, None) should be written with no
   backticks and should be properly capitalized.

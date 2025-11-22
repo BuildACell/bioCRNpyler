@@ -391,7 +391,7 @@ class Dilution(GlobalMechanism):
 
     The dilution reaction for each species is
 
-    $$S \rightarrow \emptyset$$
+        $$ 'S' --> {} $$
 
     where S is any species and the rate is determined by 'kdil'.
 
@@ -511,7 +511,7 @@ class Dilution(GlobalMechanism):
         Returns
         -------
         list of Reaction
-            List containing a single reaction: $S \rightarrow \emptyset$ with
+            List containing a single reaction: S --> {} with
             rate 'kdil'.
 
         """
@@ -532,7 +532,8 @@ class AntiDilutionConstitutiveCreation(GlobalMechanism):
     mechanisms.
 
     The production reaction for each species is
-    $$\emptyset \rightarrow S$$
+
+        $$ {} --> 'S' $$
 
     where S is any species and the rate is determined by 'kdil' (matching
     the dilution rate to maintain steady state).
@@ -639,7 +640,7 @@ class AntiDilutionConstitutiveCreation(GlobalMechanism):
         )
 
     def update_reactions(self, s, mixture):
-        """Generate constitutive creation reaction for a single species.
+        r"""Generate constitutive creation reaction for a single species.
 
         Creates an irreversible mass-action reaction that produces the
         species at rate 'kdil' to counteract dilution.
@@ -654,7 +655,7 @@ class AntiDilutionConstitutiveCreation(GlobalMechanism):
         Returns
         -------
         list of Reaction
-            List containing a single reaction: ∅ --> S with rate 'kdil'.
+            List containing a single reaction: {} --> S with rate 'kdil'.
 
         """
         k_dil = self.get_parameter(s, 'kdil', mixture)
@@ -673,10 +674,9 @@ class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
     ComplexSpecies.
 
     The degradation reaction scheme is
-    $$
-    \text{mRNA} + \text{Endo} \leftrightarrow
-    \text{mRNA:Endo} \rightarrow \text{Endo}
-    $$
+
+        $$ 'mRNA' + 'Endo' <--> 'mRNA':'Endo' --> 'Endo' $$
+
     where mRNA is any RNA species and Endo is the endonuclease.
 
     Parameters
@@ -725,7 +725,7 @@ class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
     -----
     This mechanism handles three cases:
 
-    1. Pure RNA species: Degraded completely (RNA --> ∅)
+    1. Pure RNA species: Degraded completely (RNA --> {})
     2. RNA in ComplexSpecies: Complex is broken apart, RNA is degraded,
        non-RNA components are released
     3. OrderedPolymerSpecies: Not affected by this mechanism
@@ -966,8 +966,8 @@ class Deg_Tagged_Degradation(GlobalMechanism, MichaelisMenten):
 
     The degradation reaction scheme is
     $$
-    \text{Protein_degtagged} + \text{degradase} \leftrightarrow
-    \text{Protein_degtagged:degradase} \rightarrow \text{degradase}
+        'Protein_degtagged' + 'degradase' <-->
+            'Protein_degtagged':'degradase' --> 'degradase'
     $$
     where Protein_degtagged is any protein with the degradation tag.
 

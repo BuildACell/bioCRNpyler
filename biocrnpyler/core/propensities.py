@@ -611,7 +611,7 @@ class GeneralPropensity(Propensity):
     Parameters
     ----------
     propensity_function : str
-        Valid mathematical formula as a string (e.g., $k*S1*S2$). Must
+        Valid mathematical formula as a string (e.g., 'k*S1*S2'). Must
         contain all referenced species and parameters.
     propensity_species : list of Species
         List of Species objects used in the formula. Each species must
@@ -819,27 +819,29 @@ class MassAction(Propensity):
 
     Notes
     -----
-    Deterministic (ODE) propensity: For reaction $A + B \rightarrow C$ with
+    Deterministic (ODE) propensity: For reaction A + B --> C with
+    rate constant $k$:
+
+        $$ 'rate' = k [A] [B] $$
+
+    where [A] and [B] are the concentrations of A and B.
+
+    Stochastic (Gillespie) propensity: For reaction A + B --> C with
     rate constant $k$:
     $$
-    \text{rate} = k [A] [B]
+        'propensity' &= k \cdot A \cdot (B-1) &\quad& \text{if $A = B$} \\
+        'propensity' &= k \cdot A \cdot B     &\quad& \text{otherwise}
     $$
-
-    Stochastic (Gillespie) propensity: For reaction $A + B \rightarrow C$ with
-    rate constant k:
-    $$
-    \text{propensity} &= k \cdot A \cdot (B-1) \text{ if } A=B
-    \text{propensity} &= k \cdot A \cdot B \text{ otherwise}
-    $$
+    where $A$ and $B$ represent molecular counts.
 
     The stochastic formulation accounts for combinatorics of molecule
-    selection. For stoichiometric coefficient n > 1:
+    selection. For stoichiometric coefficient $n > 1$:
 
-    $$\text{factor} = S \cdot (S-1) \cdot ... \cdot (S-n+1)$$
+        $$ 'factor' = S ... (S-1) ... (S-n+1) $$
 
     If `k_reverse` is provided, the reaction is reversible:
 
-    $$A + B \rightleftharpoons C$$
+        $$ A + B <--> C $$
 
     Two kinetic laws are created: one for forward, one for reverse.
 
@@ -1080,7 +1082,7 @@ class MassAction(Propensity):
 
         Notes
         -----
-        For deterministic: rate = $k * [A]^n * [B]^m$
+        For deterministic: rate = $k * ['A']^n * ['B']^m$
         For stochastic: rate = $k * A * (A-1) * \ldots * (A-n+1) * B * \ldots$
 
         """
@@ -1157,10 +1159,10 @@ class Hill(Propensity):
     -----
     This is an abstract base class. Use the specific subclasses:
 
-    - `HillPositive`: Activation, $k s_1^n / (K^n + s_1^n)$
-    - `HillNegative`: Repression, $k / (1 + (s_1/K)^n)$
-    - `ProportionalHillPositive`: $k d s_1^n / (K^n + s_1^n)$
-    - `ProportionalHillNegative`: $k d / (1 + (s_1/K)^n)$
+    - `HillPositive`: Activation, $k ['s1']^n / (K^n + ['s1']^n)$
+    - `HillNegative`: Repression, $k / (1 + (['s1']/K)^n)$
+    - `ProportionalHillPositive`: $k ['d'] ['s1']^n / (K^n + ['s1']^n)$
+    - `ProportionalHillNegative`: $k ['d'] / (1 + (['s1']/K)^n)$
 
     Hill functions are not reversible - k_reverse is not supported.
 
@@ -1383,7 +1385,7 @@ class HillPositive(Hill):
     r"""Positive Hill function propensity (activation).
 
     Implements an activating Hill function with sigmoidal dose-response
-    curve. As s1 increases, the rate approaches k.
+    curve. As s1 increases, the rate approaches $k$.
 
     Parameters
     ----------
@@ -1412,14 +1414,14 @@ class HillPositive(Hill):
     -----
     The following formula is implemented:
 
-    $$p(s_1; k, K, n) = \frac{k s_1^n}{K^n + s_1^n},$$
+        $$ p(s_1; k, K, n) = \frac{k s_1^n}{K^n + s_1^n}, $$
 
     leading to the following behaviors:
 
-    - When s1 = 0: rate ≈ 0
-    - When s1 = K: rate = k/2
-    - When s1 >> K: rate -> k
-    - Larger n gives sharper (more switch-like) response
+    - When $s_1 = 0$: rate ≈ 0
+    - When $s_1 = K$: rate = $k$/2
+    - When $s1 >> K$: rate --> $k$
+    - Larger $n$ gives sharper (more switch-like) response
 
     Examples
     --------
@@ -1510,14 +1512,14 @@ class HillNegative(Hill):
     -----
     The following mathematical formula is implemented:
 
-    $$p(s_1; k, K, n) = \frac{k}{1 + (s_1/K)^n}$$
+        $$ p(s_1; k, K, n) = \frac{k}{1 + (s_1/K)^n} $$
 
     leading to the following behavior:
 
-    - When s1 = 0: rate = k
-    - When s1 = K: rate = k/2
-    - When s1 >> K: rate -> 0
-    - Larger n gives sharper (more switch-like) repression
+    - When s1 = 0: rate = $k$
+    - When s1 = $K$: rate = $k$/2
+    - When s1 >> $K$: rate --> 0
+    - Larger $n$ gives sharper (more switch-like) repression
 
     Examples
     --------
@@ -1608,7 +1610,7 @@ class ProportionalHillPositive(HillPositive):
     -----
     The following mathematical formula: is used for the popensity:
 
-    $$p(s_1, d; k, K, n) = \frac{k d s_1^n}{K^n + s_1^n}$$
+        $$ p(s_1, d; k, K, n) = \frac{k d s_1^n}{K^n + s_1^n} $$
 
     This is commonly used for transcription, where
 
@@ -1620,7 +1622,7 @@ class ProportionalHillPositive(HillPositive):
 
     - When d = 0: rate = 0 (no template/enzyme)
     - When s1 = 0: rate ≈ 0 (no activation)
-    - When s1 >> K: rate -> k*d (fully activated, proportional to d)
+    - When s1 >> $K$: rate --> $k$ d (fully activated, proportional to d)
 
     Examples
     --------
@@ -1718,7 +1720,7 @@ class ProportionalHillNegative(HillNegative):
     -----
     The following mathematical formula: is used:
 
-    $$p(s_1, d; k, K, n) = \frac{k d}{1 + (s_1/K)^n}$$
+        $$ p(s_1, d; k, K, n) = \frac{k d}{1 + (s_1/K)^n} $$
 
     This is commonly used for repressed transcription where
 
@@ -1730,7 +1732,7 @@ class ProportionalHillNegative(HillNegative):
 
     - When d = 0: rate = 0 (no template/enzyme)
     - When s1 = 0: rate = k*d (fully derepressed)
-    - When s1 >> K: rate -> 0 (fully repressed)
+    - When s1 >> K: rate --> 0 (fully repressed)
 
     Examples
     --------

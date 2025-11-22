@@ -53,11 +53,9 @@ class DiffusibleMolecule(Component):
     Passive diffusion follows concentration gradients and does not require
     energy. The diffusion mechanism generates bidirectional reactions:
 
-    - Forward:
-      $\text{substrate_internal} \rightarrow \text{substrate_external}$
+    - Forward: substrate_internal --> substrate_external
 
-    - Reverse:
-      $\text{substrate_external} \rightarrow \text{substrate_internal}$
+    - Reverse: substrate_external --> substrate_internal
 
     If not specified using the `name` keyword, the component name is
     automatically generated as: '<substrate_name>_<internal_compartment_name>'
@@ -1002,9 +1000,8 @@ class MembraneSensor(Component):
 
     The general reaction scheme:
     $$
-    \text{signal} + \text{sensor} + \text{ATP} + \text{response_protein}
-    \rightarrow \text{signal} + \text{sensor} + \text{ADP} +
-    \text{response_protein-P}
+        & 'signal' + 'sensor' + 'ATP' + 'response_protein' \\
+        &     --> 'signal' + 'sensor' + 'ADP' + 'response_protein-P'
     $$
 
     The component name is automatically generated as:

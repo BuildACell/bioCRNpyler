@@ -12,6 +12,7 @@
 #
 import inspect
 import os
+import re
 import sys
 import sphinx
 
@@ -63,7 +64,7 @@ extensions = [
     'nbsphinx',
     'nbsphinx_link',
     'recommonmark',
-    'numpydoc'
+    'numpydoc',
 ]
 
 source_suffix = ['.rst']
@@ -128,8 +129,8 @@ if sphinx_version >= (4, 0):
 else:
     mathjax_config = {
         'tex2jax': {
-            'inlineMath': [ ["\\(","\\)"] ],
-            'displayMath': [["\\[","\\]"] ],
+            'inlineMath': [["\\(", "\\)"]],
+            'displayMath': [["\\[", "\\]"]],
         },
     }
 
@@ -170,6 +171,92 @@ for name, obj in inspect.getmembers(biocrnpyler):
 autodoc_type_aliases = {
     k: napoleon_type_aliases[k] for k in sorted(napoleon_type_aliases)
 }
+
+#
+# Docstring pre-processing
+#
+
+eqn_substitutions = [
+    (r'<-->', r'\\rightleftharpoons'),
+    (r'-->', r'\\rightarrow'),
+    (r'\.\.\.', r'\\dots'),
+    (r':', r'\\mathord{:}'),
+    (r'\{\}', r'\\emptyset'),
+    (r' >> ', r' \\gg '),
+    (r' << ', r' \\ll '),
+    (r"'([\w -]+)'", r'{\\text{\1}}'),  # literal text (incl _, -)
+    (r"\[([\w -]+)\]", r'[\\text{\1}]'),  # concentration
+    (r'^[ ]+', r''),  # remove leading blanks
+    (r'\$[ ]+', r'$'),  # remove blanks after $
+    (r'&    ', r'& \\qquad'),  # indented text
+]
+
+txt_substitutions = [
+    (r'<-->', r'$\\rightleftharpoons$'),
+    (r'-->', r'$\\rightarrow$'),
+    (r'\{\}', r'$\\emptyset$'),
+    (r' >> ', r' $\\gg$ '),
+    (r' << ', r' $\\ll$ '),
+]
+
+
+def _process_string(s, subs):
+    for pattern, repl in subs:
+        s = re.sub(pattern, repl, s)
+    return s
+
+
+def preprocess_docstring(app, what, name, obj, options, lines):
+    """
+    Preprocess docstrings before Sphinx renders them.
+
+    Parameters
+    ----------
+    app : Sphinx application object
+    what : the type of object (e.g., 'module', 'class', 'function')
+    name : the fully qualified name of the object
+    obj : the object itself
+    options : the options given to the directive
+    lines : the lines of the docstring (list of strings, modified in-place)
+    """
+    in_equation = False
+    for i, line in enumerate(lines):
+        # Keep track of whether we are in "math" mode
+        eqn_iter = re.finditer(r'\$[^$]+\$', line)  # $...$ or $$...$$
+        eqn_list = list(eqn_iter)
+        if re.match(r'^[ ]*\$\$$', line):  # $$ on its own line
+            in_equation = not in_equation
+
+        if in_equation:
+            # Process everything in this line
+            line = _process_string(line, eqn_substitutions)
+        elif eqn_list:
+            # Process each equation separately
+            line, offset = '', 0
+            for m in eqn_list:
+                # Include the text up to this point
+                line += _process_string(
+                    lines[i][offset : m.start()], txt_substitutions
+                )
+                offset = m.end()
+
+                # Process the text in the equation
+                eqn = _process_string(m.group(0), eqn_substitutions)
+                line += eqn
+
+            # Add the suffix
+            line += _process_string(
+                lines[i][eqn_list[-1].end() :], txt_substitutions
+            )
+        else:
+            line = _process_string(line, txt_substitutions)
+
+        lines[i] = line
+
+
+def setup(app):
+    """Connect the preprocessing function to Sphinx."""
+    app.connect('autodoc-process-docstring', preprocess_docstring)
 
 
 # -----------------------------------------------------------------------------
