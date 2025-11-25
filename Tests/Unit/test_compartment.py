@@ -135,7 +135,7 @@ class TestCompartments(TestCase):
         )
         E = EnergyTxTlExtract(
             components=[activatable_assembly],
-            parameter_file='examples/Specialized Tutorials/txtl_toolbox_parameters.txt',
+            parameter_file='mixtures/extract_parameters.tsv',
         )
         CRN_1 = E.compile_crn()  # compile CRN
 

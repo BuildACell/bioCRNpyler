@@ -14,7 +14,7 @@ class BasicPURE(Mixture):
 
     A mixture that models the PURE (Protein synthesis Using Recombinant
     Elements) reconstituted cell-free transcription-translation system with
-    explicit representation of RNA polymerase (RNAP), ribosomes, RNases, and
+    explicit representation of RNA polymerase (RNAP), ribosomes, RNAses, and
     energy carrier molecules. This extract uses Michaelis-Menten kinetics
     with length-dependent fuel consumption to model realistic TX-TL
     energetics.
@@ -88,7 +88,7 @@ class BasicPURE(Mixture):
 
     - RNA polymerase (RNAP)
     - Ribosome
-    - Ribonuclease (RNase)
+    - Ribonuclease (RNAse)
     - Amino acids (lumped)
     - NTPs (nucleotide triphosphates excluding ATP, lumped)
     - NDPs (nucleotide diphosphates, lumped)
@@ -101,7 +101,7 @@ class BasicPURE(Mixture):
     - 'translation' : `Energy_Translation_MM` - Michaelis-Menten translation
       with length-dependent amino acid and ATP consumption
     - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
-      RNase using Michaelis-Menten kinetics
+      RNAse using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis for user-defined enzymatic reactions
     - 'binding' : `One_Step_Binding` - Simple multi-species binding for
@@ -115,7 +115,7 @@ class BasicPURE(Mixture):
     - Resource competition effects (genes compete for RNAP and ribosomes)
     - Resource depletion dynamics (ATP, NTPs, amino acids deplete)
     - Enzyme sequestration in complexes
-    - RNA degradation by RNase
+    - RNA degradation by RNAse
     - Separate tracking of ATP vs other NTPs
     - Suitable for modeling batch-mode PURE reactions
 

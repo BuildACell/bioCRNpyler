@@ -1319,7 +1319,10 @@ class ParameterDatabase(object):
                     "or comma-seperated (.csv) files."
                 )
 
-            csvreader = csv.DictReader(f, delimiter=delimiter)
+            # Read the CSV file, filtering out comment lines
+            csvreader = csv.DictReader(
+                filter(lambda row: row[0] != '#', f), delimiter=delimiter)
+
             # Used for flexible column headings
             accepted_field_names = {
                 'mechanism': ['mechanism', 'mechanism_id'],

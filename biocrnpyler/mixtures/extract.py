@@ -123,7 +123,7 @@ class ExpressionExtract(Mixture):
     Key features of this extract:
 
     - No explicit transcription or translation steps
-    - No cellular machinery (RNAP, ribosomes, RNases)
+    - No cellular machinery (RNAP, ribosomes, RNAses)
     - No intermediate mRNA species
     - Simplified parameter space (single 'kexpress' rate)
     - Fast compilation and simulation
@@ -236,7 +236,7 @@ class SimpleTxTlExtract(Mixture):
 
     A mixture that models transcription and translation as separate catalytic
     reactions without explicitly representing cellular machinery (RNAP,
-    ribosomes, RNases). This extract uses simple mass-action kinetics where
+    ribosomes, RNAses). This extract uses simple mass-action kinetics where
     DNA and mRNA act as catalysts for transcript and protein production,
     respectively. Unlike `ExpressionExtract`, this mixture includes explicit
     mRNA species and separate TX-TL steps. Unlike `TxTlExtract`, it does not
@@ -400,7 +400,7 @@ class TxTlExtract(Mixture):
     """TX-TL extract with explicit transcription and translation machinery.
 
     A mixture that models transcription and translation with explicit
-    representation of RNA polymerase (RNAP), ribosomes, and RNases. This
+    representation of RNA polymerase (RNAP), ribosomes, and RNAses. This
     extract uses Michaelis-Menten kinetics for transcription and translation,
     explicitly tracking enzyme-substrate binding and catalysis. Unlike
     `SimpleTxTlExtract`, this mixture models resource competition and enzyme
@@ -500,7 +500,7 @@ class TxTlExtract(Mixture):
 
     - RNA polymerase (RNAP)
     - Ribosome
-    - Ribonuclease (RNase)
+    - Ribonuclease (RNAse)
 
     Default mechanisms included:
 
@@ -511,7 +511,7 @@ class TxTlExtract(Mixture):
       explicit ribosome binding (mRNA + Rib <--> mRNA:Rib --> mRNA + Rib +
       Protein)
     - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
-      RNase using Michaelis-Menten kinetics
+      RNAse using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis
     - 'binding' : `One_Step_Binding` - Simple multi-species binding
@@ -586,7 +586,7 @@ class EnergyTxTlExtract(Mixture):
     """TX-TL cell extract with explicit machinery and energy consumption.
 
     A mixture that models transcription and translation with explicit
-    representation of RNA polymerase (RNAP), ribosomes, RNases, and energy
+    representation of RNA polymerase (RNAP), ribosomes, RNAses, and energy
     carrier molecules. This extract uses Michaelis-Menten kinetics with
     length-dependent fuel consumption to model realistic TX-TL energetics.
     Unlike `TxTlExtract`, this mixture explicitly tracks NTPs, amino acids,
@@ -608,12 +608,14 @@ class EnergyTxTlExtract(Mixture):
         Name for the ribonuclease protein species.
     ntps : str, default='NTPs'
         Name for the nucleotide triphosphate species (lumped NTPs).
-    ndps : str, default='NDPs'
-        Name for the nucleotide diphosphate species (lumped NDPs).
+    ATP : str, default='ATP'
+        Name for the energy carrier molecule.
+    ADP : str, default='ADP'
+        Name for waste product from energy consumption.
     amino_acids : str, default='amino_acids'
         Name for the amino acid species (lumped amino acids).
     fuel : str, default='Fuel_3PGA'
-        Name for the fuel species used for NTP regeneration (e.g., 3PGA).
+        Name for the fuel species used for ATP regeneration (e.g., 3PGA).
     mechanisms : dict, list, or Mechanism, optional
         Default mechanisms for components in this mixture. Can be a dict with
         mechanism types (str) as keys and mechanism objects as values, a
@@ -665,7 +667,7 @@ class EnergyTxTlExtract(Mixture):
         Amino acid metabolite component.
     fuel : Metabolite
         Fuel metabolite component for ATP regeneration.
-    ndps : Metabolite
+    adp : Metabolite
         Nucleotide diphosphate metabolite component.
     ntps : Metabolite
         Nucleotide triphosphate metabolite component with fuel-dependent
@@ -705,7 +707,7 @@ class EnergyTxTlExtract(Mixture):
 
     - RNA polymerase (RNAP)
     - Ribosome
-    - Ribonuclease (RNase)
+    - Ribonuclease (RNAse)
     - Amino acids (lumped)
     - NTPs (nucleotide triphosphates, lumped)
     - NDPs (nucleotide diphosphates, lumped)
@@ -720,7 +722,7 @@ class EnergyTxTlExtract(Mixture):
       with length-dependent amino acid and NTP consumption (mRNA + Rib <-->
       mRNA:Rib; AA + NTP + mRNA:Rib --> mRNA + Rib + Protein + NDP)
     - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
-      RNase using Michaelis-Menten kinetics
+      RNAse using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis
     - 'binding' : `One_Step_Binding` - Simple multi-species binding
@@ -778,7 +780,8 @@ class EnergyTxTlExtract(Mixture):
         ribosome='Ribo',
         rnaase='RNAase',
         ntps='NTPs',
-        ndps='NDPs',
+        atp='ATP',
+        adp='ADP',
         amino_acids='amino_acids',
         fuel='Fuel_3PGA',
         **kwargs,
@@ -790,16 +793,17 @@ class EnergyTxTlExtract(Mixture):
         self.ribosome = Protein(ribosome)
         self.rnaase = Protein(rnaase)
         self.amino_acids = Metabolite(amino_acids)
-        # fuel is degraded into things other than ATP as well
+        self.ntps = Metabolite(ntps)
         self.fuel = Metabolite(fuel)
-        self.ndps = Metabolite(ndps)  # NDPs
-        self.ntps = Metabolite(
-            ntps, precursors=[self.fuel, self.ndps], products=[self.ndps]
+        self.adp = Metabolite(adp)
+        self.atp = Metabolite(
+            atp, precursors=[self.fuel, self.adp], products=[self.adp]
         )  # fuel becomes ATP, and ATP is degraded
 
         # These mechanisms are Component specific and only added to
         # the NTPs metabolite
         mech_pathway = OneStepPathway()
+        self.atp.add_mechanisms(mech_pathway, overwrite=None)
         self.ntps.add_mechanisms(mech_pathway, overwrite=None)
         self.fuel.add_mechanisms(mech_pathway, overwrite=None)
 
@@ -809,7 +813,7 @@ class EnergyTxTlExtract(Mixture):
             self.rnaase,
             self.amino_acids,
             self.ntps,
-            self.fuel,
+            self.atp,           # includes ADP, fuel
         ]
         self.add_components(default_components)
 
@@ -821,9 +825,9 @@ class EnergyTxTlExtract(Mixture):
         )
         mech_tl = Energy_Translation_MM(
             ribosome=self.ribosome.get_species(),
-            fuels=4 * [self.ntps.get_species()]
-            + [self.amino_acids.get_species()],
-            wastes=4 * [self.ndps.get_species()],
+            fuels= 4 * [self.atp.get_species()] +
+                [self.amino_acids.get_species()],
+            wastes=4 * [self.adp.get_species()],
         )
         mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
         mech_cat = MichaelisMenten()

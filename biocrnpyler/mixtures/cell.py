@@ -123,7 +123,7 @@ class ExpressionDilutionMixture(Mixture):
     Key features of this mixture:
 
     - No explicit transcription or translation steps
-    - No cellular machinery (RNAP, ribosomes, RNases)
+    - No cellular machinery (RNAP, ribosomes, RNAses)
     - No intermediate mRNA species
     - Global dilution of all species except DNA
     - Models growth dilution effects in vivo
@@ -419,7 +419,7 @@ class TxTlDilutionMixture(Mixture):
     """In vivo TX-TL with explicit machinery, dilution, and background load.
 
     A mixture that models transcription and translation with explicit
-    representation of RNA polymerase (RNAP), ribosomes, and RNases for in
+    representation of RNA polymerase (RNAP), ribosomes, and RNAses for in
     vivo contexts. This mixture uses Michaelis-Menten kinetics for TX-TL,
     explicitly tracking enzyme-substrate binding and catalysis. Includes
     global dilution to model cell growth effects and a background load
@@ -427,7 +427,7 @@ class TxTlDilutionMixture(Mixture):
     shared machinery.
 
     Unlike `TxTlExtract`, this mixture includes dilution for non-DNA and
-    non-machinery species. Machinery components (RNAP, ribosomes, RNases) are
+    non-machinery species. Machinery components (RNAP, ribosomes, RNAses) are
     protected from dilution via the 'machinery' attribute. This model does
     not include explicit energy species.
 
@@ -522,7 +522,7 @@ class TxTlDilutionMixture(Mixture):
 
     - RNA polymerase (RNAP) with 'machinery' attribute
     - Ribosome with 'machinery' attribute
-    - Ribonuclease (RNase) with 'machinery' attribute
+    - Ribonuclease (RNAse) with 'machinery' attribute
     - Background processes DNAassembly representing cellular load
 
     Default mechanisms included:
@@ -534,7 +534,7 @@ class TxTlDilutionMixture(Mixture):
       explicit ribosome binding (mRNA + Rib <--> mRNA:Rib --> mRNA + Rib +
       Protein)
     - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
-      RNase using Michaelis-Menten kinetics
+      RNAse using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis
     - 'binding' : `One_Step_Binding` - Simple multi-species binding
