@@ -14,7 +14,7 @@ class BasicPURE(Mixture):
 
     A mixture that models the PURE (Protein synthesis Using Recombinant
     Elements) reconstituted cell-free transcription-translation system with
-    explicit representation of RNA polymerase (RNAP), ribosomes, RNAses, and
+    explicit representation of RNA polymerase (RNAP), ribosomes, RNases, and
     energy carrier molecules. This extract uses Michaelis-Menten kinetics
     with length-dependent fuel consumption to model realistic TX-TL
     energetics.
@@ -40,7 +40,7 @@ class BasicPURE(Mixture):
         Name for the RNA polymerase protein species.
     ribosome : str, default='Ribo'
         Name for the ribosome protein species.
-    rnaase : str, default='RNAase'
+    rnase : str, default='RNase'
         Name for the ribonuclease protein species.
     ntps : str, default='NTPs'
         Name for the nucleotide triphosphate species (lumped NTPs excluding
@@ -63,7 +63,7 @@ class BasicPURE(Mixture):
         RNA polymerase component.
     ribosome : Protein
         Ribosome component.
-    rnaase : Protein
+    rnase : Protein
         Ribonuclease component.
     ntps : Metabolite
         Nucleotide triphosphate metabolite component (excluding ATP).
@@ -88,7 +88,7 @@ class BasicPURE(Mixture):
 
     - RNA polymerase (RNAP)
     - Ribosome
-    - Ribonuclease (RNAse)
+    - Ribonuclease (RNase)
     - Amino acids (lumped)
     - NTPs (nucleotide triphosphates excluding ATP, lumped)
     - NDPs (nucleotide diphosphates, lumped)
@@ -101,7 +101,7 @@ class BasicPURE(Mixture):
     - 'translation' : `Energy_Translation_MM` - Michaelis-Menten translation
       with length-dependent amino acid and ATP consumption
     - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
-      RNAse using Michaelis-Menten kinetics
+      RNase using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis for user-defined enzymatic reactions
     - 'binding' : `One_Step_Binding` - Simple multi-species binding for
@@ -115,7 +115,7 @@ class BasicPURE(Mixture):
     - Resource competition effects (genes compete for RNAP and ribosomes)
     - Resource depletion dynamics (ATP, NTPs, amino acids deplete)
     - Enzyme sequestration in complexes
-    - RNA degradation by RNAse
+    - RNA degradation by RNase
     - Separate tracking of ATP vs other NTPs
     - Suitable for modeling batch-mode PURE reactions
 
@@ -178,7 +178,7 @@ class BasicPURE(Mixture):
         name='PURE',
         rnap='RNAP',
         ribosome='Ribo',
-        rnaase='RNAase',
+        rnase='RNase',
         ntps='NTPs',
         ndps='NDPs',
         amino_acids='AAs',
@@ -193,7 +193,7 @@ class BasicPURE(Mixture):
         # create default Components to represent cellular machinery
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
-        self.rnaase = Protein(rnaase)
+        self.rnase = Protein(rnase)
         self.ntps = Metabolite(ntps)
         self.amino_acids = Metabolite(amino_acids)
         self.fuel = Metabolite(fuel)
@@ -201,7 +201,7 @@ class BasicPURE(Mixture):
         default_components = [
             self.rnap,
             self.ribosome,
-            self.rnaase,
+            self.rnase,
             self.amino_acids,
             self.ntps,
             self.fuel,
@@ -222,7 +222,7 @@ class BasicPURE(Mixture):
             wastes=[],
         )
         mech_rna_deg = Degradation_mRNA_MM(
-            nuclease=self.rnaase.get_species()
+            nuclease=self.rnase.get_species()
         )  # TODO: add fuel usage?
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()

@@ -123,7 +123,7 @@ class ExpressionDilutionMixture(Mixture):
     Key features of this mixture:
 
     - No explicit transcription or translation steps
-    - No cellular machinery (RNAP, ribosomes, RNAses)
+    - No cellular machinery (RNAP, ribosomes, RNases)
     - No intermediate mRNA species
     - Global dilution of all species except DNA
     - Models growth dilution effects in vivo
@@ -419,7 +419,7 @@ class TxTlDilutionMixture(Mixture):
     """In vivo TX-TL with explicit machinery, dilution, and background load.
 
     A mixture that models transcription and translation with explicit
-    representation of RNA polymerase (RNAP), ribosomes, and RNAses for in
+    representation of RNA polymerase (RNAP), ribosomes, and RNases for in
     vivo contexts. This mixture uses Michaelis-Menten kinetics for TX-TL,
     explicitly tracking enzyme-substrate binding and catalysis. Includes
     global dilution to model cell growth effects and a background load
@@ -427,7 +427,7 @@ class TxTlDilutionMixture(Mixture):
     shared machinery.
 
     Unlike `TxTlExtract`, this mixture includes dilution for non-DNA and
-    non-machinery species. Machinery components (RNAP, ribosomes, RNAses) are
+    non-machinery species. Machinery components (RNAP, ribosomes, RNases) are
     protected from dilution via the 'machinery' attribute. This model does
     not include explicit energy species.
 
@@ -439,7 +439,7 @@ class TxTlDilutionMixture(Mixture):
         Name for the RNA polymerase protein species.
     ribosome : str, default='Ribo'
         Name for the ribosome protein species.
-    rnaase : str, default='RNAase'
+    rnase : str, default='RNase'
         Name for the ribonuclease protein species.
     mechanisms : dict, list, or Mechanism, optional
         Default mechanisms for components in this mixture. Can be a dict with
@@ -486,7 +486,7 @@ class TxTlDilutionMixture(Mixture):
         RNA polymerase component with 'machinery' attribute.
     ribosome : Protein
         Ribosome component with 'machinery' attribute.
-    rnaase : Protein
+    rnase : Protein
         Ribonuclease component with 'machinery' attribute.
     compartment : Compartment or None
         Default compartment for the mixture.
@@ -522,7 +522,7 @@ class TxTlDilutionMixture(Mixture):
 
     - RNA polymerase (RNAP) with 'machinery' attribute
     - Ribosome with 'machinery' attribute
-    - Ribonuclease (RNAse) with 'machinery' attribute
+    - Ribonuclease (RNase) with 'machinery' attribute
     - Background processes DNAassembly representing cellular load
 
     Default mechanisms included:
@@ -534,7 +534,7 @@ class TxTlDilutionMixture(Mixture):
       explicit ribosome binding (mRNA + Rib <--> mRNA:Rib --> mRNA + Rib +
       Protein)
     - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
-      RNAse using Michaelis-Menten kinetics
+      RNase using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis
     - 'binding' : `One_Step_Binding` - Simple multi-species binding
@@ -590,18 +590,18 @@ class TxTlDilutionMixture(Mixture):
     """
 
     def __init__(
-        self, name='', rnap='RNAP', ribosome='Ribo', rnaase='RNAase', **kwargs
+        self, name='', rnap='RNAP', ribosome='Ribo', rnase='RNase', **kwargs
     ):
         Mixture.__init__(self, name=name, **kwargs)
 
         # Create Components for TxTl machinery
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
-        self.rnaase = Protein(rnaase)
+        self.rnase = Protein(rnase)
 
         self.rnap.add_attribute('machinery')
         self.ribosome.add_attribute('machinery')
-        self.rnaase.add_attribute('machinery')
+        self.rnase.add_attribute('machinery')
 
         # DNAassmbly represents background processes / loading in a cell
         background_parameters = {
@@ -625,7 +625,7 @@ class TxTlDilutionMixture(Mixture):
         default_components = [
             self.rnap,
             self.ribosome,
-            self.rnaase,
+            self.rnase,
             BackgroundProcesses,
         ]
         self.add_components(default_components)
@@ -640,7 +640,7 @@ class TxTlDilutionMixture(Mixture):
         dilution_mechanism = Dilution(
             filter_dict={'dna': False, 'machinery': False}, default_on=True
         )
-        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnase.get_species())
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,

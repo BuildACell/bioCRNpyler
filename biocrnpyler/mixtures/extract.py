@@ -123,7 +123,7 @@ class ExpressionExtract(Mixture):
     Key features of this extract:
 
     - No explicit transcription or translation steps
-    - No cellular machinery (RNAP, ribosomes, RNAses)
+    - No cellular machinery (RNAP, ribosomes, RNases)
     - No intermediate mRNA species
     - Simplified parameter space (single 'kexpress' rate)
     - Fast compilation and simulation
@@ -236,7 +236,7 @@ class SimpleTxTlExtract(Mixture):
 
     A mixture that models transcription and translation as separate catalytic
     reactions without explicitly representing cellular machinery (RNAP,
-    ribosomes, RNAses). This extract uses simple mass-action kinetics where
+    ribosomes, RNases). This extract uses simple mass-action kinetics where
     DNA and mRNA act as catalysts for transcript and protein production,
     respectively. Unlike `ExpressionExtract`, this mixture includes explicit
     mRNA species and separate TX-TL steps. Unlike `TxTlExtract`, it does not
@@ -400,7 +400,7 @@ class TxTlExtract(Mixture):
     """TX-TL extract with explicit transcription and translation machinery.
 
     A mixture that models transcription and translation with explicit
-    representation of RNA polymerase (RNAP), ribosomes, and RNAses. This
+    representation of RNA polymerase (RNAP), ribosomes, and RNases. This
     extract uses Michaelis-Menten kinetics for transcription and translation,
     explicitly tracking enzyme-substrate binding and catalysis. Unlike
     `SimpleTxTlExtract`, this mixture models resource competition and enzyme
@@ -417,7 +417,7 @@ class TxTlExtract(Mixture):
         Name for the RNA polymerase protein species.
     ribosome : str, default='Ribo'
         Name for the ribosome protein species.
-    rnaase : str, default='RNAase'
+    rnase : str, default='RNase'
         Name for the ribonuclease protein species.
     mechanisms : dict, list, or Mechanism, optional
         Default mechanisms for components in this mixture. Can be a dict with
@@ -484,7 +484,7 @@ class TxTlExtract(Mixture):
         RNA polymerase component.
     ribosome : Protein
         Ribosome component.
-    rnaase : Protein
+    rnase : Protein
         Ribonuclease component.
 
     See Also
@@ -500,7 +500,7 @@ class TxTlExtract(Mixture):
 
     - RNA polymerase (RNAP)
     - Ribosome
-    - Ribonuclease (RNAse)
+    - Ribonuclease (RNase)
 
     Default mechanisms included:
 
@@ -511,7 +511,7 @@ class TxTlExtract(Mixture):
       explicit ribosome binding (mRNA + Rib <--> mRNA:Rib --> mRNA + Rib +
       Protein)
     - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
-      RNAse using Michaelis-Menten kinetics
+      RNase using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis
     - 'binding' : `One_Step_Binding` - Simple multi-species binding
@@ -552,7 +552,7 @@ class TxTlExtract(Mixture):
     """
 
     def __init__(
-        self, name='', rnap='RNAP', ribosome='Ribo', rnaase='RNAase', **kwargs
+        self, name='', rnap='RNAP', ribosome='Ribo', rnase='RNase', **kwargs
     ):
         # Always call the superlcass Mixture.__init__(...)
         Mixture.__init__(self, name=name, **kwargs)
@@ -560,15 +560,15 @@ class TxTlExtract(Mixture):
         # create default Components to represent cellular machinery
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
-        self.rnaase = Protein(rnaase)
+        self.rnase = Protein(rnase)
 
-        default_components = [self.rnap, self.ribosome, self.rnaase]
+        default_components = [self.rnap, self.ribosome, self.rnase]
         self.add_components(default_components)
 
         # Create default TxTl Mechanisms
         mech_tx = Transcription_MM(rnap=self.rnap.get_species())
         mech_tl = Translation_MM(ribosome=self.ribosome.get_species())
-        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnase.get_species())
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 
@@ -586,7 +586,7 @@ class EnergyTxTlExtract(Mixture):
     """TX-TL cell extract with explicit machinery and energy consumption.
 
     A mixture that models transcription and translation with explicit
-    representation of RNA polymerase (RNAP), ribosomes, RNAses, and energy
+    representation of RNA polymerase (RNAP), ribosomes, RNases, and energy
     carrier molecules. This extract uses Michaelis-Menten kinetics with
     length-dependent fuel consumption to model realistic TX-TL energetics.
     Unlike `TxTlExtract`, this mixture explicitly tracks NTPs, amino acids,
@@ -604,7 +604,7 @@ class EnergyTxTlExtract(Mixture):
         Name for the RNA polymerase protein species.
     ribosome : str, default='Ribo'
         Name for the ribosome protein species.
-    rnaase : str, default='RNAase'
+    rnase : str, default='RNase'
         Name for the ribonuclease protein species.
     ntps : str, default='NTPs'
         Name for the nucleotide triphosphate species (lumped NTPs).
@@ -661,7 +661,7 @@ class EnergyTxTlExtract(Mixture):
         RNA polymerase component.
     ribosome : Protein
         Ribosome component.
-    rnaase : Protein
+    rnase : Protein
         Ribonuclease component.
     amino_acids : Metabolite
         Amino acid metabolite component.
@@ -707,7 +707,7 @@ class EnergyTxTlExtract(Mixture):
 
     - RNA polymerase (RNAP)
     - Ribosome
-    - Ribonuclease (RNAse)
+    - Ribonuclease (RNase)
     - Amino acids (lumped)
     - NTPs (nucleotide triphosphates, lumped)
     - NDPs (nucleotide diphosphates, lumped)
@@ -722,7 +722,7 @@ class EnergyTxTlExtract(Mixture):
       with length-dependent amino acid and NTP consumption (mRNA + Rib <-->
       mRNA:Rib; AA + NTP + mRNA:Rib --> mRNA + Rib + Protein + NDP)
     - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
-      RNAse using Michaelis-Menten kinetics
+      RNase using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis
     - 'binding' : `One_Step_Binding` - Simple multi-species binding
@@ -778,7 +778,7 @@ class EnergyTxTlExtract(Mixture):
         name='',
         rnap='RNAP',
         ribosome='Ribo',
-        rnaase='RNAase',
+        rnase='RNase',
         ntps='NTPs',
         atp='ATP',
         adp='ADP',
@@ -791,7 +791,7 @@ class EnergyTxTlExtract(Mixture):
         # create default Components to represent cellular machinery
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
-        self.rnaase = Protein(rnaase)
+        self.rnase = Protein(rnase)
         self.amino_acids = Metabolite(amino_acids)
         self.ntps = Metabolite(ntps)
         self.fuel = Metabolite(fuel)
@@ -810,7 +810,7 @@ class EnergyTxTlExtract(Mixture):
         default_components = [
             self.rnap,
             self.ribosome,
-            self.rnaase,
+            self.rnase,
             self.amino_acids,
             self.ntps,
             self.atp,           # includes ADP, fuel
@@ -829,7 +829,7 @@ class EnergyTxTlExtract(Mixture):
                 [self.amino_acids.get_species()],
             wastes=4 * [self.adp.get_species()],
         )
-        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnase.get_species())
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 

@@ -749,7 +749,7 @@ class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
     --------
     Model global mRNA degradation in a cell-free system:
 
-    >>> rnase = bcp.Protein('RNAse')
+    >>> rnase = bcp.Protein('RNase')
     >>> mrna = bcp.RNA('mRNA')
     >>> degradation = bcp.Degradation_mRNA_MM(nuclease=rnase.species)
     >>> mixture = bcp.Mixture(
@@ -760,7 +760,7 @@ class Degradation_mRNA_MM(GlobalMechanism, MichaelisMenten):
 
     Protect specific RNAs from degradation:
 
-    >>> rnase = bcp.Protein('RNAse')
+    >>> rnase = bcp.Protein('RNase')
     >>> stable_rna = bcp.RNA('stable', attributes=['notdegradable'])
     >>> unstable_rna = bcp.RNA('unstable')
     >>> degradation = bcp.Degradation_mRNA_MM(nuclease=rnase.species)
