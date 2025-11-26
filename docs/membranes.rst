@@ -198,7 +198,7 @@ the mechanism to construct a CRN.
 
     # Create mixture
     M0 = Mixture("Diffusible_Molecule", components=[NO3],
-                 parameter_file="membrane_toolbox_parameters.txt",
+                 parameter_file="mechanisms/transport_parameters.tsv",
                  mechanisms=transport_mechanisms)
 
     # Compile the CRN with Mixture.compile_crn
@@ -354,7 +354,7 @@ construct a CRN.
 
     # Create mixture
         M = Mixture("alphaHL", components = [alphaHL_monomer],
-                    parameter_file = "membrane_toolbox_parameters.txt",
+                    parameter_file = "mechanisms/transport_parameters.tsv",
                     mechanisms = integration_mechanisms)
 
     #Compile the CRN and print
@@ -502,7 +502,7 @@ across the membrane.
 
     # Create mixture
         M = Mixture("aHL_transport", components = [alphaHL_channel],
-                parameter_file = "membrane_toolbox_parameters.txt",
+                parameter_file = "mechanisms/transport_parameters.tsv",
                 mechanisms = transport_mechanisms)
 
     #Compile the CRN and print
@@ -645,13 +645,13 @@ including the specification of its transport direction.
                     mech_transport.mechanism_type:mech_transport}
 
     # Create mixture
-        M = Mixture(components=[glut1, glut1_channel],
-            mechanisms=all_mechanisms,
-            parameter_file = "membrane_toolbox_parameters.txt")
+    M = Mixture(components=[glut1, glut1_channel],
+        mechanisms=all_mechanisms,
+        parameter_file = "mechanisms/transport_parameters.tsv") 
 
-    #Compile the CRN and print
-        CRN = M.compile_crn()
-        print(CRN.pretty_print(show_keys=False))
+    # Compile the CRN and print
+    CRN = M.compile_crn()
+    print(CRN.pretty_print(show_keys=False))
 
 Console Output:
 
@@ -899,13 +899,13 @@ including the specification of its direction (e.g., 'Exporter').
                     mech_transport.mechanism_type:mech_transport}
 
     # Create mixture
-        M = Mixture(components = [MsbA, MsbA_pump,],
+    M = Mixture(components = [MsbA, MsbA_pump,],
         mechanisms = all_mechanisms,
-        parameter_file = "membrane_toolbox_parameters.txt")
+        parameter_file = "mechanisms/transport_parameters.tsv") 
 
-    #Compile the CRN and print
-        CRN = M.compile_crn()
-        print(CRN.pretty_print(show_keys = False))
+    # Compile the CRN and print
+    CRN = M.compile_crn()
+    print(CRN.pretty_print(show_keys = False))
 
 Console Output:
 
@@ -1163,9 +1163,10 @@ substrates.
                     mech_sensing.mechanism_type:mech_sensing}
 
     # Create mixture
-     M = Mixture(components = [NarX, NarX_sensor],
-                mechanisms = all_mechanisms,
-                parameter_file = "membrane_toolbox_parameters.txt")
+    M = Mixture(
+        components = [NarX, NarX_sensor],
+        mechanisms = all_mechanisms,
+        parameter_file = "mechanisms/transport_parameters.tsv") 
 
     #Compile the CRN and print
     CRN = E.compile_crn()
