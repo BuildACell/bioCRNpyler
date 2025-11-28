@@ -568,7 +568,9 @@ class TxTlExtract(Mixture):
         # Create default TxTl Mechanisms
         mech_tx = Transcription_MM(rnap=self.rnap.get_species())
         mech_tl = Translation_MM(ribosome=self.ribosome.get_species())
-        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(
+            nuclease=self.rnase.get_species(),
+            recursive_species_filtering=False)
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 
@@ -829,7 +831,9 @@ class EnergyTxTlExtract(Mixture):
                 [self.amino_acids.get_species()],
             wastes=4 * [self.adp.get_species()],
         )
-        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(
+            nuclease=self.rnase.get_species(),
+            recursive_species_filtering=False)
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 

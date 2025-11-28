@@ -9,7 +9,7 @@ mechanism	part_id	param_name	value	units	comments
 # Concentration using BioNumbers for E. coli, assuming volume of 1 um^3
 initial_condition	e_coli	RNAP	5	uM	~3,000 RNAP molecules (BioNumbers 106199)
 initial_condition	e_coli	Ribo	100	uM	~65,000 Ribosomes per cell (BioNumbers 108604)
-initial_condition	e_coli	RNAse	2.5	uM	~1,500 RNAse molecules (BioNumbers 111532)
+initial_condition	e_coli	RNase	2.5	uM	~1,500 RNase molecules (BioNumbers 111532)
 
 # Transcription and translation rates per unit of "activated" DNA
 transcription		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
@@ -37,6 +37,7 @@ initial_condition	e_coli	cellular_processes	5	uM	~3000 genes in E. coli assuming
 # For simplified gene expression model, we assume that DNA goes directly to
 # protein and so 'kexpress' captures the steady state production rate:
 #
+# TODO: CHECK!! (see extract_parameters.tsv)
 #
 # d[RNA]/dt = ktx * [DNA] - kdeg * [RNA] * [RNAse] - kdil * [RNA]
 # => [RNA]_ss = (ktx / (kdeg * [RNAse] + kdil)) * [DNA]

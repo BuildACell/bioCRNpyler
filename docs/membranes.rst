@@ -647,7 +647,7 @@ including the specification of its transport direction.
     # Create mixture
     M = Mixture(components=[glut1, glut1_channel],
         mechanisms=all_mechanisms,
-        parameter_file = "mechanisms/transport_parameters.tsv") 
+        parameter_file = "mechanisms/transport_parameters.tsv")
 
     # Compile the CRN and print
     CRN = M.compile_crn()
@@ -901,7 +901,7 @@ including the specification of its direction (e.g., 'Exporter').
     # Create mixture
     M = Mixture(components = [MsbA, MsbA_pump,],
         mechanisms = all_mechanisms,
-        parameter_file = "mechanisms/transport_parameters.tsv") 
+        parameter_file = "mechanisms/transport_parameters.tsv")
 
     # Compile the CRN and print
     CRN = M.compile_crn()
@@ -1166,7 +1166,7 @@ substrates.
     M = Mixture(
         components = [NarX, NarX_sensor],
         mechanisms = all_mechanisms,
-        parameter_file = "mechanisms/transport_parameters.tsv") 
+        parameter_file = "mechanisms/transport_parameters.tsv")
 
     #Compile the CRN and print
     CRN = E.compile_crn()
