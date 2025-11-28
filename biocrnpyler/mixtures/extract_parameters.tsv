@@ -99,7 +99,7 @@ translation		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
 
 # RNA degradation, based on E. coli (see cell_parameters.tsv)
 rna_degradation_mm		kdeg	1.3E-4	/sec	degradation rate of bound RNAase (half life of 2 min)
-rna_degradation		kdil	1.3E-4	/sec	implemented as 'dilution'
+rna_degradation		kdil	1.3E-4	/sec	implemented as 'dilution' for SimpleTxTlExtract
 rna_degradation_mm		kb	1	/sec/uM	binding of RNAase to RNA (fast)
 rna_degradation_mm		ku	1.25E-06	/sec	unbinding of RNAase to RNA (slow)
 

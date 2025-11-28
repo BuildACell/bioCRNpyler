@@ -14,7 +14,7 @@ class BasicPURE(Mixture):
 
     A mixture that models the PURE (Protein synthesis Using Recombinant
     Elements) reconstituted cell-free transcription-translation system with
-    explicit representation of RNA polymerase (RNAP), ribosomes, RNases, and
+    explicit representation of RNA polymerase (RNAP), ribosomes, and
     energy carrier molecules. This extract uses Michaelis-Menten kinetics
     with length-dependent fuel consumption to model realistic TX-TL
     energetics.
@@ -40,8 +40,6 @@ class BasicPURE(Mixture):
         Name for the RNA polymerase protein species.
     ribosome : str, default='Ribo'
         Name for the ribosome protein species.
-    rnase : str, default='RNase'
-        Name for the ribonuclease protein species.
     ntps : str, default='NTPs'
         Name for the nucleotide triphosphate species (lumped NTPs excluding
         ATP).
@@ -63,8 +61,6 @@ class BasicPURE(Mixture):
         RNA polymerase component.
     ribosome : Protein
         Ribosome component.
-    rnase : Protein
-        Ribonuclease component.
     ntps : Metabolite
         Nucleotide triphosphate metabolite component (excluding ATP).
     amino_acids : Metabolite
@@ -88,7 +84,6 @@ class BasicPURE(Mixture):
 
     - RNA polymerase (RNAP)
     - Ribosome
-    - Ribonuclease (RNase)
     - Amino acids (lumped)
     - NTPs (nucleotide triphosphates excluding ATP, lumped)
     - NDPs (nucleotide diphosphates, lumped)
@@ -100,8 +95,6 @@ class BasicPURE(Mixture):
       transcription with length-dependent ATP and NTP consumption
     - 'translation' : `Energy_Translation_MM` - Michaelis-Menten translation
       with length-dependent amino acid and ATP consumption
-    - 'rna_degradation' : `Degradation_mRNA_MM` - Global RNA degradation by
-      RNase using Michaelis-Menten kinetics
     - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
       catalysis for user-defined enzymatic reactions
     - 'binding' : `One_Step_Binding` - Simple multi-species binding for
@@ -115,7 +108,6 @@ class BasicPURE(Mixture):
     - Resource competition effects (genes compete for RNAP and ribosomes)
     - Resource depletion dynamics (ATP, NTPs, amino acids deplete)
     - Enzyme sequestration in complexes
-    - RNA degradation by RNase
     - Separate tracking of ATP vs other NTPs
     - Suitable for modeling batch-mode PURE reactions
 
@@ -178,7 +170,6 @@ class BasicPURE(Mixture):
         name='PURE',
         rnap='RNAP',
         ribosome='Ribo',
-        rnase='RNase',
         ntps='NTPs',
         ndps='NDPs',
         amino_acids='AAs',
@@ -193,7 +184,6 @@ class BasicPURE(Mixture):
         # create default Components to represent cellular machinery
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
-        self.rnase = Protein(rnase)
         self.ntps = Metabolite(ntps)
         self.amino_acids = Metabolite(amino_acids)
         self.fuel = Metabolite(fuel)
@@ -201,7 +191,6 @@ class BasicPURE(Mixture):
         default_components = [
             self.rnap,
             self.ribosome,
-            self.rnase,
             self.amino_acids,
             self.ntps,
             self.fuel,
@@ -211,26 +200,21 @@ class BasicPURE(Mixture):
         # Create default TX-TL Mechanisms
         mech_tx = Energy_Transcription_MM(
             rnap=self.rnap.get_species(),
-            fuels=[self.fuel.get_species()]  # TODO: one ATP per bp
-            + [self.ntps.get_species()],
+            fuels=[self.ntps.get_species()],
             wastes=[],
         )
         mech_tl = Energy_Translation_MM(
             ribosome=self.ribosome.get_species(),
-            fuels=4 * [self.fuel.get_species()]  # TODO: why 4 ATP per AA?
+            fuels=4 * [self.fuel.get_species()]
             + [self.amino_acids.get_species()],
             wastes=[],
         )
-        mech_rna_deg = Degradation_mRNA_MM(
-            nuclease=self.rnase.get_species()
-        )  # TODO: add fuel usage?
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,
             mech_tl.mechanism_type: mech_tl,
-            mech_rna_deg.mechanism_type: mech_rna_deg,
             mech_cat.mechanism_type: mech_cat,
             mech_bind.mechanism_type: mech_bind,
         }

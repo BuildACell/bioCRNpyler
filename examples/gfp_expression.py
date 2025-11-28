@@ -83,9 +83,9 @@ energy_res = energy_crn.simulate_with_bioscrape_via_sbml(
 #
 # Comparison of extract-based expression mixtures
 #
-
 plt.figure(1)
 plt.clf()
+
 plt.plot(timepts / min, expr_res['protein_GFP'] / uM, 'k', label='GFP, expr')
 plt.plot(timepts / min, simple_res['protein_GFP'] / uM, label='GFP, simple')
 plt.plot(timepts / min, regular_res['protein_GFP'] / uM, label='GFP, regular')
@@ -101,6 +101,7 @@ plt.legend()
 #
 plt.figure(2)
 plt.clf()
+
 plt.plot(timepts / min, simple_res['rna_gfp'] / uM, label='mRNA, simple')
 plt.plot(
     timepts/min,
@@ -119,9 +120,9 @@ plt.legend()
 #
 # Analysis of energy-based mixture
 #
-
 plt.figure(3)
 plt.clf()
+
 plt.plot(timepts / min, energy_res['metabolite_ATP'] / mM, 'b-', label='ATP')
 plt.plot(timepts / min, energy_res['metabolite_ADP'] / mM, 'b:', label='ADP')
 plt.plot(timepts / min, energy_res['metabolite_NTPs'] / mM, 'r', label='NTPs')
@@ -142,4 +143,109 @@ plt.plot(timepts / min, energy_res['protein_GFP'] / mM, 'g', label='GFP')
 plt.title("Resource Utilization: EnergyTxTlExtract")
 plt.xlabel("Time [min]")
 plt.ylabel("Concentration [mM]")
+plt.legend()
+
+#
+# Comparison of extract-based expression mixtures
+#
+plt.figure(4)
+plt.clf()
+
+cfp_initial_conditions = initial_conditions_dict
+cfp_initial_conditions['dna_cfp'] = 1*nM
+
+# Add some additional DNA that will utilize resources
+cfp_dna = bcp.DNAassembly(
+    name='cfp', promoter='pconst', rbs='rbs_strong', protein='CFP'
+)
+
+# Simple mixture should not be affected
+cfp_simple_mixture = bcp.SimpleTxTlExtract(
+    name='energy',
+    components=[gfp_dna, cfp_dna],
+    parameter_file=[
+        'mixtures/extract_parameters.tsv',
+    ],
+)
+cfp_simple_crn = cfp_simple_mixture.compile_crn()
+cfp_simple_res = cfp_simple_crn.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=cfp_initial_conditions
+)
+
+# Regular mixture should have lower expression, but not limits
+cfp_regular_mixture = bcp.TxTlExtract(
+    name='energy',
+    components=[gfp_dna, cfp_dna],
+    parameter_file=[
+        'mixtures/extract_parameters.tsv',
+    ],
+)
+cfp_regular_crn = cfp_regular_mixture.compile_crn()
+cfp_regular_res = cfp_regular_crn.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=cfp_initial_conditions
+)
+
+# Energy mixture should have lower expression, earlier saturation
+cfp_energy_mixture = bcp.EnergyTxTlExtract(
+    name='energy',
+    components=[gfp_dna, cfp_dna],
+    parameter_file=[
+        'mixtures/extract_parameters.tsv',
+    ],
+)
+cfp_energy_crn = cfp_energy_mixture.compile_crn()
+cfp_energy_res = cfp_energy_crn.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=cfp_initial_conditions
+)
+
+lines = plt.plot(
+    timepts / min, simple_res['protein_GFP'] / uM,
+    '--', label='GFP, simple')
+plt.plot(
+    timepts / min, cfp_simple_res['protein_GFP'] / uM,
+    color=lines[0].get_color(), label='GFP, simple w/ CFP')
+
+lines = plt.plot(
+    timepts / min, regular_res['protein_GFP'] / uM,
+    '--', label='GFP, regular')
+plt.plot(
+    timepts / min, cfp_regular_res['protein_GFP'] / uM,
+    color=lines[0].get_color(), label='GFP, regular w/ CFP')
+
+lines = plt.plot(
+    timepts / min, energy_res['protein_GFP'] / uM,
+    '--', label='GFP, energy')
+plt.plot(
+    timepts / min, cfp_energy_res['protein_GFP'] / uM,
+    color=lines[0].get_color(), label='GFP, energy w/ CFP')
+
+plt.title("Extract Mixture Comparisions w/ CFP")
+plt.xlabel("Time [min]")
+plt.ylabel("Concentration [uM]")
+plt.legend()
+
+#
+# Comparison with PURE
+#
+
+pure_mixture = bcp.BasicPURE(
+    name='regular',
+    components=[gfp_dna],
+    parameter_file=[
+        'mixtures/pure_parameters.tsv',
+    ],
+)
+pure_crn = pure_mixture.compile_crn()
+pure_res = pure_crn.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=initial_conditions_dict
+)
+
+plt.figure(5)
+plt.clf()
+plt.plot(timepts / min, energy_res['protein_GFP'] / uM, label='GFP, TX-TL')
+plt.plot(timepts / min, pure_res['protein_GFP'] / uM, label='GFP, PURE')
+
+plt.title("Mixture Comparisions - TX-TL vs PURE")
+plt.xlabel("Time [min]")
+plt.ylabel("Concentration [uM]")
 plt.legend()
