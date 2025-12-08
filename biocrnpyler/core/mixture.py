@@ -239,9 +239,9 @@ class Mixture(object):
             else:
                 species_list = species
 
-            assert all(
-                isinstance(x, Species) for x in species_list
-            ), 'only Species type is accepted!'
+            assert all(isinstance(x, Species) for x in species_list), (
+                'only Species type is accepted!'
+            )
 
             self.added_species += species_list
 

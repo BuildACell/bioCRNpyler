@@ -327,7 +327,7 @@ class SimpleTxTlExtract(Mixture):
     - 'translation' : `SimpleTranslation` - Simple catalytic
       translation (mRNA --> mRNA + Protein) without explicit ribosome binding
     - 'rna_degradation' : `Dilution` - Global RNA degradation mechanism
-      (mRNA --> ∅) applied to all RNA species
+      (mRNA --> {}) applied to all RNA species
     - 'catalysis' : `BasicCatalysis` - Simple catalytic reactions without
       explicit enzyme binding
     - 'binding' : `One_Step_Binding` - Simple multi-species binding

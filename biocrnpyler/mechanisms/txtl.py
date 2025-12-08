@@ -12,7 +12,7 @@ from .enzyme import MichaelisMentenCopy
 
 
 class OneStepGeneExpression(Mechanism):
-    """Single-step gene expression mechanism without explicit TX-TL steps.
+    r"""Single-step gene expression mechanism without explicit TX-TL steps.
 
     A 'transcription' mechanism that models gene expression as a single
     direct reaction from DNA to protein, without explicitly modeling
@@ -22,7 +22,7 @@ class OneStepGeneExpression(Mechanism):
 
     The reaction follows the schema:
 
-    G --> G + P
+        $$ 'G' --> 'G' + 'P' $$
 
     where G is the gene (DNA) and P is the protein product.
 
@@ -135,7 +135,7 @@ class OneStepGeneExpression(Mechanism):
         part_id=None,
         **kwargs,
     ):
-        """Generate reactions for one-step gene expression.
+        r"""Generate reactions for one-step gene expression.
 
         Creates a single mass-action reaction representing direct gene
         expression from DNA to protein without intermediate transcript.
@@ -177,7 +177,7 @@ class OneStepGeneExpression(Mechanism):
         -----
         The reaction has the form:
 
-        DNA --> DNA + Protein (rate: 'kexpress')
+            $$ 'DNA' --> 'DNA' + 'Protein' \quad ('rate' = 'kexpress') $$
 
         The DNA is catalytic and appears on both sides of the reaction.
 
@@ -200,7 +200,7 @@ class OneStepGeneExpression(Mechanism):
 
 
 class SimpleTranscription(Mechanism):
-    """Simple catalytic transcription mechanism.
+    r"""Simple catalytic transcription mechanism.
 
     A 'transcription' mechanism that models transcription as a single
     catalytic reaction where DNA directly produces mRNA without explicitly
@@ -210,7 +210,7 @@ class SimpleTranscription(Mechanism):
 
     The reaction follows the schema:
 
-    G --> G + T
+        $$ 'G' --> 'G' + 'T' $$
 
     where G is the gene (DNA) and T is the transcript (mRNA).
 
@@ -405,7 +405,7 @@ class SimpleTranscription(Mechanism):
 
 
 class SimpleTranslation(Mechanism):
-    """Simple catalytic translation mechanism.
+    r"""Simple catalytic translation mechanism.
 
     A 'translation' mechanism that models translation as a single catalytic
     reaction where mRNA directly produces protein without explicitly modeling
@@ -414,7 +414,7 @@ class SimpleTranslation(Mechanism):
 
     The reaction follows the schema:
 
-    T --> T + P
+        $$ 'T' --> 'T' + 'P' $$
 
     where T is the transcript (mRNA) and P is the protein.
 
@@ -528,7 +528,7 @@ class SimpleTranslation(Mechanism):
         protein=None,
         **kwargs,
     ):
-        """Generate reactions for simple translation.
+        r"""Generate reactions for simple translation.
 
         Creates a single mass-action reaction representing translation from
         mRNA to protein.
@@ -566,7 +566,7 @@ class SimpleTranslation(Mechanism):
         -----
         The reaction has the form:
 
-        mRNA --> mRNA + Protein (rate: 'ktl')
+            $$ 'mRNA' --> 'mRNA' + 'Protein' \quad ('rate' = 'ktl') $$
 
         The mRNA is catalytic and appears on both sides of the reaction. If
         transcript is None (only occurs in mixtures without transcription),
@@ -597,7 +597,7 @@ class SimpleTranslation(Mechanism):
 
 
 class PositiveHillTranscription(Mechanism):
-    """Transcription regulated by positive Hill function (activation).
+    r"""Transcription regulated by positive Hill function (activation).
 
     A 'transcription' mechanism that models transcriptional activation using
     a proportional positive Hill function. The transcription rate increases
@@ -606,13 +606,13 @@ class PositiveHillTranscription(Mechanism):
 
     The reaction follows the schema:
 
-    G --> G + T
+        $$ 'G' --> 'G' + 'T' $$
 
     with rate:
 
-    rate = k * G * (R^n) / (K + R^n)
+        $$ 'rate' = k [G] \frac{[R]^n}{K + [R]^n}$$
 
-    where R is the regulator (activator), n is the Hill coefficient, and K
+    where R is the regulator (activator), $n$ is the Hill coefficient, and $K$
     is the activation constant. Optionally includes a basal leak reaction at
     rate 'kleak'.
 
@@ -753,7 +753,7 @@ class PositiveHillTranscription(Mechanism):
         protein=None,
         **kwargs,
     ):
-        """Generate reactions for positive Hill transcription.
+        r"""Generate reactions for positive Hill transcription.
 
         Creates regulated transcription reaction(s) using a proportional
         positive Hill function, with optional basal leak reaction.
@@ -797,13 +797,13 @@ class PositiveHillTranscription(Mechanism):
         Notes
         -----
         The regulated reaction uses ProportionalHillPositive propensity:
+        $$
+          'DNA' --> 'DNA' + 'Product' \quad ('rate' = k [G] [R]^n/(K + [R]^n))
+        $$
+        where Product is either transcript or protein depending on mixture
+        type. If `leak=True`, adds:
 
-        DNA --> DNA + Product (rate: k * G * R^n / (K + R^n))
-
-        Where Product is either transcript or protein depending on mixture
-        type. If leak=True, adds:
-
-        DNA --> DNA + Product (rate: 'kleak')
+          $$ 'DNA' --> 'DNA' + 'Product' \quad ('rate' = 'kleak') $$
 
         """
         ktx = component.get_parameter('k', part_id=part_id, mechanism=self)
@@ -846,7 +846,7 @@ class PositiveHillTranscription(Mechanism):
 
 
 class NegativeHillTranscription(Mechanism):
-    """Transcription regulated by negative Hill function (repression).
+    r"""Transcription regulated by negative Hill function (repression).
 
     A 'transcription' mechanism that models transcriptional repression using
     a proportional negative Hill function. The transcription rate decreases
@@ -855,13 +855,13 @@ class NegativeHillTranscription(Mechanism):
 
     The reaction follows the schema:
 
-    G --> G + T
+        $$ 'G' --> 'G' + 'T' $$
 
-    with rate:
+    with rate
 
-    rate = k * G * 1 / (K + R^n)
+        $$ 'rate' = k * [G] * \frac{1}{K + [R]^n} $$
 
-    where R is the regulator (repressor), n is the Hill coefficient, and K
+    where R is the regulator (repressor), $n$ is the Hill coefficient, and $K$
     is the repression constant. Optionally includes a basal leak reaction at
     rate 'kleak'.
 
@@ -1000,7 +1000,7 @@ class NegativeHillTranscription(Mechanism):
         protein=None,
         **kwargs,
     ):
-        """Generate reactions for negative Hill transcription.
+        r"""Generate reactions for negative Hill transcription.
 
         Creates regulated transcription reaction(s) using a proportional
         negative Hill function, with optional basal leak reaction.
@@ -1034,10 +1034,13 @@ class NegativeHillTranscription(Mechanism):
         Notes
         -----
         The regulated reaction uses ProportionalHillNegative propensity:
-
-        DNA --> DNA + Product (rate: k * G / (K + R^n))
-
-        If leak=True, adds: DNA --> DNA + Product (rate: 'kleak')
+        $$
+            'DNA' --> 'DNA' + 'Product' \quad ('rate' = k [G] / (K + [R]^n))
+        $$
+        If leak=True, adds:
+        $$
+            'DNA' --> 'DNA' + 'Product' \quad (rate = 'kleak')
+        $$
 
         """
         ktx = component.get_parameter('k', part_id=part_id, mechanism=self)
@@ -1080,7 +1083,7 @@ class NegativeHillTranscription(Mechanism):
 
 
 class Transcription_MM(MichaelisMentenCopy):
-    """Michaelis-Menten transcription with explicit RNA polymerase.
+    r"""Michaelis-Menten transcription with explicit RNA polymerase.
 
     A 'transcription' mechanism that explicitly models RNA polymerase (RNAP)
     binding to DNA, followed by transcription and release. This mechanism
@@ -1090,7 +1093,7 @@ class Transcription_MM(MichaelisMentenCopy):
 
     The reaction follows the schema:
 
-    G + RNAP <--> G:RNAP --> G + RNAP + mRNA
+        $$ 'G' + 'RNAP' <--> 'G':'RNAP' --> 'G' + 'RNAP' + 'mRNA' $$
 
     Parameters
     ----------
@@ -1295,7 +1298,7 @@ class Transcription_MM(MichaelisMentenCopy):
 
 
 class Translation_MM(MichaelisMentenCopy):
-    """Michaelis-Menten translation with explicit ribosome.
+    r"""Michaelis-Menten translation with explicit ribosome.
 
     A 'translation' mechanism that explicitly models ribosome binding to
     mRNA, followed by translation and release. This mechanism follows
@@ -1303,8 +1306,9 @@ class Translation_MM(MichaelisMentenCopy):
     or when explicit modeling of ribosome-mRNA interactions is needed.
 
     The reaction follows the schema:
-
-        mRNA + Rib <--> mRNA:Rib --> mRNA + Rib + Protein
+    $$
+        'mRNA' + 'Ribo' <--> 'mRNA':'Ribo' --> 'mRNA' + 'Ribo' + 'Protein'
+    $$
 
     Parameters
     ----------
@@ -1509,7 +1513,7 @@ class Translation_MM(MichaelisMentenCopy):
 
 
 class Energy_Transcription_MM(Mechanism):
-    """Michaelis-Menten transcription with explicit energy consumption.
+    r"""Michaelis-Menten transcription with explicit energy consumption.
 
     A 'transcription' mechanism that models transcription with explicit
     consumption of energy sources (fuel species like NTPs) and production of
@@ -1518,10 +1522,11 @@ class Energy_Transcription_MM(Mechanism):
     energetics.
 
     The reaction follows the schema:
-
-    G + RNAP <--> G:RNAP
-    Fuel + G:RNAP --> G + RNAP + T
-    Fuel + G:RNAP --> G:RNAP + wastes
+    $$
+        & 'G' + 'RNAP' <--> 'G':'RNAP' \\
+        & 'Fuel' + 'G':'RNAP' --> 'G' + 'RNAP' + 'T' \\
+        & 'Fuel' + 'G':'RNAP' --> 'G':'RNAP' + 'wastes'
+    $$
 
     Transcription occurs at rate 'ktx' / L (length-dependent), while fuel
     consumption occurs at rate 'ktx', resulting in L times more fuel
@@ -1725,7 +1730,7 @@ class Energy_Transcription_MM(Mechanism):
 
         1. DNA + RNAP <--> DNA:RNAP (rates: 'kb' and 'ku')
         2. Fuel + DNA:RNAP --> Fuel + DNA + RNAP + mRNA (rate: 'ktx' / L)
-        3. Fuel + DNA:RNAP --> DNA:RNAP + Wastes (rate: 'ktx')
+        3. Fuel + DNA:RNAP --> DNA:RNAP + wastes (rate: 'ktx')
 
         The length-dependent transcription rate ('ktx' / L) ensures that L
         times more fuel is consumed than transcripts produced, reflecting the
@@ -1764,7 +1769,7 @@ class Energy_Transcription_MM(Mechanism):
 
 
 class Energy_Translation_MM(Mechanism):
-    """Michaelis-Menten translation with explicit energy consumption.
+    r"""Michaelis-Menten translation with explicit energy consumption.
 
     A 'translation' mechanism that models translation with explicit
     consumption of energy sources (fuel species like amino acids/NTPs) and
@@ -1773,11 +1778,11 @@ class Energy_Translation_MM(Mechanism):
     energetics.
 
     The reaction follows the schema:
-
-    mRNA + Rib <--> mRNA:Rib
-    Fuel + mRNA:Rib --> mRNA + Rib + Protein + Fuel
-    Fuel + mRNA:Rib --> mRNA:Rib + wastes
-
+    $$
+        & 'mRNA' + 'Ribo' <--> 'mRNA':'Ribo' \\
+        & 'Fuel' + 'mRNA':'Ribo' --> 'mRNA' + 'Ribo' + 'Protein' + 'Fuel' \\
+        & 'Fuel' + 'mRNA':'Ribo' --> 'mRNA':'Ribo' + 'wastes'
+    $$
     Translation occurs at rate 'ktl' / L (length-dependent), while fuel
     consumption occurs at rate 'ktl', resulting in L times more fuel
     consumption than proteins produced.
@@ -2014,7 +2019,7 @@ class Energy_Translation_MM(Mechanism):
 
 
 class multi_tx(Mechanism):
-    """Multi-polymerase transcription with isomerization and occupancy.
+    r"""Multi-polymerase transcription with isomerization and occupancy.
 
     A 'transcription' mechanism that explicitly models multiple RNA
     polymerases (RNAPs) binding to a single gene simultaneously, accounting
@@ -2023,16 +2028,19 @@ class multi_tx(Mechanism):
     transcriptional queueing and interference effects.
 
     The reaction scheme follows:
-        DNA:RNAp_n + RNAp <--> DNA:RNAp_n_c --> DNA:RNAp_n+1
-        DNA:RNAp_n --> DNA:RNAp_0 + n RNAp + n mRNA
-        DNA:RNAp_n_c --> DNA:RNAp_0_c + n RNAp + n mRNA
-
+    $$
+        & 'DNA':'RNAP'_n + 'RNAP' <--> 'DNA':'RNAP'_{n_c}
+            --> 'DNA':'RNAP'_{n+1} \\
+        & 'DNA':'RNAP'_n --> 'DNA':'RNAP'_0 + n 'RNAP' + n 'mRNA' \\
+        & 'DNA':'RNAP'_{n_c} --> 'DNA':'RNAP'_{0_c} + n 'RNAP' + n 'mRNA'
+    $$
     where:
 
-    - n = {0, 1, ..., max_occ} is the number of polymerases
+    - $n$ = {0, 1, ..., max_occ} is the number of polymerases
     - max_occ is the physical maximum based on RNAP and DNA dimensions
-    - DNA:RNAp_n represents DNA with n open configuration RNAPs
-    - DNA:RNAp_n_c represents DNA with n open RNAPs and 1 closed RNAP
+    - $'DNA':'RNAP'_n$ represents DNA with $n$ open configuration RNAPs
+    - $'DNA':'RNAP'_{n_c}$ represents DNA with $n$ open RNAPs and 1 closed
+      RNAP
 
     Parameters
     ----------
@@ -2165,11 +2173,11 @@ class multi_tx(Mechanism):
 
         Notes
         -----
-        For each occupancy level n from 0 to max_occ-1, two complex species
+        For each occupancy level $n$ from 0 to max_occ-1, two complex species
         are created:
 
-        - Open configuration: DNA with n+1 polymerases, all in open state
-        - Closed configuration: DNA with n+1 polymerases (n open, 1 closed)
+        - Open configuration: DNA with $n+1$ polymerases, all in open state
+        - Closed configuration: DNA with $n+1$ polymerases (n open, 1 closed)
 
         The 'max_occ' parameter determines the maximum number of polymerases
         that can occupy the gene simultaneously, typically based on physical
@@ -2234,25 +2242,26 @@ class multi_tx(Mechanism):
         list of Reaction
             List of reactions including:
 
-            - Polymerase binding reactions (DNA:RNAP_n + RNAP <-->
-              DNA:RNAP_n_c)
-            - Isomerization reactions (DNA:RNAP_n_c --> DNA:RNAP_n)
-            - Release reactions from open states (DNA:RNAP_n --> DNA + n*RNAP
-              + n*mRNA)
-            - Release reactions from closed states (DNA:RNAP_n_c -->
-              DNA:RNAP_0_c + n*RNAP + n*mRNA)
-            - Base binding reaction (DNA + RNAP <--> DNA:RNAP_0_c)
+            - Polymerase binding reactions
+              (DNA:RNAP$_n$ + RNAP <--> DNA:RNAP$_{n_c}$)
+            - Isomerization reactions (DNA:RNAP$_{n_c}$ --> $DNA:RNAP$_n$)
+            - Release reactions from open states
+              (DNA:RNAP$_n$ --> DNA + $n$ RNAP + $n$ mRNA)
+            - Release reactions from closed states
+              (DNA:RNAP$_{n_c}$ --> DNA:RNAP$_{0_c}$ + $n$ RNAP + $n$ mRNA)
+            - Base binding reaction (DNA + RNAP <--> DNA:RNAP$_{0_c}$)
 
         Notes
         -----
         The reaction scheme captures:
 
-        1. DNA:RNAP_n + RNAP <--> DNA:RNAP_(n+1)_c (rates: 'kb', 'ku')
-        2. DNA:RNAP_n_c --> DNA:RNAP_n (rate: 'k_iso')
-        3. DNA:RNAP_n --> DNA + n*RNAP + n*mRNA (rate: 'ktx')
-        4. DNA:RNAP_n_c --> DNA:RNAP_0_c + n*RNAP + n*mRNA (rate: 'ktx')
+        1. DNA:RNAP$_n$ + RNAP <--> DNA:RNAP$_{(n+1)_c}$ (rates: 'kb', 'ku')
+        2. DNA:RNAP$_{n_c}$ --> DNA:RNAP$_n$ (rate: 'k_iso')
+        3. DNA:RNAP$_n$ --> DNA + $n$ RNAP + $n$ mRNA (rate: 'ktx')
+        4. DNA:RNAP$_{n_c}$ --> DNA:RNAP$_{0_c}$ + $n$ RNAP + $n$ mRNA
+           (rate: 'ktx')
 
-        Where n ranges from 0 to max_occ-1. The 'max_occ' parameter
+        Where $n$ ranges from 0 to max_occ-1. The 'max_occ' parameter
         represents the physical maximum occupancy of polymerases on the gene.
 
         """
@@ -2361,7 +2370,7 @@ class multi_tx(Mechanism):
 
 
 class multi_tl(Mechanism):
-    """Multi-ribosome translation with isomerization and occupancy.
+    r"""Multi-ribosome translation with isomerization and occupancy.
 
     A 'translation' mechanism that explicitly models multiple ribosomes
     binding to a single mRNA simultaneously, accounting for ribosome spacing,
@@ -2370,16 +2379,18 @@ class multi_tl(Mechanism):
     ribosome traffic effects.
 
     The reaction scheme follows:
-        mRNA:RBZ_n + RBZ <--> mRNA:RBZ_n_c --> mRNA:RBZ_n+1
-        mRNA:RBZ_n --> mRNA:RBZ_0 + n RBZ + n Protein
-        mRNA:RBZ_n_c --> mRNA:RBZ_0_c + n RBZ + n Protein
-
+    $$
+        & 'mRNA':'RBZ'_n + 'RBZ' <--> 'mRNA':'RBZ'_{n_c}
+            --> 'mRNA':'RBZ'_{n+1} \\
+        & 'mRNA':'RBZ'_n --> 'mRNA':'RBZ'_0 + n 'RBZ' + n 'Protein' \\
+        & 'mRNA':'RBZ'_{n_c} --> 'mRNA':'RBZ'_{0_c} + n 'RBZ' + n 'Protein'
+    $$
     where:
 
-    - n = {0, 1, ..., max_occ} is the number of ribosomes
+    - $n$ = {0, 1, ..., max_occ} is the number of ribosomes
     - max_occ is the physical maximum based on ribosome and mRNA dimensions
-    - mRNA:RBZ_n represents mRNA with n open configuration ribosomes
-    - mRNA:RBZ_n_c represents mRNA with n open and 1 closed ribosome
+    - mRNA:RBZ$_n$ represents mRNA with $n$ open configuration ribosomes
+    - mRNA:RBZ$_{n_c}$ represents mRNA with $n$ open and 1 closed ribosome
 
     Parameters
     ----------
@@ -2515,7 +2526,7 @@ class multi_tl(Mechanism):
 
         Notes
         -----
-        For each occupancy level n from 0 to max_occ-1, two complex species
+        For each occupancy level $n$ from 0 to max_occ-1, two complex species
         are created:
 
         - Open configuration: mRNA with n+1 ribosomes, all in open state
@@ -2582,25 +2593,26 @@ class multi_tl(Mechanism):
         list of Reaction
             List of reactions including:
 
-            - Ribosome binding reactions (mRNA:RBZ_n + RBZ <-->
-              mRNA:RBZ_n_c)
-            - Isomerization reactions (mRNA:RBZ_n_c --> mRNA:RBZ_n)
-            - Release reactions from open states (mRNA:RBZ_n --> mRNA + n*RBZ
-              + n*Protein)
-            - Release reactions from closed states (mRNA:RBZ_n_c -->
-              mRNA:RBZ_0_c + n*RBZ + n*Protein)
-            - Base binding reaction (mRNA + RBZ <--> mRNA:RBZ_0_c)
+            - Ribosome binding reactions (mRNA:RBZ$_n$ + RBZ <-->
+              mRNA:RBZ$_{n_c}$)
+            - Isomerization reactions (mRNA:RBZ$_{n_c}$ --> mRNA:RBZ$_n$)
+            - Release reactions from open states (mRNA:RBZ$_n$ --> mRNA +
+              $n$ RBZ + $n$ Protein)
+            - Release reactions from closed states (mRNA:RBZ$_{n_c}$ -->
+              mRNA:RBZ$_{0_c}$ + $n$ RBZ + $n$ Protein)
+            - Base binding reaction (mRNA + RBZ <--> mRNA:RBZ$_{0_c}$)
 
         Notes
         -----
         The reaction scheme captures:
 
-        1. mRNA:RBZ_n + RBZ <--> mRNA:RBZ_(n+1)_c (rates: 'kb', 'ku')
-        2. mRNA:RBZ_n_c --> mRNA:RBZ_n (rate: 'k_iso')
-        3. mRNA:RBZ_n --> mRNA + n*RBZ + n*Protein (rate: 'ktl')
-        4. mRNA:RBZ_n_c --> mRNA:RBZ_0_c + n*RBZ + n*Protein (rate: 'ktl')
+        1. mRNA:RBZ$_n$ + RBZ <--> mRNA:RBZ_${(n+1)_c}$ (rates: 'kb', 'ku')
+        2. mRNA:RBZ$_{n_c}$ --> mRNA:RBZ$_n$ (rate: 'k_iso')
+        3. mRNA:RBZ$_n$ --> mRNA + $n$ RBZ + $n$ Protein (rate: 'ktl')
+        4. mRNA:RBZ$_{n_c}$ --> mRNA:RBZ$_{0_c}$ + $n$ RBZ + $n$ Protein
+           (rate: 'ktl')
 
-        Where n ranges from 0 to max_occ-1. The 'max_occ' parameter
+        Where $n$ ranges from 0 to max_occ-1. The 'max_occ' parameter
         represents the physical maximum occupancy of ribosomes on the mRNA,
         determined by ribosome spacing and mRNA length.
 

@@ -6,38 +6,37 @@
 Mixtures
 ********
 
-A Mixture in BioCRNpyler defines the *context* in which Components are 
-compiled into a chemical reaction network (CRN). While 
-:ref:`components<components_ref>` describe *what* biomolecular parts are 
-present, and :ref:`mechanisms<mechanisms_ref>` define *how* biological 
-processes are modeled, the Mixture ties these together by specifying *which* 
-Mechanisms are available, *which* Components are present, and *what* 
-parameters to use.
+A mixture in BioCRNpyler defines the *context* in which components are
+compiled into a chemical reaction network (CRN). While
+:ref:`components<components_ref>` describe *what* biomolecular parts are
+present, and :ref:`mechanisms<mechanisms_ref>` define *how* biological
+processes are modeled, the mixture ties these together by specifying
+*which* Mechanisms are available, *which* components are present, and
+*what* parameters to use.
 
-This separation of design from context is central to BioCRNpyler's 
-flexibility. The same set of Components can be compiled in different 
-Mixtures to produce models with varying levels of detail, different 
-kinetic assumptions, or different biological environments (e.g. cell-free 
-extract vs. in vivo).
+This separation of design from context is central to BioCRNpyler's
+flexibility. The same set of components can be compiled in different
+mixtures to produce models with varying levels of detail, different kinetic
+assumptions, or different biological environments (e.g. cell-free extract
+vs. in vivo).
 
 Defining and Using Mixtures
 ----------------------------
 
-A Mixture is defined by specifying:
+A mixture is defined by specifying:
 
 - A `name` identifying the modeling context.
-- A list of Components to include.
-- A dictionary of Mechanisms to make available during compilation.
-- A parameter database shared by all Components and Mechanisms.
+- A list of components to include.
+- A dictionary of mechanisms to make available during compilation.
+- A parameter database shared by all components and mechanisms.
 
-During compilation, each Component in the Mixture calls the relevant 
-Mechanisms to generate its species and reactions. The Mixture ensures 
-consistent parameter handling, mechanism availability, and naming 
+During compilation, each component in the mixture calls the relevant
+Mechanisms to generate its species and reactions. The mixture ensures
+consistent parameter handling, mechanism availability, and naming
 conventions across the entire model.
 
-For example, a simple cell-free system might include transcription and 
-translation Mechanisms, along with Components representing DNA 
-assemblies:
+For example, a simple cell-free system might include transcription and
+translation mechanisms, along with components representing DNA assemblies:
 
 ::
 
@@ -60,21 +59,20 @@ assemblies:
         }
     )
 
-When compiled, this Mixture will automatically generate all species and 
-reactions needed to model gene expression under the specified 
-assumptions.
+When compiled, this mixture will automatically generate all species and
+reactions needed to model gene expression under the specified assumptions.
 
 Controlling Model Detail
 -------------------------
 
-One of the most powerful features of Mixtures is that they determine 
-*model resolution*. By changing which Mechanisms are included, you 
-can quickly shift between simplified and detailed representations 
-without changing your Components.
+One of the most powerful features of mixtures is that they determine *model
+resolution*. By changing which mechanisms are included, you can quickly
+shift between simplified and detailed representations without changing your
+components.
 
-For example, you can define gene expression in two ways depending on 
-the Mechanisms you supply in the Mixture. A very simple model might 
-use a single combined mechanism:
+For example, you can define gene expression in two ways depending on the
+mechanisms you supply in the mixture. A very simple model might use a
+single combined mechanism:
 
 ::
 
@@ -82,7 +80,7 @@ use a single combined mechanism:
         name='simple_expression',
         mechanisms={
             'transcription': OneStepGeneExpression(),
-	    'translation`: EmptyMechanism()
+	    'translation': EmptyMechanism()
         }
     )
 
@@ -92,7 +90,7 @@ This would generate a one-step reaction:
 
    DNA \rightarrow DNA + Protein
 
-For more detail, you can use separate Mechanisms to model transcription,  
+For more detail, you can use separate mechanisms to model transcription,
 translation, mRNA degradation, protein degradation, and dilution:
 
 ::
@@ -108,32 +106,31 @@ translation, mRNA degradation, protein degradation, and dilution:
         }
     )
 
-This approach models RNA explicitly, includes degradation pathways,  
-and accounts for loss due to cell growth and division.
+This approach models RNA explicitly, includes degradation pathways, and
+accounts for loss due to cell growth and division.
 
 Parameters and Defaults
 ------------------------
 
-Mixtures also manage model parameters, providing a central database 
-that Components and Mechanisms can query during compilation. This 
-parameter database stores values such as rate constants, Hill 
-coefficients, or binding affinities in a structured way.
+Mixtures also manage model parameters, providing a central database that
+components and mechanisms can query during compilation. This parameter
+database stores values such as rate constants, Hill coefficients, or
+binding affinities in a structured way.
 
-Parameters in BioCRNpyler are identified by *ParameterKeys*, which 
-specify:
+Parameters in BioCRNpyler are identified by *ParameterKeys*, which specify:
 
-- The Mechanism type (e.g. 'transcription', 'translation')
+- The mechanism type (e.g. 'transcription', 'translation')
 - The parameter name (e.g. 'k', 'K', 'n')
-- The Component name or part name (optional for specificity)
+- The component name or part name (optional for specificity)
 
-When a Mechanism needs a parameter value during compilation, BioCRNpyler 
-uses a defaulting hierarchy to search the parameter database. The search 
-tries to find the most specific match first, falling back to more general 
-entries if needed. This allows you to define highly specific parameters 
-for a single Component, as well as broad defaults that apply across the 
-entire model.
+When a mechanism needs a parameter value during compilation, BioCRNpyler
+uses a defaulting hierarchy to search the parameter database. The search
+tries to find the most specific match first, falling back to more general
+entries if needed. This allows you to define highly specific parameters for
+a single component, as well as broad defaults that apply across the entire
+model.
 
-For example, suppose you define the following parameters in a Mixture:
+For example, suppose you define the following parameters in a mixture:
 
 ::
 
@@ -145,13 +142,13 @@ For example, suppose you define the following parameters in a Mixture:
 
 Here:
 
-- The rate 0.2 will be used for transcription of the 'GFP_expression' 
-  Component specifically.
-- The rate 0.1 will be used for any other transcription Component 
+- The rate 0.2 will be used for transcription of the 'GFP_expression'
+  component specifically.
+- The rate 0.1 will be used for any other transcription component
   without its own specific value.
-- The translation rate is 0.5 for all translation Mechanisms.
+- The translation rate is 0.5 for all translation mechanisms.
 
-You can supply this database when defining the Mixture:
+You can supply this database when defining the mixture:
 
 ::
 
@@ -165,51 +162,52 @@ You can supply this database when defining the Mixture:
         parameters=params
     )
 
-Additionally, Components can have their own local parameter databases, 
-which override the Mixture's parameters for that specific Component. 
-This design lets you easily manage complex parameter sets while 
-maintaining clear, reusable defaults across the entire model.
+Additionally, components can have their own local parameter databases,
+which override the mixture's parameters for that specific component.  This
+design lets you easily manage complex parameter sets while maintaining
+clear, reusable defaults across the entire model.
 
 Predefined Mixtures
 --------------------
 
-BioCRNpyler includes several predefined Mixture classes designed to 
-represent common experimental contexts. These Mixtures come with 
-appropriate Mechanisms, Components, and default parameters already 
-configured, making it easy to set up standard modeling scenarios 
-quickly. Users can either use these as-is or subclass them to create 
-custom variations.
+BioCRNpyler includes several predefined mixture classes designed to
+represent common experimental contexts. These mixtures come with
+appropriate mechanisms, components, and default parameters already
+configured, making it easy to set up standard modeling scenarios
+quickly. Users can either use these as-is or subclass them to create custom
+variations.
 
 Extract-Based Mixtures
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Extract-based Mixtures are designed to model cell-free transcription-
-translation (TX-TL) systems, such as in vitro expression reactions. 
-These environments lack the complexity of living cells but are widely 
-used for prototyping circuits and parts. Extract Mixtures typically 
-include gene expression Mechanisms, global dilution or degradation, 
-and suitable parameter sets.
+Extract-based mixtures are designed to model cell-free transcription-
+translation (TX-TL) systems, such as in vitro expression reactions.  These
+environments lack the complexity of living cells but are widely used for
+prototyping circuits and parts. Extract mixtures typically include gene
+expression mechanisms, global dilution or degradation, and suitable
+parameter sets.
 
-BioCRNpyler includes several extract-based Mixture classes:
+BioCRNpyler includes several extract-based mixture classes:
 
-- `Extract`: A flexible base class for defining extract systems.
-- `SimpleExtract`: Uses OneStepGeneExpression for very simple models 
-  where transcription and translation are collapsed into a single step.
-- `ExpressionExtract`: Includes separate transcription and translation 
-  Mechanisms to explicitly model mRNA as an intermediate.
-- `CombinatorialExtract`: Supports combinatorial assembly of DNA 
-  parts and dynamic generation of components through enumeration.
+- `~mixtures.ExpressionExtract`: Uses `~mechanisms.OneStepGeneExpression`
+  for very simple models where transcription and translation are collapsed
+  into a single step.
 
-For example, you can create a simple extract-based Mixture in code as:
+- `~mixtures.SimpleTxTlExtract`: Includes separate transcription and
+  translation mechanisms to explicitly model mRNA as an intermediate.
 
-::
+- `~mixtures.EnergyTxTlExtract`: Models transcription and translation with
+  explicit representation of RNA polymerase (RNAP), ribosomes, RNases,
+  and energy carrier molecules.
 
-    extract_mixture = SimpleExtract(
+For example, you can create a simple extract-based mixture in code as::
+
+    extract_mixture = ExpressionExtract(
         name='cell_free_extract',
         components=[dna_part]
     )
 
-This Mixture typically includes the following Mechanisms:
+This mixture typically includes the following mechanisms:
 
 +----------------+----------------------------------------+
 | Mechanism Type | Description                            |
@@ -221,71 +219,79 @@ This Mixture typically includes the following Mechanisms:
 |                | cell-free extract degradation or decay |
 +----------------+----------------------------------------+
 
-During compilation, it will find all DNA species in the model and
-generate protein production reactions for them automatically.    
-
-This Mixture automatically includes the OneStepGeneExpression Mechanism 
-for all DNA Components, a global dilution Mechanism to model loss over 
-time, and a parameter database appropriate for cell-free systems. During 
-compilation, it will find all DNA species in the model and generate 
+During compilation, it will find all DNA species in the model and generate
 protein production reactions for them automatically.
 
-You can also create an extract-based Mixture with
-separate transcription and translation Mechanisms using
+This mixture automatically includes the OneStepGeneExpression mechanism for
+all DNA components, a global dilution mechanism to model loss over time,
+and a parameter database appropriate for cell-free systems. During
+compilation, it will find all DNA species in the model and generate protein
+production reactions for them automatically.
+
+You can also create an extract-based mixture with
+separate transcription and translation mechanisms using
 ExpressionExtract::
 
-    extract_mixture = ExpressionExtract(
+    extract_mixture = SimpleTxTl(
         name='cell_free_expression',
         components=[dna_part]
+	parameter_file='mixtures/extract_parameters.tsv'
     )
-    
-This Mixture includes the following Mechanisms:
 
-+----------------+------------------------------------------+
-| Mechanism Type | Description                              |
-+================+==========================================+
-| transcription  | SimpleTranscription Mechanism generating |
-|                | mRNA from DNA                            |
-+----------------+------------------------------------------+
-| translation    | SimpleTranslation Mechanism producing    |
-|                | protein from mRNA                        |
-+----------------+------------------------------------------+
-| dilution       | Global mechanism modeling loss due to    |
-|                | extract degradation or decay             |
-+----------------+------------------------------------------+
+This mixture includes the following mechanisms:
 
-During compilation, this Mixture will create mRNA intermediates and
++----------------+-------------------------------------------+
+| Mechanism Type | Description                               |
++================+===========================================+
+| transcription  | Simple transcription mechanism generating |
+|                | mRNA from DNA                             |
++----------------+-------------------------------------------+
+| translation    | Simple translation mechanism producing    |
+|                | protein from mRNA                         |
++----------------+-------------------------------------------+
+| dilution       | Global mechanism modeling loss due to     |
+|                | extract degradation or decay              |
++----------------+-------------------------------------------+
+
+During compilation, this mixture will create mRNA intermediates and
 model gene expression as two sequential steps, allowing more detailed
 exploration of transcriptional and translational dynamics.
 
-Extract-based Mixtures make it easy to move between simple and detailed 
-cell-free models simply by swapping which Mixture subclass you use. This 
-modular approach is ideal for exploring different levels of model 
-complexity without changing your Component definitions.
+Extract-based mixtures make it easy to move between simple and detailed
+cell-free models simply by swapping which mixture subclass you use. This
+modular approach is ideal for exploring different levels of model
+complexity without changing your component definitions.
 
 Cell-Based Mixtures
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
-Cell-based Mixtures in BioCRNpyler are designed to model gene 
-expression in living cells, capturing features like transcription 
-and translation, RNA and protein degradation, and dilution due to 
-cell growth and division. These Mixtures configure Mechanisms and 
-parameters reflecting typical in vivo environments.
+Cell-based mixtures in BioCRNpyler are designed to model gene expression in
+living cells, capturing features like transcription and translation, RNA
+and protein degradation, and dilution due to cell growth and
+division. These mixtures configure mechanisms and parameters reflecting
+typical in vivo environments.
 
-BioCRNpyler includes the following predefined cell-based Mixture 
-classes:
+BioCRNpyler includes the following predefined cell-based mixture classes:
 
-- `ExpressionDilutionMixture`: Simplified one-step gene expression 
+- `~mixtures.ExpressionDilutionMixture`: Simplified one-step gene expression
   with global dilution and degradation.
-- `SimpleTxTlDilutionMixture`: Two-step gene expression with explicit 
-  mRNA intermediates and dilution.
-- `TxTlDilutionMixture`: More detailed mechanistic expression with 
-  regulated transcription and enzyme-mediated kinetics, plus dilution.
 
-For example, you can create a simplified in vivo-like Mixture with 
-`ExpressionDilutionMixture`::
+- `~mixtures.SimpleTxTlDilutionMixture`: Two-step gene expression with
+  explicit mRNA intermediates and dilution.
 
-This Mixture includes the following Mechanisms:
+- `~mixtures.TxTlDilutionMixture`: More detailed mechanistic expression
+  with regulated transcription and enzyme-mediated kinetics, plus dilution.
+
+For example, you can create a simplified in vivo-like mixture with
+`~mixtures.ExpressionDilutionMixture`::
+
+    extract_mixture = ExpressionDilutionMixture(
+        name='cell_based_expression',
+        components=[dna_part],
+	parameter_file='mixtures/cell_parameters.tsv'
+    )
+
+This mixture includes the following mechanisms:
 
 +-------------------------+-----------------------------------------+
 | Mechanism Type          | Description                             |
@@ -300,20 +306,20 @@ This Mixture includes the following Mechanisms:
 | dilution                | Global loss due to cell growth          |
 +-------------------------+-----------------------------------------+
 
-During compilation, this Mixture identifies all DNA species and applies 
-the expression Mechanism to generate protein production reactions 
-directly. It also includes global degradation and dilution to reflect 
-loss of molecules over time in growing cells.
+During compilation, this mixture identifies all DNA species and applies the
+expression mechanism to generate protein production reactions directly. It
+also includes global degradation and dilution to reflect loss of molecules
+over time in growing cells.
 
-You can also use `SimpleTxTlDilutionMixture` to model gene expression 
-as two sequential steps with explicit mRNA intermediates::
+You can also use `~mixtures.SimpleTxTlDilutionMixture` to model gene
+expression as two sequential steps with explicit mRNA intermediates::
 
     simple_txtl_mixture = SimpleTxTlDilutionMixture(
         name='simple_txl_dilution',
         components=[dna_part]
     )
 
-This Mixture includes the following Mechanisms:
+This mixture includes the following mechanisms:
 
 +-------------------------+-----------------------------------------+
 | Mechanism Type          | Description                             |
@@ -329,27 +335,27 @@ This Mixture includes the following Mechanisms:
 | dilution                | Global loss due to cell growth          |
 +-------------------------+-----------------------------------------+
 
-During compilation, this Mixture finds all DNA Components and 
-systematically applies transcription and translation Mechanisms 
-to create mRNA and protein species, along with degradation and 
-dilution processes for realistic in vivo dynamics.
+During compilation, this mixture finds all DNA components and
+systematically applies transcription and translation mechanisms to create
+mRNA and protein species, along with degradation and dilution processes for
+realistic in vivo dynamics.
 
-For more detailed modeling, `TxTlDilutionMixture` includes regulated 
-transcription and enzyme-mediated translation::
+For more detailed modeling, :class:`~mixtures.TxTlDilutionMixture`
+includes regulated transcription and enzyme-mediated translation::
 
     txtl_mixture = TxTlDilutionMixture(
         name='detailed_txl_dilution',
         components=[dna_part]
     )
 
-This Mixture includes the following Mechanisms:
+This mixture includes the following mechanisms:
 
 +-------------------------+-----------------------------------------+
 | Mechanism Type          | Description                             |
 +=========================+=========================================+
 | transcription           | Regulated transcription (Hill-based)    |
 +-------------------------+-----------------------------------------+
-| translation             | Translation Mechanism with optional     |
+| translation             | Translation mechanism with optional     |
 |                         | enzyme dynamics                         |
 +-------------------------+-----------------------------------------+
 | rna_degradation         | Degradation of mRNA species             |
@@ -359,29 +365,20 @@ This Mixture includes the following Mechanisms:
 | dilution                | Global loss due to cell growth          |
 +-------------------------+-----------------------------------------+
 
-This Mixture enables modeling of regulatory control, enzyme-mediated 
-kinetics, and system-wide dilution, providing a richer, more detailed 
+This mixture enables modeling of regulatory control, enzyme-mediated
+kinetics, and system-wide dilution, providing a richer, more detailed
 representation of gene expression in cells.
 
 
 Custom Mixtures
 ----------------
 
-BioCRNpyler includes built-in Mixture classes for common contexts 
-such as cell-free systems and in vivo environments, each pre-configured 
-with appropriate Mechanisms and parameters. However, you can also define 
-your own custom Mixture classes by subclassing 
-:class:`~core.mixture.Mixture` and overriding its setup to include 
-your choice of Mechanisms, Components, and parameters.
+BioCRNpyler includes built-in mixture classes for common contexts such as
+cell-free systems and in vivo environments, each pre-configured with
+appropriate mechanisms and parameters. However, you can also define your
+own custom mixture classes by subclassing :class:`~core..Mixture` and
+overriding its setup to include your choice of mechanisms, components, and
+parameters.
 
-This extensibility enables modeling of specialized biological systems 
-or custom experimental setups.
-
-API Reference
--------------
-
-More information on Mixtures can be found in the following module:
-
-.. autosummary::
-
-   biocrnpyler.core.mixture
+This extensibility enables modeling of specialized biological systems or
+custom experimental setups.

@@ -194,9 +194,9 @@ class OrderedPolymer(MonomerCollection):
 
         """
         polymer = []
-        assert isinstance(
-            parts, (list, tuple)
-        ), 'OrderedPolymer must be instantiated with a list'
+        assert isinstance(parts, (list, tuple)), (
+            'OrderedPolymer must be instantiated with a list'
+        )
         for item in parts:
             if isinstance(item, (list, tuple)):
                 part = item[0]

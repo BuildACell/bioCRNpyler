@@ -7,7 +7,7 @@ from ..core.species import Complex
 
 
 class BasicCatalysis(Mechanism):
-    """Basic catalytic mechanism for irreversible substrate conversion.
+    r"""Basic catalytic mechanism for irreversible substrate conversion.
 
     A 'catalysis' mechanism where a catalyst (enzyme) converts a substrate
     into a product in a single irreversible step. The catalyst is not
@@ -16,7 +16,7 @@ class BasicCatalysis(Mechanism):
 
     The catalytic reaction is given by
 
-    S + C --> P + C
+        $$ 'S' + 'C' --> 'P' + 'C' $$
 
     where S is the substrate, C is the catalyst (enzyme), and P is the
     product.
@@ -78,7 +78,7 @@ class BasicCatalysis(Mechanism):
         Mechanism.__init__(self, name, mechanism_type)
 
     def update_species(self, enzyme, substrate, product=None):
-        """Generate species for basic catalysis.
+        r"""Generate species for basic catalysis.
 
         Creates the list of species involved in the catalytic reaction:
         enzyme, substrate, and optionally the product.
@@ -179,7 +179,7 @@ class BasicCatalysis(Mechanism):
 
 
 class BasicProduction(Mechanism):
-    """Basic catalytic production mechanism with optional substrate.
+    r"""Basic catalytic production mechanism with optional substrate.
 
     A 'catalysis' mechanism where a catalyst (enzyme) produces a product.
     Optionally, a substrate can be consumed during production, allowing for
@@ -187,13 +187,14 @@ class BasicProduction(Mechanism):
     consumption (S + C --> P + C).
 
     The production reaction can be either:
-
-    C --> P + C (pure production, no substrate)
-
+    $$
+        'C' --> 'P' + 'C' \quad\text{(pure production, no substrate)}
+    $$
     or
-
-    S + C --> P + C (production with substrate consumption)
-
+    $$
+        'S' + 'C' --> 'P' + 'C'
+             \quad\text{(production with substrate consumption)}
+    $$
     where S is the substrate, C is the catalyst (enzyme), and P is the
     product.
 
@@ -373,7 +374,7 @@ class BasicProduction(Mechanism):
 
 
 class MichaelisMenten(Mechanism):
-    """Standard Michaelis-Menten enzyme kinetics mechanism.
+    r"""Standard Michaelis-Menten enzyme kinetics mechanism.
 
     A 'catalysis' mechanism implementing classical Michaelis-Menten enzyme
     kinetics with explicit enzyme-substrate complex formation. The substrate
@@ -382,7 +383,7 @@ class MichaelisMenten(Mechanism):
 
     The reaction scheme is
 
-    S + E <--> S:E --> E + P
+        $$ 'S' + 'E' <--> 'S':'E' --> 'E' + 'P' $$
 
     where S is the substrate, E is the enzyme, S:E is the enzyme-substrate
     complex, and P is the product.
@@ -519,7 +520,7 @@ class MichaelisMenten(Mechanism):
         ku=None,
         kcat=None,
     ):
-        """Generate reactions for Michaelis-Menten kinetics.
+        r"""Generate reactions for Michaelis-Menten kinetics.
 
         Creates two mass-action reactions implementing Michaelis-Menten
         enzyme kinetics: reversible enzyme-substrate binding and
@@ -623,7 +624,7 @@ class MichaelisMenten(Mechanism):
 
 
 class MichaelisMentenReversible(Mechanism):
-    """Reversible Michaelis-Menten kinetics with product binding.
+    r"""Reversible Michaelis-Menten kinetics with product binding.
 
     A 'catalysis' mechanism implementing Michaelis-Menten enzyme kinetics
     where the product can also bind reversibly to the enzyme. Both the
@@ -632,7 +633,7 @@ class MichaelisMentenReversible(Mechanism):
 
     The reaction scheme is
 
-    S + E <--> S:E <--> E:P <--> E + P
+        $$ 'S' + 'E' <--> 'S':'E' <--> 'E':'P' <--> 'E' + 'P', $$
 
     where S is the substrate, E is the enzyme, S:E is the enzyme-substrate
     complex, E:P is the enzyme-product complex, and P is the product.
@@ -662,7 +663,9 @@ class MichaelisMentenReversible(Mechanism):
     This mechanism generates three mass-action reactions:
 
     1. Reversible substrate binding: S + E <--> S:E (rates 'kb1' and 'ku1')
+
     2. Reversible product binding: P + E <--> E:P (rates 'kb2' and 'ku2')
+
     3. Reversible catalysis: S:E <--> E:P (rates 'kcat' and 'kcat_rev')
 
     Common applications include:
@@ -779,7 +782,7 @@ class MichaelisMentenReversible(Mechanism):
         ku=None,
         kcat=None,
     ):
-        """Generate reactions for reversible Michaelis-Menten kinetics.
+        r"""Generate reactions for reversible Michaelis-Menten kinetics.
 
         Creates three mass-action reactions implementing reversible
         Michaelis-Menten enzyme kinetics with product binding: substrate
@@ -910,7 +913,7 @@ class MichaelisMentenReversible(Mechanism):
 
 
 class MichaelisMentenCopy(Mechanism):
-    """Michaelis-Menten kinetics with substrate preservation.
+    r"""Michaelis-Menten kinetics with substrate preservation.
 
     A 'copy' mechanism implementing Michaelis-Menten enzyme kinetics where
     the substrate is not consumed during the reaction. Instead, the
@@ -919,7 +922,7 @@ class MichaelisMentenCopy(Mechanism):
 
     The reaction scheme is
 
-    S + E <--> S:E --> S + E + P
+        $$ 'S' + 'E' <--> 'S':'E' --> 'S' + 'E' + 'P' $$
 
     where S is the substrate (template), E is the enzyme, S:E is the
     enzyme-substrate complex, and P is the product.
@@ -1055,7 +1058,7 @@ class MichaelisMentenCopy(Mechanism):
         ku=None,
         kcat=None,
     ):
-        """Generate reactions for copy-type Michaelis-Menten kinetics.
+        r"""Generate reactions for copy-type Michaelis-Menten kinetics.
 
         Creates two mass-action reactions implementing copy-type
         Michaelis-Menten enzyme kinetics: reversible enzyme-substrate

@@ -1,5 +1,33 @@
+# generate_library_docs.py - create docs for components, mechanisms, mixtures
+#
+# This script creates files for the component, mechanism, and mixture
+# libraries within BioCRNpyler, as a meanso of making sure that all such
+# elements are document.  The files are of the form _autogen_<type>.rst and
+# can be included in the main documentation to generate sections for each
+# module in the package, with a list of the relevant classes.
+#
+# For each module, the module description is pulled from the module
+# docstring (at the top of the file for that module), followed by a
+# autosummary table of all classes defined in the file.
+
 import ast
 from pathlib import Path
+
+# Text to generate a summary table of the methods available in the module
+autosummary = """
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+"""
+
+# Text to extract the module description at the start of the session
+automodule = """
+.. automodule:: biocrnpyler.{0}.{1}
+   :no-index:
+
+.. currentmodule:: biocrnpyler.{2}
+"""
 
 
 def get_classes_in_file(py_path):
@@ -26,6 +54,7 @@ def write_rst_file(out_path, header, sections):
             f.write('\n')
 
 
+# Generate sections for all mechanisms
 def generate_mechanisms_rst(src_root, out_file):
     mech_dir = Path(src_root) / 'biocrnpyler' / 'mechanisms'
     sections = []
@@ -37,14 +66,16 @@ def generate_mechanisms_rst(src_root, out_file):
         if not classes:
             continue
         section_title = module.replace('_', ' ').title()
-        lines = [
-            f'- :class:`biocrnpyler.mechanisms.{module}.{cls}`'
-            for cls in classes
-        ]
+        lines = (
+            [automodule.format('mechanisms', module, 'mechanisms')]
+            + [autosummary]
+            + [f"    {cls}" for cls in classes]
+        )
         sections.append((section_title, lines))
     write_rst_file(out_file, 'Mechanisms', sections)
 
 
+# Generate sections for all mixtures
 def generate_mixtures_rst(src_root, out_file):
     mix_dir = Path(src_root) / 'biocrnpyler' / 'mixtures'
     sections = []
@@ -56,32 +87,41 @@ def generate_mixtures_rst(src_root, out_file):
         if not classes:
             continue
         section_title = module.replace('_', ' ').title()
-        lines = [
-            f'- :class:`biocrnpyler.mixtures.{module}.{cls}`'
-            for cls in classes
-        ]
+        lines = (
+            [automodule.format('mixtures', module, 'mixtures')]
+            + [autosummary]
+            + [f"    {cls}" for cls in classes]
+        )
         sections.append((section_title, lines))
     write_rst_file(out_file, 'Mixtures', sections)
 
 
+# Generate sections for all mixtures
 def generate_components_rst(src_root, out_file):
     comp_dir = Path(src_root) / 'biocrnpyler' / 'components'
     sections = []
+
     # top-level components
     top_py = [p for p in comp_dir.glob('*.py') if p.name != '__init__.py']
     if top_py:
-        lines = []
         for py in sorted(top_py):
             module = py.stem
             classes = get_classes_in_file(py)
-            for cls in classes:
-                lines.append(
-                    f'- :class:`biocrnpyler.components.{module}.{cls}`'
-                )
-        sections.append(('Components', lines))
-    # DNA subpackage
+            section_title = module.replace('_', ' ').title()
+            lines = (
+                [automodule.format('components', module, 'components')]
+                + [autosummary]
+                + [f"    {cls}" for cls in classes]
+            )
+            sections.append((section_title, lines))
+
+    # DNA subpackage - include as a single subsection
     dna_dir = comp_dir / 'dna'
     if dna_dir.exists():
+        title = "DNA Assemblies"
+        lines = [automodule.format('components', 'dna', 'components.dna')] + [
+            autosummary
+        ]
         for py in sorted(dna_dir.glob('*.py')):
             if py.name == '__init__.py':
                 continue
@@ -89,12 +129,8 @@ def generate_components_rst(src_root, out_file):
             classes = get_classes_in_file(py)
             if not classes:
                 continue
-            title = f'DNA: {module.replace("_", " ").title()}'
-            lines = [
-                f'- :class:`biocrnpyler.components.dna.{module}.{cls}`'
-                for cls in classes
-            ]
-            sections.append((title, lines))
+            lines += [f'   {cls}' for cls in classes]
+        sections.append((title, lines))
     write_rst_file(out_file, 'Components', sections)
 
 
@@ -108,7 +144,7 @@ if __name__ == '__main__':
     # 3) Source code root is that project root
     src_root = project_root
 
-    # 4) Ensure docs/ exists (it does, since the script is already there, but no harm)
+    # 4) Ensure docs/ exists (it does, since script is there, but no harm)
     docs_dir.mkdir(exist_ok=True)
 
     # 5) Generate into docs/

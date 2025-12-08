@@ -58,16 +58,14 @@ class Reaction(object):
     -----
     A reaction has the form:
 
-    .. math::
-        \sum_i n_i I_i \rightarrow \sum_i m_i O_i
+        $$ \sum_i n_i I_i --> \sum_i m_i O_i, $$
 
-    where :math:`n_i` is the stoichiometry of reactant :math:`I_i` and
-    :math:`m_i` is the stoichiometry of product :math:`O_i`.
+    where $n_i$ is the stoichiometry of reactant $I_i$ and
+    $m_i$ is the stoichiometry of product $O_i$.
 
     For reversible reactions:
 
-    .. math::
-        \sum_i n_i I_i \rightleftharpoons \sum_i m_i O_i
+        $$ \sum_i n_i I_i <--> \sum_i m_i O_i. $$
 
     Stoichiometry is handled as follows:
 
@@ -483,7 +481,7 @@ class Reaction(object):
         return txt
 
     def __eq__(self, other):
-        """Test equality between reactions.
+        r"""Test equality between reactions.
 
         Two reactions are equal if they have the same inputs, outputs,
         and propensity (in any order).
@@ -507,9 +505,10 @@ class Reaction(object):
         Notes
         -----
         Order of species in inputs/outputs doesn't matter:
-
-        - A + B --> C equals B + A --> C
-        - Species are compared using sets
+        $$
+            'A' + 'B' --> 'C' \qquad\text{equals}\qquad 'B' + 'A' --> 'C'
+        $$
+        since species are compared using sets.
 
         """
         # Check if reactions are equivalent.

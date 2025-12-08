@@ -67,10 +67,10 @@ class ChemicalReactionNetwork(object):
     -----
     Mass action reactions follow standard mass action kinetics:
 
-    - Deterministic propensity: :math:`k \prod_{i} [S_i]^{a_i}`
-    - Stochastic propensity: :math:`k \prod_{i} \frac{S_i!}{(S_i - a_i)!}`
+    - Deterministic propensity: $k \prod_i [S$_i$]^{a_i}$
+    - Stochastic propensity: $k \prod_i \frac{S_i!}{(S_i - a_i)!}$
 
-    where :math:`a_i` is the stoichiometric coefficient of species :math:`i`.
+    where $a_i$ is the stoichiometric coefficient of species $i$.
 
     A valid CRN requires:
 

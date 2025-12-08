@@ -9,7 +9,7 @@ from ..core.species import Complex, Species, WeightedSpecies
 
 
 class One_Step_Cooperative_Binding(Mechanism):
-    """Cooperative binding mechanism for single-step multi-ligand binding.
+    r"""Cooperative binding mechanism for single-step multi-ligand binding.
 
     A 'binding' mechanism where multiple copies of a binder molecule (A) bind
     cooperatively to a single bindee molecule (B) in one concerted step.  This
@@ -18,9 +18,9 @@ class One_Step_Cooperative_Binding(Mechanism):
 
     The binding reaction is given by
 
-    n*A + B <--> A_n:B
+        $$ n 'A' + 'B' <--> 'A'_n:'B' $$
 
-    where n is the cooperativity (number of binders).
+    where $n$ is the cooperativity (number of binders).
 
     Parameters
     ----------
@@ -112,7 +112,7 @@ class One_Step_Cooperative_Binding(Mechanism):
             The target species being bound to.
         complex_species : Species, optional
             Pre-specified complex species. If None, automatically creates a
-            Complex containing n binders and 1 bindee, where n is the
+            Complex containing $n$ binders and 1 bindee, where $n$ is the
             cooperativity.
         cooperativity : int or float, optional
             Number of binder molecules that bind simultaneously. If None,
@@ -199,7 +199,7 @@ class One_Step_Cooperative_Binding(Mechanism):
             The target species being bound to.
         complex_species : Species, optional
             Pre-specified complex species. If None, automatically creates a
-            Complex containing n binders and 1 bindee.
+            Complex containing $n$ binders and 1 bindee.
         component : Component, optional
             Component containing parameter values. Required if kb, ku, or
             cooperativity are not provided directly.
@@ -298,7 +298,7 @@ class One_Step_Cooperative_Binding(Mechanism):
 
 
 class Two_Step_Cooperative_Binding(Mechanism):
-    """Sequential cooperative binding mechanism with oligomerization.
+    r"""Sequential cooperative binding mechanism with oligomerization.
 
     A 'binding' mechanism where multiple binder molecules first oligomerize,
     then the oligomer binds to the bindee in a two-step process. This models
@@ -307,10 +307,10 @@ class Two_Step_Cooperative_Binding(Mechanism):
 
     The binding process follows two sequential reactions:
 
-    1. n*A <--> A_n (oligomerization)
-    2. A_n + B <--> A_n:B (binding)
+    1. $n A <--> A_n$ (oligomerization)
+    2. $A_n + B <--> A_n:B$ (binding)
 
-    where n is the cooperativity.
+    where $n$ is the cooperativity.
 
     Parameters
     ----------
@@ -414,7 +414,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
             creates a Complex containing the n-mer and bindee.
         n_mer_species : Species, optional
             Pre-specified oligomer species. If None, automatically creates a
-            Complex containing n binders.
+            Complex containing $n$ binders.
         cooperativity : int or float, optional
             Number of binders in the oligomer. If None, retrieved from
             component parameters.
@@ -670,7 +670,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
     - Each transition between states has specific rate constants
 
     The mechanism generates a complete reaction network connecting all
-    possible bound states. For n different binders, this creates 2^n - 1
+    possible bound states. For $n$ different binders, this creates $2^n - 1$
     different complexes (excluding the unbound state).
 
     Required parameters for this mechanism (per binder):
@@ -796,7 +796,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         -------
         list of Species
             List of all possible complexes from binding combinations. For n
-            binders, returns 2^n - 1 complexes (all combinations except
+            binders, returns $2^n - 1$ complexes (all combinations except
             unbound bindee).
 
         Raises
@@ -922,8 +922,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         - Rate constants are specific to each binder
         - Cooperativity determines the stoichiometry of each binder
 
-        For n binders, this generates approximately n * 2^(n-1) reactions,
-        connecting the 2^n possible states (including unbound).
+        For $n$ binders, this generates approximately $n 2^(n-1)$ reactions,
+        connecting the $2^n$ possible states (including unbound).
 
         Each binder requires three parameters:
 
@@ -1050,7 +1050,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
 
 
 class One_Step_Binding(Mechanism):
-    """Simple binding mechanism for multiple species without cooperativity.
+    r"""Simple binding mechanism for multiple species without cooperativity.
 
     A 'binding' mechanism to model the simultaneous binding of multiple
     species into a single complex in one concerted step. Unlike cooperative
@@ -1058,7 +1058,8 @@ class One_Step_Binding(Mechanism):
     factors - each species contributes exactly one molecule to the complex.
 
     The binding reaction follows:
-    S1 + S2 + ... + Sn <--> S1:S2:...:Sn
+
+      $$ 'S'_1 + 'S'_2 + ... + 'S'_n <--> 'S'_1:'S'_2:...:'S'_n $$
 
     Parameters
     ----------

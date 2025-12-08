@@ -20,7 +20,7 @@ class BasicIntegration(Mechanism):
 
     The integration reaction is given by
 
-    DNA1 + DNA2 --> DNA3 + DNA4
+    $$ 'DNA1' + 'DNA2' --> 'DNA3' + 'DNA4' $$
 
     where DNA1 and DNA2 are input DNA molecules, and DNA3 and DNA4 are
     the recombined product DNA molecules.
@@ -195,7 +195,7 @@ class EnzymeIntegration(Mechanism):
 
     The integration reaction is given by
 
-    4*Int + DNA1 + DNA2 --> 4*Int + DNA3 + DNA4
+        $$ 4*'Int' + 'DNA1' + 'DNA2' --> 4*'Int' + 'DNA3' + 'DNA4' $$
 
     where Int is the integrase enzyme, DNA1 and DNA2 are input DNA
     molecules, and DNA3 and DNA4 are the recombined product DNA molecules.

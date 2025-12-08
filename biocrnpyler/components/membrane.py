@@ -10,7 +10,7 @@ from ..core.species import Species
 
 
 class DiffusibleMolecule(Component):
-    """Molecule that diffuses passively through a membrane.
+    r"""Molecule that diffuses passively through a membrane.
 
     A `DiffusibleMolecule` component represents a molecule that undergoes
     passive diffusion across a membrane between two compartments. The
@@ -54,6 +54,7 @@ class DiffusibleMolecule(Component):
     energy. The diffusion mechanism generates bidirectional reactions:
 
     - Forward: substrate_internal --> substrate_external
+
     - Reverse: substrate_external --> substrate_internal
 
     If not specified using the `name` keyword, the component name is
@@ -442,9 +443,11 @@ class MembraneChannel(Component):
     The transport mechanism generates reactions based on the direction:
 
     - 'Importer': substrate_external + channel
-          --> substrate_internal + channel
+      --> substrate_internal + channel
+
     - 'Exporter': substrate_internal + channel
-          --> substrate_external + channel
+      --> substrate_external + channel
+
     - 'Passive': bidirectional transport following gradients
 
     The component name is automatically generated as:
@@ -679,9 +682,10 @@ class MembranePump(Component):
     against concentration gradients. The typical reaction scheme is:
 
     - Exporter: substrate_internal + ATP + pump -->
-                substrate_external + ADP + pump
+      substrate_external + ADP + pump
+
     - Importer: substrate_external + ATP + pump -->
-                substrate_internal + ADP + pump
+      substrate_internal + ADP + pump
 
     The ATP parameter controls the stoichiometry of ATP consumption per
     transport event.
@@ -877,7 +881,7 @@ class MembranePump(Component):
         return self.membrane_pump
 
     def update_species(self):
-        """Use 'trasnport' mechanism to generate ATP-dependent species.
+        r"""Use 'transport' mechanism to generate ATP-dependent species.
 
         Uses the 'transport' mechanism to generate species including the
         pump protein, substrate, product, ATP, and ADP.
@@ -899,7 +903,7 @@ class MembranePump(Component):
         )
 
     def update_reactions(self):
-        """Use 'trasnport' mechanism to generate ATP-dependent reactions.
+        """Use 'transport' mechanism to generate ATP-dependent reactions.
 
         Uses the 'transport' mechanism to generate reactions for active
         transport coupled to ATP hydrolysis.
@@ -923,7 +927,7 @@ class MembranePump(Component):
 
 
 class MembraneSensor(Component):
-    """Two-component system (TCS) membrane sensor protein.
+    r"""Two-component system (TCS) membrane sensor protein.
 
     A `MembraneSensor` component represents a membrane sensor protein in a
     two-component signaling system. The sensor detects external signal
@@ -995,9 +999,10 @@ class MembraneSensor(Component):
     4. Activated response regulator regulates gene expression
 
     The general reaction scheme:
-
-        signal + sensor + ATP + response_protein -->
-        signal + sensor + ADP + response_protein-P
+    $$
+        & 'signal' + 'sensor' + 'ATP' + 'response_protein' \\
+        &     --> 'signal' + 'sensor' + 'ADP' + 'response_protein-P'
+    $$
 
     The component name is automatically generated as:
     '<membrane_sensor_protein_name>_<compartment_name>'

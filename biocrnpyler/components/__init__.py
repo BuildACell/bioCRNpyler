@@ -1,4 +1,4 @@
-"""BioCRNpyler component library (including DNA components).
+r"""BioCRNpyler component library (including DNA components).
 
 Components are the primary building blocks of models in BioCRNpyler.
 They represent biomolecular parts or motifs such as promoters,

@@ -1,17 +1,53 @@
 Cell
 ----
-- :class:`biocrnpyler.mixtures.cell.ExpressionDilutionMixture`
-- :class:`biocrnpyler.mixtures.cell.SimpleTxTlDilutionMixture`
-- :class:`biocrnpyler.mixtures.cell.TxTlDilutionMixture`
+
+.. automodule:: biocrnpyler.mixtures.cell
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mixtures
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    ExpressionDilutionMixture
+    SimpleTxTlDilutionMixture
+    TxTlDilutionMixture
 
 Extract
 -------
-- :class:`biocrnpyler.mixtures.extract.ExpressionExtract`
-- :class:`biocrnpyler.mixtures.extract.SimpleTxTlExtract`
-- :class:`biocrnpyler.mixtures.extract.TxTlExtract`
-- :class:`biocrnpyler.mixtures.extract.EnergyTxTlExtract`
+
+.. automodule:: biocrnpyler.mixtures.extract
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mixtures
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    ExpressionExtract
+    SimpleTxTlExtract
+    TxTlExtract
+    EnergyTxTlExtract
 
 Pure
 ----
-- :class:`biocrnpyler.mixtures.pure.BasicPURE`
+
+.. automodule:: biocrnpyler.mixtures.pure
+   :no-index:
+
+.. currentmodule:: biocrnpyler.mixtures
+
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+   :recursive:
+
+    BasicPURE
 

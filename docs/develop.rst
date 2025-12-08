@@ -11,11 +11,10 @@ Package Structure
 =================
 
 The bioCRNpyler package is maintained on GitHub, with documentation
-hosted by ReadTheDocs and a mailing list on SourceForge:
+hosted by ReadTheDocs:
 
-  * Project home page: 
-  * Source code repository: https://github.com/buildacell/BioCRNPyler
   * Documentation: https://biocrnpyler.readthedocs.io/
+  * Source code repository: https://github.com/buildacell/BioCRNPyler
   * Issue tracker: https://github.com/buildacell/BioCRNPyler/issues
 
 GitHub repository file and directory layout:
@@ -65,7 +64,7 @@ The `ruff <https://docs.astral.sh/ruff>`_ linter and code formatter
 should be used to maintain a consistent code style, using the
 following commands (from the main package directory):
 
-* `ruff format`: apply standard code style 
+* `ruff format`: apply standard code style
 * `ruff check`: check against standard coding and formating conventions
 
 The `pyproject.toml` file contains the appropriate
@@ -79,35 +78,34 @@ Filenames
 * Source files are lower case, usually less than 10 characters (and 8
   or less is better).
 
-* Unit tests (in `Tests/*/`) are of the form `test_functinality.py`.
+* Unit tests (in `Tests/*/`) are of the form `test_functionality.py`.
 
 
 Class names
 -----------
 
 * Most class names are in camel case, with long form descriptions of
-  the object purpose/contents (`EnzymaticReaction`).
+  the object purpose/contents (`~core.ChemicalReactionNetwork`).
 
 
-Function names
---------------
+Function and method names
+-------------------------
 
-* Function names are lower case with words separated by underscores.
+* Function and method names are lower case with words separated by underscores.
 
-* Function names usually describe what they do
-  (`create_statefbk_iosystem`, `find_operating_points`) or what they
-  generate (`input_output_response`, `find_operating_point`).
+* Function and method names usually describe what they do
+  (`~core.Mixture.compile_crn`,
+  `~core.ChemicalReactionNetwork.simulate_with_bioscrape_via_sbml`).
 
 
 Parameter names
 ---------------
 
-Function parameter names are not (yet) very uniform across the package.  A few
-general patterns are emerging:
+Function parameter names are not (yet) very uniform across the package.  A
+few general patterns are emerging:
 
-* Use longer description parameter names that describe the action or
-  role (e.g., `trajectory_constraints` and `print_summary` in
-  `optimal.solve_optimal_trajectory`.
+* Use longer description parameter names that describe the action or role
+  (e.g., `overwrite_parameters` and `parameter_file` in `~core.Mixture`.
 
 
 Documentation Guidelines
@@ -140,7 +138,7 @@ similar to NumPy (as articulated in the `numpydoc style guide
    output. Rather than sacrificing the readability of the docstrings,
    we have written pre-processors to assist Sphinx in its task.
 
-To that end, docstrings in `python-control` should use the following
+To that end, docstrings in `biocrnpyler` should use the following
 guidelines:
 
 * Use single backticks around all Python objects. The Sphinx
@@ -150,20 +148,12 @@ guidelines:
 
   - Note: consistent with numpydoc recommendations, parameters names
     for functions should be in single backticks, even though they
-    don't generate a link (but the font will still be OK).
+    do not generate a link (but the font will still be OK).
 
   - The `doc/_static/custom.css` file defines the style for Python
     objects and is configured so that linked objects will appear in a
     bolder type, so that it is easier to see what things you can click
     on to get more information.
-
-  - By default, the string \`sys\` in docstrings would normally
-    generate a link to the :mod:`sys` Python module.  To avoid this,
-    `conf.py` includes code that converts \`sys\` in docstrings to
-    \:code\:\`sys`, which renders as :code:`sys` (code style, with no
-    link).  In ``.rst`` files this construction should be done
-    manually, since ``.rst`` files are not pre-processed as a
-    docstring.
 
 * Use double backticks for inline code, such as a Python code fragments.
 
@@ -172,22 +162,70 @@ guidelines:
     code is somewhat rare and the extra two backticks seem like a
     small sacrifice (and far from a "contortion").
 
-* Avoid the use of backticks and \:math\: for simple formulas where
-  the additional annotation or formatting does not add anything.  For
-  example "-c <= x <= c" (without the double quotes) in
-  `relay_hysteresis_nonlinearity`.
+* Mathematical equations in docstrings can be written using LaTeX
+  syntax.  Inline equations should be enclosed in a single set of
+  dollar signs ($), with no space before or afer the equation (so
+  `$A + B --> C$` to produce :math:`A + B \rightarrow C`.  Displayed
+  equations can be written in one of two ways::
 
-  - Some of these formulas might be interpreted as Python code
-    fragments, but they only need to be in double quotes if that makes
-    the documentation easier to understand.
+    text
 
-  - Examples:
+        $$ A + B --> C $$
 
-      * \`dt\` > 0 not \`\`dt > 0\`\` (`dt` is a parameter)
-      * \`squeeze\` = True not \`\`squeeze = True\`\` nor squeeze = True.
-      * -c <= x <= c not \`\`-c <= x <= c\`\` nor \:math\:\`-c \\leq x
-        \\leq c`.
-      * \:math\:\`|x| < \\epsilon\` (becomes :math:`|x| < \epsilon`)
+    text
+
+  or
+
+  .. code::
+
+     text
+     $$
+         A + B --> C
+     $$
+     text
+
+  both of which will produce:
+
+  .. math::
+    A + B \rightarrow C
+
+  The first form is prefered when the contents fit on a single line.
+  The second form can be used for equations that require more than one
+  line in the docstring.  Multi-line formulas are also possible, using
+  standard `aligned` syntax from LaTex.
+
+* Several string substitutions are implemented on equation to allow
+  docstrings that are easier to read in plain text while being
+  formatted in LaTex for sphinx-processed documentation:
+
+  - --> becomes :math:`\rightarrow`
+  - <--> becomes :math:`\rightleftharpoons`
+  - ... becomes :math:`\dots`
+  - >> becomes :math:`\gg`
+  - << becomes :math:`\ll`
+  - A:B becomes :math:`A \mathord{:} B` (no space)
+
+  In addition, any strings contained in single quotes will be
+  converted to text::
+
+    $$ 'substrate' + 'enzyme' --> 'substrate':'enzyme' $$
+
+  becomes:
+
+  .. math::
+
+     \text{substrate} + \text{enzyme} \rightarrow
+     \text{substrate} \mathord{:} \text{enzyme}
+
+  Note: docstrings are processed line by line, so any inline equations
+  (single $) must appear in the same line.
+
+* As a general rule, chemical species in reactions should be in regular
+  (non-math) font.  For chemical species that appear in regular text, no
+  annotations are required.  For chemical species in equations, use single
+  quotes to allow the preprocessing to convert to text.  When refering to
+  the concentration of a chemical species, use square brackets ([A]; the
+  chemical species will automatically be converted to regular text).
 
 * Built-in Python objects (True, False, None) should be written with no
   backticks and should be properly capitalized.
@@ -201,17 +239,17 @@ guidelines:
     "contortions" threshold.
 
 * Strings used as arguments to parameters should be in single
-  (forward) ticks ('eval', 'rows', etc) and don't need to be rendered
+  (forward) ticks ('eval', 'rows', etc) and do not need to be rendered
   as code if just listed as part of a docstring.
 
   - The rationale here is similar to built-ins: adding 4 backticks
     just to get them in a code font seems unnecessary.
 
-  - Note that if a string is included in Python assignment statement
-    (e.g., ``method='slycot'``) it looks quite ugly in text form to
-    have it enclosed in double backticks (\`\`method='slycot'\`\`), so
-    OK to use method='slycot' (no backticks) or `method` = 'slycot'
-    (backticks with extra spaces).
+  - Note that if a string is included in Python assignment statement (e.g.,
+    ``material_type='protein'``) it looks quite ugly in text form to have
+    it enclosed in double backticks (\`\`material_type='protein'\`\`), so
+    OK to use material_type='protein' (no backticks) or `material_type` =
+    'protein' (backticks with extra spaces).
 
 
 Function docstrings
@@ -229,11 +267,11 @@ Follow numpydoc format with the following additional details:
 
 * All parameters and keywords must be documented.  The
   `docstrings_test.py` unit test tries to flag as many of these as
-  possible.
+  possible. [not yet implemented]
 
 * Include an "Examples" section for all non-trivial functions, in a
   form that can be checked by running `make doctest` in the `doc`
-  directory.  This is also part of the CI checks.
+  directory.  This is also part of the CI checks. [not yet implemented]
 
 
 Class docstrings
@@ -308,7 +346,11 @@ Contributing and Releases
 Releasing new versions
 ----------------------
 
-BioCRNpyler uses semantic versioning (`MAJOR.MINOR.PATCH`) and Git tags for automatic versioning of package distributions. The package wheels/sdists are published to PyPI via GitHub Actions using the `pypi-release.yml` action that can be triggered manually (with appropriate permissions). Follow this checklist when planning a new release.
+BioCRNpyler uses semantic versioning (`MAJOR.MINOR.PATCH`) and Git tags for
+automatic versioning of package distributions. The package wheels/sdists
+are published to PyPI via GitHub Actions using the `pypi-release.yml`
+action that can be triggered manually (with appropriate
+permissions). Follow this checklist when planning a new release.
 
 Release checklist for a new stable version:
 
@@ -320,9 +362,8 @@ Release checklist for a new stable version:
 
 4. Create an annotated tag on the release commit::
 
-  `git tag -a vX.Y.Z -m "Release X.Y.Z"`
-
-  `git push --tags`
+     git tag -a vX.Y.Z -m "Release X.Y.Z"
+     git push --tags
 
 5. Start the `pypi-release` workflow in GitHub Actions:
 
@@ -331,9 +372,8 @@ Release checklist for a new stable version:
 
 6. Once the job has finished, you can verify from a fresh environment::
 
-  `python -m pip install -U biocrnpyler`
-  
-  `python -c "import biocrnpyler; print(biocrnpyler.__version__)"`
+     python -m pip install -U biocrnpyler
+     python -c "import biocrnpyler; print(biocrnpyler.__version__)"
 
 7. Create a GitHub Release for the tag and paste the CHANGELOG entry.
 

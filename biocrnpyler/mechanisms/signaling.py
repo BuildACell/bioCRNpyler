@@ -7,7 +7,7 @@ from ..core.species import Complex
 
 
 class Membrane_Signaling_Pathway_MM(Mechanism):
-    """Two-component system membrane sensor with Michaelis-Menten kinetics.
+    r"""Two-component system membrane sensor with Michaelis-Menten kinetics.
 
     A 'membrane_sensor' mechanism that models a two-component system (TCS)
     for signal transduction across cellular membranes. This mechanism
@@ -19,20 +19,26 @@ class Membrane_Signaling_Pathway_MM(Mechanism):
     the following reaction pathway:
 
     1. Activation of membrane sensor protein (MSP):
-
-       SP + SigSub <--> SP:SigSub --> SP*
+    $$
+        'SP' + 'SigSub' <--> 'SP':'SigSub' --> 'SP'^*
+    $$
 
     2. Auto-phosphorylation via ATP:
-
-       SP* + nATP <--> SP*:nATP --> SP**:nADP --> SP** + nADP
+    $$
+        'SP'^* + n 'ATP' <--> 'SP'^*:n'ATP' --> 'SP'^{**}:n'ADP'
+            --> 'SP'^{**} + n'ADP'
+    $$
 
     3. Phosphorylation of response protein (RP):
-
-       SP** + RP <--> SP**:RP --> SP*:RP* --> SP* + RP*
+    $$
+        'SP'^{**} + 'RP' <--> 'SP'^{**}:'RP' --> 'SP'^*:'RP'^*
+            --> 'SP'^* + 'RP'^*
+    $$
 
     4. Dephosphorylation of phosphorylated response protein:
-
-       RP* --> RP + Pi
+    $$
+        'RP'^* --> 'RP' + 'Pi'
+    $$
 
     Parameters
     ----------
