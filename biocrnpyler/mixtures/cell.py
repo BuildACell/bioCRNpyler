@@ -152,14 +152,17 @@ class ExpressionDilutionMixture(Mixture):
     >>> mixture = bcp.ExpressionDilutionMixture(
     ...     name='cell_mixture',
     ...     components=[gfp_gene],
-    ...     parameter_file='mixtures/cell_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
     """
 
-    def __init__(self, name='', **kwargs):
-        Mixture.__init__(self, name=name, **kwargs)
+    def __init__(
+        self, name='', parameter_file='mixtures/cell_parameters.tsv', **kwargs
+    ):
+        Mixture.__init__(
+            self, name=name, parameter_file=parameter_file, **kwargs
+        )
 
         # Create default mechanisms for Gene Expression
         dummy_translation = EmptyMechanism(
@@ -370,15 +373,18 @@ class SimpleTxTlDilutionMixture(Mixture):
     >>> mixture = bcp.SimpleTxTlDilutionMixture(
     ...     name='cell_mixture',
     ...     components=[gfp_gene],
-    ...     parameter_file='mixtures/cell_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
     """
 
-    def __init__(self, name='', **kwargs):
+    def __init__(
+        self, name='', parameter_file='mixtures/cell_parameters.tsv', **kwargs
+    ):
         # Always call the superclass __init__ with **kwargs
-        Mixture.__init__(self, name=name, **kwargs)
+        Mixture.__init__(
+            self, name=name, parameter_file=parameter_file, **kwargs
+        )
 
         # Create TxTl Mechanisms
         # Transcription will not involve machinery
@@ -583,16 +589,23 @@ class TxTlDilutionMixture(Mixture):
     >>> mixture = bcp.TxTlDilutionMixture(
     ...     name='cell_mixture',
     ...     components=[gfp_gene],
-    ...     parameter_file='mixtures/cell_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
     """
 
     def __init__(
-        self, name='', rnap='RNAP', ribosome='Ribo', rnase='RNase', **kwargs
+        self,
+        name='',
+        rnap='RNAP',
+        ribosome='Ribo',
+        rnase='RNase',
+        parameter_file='mixtures/cell_parameters.tsv',
+        **kwargs,
     ):
-        Mixture.__init__(self, name=name, **kwargs)
+        Mixture.__init__(
+            self, name=name, parameter_file=parameter_file, **kwargs
+        )
 
         # Create Components for TxTl machinery
         self.rnap = Protein(rnap)

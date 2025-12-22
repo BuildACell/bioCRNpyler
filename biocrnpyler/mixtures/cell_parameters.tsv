@@ -3,7 +3,7 @@
 # This file contains default parameters use by mixtures.cell classes. The
 # parameters are chosen to match the gene expression rates in E. coli
 # under exponential growth.
-
+#
 mechanism	part_id	param_name	value	units	comments
 
 # Concentration using BioNumbers for E. coli, assuming volume of 1 um^3

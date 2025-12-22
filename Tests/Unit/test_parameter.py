@@ -123,7 +123,7 @@ class TestParameter(TestCase):
                 parameter_value=1.0,
                 parameter_key={'part_id': 'id'},
                 parameter_info={'comment': 'comment', 'unit': 'M'},
-                unit='m',
+                unit='uM',
             )
 
         # Invalid keys

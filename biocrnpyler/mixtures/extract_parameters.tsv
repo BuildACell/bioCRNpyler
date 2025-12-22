@@ -1,7 +1,8 @@
 # extract_parameters.tsv - default parameters for cell-based extracts
 #
-# This file contains default parameters use by mixtures.extract classes. The
-# parameters are chosen based on the following papers, unless otherwise noted:
+# This file contains default parameters use by the mixtures.extract
+# classes. The parameters are chosen based on the following papers, unless
+# otherwise noted:
 #
 #   [TX-TL 2.0] Garamella, Jonathan, Ryan Marshall, Mark Rustad, and Vincent
 #   Noireaux. “The All E. Coli TX-TL Toolbox 2.0: A Platform for Cell-Free

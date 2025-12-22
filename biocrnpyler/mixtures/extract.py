@@ -51,7 +51,7 @@ class ExpressionExtract(Mixture):
         (mechanism, part_id, param_name).
     compartment : Compartment, optional
         Default compartment for all components and species in this mixture.
-    parameter_file : str, optional
+    parameter_file : str, default='mixtures/extract_parameters.tsv'
         Path to a CSV or TSV file containing parameters to load.
     overwrite_parameters : bool, default=False
         If True, parameters from file/dict overwrite existing parameters.
@@ -151,15 +151,21 @@ class ExpressionExtract(Mixture):
     >>> mixture = bcp.ExpressionExtract(
     ...     name='expression_mixture',
     ...     components=[gfp_gene],
-    ...     parameter_file='mixtures/extract_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
     """
 
-    def __init__(self, name='', **kwargs):
+    def __init__(
+        self,
+        name='',
+        parameter_file='mixtures/extract_parameters.tsv',
+        **kwargs,
+    ):
         # always call the superlcass Mixture.__init__(...)
-        Mixture.__init__(self, name=name, **kwargs)
+        Mixture.__init__(
+            self, name=name, parameter_file=parameter_file, **kwargs
+        )
 
         # Create default Expression Mechanisms
         dummy_translation = EmptyMechanism(
@@ -260,7 +266,7 @@ class SimpleTxTlExtract(Mixture):
         (mechanism, part_id, param_name).
     compartment : Compartment, optional
         Default compartment for all components and species in this mixture.
-    parameter_file : str, optional
+    parameter_file : str, default='mixtures/extract_parameters.tsv'
         Path to a CSV or TSV file containing parameters to load.
     overwrite_parameters : bool, default=False
         If True, parameters from file/dict overwrite existing parameters.
@@ -362,15 +368,21 @@ class SimpleTxTlExtract(Mixture):
     >>> mixture = bcp.SimpleTxTlExtract(
     ...     name='simple_txtl_mixture',
     ...     components=[gfp_gene],
-    ...     parameter_file='mixtures/extract_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
     """
 
-    def __init__(self, name='', **kwargs):
+    def __init__(
+        self,
+        name='',
+        parameter_file='mixtures/extract_parameters.tsv',
+        **kwargs,
+    ):
         # Always call the superlcass Mixture.__init__(...)
-        Mixture.__init__(self, name=name, **kwargs)
+        Mixture.__init__(
+            self, name=name, parameter_file=parameter_file, **kwargs
+        )
 
         # TxTl Mechanisms
         mech_tx = SimpleTranscription()
@@ -431,7 +443,7 @@ class TxTlExtract(Mixture):
         (mechanism, part_id, param_name).
     compartment : Compartment, optional
         Default compartment for all components and species in this mixture.
-    parameter_file : str, optional
+    parameter_file : str, default='mixtures/extract_parameters.tsv'
         Path to a CSV or TSV file containing parameters to load.
     overwrite_parameters : bool, default=False
         If True, parameters from file/dict overwrite existing parameters.
@@ -545,17 +557,24 @@ class TxTlExtract(Mixture):
     >>> mixture = bcp.TxTlExtract(
     ...     name='txtl_mixture',
     ...     components=[gfp_gene],
-    ...     parameter_file='mixtures/extract_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
     """
 
     def __init__(
-        self, name='', rnap='RNAP', ribosome='Ribo', rnase='RNase', **kwargs
+        self,
+        name='',
+        rnap='RNAP',
+        ribosome='Ribo',
+        rnase='RNase',
+        parameter_file='mixtures/extract_parameters.tsv',
+        **kwargs,
     ):
         # Always call the superlcass Mixture.__init__(...)
-        Mixture.__init__(self, name=name, **kwargs)
+        Mixture.__init__(
+            self, name=name, parameter_file=parameter_file, **kwargs
+        )
 
         # create default Components to represent cellular machinery
         self.rnap = Protein(rnap)
@@ -570,7 +589,8 @@ class TxTlExtract(Mixture):
         mech_tl = Translation_MM(ribosome=self.ribosome.get_species())
         mech_rna_deg = Degradation_mRNA_MM(
             nuclease=self.rnase.get_species(),
-            recursive_species_filtering=False)
+            recursive_species_filtering=False,
+        )
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 
@@ -630,7 +650,7 @@ class EnergyTxTlExtract(Mixture):
         (mechanism, part_id, param_name).
     compartment : Compartment, optional
         Default compartment for all components and species in this mixture.
-    parameter_file : str, optional
+    parameter_file : str, default='mixtures/extract_parameters.tsv'
         Path to a CSV or TSV file containing parameters to load.
     overwrite_parameters : bool, default=False
         If True, parameters from file/dict overwrite existing parameters.
@@ -769,7 +789,6 @@ class EnergyTxTlExtract(Mixture):
     >>> mixture = bcp.EnergyTxTlExtract(
     ...     name='energy_txtl_mixture',
     ...     components=[gfp_gene],
-    ...     parameter_file='mixtures/extract_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
@@ -786,9 +805,12 @@ class EnergyTxTlExtract(Mixture):
         adp='ADP',
         amino_acids='amino_acids',
         fuel='Fuel_3PGA',
+        parameter_file='mixtures/extract_parameters.tsv',
         **kwargs,
     ):
-        Mixture.__init__(self, name=name, **kwargs)
+        Mixture.__init__(
+            self, name=name, parameter_file=parameter_file, **kwargs
+        )
 
         # create default Components to represent cellular machinery
         self.rnap = Protein(rnap)
@@ -815,7 +837,7 @@ class EnergyTxTlExtract(Mixture):
             self.rnase,
             self.amino_acids,
             self.ntps,
-            self.atp,           # includes ADP, fuel
+            self.atp,  # includes ADP, fuel
         ]
         self.add_components(default_components)
 
@@ -827,13 +849,14 @@ class EnergyTxTlExtract(Mixture):
         )
         mech_tl = Energy_Translation_MM(
             ribosome=self.ribosome.get_species(),
-            fuels= 4 * [self.atp.get_species()] +
-                [self.amino_acids.get_species()],
+            fuels=4 * [self.atp.get_species()]
+            + [self.amino_acids.get_species()],
             wastes=4 * [self.adp.get_species()],
         )
         mech_rna_deg = Degradation_mRNA_MM(
             nuclease=self.rnase.get_species(),
-            recursive_species_filtering=False)
+            recursive_species_filtering=False,
+        )
         mech_cat = MichaelisMenten()
         mech_bind = One_Step_Binding()
 
