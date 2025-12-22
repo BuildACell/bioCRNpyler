@@ -52,6 +52,8 @@ from collections import namedtuple  # Used for the parameter keys
 from typing import Dict, List, Union
 from warnings import warn
 
+from ..utils.units import biocrnpyler_supported_units
+
 # This could later be extended
 ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')
 """Named tuple defining a parameter key.
@@ -268,7 +270,12 @@ class Parameter(object):
                 f"All units must be strings. Recieved {new_unit}."
             )
         else:
-            self._unit = new_unit
+            unit_str = new_unit.replace('/', ' per_')
+            supported_units = biocrnpyler_supported_units()
+            for unit in unit_str.split():
+                if unit not in supported_units:
+                    raise ValueError(f"unknown unit '{unit}'")
+            self._unit = unit_str
 
     @staticmethod
     def _convert_rational(p_value: str) -> numbers.Real:
@@ -1321,7 +1328,8 @@ class ParameterDatabase(object):
 
             # Read the CSV file, filtering out comment lines
             csvreader = csv.DictReader(
-                filter(lambda row: row[0] != '#', f), delimiter=delimiter)
+                filter(lambda row: row[0] != '#', f), delimiter=delimiter
+            )
 
             # Used for flexible column headings
             accepted_field_names = {

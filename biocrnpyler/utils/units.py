@@ -78,6 +78,12 @@ def biocrnpyler_supported_units():
             'unit_multiplier': [1],
         },
         # Common parameter units
+        '1': {
+            'unit_kind': [libsbml.UNIT_KIND_DIMENSIONLESS],
+            'unit_exponents': [1],
+            'unit_scale': [0],
+            'unit_multiplier': [1],
+        },
         'per_second': {
             'unit_kind': [libsbml.UNIT_KIND_SECOND],
             'unit_exponents': [-1],
@@ -124,6 +130,15 @@ def biocrnpyler_supported_units():
         },
     }
     ### Add your own units to this dictionary ###
+
+    # Aliases
+    for hour_alias in ['hrs', 'hr', 'hours']:
+        supported_units[hour_alias] = supported_units['hour']
+    for minute_alias in ['min', 'mins', 'minutes']:
+        supported_units[minute_alias] = supported_units['minute']
+    for second_alias in ['s', 'sec', 'secs', 'seconds']:
+        supported_units[second_alias] = supported_units['second']
+
     return supported_units
 
 
@@ -222,3 +237,27 @@ def create_new_unit_definition(model, unit_id):
         unit.setScale(unit_scale)
         unit.setMultiplier(unit_multiplier)
     return unitdef
+
+
+#
+# Unit conversions
+#
+# To allow easy conversion of units, we define a number of variables
+# that convert to the default units of uM, uL, sec.
+
+# Concentration
+nM = 1e-3
+uM = 1
+mM = 1e3
+M = 1e6
+
+# Volumes
+nL = 1e-3
+uL = 1
+mL = 1e3
+L = 1e6
+
+# Time
+sec = secs = 1
+min = mins = 60
+hr = hrs = 3600
