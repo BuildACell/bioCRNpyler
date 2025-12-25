@@ -28,6 +28,9 @@ class One_Step_Cooperative_Binding(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='cooperative_binding'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/binding_parameters.tsv'
+        Path to file containing default parameter values for binding
+        mechanisms.
 
     Attributes
     ----------
@@ -35,6 +38,8 @@ class One_Step_Cooperative_Binding(Mechanism):
         Name of the mechanism instance.
     mechanism_type : str
         Type classification ('cooperative_binding').
+    parameter_database : ParameterDatabase
+        Database storing default parameters for this mechanism.
 
     See Also
     --------
@@ -85,8 +90,10 @@ class One_Step_Cooperative_Binding(Mechanism):
         self,
         name='one_step_cooperative_binding',
         mechanism_type='cooperative_binding',
+        parameter_file='mechanisms/binding_parameters.tsv'
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file)
 
     def update_species(
         self,
@@ -318,6 +325,9 @@ class Two_Step_Cooperative_Binding(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='cooperative_binding'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/binding_parameters.tsv'
+        Path to file containing default parameter values for binding
+        mechanisms.
 
     Attributes
     ----------
@@ -325,6 +335,8 @@ class Two_Step_Cooperative_Binding(Mechanism):
         Name of the mechanism instance.
     mechanism_type : str
         Type classification ('cooperative_binding').
+    parameter_database : ParameterDatabase
+        Database storing default parameters for this mechanism.
 
     See Also
     --------
@@ -381,8 +393,10 @@ class Two_Step_Cooperative_Binding(Mechanism):
         self,
         name='two_step_cooperative_binding',
         mechanism_type='cooperative_binding',
+        parameter_file='mechanisms/binding_parameters.tsv'
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file)
 
     def update_species(
         self,
@@ -645,6 +659,9 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='cooperative_binding'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/binding_parameters.tsv'
+        Path to file containing default parameter values for binding
+        mechanisms.
 
     Attributes
     ----------
@@ -652,6 +669,8 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         Name of the mechanism instance.
     mechanism_type : str
         Type classification ('cooperative_binding').
+    parameter_database : ParameterDatabase
+        Database storing default parameters for this mechanism.
 
     See Also
     --------
@@ -709,8 +728,10 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         self,
         name='Combinatorial_Cooperative_binding',
         mechanism_type='cooperative_binding',
+        parameter_file='mechanisms/binding_parameters.tsv'
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file)
 
     def make_cooperative_complex(self, combo, bindee, cooperativity):
         """Create a complex with multiple cooperative binders.
@@ -1067,6 +1088,9 @@ class One_Step_Binding(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='binding'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/binding_parameters.tsv'
+        Path to file containing default parameter values for binding
+        mechanisms.
 
     Attributes
     ----------
@@ -1074,6 +1098,8 @@ class One_Step_Binding(Mechanism):
         Name of the mechanism instance.
     mechanism_type : str
         Type classification ('binding').
+    parameter_database : ParameterDatabase
+        Database storing default parameters for this mechanism.
 
     See Also
     --------
@@ -1133,8 +1159,14 @@ class One_Step_Binding(Mechanism):
 
     """
 
-    def __init__(self, name='one_step_binding', mechanism_type='binding'):
-        Mechanism.__init__(self, name, mechanism_type)
+    def __init__(
+        self,
+        name='one_step_binding',
+        mechanism_type='binding',
+        parameter_file='mechanisms/binding_parameters.tsv'
+    ):
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file)
 
     def update_species(
         self,

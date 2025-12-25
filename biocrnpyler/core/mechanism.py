@@ -4,6 +4,8 @@
 from typing import List
 from warnings import warn
 
+from .parameter import ParameterDatabase
+
 
 class Mechanism(object):
     """Base class for mechanisms that generate species and reactions.
@@ -22,6 +24,9 @@ class Mechanism(object):
         Type identifier for the mechanism (e.g., 'transcription',
         'translation', 'binding'). Used for mechanism lookup in components
         and mixtures.
+    parameter_file : str, optional
+        Path to a parameter file (CSV or TSV format) to load into the
+        mechanism's parameter database.
 
     Attributes
     ----------
@@ -29,6 +34,8 @@ class Mechanism(object):
         Name of the mechanism.
     mechanism_type : str
         Type identifier for the mechanism.
+    parameter_database : ParameterDatabase
+        Database storing default parameters for this mechanism.
 
     See Also
     --------
@@ -68,7 +75,7 @@ class Mechanism(object):
 
     """
 
-    def __init__(self, name: str, mechanism_type=''):
+    def __init__(self, name: str, mechanism_type='', parameter_file=None):
         self.name = name
         self.mechanism_type = mechanism_type
         if mechanism_type == '' or mechanism_type is None:
@@ -76,6 +83,9 @@ class Mechanism(object):
                 f"Mechanism {name} instantiated without a type. This could "
                 "prevent the mechanism from being inherited properly."
             )
+        self.parameter_database = ParameterDatabase(
+            parameter_file=parameter_file
+        )
 
     def update_species(self, component=None, part_id=None) -> List:
         """Generate species for this mechanism.
@@ -142,6 +152,29 @@ class Mechanism(object):
         """
         warn(f"Default update_reactions called for mechanism {self.name}")
         return []
+
+    def get_parameter(self, mechanism, part_id, param_name):
+        """Retrieve a parameter from the mixture's parameter database.
+
+        Parameters
+        ----------
+        mechanism : str
+            Mechanism identifier for the parameter lookup key.
+        part_id : str
+            Part identifier for the parameter lookup key.
+        param_name : str
+            Name of the parameter to retrieve.
+
+        Returns
+        -------
+        Parameter or None
+            The parameter object, or None if not found.
+
+        """
+        param = self.parameter_database.find_parameter(
+            mechanism, part_id, param_name
+        )
+        return param
 
     def __repr__(self):
         return self.name

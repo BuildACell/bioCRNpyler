@@ -71,9 +71,8 @@ class Species(OrderedMonomer):
 
     Components are omitted if empty or default values.
 
-    Two species
-    are equal if they have the same name, material_type, attributes,
-    compartment, parent, and position.
+    Two species are equal if they have the same name, material_type,
+    attributes, compartment, parent, and position.
 
     Examples
     --------

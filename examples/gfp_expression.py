@@ -229,11 +229,7 @@ plt.legend()
 #
 
 pure_mixture = bcp.BasicPURE(
-    name='regular',
-    components=[gfp_dna],
-    parameter_file=[
-        'mixtures/pure_parameters.tsv',
-    ],
+    name='regular', components=[gfp_dna],
 )
 pure_crn = pure_mixture.compile_crn()
 pure_res = pure_crn.simulate_with_bioscrape_via_sbml(
