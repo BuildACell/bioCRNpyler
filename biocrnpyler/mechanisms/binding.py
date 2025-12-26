@@ -1,6 +1,17 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
+"""Binding mechanisms for chemical complexes.
+
+The 'binding' mechanisms are used to create the reactions required to
+implement binding between two or more chemical species.  Binding occurs
+between one or more binding species and a bindee species.  Cooperative binding
+involves the use of multimers with a given multiplicity, and binding can be in
+either one step (a single reaction for all multimers) or two steps (multimers
+form a complex, then bind).
+
+"""
+
 import itertools as it
 
 from ..core.mechanism import Mechanism
@@ -26,7 +37,7 @@ class One_Step_Cooperative_Binding(Mechanism):
     ----------
     name : str, default='one_step_cooperative_binding'
         Name identifier for this mechanism instance.
-    mechanism_type : str, default='cooperative_binding'
+    mechanism_type : str, default='binding'
         Type classification of this mechanism.
     parameter_file : str, default='mechanisms/binding_parameters.tsv'
         Path to file containing default parameter values for binding
@@ -37,7 +48,7 @@ class One_Step_Cooperative_Binding(Mechanism):
     name : str
         Name of the mechanism instance.
     mechanism_type : str
-        Type classification ('cooperative_binding').
+        Type classification ('binding').
     parameter_database : ParameterDatabase
         Database storing default parameters for this mechanism.
 
@@ -89,7 +100,7 @@ class One_Step_Cooperative_Binding(Mechanism):
     def __init__(
         self,
         name='one_step_cooperative_binding',
-        mechanism_type='cooperative_binding',
+        mechanism_type='binding',
         parameter_file='mechanisms/binding_parameters.tsv',
     ):
         Mechanism.__init__(
@@ -324,7 +335,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
     ----------
     name : str, default='two_step_cooperative_binding'
         Name identifier for this mechanism instance.
-    mechanism_type : str, default='cooperative_binding'
+    mechanism_type : str, default='binding'
         Type classification of this mechanism.
     parameter_file : str, default='mechanisms/binding_parameters.tsv'
         Path to file containing default parameter values for binding
@@ -335,7 +346,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
     name : str
         Name of the mechanism instance.
     mechanism_type : str
-        Type classification ('cooperative_binding').
+        Type classification ('binding').
     parameter_database : ParameterDatabase
         Database storing default parameters for this mechanism.
 
@@ -393,7 +404,7 @@ class Two_Step_Cooperative_Binding(Mechanism):
     def __init__(
         self,
         name='two_step_cooperative_binding',
-        mechanism_type='cooperative_binding',
+        mechanism_type='binding',
         parameter_file='mechanisms/binding_parameters.tsv',
     ):
         Mechanism.__init__(
@@ -659,7 +670,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
     ----------
     name : str, default='Combinatorial_Cooperative_binding'
         Name identifier for this mechanism instance.
-    mechanism_type : str, default='cooperative_binding'
+    mechanism_type : str, default='binding'
         Type classification of this mechanism.
     parameter_file : str, default='mechanisms/binding_parameters.tsv'
         Path to file containing default parameter values for binding
@@ -670,7 +681,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
     name : str
         Name of the mechanism instance.
     mechanism_type : str
-        Type classification ('cooperative_binding').
+        Type classification ('binding').
     parameter_database : ParameterDatabase
         Database storing default parameters for this mechanism.
 
@@ -729,7 +740,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
     def __init__(
         self,
         name='Combinatorial_Cooperative_binding',
-        mechanism_type='cooperative_binding',
+        mechanism_type='binding',
         parameter_file='mechanisms/binding_parameters.tsv',
     ):
         Mechanism.__init__(
