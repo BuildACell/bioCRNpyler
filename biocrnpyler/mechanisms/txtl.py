@@ -1749,9 +1749,11 @@ class Energy_Transcription_MM(Mechanism):
         kb = component.get_parameter('kb', part_id=part_id, mechanism=self)
         ku = component.get_parameter('ku', part_id=part_id, mechanism=self)
         kb_ntps = component.get_parameter(
-            'kb_ntps', part_id=part_id, mechanism=self)
+            'kb_ntps', part_id=part_id, mechanism=self
+        )
         ku_ntps = component.get_parameter(
-            'ku_ntps', part_id=part_id, mechanism=self)
+            'ku_ntps', part_id=part_id, mechanism=self
+        )
         L = component.get_parameter('length', part_id=part_id, mechanism=self)
 
         rnap_bound_complex = Complex([dna, self.rnap])
@@ -1764,18 +1766,21 @@ class Energy_Transcription_MM(Mechanism):
 
         # Transcription
         r2a = Reaction.from_massaction(
-            self.fuels + [rnap_bound_complex], [ntp_bound_complex],
+            self.fuels + [rnap_bound_complex],
+            [ntp_bound_complex],
             k_forward=parameter_to_value(kb_ntps.value),
             k_reverse=parameter_to_value(ku_ntps.value),
         )
         r2b = Reaction.from_massaction(
-            [ntp_bound_complex], self.fuels + [dna, self.rnap, transcript],
+            [ntp_bound_complex],
+            self.fuels + [dna, self.rnap, transcript],
             k_forward=parameter_to_value(ktx.value) / parameter_to_value(L),
         )
 
         # Fuel consumption
         r3 = Reaction.from_massaction(
-            [ntp_bound_complex], [rnap_bound_complex] + self.wastes,
+            [ntp_bound_complex],
+            [rnap_bound_complex] + self.wastes,
             k_forward=ktx,
         )
 
@@ -2010,9 +2015,11 @@ class Energy_Translation_MM(Mechanism):
         kb = component.get_parameter('kb', part_id=part_id, mechanism=self)
         ku = component.get_parameter('ku', part_id=part_id, mechanism=self)
         kb_fuel = component.get_parameter(
-            'kb_fuel', part_id=part_id, mechanism=self)
+            'kb_fuel', part_id=part_id, mechanism=self
+        )
         ku_fuel = component.get_parameter(
-            'ku_fuel', part_id=part_id, mechanism=self)
+            'ku_fuel', part_id=part_id, mechanism=self
+        )
         L = component.get_parameter('length', part_id=part_id, mechanism=self)
 
         ribo_bound_complex = Complex([transcript, self.ribosome])
@@ -2028,8 +2035,9 @@ class Energy_Translation_MM(Mechanism):
 
         # Translation
         r2a = Reaction.from_massaction(
-            self.fuels + [ribo_bound_complex], [fuel_bound_complex],
-            k_forward=parameter_to_value(kb_fuel.value)
+            self.fuels + [ribo_bound_complex],
+            [fuel_bound_complex],
+            k_forward=parameter_to_value(kb_fuel.value),
         )
         r2b = Reaction.from_massaction(
             [fuel_bound_complex],

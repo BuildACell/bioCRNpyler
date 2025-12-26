@@ -51,6 +51,8 @@ class Promoter(DNA_part):
     dna_to_bind : DNA or Species, optional
         The DNA species that serves as the transcription template. If None,
         uses the assembly's DNA when available.
+    binding_type : str, default='dna_protein'
+        Mechanism subtype for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to the parent `DNA_part` class.
 
@@ -107,10 +109,12 @@ class Promoter(DNA_part):
         parameters=None,
         protein=None,
         dna_to_bind=None,
+        binding_type='dna_protein',
         **kwargs,
     ):
         self._dna_bind = dna_to_bind
         self.length = length
+        self.binding_type = binding_type
 
         if transcript is None and assembly is None:
             self.transcript = None
@@ -524,7 +528,7 @@ class RegulatedPromoter(Promoter):
             species_b = mech_b.update_species(
                 regulator,
                 self.dna_to_bind,
-                part_id=self.name + '_' + regulator.name,
+                part_id=[self.name + '_' + regulator.name, self.binding_type],
                 component=self,
                 protein=self.get_protein_for_expression(),
             )
@@ -592,7 +596,7 @@ class RegulatedPromoter(Promoter):
                 regulator,
                 self.dna_to_bind,
                 component=self,
-                part_id=self.name + '_' + regulator.name,
+                part_id=[self.name + '_' + regulator.name, self.binding_type],
                 protein=self.protein,
             )
 
@@ -742,7 +746,10 @@ class ActivatablePromoter(Promoter):
             transcript=self.transcript,
             regulator=self.activator,
             component=self,
-            part_id=self.name + '_' + self.activator.name,
+            part_id=[
+                self.name + '_' + self.activator.name,
+                self.binding_type,
+            ],
             leak=self.leak,
             protein=self.get_protein_for_expression(),
         )
@@ -886,7 +893,10 @@ class RepressiblePromoter(Promoter):
             transcript=self.transcript,
             regulator=self.repressor,
             component=self,
-            part_id=self.name + '_' + self.repressor.name,
+            part_id=[
+                self.name + '_' + self.repressor.name,
+                self.binding_type,
+            ],
             leak=self.leak,
             protein=self.get_protein_for_expression(),
             **kwargs,
@@ -1231,7 +1241,7 @@ class CombinatorialPromoter(Promoter):
             self.regulators,
             self.dna_to_bind,
             component=self,
-            part_id=self.name,
+            part_id=[self.name, self.binding_type],
             cooperativity=self.cooperativity,
             protein=self.protein,
         )

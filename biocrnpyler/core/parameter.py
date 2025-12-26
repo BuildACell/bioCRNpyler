@@ -1669,18 +1669,22 @@ class ParameterDatabase(object):
             mech_name = None
             mech_type = None
 
-        parameter_key_list = [
-            ParameterKey(
-                mechanism=mech_name, part_id=part_id, name=param_name
-            ),
-            ParameterKey(
-                mechanism=mech_type, part_id=part_id, name=param_name
-            ),
-            ParameterKey(mechanism=None, part_id=part_id, name=param_name),
-            ParameterKey(mechanism=mech_name, part_id=None, name=param_name),
-            ParameterKey(mechanism=mech_type, part_id=None, name=param_name),
-            ParameterKey(mechanism=None, part_id=None, name=param_name),
-        ]
+        if not isinstance(part_id, list):
+            part_id = [part_id]
+        part_id += [None]
+        parameter_key_list = []
+
+        # Create a parameter key for each part_id
+        for id in part_id:
+            parameter_key_list += [
+                ParameterKey(
+                    mechanism=mech_name, part_id=id, name=param_name
+                ),
+                ParameterKey(
+                    mechanism=mech_type, part_id=id, name=param_name
+                ),
+                ParameterKey(mechanism=None, part_id=id, name=param_name),
+            ]
 
         for key in parameter_key_list:
             if key in self.parameters and found_entry is None:

@@ -36,6 +36,8 @@ class CombinatorialComplex(Component):
     name : str, optional
         Name of the component. If None, automatically generated from
         final_states names.
+    binding_type : str, default='chemical_complex'
+        Mechanism subtype for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to the `Component` base class
         constructor.
@@ -168,6 +170,7 @@ class CombinatorialComplex(Component):
         intermediate_states=None,
         excluded_states=None,
         name=None,
+        binding_type='chemical_complex',
         **kwargs,
     ):
         # The order these run in is important! (TODO: why?)
@@ -175,6 +178,7 @@ class CombinatorialComplex(Component):
         self.initial_states = initial_states
         self.intermediate_states = intermediate_states
         self.excluded_states = excluded_states
+        self.binding_type = binding_type
 
         # used to store combinations of species during update
         self.combination_dict = {}
@@ -743,11 +747,14 @@ class CombinatorialComplex(Component):
                                 bindee=bindee,
                                 complex_species=cs,
                                 component=self,
-                                part_id=self.name
-                                + '_'
-                                + str(binder)
-                                + '_'
-                                + str(bindee),
+                                part_id=[
+                                    self.name
+                                    + '_'
+                                    + str(binder)
+                                    + '_'
+                                    + str(bindee),
+                                    self.binding_type,
+                                ],
                             )
 
             for si in self.intermediate_states:
@@ -776,11 +783,14 @@ class CombinatorialComplex(Component):
                                 bindee=bindee,
                                 complex_species=cs,
                                 component=self,
-                                part_id=self.name
-                                + '_'
-                                + str(binder)
-                                + '_'
-                                + str(bindee),
+                                part_id=[
+                                    self.name
+                                    + '_'
+                                    + str(binder)
+                                    + '_'
+                                    + str(bindee),
+                                    self.binding_type,
+                                ],
                             )
 
         # If there are no intermediate restrictions, compute
@@ -812,11 +822,14 @@ class CombinatorialComplex(Component):
                                 bindee=bindee,
                                 complex_species=cs,
                                 component=self,
-                                part_id=self.name
-                                + '_'
-                                + str(binder)
-                                + '_'
-                                + str(bindee),
+                                part_id=[
+                                    self.name
+                                    + '_'
+                                    + str(binder)
+                                    + '_'
+                                    + str(bindee),
+                                    self.binding_type,
+                                ],
                             )
 
         return reactions

@@ -90,10 +90,11 @@ class One_Step_Cooperative_Binding(Mechanism):
         self,
         name='one_step_cooperative_binding',
         mechanism_type='cooperative_binding',
-        parameter_file='mechanisms/binding_parameters.tsv'
+        parameter_file='mechanisms/binding_parameters.tsv',
     ):
         Mechanism.__init__(
-            self, name, mechanism_type, parameter_file=parameter_file)
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(
         self,
@@ -393,10 +394,11 @@ class Two_Step_Cooperative_Binding(Mechanism):
         self,
         name='two_step_cooperative_binding',
         mechanism_type='cooperative_binding',
-        parameter_file='mechanisms/binding_parameters.tsv'
+        parameter_file='mechanisms/binding_parameters.tsv',
     ):
         Mechanism.__init__(
-            self, name, mechanism_type, parameter_file=parameter_file)
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(
         self,
@@ -728,10 +730,11 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         self,
         name='Combinatorial_Cooperative_binding',
         mechanism_type='cooperative_binding',
-        parameter_file='mechanisms/binding_parameters.tsv'
+        parameter_file='mechanisms/binding_parameters.tsv',
     ):
         Mechanism.__init__(
-            self, name, mechanism_type, parameter_file=parameter_file)
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def make_cooperative_complex(self, combo, bindee, cooperativity):
         """Create a complex with multiple cooperative binders.
@@ -838,7 +841,18 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         """
         cooperativity_dict = {}
         out_species = []
-        prefix = "" if part_id is None else part_id + '_'
+
+        # Figure out part_id (if list, assume first element is primary ID)
+        if part_id is None:
+            prefix = ''
+            suffix_list = []
+        elif isinstance(part_id, list):
+            prefix = part_id[0] + '_'
+            suffix_list = part_id[1:]
+        else:
+            prefix = part_id + '_'
+            suffix_list = []
+
         for binder in binders:
             binder_partid = prefix + binder.name
             if (
@@ -854,7 +868,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                 # cooperativity argument
                 coop_val = component.get_parameter(
                     'cooperativity',
-                    part_id=binder_partid,
+                    part_id=[binder_partid] + suffix_list,
                     mechanism=self,
                     return_numerical=True,
                 )
@@ -957,14 +971,27 @@ class Combinatorial_Cooperative_Binding(Mechanism):
 
         """
         binder_params = {}
-        prefix = "" if part_id is None else part_id + '_'
+
+        # Figure out part_id (if list, assume first element is primary ID)
+        if part_id is None:
+            prefix = ''
+            suffix_list = []
+        elif isinstance(part_id, list):
+            prefix = part_id[0] + '_'
+            suffix_list = part_id[1:]
+        else:
+            prefix = part_id + '_'
+            suffix_list = []
+
         for binder in binders:
             binder_partid = prefix + binder.name
             if (isinstance(kbs, dict) and binder not in kbs) or (
                 not isinstance(kbs, dict) and component is not None
             ):
                 kb = component.get_parameter(
-                    'kb', part_id=binder_partid, mechanism=self
+                    'kb',
+                    part_id=[binder_partid] + suffix_list,
+                    mechanism=self,
                 )
             elif isinstance(kbs, dict) and binder in kbs:
                 kb = kbs[binder.name]
@@ -977,7 +1004,9 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                 kus is None and component is not None
             ):
                 ku = component.get_parameter(
-                    'ku', part_id=binder_partid, mechanism=self
+                    'ku',
+                    part_id=[binder_partid] + suffix_list,
+                    mechanism=self,
                 )
             elif isinstance(kus, dict) and binder in kus:
                 ku = kus[binder.name]
@@ -996,7 +1025,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
             ):
                 coop_val = component.get_parameter(
                     'cooperativity',
-                    part_id=binder_partid,
+                    part_id=[binder_partid] + suffix_list,
                     mechanism=self,
                     return_numerical=True,
                 )
@@ -1163,10 +1192,11 @@ class One_Step_Binding(Mechanism):
         self,
         name='one_step_binding',
         mechanism_type='binding',
-        parameter_file='mechanisms/binding_parameters.tsv'
+        parameter_file='mechanisms/binding_parameters.tsv',
     ):
         Mechanism.__init__(
-            self, name, mechanism_type, parameter_file=parameter_file)
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(
         self,

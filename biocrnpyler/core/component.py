@@ -692,7 +692,8 @@ class Component:
         if param is None and self.mechanisms is not None and check_mechanism:
             if self.mechanisms.get(mechanism, None):
                 param = self.mechanisms[mechanism].get_parameter(
-                    mechanism, part_id, param_name)
+                    mechanism, part_id, param_name
+                )
 
         if param is None and not return_none:
             raise ValueError(
