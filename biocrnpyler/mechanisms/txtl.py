@@ -1996,8 +1996,8 @@ class Energy_Translation_MM(Mechanism):
         The reactions model translation energetics:
 
         1. mRNA + Ribosome <--> mRNA:Ribosome (rates: 'kb' and 'ku')
-        2. Fuel + mRNA:Ribosome --> Fuel:mRNA:Ribosome
-           (rates: 'kb_fuel', 'kf_fuel')
+        2. Fuel + mRNA:Ribosome <--> Fuel:mRNA:Ribosome
+           (rates: 'kb_fuel', 'ku_fuel')
         3. Fuel:mRNA:Ribosome --> Fuel + mRNA + Ribosome + Protein
            (rate: 'ktl' / L)
         4. Fuel:mRNA:Ribosome --> mRNA + Ribosome + wastes (rate: 'ktl')
@@ -2038,6 +2038,7 @@ class Energy_Translation_MM(Mechanism):
             self.fuels + [ribo_bound_complex],
             [fuel_bound_complex],
             k_forward=parameter_to_value(kb_fuel.value),
+            k_reverse=parameter_to_value(ku_fuel.value),
         )
         r2b = Reaction.from_massaction(
             [fuel_bound_complex],
