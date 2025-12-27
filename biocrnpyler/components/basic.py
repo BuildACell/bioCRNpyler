@@ -513,7 +513,7 @@ class ChemicalComplex(Component):
         List of attribute tags to associate with the complex species. The
         complex also inherits attributes from its constituent species.
     binding_type : str, default='chemical_complex'
-        Mechanism subtype for binding reaction parameters.
+        Part type for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to the `Component` base class
         constructor.

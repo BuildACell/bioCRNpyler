@@ -37,7 +37,7 @@ class CombinatorialComplex(Component):
         Name of the component. If None, automatically generated from
         final_states names.
     binding_type : str, default='chemical_complex'
-        Mechanism subtype for binding reaction parameters.
+        Part type for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to the `Component` base class
         constructor.

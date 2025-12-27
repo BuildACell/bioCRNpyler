@@ -96,6 +96,7 @@ Parameters are organized into databases that allow hierarchical searching.
 
    ParameterDatabase
    ParameterEntry
+   ParameterKey
 
 
 Base classes

@@ -54,9 +54,9 @@ from warnings import warn
 
 from ..utils.units import biocrnpyler_supported_units
 
-# This could later be extended
-ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')
-"""Named tuple defining a parameter key.
+
+class ParameterKey(namedtuple('ParameterKey', 'mechanism part_id name')):
+    """Named tuple defining a parameter key.
 
     Parameters
     ----------
@@ -69,7 +69,7 @@ ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')
         Name of the parameter. Must start with a letter and contain at
         least one character.
 
-"""
+    """
 
 
 class Parameter(object):
@@ -1671,7 +1671,7 @@ class ParameterDatabase(object):
 
         if not isinstance(part_id, list):
             part_id = [part_id]
-        part_id += [None]
+        part_id = part_id + [None]
         parameter_key_list = []
 
         # Create a parameter key for each part_id

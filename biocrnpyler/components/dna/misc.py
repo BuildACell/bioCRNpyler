@@ -36,7 +36,7 @@ class DNABindingSite(DNA_part):
     assembly : DNAassembly, optional
         The DNA assembly containing this binding site.
     binding_type : str, default='dna_protein'
-        Mechanism subtype for binding reaction parameters.
+        Part type for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to the parent `DNA_part` class.
 
@@ -258,7 +258,7 @@ class IntegraseSite(DNABindingSite):
         If True, integrase must bind before recombination. If False,
         recombination occurs without explicit binding (simplified model).
     binding_type : str, default='dna_protein'
-        Mechanism subtype for binding reaction parameters.
+        Part type for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to parent class.
 

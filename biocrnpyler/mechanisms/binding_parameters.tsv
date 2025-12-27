@@ -21,11 +21,11 @@ binding	chemical_complex	ku	10	uM/sec	90% binding
 binding	dna_protein	kb	0.2	/sec	TODO
 binding	dna_protein	ku	1e-3	uM/sec	TODO
 
-# One step cooperative binding
-cooperative_binding		cooperativity	2		number of binding modules to bind simultaneously
+# Default cooperativity
+binding		cooperativity	2		number of binding modules to bind simultaneously
 
 # Two step cooperative binding (oligimerization)
-cooperative_binding		kb1	1.0	/sec	forward rate constant for oligomerization (TODO)
-cooperative_binding		ku1	0.01	uM/sec	reverse rate constant for oligomerization (TODO)
-cooperative_binding		kb2	1.0	/sec	forward rate constant for oligomer-bindee binding (TODO)
-cooperative_binding		ku2	0.01	uM/sec	reverse rate constant for oligomer-bindee binding (TODO)
+two_step_cooperative_binding		kb1	1.0	/sec	forward rate constant for oligomerization (TODO)
+two_step_cooperative_binding		ku1	0.01	uM/sec	reverse rate constant for oligomerization (TODO)
+two_step_cooperative_binding		kb2	1.0	/sec	forward rate constant for oligomer-bindee binding (TODO)
+two_step_cooperative_binding		ku2	0.01	uM/sec	reverse rate constant for oligomer-bindee binding (TODO)

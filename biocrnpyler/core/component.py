@@ -690,8 +690,21 @@ class Component:
 
         # Finally, try the mechanism parameter database
         if param is None and self.mechanisms is not None and check_mechanism:
-            if self.mechanisms.get(mechanism, None):
-                param = self.mechanisms[mechanism].get_parameter(
+            if isinstance(mechanism, Mechanism):
+                key = mechanism.mechanism_type
+            else:
+                key = mechanism
+
+            if self.mechanisms.get(key, None):
+                param = self.mechanisms[key].get_parameter(
+                    mechanism, part_id, param_name
+                )
+            elif (
+                self.mixture
+                and self.mixture.mechanisms
+                and self.mixture.mechanisms.get(key, None)
+            ):
+                param = self.mixture.mechanisms[key].get_parameter(
                     mechanism, part_id, param_name
                 )
 

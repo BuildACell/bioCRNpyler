@@ -13,7 +13,7 @@ have unique reaction parameters derived from the literature or
 experiments. This parameter system is designed to work automatically,
 so all users have to do is specify a parameter file of the proper
 format or a parameter dictionary.  Parameters have default values that
-can be overriden at the component, mixture, or part level.
+can be overridden at the component, mixture, or part level.
 
 Describing Parameters
 =====================
@@ -37,7 +37,7 @@ tuple::
   }
 
 The mechanism string describes the underlying process (RNA
-degradation, transcripton, etc), the part ID string indicates the
+degradation, transcription, etc), the part ID string indicates the
 specific part (or None if the parameter value should be used for all
 parts), and the parameter string is the name of the parameter used by
 the component or mixture.
@@ -47,33 +47,46 @@ commonly stored in files.  Parameter files can be .tsv (or .txt) or
 .csv. BioCRNpyler will strip out all lines starting with a '#' to
 allow commenting of parameter files.  The first (non-comment) line of
 the file should contain column headings. The following headings are
-required (in any order): mechanism_id, part_id, param_name, and
-param_val (spaces can be substituted for underscores and headings are
+required (in any order): `mechanism_id`, `part_id`, `param_name`, and
+`param_val` (spaces can be substituted for underscores and headings are
 not case sensitive).
 
-The mechanism_id is the name of the mechanism or the kind of mechanism
-that will use this parameter, for example 'transcription' or
-'transcription_mm' for Mechalis-Menten transcription would go in this
-column. The part_id refers to the name supplied by the component that
-will use this mechanism, for example 'ptet' for a TetR repressed
-promoter and 'ptet_leak' for leak reactions of that promoter. The
-param_name field refers to the name of the model parameter, for
+The `mechanism_id` is the mechanism type or the name of the specific
+mechanism that will use this parameter. For example, parameters
+associated with all transcription mechanisms would set `mechanism_id`
+to 'transcription', while parameters specific to Michaelis-Menten
+transcription (`~mechanisms.Transcription_MM`) are specified using
+'transcription_mm' for `mechanism_id`.
+
+The `part_id` refers to the name supplied by the component that will
+use this mechanism, for example 'ptet' for a TetR repressed promoter
+and 'ptet_leak' for leak reactions of that promoter.  Some components
+also use a part type to define parameters for different classes of
+reactions and the `part_id` will be checked for this part type as
+well.  An example is the `~components.dna.RegulatedPromoter` component,
+which uses the 'dna_protein' part type for the 'binding' mechanism,
+and the `~components.ChemicalComplex` component, which uses the
+'chemical_complex' part type for 'binding' reactions.  A named
+`part_id` has priority over the part type.
+
+The `param_name` field refers to the name of the model parameter, for
 example 'ktx', 'kb', or 'ku'. The value of each entry is case
-sensitive and underscores are different from spaces. All these
-parameter headings (if they are not empty) are required to be
-alpha-numeric (plus single internal underscores) and start with a
+sensitive and underscores are different from spaces.
+
+All parameter headings (if they are not empty) are required to
+be alpha-numeric (plus single internal underscores) and start with a
 letter.
 
 The easiest way to examine which parameter values are used in a model
 and where BioCRNpyler found them is with the pretty_print function of
-a `ChemicalReactionNetwork` or a `Reaction` with `show_rates` and
-`show_keys` both set to True::
+a `~core.ChemicalReactionNetwork` or a `~core.Reaction` with
+`show_rates` and `show_keys` both set to True::
 
   CRN.pretty_print(show_rates=True, show_keys=True)
 
 The `show_rates` keyword toggles whether reaction rates are shown. The
 parameter values used in the rates will be shown below the rate
-function. The `show_keys` keyword toggles whether the ParameterKey
+function. The `show_keys` keyword toggles whether the `~core.ParameterKey`
 used to search and find these rates is displayed. The printed output
 will show the search_key for the mechanism and component and indicate
 the found_key where the parameter was found after applying the
@@ -109,20 +122,28 @@ default to the following keys in this order::
     ParameterKey(
         mechanism=None, part_id='part_id' , name='parameter_name')
     ParameterKey(
+        mechanism='mechanism_type', part_id='part_type', name='parameter_name')
+    ParameterKey(
+        mechanism=None, part_id='part_type' , name='parameter_name')
+    ParameterKey(
         mechanism='mechanism_name', part_id=None , name='parameter_name')
     ParameterKey(
         mechanism='mechanism_type', part_id=None , name='parameter_name')
     ParameterKey(
         mechanism= None, part_id=None , name='parameter_name')
 
-As a note, 'mechanism_name' refers to the .name variable of a
-Mechanism. 'mechanism_type' refers to the .type variable of a
-Mechanism. Either of these can be used as a mechanism ID. This allows
-for models to be constructed easily using default parameter values and
-for parameters to be shared between different mechanisms and/or
-components.
+The 'mechanism_name' field refers to the `name` attribute of a
+`~core.Mechanism` while the 'mechanism_type' refers to the `type`
+attribute of a `~core.Mechanism`. Either of these can be used as a
+mechanism ID.  Similarly, the 'part_id' field refers to the name
+assigned by the `~core.Component` that creates the reactions while the
+`part_type` refers to the type of reaction (e.g. 'dna_protein' versus
+'chemical_complex' for the 'binding' mechanisms). These naming
+conventions allow for models to be constructed using default
+parameter values and for parameters to be shared between different
+mechanisms and/or components.
 
-Parameters passed into a component supercede mixture level parameters
+Parameters passed into a component supersede mixture level parameters
 in reactions produced by that component.
 
 Components and mixtures can both have multiple parameter
@@ -136,7 +157,7 @@ When parameters are specified via parameter files, a set of
 directories is searched to find the first matching filename:
 
     1. The current directory
-    2. The list of directores in the `BCP_PATH` environment variable
+    2. The list of directories in the `BCP_PATH` environment variable
     3. The directory containing the BioCRNpyler source code files
 
 Parameter values for commonly used components are included in the
@@ -173,7 +194,7 @@ Parameter object with a unit, you can run::
         parameter_name='None', parameter_value='1.0', unit='M')
 
 BioCRNpyler supports the following unit definitions. The string in
-paranthesis is the unit identifier that you should use for that
+parenthesis is the unit identifier that you should use for that
 particular unit:
 
 1. Time units: second ('second' or 'sec'), minute ('minute' or 'min'),

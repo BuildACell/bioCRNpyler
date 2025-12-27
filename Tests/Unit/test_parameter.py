@@ -545,3 +545,150 @@ def test_findpath():
         os.environ['BCP_PATH'] = '/tmp:.:..'
     assert os.path.exists(bcp.find_file_in_bcp_path('__testfile__.tsv'))
     os.remove('../__testfile__.tsv')
+
+
+def test_parameter_ordering():
+    import biocrnpyler as bcp
+
+    # Create the components for testing
+    TetR = bcp.Protein('TetR')
+    aTc = bcp.Species('aTc')
+    TetR_inactive=bcp.ChemicalComplex([TetR.species, aTc])
+    ptet = bcp.RegulatedPromoter('ptet', TetR)
+    dna_GFP = bcp.DNAassembly(
+        'GFP', promoter=ptet, rbs='RBS', protein='GFP')
+
+    # Default case: test everything in PURE< with no parameters
+    default_mixture = bcp.BasicPURE(
+        'default', components=[dna_GFP, TetR_inactive])
+    default_crn = default_mixture.compile_crn()
+
+    # Find the binding reactions of TetR to DNA and aTc
+    aTc_TetR_index = dna_TetR_index = -1
+    for i, reaction in enumerate(default_crn.reactions):
+        if not isinstance(reaction.propensity_type, bcp.MassAction):
+            continue
+
+        inputs = [input.species for input in reaction.inputs]
+
+        # Find the binding of aTc to TetR
+        if aTc in inputs and TetR.species in inputs:
+            aTc_TetR_index = i
+
+        # Find the binding of TetR to DNA
+        if dna_GFP.species in inputs and TetR.species in inputs:
+            dna_TetR_index = i
+    assert aTc_TetR_index != -1 and dna_TetR_index != -1
+    assert default_crn.reactions[
+        dna_TetR_index].propensity_type.k_forward != 1
+    assert default_crn.reactions[
+        aTc_TetR_index].propensity_type.k_forward != 1
+
+    # Rebuild using given parameters
+    baseline_parameters = {
+        ('binding', None, 'kb'): 1,
+        ('binding', None, 'ku'): 0.1,
+        ('binding', None, 'cooperativity'): 2,
+    }
+    TetR_inactive=bcp.ChemicalComplex(
+        [TetR.species, aTc], parameters=baseline_parameters)
+    dna_GFP = bcp.DNAassembly(
+        'GFP', promoter=ptet, rbs='RBS', protein='GFP',
+        parameters=baseline_parameters)
+    baseline_mixture = bcp.BasicPURE(
+        'baseline', components=[dna_GFP, TetR_inactive])
+    baseline_crn = baseline_mixture.compile_crn()
+    assert baseline_crn.reactions[
+        dna_TetR_index].propensity_type.k_forward == 1
+    assert baseline_crn.reactions[
+        aTc_TetR_index].propensity_type.k_forward == 1
+
+    # Override using mechanism subtypes
+    mechtype_parameters = baseline_parameters | {
+        ('binding', 'dna_protein', 'kb'): 2,
+        ('binding', 'chemical_complex', 'kb'): 3,
+    }
+    TetR_inactive=bcp.ChemicalComplex(
+        [TetR.species, aTc], parameters=mechtype_parameters)
+    dna_GFP = bcp.DNAassembly(
+        'GFP', promoter=ptet, rbs='RBS', protein='GFP',
+        parameters=mechtype_parameters)
+    mechtype_mixture = bcp.BasicPURE(
+        'mechtype', components=[dna_GFP, TetR_inactive])
+    mechtype_crn = mechtype_mixture.compile_crn()
+    assert mechtype_crn.reactions[
+        dna_TetR_index].propensity_type.k_forward == 2
+    assert mechtype_crn.reactions[
+        aTc_TetR_index].propensity_type.k_forward == 3
+
+    # Override using part IDs
+    partid_parameters = mechtype_parameters | {
+        ('binding', 'ptet_TetR', 'kb'): 4,
+        ('binding', 'aTc_protein_TetR', 'kb'): 5,
+    }
+    TetR_inactive=bcp.ChemicalComplex(
+        [TetR.species, aTc], parameters=partid_parameters)
+    dna_GFP = bcp.DNAassembly(
+        'GFP', promoter=ptet, rbs='RBS', protein='GFP',
+        parameters=partid_parameters)
+    partid_mixture = bcp.BasicPURE(
+        'partid', components=[dna_GFP, TetR_inactive])
+    partid_crn = partid_mixture.compile_crn()
+    assert partid_crn.reactions[
+        dna_TetR_index].propensity_type.k_forward == 4
+    assert partid_crn.reactions[
+        aTc_TetR_index].propensity_type.k_forward == 5
+
+    # Override using mechanism name
+    mechname_parameters = baseline_parameters | {
+        ('one_step_cooperative_binding', None, 'kb'): 6,
+        ('binding', 'chemical_complex', 'kb'): 7,
+    }
+    TetR_inactive=bcp.ChemicalComplex(
+        [TetR.species, aTc], parameters=mechname_parameters)
+    dna_GFP = bcp.DNAassembly(
+        'GFP', promoter=ptet, rbs='RBS', protein='GFP',
+        parameters=mechname_parameters)
+    mechname_mixture = bcp.BasicPURE(
+        'mechname', components=[dna_GFP, TetR_inactive])
+    mechname_crn = mechname_mixture.compile_crn()
+    assert mechname_crn.reactions[
+        dna_TetR_index].propensity_type.k_forward == 6
+    assert mechname_crn.reactions[
+        aTc_TetR_index].propensity_type.k_forward == 7
+
+    # Override in mixture instead of components
+    mixture_parameters = baseline_parameters | {
+        ('one_step_cooperative_binding', None, 'kb'): 8,
+        ('binding', 'chemical_complex', 'kb'): 9,
+    }
+    TetR_inactive=bcp.ChemicalComplex([TetR.species, aTc])
+    dna_GFP = bcp.DNAassembly(
+        'GFP', promoter=ptet, rbs='RBS', protein='GFP')
+    mixture_mixture = bcp.BasicPURE(
+        'mixture', components=[dna_GFP, TetR_inactive],
+        parameters=mixture_parameters)
+    mixture_crn = mixture_mixture.compile_crn()
+    assert mixture_crn.reactions[
+        dna_TetR_index].propensity_type.k_forward == 8
+    assert mixture_crn.reactions[
+        aTc_TetR_index].propensity_type.k_forward == 9
+
+    # Override in components and not mixture
+    component_parameters = baseline_parameters | {
+        ('one_step_cooperative_binding', None, 'kb'): 10,
+        ('binding', 'chemical_complex', 'kb'): 11,
+    }
+    TetR_inactive=bcp.ChemicalComplex(
+        [TetR.species, aTc], parameters=component_parameters)
+    dna_GFP = bcp.DNAassembly(
+        'GFP', promoter=ptet, rbs='RBS', protein='GFP',
+        parameters=component_parameters)
+    mixture_mixture = bcp.BasicPURE(
+        'mixture', components=[dna_GFP, TetR_inactive],
+        parameters=mixture_parameters)
+    mixture_crn = mixture_mixture.compile_crn()
+    assert mixture_crn.reactions[
+        dna_TetR_index].propensity_type.k_forward == 10
+    assert mixture_crn.reactions[
+        aTc_TetR_index].propensity_type.k_forward == 11
