@@ -10,10 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import biocrnpyler as bcp
-
-# Set up some "units" for use later
-nM, uM, mM = 1e-3, 1, 1e3  # default units for concentrations
-sec, min, hrs = 1, 60, 3600  # default units for time
+from biocrnpyler.utils.units import nM, uM, mM, sec, min, hrs
 
 # Create a DNA assembly for strong expression of GFP
 gfp_dna = bcp.DNAassembly(
@@ -30,7 +27,6 @@ timepts = np.linspace(0, 6 * hrs, 1000)
 expr_mixture = bcp.ExpressionExtract(
     name='expression',
     components=[gfp_dna],
-    parameter_file='mixtures/extract_parameters.tsv',
 )
 expr_crn = expr_mixture.compile_crn()
 expr_res = expr_crn.simulate_with_bioscrape_via_sbml(
@@ -43,7 +39,6 @@ expr_res = expr_crn.simulate_with_bioscrape_via_sbml(
 simple_mixture = bcp.SimpleTxTlExtract(
     name='simple',
     components=[gfp_dna],
-    parameter_file='mixtures/extract_parameters.tsv',
 )
 simple_crn = simple_mixture.compile_crn()
 simple_res = simple_crn.simulate_with_bioscrape_via_sbml(
@@ -56,9 +51,6 @@ simple_res = simple_crn.simulate_with_bioscrape_via_sbml(
 regular_mixture = bcp.TxTlExtract(
     name='regular',
     components=[gfp_dna],
-    parameter_file=[
-        'mixtures/extract_parameters.tsv',
-    ],
 )
 regular_crn = regular_mixture.compile_crn()
 regular_res = regular_crn.simulate_with_bioscrape_via_sbml(
@@ -71,9 +63,6 @@ regular_res = regular_crn.simulate_with_bioscrape_via_sbml(
 energy_mixture = bcp.EnergyTxTlExtract(
     name='energy',
     components=[gfp_dna],
-    parameter_file=[
-        'mixtures/extract_parameters.tsv',
-    ],
 )
 energy_crn = energy_mixture.compile_crn()
 energy_res = energy_crn.simulate_with_bioscrape_via_sbml(
@@ -104,13 +93,17 @@ plt.clf()
 
 plt.plot(timepts / min, simple_res['rna_gfp'] / uM, label='mRNA, simple')
 plt.plot(
-    timepts/min,
+    timepts / min,
     regular_res['complex_protein_Ribo_rna_gfp_'],
-    label='mRNA:Ribo, reg')
+    label='mRNA:Ribo, reg',
+)
 plt.plot(
     timepts / min,
-    energy_res['complex_metabolite_ATP_4x_metabolite_amino_acids_protein_Ribo_rna_gfp_'] / uM,
-    label='mRNA, energy')
+    energy_res[
+        'complex_metabolite_ATP_4x_metabolite_amino_acids_protein_Ribo_rna_gfp_'
+    ] / uM,
+    label='mRNA, energy',
+)
 
 plt.title("Extract Mixture Comparisions - RNA")
 plt.xlabel("Time [min]")
@@ -134,7 +127,7 @@ plt.plot(
 )
 plt.plot(
     timepts / min,
-    energy_res['metabolite_Fuel_3PGA'] / 10 / mM,
+    energy_res['metabolite_Fuel_3PGA'] / mM / 10,
     label='3PGA/10',
 )
 # plt.plot(timepts/min, energy_res['metabolite_Fuel_3PGA']/mM, label='3PGA')
@@ -152,7 +145,7 @@ plt.figure(4)
 plt.clf()
 
 cfp_initial_conditions = initial_conditions_dict
-cfp_initial_conditions['dna_cfp'] = 1*nM
+cfp_initial_conditions['dna_cfp'] = 1 * nM
 
 # Add some additional DNA that will utilize resources
 cfp_dna = bcp.DNAassembly(
@@ -199,25 +192,34 @@ cfp_energy_res = cfp_energy_crn.simulate_with_bioscrape_via_sbml(
 )
 
 lines = plt.plot(
-    timepts / min, simple_res['protein_GFP'] / uM,
-    '--', label='GFP, simple')
+    timepts / min, simple_res['protein_GFP'] / uM, '--', label='GFP, simple'
+)
 plt.plot(
-    timepts / min, cfp_simple_res['protein_GFP'] / uM,
-    color=lines[0].get_color(), label='GFP, simple w/ CFP')
+    timepts / min,
+    cfp_simple_res['protein_GFP'] / uM,
+    color=lines[0].get_color(),
+    label='GFP, simple w/ CFP',
+)
 
 lines = plt.plot(
-    timepts / min, regular_res['protein_GFP'] / uM,
-    '--', label='GFP, regular')
+    timepts / min, regular_res['protein_GFP'] / uM, '--', label='GFP, regular'
+)
 plt.plot(
-    timepts / min, cfp_regular_res['protein_GFP'] / uM,
-    color=lines[0].get_color(), label='GFP, regular w/ CFP')
+    timepts / min,
+    cfp_regular_res['protein_GFP'] / uM,
+    color=lines[0].get_color(),
+    label='GFP, regular w/ CFP',
+)
 
 lines = plt.plot(
-    timepts / min, energy_res['protein_GFP'] / uM,
-    '--', label='GFP, energy')
+    timepts / min, energy_res['protein_GFP'] / uM, '--', label='GFP, energy'
+)
 plt.plot(
-    timepts / min, cfp_energy_res['protein_GFP'] / uM,
-    color=lines[0].get_color(), label='GFP, energy w/ CFP')
+    timepts / min,
+    cfp_energy_res['protein_GFP'] / uM,
+    color=lines[0].get_color(),
+    label='GFP, energy w/ CFP',
+)
 
 plt.title("Extract Mixture Comparisions w/ CFP")
 plt.xlabel("Time [min]")
@@ -229,7 +231,8 @@ plt.legend()
 #
 
 pure_mixture = bcp.BasicPURE(
-    name='regular', components=[gfp_dna],
+    name='regular',
+    components=[gfp_dna],
 )
 pure_crn = pure_mixture.compile_crn()
 pure_res = pure_crn.simulate_with_bioscrape_via_sbml(
