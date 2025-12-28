@@ -7,8 +7,8 @@ Chemical Reaction Networks
 **************************
 
 The lowest level representation of biological circuits and systems in
-bioCRNpyler is a chemical reaction network (CRN).  While most of the
-interaction with the bioCRNpyler package is done at higher levels of
+BioCRNpyler is a chemical reaction network (CRN).  While most of the
+interaction with the BioCRNpyler package is done at higher levels of
 abstract (:ref:`components<components_ref>`,
 :ref:`mechanisms<mechanisms_ref>`, and :ref:`mixtures<mixtures_ref>`),
 it is useful to understand the lower level representation and there
@@ -83,7 +83,7 @@ Formally, a chemical reaction can be written as:
 
 where :math:`A` and :math:`B` are the input species, :math:`C` is the
 output species, and :math:`k` is the reaction rate.  Formally,
-bioCRNpyler represents the reaction using a "propensity function",
+BioCRNpyler represents the reaction using a "propensity function",
 which defines the probability that the reaction will occur based on
 the concentration of the reactants (and potentially other factors, as
 described in more detail below).
@@ -139,7 +139,7 @@ a rate law of the form:
 where :math:`k` is the maximum rate, :math:`K` is the dissociation
 constant, :math:`n` is the Hill coefficient, and :math:`S` is the
 concentration of the repressor species.  This can be implemented in
-bioCRNpyler using the following code (for a transcriptional
+BioCRNpyler using the following code (for a transcriptional
 repressor)::
 
     DNA = bcp.Species('DNA', material_type='dna')

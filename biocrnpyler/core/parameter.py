@@ -20,7 +20,7 @@ parameters for things like 'ku' and 'ktx' to quickly build models.
 
 *Parameters inside BioCRNpyler*
 
-Inside of bioCRNpyler, parameters are stored as a dictionary key value pair:
+Inside of BioCRNpyler, parameters are stored as a dictionary key value pair:
 `(mechanism_name, part_id, param_name) --> param_val`. If that particular
 parameter key cannot be found, the software will default to the following
 keys: `(mechanism_type, part_id, param_name)` >> `(part_id, param_name)` >>

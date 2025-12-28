@@ -1,5 +1,5 @@
 #############################################################
-BioCRNPyler - Biomolecular Chemical Reaction Network Compiler
+BioCRNpyler - Biomolecular Chemical Reaction Network Compiler
 #############################################################
 
 BioCRNpyler (pronounced "bio compiler") is a Python package for the
@@ -28,11 +28,11 @@ and contexts -- to CRN implementations.
 
 - Mailing list: `SBTools Google
   Group <https://groups.google.com/g/sbtools/>`_ (sbtools@googlegroups.com)
-- Source code: https://github.com/BuildACell/BioCRNPyler
+- Source code: https://github.com/BuildACell/BioCRNpyler
 - Overview paper: `BioCRNpyler: Compiling Chemical Reaction Networks
   from Biomolecular Parts in Diverse
   Contexts <https://doi.org/10.1371/journal.pcbi.1009987>`_
-- Bug reports: https://github.com/BuildACell/BioCRNPyler/issues
+- Bug reports: https://github.com/BuildACell/BioCRNpyler/issues
 - Slack: Join the #biocrnpyler channel on SBTools slack: Ask on the
   public SBTools Google group to be added or send a message to one of
   the maintainers.
@@ -56,7 +56,7 @@ package helped you in your research, please cite::
     pages = {1-19}
   }
 
-or the GitHub site: https://github.com/BuildACell/BioCRNPyler.
+or the GitHub site: https://github.com/BuildACell/BioCRNpyler.
 
 
 .. toctree::
