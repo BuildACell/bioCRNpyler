@@ -527,7 +527,7 @@ def test_findpath():
 
     # Make sure that files in package can be found
     assert os.path.exists(
-        bcp.find_file_in_bcp_path('components/tetr_parameters.tsv')
+        bcp.find_file_in_bcp_path('mechanisms/txtl_parameters.tsv')
     )
 
     # Make sure we can find files in current directory
@@ -558,7 +558,7 @@ def test_parameter_ordering():
     dna_GFP = bcp.DNAassembly(
         'GFP', promoter=ptet, rbs='RBS', protein='GFP')
 
-    # Default case: test everything in PURE< with no parameters
+    # Default case: make sure we can compile with no additional paramters
     default_mixture = bcp.BasicPURE(
         'default', components=[dna_GFP, TetR_inactive])
     default_crn = default_mixture.compile_crn()
@@ -578,6 +578,7 @@ def test_parameter_ordering():
         # Find the binding of TetR to DNA
         if dna_GFP.species in inputs and TetR.species in inputs:
             dna_TetR_index = i
+
     assert aTc_TetR_index != -1 and dna_TetR_index != -1
     assert default_crn.reactions[
         dna_TetR_index].propensity_type.k_forward != 1

@@ -32,6 +32,8 @@ class OneStepGeneExpression(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transcription'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -89,9 +91,17 @@ class OneStepGeneExpression(Mechanism):
     """
 
     def __init__(
-        self, name='gene_expression', mechanism_type='transcription'
+        self,
+        name='gene_expression',
+        mechanism_type='transcription',
+        parameter_file='mechanisms/txtl_parameters.tsv',
     ):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     def update_species(self, dna, transcript=None, protein=None, **kwargs):
         """Generate species for one-step gene expression.
@@ -220,6 +230,8 @@ class SimpleTranscription(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transcription'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -279,9 +291,17 @@ class SimpleTranscription(Mechanism):
     """
 
     def __init__(
-        self, name='simple_transcription', mechanism_type='transcription'
+        self,
+        name='simple_transcription',
+        mechanism_type='transcription',
+        parameter_file='mechanisms/txtl_parameters.tsv',
     ):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     def update_species(self, dna, transcript=None, protein=None, **kwargs):
         """Generate species for simple transcription.
@@ -424,6 +444,8 @@ class SimpleTranslation(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='translation'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -481,9 +503,17 @@ class SimpleTranslation(Mechanism):
     """
 
     def __init__(
-        self, name='simple_translation', mechanism_type='translation'
+        self,
+        name='simple_translation',
+        mechanism_type='translation',
+        parameter_file='mechanisms/txtl_parameters.tsv',
     ):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     def update_species(self, transcript, protein=None, **kwargs):
         """Generate species for simple translation.
@@ -622,6 +652,8 @@ class PositiveHillTranscription(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transcription'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -693,8 +725,14 @@ class PositiveHillTranscription(Mechanism):
         self,
         name='positivehill_transcription',
         mechanism_type='transcription',
+        parameter_file='mechanisms/txtl_parameters.tsv',
     ):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     def update_species(
         self,
@@ -871,6 +909,8 @@ class NegativeHillTranscription(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transcription'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -942,8 +982,14 @@ class NegativeHillTranscription(Mechanism):
         self,
         name='negativehill_transcription',
         mechanism_type='transcription',
+        parameter_file='mechanisms/txtl_parameters.tsv',
     ):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     def update_species(
         self,
@@ -1101,6 +1147,8 @@ class Transcription_MM(MichaelisMentenCopy):
         RNA polymerase species that catalyzes transcription.
     name : str, default='transcription_mm'
         Name identifier for this mechanism instance.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -1164,7 +1212,13 @@ class Transcription_MM(MichaelisMentenCopy):
 
     """
 
-    def __init__(self, rnap: Species, name='transcription_mm', **kwargs):
+    def __init__(
+        self,
+        rnap: Species,
+        name='transcription_mm',
+        parameter_file='mechanisms/txtl_parameters.tsv',
+        **kwargs,
+    ):
         if isinstance(rnap, Species):
             self.rnap = rnap
         else:
@@ -1316,6 +1370,8 @@ class Translation_MM(MichaelisMentenCopy):
         Ribosome species that catalyzes translation.
     name : str, default='translation_mm'
         Name identifier for this mechanism instance.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -1382,7 +1438,13 @@ class Translation_MM(MichaelisMentenCopy):
 
     """
 
-    def __init__(self, ribosome: Species, name='translation_mm', **kwargs):
+    def __init__(
+        self,
+        ribosome: Species,
+        name='translation_mm',
+        parameter_file='mechanisms/txtl_parameters.tsv',
+        **kwargs,
+    ):
         if isinstance(ribosome, Species):
             self.ribosome = ribosome
         else:
@@ -1544,6 +1606,8 @@ class Energy_Transcription_MM(Mechanism):
         transcription.
     name : str, default='energy_transcription_mm'
         Name identifier for this mechanism instance.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -1625,6 +1689,7 @@ class Energy_Transcription_MM(Mechanism):
         fuels: List[Species],
         wastes: List[Species],
         name='energy_transcription_mm',
+        parameter_file='mechanisms/txtl_parameters.tsv',
         **kwargs,
     ):
         if isinstance(rnap, Species):
@@ -1645,7 +1710,10 @@ class Energy_Transcription_MM(Mechanism):
             raise ValueError("wastes must be a list of Species!")
 
         Mechanism.__init__(
-            self=self, name=name, mechanism_type='transcription'
+            self=self,
+            name=name,
+            mechanism_type='transcription',
+            parameter_file=parameter_file,
         )
 
     def update_species(self, dna, transcript=None, protein=None, **kwargs):
@@ -1818,6 +1886,8 @@ class Energy_Translation_MM(Mechanism):
         List of waste species produced during translation.
     name : str, default='energy_translation_mm'
         Name identifier for this mechanism instance.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -1900,6 +1970,7 @@ class Energy_Translation_MM(Mechanism):
         fuels: List[Species],
         wastes=List[Species],
         name='energy_translation_mm',
+        parameter_file='mechanisms/txtl_parameters.tsv',
         **kwargs,
     ):
         if isinstance(ribosome, Species):
@@ -1917,7 +1988,12 @@ class Energy_Translation_MM(Mechanism):
         else:
             raise ValueError("wastes must be a list of Species!")
 
-        Mechanism.__init__(self=self, name=name, mechanism_type='translation')
+        Mechanism.__init__(
+            self=self,
+            name=name,
+            mechanism_type='translation',
+            parameter_file=parameter_file,
+        )
 
     def update_species(self, transcript, protein, **kwargs):
         """Generate species for energy-consuming translation.
@@ -2088,6 +2164,8 @@ class multi_tx(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transcription'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -2163,6 +2241,7 @@ class multi_tx(Mechanism):
         pol: Species,
         name: str = 'multi_tx',
         mechanism_type: str = 'transcription',
+        parameter_file='mechanisms/txtl_parameters.tsv',
         **kwargs,
     ):
         if isinstance(pol, Species):
@@ -2170,7 +2249,12 @@ class multi_tx(Mechanism):
         else:
             raise ValueError("'pol' must be a Species")
 
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     # species update
     def update_species(
@@ -2438,6 +2522,8 @@ class multi_tl(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='translation'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -2517,6 +2603,7 @@ class multi_tl(Mechanism):
         ribosome: Species,
         name: str = 'multi_tl',
         mechanism_type: str = 'translation',
+        parameter_file='mechanisms/txtl_parameters.tsv',
         **kwargs,
     ):
         if isinstance(ribosome, Species):
@@ -2524,7 +2611,12 @@ class multi_tl(Mechanism):
         else:
             raise ValueError("'ribosome' must be a Species.")
 
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     # species update
     def update_species(
