@@ -34,6 +34,8 @@ class BasicCatalysis(Mechanism):
         Name of the mechanism instance.
     mechanism_type : str
         Type classification ('catalysis').
+    parameter_file : str, default='mechanisms/transport_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     See Also
     --------
@@ -73,9 +75,14 @@ class BasicCatalysis(Mechanism):
     """
 
     def __init__(
-        self, name: str = 'basic_catalysis', mechanism_type: str = 'catalysis'
+        self,
+        name: str = 'basic_catalysis',
+        mechanism_type: str = 'catalysis',
+        parameter_file='mechanisms/enzyme_parameters.tsv',
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(self, enzyme, substrate, product=None):
         r"""Generate species for basic catalysis.
@@ -204,6 +211,8 @@ class BasicProduction(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='catalysis'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/transport_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -259,8 +268,15 @@ class BasicProduction(Mechanism):
 
     """
 
-    def __init__(self, name='basic_production', mechanism_type='catalysis'):
-        Mechanism.__init__(self, name, mechanism_type)
+    def __init__(
+        self,
+        name='basic_production',
+        mechanism_type='catalysis',
+        parameter_file='mechanisms/enzyme_parameters.tsv',
+    ):
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(self, enzyme, substrate=None, product=None):
         """Generate species for basic production.
@@ -394,6 +410,8 @@ class MichaelisMenten(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='catalysis'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/transport_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -464,8 +482,15 @@ class MichaelisMenten(Mechanism):
 
     """
 
-    def __init__(self, name='michaelis_menten', mechanism_type='catalysis'):
-        Mechanism.__init__(self, name, mechanism_type)
+    def __init__(
+        self,
+        name='michaelis_menten',
+        mechanism_type='catalysis',
+        parameter_file='mechanisms/enzyme_parameters.tsv',
+    ):
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(self, enzyme, substrate, product=None, complex=None):
         """Generate species for Michaelis-Menten kinetics.
@@ -644,6 +669,8 @@ class MichaelisMentenReversible(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='catalysis'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/transport_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -719,8 +746,11 @@ class MichaelisMentenReversible(Mechanism):
         self,
         name='michaelis_menten_reverse_binding',
         mechanism_type='catalysis',
+        parameter_file='mechanisms/enzyme_parameters.tsv',
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(
         self, enzyme, substrate, product, complex=None, complex2=None
@@ -933,6 +963,8 @@ class MichaelisMentenCopy(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='copy'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/transport_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -995,8 +1027,15 @@ class MichaelisMentenCopy(Mechanism):
 
     """
 
-    def __init__(self, name='michaelis_menten_copy', mechanism_type='copy'):
-        Mechanism.__init__(self, name, mechanism_type)
+    def __init__(
+        self,
+        name='michaelis_menten_copy',
+        mechanism_type='copy',
+        parameter_file='mechanisms/enzyme_parameters.tsv',
+    ):
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(self, enzyme, substrate, complex=None, product=None):
         """Generate species for copy-type Michaelis-Menten kinetics.
