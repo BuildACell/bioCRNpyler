@@ -5,13 +5,13 @@
 # otherwise noted:
 #
 #   [TX-TL 2.0] Garamella, Jonathan, Ryan Marshall, Mark Rustad, and Vincent
-#   Noireaux. “The All E. Coli TX-TL Toolbox 2.0: A Platform for Cell-Free
-#   Synthetic Biology”. ACS Synthetic Biology 5, no. 4 (2016):344–55.
+#   Noireaux. "The All E. Coli TX-TL Toolbox 2.0: A Platform for Cell-Free
+#   Synthetic Biology". ACS Synthetic Biology 5, no. 4 (2016):344-55.
 #   https://doi.org/10.1021/acssynbio.5b00296.
 #
 #   [txtlsim] Singhal, Vipul, Zoltan A Tuza, Zachary Z Sun, and Richard
-#   M Murray. “A MATLAB Toolbox for Modeling Genetic Circuits in Cell-Free
-#   Systems”. Synthetic Biology 6, no. 1 (2021):ysab007.
+#   M Murray. "A MATLAB Toolbox for Modeling Genetic Circuits in Cell-Free
+#   Systems". Synthetic Biology 6, no. 1 (2021):ysab007.
 #   https://doi.org/10.1093/synbio/ysab007.
 #
 # The parameters for the most complex mechanisms are listed first, with
