@@ -39,6 +39,12 @@ initial concentration		ATP	1000	uM	[ATP/GTP] - [CTP/UTP]
 initial concentration		NTPs	4000	uM	[CTP/UTP] * 4 (NTPs)
 initial concentration		AAs	6000	uM	0.3 mM (upper bound) * 20 AAs
 
+transcription_mm		kb	4.48	/uM/sec	txtlsim S3: pol_{Flac}
+transcription_mm		ku	2.5E-06	/sec	default_parameters.txt; source unclear (TODO)
+
+translation_mm		kb	0.819	/uM/sec	Singhal et al. Table S2
+translation_mm		ku	0.003	/sec	Singhal et al. Table S2
+
 energy_transcription_mm		ktx	50	/sec	50 nt/s (rate will be divided by length)
 energy_transcription_mm		kb	4.48	/uM/sec	txtlsim S3: pol_{Flac}
 energy_transcription_mm		ku	2.5E-06	/sec	default_parameters.txt; source unclear (TODO)

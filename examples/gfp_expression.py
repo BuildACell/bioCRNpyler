@@ -18,7 +18,7 @@ gfp_dna = bcp.DNAassembly(
 )
 
 # Simulation parmaters
-initial_conditions_dict = {'dna_gfp': 1 * nM}
+initial_conditions = {'dna_gfp': 1 * nM}
 timepts = np.linspace(0, 6 * hrs, 1000)
 
 #
@@ -30,7 +30,7 @@ expr_mixture = bcp.ExpressionExtract(
 )
 expr_crn = expr_mixture.compile_crn()
 expr_res = expr_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=initial_conditions_dict
+    timepts, initial_condition_dict=initial_conditions
 )
 
 #
@@ -42,7 +42,7 @@ simple_mixture = bcp.SimpleTxTlExtract(
 )
 simple_crn = simple_mixture.compile_crn()
 simple_res = simple_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=initial_conditions_dict
+    timepts, initial_condition_dict=initial_conditions
 )
 
 #
@@ -54,7 +54,7 @@ regular_mixture = bcp.TxTlExtract(
 )
 regular_crn = regular_mixture.compile_crn()
 regular_res = regular_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=initial_conditions_dict
+    timepts, initial_condition_dict=initial_conditions
 )
 
 #
@@ -66,7 +66,7 @@ energy_mixture = bcp.EnergyTxTlExtract(
 )
 energy_crn = energy_mixture.compile_crn()
 energy_res = energy_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=initial_conditions_dict
+    timepts, initial_condition_dict=initial_conditions
 )
 
 #
@@ -144,7 +144,7 @@ plt.legend()
 plt.figure(4)
 plt.clf()
 
-cfp_initial_conditions = initial_conditions_dict
+cfp_initial_conditions = initial_conditions.copy()
 cfp_initial_conditions['dna_cfp'] = 1 * nM
 
 # Add some additional DNA that will utilize resources
@@ -236,7 +236,7 @@ pure_mixture = bcp.BasicPURE(
 )
 pure_crn = pure_mixture.compile_crn()
 pure_res = pure_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=initial_conditions_dict
+    timepts, initial_condition_dict=initial_conditions
 )
 
 plt.figure(5)
@@ -245,6 +245,79 @@ plt.plot(timepts / min, energy_res['protein_GFP'] / uM, label='GFP, TX-TL')
 plt.plot(timepts / min, pure_res['protein_GFP'] / uM, label='GFP, PURE')
 
 plt.title("Mixture Comparisions - TX-TL vs PURE")
+plt.xlabel("Time [min]")
+plt.ylabel("Concentration [uM]")
+plt.legend()
+
+#
+# PURE mixtures
+#
+
+simple_mixture = bcp.PURE(
+    name='simple', components=[gfp_dna, cfp_dna],
+    include_machinery=False, include_resources=False, include_fuel=False)
+simple_crn = simple_mixture.compile_crn()
+simple_res = simple_crn.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=cfp_initial_conditions
+)
+
+machinery_mixture = bcp.PURE(
+    name='machinery', components=[gfp_dna, cfp_dna],
+    include_machinery=True, include_resources=False, include_fuel=False)
+machinery_crn = machinery_mixture.compile_crn()
+machinery_res = machinery_crn.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=cfp_initial_conditions
+)
+
+resource_mixture = bcp.PURE(
+    name='resources', components=[gfp_dna, cfp_dna],
+    include_machinery=True, include_resources=True, include_fuel=False)
+resource_crn = resource_mixture.compile_crn()
+resource_res = resource_crn.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=cfp_initial_conditions
+)
+
+energy_mixture = bcp.PURE(
+    name='energy', components=[gfp_dna, cfp_dna],
+    include_machinery=True, include_resources=True, include_fuel=True)
+energy_crn = energy_mixture.compile_crn()
+energy_res = energy_crn.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=cfp_initial_conditions
+)
+
+energy_mixture_gfp = bcp.PURE(
+    name='energy', components=[gfp_dna],
+    include_machinery=True, include_resources=True, include_fuel=True)
+energy_crn_gfp = energy_mixture_gfp.compile_crn()
+energy_res_gfp = energy_crn_gfp.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=initial_conditions
+)
+
+plt.figure(6)
+plt.clf()
+
+plt.plot(
+    timepts / min, simple_res['protein_GFP'] / uM,
+    label='GFP+CFP, simple')
+plt.plot(
+    timepts / min, machinery_res['protein_GFP'] / uM,
+    label='GFP+CFP, machinery')
+plt.plot(
+     timepts / min, resource_res['protein_GFP'] / uM,
+     label='GFP+CFP, resources')
+plt.plot(
+    timepts / min, energy_res['protein_GFP'] / uM,
+    label='GFP+CFP, energy')
+plt.plot(
+    timepts / min, energy_res_gfp['protein_GFP'] / uM,
+    label='GFP only, energy')
+plt.plot(
+    timepts / min, pure_res['protein_GFP'] + 0.1 / uM, '--',
+    label='GFP only + 0.1, basic')
+
+plt.ylim([0, 12])
+
+plt.title("PURE Mixture Comparisions")
 plt.xlabel("Time [min]")
 plt.ylabel("Concentration [uM]")
 plt.legend()

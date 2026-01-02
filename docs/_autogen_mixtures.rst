@@ -49,5 +49,6 @@ Pure
    :nosignatures:
    :recursive:
 
+    PURE
     BasicPURE
 
