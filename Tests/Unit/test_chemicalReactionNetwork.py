@@ -228,7 +228,7 @@ class TestChemicalReactionNetwork(TestCase):
     def test_get_all_species_containing(self):
         # test that the species arument must be Species object
         with self.assertRaisesRegex(
-            ValueError, 'species argument must be an instance of Species!'
+            ValueError, 'species argument must be an instance of Species'
         ):
             self.crn.get_all_species_containing(species=self.species_list)
 
