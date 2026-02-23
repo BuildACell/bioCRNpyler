@@ -3,8 +3,6 @@
 
 from ..components.basic import Metabolite, Protein
 from ..core.mixture import Mixture
-from ..mechanisms.binding import One_Step_Binding
-from ..mechanisms.enzyme import MichaelisMenten
 from ..mechanisms.txtl import (
     Energy_Transcription_MM,
     Energy_Translation_MM,

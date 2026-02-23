@@ -11,7 +11,11 @@ def test_enzyme():
     products = 'P1'
     enzyme = 'E1'
 
-    e = Enzyme(enzyme=enzyme, substrates=substrates, products=products)
+    e = Enzyme(
+        enzyme=enzyme, substrates=substrates, products=products,
+    )
+    e.default_mechanism=None  # override failsafe
+
     assert any([s.name == 'S1' for s in e.substrates])
     assert any([p.name == 'P1' for p in e.products])
     assert enzyme == e.enzyme.name
