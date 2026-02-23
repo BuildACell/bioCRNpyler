@@ -140,8 +140,12 @@ class CombinatorialConformation(Component):
 
         if name is None:
             name = str(self.internal_polymer.name)
-        Component.__init__(self, name=name, **kwargs)
-        self.add_mechanism(One_Step_Reversible_Conformation_Change())
+        Component.__init__(
+            self,
+            name=name,
+            default_mechanism=One_Step_Reversible_Conformation_Change(),
+            **kwargs,
+        )
 
     # Helper function to assert the correct class type
     def _assert_conformation(self, states, input_name='states'):

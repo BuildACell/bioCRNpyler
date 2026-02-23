@@ -54,6 +54,8 @@ class Component:
     initial_condition_dictionary : dict, optional
         Dictionary mapping species (or species names) to initial concentration
         values for components with multiple species.
+    default_mechanism : Mechanism, optional
+        Default mechanism to use if no other mechanisms are provided.
 
     Attributes
     ----------
@@ -120,11 +122,15 @@ class Component:
         # None, self.name):initial_concentration
         initial_concentration=None,
         initial_condition_dictionary=None,
+        default_mechanism=None,
     ):
         if mechanisms is None:
             self.mechanisms = {}
+            self.default_mechanism = default_mechanism
         else:
             self.mechanisms = mechanisms
+            self.default_mechanism = None
+
         if isinstance(name, Species):
             self.name = name.name
         elif isinstance(name, str):
@@ -484,6 +490,10 @@ class Component:
             return self.mechanisms[mechanism_type]
         elif self.mixture is not None:
             mech = self.mixture.get_mechanism(mechanism_type)
+
+        if mech is None and self.default_mechanism is not None:
+            mech = self.default_mechanism
+
         if mech is None and not optional_mechanism:
             raise KeyError(
                 f"Unable to find mechanism of type {mechanism_type} in "
@@ -643,7 +653,7 @@ class Component:
             Name of the parameter to retrieve.
         part_id : str, optional
             Part identifier for the parameter lookup key.
-        mechanism : str, optional
+        mechanism : str or Mechanism, optional
             Mechanism identifier for the parameter lookup key.
         return_numerical : bool, default=False
             If True, returns the numerical value. If False, returns the
@@ -688,23 +698,33 @@ class Component:
         if param is None and self.mixture is not None and check_mixture:
             param = self.mixture.get_parameter(mechanism, part_id, param_name)
 
-        # Finally, try the mechanism parameter database
-        if param is None and self.mechanisms is not None and check_mechanism:
+        # Finally, try mechanism parameter databases
+        if param is None and check_mechanism:
+            # Start with the component mechanism
             if isinstance(mechanism, Mechanism):
                 key = mechanism.mechanism_type
             else:
                 key = mechanism
 
-            if self.mechanisms.get(key, None):
+            if self.mechanisms is not None and self.mechanisms.get(key, None):
                 param = self.mechanisms[key].get_parameter(
                     mechanism, part_id, param_name
                 )
-            elif (
-                self.mixture
+
+            # Then mixture mechanisms
+            if (
+                param is None
+                and self.mixture
                 and self.mixture.mechanisms
                 and self.mixture.mechanisms.get(key, None)
             ):
                 param = self.mixture.mechanisms[key].get_parameter(
+                    mechanism, part_id, param_name
+                )
+
+            # Then the passed mechanism
+            if param is None and isinstance(mechanism, Mechanism):
+                param = mechanism.get_parameter(
                     mechanism, part_id, param_name
                 )
 

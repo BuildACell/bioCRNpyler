@@ -8,24 +8,41 @@ mechanism_id	part_id	param_name	param_val	units	comments
 #
 # One step (and cooperative) binding
 #
-# The first step in various binding mechanisms is the initial binding of
-# the substrates.  We define binding and unbinding reaction rates here
-# for several different part types.  These rates are used by both 
-# 'one_step_binding' mechanisms and '
 
-# Chemical complex binding
-binding	chemical_complex	kb	100	/sec	assuming 10 ms to diffuse across 1 um (characteristic cell size)
-binding	chemical_complex	ku	10	uM/sec	90% binding
+# The first step in various binding mechanisms is the initial binding
+# of the substrates.  We define binding and unbinding reaction rates
+# here for two different situations: a chemical complex and a
+# regulator (activator or repressor) binding to DNA.
+#
+# We use TetR and aTc as the "generic" case and use the rate constants
+# from the following paper:
+#
+#   [SK07] V. Sotiropoulos and Y. N. Kaznessis.  "Synthetic
+#   Tetracycline-Inducible Regulatory Networks: Computer-Aided Design
+#   of Dynamic Phenotypes."  BMC Systems Biology 1, no. 1 (2007): 7.
+#   https://doi.org/10.1186/1752-0509-1-7.
+#
+# Table 1 presents rates for a large set of reactions (using Tc instead
+# of aTc) in units of (M s)^{-1} (converted to (uM s)^{-1} here by
+# multiplying by 1e-6.
 
-# Protein-DNA binding
-binding	dna_protein	kb	0.2	/sec	TODO
-binding	dna_protein	ku	1e-3	uM/sec	TODO
+# Chemical complex binding (aTc to TetR)
+binding	chemical_complex	kb	2.00	/uM/sec	SK07, Table 1, Reaction 6
+binding	chemical_complex	ku	0.001	/sec	SK07, Table 1, Reaction 8
+
+# Protein-DNA binding (TetR2 to DNA)
+binding	dna_protein	kb	2.86	/uM/sec	SK07, Table 1, Reaction 23
+binding	dna_protein	ku	5.11e-4	/sec	SK07, Table 1, Reaction 24
 
 # Default cooperativity
 binding		cooperativity	2		number of binding modules to bind simultaneously
 
-# Two step cooperative binding (oligimerization)
-two_step_cooperative_binding		kb1	1.0	/sec	forward rate constant for oligomerization (TODO)
-two_step_cooperative_binding		ku1	0.01	uM/sec	reverse rate constant for oligomerization (TODO)
-two_step_cooperative_binding		kb2	1.0	/sec	forward rate constant for oligomer-bindee binding (TODO)
-two_step_cooperative_binding		ku2	0.01	uM/sec	reverse rate constant for oligomer-bindee binding (TODO)
+# Two step cooperative binding:
+#   R1 (oligimerization): 2TetR --> TetR2)
+#   R2 (DNA binding): TetR2 to DNA)
+two_step_cooperative_binding		kb1	1.0e3	/uM/sec	SK07, Table 1, Reaction 2
+two_step_cooperative_binding		ku1	10	/sec	SK07, Table 1, Reaction 3
+two_step_cooperative_binding	chemical_complex	kb2	2.00	/uM/sec	SK07, Table 1, Reaction 6
+two_step_cooperative_binding	chemical_complex	ku2	0.001	/sec	SK07, Table 1, Reaction 8
+two_step_cooperative_binding	dna_protein	kb2	2.86	/uM/sec	SK07, Table 1, Reaction 23
+two_step_cooperative_binding	dna_protein	ku2	5.11e-4	/sec	SK07, Table 1, Reaction 24
