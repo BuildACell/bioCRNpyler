@@ -14,6 +14,8 @@ import random
 import statistics
 from warnings import warn
 
+import numpy as np
+
 from ..components.basic import DNA, RNA, Protein
 from ..components.dna.cds import CDS
 from ..components.dna.construct import Construct
@@ -21,9 +23,11 @@ from ..components.dna.misc import IntegraseSite, Operator, Origin, UserDefined
 from ..components.dna.promoter import Promoter
 from ..components.dna.rbs import RBS
 from ..components.dna.terminator import Terminator
+from ..core.component import Component
 from ..core.polymer import OrderedPolymer
 from ..core.propensities import MassAction
 from ..core.species import ComplexSpecies, Species
+from ..utils.units import mins
 from . import member_dictionary_search
 
 HAVE_MATPLOTLIB = False
@@ -1352,3 +1356,161 @@ def render_network_bokeh(
             raise ValueError("To export you must supply export_name keyword.")
         export_svgs(plot, filename=export_name + '.svg')
     return plot
+
+
+def plot_all_containing(
+    results,
+    crn,
+    species_list,
+    time_units=mins,
+    legend_fontsize='small',
+    show_material=True,
+):
+    if not isinstance(species_list, (list, tuple)):
+        species_list = [species_list]
+
+    timepts = results['time'] / time_units
+    for species in species_list:
+        if isinstance(species, Component):
+            species = species.species
+
+        compounds = crn.get_all_species_containing(species)
+        if len(compounds) > 1:
+            species_total = np.zeros(results['time'].size)
+            for compound in compounds:
+                plt.plot(
+                    timepts,
+                    results[str(compound)],
+                    label=compound.pretty_print(show_material=show_material),
+                )
+                species_total += results[str(compound)]
+            plt.plot(
+                timepts,
+                species_total,
+                label=f"Total {species.pretty_print()}",
+            )
+        else:
+            plt.plot(
+                timepts,
+                results[str(compounds[0])],
+                label=species.pretty_print(),
+            )
+        plt.legend(fontsize=legend_fontsize)
+        plt.ylabel("Concentration [uM]")
+
+
+def plot_gene_expression_data(
+    results,
+    crn,
+    genelist,
+    plot_totals=None,
+):
+    """Plot DNA, RNA, and protein concentrations for a list of genes.
+
+    Generate a plot showing the concentrations of all species associated with
+    expression of a gene, including complex containing the species.
+
+    Parameters
+    ----------
+    results :
+
+    """
+    if not isinstance(genelist, (list, tuple)):
+        genelist = [genelist]
+    min = 60
+
+    timepts = results['time'] / min
+    for gene in genelist:
+        # DNA
+        plt.subplot(2, 2, 1)
+        dna_species = gene.dna
+        dna_species_list = crn.get_all_species_containing(dna_species)
+        if len(dna_species_list) > 1:
+            dna_total = np.zeros(results['time'].size)
+            for species in dna_species_list:
+                plt.plot(
+                    timepts,
+                    results[str(species)],
+                    label=species.pretty_print(show_material=False),
+                )
+                dna_total += results[str(species)]
+            plt.plot(
+                timepts,
+                dna_total,
+                label=f"Total {dna_species.pretty_print()}",
+            )
+        else:
+            plt.plot(
+                timepts,
+                results[str(gene.dna)],
+                label=dna_species.pretty_print(),
+            )
+        plt.title("DNA")
+        plt.legend(fontsize='x-small')
+        plt.ylabel("Concentration [uM]")
+
+        # RNA
+        plt.subplot(2, 2, 2)
+        rna_species = gene.transcript
+        rna_species_list = crn.get_all_species_containing(rna_species)
+        if len(rna_species_list) > 1:
+            rna_total = np.zeros(results['time'].size)
+            for species in rna_species_list:
+                plt.plot(
+                    timepts,
+                    results[str(species)],
+                    label=species.pretty_print(show_material=False),
+                )
+                rna_total += results[str(species)]
+            plt.plot(
+                timepts,
+                rna_total,
+                label=f"Total {rna_species.pretty_print()}",
+            )
+        else:
+            plt.plot(
+                timepts,
+                results[str(gene.transcript)],
+                label=rna_species.pretty_print(),
+            )
+        plt.title("RNA")
+        plt.legend(fontsize='x-small')
+
+        # Protein
+        plt.subplot(2, 2, 3)
+        protein_species = gene.protein
+        protein_species_list = crn.get_all_species_containing(protein_species)
+        if len(protein_species_list) > 1:
+            protein_total = np.zeros(results['time'].size)
+            for species in protein_species_list:
+                plt.plot(
+                    timepts,
+                    results[str(species)],
+                    label=species.pretty_print(show_material=False),
+                )
+                protein_total += results[str(species)]
+            plt.plot(
+                timepts,
+                protein_total,
+                label=f"Total {protein_species.pretty_print()}",
+            )
+        else:
+            plt.plot(
+                timepts,
+                results[str(protein_species)],
+                label=protein_species.pretty_print(),
+            )
+        plt.title("Protein")
+        plt.legend(fontsize='x-small')
+        plt.ylabel("Concentration [uM]")
+        plt.xlabel("Time [min]")
+
+    plt.subplot(2, 2, 4)
+    plt.plot(timepts, results['metabolite_AAs'], label='AAs')
+    plt.plot(timepts, results['metabolite_NTPs'], label='NTPs')
+    plt.plot(timepts, results['metabolite_ATP'], label='ATP')
+    plt.title("Resources")
+    plt.legend(fontsize='x-small')
+    plt.xlabel("Time [min]")
+
+    plt.tight_layout()
