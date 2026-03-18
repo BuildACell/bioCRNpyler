@@ -31,14 +31,14 @@ translation		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
 # multiplying by 1e-6.  Dissociation constaints are computed by dividing
 # unbinding rate by the binding rate.
 
-transcription		K	5e-4	uM	SK07, Table 1, R8 / R6
-transcription		k	0.05	/sec	ktx from transcription_mm
+transcription		K	1.33e-3	uM	SK01 -> BFS formulas w/ RNAP = 1.3 (PURE)
+transcription		k	2.5e-2	/sec	hand-tuned to match MM in gfp_expression.py (TODO)
 transcription		n	2		cooperativity
 transcription		kleak	0.013	/sec	SK07, Table 1, R37
 
 # Transcription_MM and Translation_MM
 transcription_mm		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
-transcription_mm		kb	8.6e-6	/uM/sec	SK07, Table 1, R31
+transcription_mm		kb	8.6	/uM/sec	SK07, Table 1, R31
 transcription_mm		ku	0.01	/sec	SK07, Table 1, R32
 translation_mm		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
 translation_mm		kb	0.1	/uM/sec	SK07, Table 1, R45
@@ -46,7 +46,7 @@ translation_mm		ku	100	/sec	SK07, Table 1, R46
 
 # Energy_Transcription_MM and Energy_Translation_MM
 energy_transcription_mm		ktx	50	/sec	50 nt/s (rate will be divided by length)
-energy_transcription_mm		kb	8.6e-6	/uM/sec	SK07, Table 1, R31
+energy_transcription_mm		kb	8.6	/uM/sec	SK07, Table 1, R31
 energy_transcription_mm		ku	0.01	/sec	SK07, Table 1, R32
 energy_transcription_mm		kb_ntps	10	/uM/sec	fast binding of NTPs to RNAP:DNA complex (TODO)
 energy_transcription_mm		ku_ntps	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA complex (TODO)
