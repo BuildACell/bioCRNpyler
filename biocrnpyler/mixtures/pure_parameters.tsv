@@ -58,3 +58,8 @@ energy_translation_mm		ku	0.003	/sec	Singhal et al. Table S2
 energy_translation_mm		kb_fuel	10	/uM/sec	fast binding of NTPs to RNAP:DNA complex (TODO)
 energy_translation_mm		ku_fuel	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA complex (TODO)
 energy_translation_mm		length	300	aa	default length of a protein (for resource uasge)
+
+# Parameters for energy regeneration
+initial concentration		Fuel_CP	16666	uM	50 mM small molecule * 3/10 in final mix
+one_step_pathway	ATP_production	k	0.02	/uM/sec	alpha_atp, Singhal et al. Table S2 (TODO)
+one_step_pathway	ATP_degradation	k	0.0000177	/sec	Delta_ATP, Singhal et al. Table S2 (TODO)

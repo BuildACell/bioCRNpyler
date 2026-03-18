@@ -1983,7 +1983,7 @@ class Energy_Translation_MM(Mechanism):
         else:
             raise ValueError("Fuels must be a list of Species!")
 
-        if all([isinstance(s, Species) for s in fuels]):
+        if all([isinstance(s, Species) for s in wastes]):
             self.wastes = wastes
         else:
             raise ValueError("wastes must be a list of Species!")

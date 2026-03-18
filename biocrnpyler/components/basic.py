@@ -7,7 +7,7 @@ from ..core.component import Component
 from ..core.reaction import Reaction
 from ..core.species import Complex, Species
 from ..mechanisms.binding import One_Step_Binding
-from ..mechanisms.enzyme import BasicCatalysis
+from ..mechanisms.enzyme import MichaelisMenten
 from ..mechanisms.metabolite import OneStepPathway
 
 
@@ -794,7 +794,7 @@ class Enzyme(Component):
         Component.__init__(
             self=self,
             name=self.enzyme.name,
-            default_mechanism=BasicCatalysis(),
+            default_mechanism=MichaelisMenten(),
             **kwargs,
         )
 

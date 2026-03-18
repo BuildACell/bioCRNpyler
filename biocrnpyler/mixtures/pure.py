@@ -172,7 +172,9 @@ class PURE(Mixture):
         ntps='NTPs',
         ndps='NDPs',
         amino_acids='AAs',
-        fuel='ATP',
+        atp='ATP',
+        adp='ADP',
+        fuel='Fuel_CP',
         parameter_file='mixtures/pure_parameters.tsv',
         **kwargs,
     ):
@@ -190,8 +192,14 @@ class PURE(Mixture):
             if not include_resources:
                 raise ValueError("include_fuel requires include_resources")
             self.fuel = Metabolite(fuel)
-            self.add_components([self.fuel])
+            self.adp = Metabolite(adp)
+            self.atp = Metabolite(
+                atp, precursors=[self.fuel, self.adp], products=[self.adp]
+            )  # fuel becomes ATP, and ATP is degraded
+            self.add_components([self.atp])  # includes ADP, fuel
         else:
+            self.atp = None
+            self.adp = None
             self.fuel = None
 
         if include_machinery:
@@ -224,9 +232,9 @@ class PURE(Mixture):
             if include_fuel:
                 default_mechanisms['translation'] = Energy_Translation_MM(
                     ribosome=self.ribosome.get_species(),
-                    fuels=4 * [self.fuel.get_species()]
+                    fuels=4 * [self.atp.get_species()]
                     + [self.amino_acids.get_species()],
-                    wastes=[],
+                    wastes=4 * [self.adp.get_species()],
                 )
             else:
                 default_mechanisms['translation'] = Energy_Translation_MM(

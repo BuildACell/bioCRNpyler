@@ -27,12 +27,12 @@ mechanism_id	part_id	param_name	param_val	units	comments
 # multiplying by 1e-6.
 
 # Chemical complex binding (aTc to TetR)
-binding	chemical_complex	kb	2.00	/uM/sec	SK07, Table 1, Reaction 6
-binding	chemical_complex	ku	0.001	/sec	SK07, Table 1, Reaction 8
+binding	chemical_complex	kb	2.00	/uM/sec	SK07, Table 1, R6
+binding	chemical_complex	ku	0.001	/sec	SK07, Table 1, R8
 
 # Protein-DNA binding (TetR2 to DNA)
-binding	dna_protein	kb	2.86	/uM/sec	SK07, Table 1, Reaction 23
-binding	dna_protein	ku	5.11e-4	/sec	SK07, Table 1, Reaction 24
+binding	dna_protein	kb	2.86	/uM/sec	SK07, Table 1, R23
+binding	dna_protein	ku	5.11e-4	/sec	SK07, Table 1, R24
 
 # Default cooperativity
 binding		cooperativity	2		number of binding modules to bind simultaneously
