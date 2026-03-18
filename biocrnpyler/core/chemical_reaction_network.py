@@ -604,7 +604,7 @@ class ChemicalReactionNetwork(object):
         return x0
 
     def get_all_species_containing(
-        self, species: Species, return_as_strings=False
+        self, species: Union[Species, str], return_as_strings=False
     ):
         """Find all species (complexes) that contain a given species.
 
@@ -613,8 +613,9 @@ class ChemicalReactionNetwork(object):
 
         Parameters
         ----------
-        species : Species
-            The species to search for within other species.
+        species : Species or str
+            The species to search for within other species.  If given as a
+            string, returns all species with that string as part of the name.
         return_as_strings : bool, default=False
             If True, returns species as string representations. If False,
             returns actual Species objects.
@@ -645,13 +646,15 @@ class ChemicalReactionNetwork(object):
 
         """
         return_list = []
-        if not isinstance(species, Species):
+        if not isinstance(species, (Species, str)):
             raise ValueError(
-                "species argument must be an instance of Species!"
+                "species argument must be an instance of Species or str."
             )
 
         for s in self._species:
-            if species in s.get_species(recursive=True):
+            if (
+                isinstance(species, str) and species in s.name
+            ) or species in s.get_species(recursive=True):
                 if return_as_strings:
                     return_list.append(repr(s))
                 else:

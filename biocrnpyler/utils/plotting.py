@@ -27,7 +27,7 @@ from ..core.component import Component
 from ..core.polymer import OrderedPolymer
 from ..core.propensities import MassAction
 from ..core.species import ComplexSpecies, Species
-from ..utils.units import mins
+from ..utils.units import mins, nM, uM, mM
 from . import member_dictionary_search
 
 HAVE_MATPLOTLIB = False
@@ -1358,52 +1358,101 @@ def render_network_bokeh(
     return plot
 
 
-def plot_all_containing(
+def plot_all_species_containing(
     results,
     crn,
     species_list,
     time_units=mins,
+    time_label='min',
+    concentration_units=uM,
+    concentration_label='uM',
     legend_fontsize='small',
     show_material=True,
+    plot_total=True,
+    trace_offset=0,
 ):
+    """Plot time responses for all species containing a given species.
+
+    Generate a plot showing the concentrations of all species that contain
+    a given species (or list of species), including complexes.
+
+    Parameters
+    ----------
+    results : DataFrame
+        Pandas dataframe containing the simulation results.
+    crn : ChemicalReactionNetwork
+        CRN being simulutated (used to determine species names).
+    species_list : List of Species or str
+        Species to be used to determine full list of species to plot.
+    time_units : float
+        Time units factor used to convert from seconds to desired unit.
+    legend_fontsize : str, default='small'
+        Font size to use for the legend.
+    show_material : bool, default=True
+        Include the material type in the legend string.
+    plot_total : bool, default=True
+        Plot the total concentration in addition to individual species.
+    trace_offset : float, default=0
+        Value to use in offseting traces, to avoid overlap.
+    """
+
     if not isinstance(species_list, (list, tuple)):
         species_list = [species_list]
 
     timepts = results['time'] / time_units
+    offset = 0
     for species in species_list:
         if isinstance(species, Component):
             species = species.species
 
         compounds = crn.get_all_species_containing(species)
-        if len(compounds) > 1:
+        if len(compounds) == 0:
+            warn(f"No compounds found with species {species}")
+            return
+        elif len(compounds) > 1:
             species_total = np.zeros(results['time'].size)
             for compound in compounds:
                 plt.plot(
                     timepts,
-                    results[str(compound)],
+                    results[str(compound)] / concentration_units + offset,
                     label=compound.pretty_print(show_material=show_material),
                 )
                 species_total += results[str(compound)]
-            plt.plot(
-                timepts,
-                species_total,
-                label=f"Total {species.pretty_print()}",
-            )
+                offset += trace_offset
+            if plot_total:
+                plt.plot(
+                    timepts,
+                    species_total / concentration_units,
+                    label=f"Total {species.pretty_print()}",
+                )
+                offset += trace_offset
         else:
             plt.plot(
                 timepts,
-                results[str(compounds[0])],
+                results[str(compounds[0])] / concentration_units,
                 label=species.pretty_print(),
             )
-        plt.legend(fontsize=legend_fontsize)
-        plt.ylabel("Concentration [uM]")
+            offset += trace_offset
+
+    plt.legend(fontsize=legend_fontsize)
+    plt.xlabel(f"Time [{time_label}]")
+    plt.ylabel(f"Concentration [{concentration_label}]")
 
 
 def plot_gene_expression_data(
     results,
     crn,
-    genelist,
-    plot_totals=None,
+    gene_list,
+    time_units=mins,
+    time_label='min',
+    concentration_units=[nM, uM, uM, mM],
+    concentration_label=['nM', 'uM', 'uM', 'mM'],
+    legend_fontsize='x-small',
+    title_fontsize='small',
+    show_material=True,
+    plot_total=True,
+    trace_offset=0,
+    resource_labels=['metabolite_AAs', 'metabolite_NTPs', 'metabolite_ATP'],
 ):
     """Plot DNA, RNA, and protein concentrations for a list of genes.
 
@@ -1412,42 +1461,80 @@ def plot_gene_expression_data(
 
     Parameters
     ----------
-    results :
-
+    results : DataFrame
+        Pandas dataframe containing the simulation results.
+    crn : ChemicalReactionNetwork
+        CRN being simulutated (used to determine species names).
+    gene_list : List of Species or str
+        Genes to be used to determine full list of species to plot.
+    time_units : float, default=bcp.units.mins
+        Units factor used to plot scale time.
+    time_label : str, default='min'
+        String to use in time axis label
+    concentration_units : float or list of float, default=[nM, uM, uM, mM]
+        Units factor to scale concentrations of DNA, RNA, protein, resources.
+    concentration_label : str or list of str, default=['nM', 'uM', 'uM', 'mM']
+        Strings to use in labels for DNA, RNA, protein, resources.
+    legend_fontsize : str, default='x-small'
+        Font size to use for the legend.
+    title_fontsize : str, default='small'
+        Font size to use for individual panel titles.
+    show_material : bool, default=True
+        Include the material type in the legend string.
+    plot_total : bool or list, default=True
+        Plot the total concentration in addition to individual species. Can
+        either be True or a list containing 'dna', 'rna', or 'protein'.
+    trace_offset : float or list of float, default=0
+        Value to use in offseting traces, to avoid overlap.  If a list is
+        specified, gives offsets for DNA, RNA, protein, resources.
+    resource_labels : list of str, optional
+        Names of resources.  Defaults to ['metabolite_AAs', 'metabolite_NTPs',
+        'metabolite_ATP'].
     """
-    if not isinstance(genelist, (list, tuple)):
-        genelist = [genelist]
-    min = 60
 
-    timepts = results['time'] / min
-    for gene in genelist:
+    if not isinstance(gene_list, (list, tuple)):
+        gene_list = [gene_list]
+
+    if not isinstance(trace_offset, (list, tuple)):
+        trace_offset = [trace_offset] * 4
+    if not isinstance(concentration_units, (list, tuple)):
+        concentration_label = [concentration_label] * 4
+    if not isinstance(concentration_label, (list, tuple)):
+        concentration_label = [concentration_label] * 4
+
+    timepts = results['time'] / time_units
+    base_offset = 0
+    for gene in gene_list:
         # DNA
         plt.subplot(2, 2, 1)
         dna_species = gene.dna
         dna_species_list = crn.get_all_species_containing(dna_species)
         if len(dna_species_list) > 1:
             dna_total = np.zeros(results['time'].size)
+            offset = base_offset
             for species in dna_species_list:
                 plt.plot(
                     timepts,
-                    results[str(species)],
+                    results[str(species)] / concentration_units[0] + offset,
                     label=species.pretty_print(show_material=False),
                 )
                 dna_total += results[str(species)]
-            plt.plot(
-                timepts,
-                dna_total,
-                label=f"Total {dna_species.pretty_print()}",
-            )
+                offset += trace_offset[0]
+            if plot_total is True or 'dna' in plot_total:
+                plt.plot(
+                    timepts,
+                    dna_total / concentration_units[0],
+                    label=f"Total {dna_species.pretty_print()}",
+                )
         else:
             plt.plot(
                 timepts,
-                results[str(gene.dna)],
+                results[str(gene.dna)] / concentration_units[0],
                 label=dna_species.pretty_print(),
             )
-        plt.title("DNA")
-        plt.legend(fontsize='x-small')
-        plt.ylabel("Concentration [uM]")
+        plt.title("DNA", fontsize=title_fontsize)
+        plt.ylabel(f"Concentration [{concentration_label[0]}]")
+        plt.legend(fontsize=legend_fontsize)
 
         # RNA
         plt.subplot(2, 2, 2)
@@ -1455,26 +1542,30 @@ def plot_gene_expression_data(
         rna_species_list = crn.get_all_species_containing(rna_species)
         if len(rna_species_list) > 1:
             rna_total = np.zeros(results['time'].size)
+            offset = base_offset
             for species in rna_species_list:
                 plt.plot(
                     timepts,
-                    results[str(species)],
+                    results[str(species)] / concentration_units[1] + offset,
                     label=species.pretty_print(show_material=False),
                 )
                 rna_total += results[str(species)]
-            plt.plot(
-                timepts,
-                rna_total,
-                label=f"Total {rna_species.pretty_print()}",
-            )
+                offset += trace_offset[1]
+            if plot_total is True or 'rna' in plot_total:
+                plt.plot(
+                    timepts,
+                    rna_total / concentration_units[1],
+                    label=f"Total {rna_species.pretty_print()}",
+                )
         else:
             plt.plot(
                 timepts,
                 results[str(gene.transcript)],
                 label=rna_species.pretty_print(),
             )
-        plt.title("RNA")
-        plt.legend(fontsize='x-small')
+        plt.title("RNA", fontsize=title_fontsize)
+        plt.ylabel(f"Concentration [{concentration_label[1]}]")
+        plt.legend(fontsize=legend_fontsize)
 
         # Protein
         plt.subplot(2, 2, 3)
@@ -1482,35 +1573,46 @@ def plot_gene_expression_data(
         protein_species_list = crn.get_all_species_containing(protein_species)
         if len(protein_species_list) > 1:
             protein_total = np.zeros(results['time'].size)
+            offset = base_offset
             for species in protein_species_list:
                 plt.plot(
                     timepts,
-                    results[str(species)],
+                    results[str(species)] / concentration_units[2] + offset,
                     label=species.pretty_print(show_material=False),
                 )
                 protein_total += results[str(species)]
-            plt.plot(
-                timepts,
-                protein_total,
-                label=f"Total {protein_species.pretty_print()}",
-            )
+                offset += trace_offset[2]
+            if plot_total is True or 'protein' in plot_total:
+                plt.plot(
+                    timepts,
+                    protein_total / concentration_units[2],
+                    label=f"Total {protein_species.pretty_print()}",
+                )
         else:
             plt.plot(
                 timepts,
-                results[str(protein_species)],
+                results[str(protein_species)] / concentration_units[2],
                 label=protein_species.pretty_print(),
             )
-        plt.title("Protein")
-        plt.legend(fontsize='x-small')
-        plt.ylabel("Concentration [uM]")
-        plt.xlabel("Time [min]")
+        plt.title("Protein", fontsize=title_fontsize)
+        plt.xlabel(f"Time [time_label]")
+        plt.ylabel(f"Concentration [{concentration_label[2]}]")
+        plt.legend(fontsize=legend_fontsize)
 
     plt.subplot(2, 2, 4)
-    plt.plot(timepts, results['metabolite_AAs'], label='AAs')
-    plt.plot(timepts, results['metabolite_NTPs'], label='NTPs')
-    plt.plot(timepts, results['metabolite_ATP'], label='ATP')
-    plt.title("Resources")
-    plt.legend(fontsize='x-small')
-    plt.xlabel("Time [min]")
+    offset = 0
+    for name, label in zip(resource_labels, ['AAs', 'NTPs', 'ATP']):
+        plt.plot(
+            timepts,
+            results[name] / concentration_units[3] + offset,
+            label=label,
+        )
+        offset += trace_offset[3]
 
+    plt.title("Resources", fontsize=title_fontsize)
+    plt.xlabel(f"Time [time_label]")
+    plt.ylabel(f"Concentration [{concentration_label[3]}]")
+    plt.legend(fontsize=legend_fontsize)
+
+    plt.gcf().align_labels()
     plt.tight_layout()
