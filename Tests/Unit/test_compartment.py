@@ -118,7 +118,6 @@ class TestCompartments(TestCase):
         s1 = Species('S1', compartment=comp1)
         mixture_1 = Mixture(species=[s1])
         crn_1 = mixture_1.compile_crn()
-        crn_1.write_sbml_file('test_compartment_setter_1.xml')
         # change compartment
         s1.compartment = comp2
         mixture_2 = Mixture(species=[s1])

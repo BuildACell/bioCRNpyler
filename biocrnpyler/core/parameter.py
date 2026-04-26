@@ -52,7 +52,7 @@ from collections import namedtuple  # Used for the parameter keys
 from typing import Dict, List, Union
 from warnings import warn
 
-from ..utils.units import biocrnpyler_supported_units
+from ..utils.units import biocrnpyler_supported_units, normalize_unit_id
 
 
 class ParameterKey(namedtuple('ParameterKey', 'mechanism part_id name')):
@@ -270,10 +270,11 @@ class Parameter(object):
                 f"All units must be strings. Recieved {new_unit}."
             )
         else:
-            unit_str = new_unit.replace('/', ' per_')
+            # to make sure unit_str is compatible with sbml:
+            unit_str = normalize_unit_id(new_unit)
             supported_units = biocrnpyler_supported_units()
             for unit in unit_str.split():
-                if unit not in supported_units:
+                if unit not in supported_units and unit != '':
                     raise ValueError(f"unknown unit '{unit}'")
             self._unit = unit_str
 
@@ -578,18 +579,22 @@ class ParameterEntry(Parameter):
             self._parameter_info = dict(parameter_info)
 
             # Update the units attribute, if necessary
+            if 'unit' in parameter_info:
+                self._parameter_info['unit'] = normalize_unit_id(
+                    parameter_info['unit']
+                )
             if (
                 'unit' in parameter_info
                 and self.unit != ''
-                and self.unit != parameter_info['unit']
+                and self.unit != self._parameter_info['unit']
             ):
                 raise ValueError(
                     f"Recieved multiple parameter units through constructor "
                     f"{self.unit} and parameter_info dictionary "
-                    f"{parameter_info['unit']}."
+                    f"{self._parameter_info['unit']}."
                 )
             elif 'unit' in parameter_info:
-                self.unit = parameter_info['unit']
+                self.unit = self._parameter_info['unit']
 
         else:
             raise ValueError(
@@ -1374,9 +1379,18 @@ class ParameterDatabase(object):
                     field_names['mechanism'],
                     field_names['param_val'],
                 ]
+                if field_names['unit'] is not None:
+                    field_columns.append(field_names['unit'])
+                    
                 parameter_info = {
                     k: row[k] for k in row if k not in field_columns
                 }
+                if (
+                    field_names['unit'] is not None
+                    and row[field_names['unit']] is not None
+                    and row[field_names['unit']] != ''
+                ):
+                    parameter_info['unit'] = row[field_names['unit']]
                 # TODO test all these cases!
 
                 # Case 1: No Param Name so skip the row
