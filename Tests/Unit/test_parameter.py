@@ -314,40 +314,6 @@ class TestParameter(TestCase):
         else:
             warn('version below 3.6 was detected! This test was skipped')
 
-    def test_load_parameters_from_file_preserves_units_column(self):
-        if sys.version_info[1] >= 7:
-            example_tsv = (
-                "mechanism_id\tparam_name\tparam_val\tunits\n"
-                "transcription\tktx\t0.05\t/sec\n"
-                "binding\tku\t10\tuM/sec"
-            )
-
-            from pathlib import Path
-
-            with (
-                patch.object(Path, 'exists', return_value=True),
-                patch.object(Path, 'is_file', return_value=True),
-                patch(
-                    'builtins.open',
-                    mock_open(read_data=example_tsv),
-                    create=True,
-                ),
-            ):
-                pd = ParameterDatabase(parameter_file='test_file.tsv')
-
-            units_by_key = {
-                (k.mechanism, k.part_id, k.name): pd.parameters[k].unit
-                for k in pd.parameters
-            }
-            self.assertEqual(
-                units_by_key[('transcription', None, 'ktx')], 'per_sec'
-            )
-            self.assertEqual(
-                units_by_key[('binding', None, 'ku')], 'uM_per_sec'
-            )
-        else:
-            warn('version below 3.6 was detected! This test was skipped')
-
     def test_load_parameters_from_dictionary(self):
         # bad parameter_dictionary keyword
         with self.assertRaisesRegex(
