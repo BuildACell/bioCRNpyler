@@ -21,6 +21,7 @@ def test_DiffusibleMolecule():
 
     assert dm.get_species().name == 'DP'
 
+    dm.default_mechanism = None  # override failsafe
     with pytest.raises(
         KeyError,
         match='Unable to find mechanism of type diffusion in Component',
@@ -46,6 +47,7 @@ def test_IntegralMembraneProtein():
 
     assert imp.get_species().name == 'MP1'
 
+    imp.default_mechanism = None  # override failsafe
     with pytest.raises(
         KeyError,
         match='Unable to find mechanism of type membrane_insertion in Component',
@@ -70,6 +72,7 @@ def test_MembraneChannel():
 
     assert mc.get_species().name == 'IMP1'
 
+    mc.default_mechanism = None  # override failsafe
     with pytest.raises(
         KeyError,
         match='Unable to find mechanism of type transport in Component',
@@ -94,6 +97,7 @@ def test_MembranePump():
 
     assert mp.get_species().name == 'MPump1'
 
+    mp.default_mechanism = None  # override failsafe
     with pytest.raises(
         KeyError,
         match='Unable to find mechanism of type transport in Component',
@@ -125,6 +129,7 @@ def test_MembraneSensor():
 
     assert ms.get_species().name == 'MSensor1'
 
+    ms.default_mechanism = None  # override failsafe
     with pytest.raises(
         KeyError,
         match='Unable to find mechanism of type membrane_sensor in Component',

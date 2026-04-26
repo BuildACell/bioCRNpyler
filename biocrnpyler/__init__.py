@@ -11,6 +11,12 @@ from .mixtures import *
 
 # All utilities
 from .utils import *
+from .utils.plotting import (
+    plot_all_species_containing as plot_all_species_containing,
+)
+from .utils.plotting import (
+    plot_gene_expression_data as plot_gene_expression_data,
+)
 
 try:
     from ._version import version as __version__
