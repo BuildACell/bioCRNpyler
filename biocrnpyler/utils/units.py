@@ -17,6 +17,9 @@ _SIMPLE_UNIT_ALIASES = {
     'hour': 'hrs',
     'hr': 'hrs',
     'hours': 'hrs',
+    'nanolitre': 'nL',
+    'microlitre': 'uL',
+    'millilitre': 'mL',
 }
 
 def normalize_unit_id(unit_id: str) -> str:
