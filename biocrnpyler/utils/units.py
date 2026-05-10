@@ -5,7 +5,6 @@ import warnings
 
 import libsbml  # type: ignore
 
-
 _SIMPLE_UNIT_ALIASES = {
     's': 'sec',
     'second': 'sec',
@@ -21,6 +20,7 @@ _SIMPLE_UNIT_ALIASES = {
     'microlitre': 'uL',
     'millilitre': 'mL',
 }
+
 
 def normalize_unit_id(unit_id: str) -> str:
     if unit_id is None:
@@ -222,7 +222,6 @@ def biocrnpyler_supported_units():
             'unit_scale': [0],
             'unit_multiplier': [1],
         },
-
     }
     ### Add your own units to this dictionary ###
 
@@ -233,12 +232,12 @@ def biocrnpyler_supported_units():
         supported_units[minute_alias] = supported_units['minute']
     for second_alias in ['s', 'sec', 'secs', 'seconds']:
         supported_units[second_alias] = supported_units['second']
-    # since aliases are allowed for time, 
+    # since aliases are allowed for time,
     # need these for the per_ version too
     supported_units['per_sec'] = supported_units['per_second']
     supported_units['per_min'] = supported_units['per_minute']
     supported_units['per_hrs'] = supported_units['per_hour']
-    
+
     # adding concentration per time units:
     conc_scales = {'nM': -9, 'uM': -6, 'mM': -3, 'M': 0}
     for conc_name, conc_scale in conc_scales.items():
@@ -272,8 +271,6 @@ def biocrnpyler_supported_units():
             'unit_scale': [0, 0, conc_scale],
             'unit_multiplier': [1, 1, 1],
         }
-
-
 
     return supported_units
 

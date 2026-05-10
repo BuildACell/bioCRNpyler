@@ -12,7 +12,6 @@ from warnings import warn
 import libsbml  # type: ignore
 
 from ..utils.units import create_new_unit_definition, normalize_unit_id
-
 from .general import parameter_to_value
 
 # Reaction ID number (global)
@@ -70,7 +69,7 @@ def create_sbml_model(
     unit.setScale(0)
     unit.setMultiplier(1)
 
-    # Set up required units and containers    
+    # Set up required units and containers
     time_units = _validate_sbml_unit_def(model, time_units)
     extent_units = _validate_sbml_unit_def(model, extent_units)
     substance_units = _validate_sbml_unit_def(model, substance_units)
@@ -139,7 +138,7 @@ def add_all_species(
             compartment = get_compartment_by_name(model, s.compartment.name)
             if compartment is None:
                 compartment = add_compartment(model, s.compartment)
-        
+
         # add unit support for ic:
         initial_concentration = 0
         ic_unit = None
@@ -157,6 +156,7 @@ def add_all_species(
             initial_concentration=initial_concentration,
             ic_unit=ic_unit,
         )
+
 
 def add_species(
     model,
@@ -196,11 +196,9 @@ def add_species(
     sbml_species.setCompartment(compartment.getId())
     sbml_species.setConstant(False)
     sbml_species.setBoundaryCondition(False)
-    
-    
-    
+
     sbml_species.setHasOnlySubstanceUnits(False)
-    
+
     # set init conc unit and compartment unit
     if ic_unit is None:
         ic_unit = 'uM'
@@ -208,19 +206,15 @@ def add_species(
     compartment_unit = compartment.getUnits()
     if compartment_unit == '':
         compartment_unit = model.getVolumeUnits()
-        
-    # instead of setting amount units to be mole always, 
+
+    # instead of setting amount units to be mole always,
     # set it correctly:
     amount_unit = _calculate_amount_unit(
         ic_unit,
         compartment_unit,
     )
-    amount_unit = _validate_sbml_unit_def(model,
-                                          amount_unit)
+    amount_unit = _validate_sbml_unit_def(model, amount_unit)
     sbml_species.setSubstanceUnits(amount_unit)
-
-
-
 
     if initial_concentration is None:
         initial_concentration = 0
@@ -269,8 +263,7 @@ def add_compartment(model, compartment, **kwargs):
     sbml_compartment.setSpatialDimensions(compartment.spatial_dimensions)
     sbml_compartment.setSize(compartment.size)  # For example, 1e-6 liter
     if compartment.unit is not None:
-        comp_unit = _validate_sbml_unit_def(model,
-                                            compartment.unit)
+        comp_unit = _validate_sbml_unit_def(model, compartment.unit)
         sbml_compartment.setUnits(comp_unit)
     return sbml_compartment
 
@@ -788,6 +781,7 @@ def validate_sbml(sbml_document, enable_unit_check=False, print_results=True):
             "print statements."
         )
     return validation_result
+
 
 def _validate_sbml_unit_def(model, unit_id):
     if unit_id is None or unit_id == '':

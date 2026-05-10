@@ -1381,7 +1381,7 @@ class ParameterDatabase(object):
                 ]
                 if field_names['unit'] is not None:
                     field_columns.append(field_names['unit'])
-                    
+
                 parameter_info = {
                     k: row[k] for k in row if k not in field_columns
                 }
