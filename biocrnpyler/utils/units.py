@@ -5,6 +5,52 @@ import warnings
 
 import libsbml  # type: ignore
 
+_SIMPLE_UNIT_ALIASES = {
+    's': 'sec',
+    'second': 'sec',
+    'secs': 'sec',
+    'seconds': 'sec',
+    'minute': 'min',
+    'mins': 'min',
+    'minutes': 'min',
+    'hour': 'hrs',
+    'hr': 'hrs',
+    'hours': 'hrs',
+    'nanolitre': 'nL',
+    'microlitre': 'uL',
+    'millilitre': 'mL',
+}
+
+
+def normalize_unit_id(unit_id: str) -> str:
+    if unit_id is None:
+        return ''
+    unit_id = unit_id.strip()
+    if unit_id == '':
+        return ''
+
+    unit_id = unit_id.replace(' per_', '/').replace(' per ', '/')
+    unit_id = unit_id.replace('(', '').replace(')', '').replace('*', '/')
+    unit_id = unit_id.replace(' ', '')
+
+    def canon(token):
+        if token == '1':
+            return '1'
+        return _SIMPLE_UNIT_ALIASES.get(token, token)
+
+    if '/' not in unit_id:
+        return canon(unit_id)
+
+    pieces = [canon(p) for p in unit_id.split('/') if p]
+
+    if unit_id.startswith('/') or (pieces and pieces[0] == '1'):
+        denominators = pieces[1:] if pieces and pieces[0] == '1' else pieces
+        return 'per_' + '_per_'.join(denominators)
+
+    numerator = pieces[0]
+    denominators = pieces[1:]
+    return numerator + ''.join(f'_per_{d}' for d in denominators)
+
 
 def biocrnpyler_supported_units():
     supported_units = {
@@ -78,6 +124,12 @@ def biocrnpyler_supported_units():
             'unit_multiplier': [1],
         },
         # Common parameter units
+        '1': {
+            'unit_kind': [libsbml.UNIT_KIND_DIMENSIONLESS],
+            'unit_exponents': [1],
+            'unit_scale': [0],
+            'unit_multiplier': [1],
+        },
         'per_second': {
             'unit_kind': [libsbml.UNIT_KIND_SECOND],
             'unit_exponents': [-1],
@@ -122,8 +174,104 @@ def biocrnpyler_supported_units():
             'unit_scale': [0, 0, 0],
             'unit_multiplier': [1 / 3600, 1, 1],
         },
+        'amol': {
+            'unit_kind': libsbml.UNIT_KIND_MOLE,
+            'unit_exponents': 1,
+            'unit_scale': -18,
+            'unit_multiplier': 1,
+        },
+        'fmol': {
+            'unit_kind': libsbml.UNIT_KIND_MOLE,
+            'unit_exponents': 1,
+            'unit_scale': -15,
+            'unit_multiplier': 1,
+        },
+        'pmol': {
+            'unit_kind': libsbml.UNIT_KIND_MOLE,
+            'unit_exponents': 1,
+            'unit_scale': -12,
+            'unit_multiplier': 1,
+        },
+        'nmol': {
+            'unit_kind': libsbml.UNIT_KIND_MOLE,
+            'unit_exponents': 1,
+            'unit_scale': -9,
+            'unit_multiplier': 1,
+        },
+        'umol': {
+            'unit_kind': libsbml.UNIT_KIND_MOLE,
+            'unit_exponents': 1,
+            'unit_scale': -6,
+            'unit_multiplier': 1,
+        },
+        'mmol': {
+            'unit_kind': libsbml.UNIT_KIND_MOLE,
+            'unit_exponents': 1,
+            'unit_scale': -3,
+            'unit_multiplier': 1,
+        },
+        'aa': {
+            'unit_kind': [libsbml.UNIT_KIND_DIMENSIONLESS],
+            'unit_exponents': [1],
+            'unit_scale': [0],
+            'unit_multiplier': [1],
+        },
+        'nt': {
+            'unit_kind': [libsbml.UNIT_KIND_DIMENSIONLESS],
+            'unit_exponents': [1],
+            'unit_scale': [0],
+            'unit_multiplier': [1],
+        },
     }
     ### Add your own units to this dictionary ###
+
+    # Aliases
+    for hour_alias in ['hrs', 'hr', 'hours']:
+        supported_units[hour_alias] = supported_units['hour']
+    for minute_alias in ['min', 'mins', 'minutes']:
+        supported_units[minute_alias] = supported_units['minute']
+    for second_alias in ['s', 'sec', 'secs', 'seconds']:
+        supported_units[second_alias] = supported_units['second']
+    # since aliases are allowed for time,
+    # need these for the per_ version too
+    supported_units['per_sec'] = supported_units['per_second']
+    supported_units['per_min'] = supported_units['per_minute']
+    supported_units['per_hrs'] = supported_units['per_hour']
+
+    # adding concentration per time units:
+    conc_scales = {'nM': -9, 'uM': -6, 'mM': -3, 'M': 0}
+    for conc_name, conc_scale in conc_scales.items():
+        supported_units[f'{conc_name}_per_sec'] = {
+            'unit_kind': [
+                libsbml.UNIT_KIND_MOLE,
+                libsbml.UNIT_KIND_LITRE,
+                libsbml.UNIT_KIND_SECOND,
+            ],
+            'unit_exponents': [1, -1, -1],
+            'unit_scale': [conc_scale, 0, 0],
+            'unit_multiplier': [1, 1, 1],
+        }
+        supported_units[f'per_{conc_name}_per_sec'] = {
+            'unit_kind': [
+                libsbml.UNIT_KIND_SECOND,
+                libsbml.UNIT_KIND_LITRE,
+                libsbml.UNIT_KIND_MOLE,
+            ],
+            'unit_exponents': [-1, 1, -1],
+            'unit_scale': [0, 0, conc_scale],
+            'unit_multiplier': [1, 1, 1],
+        }
+        supported_units[f'per_sec_per_{conc_name}'] = {
+            'unit_kind': [
+                libsbml.UNIT_KIND_SECOND,
+                libsbml.UNIT_KIND_LITRE,
+                libsbml.UNIT_KIND_MOLE,
+            ],
+            'unit_exponents': [-1, 1, -1],
+            'unit_scale': [0, 0, conc_scale],
+            'unit_multiplier': [1, 1, 1],
+        }
+
     return supported_units
 
 
@@ -222,3 +370,27 @@ def create_new_unit_definition(model, unit_id):
         unit.setScale(unit_scale)
         unit.setMultiplier(unit_multiplier)
     return unitdef
+
+
+#
+# Unit conversions
+#
+# To allow easy conversion of units, we define a number of variables
+# that convert to the default units of uM, uL, sec.
+
+# Concentration
+nM = 1e-3
+uM = 1
+mM = 1e3
+M = 1e6
+
+# Volumes
+nL = 1e-3
+uL = 1
+mL = 1e3
+L = 1e6
+
+# Time
+sec = secs = 1
+min = mins = 60
+hr = hrs = 3600

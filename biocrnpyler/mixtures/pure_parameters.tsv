@@ -1,21 +1,54 @@
+# pure_parameters.tsv - default parameters for (Nucleus) PURE
+#
+# This file contains default parameters use by mixtures.pure classes. The
+# parameters are chosen based on the Nucleus PURE protocol:
+#
+# https://nucleus.bnext.bio/Base-PURE-Guide-0991591e9f474a5bbc934dc141503ae2
+#
 mechanism	part_id	param_name	value	units	comments
-simple_transcription		ktx	3.25		Tx_cat from Singhal et al.
-energy_transcription_mm		ktx	3.25		Tx_cat from Singhal et al.
-energy_transcription_mm		kb	4.48		For the promoter tested in Singhal et al Supplemental Table S2
-energy_transcription_mm		ku	2.48889E-06		For the promoter tested in Singhal et al Supplemental Table S2
-energy_transcription_mm		length	900		"This is a default length, gene specific ones should be set"
-simple_translation		ktl	19.2		TL_cat from Singhal et al.
-energy_translation_mm		ktl	19.2		TL_cat from Singhal et al.
-energy_translation_mm		kb	0.819		For the RBS tested in Singhal et al Supplemental Table S2
-energy_translation_mm		ku	0.002853659		For the RBS tested in Singhal et al Supplemental Table S2
-energy_translation_mm		length	300		"This is a default length, transcript specific ones should be set"
-rna_degradation		kdil	1e-4		RMM
-rna_degradation_mm		kdeg	1.01		The values from Singhal et al Supplemental Table S2
-rna_degradation_mm		kb	1		The values from Singhal et al Supplemental Table S2
-rna_degradation_mm		ku	1.26582E-06		The values from Singhal et al Supplemental Table S2
-initial concentration		NTPs	5E+03	nM	"Total NTPs in standard energy buffer, converted to nM"
-initial concentration		AAs	3E+04	nM	"Total amino acids in standard energy buffer, converted to nM"
-initial concentration		ATP	5E+03	nM	"Standard energy buffer amount, converted to nM"
-initial concentration		RNAase	20.2	nM	"The values from Singhal et al Supplemental Table S2, converted to nM"
-initial concentration		protein_Ribo	2.73E+01	nM	"The values from Singhal et al Supplemental Table S2, converted to nM"
-initial concentration		RNAP	9.33E+00	nM	"The values from Singhal et al Supplemental Table S2, converted to nM"
+
+#
+# BasicPURE: PURE cell-free protein synthesis system with energy consumption.
+#
+# A mixture that models the PURE (Protein synthesis Using Recombinant
+# Elements) reconstituted cell-free transcription-translation system
+# with explicit representation of RNA polymerase (RNAP), ribosomes,
+# RNases, and energy carrier molecules. This extract uses
+# Michaelis-Menten kinetics with length-dependent fuel consumption to
+# model realistic TX-TL energetics.
+#
+# Unlike `EnergyTxTlExtract`, this mixture does not include fuel regeneration
+# mechanisms. Energy carriers (ATP, NTPs, amino acids) are consumed but not
+# regenerated, making this suitable for modeling resource-limited PURE
+# systems. Different amino acids and nucleotides are lumped into single
+# meta-species for simplicity.
+
+# Transcription and translation rates per unit of "activated" DNA
+transcription		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
+translation		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
+
+#
+# EnergyPURE: PURE cell-free protein synthesis system with energy consumption.
+#
+
+# Cell expression machinery: parameters are chosen at 1/10 E. coli
+initial concentration		RNAP	1.3	uM	126.95 ug/ml from Nucleus protocol
+initial concentration		Ribo	3	uM	OnePot PURE: 30% of 10 uM stock concentration
+
+initial concentration		ATP	1000	uM	[ATP/GTP] - [CTP/UTP]
+initial concentration		NTPs	4000	uM	[CTP/UTP] * 4 (NTPs)
+initial concentration		AAs	6000	uM	0.3 mM (upper bound) * 20 AAs
+
+energy_transcription_mm		ktx	50	/sec	50 nt/s (rate will be divided by length)
+energy_transcription_mm		kb	4.48	/uM/sec	txtlsim S3: pol_{Flac}
+energy_transcription_mm		ku	2.5E-06	/sec	default_parameters.txt; source unclear (TODO)
+energy_transcription_mm		kb_ntps	10	/uM/sec	fast binding of NTPs to RNAP:DNA complex (TODO)
+energy_transcription_mm		ku_ntps	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA complex (TODO)
+energy_transcription_mm		length	1000	nt	default length of gene (for resource usage)
+
+energy_translation_mm		ktl	15	/sec	15 aa/s (rate will be divided by length)
+energy_translation_mm		kb	0.819	/uM/sec	Singhal et al. Table S2
+energy_translation_mm		ku	0.003	/sec	Singhal et al. Table S2
+energy_translation_mm		kb_fuel	10	/uM/sec	fast binding of NTPs to RNAP:DNA complex (TODO)
+energy_translation_mm		ku_fuel	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA complex (TODO)
+energy_translation_mm		length	300	aa	default length of a protein (for resource uasge)

@@ -228,7 +228,8 @@ def test_render_network_bokeh():
         ('rna_degradation_mm', None, 'kdeg'): 0.001,
         (None, None, 'cooperativity'): 2,
     }
-    txtl = bcp.TxTlExtract('mixture1', parameters=parameters)
+    txtl = bcp.TxTlExtract(
+        'mixture1', parameters=parameters, overwrite_parameters=True)
     dna = bcp.DNAassembly(
         'mydna',
         promoter=bcp.RegulatedPromoter('plac', ['laci']),

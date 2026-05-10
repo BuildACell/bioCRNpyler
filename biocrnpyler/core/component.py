@@ -630,6 +630,7 @@ class Component:
         return_numerical=False,
         return_none=False,
         check_mixture=True,
+        check_mechanism=True,
     ) -> Union[Parameter, Real]:
         """Retrieve parameter from component or mixture parameter database.
 
@@ -653,6 +654,9 @@ class Component:
         check_mixture : bool, default=True
             If True, searches the mixture's parameter database if not found
             in the component's database.
+        check_mechanism : bool, default=True
+            If True, searches the mechanism's parameter database if not found
+            in the component or mixture database.
 
         Returns
         -------
@@ -671,6 +675,8 @@ class Component:
 
         1. Component.parameter_database
         2. Component.mixture.parameter_database (if `check_mixture` is True)
+        3. Component.mechanism.parameter_database (if `check_mechanism`
+           is True)
 
         """
         # Try the Component ParameterDatabase
@@ -681,6 +687,26 @@ class Component:
         # Next try the Mixture ParameterDatabase
         if param is None and self.mixture is not None and check_mixture:
             param = self.mixture.get_parameter(mechanism, part_id, param_name)
+
+        # Finally, try the mechanism parameter database
+        if param is None and self.mechanisms is not None and check_mechanism:
+            if isinstance(mechanism, Mechanism):
+                key = mechanism.mechanism_type
+            else:
+                key = mechanism
+
+            if self.mechanisms.get(key, None):
+                param = self.mechanisms[key].get_parameter(
+                    mechanism, part_id, param_name
+                )
+            elif (
+                self.mixture
+                and self.mixture.mechanisms
+                and self.mixture.mechanisms.get(key, None)
+            ):
+                param = self.mixture.mechanisms[key].get_parameter(
+                    mechanism, part_id, param_name
+                )
 
         if param is None and not return_none:
             raise ValueError(

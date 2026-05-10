@@ -32,6 +32,8 @@ class OneStepGeneExpression(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transcription'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -89,9 +91,17 @@ class OneStepGeneExpression(Mechanism):
     """
 
     def __init__(
-        self, name='gene_expression', mechanism_type='transcription'
+        self,
+        name='gene_expression',
+        mechanism_type='transcription',
+        parameter_file='mechanisms/txtl_parameters.tsv',
     ):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     def update_species(self, dna, transcript=None, protein=None, **kwargs):
         """Generate species for one-step gene expression.
@@ -220,6 +230,8 @@ class SimpleTranscription(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transcription'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -279,9 +291,17 @@ class SimpleTranscription(Mechanism):
     """
 
     def __init__(
-        self, name='simple_transcription', mechanism_type='transcription'
+        self,
+        name='simple_transcription',
+        mechanism_type='transcription',
+        parameter_file='mechanisms/txtl_parameters.tsv',
     ):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     def update_species(self, dna, transcript=None, protein=None, **kwargs):
         """Generate species for simple transcription.
@@ -424,6 +444,8 @@ class SimpleTranslation(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='translation'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -481,9 +503,17 @@ class SimpleTranslation(Mechanism):
     """
 
     def __init__(
-        self, name='simple_translation', mechanism_type='translation'
+        self,
+        name='simple_translation',
+        mechanism_type='translation',
+        parameter_file='mechanisms/txtl_parameters.tsv',
     ):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     def update_species(self, transcript, protein=None, **kwargs):
         """Generate species for simple translation.
@@ -622,6 +652,8 @@ class PositiveHillTranscription(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transcription'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -693,8 +725,14 @@ class PositiveHillTranscription(Mechanism):
         self,
         name='positivehill_transcription',
         mechanism_type='transcription',
+        parameter_file='mechanisms/txtl_parameters.tsv',
     ):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     def update_species(
         self,
@@ -871,6 +909,8 @@ class NegativeHillTranscription(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transcription'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -942,8 +982,14 @@ class NegativeHillTranscription(Mechanism):
         self,
         name='negativehill_transcription',
         mechanism_type='transcription',
+        parameter_file='mechanisms/txtl_parameters.tsv',
     ):
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     def update_species(
         self,
@@ -1101,6 +1147,8 @@ class Transcription_MM(MichaelisMentenCopy):
         RNA polymerase species that catalyzes transcription.
     name : str, default='transcription_mm'
         Name identifier for this mechanism instance.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -1164,7 +1212,13 @@ class Transcription_MM(MichaelisMentenCopy):
 
     """
 
-    def __init__(self, rnap: Species, name='transcription_mm', **kwargs):
+    def __init__(
+        self,
+        rnap: Species,
+        name='transcription_mm',
+        parameter_file='mechanisms/txtl_parameters.tsv',
+        **kwargs,
+    ):
         if isinstance(rnap, Species):
             self.rnap = rnap
         else:
@@ -1316,6 +1370,8 @@ class Translation_MM(MichaelisMentenCopy):
         Ribosome species that catalyzes translation.
     name : str, default='translation_mm'
         Name identifier for this mechanism instance.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -1382,7 +1438,13 @@ class Translation_MM(MichaelisMentenCopy):
 
     """
 
-    def __init__(self, ribosome: Species, name='translation_mm', **kwargs):
+    def __init__(
+        self,
+        ribosome: Species,
+        name='translation_mm',
+        parameter_file='mechanisms/txtl_parameters.tsv',
+        **kwargs,
+    ):
         if isinstance(ribosome, Species):
             self.ribosome = ribosome
         else:
@@ -1523,9 +1585,10 @@ class Energy_Transcription_MM(Mechanism):
 
     The reaction follows the schema:
     $$
-        & 'G' + 'RNAP' <--> 'G':'RNAP' \\
-        & 'Fuel' + 'G':'RNAP' --> 'G' + 'RNAP' + 'T' \\
-        & 'Fuel' + 'G':'RNAP' --> 'G':'RNAP' + 'wastes'
+      & 'G' + 'RNAP' <--> 'G':'RNAP' \\
+      & 'Fuel' + 'G':'RNAP' <--> 'Fuel':'G':'RNAP' \\
+      & 'Fuel':'G':'RNAP' --> 'G' + 'RNAP' + 'T' \\
+      & 'Fuel':'G':'RNAP' --> 'G':'RNAP' + 'wastes'
     $$
 
     Transcription occurs at rate 'ktx' / L (length-dependent), while fuel
@@ -1543,6 +1606,8 @@ class Energy_Transcription_MM(Mechanism):
         transcription.
     name : str, default='energy_transcription_mm'
         Name identifier for this mechanism instance.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -1624,6 +1689,7 @@ class Energy_Transcription_MM(Mechanism):
         fuels: List[Species],
         wastes: List[Species],
         name='energy_transcription_mm',
+        parameter_file='mechanisms/txtl_parameters.tsv',
         **kwargs,
     ):
         if isinstance(rnap, Species):
@@ -1644,7 +1710,10 @@ class Energy_Transcription_MM(Mechanism):
             raise ValueError("wastes must be a list of Species!")
 
         Mechanism.__init__(
-            self=self, name=name, mechanism_type='transcription'
+            self=self,
+            name=name,
+            mechanism_type='transcription',
+            parameter_file=parameter_file,
         )
 
     def update_species(self, dna, transcript=None, protein=None, **kwargs):
@@ -1674,9 +1743,10 @@ class Energy_Transcription_MM(Mechanism):
 
         """
         species = [dna, self.rnap, transcript] + self.fuels
-        bound_complex = Complex([dna, self.rnap])
-        species += [bound_complex]
-
+        species += [
+            Complex([dna, self.rnap]),
+            Complex([dna, self.rnap] + self.fuels),
+        ]
         return species
 
     def update_reactions(
@@ -1691,9 +1761,10 @@ class Energy_Transcription_MM(Mechanism):
     ):
         """Generate reactions for energy-consuming transcription.
 
-        Creates three reactions modeling transcription with explicit fuel
-        consumption and waste production: RNAP-DNA binding, length-dependent
-        transcription, and fuel consumption.
+        Creates three reactions modeling transcription with explicit
+        fuel (usually NTPs) consumption and waste (usually {})
+        production: RNAP-DNA binding, length-dependent transcription,
+        and fuel consumption.
 
         Parameters
         ----------
@@ -1729,8 +1800,9 @@ class Energy_Transcription_MM(Mechanism):
         The reactions model transcription energetics:
 
         1. DNA + RNAP <--> DNA:RNAP (rates: 'kb' and 'ku')
-        2. Fuel + DNA:RNAP --> Fuel + DNA + RNAP + mRNA (rate: 'ktx' / L)
-        3. Fuel + DNA:RNAP --> DNA:RNAP + wastes (rate: 'ktx')
+        2. Fuel + DNA:RNAP <--> Fuel:DNA:RNAP (rates: 'kb_ntps', 'ku_ntps')
+        3. Fuel:DNA:RNAP --> Fuel + DNA + RNAP + mRNA (rate: 'ktx' / L)
+        4. Fuel:DNA:RNAP --> DNA:RNAP + wastes (rate: 'ktx')
 
         The length-dependent transcription rate ('ktx' / L) ensures that L
         times more fuel is consumed than transcripts produced, reflecting the
@@ -1744,44 +1816,60 @@ class Energy_Transcription_MM(Mechanism):
         ktx = component.get_parameter('ktx', part_id=part_id, mechanism=self)
         kb = component.get_parameter('kb', part_id=part_id, mechanism=self)
         ku = component.get_parameter('ku', part_id=part_id, mechanism=self)
+        kb_ntps = component.get_parameter(
+            'kb_ntps', part_id=part_id, mechanism=self
+        )
+        ku_ntps = component.get_parameter(
+            'ku_ntps', part_id=part_id, mechanism=self
+        )
         L = component.get_parameter('length', part_id=part_id, mechanism=self)
 
-        bound_complex = Complex([dna, self.rnap])
+        rnap_bound_complex = Complex([dna, self.rnap])
+        ntp_bound_complex = Complex([dna, self.rnap] + self.fuels)
 
         # RNAP DNA Binding
         r1 = Reaction.from_massaction(
-            [dna, self.rnap], [bound_complex], k_forward=kb, k_reverse=ku
+            [dna, self.rnap], [rnap_bound_complex], k_forward=kb, k_reverse=ku
         )
+
         # Transcription
-        r2 = Reaction.from_massaction(
-            self.fuels + [bound_complex],
+        r2a = Reaction.from_massaction(
+            self.fuels + [rnap_bound_complex],
+            [ntp_bound_complex],
+            k_forward=parameter_to_value(kb_ntps.value),
+            k_reverse=parameter_to_value(ku_ntps.value),
+        )
+        r2b = Reaction.from_massaction(
+            [ntp_bound_complex],
             self.fuels + [dna, self.rnap, transcript],
             k_forward=parameter_to_value(ktx.value) / parameter_to_value(L),
         )
+
         # Fuel consumption
         r3 = Reaction.from_massaction(
-            self.fuels + [bound_complex],
-            [bound_complex] + self.wastes,
+            [ntp_bound_complex],
+            [rnap_bound_complex] + self.wastes,
             k_forward=ktx,
         )
 
-        return [r1, r2, r3]
+        return [r1, r2a, r2b, r3]
 
 
 class Energy_Translation_MM(Mechanism):
     r"""Michaelis-Menten translation with explicit energy consumption.
 
     A 'translation' mechanism that models translation with explicit
-    consumption of energy sources (fuel species like amino acids/NTPs) and
+    consumption of energy sources (fuel species like amino acids, ATP) and
     production of waste products. This mechanism couples ribosome-mRNA binding
     with length-dependent fuel consumption to model realistic translation
     energetics.
 
     The reaction follows the schema:
     $$
-        & 'mRNA' + 'Ribo' <--> 'mRNA':'Ribo' \\
-        & 'Fuel' + 'mRNA':'Ribo' --> 'mRNA' + 'Ribo' + 'Protein' + 'Fuel' \\
-        & 'Fuel' + 'mRNA':'Ribo' --> 'mRNA':'Ribo' + 'wastes'
+      & 'mRNA' + 'Ribo' <--> 'mRNA':'Ribo' \\
+      & 'Fuel' + 'mRNA':'Ribo' --> 'mRNA':'Ribo':'Protein':'Fuel' \\
+      & 'mRNA':'Ribo':'Protein':'Fuel' --> 'mRNA' + 'Ribo' + 'Protein' \\
+      & 'mRNA':'Ribo':'Protein':'Fuel' --> 'mRNA':'Ribo' + 'wastes'
     $$
     Translation occurs at rate 'ktl' / L (length-dependent), while fuel
     consumption occurs at rate 'ktl', resulting in L times more fuel
@@ -1792,12 +1880,14 @@ class Energy_Translation_MM(Mechanism):
     ribosome : Species
         Ribosome species that catalyzes translation.
     fuels : list of Species
-        List of fuel species (e.g., amino acids, GTP) consumed during
+        List of fuel species (e.g., amino acids, ATP) consumed during
         translation.
     wastes : list of Species
         List of waste species produced during translation.
     name : str, default='energy_translation_mm'
         Name identifier for this mechanism instance.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -1880,6 +1970,7 @@ class Energy_Translation_MM(Mechanism):
         fuels: List[Species],
         wastes=List[Species],
         name='energy_translation_mm',
+        parameter_file='mechanisms/txtl_parameters.tsv',
         **kwargs,
     ):
         if isinstance(ribosome, Species):
@@ -1897,7 +1988,12 @@ class Energy_Translation_MM(Mechanism):
         else:
             raise ValueError("wastes must be a list of Species!")
 
-        Mechanism.__init__(self=self, name=name, mechanism_type='translation')
+        Mechanism.__init__(
+            self=self,
+            name=name,
+            mechanism_type='translation',
+            parameter_file=parameter_file,
+        )
 
     def update_species(self, transcript, protein, **kwargs):
         """Generate species for energy-consuming translation.
@@ -1923,9 +2019,10 @@ class Energy_Translation_MM(Mechanism):
 
         """
         species = self.fuels + [self.ribosome, protein]
-        bound_complex = Complex([transcript, self.ribosome])
-        species += [bound_complex]
-
+        species += [
+            Complex([transcript, self.ribosome]),
+            Complex([transcript, self.ribosome] + self.fuels),
+        ]
         return species
 
     def update_reactions(
@@ -1975,9 +2072,11 @@ class Energy_Translation_MM(Mechanism):
         The reactions model translation energetics:
 
         1. mRNA + Ribosome <--> mRNA:Ribosome (rates: 'kb' and 'ku')
-        2. Fuel + mRNA:Ribosome --> Fuel + mRNA + Ribosome + Protein (rate:
-           'ktl' / L)
-        3. Fuel + mRNA:Ribosome --> mRNA:Ribosome + Wastes (rate: 'ktl')
+        2. Fuel + mRNA:Ribosome <--> Fuel:mRNA:Ribosome
+           (rates: 'kb_fuel', 'ku_fuel')
+        3. Fuel:mRNA:Ribosome --> Fuel + mRNA + Ribosome + Protein
+           (rate: 'ktl' / L)
+        4. Fuel:mRNA:Ribosome --> mRNA + Ribosome + wastes (rate: 'ktl')
 
         The length-dependent translation rate ('ktl' / L) ensures that L
         times more fuel is consumed than proteins produced, reflecting the
@@ -1991,31 +2090,46 @@ class Energy_Translation_MM(Mechanism):
         ktl = component.get_parameter('ktl', part_id=part_id, mechanism=self)
         kb = component.get_parameter('kb', part_id=part_id, mechanism=self)
         ku = component.get_parameter('ku', part_id=part_id, mechanism=self)
+        kb_fuel = component.get_parameter(
+            'kb_fuel', part_id=part_id, mechanism=self
+        )
+        ku_fuel = component.get_parameter(
+            'ku_fuel', part_id=part_id, mechanism=self
+        )
         L = component.get_parameter('length', part_id=part_id, mechanism=self)
 
-        bound_complex = Complex([transcript, self.ribosome])
+        ribo_bound_complex = Complex([transcript, self.ribosome])
+        fuel_bound_complex = Complex([transcript, self.ribosome] + self.fuels)
 
         # RNAP DNA Binding
         r1 = Reaction.from_massaction(
             [transcript, self.ribosome],
-            [bound_complex],
+            [ribo_bound_complex],
             k_forward=kb,
             k_reverse=ku,
         )
-        # Transcription
-        r2 = Reaction.from_massaction(
-            self.fuels + [bound_complex],
+
+        # Translation
+        r2a = Reaction.from_massaction(
+            self.fuels + [ribo_bound_complex],
+            [fuel_bound_complex],
+            k_forward=parameter_to_value(kb_fuel.value),
+            k_reverse=parameter_to_value(ku_fuel.value),
+        )
+        r2b = Reaction.from_massaction(
+            [fuel_bound_complex],
             self.fuels + [transcript, self.ribosome, protein],
             k_forward=parameter_to_value(ktl.value) / parameter_to_value(L),
         )
+
         # Fuel consumption
         r3 = Reaction.from_massaction(
-            self.fuels + [bound_complex],
-            [bound_complex] + self.wastes,
+            [fuel_bound_complex],
+            [ribo_bound_complex] + self.wastes,
             k_forward=ktl,
         )
 
-        return [r1, r2, r3]
+        return [r1, r2a, r2b, r3]
 
 
 class multi_tx(Mechanism):
@@ -2050,6 +2164,8 @@ class multi_tx(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transcription'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -2125,6 +2241,7 @@ class multi_tx(Mechanism):
         pol: Species,
         name: str = 'multi_tx',
         mechanism_type: str = 'transcription',
+        parameter_file='mechanisms/txtl_parameters.tsv',
         **kwargs,
     ):
         if isinstance(pol, Species):
@@ -2132,7 +2249,12 @@ class multi_tx(Mechanism):
         else:
             raise ValueError("'pol' must be a Species")
 
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     # species update
     def update_species(
@@ -2400,6 +2522,8 @@ class multi_tl(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='translation'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/txtl_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -2479,6 +2603,7 @@ class multi_tl(Mechanism):
         ribosome: Species,
         name: str = 'multi_tl',
         mechanism_type: str = 'translation',
+        parameter_file='mechanisms/txtl_parameters.tsv',
         **kwargs,
     ):
         if isinstance(ribosome, Species):
@@ -2486,7 +2611,12 @@ class multi_tl(Mechanism):
         else:
             raise ValueError("'ribosome' must be a Species.")
 
-        Mechanism.__init__(self, name=name, mechanism_type=mechanism_type)
+        Mechanism.__init__(
+            self,
+            name=name,
+            mechanism_type=mechanism_type,
+            parameter_file=parameter_file,
+        )
 
     # species update
     def update_species(

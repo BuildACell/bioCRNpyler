@@ -1,0 +1,18 @@
+# enzyme_parameters.tsv - default parameters for enzyme mechanisms
+#
+# This file contains default parameters used by the mechanisms.enzyme
+# classes.
+#
+mechanism_id	part_id	param_name	param_val	units	comments
+
+# Basic (Michaelis-Menten) catalysis parameters
+catalysis		kb	100	/sec	assuming 10 ms to diffuse across 1 um (characteristic cell size)
+catalysis		ku	10	uM/sec	90% binding
+# catalysis		kcat	1
+
+# Reversible Michaelis-Menten catalysis parameters
+catalysis		kb1	100	/sec	assuming 10 ms to diffuse across 1 um (characteristic cell size)
+catalysis		ku1	10	uM/sec	90% binding
+catalysis		kb2	100	/sec	assuming 10 ms to diffuse across 1 um (characteristic cell size)
+catalysis		ku2	10	uM/sec	90% binding
+catalysis		kcat_rev	0.01

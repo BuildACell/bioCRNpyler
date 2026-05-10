@@ -43,7 +43,7 @@ framework written in Python which allows complete control over model
 compilation by developers as well as a large library of easy-to-use
 parts and models relevant to synthetic biologists and
 bio-engineers.  The BioCRNpyler package is available on `GitHub
-<https://github.com/BuildACell/BioCRNPyler>`_ [BCP-GH]_.
+<https://github.com/BuildACell/BioCRNpyler>`_ [BCP-GH]_.
 
 The BioCRNpyler Framework
 =========================
@@ -196,7 +196,7 @@ This documentation has a number of notional conventions and functionality:
   objects required by the code block will be present earlier in the
   file or, occasionally, in a different section or chapter (with a
   reference near the code block).  All code listings assume that the
-  NumPy package is available using the prefix `np` and the bioCRNpyler
+  NumPy package is available using the prefix `np` and the BioCRNpyler
   package is imported using prefix `bcp`.  Example:
 
   .. testcode::

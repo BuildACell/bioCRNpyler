@@ -512,6 +512,8 @@ class ChemicalComplex(Component):
     attributes : list of str, optional
         List of attribute tags to associate with the complex species. The
         complex also inherits attributes from its constituent species.
+    binding_type : str, default='chemical_complex'
+        Part type for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to the `Component` base class
         constructor.
@@ -574,6 +576,7 @@ class ChemicalComplex(Component):
         name: str = None,
         material_type='complex',
         attributes=None,
+        binding_type='chemical_complex',
         **kwargs,
     ):
         if not isinstance(species, list) or len(species) < 2:
@@ -582,6 +585,7 @@ class ChemicalComplex(Component):
                 "Species, strings, or Component objects."
             )
 
+        self.binding_type = binding_type
         self.internal_species = []  # a list of species inside the complex
 
         for s in species:
@@ -659,7 +663,7 @@ class ChemicalComplex(Component):
             bindee,
             complex_species=self.get_species(),
             component=self,
-            part_id=self.name,
+            part_id=[self.name, self.binding_type],
         )
         return reactions
 

@@ -20,7 +20,7 @@ parameters for things like 'ku' and 'ktx' to quickly build models.
 
 *Parameters inside BioCRNpyler*
 
-Inside of bioCRNpyler, parameters are stored as a dictionary key value pair:
+Inside of BioCRNpyler, parameters are stored as a dictionary key value pair:
 `(mechanism_name, part_id, param_name) --> param_val`. If that particular
 parameter key cannot be found, the software will default to the following
 keys: `(mechanism_type, part_id, param_name)` >> `(part_id, param_name)` >>
@@ -52,9 +52,11 @@ from collections import namedtuple  # Used for the parameter keys
 from typing import Dict, List, Union
 from warnings import warn
 
-# This could later be extended
-ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')
-"""Named tuple defining a parameter key.
+from ..utils.units import biocrnpyler_supported_units, normalize_unit_id
+
+
+class ParameterKey(namedtuple('ParameterKey', 'mechanism part_id name')):
+    """Named tuple defining a parameter key.
 
     Parameters
     ----------
@@ -67,7 +69,7 @@ ParameterKey = namedtuple('ParameterKey', 'mechanism part_id name')
         Name of the parameter. Must start with a letter and contain at
         least one character.
 
-"""
+    """
 
 
 class Parameter(object):
@@ -268,7 +270,13 @@ class Parameter(object):
                 f"All units must be strings. Recieved {new_unit}."
             )
         else:
-            self._unit = new_unit
+            # to make sure unit_str is compatible with sbml:
+            unit_str = normalize_unit_id(new_unit)
+            supported_units = biocrnpyler_supported_units()
+            for unit in unit_str.split():
+                if unit not in supported_units and unit != '':
+                    raise ValueError(f"unknown unit '{unit}'")
+            self._unit = unit_str
 
     @staticmethod
     def _convert_rational(p_value: str) -> numbers.Real:
@@ -571,18 +579,22 @@ class ParameterEntry(Parameter):
             self._parameter_info = dict(parameter_info)
 
             # Update the units attribute, if necessary
+            if 'unit' in parameter_info:
+                self._parameter_info['unit'] = normalize_unit_id(
+                    parameter_info['unit']
+                )
             if (
                 'unit' in parameter_info
                 and self.unit != ''
-                and self.unit != parameter_info['unit']
+                and self.unit != self._parameter_info['unit']
             ):
                 raise ValueError(
                     f"Recieved multiple parameter units through constructor "
                     f"{self.unit} and parameter_info dictionary "
-                    f"{parameter_info['unit']}."
+                    f"{self._parameter_info['unit']}."
                 )
             elif 'unit' in parameter_info:
-                self.unit = parameter_info['unit']
+                self.unit = self._parameter_info['unit']
 
         else:
             raise ValueError(
@@ -1319,7 +1331,11 @@ class ParameterDatabase(object):
                     "or comma-seperated (.csv) files."
                 )
 
-            csvreader = csv.DictReader(f, delimiter=delimiter)
+            # Read the CSV file, filtering out comment lines
+            csvreader = csv.DictReader(
+                filter(lambda row: row[0] != '#', f), delimiter=delimiter
+            )
+
             # Used for flexible column headings
             accepted_field_names = {
                 'mechanism': ['mechanism', 'mechanism_id'],
@@ -1363,9 +1379,18 @@ class ParameterDatabase(object):
                     field_names['mechanism'],
                     field_names['param_val'],
                 ]
+                if field_names['unit'] is not None:
+                    field_columns.append(field_names['unit'])
+
                 parameter_info = {
                     k: row[k] for k in row if k not in field_columns
                 }
+                if (
+                    field_names['unit'] is not None
+                    and row[field_names['unit']] is not None
+                    and row[field_names['unit']] != ''
+                ):
+                    parameter_info['unit'] = row[field_names['unit']]
                 # TODO test all these cases!
 
                 # Case 1: No Param Name so skip the row
@@ -1658,18 +1683,22 @@ class ParameterDatabase(object):
             mech_name = None
             mech_type = None
 
-        parameter_key_list = [
-            ParameterKey(
-                mechanism=mech_name, part_id=part_id, name=param_name
-            ),
-            ParameterKey(
-                mechanism=mech_type, part_id=part_id, name=param_name
-            ),
-            ParameterKey(mechanism=None, part_id=part_id, name=param_name),
-            ParameterKey(mechanism=mech_name, part_id=None, name=param_name),
-            ParameterKey(mechanism=mech_type, part_id=None, name=param_name),
-            ParameterKey(mechanism=None, part_id=None, name=param_name),
-        ]
+        if not isinstance(part_id, list):
+            part_id = [part_id]
+        part_id = part_id + [None]
+        parameter_key_list = []
+
+        # Create a parameter key for each part_id
+        for id in part_id:
+            parameter_key_list += [
+                ParameterKey(
+                    mechanism=mech_name, part_id=id, name=param_name
+                ),
+                ParameterKey(
+                    mechanism=mech_type, part_id=id, name=param_name
+                ),
+                ParameterKey(mechanism=None, part_id=id, name=param_name),
+            ]
 
         for key in parameter_key_list:
             if key in self.parameters and found_entry is None:

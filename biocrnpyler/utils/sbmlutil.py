@@ -11,7 +11,7 @@ from warnings import warn
 
 import libsbml  # type: ignore
 
-from ..utils.units import create_new_unit_definition
+from ..utils.units import create_new_unit_definition, normalize_unit_id
 from .general import parameter_to_value
 
 # Reaction ID number (global)
@@ -70,10 +70,17 @@ def create_sbml_model(
     unit.setMultiplier(1)
 
     # Set up required units and containers
+    time_units = _validate_sbml_unit_def(model, time_units)
+    extent_units = _validate_sbml_unit_def(model, extent_units)
+    substance_units = _validate_sbml_unit_def(model, substance_units)
+    length_units = _validate_sbml_unit_def(model, length_units)
+    area_units = _validate_sbml_unit_def(model, area_units)
+    volume_units = _validate_sbml_unit_def(model, volume_units)
+
     model.setTimeUnits(time_units)  # set model-wide time units
     model.setExtentUnits(extent_units)  # set model units of extent
     model.setSubstanceUnits(substance_units)  # set model substance units
-    model.setLengthUnits(length_units)  # area units (never used?)
+    model.setLengthUnits(length_units)  # length units (never used?)
     model.setAreaUnits(area_units)  # area units (never used?)
     model.setVolumeUnits(volume_units)  # default volume unit
 
@@ -131,18 +138,23 @@ def add_all_species(
             compartment = get_compartment_by_name(model, s.compartment.name)
             if compartment is None:
                 compartment = add_compartment(model, s.compartment)
+
+        # add unit support for ic:
+        initial_concentration = 0
+        ic_unit = None
         if s in initial_condition_dictionary:
-            initial_concentration = parameter_to_value(
-                initial_condition_dictionary[s]
-            )
-        else:
-            initial_concentration = 0
+            val_ic = initial_condition_dictionary[s]
+            initial_concentration = parameter_to_value(val_ic)
+            if hasattr(val_ic, 'unit') and val_ic.unit != '':
+                ic_unit = val_ic.unit
+
         add_species(
             model=model,
             compartment=compartment,
             species_name=str(s),
             species_id=s_id,
             initial_concentration=initial_concentration,
+            ic_unit=ic_unit,
         )
 
 
@@ -152,6 +164,7 @@ def add_species(
     species_name,
     species_id,
     initial_concentration=None,
+    ic_unit=None,
     **kwargs,
 ):
     """Helper function to add a species to the sbml model.
@@ -165,6 +178,8 @@ def add_species(
     species_id : str
     initial_concentration : float, optional
         Initial concentration of the species in the SBML model.
+    ic_unit : str, optional
+        Unit of the initial concentration.
 
     Returns
     -------
@@ -181,8 +196,26 @@ def add_species(
     sbml_species.setCompartment(compartment.getId())
     sbml_species.setConstant(False)
     sbml_species.setBoundaryCondition(False)
+
     sbml_species.setHasOnlySubstanceUnits(False)
-    sbml_species.setSubstanceUnits('mole')
+
+    # set init conc unit and compartment unit
+    if ic_unit is None:
+        ic_unit = 'uM'
+
+    compartment_unit = compartment.getUnits()
+    if compartment_unit == '':
+        compartment_unit = model.getVolumeUnits()
+
+    # instead of setting amount units to be mole always,
+    # set it correctly:
+    amount_unit = _calculate_amount_unit(
+        ic_unit,
+        compartment_unit,
+    )
+    amount_unit = _validate_sbml_unit_def(model, amount_unit)
+    sbml_species.setSubstanceUnits(amount_unit)
+
     if initial_concentration is None:
         initial_concentration = 0
     sbml_species.setInitialConcentration(initial_concentration)
@@ -230,7 +263,8 @@ def add_compartment(model, compartment, **kwargs):
     sbml_compartment.setSpatialDimensions(compartment.spatial_dimensions)
     sbml_compartment.setSize(compartment.size)  # For example, 1e-6 liter
     if compartment.unit is not None:
-        sbml_compartment.setUnits(compartment.unit)
+        comp_unit = _validate_sbml_unit_def(model, compartment.unit)
+        sbml_compartment.setUnits(comp_unit)
     return sbml_compartment
 
 
@@ -451,13 +485,7 @@ def _create_global_parameter(model, name, value, p_unit=None, constant=True):
             raise ValueError(
                 "Units for a parameter must be passed as strings."
             )
-        unit_added = False
-        for unit_definition in model.getListOfUnitDefinitions():
-            if unit_definition.getId() == p_unit:
-                unit_added = True
-        if not unit_added:
-            unit_created = create_new_unit_definition(model, p_unit)
-            model.addUnitDefinition(unit_created)
+        p_unit = _validate_sbml_unit_def(model, p_unit)
 
     if model.getParameter(name) is None:
         param = model.createParameter()
@@ -753,3 +781,54 @@ def validate_sbml(sbml_document, enable_unit_check=False, print_results=True):
             "print statements."
         )
     return validation_result
+
+
+def _validate_sbml_unit_def(model, unit_id):
+    if unit_id is None or unit_id == '':
+        return unit_id
+
+    unit_id = normalize_unit_id(unit_id)
+
+    if libsbml.UnitKind_forName(unit_id) != libsbml.UNIT_KIND_INVALID:
+        return unit_id
+
+    for unit_definition in model.getListOfUnitDefinitions():
+        if unit_definition.getId() == unit_id:
+            return unit_id
+
+    unit_created = create_new_unit_definition(model, unit_id)
+    if unit_created is None:
+        raise ValueError(f"Unsupported SBML unit '{unit_id}'")
+    return unit_id
+
+
+def _calculate_amount_unit(concentration_unit, volume_unit):
+    concentration_unit = normalize_unit_id(concentration_unit)
+    volume_unit = normalize_unit_id(volume_unit)
+    if volume_unit == 'litre':
+        volume_unit = 'L'
+
+    mapping = {
+        ('nM', 'nL'): 'amol',
+        ('nM', 'uL'): 'fmol',
+        ('nM', 'mL'): 'pmol',
+        ('nM', 'L'): 'nmol',
+        ('uM', 'nL'): 'fmol',
+        ('uM', 'uL'): 'pmol',
+        ('uM', 'mL'): 'nmol',
+        ('uM', 'L'): 'umol',
+        ('mM', 'nL'): 'pmol',
+        ('mM', 'uL'): 'nmol',
+        ('mM', 'mL'): 'umol',
+        ('mM', 'L'): 'mmol',
+        ('M', 'nL'): 'nmol',
+        ('M', 'uL'): 'umol',
+        ('M', 'mL'): 'mmol',
+        ('M', 'L'): 'mole',
+    }
+    key = (concentration_unit, volume_unit)
+    if key not in mapping:
+        raise ValueError(
+            f"Unsupported concentration/volume unit combination: {key}"
+        )
+    return mapping[key]

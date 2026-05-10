@@ -10,12 +10,12 @@ the BioCRNpyler package.
 Package Structure
 =================
 
-The bioCRNpyler package is maintained on GitHub, with documentation
+The BioCRNpyler package is maintained on GitHub, with documentation
 hosted by ReadTheDocs:
 
   * Documentation: https://biocrnpyler.readthedocs.io/
-  * Source code repository: https://github.com/buildacell/BioCRNPyler
-  * Issue tracker: https://github.com/buildacell/BioCRNPyler/issues
+  * Source code repository: https://github.com/buildacell/BioCRNpyler
+  * Issue tracker: https://github.com/buildacell/BioCRNpyler/issues
 
 GitHub repository file and directory layout:
   - **biocrnpyler/** - main repository
@@ -111,7 +111,7 @@ few general patterns are emerging:
 Documentation Guidelines
 ========================
 
-The bioCRNpyler package is documented using docstrings and Sphinx.
+The BioCRNpyler package is documented using docstrings and Sphinx.
 Reference documentation (class and function descriptions, with details
 on parameters) should all go in docstrings.  User documentation in
 more narrative form should be in the `.rst` files in `docs/`, where it

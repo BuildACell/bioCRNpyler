@@ -198,8 +198,12 @@ class CombinatorialComponentMixtureTest(TestCase):
         self.parameters = {
             'kb': 1.0,
             'ku': 1.0,
+            'kb_ntps': 1.0,
+            'ku_ntps': 1.0,
             'ktx': 1.0,
             'ktl': 1.0,
+            'kb_fuel': 1.0,
+            'ku_fuel': 1.0,
             'kdeg': 1.0,
             'kdil': 1.0,
             'kexpress': 1.0,
