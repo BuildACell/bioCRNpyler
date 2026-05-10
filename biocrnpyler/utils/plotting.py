@@ -27,7 +27,7 @@ from ..core.component import Component
 from ..core.polymer import OrderedPolymer
 from ..core.propensities import MassAction
 from ..core.species import ComplexSpecies, Species
-from ..utils.units import mins, nM, uM, mM
+from ..utils.units import mins, mM, nM, uM
 from . import member_dictionary_search
 
 HAVE_MATPLOTLIB = False
@@ -1395,7 +1395,6 @@ def plot_all_species_containing(
     trace_offset : float, default=0
         Value to use in offseting traces, to avoid overlap.
     """
-
     if not isinstance(species_list, (list, tuple)):
         species_list = [species_list]
 
@@ -1491,7 +1490,6 @@ def plot_gene_expression_data(
         Names of resources.  Defaults to ['metabolite_AAs', 'metabolite_NTPs',
         'metabolite_ATP'].
     """
-
     if not isinstance(gene_list, (list, tuple)):
         gene_list = [gene_list]
 
@@ -1595,7 +1593,7 @@ def plot_gene_expression_data(
                 label=protein_species.pretty_print(),
             )
         plt.title("Protein", fontsize=title_fontsize)
-        plt.xlabel(f"Time [time_label]")
+        plt.xlabel("Time [time_label]")
         plt.ylabel(f"Concentration [{concentration_label[2]}]")
         plt.legend(fontsize=legend_fontsize)
 
@@ -1610,7 +1608,7 @@ def plot_gene_expression_data(
         offset += trace_offset[3]
 
     plt.title("Resources", fontsize=title_fontsize)
-    plt.xlabel(f"Time [time_label]")
+    plt.xlabel("Time [time_label]")
     plt.ylabel(f"Concentration [{concentration_label[3]}]")
     plt.legend(fontsize=legend_fontsize)
 
