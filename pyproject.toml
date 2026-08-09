@@ -28,7 +28,7 @@ keywords=["SBML", "synthetic biology", "modeling",
           "Chemical Reaction Network", "CRN"]
 dependencies = [
     "python-libsbml",
-    "numpy<2.0",
+    "numpy",
     "matplotlib",
     "networkx",
     "bokeh>=1.4.0",
