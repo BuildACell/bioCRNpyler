@@ -58,3 +58,13 @@ simple_transcription	strong	ktx	0.4775625	Above rescaled by ktx for simple trans
 	combinatorial_promoter_leak	kexpress	0.0028125	1% of kexpress default
 	regulated_promoter_leak	ktx	0.0005	1% of ktx default
 	regulated_promoter_leak	kexpress	0.0028125	1% of kexpress default
+MX	pT7	k1	0.072	
+MX	pT7	k2	4	
+MX	pT7	k_iso	0.36
+MX	pT7	ktx_solo	0.085
+MX	pT7	max_occ	40
+multi_tl	RBSG	kbr	1	
+multi_tl	RBSG	kur	100	
+multi_tl	RBSG	k_iso_r	0.3	
+multi_tl	RBSG	ktl_solo	0.02	
+multi_tl	RBSG	max_occ	22	
