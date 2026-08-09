@@ -9,8 +9,6 @@ contained.  For convenience, a list of low-level (core) classes,
 components, mechanisms, and mixtures is also included here, in
 individual sections of this chapter.
 
-.. automodule:: biocrnpyler
-
 Core Classes
 ============
 
@@ -98,6 +96,7 @@ Parameters are organized into databases that allow hierarchical searching.
 
    ParameterDatabase
    ParameterEntry
+   ParameterKey
 
 
 Base classes
@@ -127,10 +126,6 @@ Prefix: `biocrnpyler.components`
 The following subsections provide a list of all components currently
 available in the BioCRNpyler package.
 
-.. toctree::
-    :maxdepth: 2
-    :caption: Components
-
 .. include:: _autogen_components.rst
 
 
@@ -144,10 +139,6 @@ Prefix: `biocrnpyler.mechanisms`
 The following subsections provide a list of all mechanisms currently
 available in the BioCRNpyler package.
 
-.. toctree::
-    :maxdepth: 2
-    :caption: Mechanisms
-
 .. include:: _autogen_mechanisms.rst
 
 
@@ -160,9 +151,5 @@ Prefix: `biocrnpyler.mixtures`
 
 The following subsections provide a list of all mixtures currently
 available in the BioCRNpyler package.
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Mixtures
 
 .. include:: _autogen_mixtures.rst

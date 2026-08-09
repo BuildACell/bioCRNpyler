@@ -1,0 +1,46 @@
+# txtl_parameters.tsv - default parameters for transcription & translation
+#
+# This file contains default parameters use by the mechanisms.txtl
+# classes. The primary parameters are based on the parameters
+# in mixtures/extract_parameters.tsv.
+#
+# The parameters for the most complex mechanisms are listed first, with
+# subsequent parameters chosen to be consistent with those values.
+#
+mechanism	part_id	param_name	value	units	comments
+
+# OneStepGeneExpression
+gene_expression		kexpress	19.23	/sec
+
+# SimpleTranscription and SimpleTranslation
+transcription		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
+translation		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
+
+# PositiveHillTranscription and NegativeHillTranscription
+transcription		K	1.6e-3	uM	RMM (TODO)
+transcription		k	3.25	/sec/uM	Tx_cat from Singhal (= ktx?? TODO)
+transcription		n	2		cooperativity
+transcription		kleak	5e-6	/sec	RMM (TODO)
+
+# Transcription_MM and Translation_MM
+transcription_mm		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
+transcription_mm		kb	4.48	/uM/sec	txtlsim S3: pol_{F, lac}
+transcription_mm		ku	2.5E-06	/sec	default_parameters.txt; source unclear (TODO)
+translation_mm		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
+translation_mm		kb	0.819	/uM/sec	Singhal et al. Table S2 (TODO)
+translation_mm		ku	0.003	/sec	Singhal et al. Table S2 (TODO)
+
+# Energy_Transcription_MM and Energy_Translation_MM
+energy_transcription_mm		ktx	50	/sec	50 nt/s (rate will be divided by length)
+energy_transcription_mm		kb	4.48	/uM/sec	txtlsim S3: pol_{F, lac}
+energy_transcription_mm		ku	2.5E-06	/sec	default_parameters.txt; source unclear (TODO)
+energy_transcription_mm		kb_ntps	10	/uM/sec	fast binding of NTPs to RNAP:DNA complex (TODO)
+energy_transcription_mm		ku_ntps	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA complex (TODO)
+energy_transcription_mm		length	1000	nt	default length of gene (for resource usage)
+
+energy_translation_mm		ktl	15	/sec	15 aa/s (rate will be divided by length)
+energy_translation_mm		kb	0.819	/uM/sec	Singhal et al. Table S2
+energy_translation_mm		ku	0.003	/sec	Singhal et al. Table S2
+energy_translation_mm		kb_fuel	10	/uM/sec	fast binding of NTPs to RNAP:DNA complex (TODO)
+energy_translation_mm		ku_fuel	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA complex (TODO)
+energy_translation_mm		length	300	aa	default length of a protein (for resource uasge)

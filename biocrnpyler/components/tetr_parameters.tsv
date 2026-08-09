@@ -1,8 +1,0 @@
-mechanism	part_id	param_name	value	units	comments
-one_step_binding	aTc_protein_TetR	kb	2E+05	per_second_per_molar	
-one_step_binding	aTc_protein_TetR	ku	1E-03	per_second	
-negativehill_transcription	ptet_TetR	K	1.6	nM	RMM
-negativehill_transcription	ptet_TetR	k	3.25	Tx_cat from Singhal
-negativehill_transcription	ptet_TetR	n	2		Tx_cat from Singhal
-negativehill_transcription	ptet_TetR	kleak	5e-6	per_second	RMM
-

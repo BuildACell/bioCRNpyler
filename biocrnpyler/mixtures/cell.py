@@ -152,14 +152,17 @@ class ExpressionDilutionMixture(Mixture):
     >>> mixture = bcp.ExpressionDilutionMixture(
     ...     name='cell_mixture',
     ...     components=[gfp_gene],
-    ...     parameter_file='mixtures/cell_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
     """
 
-    def __init__(self, name='', **kwargs):
-        Mixture.__init__(self, name=name, **kwargs)
+    def __init__(
+        self, name='', parameter_file='mixtures/cell_parameters.tsv', **kwargs
+    ):
+        Mixture.__init__(
+            self, name=name, parameter_file=parameter_file, **kwargs
+        )
 
         # Create default mechanisms for Gene Expression
         dummy_translation = EmptyMechanism(
@@ -370,15 +373,18 @@ class SimpleTxTlDilutionMixture(Mixture):
     >>> mixture = bcp.SimpleTxTlDilutionMixture(
     ...     name='cell_mixture',
     ...     components=[gfp_gene],
-    ...     parameter_file='mixtures/cell_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
     """
 
-    def __init__(self, name='', **kwargs):
+    def __init__(
+        self, name='', parameter_file='mixtures/cell_parameters.tsv', **kwargs
+    ):
         # Always call the superclass __init__ with **kwargs
-        Mixture.__init__(self, name=name, **kwargs)
+        Mixture.__init__(
+            self, name=name, parameter_file=parameter_file, **kwargs
+        )
 
         # Create TxTl Mechanisms
         # Transcription will not involve machinery
@@ -439,7 +445,7 @@ class TxTlDilutionMixture(Mixture):
         Name for the RNA polymerase protein species.
     ribosome : str, default='Ribo'
         Name for the ribosome protein species.
-    rnaase : str, default='RNAase'
+    rnase : str, default='RNase'
         Name for the ribonuclease protein species.
     mechanisms : dict, list, or Mechanism, optional
         Default mechanisms for components in this mixture. Can be a dict with
@@ -486,7 +492,7 @@ class TxTlDilutionMixture(Mixture):
         RNA polymerase component with 'machinery' attribute.
     ribosome : Protein
         Ribosome component with 'machinery' attribute.
-    rnaase : Protein
+    rnase : Protein
         Ribonuclease component with 'machinery' attribute.
     compartment : Compartment or None
         Default compartment for the mixture.
@@ -583,25 +589,32 @@ class TxTlDilutionMixture(Mixture):
     >>> mixture = bcp.TxTlDilutionMixture(
     ...     name='cell_mixture',
     ...     components=[gfp_gene],
-    ...     parameter_file='mixtures/cell_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
     """
 
     def __init__(
-        self, name='', rnap='RNAP', ribosome='Ribo', rnaase='RNAase', **kwargs
+        self,
+        name='',
+        rnap='RNAP',
+        ribosome='Ribo',
+        rnase='RNase',
+        parameter_file='mixtures/cell_parameters.tsv',
+        **kwargs,
     ):
-        Mixture.__init__(self, name=name, **kwargs)
+        Mixture.__init__(
+            self, name=name, parameter_file=parameter_file, **kwargs
+        )
 
         # Create Components for TxTl machinery
         self.rnap = Protein(rnap)
         self.ribosome = Protein(ribosome)
-        self.rnaase = Protein(rnaase)
+        self.rnase = Protein(rnase)
 
         self.rnap.add_attribute('machinery')
         self.ribosome.add_attribute('machinery')
-        self.rnaase.add_attribute('machinery')
+        self.rnase.add_attribute('machinery')
 
         # DNAassmbly represents background processes / loading in a cell
         background_parameters = {
@@ -625,7 +638,7 @@ class TxTlDilutionMixture(Mixture):
         default_components = [
             self.rnap,
             self.ribosome,
-            self.rnaase,
+            self.rnase,
             BackgroundProcesses,
         ]
         self.add_components(default_components)
@@ -640,7 +653,7 @@ class TxTlDilutionMixture(Mixture):
         dilution_mechanism = Dilution(
             filter_dict={'dna': False, 'machinery': False}, default_on=True
         )
-        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnaase.get_species())
+        mech_rna_deg = Degradation_mRNA_MM(nuclease=self.rnase.get_species())
 
         default_mechanisms = {
             mech_tx.mechanism_type: mech_tx,

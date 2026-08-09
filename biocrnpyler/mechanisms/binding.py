@@ -1,6 +1,17 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
+"""Binding mechanisms for chemical complexes.
+
+The 'binding' mechanisms are used to create the reactions required to
+implement binding between two or more chemical species.  Binding occurs
+between one or more binding species and a bindee species.  Cooperative binding
+involves the use of multimers with a given multiplicity, and binding can be in
+either one step (a single reaction for all multimers) or two steps (multimers
+form a complex, then bind).
+
+"""
+
 import itertools as it
 
 from ..core.mechanism import Mechanism
@@ -26,15 +37,20 @@ class One_Step_Cooperative_Binding(Mechanism):
     ----------
     name : str, default='one_step_cooperative_binding'
         Name identifier for this mechanism instance.
-    mechanism_type : str, default='cooperative_binding'
+    mechanism_type : str, default='binding'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/binding_parameters.tsv'
+        Path to file containing default parameter values for binding
+        mechanisms.
 
     Attributes
     ----------
     name : str
         Name of the mechanism instance.
     mechanism_type : str
-        Type classification ('cooperative_binding').
+        Type classification ('binding').
+    parameter_database : ParameterDatabase
+        Database storing default parameters for this mechanism.
 
     See Also
     --------
@@ -84,9 +100,12 @@ class One_Step_Cooperative_Binding(Mechanism):
     def __init__(
         self,
         name='one_step_cooperative_binding',
-        mechanism_type='cooperative_binding',
+        mechanism_type='binding',
+        parameter_file='mechanisms/binding_parameters.tsv',
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(
         self,
@@ -316,15 +335,20 @@ class Two_Step_Cooperative_Binding(Mechanism):
     ----------
     name : str, default='two_step_cooperative_binding'
         Name identifier for this mechanism instance.
-    mechanism_type : str, default='cooperative_binding'
+    mechanism_type : str, default='binding'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/binding_parameters.tsv'
+        Path to file containing default parameter values for binding
+        mechanisms.
 
     Attributes
     ----------
     name : str
         Name of the mechanism instance.
     mechanism_type : str
-        Type classification ('cooperative_binding').
+        Type classification ('binding').
+    parameter_database : ParameterDatabase
+        Database storing default parameters for this mechanism.
 
     See Also
     --------
@@ -380,9 +404,12 @@ class Two_Step_Cooperative_Binding(Mechanism):
     def __init__(
         self,
         name='two_step_cooperative_binding',
-        mechanism_type='cooperative_binding',
+        mechanism_type='binding',
+        parameter_file='mechanisms/binding_parameters.tsv',
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(
         self,
@@ -643,15 +670,20 @@ class Combinatorial_Cooperative_Binding(Mechanism):
     ----------
     name : str, default='Combinatorial_Cooperative_binding'
         Name identifier for this mechanism instance.
-    mechanism_type : str, default='cooperative_binding'
+    mechanism_type : str, default='binding'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/binding_parameters.tsv'
+        Path to file containing default parameter values for binding
+        mechanisms.
 
     Attributes
     ----------
     name : str
         Name of the mechanism instance.
     mechanism_type : str
-        Type classification ('cooperative_binding').
+        Type classification ('binding').
+    parameter_database : ParameterDatabase
+        Database storing default parameters for this mechanism.
 
     See Also
     --------
@@ -708,9 +740,12 @@ class Combinatorial_Cooperative_Binding(Mechanism):
     def __init__(
         self,
         name='Combinatorial_Cooperative_binding',
-        mechanism_type='cooperative_binding',
+        mechanism_type='binding',
+        parameter_file='mechanisms/binding_parameters.tsv',
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def make_cooperative_complex(self, combo, bindee, cooperativity):
         """Create a complex with multiple cooperative binders.
@@ -817,7 +852,18 @@ class Combinatorial_Cooperative_Binding(Mechanism):
         """
         cooperativity_dict = {}
         out_species = []
-        prefix = "" if part_id is None else part_id + '_'
+
+        # Figure out part_id (if list, assume first element is primary ID)
+        if part_id is None:
+            prefix = ''
+            suffix_list = []
+        elif isinstance(part_id, list):
+            prefix = part_id[0] + '_'
+            suffix_list = part_id[1:]
+        else:
+            prefix = part_id + '_'
+            suffix_list = []
+
         for binder in binders:
             binder_partid = prefix + binder.name
             if (
@@ -833,7 +879,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                 # cooperativity argument
                 coop_val = component.get_parameter(
                     'cooperativity',
-                    part_id=binder_partid,
+                    part_id=[binder_partid] + suffix_list,
                     mechanism=self,
                     return_numerical=True,
                 )
@@ -936,14 +982,27 @@ class Combinatorial_Cooperative_Binding(Mechanism):
 
         """
         binder_params = {}
-        prefix = "" if part_id is None else part_id + '_'
+
+        # Figure out part_id (if list, assume first element is primary ID)
+        if part_id is None:
+            prefix = ''
+            suffix_list = []
+        elif isinstance(part_id, list):
+            prefix = part_id[0] + '_'
+            suffix_list = part_id[1:]
+        else:
+            prefix = part_id + '_'
+            suffix_list = []
+
         for binder in binders:
             binder_partid = prefix + binder.name
             if (isinstance(kbs, dict) and binder not in kbs) or (
                 not isinstance(kbs, dict) and component is not None
             ):
                 kb = component.get_parameter(
-                    'kb', part_id=binder_partid, mechanism=self
+                    'kb',
+                    part_id=[binder_partid] + suffix_list,
+                    mechanism=self,
                 )
             elif isinstance(kbs, dict) and binder in kbs:
                 kb = kbs[binder.name]
@@ -956,7 +1015,9 @@ class Combinatorial_Cooperative_Binding(Mechanism):
                 kus is None and component is not None
             ):
                 ku = component.get_parameter(
-                    'ku', part_id=binder_partid, mechanism=self
+                    'ku',
+                    part_id=[binder_partid] + suffix_list,
+                    mechanism=self,
                 )
             elif isinstance(kus, dict) and binder in kus:
                 ku = kus[binder.name]
@@ -975,7 +1036,7 @@ class Combinatorial_Cooperative_Binding(Mechanism):
             ):
                 coop_val = component.get_parameter(
                     'cooperativity',
-                    part_id=binder_partid,
+                    part_id=[binder_partid] + suffix_list,
                     mechanism=self,
                     return_numerical=True,
                 )
@@ -1067,6 +1128,9 @@ class One_Step_Binding(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='binding'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/binding_parameters.tsv'
+        Path to file containing default parameter values for binding
+        mechanisms.
 
     Attributes
     ----------
@@ -1074,6 +1138,8 @@ class One_Step_Binding(Mechanism):
         Name of the mechanism instance.
     mechanism_type : str
         Type classification ('binding').
+    parameter_database : ParameterDatabase
+        Database storing default parameters for this mechanism.
 
     See Also
     --------
@@ -1133,8 +1199,15 @@ class One_Step_Binding(Mechanism):
 
     """
 
-    def __init__(self, name='one_step_binding', mechanism_type='binding'):
-        Mechanism.__init__(self, name, mechanism_type)
+    def __init__(
+        self,
+        name='one_step_binding',
+        mechanism_type='binding',
+        parameter_file='mechanisms/binding_parameters.tsv',
+    ):
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(
         self,

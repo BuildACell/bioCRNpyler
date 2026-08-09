@@ -185,6 +185,7 @@ def test_combinatorial_DNAconstruct_in_Mixtures():
         for mclass, args in mixture_classes:
             # create the Mixture with parameters
             args['parameters'] = dict(parameters)
+            args['parameter_file'] = None
             m = mclass(**args)
 
             # Promoters and terminators are instances
@@ -221,6 +222,7 @@ def test_combinatorial_RNAconstruct_in_Mixtures():
         for mclass, args in mixture_classes:
             # create the Mixture with parameters
             args['parameters'] = dict(parameters)
+            args['parameter_file'] = None
             m = mclass(**args)
 
             # RBSs and CDSs are instances
@@ -252,6 +254,7 @@ def test_combinatorial_DNAconstruct_RNAconstruct_in_Mixtures():
         for mclass, args in mixture_classes:
             # create the Mixture with parameters
             args['parameters'] = dict(parameters)
+            args['parameter_file'] = None
             m = mclass(**args)
 
             # Promoters and terminators are instances

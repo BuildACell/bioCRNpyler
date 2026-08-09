@@ -28,6 +28,8 @@ class Simple_Diffusion(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='diffusion'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/transport_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -79,9 +81,15 @@ class Simple_Diffusion(Mechanism):
     """
 
     def __init__(
-        self, name='simple_diffusion', mechanism_type='diffusion', **kwargs
+        self,
+        name='simple_diffusion',
+        mechanism_type='diffusion',
+        parameter_file='mechanisms/transport_parameters.tsv',
+        **kwargs,
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(self, substrate, product, **kwargs):
         """Generate species for simple diffusion.
@@ -209,6 +217,8 @@ class Membrane_Protein_Integration(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='membrane_insertion'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/transport_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -273,9 +283,12 @@ class Membrane_Protein_Integration(Mechanism):
         self,
         name='membrane_protein_integration',
         mechanism_type='membrane_insertion',
+        parameter_file='mechanisms/transport_parameters.tsv',
         **kwargs,
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(
         self, integral_membrane_protein, product, complex=None, **kwargs
@@ -473,6 +486,8 @@ class Simple_Transport(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transport'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/transport_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -549,9 +564,12 @@ class Simple_Transport(Mechanism):
         self,
         name='simple_membrane_protein_transport',
         mechanism_type='transport',
+        parameter_file='mechanisms/transport_parameters.tsv',
         **kwargs,
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(self, membrane_channel, substrate, product, **kwargs):
         """Generate species for simple transport.
@@ -702,6 +720,8 @@ class Facilitated_Transport_MM(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transport'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/transport_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -780,9 +800,12 @@ class Facilitated_Transport_MM(Mechanism):
         self,
         name='facilitated_membrane_protein_transport',
         mechanism_type='transport',
+        parameter_file='mechanisms/transport_parameters.tsv',
         **kwargs,
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(
         self,
@@ -1004,6 +1027,8 @@ class Primary_Active_Transport_MM(Mechanism):
         Name identifier for this mechanism instance.
     mechanism_type : str, default='transport'
         Type classification of this mechanism.
+    parameter_file : str, default='mechanisms/transport_parameters.tsv',
+        Path to file containing default parameter values for this mechanism.
 
     Attributes
     ----------
@@ -1087,9 +1112,12 @@ class Primary_Active_Transport_MM(Mechanism):
         self,
         name='active_membrane_protein_transport',
         mechanism_type='transport',
+        parameter_file='mechanisms/transport_parameters.tsv',
         **kwargs,
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(
         self,

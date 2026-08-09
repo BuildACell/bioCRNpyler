@@ -202,7 +202,7 @@ BioCRNpyler includes several extract-based mixture classes:
 
 For example, you can create a simple extract-based mixture in code as::
 
-    extract_mixture = ExpressionExtract(
+    extract_mixture = SimpleExtract(
         name='cell_free_extract',
         components=[dna_part]
     )

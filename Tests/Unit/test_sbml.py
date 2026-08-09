@@ -359,6 +359,36 @@ def test_generate_sbml_model():
     assert validate_sbml(document) == 0
 
 
+def test_generate_sbml_model_writes_units_from_biocrnpyler():
+    compartment = Compartment('cell', size=1, unit='uL')
+    s1 = Species('S1', compartment=compartment)
+    s2 = Species('S2', compartment=compartment)
+    kf = ParameterEntry('k', 0.1, unit='/sec')
+    x0 = ParameterEntry('S1_0', 1.0, unit='uM')
+    rxn = Reaction.from_massaction(inputs=[s1], outputs=[s2], k_forward=kf)
+    crn = ChemicalReactionNetwork(
+        species=[s1, s2],
+        reactions=[rxn],
+        initial_concentration_dict={s1: x0},
+    )
+
+    document, model = crn.generate_sbml_model()
+    assert validate_sbml(document) == 0
+
+    sbml_compartment = model.getCompartment('cell')
+    assert sbml_compartment.getUnits() == 'uL'
+
+    sbml_species = model.getSpecies(0)
+    assert sbml_species.getSubstanceUnits() == 'pmol'
+    assert sbml_species.getInitialConcentration() == 1.0
+
+    sbml_parameter = model.getListOfParameters()[0]
+    assert sbml_parameter.getUnits() == 'per_sec'
+
+    unit_defs = {ud.getId() for ud in model.getListOfUnitDefinitions()}
+    assert {'uL', 'pmol', 'per_sec'}.issubset(unit_defs)
+
+
 def test_generate_sbml_model_parameter_names():
     s1 = Species('S1')
     s2 = Species('S2')
@@ -518,11 +548,8 @@ def test_sbml_basics():
         global_param = _create_global_parameter(
             model, 'k_global', value=10, p_unit=24
         )
-    with pytest.warns(
-        Warning,
-        match="The string identifier for the unit 1_s is not supported by "
-        "BioCRNpyler. Add this to the dictionary in biocrnpyler/units.py "
-        "if you want this unit",
+    with pytest.raises(
+        ValueError, match="Unsupported SBML unit '1_s'"
     ):
         global_param = _create_global_parameter(
             model, 'k_global', value=10, p_unit='1_s'

@@ -393,6 +393,8 @@ class RegulatedPromoter(Promoter):
         Custom mechanisms for this promoter.
     parameters : dict, optional
         Parameter values specific to this promoter.
+    binding_type : str, default='dna_protein'
+        Part type for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to parent class.
 
@@ -451,6 +453,7 @@ class RegulatedPromoter(Promoter):
         length=0,
         mechanisms=None,
         parameters=None,
+        binding_type='dna_protein',
         **kwargs,
     ):
         Promoter.__init__(
@@ -474,6 +477,7 @@ class RegulatedPromoter(Promoter):
             ]
 
         self.leak = leak
+        self.binding_type = binding_type
 
         self.add_mechanism(One_Step_Cooperative_Binding(), 'binding')
         self.complexes = []
@@ -524,7 +528,7 @@ class RegulatedPromoter(Promoter):
             species_b = mech_b.update_species(
                 regulator,
                 self.dna_to_bind,
-                part_id=self.name + '_' + regulator.name,
+                part_id=[self.name + '_' + regulator.name, self.binding_type],
                 component=self,
                 protein=self.get_protein_for_expression(),
             )
@@ -592,7 +596,7 @@ class RegulatedPromoter(Promoter):
                 regulator,
                 self.dna_to_bind,
                 component=self,
-                part_id=self.name + '_' + regulator.name,
+                part_id=[self.name + '_' + regulator.name, self.binding_type],
                 protein=self.protein,
             )
 
@@ -627,6 +631,8 @@ class ActivatablePromoter(Promoter):
     leak : bool, default=False
         If True, allows basal transcription without activator. If False, no
         transcription occurs without activator binding.
+    binding_type : str, default='dna_protein'
+        Part type for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to parent `Promoter` class.
 
@@ -665,7 +671,13 @@ class ActivatablePromoter(Promoter):
     """
 
     def __init__(
-        self, name, activator, transcript=None, leak=False, **kwargs
+        self,
+        name,
+        activator,
+        transcript=None,
+        leak=False,
+        binding_type='dna_protein',
+        **kwargs,
     ):
         # Always call the superclass __init__() with **kwargs passed through
         Promoter.__init__(self, name=name, transcript=transcript, **kwargs)
@@ -678,6 +690,7 @@ class ActivatablePromoter(Promoter):
         self.activator = self.set_species(activator)
 
         self.leak = leak  # toggles whether or not there is a leak reaction
+        self.binding_type = binding_type
 
         # Non-default Mechanisms are added to the Component with
         # .add_mechanism
@@ -742,7 +755,10 @@ class ActivatablePromoter(Promoter):
             transcript=self.transcript,
             regulator=self.activator,
             component=self,
-            part_id=self.name + '_' + self.activator.name,
+            part_id=[
+                self.name + '_' + self.activator.name,
+                self.binding_type,
+            ],
             leak=self.leak,
             protein=self.get_protein_for_expression(),
         )
@@ -770,6 +786,8 @@ class RepressiblePromoter(Promoter):
     leak : bool, default=False
         If True, allows residual transcription even at high repressor
         concentrations. If False, transcription is fully repressed.
+    binding_type : str, default='dna_protein'
+        Part type for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to parent `Promoter` class.
 
@@ -808,7 +826,13 @@ class RepressiblePromoter(Promoter):
     """
 
     def __init__(
-        self, name, repressor, transcript=None, leak=False, **kwargs
+        self,
+        name,
+        repressor,
+        transcript=None,
+        leak=False,
+        binding_type='dna_protein',
+        **kwargs,
     ):
         # Always call the superclass __init__() with **kwargs passed through
         Promoter.__init__(self, name=name, transcript=transcript, **kwargs)
@@ -821,6 +845,7 @@ class RepressiblePromoter(Promoter):
         self.repressor = self.set_species(repressor)
 
         self.leak = leak  # toggles whether or not there is a leak reaction
+        self.binding_type = binding_type
 
         # Mechanisms are inherited from the Mixture unless set
         # specifically in self.default_mechanisms.
@@ -886,7 +911,10 @@ class RepressiblePromoter(Promoter):
             transcript=self.transcript,
             regulator=self.repressor,
             component=self,
-            part_id=self.name + '_' + self.repressor.name,
+            part_id=[
+                self.name + '_' + self.repressor.name,
+                self.binding_type,
+            ],
             leak=self.leak,
             protein=self.get_protein_for_expression(),
             **kwargs,
@@ -936,6 +964,8 @@ class CombinatorialPromoter(Promoter):
         Dictionary mapping regulator names to their cooperativity values
         (Hill coefficients) for binding, e.g., {'regulator1': 2,
         'regulator2': 1}.
+    binding_type : str, default='dna_protein'
+        Part type for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to parent class.
 
@@ -1014,6 +1044,7 @@ class CombinatorialPromoter(Promoter):
         protein=None,
         tx_capable_list=None,
         cooperativity=None,
+        binding_type='dna_protein',
         **kwargs,
     ):
         Promoter.__init__(
@@ -1069,6 +1100,7 @@ class CombinatorialPromoter(Promoter):
             self.tx_capable_list = [set(a) for a in newlist]
 
         self.leak = leak
+        self.binding_type = binding_type
         self.complex_combinations = {}
         self.tx_capable_complexes = []
         self.leak_complexes = []
@@ -1231,7 +1263,7 @@ class CombinatorialPromoter(Promoter):
             self.regulators,
             self.dna_to_bind,
             component=self,
-            part_id=self.name,
+            part_id=[self.name, self.binding_type],
             cooperativity=self.cooperativity,
             protein=self.protein,
         )

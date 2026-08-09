@@ -1,21 +1,50 @@
+# cell_parameters.tsv - default parameters for dilution mixtures (cells)
+#
+# This file contains default parameters use by mixtures.cell classes. The
+# parameters are chosen to match the gene expression rates in E. coli
+# under exponential growth.
+#
 mechanism	part_id	param_name	value	units	comments
-gene_expression		kexpress	0.28125	The product of the above two rates
-	e coli	Ribo	150	uM assuming ~100000 Ribosomes / e. coli with a volume 1 um^3
-	e coli	RNAP	15	uM assuming ~10000 RNAP molecules / e. coli with a volume 1 um^3
-	e coli	RNAase	45	uM assuming ~30000 RNAP molecules / e. coli with a volume 1 um^4
-	e coli	cellular_processes	5	somewhat arbitary concentration for ~3000 genes in e. coli assuming weak loading on all of them
-	e coli extract	protein_Ribo	24	1/5 th the Ribosome concentration of E. Coli
-	e coli extract	protein_RNAP	3	1/5 th the rnap concentration of E. Coli
-	e coli extract	protein_RNAase	6	1/5 th the rnaase concentration of E. Coli
-	e coli extract 2	protein_Ribo	12	
-	e coli extract 2	protein_RNAP	6	
-	e coli extract 2	protein_RNAase	3	
-		ktx	0.05	transcripts / second per polymerase assuming 50nt/s and transcript length of 1000
-		ktl	0.05	proteins / second per ribosome assuming 15aa/s and protein length of 300
-		cooperativity	2	Seems like a good default
-		kb	100	assuming 10ms to diffuse across 1um (characteristic cell size)
-		ku	10	"""90% binding"""
-		kdil	0.001	assuming half life of ~20 minutes for everything (e coli doubling time)
-rna_degradation_mm		kdeg	1.01		The values from Singhal et al Supplemental Table S2
-rna_degradation_mm		kb	1		The values from Singhal et al Supplemental Table S2
-rna_degradation_mm		ku	1.26582E-06		The values from Singhal et al Supplemental Table S2
+
+# Concentration using BioNumbers for E. coli, assuming volume of 1 um^3
+initial concentration	e_coli	RNAP	5	uM	~3,000 RNAP molecules (BioNumbers 106199)
+initial concentration	e_coli	Ribo	100	uM	~65,000 Ribosomes per cell (BioNumbers 108604)
+initial concentration	e_coli	RNase	2.5	uM	~1,500 RNase molecules (BioNumbers 111532)
+
+# Transcription and translation rates per unit of "activated" DNA
+transcription		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
+translation		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
+
+# Dilution and degradation, based on E. coli (Singhal et al, 20xx, Table S2)
+dilution		kdil	5.78E-4	/sec	half life of ~20 minutes (E. coli doubling time)
+
+# RNA degradation, based on E. coli
+rna_degradation_mm		kdeg	1.3E-4	/sec	degradation rate of bound RNAase (half life of 2 min)
+rna_degradation_mm		kb	1	/sec/uM	binding of RNAase to RNA (fast)
+rna_degradation_mm		ku	1.25E-06	/sec	unbinding of RNAase to RNA (slow)
+
+# "Background" usage of resources
+#
+# The 'cellular_processes' parameter is used to reflect the utilization of
+# resources by endogenous DNA in E. coli.  The `TxTlDilutionMixture`
+# implements this by creating a DNA assembly called 'cellular_processes',
+# whose initial concentration reflects the number of expressing genes in the
+# cell.  The rates of transcription and translation are hard coded into the
+# mixture (and probably need to be changed at some point).
+# 
+initial concentration	e_coli	cellular_processes	5	uM	~3000 genes in E. coli assuming weak loading on all of them
+
+# For simplified gene expression model, we assume that DNA goes directly to
+# protein and so 'kexpress' captures the steady state production rate:
+#
+# TODO: CHECK!! (see extract_parameters.tsv)
+#
+# d[RNA]/dt = ktx * [DNA] - kdeg * [RNA] * [RNAse] - kdil * [RNA]
+# => [RNA]_ss = (ktx / (kdeg * [RNAse] + kdil)) * [DNA]
+#
+# d[protein]/dt = ktl * [RNA] - kdil * [protein]
+#               = kexpress * [DNA] - kdil * [protein]
+#
+# kexpress = ktx * ktl / (kdeg * [RNAse] + kdil)
+# 
+gene_expression		kexpress	1.89	/sec

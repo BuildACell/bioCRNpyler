@@ -35,6 +35,8 @@ class DNABindingSite(DNA_part):
         coding sequences).
     assembly : DNAassembly, optional
         The DNA assembly containing this binding site.
+    binding_type : str, default='dna_protein'
+        Part type for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to the parent `DNA_part` class.
 
@@ -82,7 +84,13 @@ class DNABindingSite(DNA_part):
     """
 
     def __init__(
-        self, name, binders, no_stop_codons=None, assembly=None, **kwargs
+        self,
+        name,
+        binders,
+        no_stop_codons=None,
+        assembly=None,
+        binding_type='dna_protein',
+        **kwargs,
     ):
         # An integrase attachment site binds to integrase.
         if isinstance(binders, list):
@@ -100,6 +108,7 @@ class DNABindingSite(DNA_part):
         )
         self.name = name
         self.dna_to_bind = None
+        self.binding_type = binding_type
         # self.assembly = None
 
     def __repr__(self):
@@ -181,7 +190,7 @@ class DNABindingSite(DNA_part):
                     binder,
                     self.dna_to_bind,
                     component=self,
-                    part_id=binder.name,
+                    part_id=[binder.name, self.binding_type],
                 )
         return rxns
 
@@ -248,6 +257,8 @@ class IntegraseSite(DNABindingSite):
     integrase_binding : bool, default=True
         If True, integrase must bind before recombination. If False,
         recombination occurs without explicit binding (simplified model).
+    binding_type : str, default='dna_protein'
+        Part type for binding reaction parameters.
     **kwargs
         Additional keyword arguments passed to parent class.
 
@@ -324,6 +335,7 @@ class IntegraseSite(DNABindingSite):
         dinucleotide=1,
         no_stop_codons=None,
         integrase_binding=True,
+        binding_type='dna_protein',
         **kwargs,
     ):
         self.update_integrase(integrase)
@@ -692,7 +704,7 @@ class IntegraseSite(DNABindingSite):
                         [complex_parent],
                         integrated_dnas,
                         component=self,
-                        part_id=self.integrase.name,
+                        part_id=[self.integrase.name, self.binding_type],
                     )
                     populate = False
             else:

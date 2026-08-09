@@ -1,26 +1,123 @@
+# extract_parameters.tsv - default parameters for cell-based extracts
+#
+# This file contains default parameters use by the mixtures.extract
+# classes. The parameters are chosen based on the following papers, unless
+# otherwise noted:
+#
+#   [TX-TL 2.0] Garamella, Jonathan, Ryan Marshall, Mark Rustad, and Vincent
+#   Noireaux. "The All E. Coli TX-TL Toolbox 2.0: A Platform for Cell-Free
+#   Synthetic Biology". ACS Synthetic Biology 5, no. 4 (2016):344-55.
+#   https://doi.org/10.1021/acssynbio.5b00296.
+#
+#   [txtlsim] Singhal, Vipul, Zoltan A Tuza, Zachary Z Sun, and Richard
+#   M Murray. "A MATLAB Toolbox for Modeling Genetic Circuits in Cell-Free
+#   Systems". Synthetic Biology 6, no. 1 (2021):ysab007.
+#   https://doi.org/10.1093/synbio/ysab007.
+#
+# The parameters for the most complex mechanisms are listed first, with
+# subsequent parameters chosen to be consistent with those values.
+#
 mechanism	part_id	param_name	value	units	comments
-gene_expression		kexpress	0.28125		The product of the above two rates
-		ktx	0.05		transcripts / second per polymerase assuming 50nt/s and transcript length of 1000
-		ktl	0.05		proteins / second per ribosome assuming 15aa/s and protein length of 300
-		kb	100		assuming 10ms to diffuse across 1um (characteristic cell size)
-		ku	10		90% binding
-		kdil	0.001		assuming half life of ~20 minutes for everything (e coli doubling time)
-energy_transcription_mm 	ktx     3.25            Tx_cat from Singhal et al.
-energy_transcription_mm		kb	4.48		For the promoter tested in Singhal et al Supplemental Table S2
-energy_transcription_mm		ku	2.48889E-06		For the promoter tested in Singhal et al Supplemental Table S2
-energy_transcription_mm		length	300		"This is a default length, gene specific ones should be set"
-energy_translation_mm		ktl	19.2		TL_cat from Singhal et al.
-energy_translation_mm		kb	0.819		For the RBS tested in Singhal et al Supplemental Table S2
-energy_translation_mm		ku	0.002853659		For the RBS tested in Singhal et al Supplemental Table S2
-energy_translation_mm		length	100		"This is a default length, transcript specific ones should be set"
-rna_degradation_mm		kdeg	1.01		The values from Singhal et al Supplemental Table S2
-rna_degradation_mm		kb	1		The values from Singhal et al Supplemental Table S2
-rna_degradation_mm		ku	1.26582E-06		The values from Singhal et al Supplemental Table S2
-one_step_pathway	NTPs_production	k	0.02		alpha_atp fron Singhal et al.
-one_step_pathway	NTPs_degradation	k	0.0000177		Delta_ATP from Singhal et a.
-initial concentration		NTPs	5		mM (total NTPs in standard energy buffer)
-initial concentration		amino_acids	30	mM	mM (total amino acids in standard energy buffer)
-initial concentration		Fuel_3PGA	30	mM	mM (standard energy buffer amount)
-initial concentration		RNAase	20.2		The values from Singhal et al Supplemental Table S2
-initial concentration		protein_Ribo	0.0273		The values from Singhal et al Supplemental Table S2
-initial concentration		RNAP	0.00933		The values from Singhal et al Supplemental Table S2
+
+#
+# EnergyTxTlExtract - TX-TL with explicit machinery and energy consumption
+# TxTlExtract - TX-TL with explicit transcription and translation machinery
+#
+# A mixture that models transcription and translation with explicit
+# representation of RNA polymerase (RNAP), ribosomes, RNAses, and energy
+# carrier molecules. This extract uses Michaelis-Menten kinetics with
+# length-dependent fuel consumption to model realistic TX-TL energetics.
+#
+# EnergyTxTlExtract explicitly tracks NTPs, amino acids, and fuel species
+# (e.g., 3PGA for ATP regeneration).
+
+# Cell expression machinery: parameters are chosen at 1/10 E. coli
+initial concentration		RNAP	0.5	uM	1/10 RNAP from cell_parameters.tsv
+initial concentration		Ribo	10	uM	1/10 Ribo from cell_parameters.tsv
+initial concentration		RNase	0.25	uM	1/10 RNAse from cell_parameters.tsv
+
+initial concentration		ATP	600	uM	TX-TL 2.0: [ATP/GTP] - [CTP/UTP]
+initial concentration		NTPs	3600	uM	TX-TL 2.0: [CTP/UTP] * 4 (NTPs)
+initial concentration		amino_acids	6.0E4	uM	TX-TL 2.0 3 mM (upper bound) * 20 AAs
+initial concentration		Fuel_3PGA	3.0E4	uM	TX-TL 2.0: 30 mM
+
+energy_transcription_mm		ktx	50	/sec	50 nt/s (rate will be divided by length)
+energy_transcription_mm		kb	4.48	/uM/sec	txtlsim S3: pol_{F, lac}
+energy_transcription_mm		ku	2.5E-06	/sec	default_parameters.txt; source unclear (TODO)
+energy_transcription_mm		kb_ntps	10	/uM/sec	fast binding of NTPs to RNAP:DNA complex (TODO)
+energy_transcription_mm		ku_ntps	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA complex (TODO)
+energy_transcription_mm		length	1000	nt	default length of gene (for resource usage)
+
+energy_translation_mm		ktl	15	/sec	15 aa/s (rate will be divided by length)
+energy_translation_mm		kb	0.819	/uM/sec	Singhal et al. Table S2
+energy_translation_mm		ku	0.003	/sec	Singhal et al. Table S2
+energy_translation_mm		kb_fuel	10	/uM/sec	fast binding of NTPs to RNAP:DNA complex (TODO)
+energy_translation_mm		ku_fuel	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA complex (TODO)
+energy_translation_mm		length	300	aa	default length of a protein (for resource uasge)
+
+one_step_pathway	ATP_production	k	0.02	/sec	alpha_atp, Singhal et al. Table S2
+one_step_pathway	ATP_degradation	k	0.0000177	/sec	Delta_ATP, Singhal et al. Table S2
+
+#
+# TxTlExtract - TX-TL with simple transcription and translation machinery
+
+# A mixture that models transcription and translation with explicit
+# representation of RNA polymerase (RNAP), ribosomes, and RNases. This
+# extract uses Michaelis-Menten kinetics for transcription and translation,
+# explicitly tracking enzyme-substrate binding and catalysis. Unlike
+# `SimpleTxTlExtract`, this mixture models resource competition and enzyme
+# sequestration effects.
+
+# Default binding/unbinding rates for promoters
+transcription_mm		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
+transcription_mm		kb	4.48	/uM/sec	txtlsim S3: pol_{F, lac}
+transcription_mm		ku	2.5E-06	/sec	default_parameters.txt; source unclear (TODO)
+
+# Default binding/unbinding rates for RBS
+translation_mm		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
+translation_mm		kb	0.819	/uM/sec	Singhal et al. Table S2 (TODO)
+translation_mm		ku	0.003	/sec	Singhal et al. Table S2 (TODO)
+
+#
+# SimpleTxTlExtract - TX-TL with simple transcription and translation machinery
+#
+# A mixture that models transcription and translation as separate catalytic
+# reactions without explicitly representing cellular machinery (RNAP,
+# ribosomes, RNAses). This extract uses simple mass-action kinetics where DNA
+# and mRNA act as catalysts for transcript and protein production,
+# respectively. Unlike `ExpressionExtract`, this mixture includes explicit
+# mRNA species and separate TX-TL steps. Unlike `TxTlExtract`, it does not
+# model enzyme binding or resource competition.
+#
+
+# Transcription and translation rates per unit of "activated" DNA
+transcription		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
+translation		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
+
+#
+# Global Mechanisms
+#
+
+# RNA degradation, based on E. coli (see cell_parameters.tsv)
+rna_degradation_mm		kdeg	1.3E-4	/sec	degradation rate of bound RNAase (half life of 2 min)
+rna_degradation		kdil	1.3E-4	/sec	implemented as 'dilution' for SimpleTxTlExtract
+rna_degradation_mm		kb	1	/sec/uM	binding of RNAase to RNA (fast)
+rna_degradation_mm		ku	1.25E-06	/sec	unbinding of RNAase to RNA (slow)
+
+#
+# ExpressionExtract
+#
+
+# For simplified gene expression model, we assume that DNA goes directly to
+# protein and so 'kexpress' captures the steady state production rate:
+#
+#
+# d[RNA]/dt = ktx * [DNA] - kdeg * [RNA]
+# => [RNA]_ss = (ktx / kdeg) * [DNA]
+#
+# d[protein]/dt = ktl * [RNA]
+#               = kexpress * [DNA]
+#
+# kexpress = ktx * ktl / kdeg
+# 
+gene_expression		kexpress	19.23	/sec

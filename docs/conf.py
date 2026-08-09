@@ -90,7 +90,14 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', '_autogen_*.rst']
+
+# We ignore _autogen_*.rst since it is included in library.rst, but we
+# need to make sure to process autosummary comments from those files...
+autosummary_generate = [
+    'library.rst', '_autogen_components.rst', '_autogen_mechanisms.rst',
+    '_autogen_mixtures.rst'
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
