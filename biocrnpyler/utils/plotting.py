@@ -1593,7 +1593,7 @@ def plot_gene_expression_data(
                 label=protein_species.pretty_print(),
             )
         plt.title("Protein", fontsize=title_fontsize)
-        plt.xlabel("Time [time_label]")
+        plt.xlabel(f"Time [{time_label}]")
         plt.ylabel(f"Concentration [{concentration_label[2]}]")
         plt.legend(fontsize=legend_fontsize)
 
@@ -1608,7 +1608,7 @@ def plot_gene_expression_data(
         offset += trace_offset[3]
 
     plt.title("Resources", fontsize=title_fontsize)
-    plt.xlabel("Time [time_label]")
+    plt.xlabel(f"Time [{time_label}]")
     plt.ylabel(f"Concentration [{concentration_label[3]}]")
     plt.legend(fontsize=legend_fontsize)
 
