@@ -1403,6 +1403,7 @@ def plot_all_species_containing(
     for species in species_list:
         if isinstance(species, Component):
             species = species.species
+        species_label = species.pretty_print(show_material=show_material)
 
         compounds = crn.get_all_species_containing(species)
         if len(compounds) == 0:
@@ -1422,14 +1423,14 @@ def plot_all_species_containing(
                 plt.plot(
                     timepts,
                     species_total / concentration_units,
-                    label=f"Total {species.pretty_print()}",
+                    label=f"Total {species_label}",
                 )
                 offset += trace_offset
         else:
             plt.plot(
                 timepts,
                 results[str(compounds[0])] / concentration_units,
-                label=species.pretty_print(),
+                label=species_label,
             )
             offset += trace_offset
 
