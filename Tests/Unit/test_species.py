@@ -78,6 +78,22 @@ class TestSpecies(TestCase):
         self.assertTrue(species.position is None)
         self.assertTrue(species.direction is None)
 
+    def test_attributes_as_string(self):
+        # a single attribute passed as a string is treated as one attribute,
+        # not split into one attribute per character
+        species = Species(name='test_species', attributes='Passive')
+        self.assertEqual(['Passive'], species.attributes)
+
+        # a string attribute gives the same species as the equivalent list
+        self.assertEqual(
+            Species(name='a', material_type='m', attributes='Passive'),
+            Species(name='a', material_type='m', attributes=['Passive']),
+        )
+
+        # other iterables are still expanded into separate attributes
+        species = Species(name='test_species', attributes=('atr1', 'atr2'))
+        self.assertEqual(['atr1', 'atr2'], species.attributes)
+
     def test_add_attribute(self):
         species = Species(name='test_species')
         # an attribute must be a string
