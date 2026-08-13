@@ -1368,6 +1368,7 @@ def plot_all_species_containing(
     concentration_label='uM',
     legend_fontsize='small',
     show_material=True,
+    show_complex_material=True,
     plot_total=True,
     trace_offset=0,
 ):
@@ -1389,7 +1390,11 @@ def plot_all_species_containing(
     legend_fontsize : str, default='small'
         Font size to use for the legend.
     show_material : bool, default=True
-        Include the material type in the legend string.
+        Include the material type in the legend string for the species
+        itself and for the total.
+    show_complex_material : bool, default=True
+        Include the material type in the legend string for complexes
+        containing the species.
     plot_total : bool, default=True
         Plot the total concentration in addition to individual species.
     trace_offset : float, default=0
@@ -1415,7 +1420,9 @@ def plot_all_species_containing(
                 plt.plot(
                     timepts,
                     results[str(compound)] / concentration_units + offset,
-                    label=compound.pretty_print(show_material=show_material),
+                    label=compound.pretty_print(
+                        show_material=show_complex_material
+                    ),
                 )
                 species_total += results[str(compound)]
                 offset += trace_offset
@@ -1450,6 +1457,7 @@ def plot_gene_expression_data(
     legend_fontsize='x-small',
     title_fontsize='small',
     show_material=True,
+    show_complex_material=False,
     plot_total=True,
     trace_offset=0,
     resource_labels=['metabolite_AAs', 'metabolite_NTPs', 'metabolite_ATP'],
@@ -1480,7 +1488,12 @@ def plot_gene_expression_data(
     title_fontsize : str, default='small'
         Font size to use for individual panel titles.
     show_material : bool, default=True
-        Include the material type in the legend string.
+        Include the material type in the legend string for the DNA, RNA,
+        and protein species and for the totals.
+    show_complex_material : bool, default=False
+        Include the material type in the legend string for complexes
+        containing those species.  Off by default since the expanded
+        names are too long for the panel legends.
     plot_total : bool or list, default=True
         Plot the total concentration in addition to individual species. Can
         either be True or a list containing 'dna', 'rna', or 'protein'.
@@ -1507,6 +1520,7 @@ def plot_gene_expression_data(
         # DNA
         plt.subplot(2, 2, 1)
         dna_species = gene.dna
+        dna_label = dna_species.pretty_print(show_material=show_material)
         dna_species_list = crn.get_all_species_containing(dna_species)
         if len(dna_species_list) > 1:
             dna_total = np.zeros(results['time'].size)
@@ -1515,7 +1529,9 @@ def plot_gene_expression_data(
                 plt.plot(
                     timepts,
                     results[str(species)] / concentration_units[0] + offset,
-                    label=species.pretty_print(show_material=False),
+                    label=species.pretty_print(
+                        show_material=show_complex_material
+                    ),
                 )
                 dna_total += results[str(species)]
                 offset += trace_offset[0]
@@ -1523,13 +1539,13 @@ def plot_gene_expression_data(
                 plt.plot(
                     timepts,
                     dna_total / concentration_units[0],
-                    label=f"Total {dna_species.pretty_print()}",
+                    label=f"Total {dna_label}",
                 )
         else:
             plt.plot(
                 timepts,
                 results[str(gene.dna)] / concentration_units[0],
-                label=dna_species.pretty_print(),
+                label=dna_label,
             )
         plt.title("DNA", fontsize=title_fontsize)
         plt.ylabel(f"Concentration [{concentration_label[0]}]")
@@ -1538,6 +1554,7 @@ def plot_gene_expression_data(
         # RNA
         plt.subplot(2, 2, 2)
         rna_species = gene.transcript
+        rna_label = rna_species.pretty_print(show_material=show_material)
         rna_species_list = crn.get_all_species_containing(rna_species)
         if len(rna_species_list) > 1:
             rna_total = np.zeros(results['time'].size)
@@ -1546,7 +1563,9 @@ def plot_gene_expression_data(
                 plt.plot(
                     timepts,
                     results[str(species)] / concentration_units[1] + offset,
-                    label=species.pretty_print(show_material=False),
+                    label=species.pretty_print(
+                        show_material=show_complex_material
+                    ),
                 )
                 rna_total += results[str(species)]
                 offset += trace_offset[1]
@@ -1554,13 +1573,13 @@ def plot_gene_expression_data(
                 plt.plot(
                     timepts,
                     rna_total / concentration_units[1],
-                    label=f"Total {rna_species.pretty_print()}",
+                    label=f"Total {rna_label}",
                 )
         else:
             plt.plot(
                 timepts,
                 results[str(gene.transcript)],
-                label=rna_species.pretty_print(),
+                label=rna_label,
             )
         plt.title("RNA", fontsize=title_fontsize)
         plt.ylabel(f"Concentration [{concentration_label[1]}]")
@@ -1569,6 +1588,9 @@ def plot_gene_expression_data(
         # Protein
         plt.subplot(2, 2, 3)
         protein_species = gene.protein
+        protein_label = protein_species.pretty_print(
+            show_material=show_material
+        )
         protein_species_list = crn.get_all_species_containing(protein_species)
         if len(protein_species_list) > 1:
             protein_total = np.zeros(results['time'].size)
@@ -1577,7 +1599,9 @@ def plot_gene_expression_data(
                 plt.plot(
                     timepts,
                     results[str(species)] / concentration_units[2] + offset,
-                    label=species.pretty_print(show_material=False),
+                    label=species.pretty_print(
+                        show_material=show_complex_material
+                    ),
                 )
                 protein_total += results[str(species)]
                 offset += trace_offset[2]
@@ -1585,13 +1609,13 @@ def plot_gene_expression_data(
                 plt.plot(
                     timepts,
                     protein_total / concentration_units[2],
-                    label=f"Total {protein_species.pretty_print()}",
+                    label=f"Total {protein_label}",
                 )
         else:
             plt.plot(
                 timepts,
                 results[str(protein_species)] / concentration_units[2],
-                label=protein_species.pretty_print(),
+                label=protein_label,
             )
         plt.title("Protein", fontsize=title_fontsize)
         plt.xlabel(f"Time [{time_label}]")
