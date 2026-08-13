@@ -2,6 +2,7 @@
 #  See LICENSE file in the project root directory for details.
 
 from unittest import TestCase
+from warnings import catch_warnings, filterwarnings, simplefilter, warn
 
 from biocrnpyler import (
     DNA,
@@ -271,6 +272,31 @@ class TestMixture(TestCase):
                 ]
             )
         )
+
+    def test_compile_crn_keeps_warning_filters(self):
+        # compile_crn used to call resetwarnings(), which discarded any
+        # warning filters set up by the caller
+        a = Species(name='a')
+        b = Species(name='b')
+
+        component = Component('comp')
+        component.update_species = lambda: [a, b]
+        component.update_reactions = lambda: [
+            Reaction.from_massaction(inputs=[a], outputs=[b], k_forward=0.1)
+        ]
+        mixture = Mixture(components=[component])
+
+        with catch_warnings(record=True) as log:
+            simplefilter('always')
+            filterwarnings('ignore', message='suppress me')
+
+            mixture.compile_crn()
+
+            warn('suppress me', UserWarning)
+            warn('report me', UserWarning)
+
+        # The filter installed before compiling should still be in effect
+        self.assertEqual([str(entry.message) for entry in log], ['report me'])
 
     def test_compile_crn_directives(self):
         a = Species(name='a')

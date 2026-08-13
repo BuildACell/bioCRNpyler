@@ -3,7 +3,7 @@
 
 import copy
 from typing import List, Tuple, Union
-from warnings import resetwarnings, warn
+from warnings import warn
 
 from ..mechanisms.global_mechanisms import GlobalMechanism
 from .chemical_reaction_network import ChemicalReactionNetwork
@@ -1188,8 +1188,6 @@ class Mixture(object):
         ... )
 
         """
-        resetwarnings()
-
         if compartment is None and hasattr(self, 'compartment'):
             compartment = self.compartment
 

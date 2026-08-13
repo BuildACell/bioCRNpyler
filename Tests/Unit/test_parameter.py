@@ -563,10 +563,8 @@ def test_findpath(tmp_path):
 def basic_pure(*args, **kwargs):
     """Build a legacy BasicPURE mixture, checking that it warns.
 
-    A filter set up ahead of time (whether by a pytest.mark.filterwarnings
-    decorator or by catch_warnings) does not survive here, because
-    `Mixture.compile_crn` calls `resetwarnings`.  Catching the warning at
-    the point it is raised avoids that.
+    Catching the warning here keeps it out of the test output and checks
+    that it is still raised, which simply ignoring it would not.
 
     """
     import biocrnpyler as bcp
