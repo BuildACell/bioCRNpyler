@@ -153,3 +153,21 @@ The following subsections provide a list of all mixtures currently
 available in the BioCRNpyler package.
 
 .. include:: _autogen_mixtures.rst
+
+
+Plotting
+========
+
+Prefix: `biocrnpyler.utils.plotting`
+
+.. automodule:: biocrnpyler.utils.plotting
+
+The following functions generate plots of simulation results, using the
+compiled CRN to determine which species to include.
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+
+   plot_all_species_containing
+   plot_gene_expression_data

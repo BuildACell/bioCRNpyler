@@ -256,3 +256,78 @@ dynamics, or fit parameters.
 Together, these tools make it easy to go from a high-level BioCRNpyler
 design to a fully specified, exportable, and simulatable chemical
 reaction network model.
+
+
+Plotting Simulation Results
+---------------------------
+
+Simulation results can be plotted directly with matplotlib, as above, but
+a compiled CRN often contains more species than you wrote down.  A species
+that binds to anything else appears both on its own and inside every
+complex that contains it, and those complexes have long generated names.
+BioCRNpyler provides two plotting routines that take the CRN itself as an
+argument and work out the relevant species for you.
+
+`~utils.plotting.plot_all_species_containing` plots every species that
+contains a given species, including complexes, along with the total::
+
+    bcp.plot_all_species_containing(results, crn, ribosome)
+
+This is the routine to use when you want to know where a species has gone.
+A ribosome in a PURE model, for example, is distributed between its free
+form and the translation complexes it participates in; plotting all of
+them together shows the free pool being drawn down while the total stays
+constant.  Passing a list plots several species on the same axes, and a
+`~core.Component` may be given in place of a `~core.Species`.
+
+`~utils.plotting.plot_gene_expression_data` summarizes the expression of
+one or more genes as a set of four panels -- DNA, RNA, protein, and
+resources::
+
+    bcp.plot_gene_expression_data(results, crn, dna_assembly)
+
+Each panel shows the individual species, any complexes containing them,
+and the total.
+
+Both routines let you control how much of each species name appears in
+the legend.  `show_material` governs the species itself and the total,
+while `show_complex_material` governs the complexes::
+
+    bcp.plot_all_species_containing(
+        results, crn, ribosome,
+        show_material=False, show_complex_material=False
+    )
+
+The distinction matters because expanded complex names grow quickly.  A
+ribosome bound to a transcript together with amino acids and ATP is
+rendered as::
+
+    complex[metabolite[AAs]:4x_metabolite[ATP]:protein[Ribo]:rna[GFP]]
+
+which will overwhelm a legend.  Turning `show_complex_material` off
+abbreviates it to ``[AAs:4x_ATP:Ribo:GFP]``.  It is off by default in
+`~utils.plotting.plot_gene_expression_data`, whose four panels leave
+little room, and on by default in
+`~utils.plotting.plot_all_species_containing`.
+
+`~utils.plotting.plot_all_species_containing` draws on the current axes
+and sets the axis labels and legend, so it composes with the usual
+matplotlib calls for figures, subplots, titles, and limits.
+`~utils.plotting.plot_gene_expression_data` lays out its own two by two
+grid of subplots and so takes over the current figure.
+
+Units are handled through the `time_units` and
+`concentration_units` arguments.  Time defaults to minutes in both
+routines.  Concentration defaults to micromolar in
+`~utils.plotting.plot_all_species_containing`, while
+`~utils.plotting.plot_gene_expression_data` takes a list giving the
+units for the DNA, RNA, protein, and resource panels separately,
+defaulting to nanomolar, micromolar, micromolar, and millimolar::
+
+    bcp.plot_all_species_containing(
+        results, crn, ribosome,
+        time_units=hrs, time_label='hr'
+    )
+
+A worked example using both routines is given in
+``examples/gfp_expression.py``.
