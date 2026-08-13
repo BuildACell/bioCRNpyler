@@ -55,3 +55,17 @@ For multi-step tasks, state a brief plan:
 ## 5. Behavioral Guidelines
 
 Read docs/develop.rst before writing or editing any code or docstrings.
+
+## 6. Attribution
+
+Add a co-author trailer naming yourself to every commit you create:
+
+```
+Co-authored-by: <Tool Name> <email>
+```
+
+Disclose AI assistance in pull request descriptions: which tools were used, how
+they were used, and what is AI generated.
+
+You may draft the text of issues and pull requests. The contributor reviews and
+edits that text before it is submitted.

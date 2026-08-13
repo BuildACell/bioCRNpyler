@@ -343,6 +343,18 @@ Sphinx files guidelines:
 Contributing and Releases
 =========================
 
+AI policy
+---------
+
+Follow the `AI Policy of NumPy`_ when writing issues and pull requests,
+with one exception: AI coding tools may be used to draft the text of
+issues and pull requests, not just to translate or edit it.  The
+contributor is responsible for reviewing and editing any drafted text
+before submitting it, and must disclose the AI assistance as described in
+that policy.
+
+.. _AI Policy of NumPy: https://numpy.org/doc/stable/dev/ai_policy.html
+
 Releasing new versions
 ----------------------
 
