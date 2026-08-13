@@ -437,3 +437,33 @@ bcp.plot_gene_expression_data(
     trace_offset=[0.01, 0.002, 0.1, 0.1])
 plt.suptitle("Gene expression, regulated", fontsize='large')
 plt.tight_layout()
+
+#
+# Species distributed across complexes
+#
+# Show how a species is distributed between its free form and the complexes
+# that contain it.  The ribosome is split between free ribosome and the
+# translation complexes; TetR is sequestered by aTc.
+#
+
+plt.figure(10)
+plt.clf()
+
+ribosome = bcp.Species('Ribo', material_type='protein')
+
+plt.subplot(1, 2, 1)
+bcp.plot_all_species_containing(
+    repressed_res, repressed_crn, ribosome,
+    show_material=False, legend_fontsize='x-small'
+)
+plt.title("Ribosome", fontsize='small')
+
+plt.subplot(1, 2, 2)
+bcp.plot_all_species_containing(
+    repressed_res, repressed_crn, [TetR, aTc],
+    show_material=False, legend_fontsize='x-small'
+)
+plt.title("TetR and aTc", fontsize='small')
+
+plt.suptitle("Species containing a given species", fontsize='large')
+plt.tight_layout()
