@@ -1,6 +1,8 @@
 # pure.py - mixture model for PURE
 # RMM, 20 Sep 2025
 
+from warnings import warn
+
 from ..components.basic import Metabolite, Protein
 from ..core.mixture import Mixture
 from ..mechanisms.txtl import (
@@ -31,7 +33,8 @@ class PURE(Mixture):
         Requires `include_machinery` to be true.
     include_fuel : bool, default=True
         Include fuel component and energy utilization mechanism. Requires that
-        `include_machinery` and `include_resources` be True.
+        `include_machinery` and `include_resources` be True.  When False, the
+        `atp`, `adp`, and `fuel` components are set to None.
     rnap : str, default='RNAP'
         Name for the RNA polymerase protein species.
     ribosome : str, default='Ribo'
@@ -43,8 +46,14 @@ class PURE(Mixture):
         Name for the nucleotide diphosphate species (lumped NDPs).
     amino_acids : str, default='AAs'
         Name for the amino acid species (lumped amino acids).
-    fuel : str, default='ATP'
-        Name for the primary energy carrier species (ATP).
+    atp : str, default='ATP'
+        Name for the primary energy carrier species, consumed during
+        translation.
+    adp : str, default='ADP'
+        Name for the spent energy carrier species produced from `atp`.
+    fuel : str, default='Fuel_CP'
+        Name for the secondary fuel species that, together with `adp`,
+        regenerates `atp`.
     parameter_file : str, default='mixtures/pure_parameters.tsv'
         Path to file containing default parameter values for the PURE
         system.
@@ -62,7 +71,7 @@ class PURE(Mixture):
     amino_acids : Metabolite
         Amino acid metabolite component.
     fuel : Metabolite
-        Fuel metabolite component (ATP).
+        Secondary fuel metabolite component.
     name : str
         Name of the mixture.
 
@@ -248,6 +257,11 @@ class PURE(Mixture):
 class BasicPURE(Mixture):
     """PURE cell-free protein synthesis system with energy consumption.
 
+    .. deprecated:: 1.3.0
+        Use `PURE` instead, which covers this configuration and others.
+        `BasicPURE` is equivalent to `PURE` with `include_machinery`,
+        `include_resources`, and `include_fuel` all set to True.
+
     A mixture that models the PURE (Protein synthesis Using Recombinant
     Elements) reconstituted cell-free transcription-translation system with
     explicit representation of RNA polymerase (RNAP), ribosomes, and
@@ -272,24 +286,13 @@ class BasicPURE(Mixture):
     ----------
     name : str, default='PURE'
         Name identifier for the mixture.
-    rnap : str, default='RNAP'
-        Name for the RNA polymerase protein species.
-    ribosome : str, default='Ribo'
-        Name for the ribosome protein species.
-    ntps : str, default='NTPs'
-        Name for the nucleotide triphosphate species (lumped NTPs excluding
-        ATP).
-    ndps : str, default='NDPs'
-        Name for the nucleotide diphosphate species (lumped NDPs).
-    amino_acids : str, default='AAs'
-        Name for the amino acid species (lumped amino acids).
-    fuel : str, default='ATP'
-        Name for the primary energy carrier species (ATP).
     parameter_file : str, default='mixtures/pure_parameters.tsv'
         Path to file containing default parameter values for the PURE
         system.
     **kwargs
-        Additional keyword arguments passed to the parent Mixture class.
+        Additional keyword arguments passed to `PURE`, including the
+        species names `rnap`, `ribosome`, `ntps`, `ndps`, `amino_acids`,
+        `atp`, `adp`, and `fuel`.
 
     Attributes
     ----------
@@ -404,15 +407,14 @@ class BasicPURE(Mixture):
     def __init__(
         self,
         name='PURE',
-        rnap='RNAP',
-        ribosome='Ribo',
-        ntps='NTPs',
-        ndps='NDPs',
-        amino_acids='AAs',
-        fuel='ATP',
         parameter_file='mixtures/pure_parameters.tsv',
         **kwargs,
     ):
+        warn(
+            "BasicPURE is deprecated; use PURE instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         PURE.__init__(
             self,
             name=name,

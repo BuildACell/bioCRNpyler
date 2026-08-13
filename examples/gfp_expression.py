@@ -230,9 +230,12 @@ plt.legend()
 # Comparison with PURE
 #
 
-pure_mixture = bcp.BasicPURE(
+pure_mixture = bcp.PURE(
     name='regular',
     components=[gfp_dna],
+    include_machinery=True,
+    include_resources=True,
+    include_fuel=True,
 )
 pure_crn = pure_mixture.compile_crn()
 pure_res = pure_crn.simulate_with_bioscrape_via_sbml(

@@ -422,8 +422,9 @@ your model::
         name='pure', components=[dna_part], ribosome='Ribosome'
     )
 
-`~mixtures.BasicPURE` remains available and is equivalent to
-`~mixtures.PURE` with all three switches set to True.
+`~mixtures.BasicPURE` is equivalent to `~mixtures.PURE` with all three
+switches set to True.  It is deprecated and raises a warning when
+constructed; use `~mixtures.PURE` directly in new models.
 
 
 Custom Mixtures
