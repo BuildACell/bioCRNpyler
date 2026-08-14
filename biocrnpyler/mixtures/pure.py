@@ -45,8 +45,6 @@ class PURE(Mixture):
         nucleotides that are polymerized during transcription.  ATP is
         counted here in its role as a monomer; `atp` tracks its separate
         role as an energy carrier.
-    ndps : str, default='NDPs'
-        Name for the nucleotide diphosphate species (lumped NDPs).
     amino_acids : str, default='AAs'
         Name for the amino acid species (lumped amino acids).
     atp : str, default='ATP'
@@ -205,7 +203,6 @@ class PURE(Mixture):
         rnap='RNAP',
         ribosome='Ribo',
         ntps='NTPs',
-        ndps='NDPs',
         amino_acids='AAs',
         atp='ATP',
         adp='ADP',
@@ -327,8 +324,8 @@ class BasicPURE(Mixture):
         system.
     **kwargs
         Additional keyword arguments passed to `PURE`, including the
-        species names `rnap`, `ribosome`, `ntps`, `ndps`, `amino_acids`,
-        `atp`, and `adp`.
+        species names `rnap`, `ribosome`, `ntps`, `amino_acids`, `atp`,
+        and `adp`.
 
     Attributes
     ----------
