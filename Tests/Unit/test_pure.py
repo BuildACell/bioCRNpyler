@@ -192,8 +192,31 @@ def test_pure_atp_name_requires_its_own_parameters():
     assert initial['metabolite_Energy'] == 1000
 
 
+def test_pure_without_regeneration():
+    # fuel=None keeps ATP consumption but drops the regeneration pathway
+    mixture = PURE(name='noregen', components=[make_gene()], fuel=None)
+
+    names = species_names(mixture)
+    assert 'metabolite_ATP' in names
+    assert 'metabolite_ADP' in names
+    assert not any('Fuel' in name for name in names)
+
+    assert mixture.atp is not None
+    assert mixture.adp is not None
+    assert mixture.fuel is None
+
+    # ATP keeps its initial concentration, and gains no pathway reactions
+    # of its own, so the ATP_production parameters are never needed
+    crn = mixture.compile_crn()
+    initial = {
+        str(key): getattr(value, 'value', value)
+        for key, value in (crn.initial_concentration_dict or {}).items()
+    }
+    assert initial['metabolite_ATP'] == 1000
+
+
 def test_basic_pure_is_deprecated():
-    # BasicPURE warns, but still builds the same model as PURE
+    # BasicPURE warns, and builds PURE without the regeneration pathway
     with pytest.warns(DeprecationWarning, match='BasicPURE is deprecated'):
         legacy = BasicPURE(name='legacy', components=[make_gene()])
 
@@ -203,8 +226,41 @@ def test_basic_pure_is_deprecated():
         include_machinery=True,
         include_resources=True,
         include_energy=True,
+        fuel=None,
     )
     assert species_names(legacy) == species_names(current)
+
+    # and so has no fuel species, unlike PURE's default
+    assert not any('Fuel' in name for name in species_names(legacy))
+
+
+def test_basic_pure_fuel_names_the_carrier():
+    # In BasicPURE, fuel names the energy carrier, as it did before PURE
+    # was introduced; it is an alias for PURE's atp argument
+    with pytest.warns(DeprecationWarning):
+        legacy = BasicPURE(
+            name='legacy', components=[make_gene()], fuel='ATP'
+        )
+    assert 'metabolite_ATP' in species_names(legacy)
+
+    with pytest.warns(DeprecationWarning):
+        by_fuel = BasicPURE(
+            name='a', components=[make_gene()], fuel='GTP',
+            parameters={('initial concentration', None, 'GTP'): 1000},
+        )
+    with pytest.warns(DeprecationWarning):
+        by_atp = BasicPURE(
+            name='a', components=[make_gene()], atp='GTP',
+            parameters={('initial concentration', None, 'GTP'): 1000},
+        )
+    assert species_names(by_fuel) == species_names(by_atp)
+
+    # Giving both is an error rather than one silently winning
+    with pytest.warns(DeprecationWarning):
+        with pytest.raises(ValueError, match='not both'):
+            BasicPURE(
+                name='a', components=[make_gene()], fuel='X', atp='Y'
+            )
 
 
 def test_basic_pure_forwards_species_names():

@@ -52,9 +52,10 @@ class PURE(Mixture):
         translation.
     adp : str, default='ADP'
         Name for the spent energy carrier species produced from `atp`.
-    fuel : str, default='Fuel_CP'
+    fuel : str or None, default='Fuel_CP'
         Name for the secondary fuel species that, together with `adp`,
-        regenerates `atp`.
+        regenerates `atp`.  If None, no fuel species is created and `atp`
+        is consumed without being regenerated.
     parameter_file : str, default='mixtures/pure_parameters.tsv'
         Path to file containing default parameter values for the PURE
         system.
@@ -72,7 +73,8 @@ class PURE(Mixture):
     amino_acids : Metabolite
         Amino acid metabolite component.
     fuel : Metabolite
-        Secondary fuel metabolite component.
+        Secondary fuel metabolite component, or None if there is no
+        regeneration.
     name : str
         Name of the mixture.
 
@@ -219,12 +221,18 @@ class PURE(Mixture):
         if include_energy:
             if not include_resources:
                 raise ValueError("include_energy requires include_resources")
-            self.fuel = Metabolite(fuel)
             self.adp = Metabolite(adp)
-            self.atp = Metabolite(
-                atp, precursors=[self.fuel, self.adp], products=[self.adp]
-            )  # fuel becomes ATP, and ATP is degraded
-            self.add_components([self.atp])  # includes ADP, fuel
+            if fuel is None:
+                # ATP is consumed but never replenished
+                self.fuel = None
+                self.atp = Metabolite(atp)
+                self.add_components([self.atp, self.adp])
+            else:
+                self.fuel = Metabolite(fuel)
+                self.atp = Metabolite(
+                    atp, precursors=[self.fuel, self.adp], products=[self.adp]
+                )  # fuel becomes ATP, and ATP is degraded
+                self.add_components([self.atp])  # includes ADP, fuel
         else:
             self.atp = None
             self.adp = None
@@ -294,9 +302,9 @@ class BasicPURE(Mixture):
     resource-limited PURE systems. Different amino acids and nucleotides are
     lumped into single meta-species for simplicity.
 
-    Note that fuel (default 'ATP') is modeled as a separate molecule from
-    other nucleotides ('NTPs'), allowing independent tracking of energy
-    consumption.
+    Note that the energy carrier (default 'ATP') is modeled as a separate
+    molecule from other nucleotides ('NTPs'), allowing independent tracking
+    of energy consumption.
 
     Energy usage for transcription and translation is length-dependent,
     reflecting stoichiometric consumption during biopolymer synthesis.
@@ -305,13 +313,17 @@ class BasicPURE(Mixture):
     ----------
     name : str, default='PURE'
         Name identifier for the mixture.
+    fuel : str or None, optional
+        Name for the energy carrier species, retained for compatibility
+        with earlier versions of this mixture.  Equivalent to the `atp`
+        argument of `PURE`; giving both is an error.
     parameter_file : str, default='mixtures/pure_parameters.tsv'
         Path to file containing default parameter values for the PURE
         system.
     **kwargs
         Additional keyword arguments passed to `PURE`, including the
         species names `rnap`, `ribosome`, `ntps`, `ndps`, `amino_acids`,
-        `atp`, `adp`, and `fuel`.
+        `atp`, and `adp`.
 
     Attributes
     ----------
@@ -323,8 +335,8 @@ class BasicPURE(Mixture):
         Nucleotide triphosphate metabolite component (excluding ATP).
     amino_acids : Metabolite
         Amino acid metabolite component.
-    fuel : Metabolite
-        Fuel metabolite component (ATP).
+    atp : Metabolite
+        Energy carrier metabolite component.
     name : str
         Name of the mixture.
 
@@ -354,11 +366,20 @@ class BasicPURE(Mixture):
     ... )
     >>> crn = mixture.compile_crn()
 
+    Notes
+    -----
+    The `fuel` argument does not mean the same thing here as it does in
+    `PURE`.  In this mixture it names the energy carrier, as it did before
+    `PURE` was introduced, and is an alias for the `atp` argument of
+    `PURE`.  In `PURE` it names the species that regenerates the carrier,
+    which this mixture does not have.
+
     """
 
     def __init__(
         self,
         name='PURE',
+        fuel=None,
         parameter_file='mixtures/pure_parameters.tsv',
         **kwargs,
     ):
@@ -367,6 +388,16 @@ class BasicPURE(Mixture):
             DeprecationWarning,
             stacklevel=2,
         )
+        # Here fuel names the energy carrier, which PURE calls atp.  Note
+        # that fuel=None means "not given" in this signature, but means
+        # "no regeneration" in the call to PURE below.
+        if fuel is not None:
+            if 'atp' in kwargs:
+                raise ValueError(
+                    "BasicPURE accepts fuel or atp, not both; they name "
+                    "the same species"
+                )
+            kwargs['atp'] = fuel
         PURE.__init__(
             self,
             name=name,
@@ -374,5 +405,6 @@ class BasicPURE(Mixture):
             include_machinery=True,
             include_resources=True,
             include_energy=True,
+            fuel=None,
             **kwargs,
         )
