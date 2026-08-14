@@ -41,8 +41,10 @@ class PURE(Mixture):
     ribosome : str, default='Ribo'
         Name for the ribosome protein species.
     ntps : str, default='NTPs'
-        Name for the nucleotide triphosphate species (lumped NTPs excluding
-        ATP).
+        Name for the nucleotide triphosphate species, lumping the four
+        nucleotides that are polymerized during transcription.  ATP is
+        counted here in its role as a monomer; `atp` tracks its separate
+        role as an energy carrier.
     ndps : str, default='NDPs'
         Name for the nucleotide diphosphate species (lumped NDPs).
     amino_acids : str, default='AAs'
@@ -69,7 +71,7 @@ class PURE(Mixture):
     ribosome : Protein
         Ribosome component.
     ntps : Metabolite
-        Nucleotide triphosphate metabolite component (excluding ATP).
+        Nucleotide triphosphate metabolite component.
     amino_acids : Metabolite
         Amino acid metabolite component.
     fuel : Metabolite
@@ -93,9 +95,9 @@ class PURE(Mixture):
     - RNA polymerase (RNAP)
     - Ribosome
     - Amino acids (lumped)
-    - NTPs (nucleotide triphosphates excluding ATP, lumped)
-    - NDPs (nucleotide diphosphates, lumped)
-    - Fuel (ATP for energy)
+    - NTPs (nucleotide triphosphates, lumped)
+    - ATP and ADP (the energy carrier and its spent form)
+    - Fuel (regenerates ATP, unless `fuel` is None)
 
     Default mechanisms included:
 
@@ -112,11 +114,12 @@ class PURE(Mixture):
 
     - Explicit modeling of PURE system components
     - Length-dependent energy consumption (realistic stoichiometry)
-    - No fuel regeneration mechanisms (finite resource pool)
+    - ATP regeneration from a finite pool of fuel, or none at all if
+      `fuel` is None
     - Resource competition effects (genes compete for RNAP and ribosomes)
     - Resource depletion dynamics (ATP, NTPs, amino acids deplete)
     - Enzyme sequestration in complexes
-    - Separate tracking of ATP vs other NTPs
+    - Separate tracking of ATP as an energy carrier and as a nucleotide
     - Suitable for modeling batch-mode PURE reactions
 
     Parameters are looked up by species name, so when renaming a species
@@ -139,24 +142,26 @@ class PURE(Mixture):
 
     Energy model details:
 
-    - Transcription: Consumes L NTPs and L ATPs per mRNA of length L
-    - Translation: Consumes L amino acids and 4L ATPs per protein of length
-      L (4 ATPs per amino acid reflect GTP hydrolysis during elongation)
-    - No regeneration: ATP, NTPs, and amino acids are consumed but not
-      regenerated
+    - Transcription: Consumes L NTPs per mRNA of length L.  The
+      nucleotides are incorporated as monomers, so no energy carrier is
+      spent beyond the nucleotides themselves
+    - Translation: Consumes L amino acids and 4L ATPs per protein of
+      length L.  The four high-energy phosphates per residue are two for
+      charging the tRNA and two for the GTP hydrolyzed during elongation,
+      all counted here as ATP
     - Energy depletion: Expression stops when resources are exhausted
     - Length parameter L: Represents gene/protein length in appropriate
       units
     - Lumped species: Different nucleotides lumped into NTPs, different
       amino acids lumped into single species
-    - Separate ATP: ATP tracked separately from other NTPs for independent
-      energy accounting
+    - Separate ATP: ATP appears in two roles, as one of the nucleotides
+      polymerized during transcription, counted in NTPs, and as the
+      energy carrier spent during translation, counted in `atp`
 
     Differences from `EnergyTxTlExtract`:
 
-    - No fuel regeneration pathway (no NTP regeneration from 3PGA or other
-      fuel sources)
-    - ATP modeled as separate fuel species rather than included in NTPs
+    - Regenerates ATP from creatine phosphate rather than from 3PGA, and
+      only when `fuel` is given
     - Default parameter file points to PURE-specific parameters
     - Intended for modeling finite-resource batch reactions
     - More realistic for in vitro PURE systems
@@ -332,7 +337,7 @@ class BasicPURE(Mixture):
     ribosome : Protein
         Ribosome component.
     ntps : Metabolite
-        Nucleotide triphosphate metabolite component (excluding ATP).
+        Nucleotide triphosphate metabolite component.
     amino_acids : Metabolite
         Amino acid metabolite component.
     atp : Metabolite
