@@ -31,10 +31,11 @@ class PURE(Mixture):
     include_resources : bool, default=True
         Include components and mechanisms for NTP and amino acid utilization.
         Requires `include_machinery` to be true.
-    include_fuel : bool, default=True
-        Include fuel component and energy utilization mechanism. Requires that
-        `include_machinery` and `include_resources` be True.  When False, the
-        `atp`, `adp`, and `fuel` components are set to None.
+    include_energy : bool, default=True
+        Include the energy carrier species and their utilization during
+        translation.  Requires that `include_machinery` and
+        `include_resources` be True.  When False, the `atp`, `adp`, and
+        `fuel` components are set to None.
     rnap : str, default='RNAP'
         Name for the RNA polymerase protein species.
     ribosome : str, default='Ribo'
@@ -192,7 +193,7 @@ class PURE(Mixture):
         self,
         include_machinery=True,
         include_resources=True,
-        include_fuel=True,
+        include_energy=True,
         name='PURE',
         rnap='RNAP',
         ribosome='Ribo',
@@ -215,9 +216,9 @@ class PURE(Mixture):
             'translation': SimpleTranslation(),
         }
 
-        if include_fuel:
+        if include_energy:
             if not include_resources:
-                raise ValueError("include_fuel requires include_resources")
+                raise ValueError("include_energy requires include_resources")
             self.fuel = Metabolite(fuel)
             self.adp = Metabolite(adp)
             self.atp = Metabolite(
@@ -256,7 +257,7 @@ class PURE(Mixture):
                 fuels=[self.ntps.get_species()],
                 wastes=[],
             )
-            if include_fuel:
+            if include_energy:
                 default_mechanisms['translation'] = Energy_Translation_MM(
                     ribosome=self.ribosome.get_species(),
                     fuels=4 * [self.atp.get_species()]
@@ -278,7 +279,7 @@ class BasicPURE(Mixture):
     .. deprecated:: 1.3.0
         Use `PURE` instead, which covers this configuration and others.
         `BasicPURE` is equivalent to `PURE` with `include_machinery`,
-        `include_resources`, and `include_fuel` all set to True.
+        `include_resources`, and `include_energy` all set to True.
 
     A mixture that models the PURE (Protein synthesis Using Recombinant
     Elements) reconstituted cell-free transcription-translation system with
@@ -372,6 +373,6 @@ class BasicPURE(Mixture):
             parameter_file=parameter_file,
             include_machinery=True,
             include_resources=True,
-            include_fuel=True,
+            include_energy=True,
             **kwargs,
         )

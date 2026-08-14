@@ -387,7 +387,7 @@ detail with three switches::
         components=[dna_part],
         include_machinery=True,
         include_resources=True,
-        include_fuel=True,
+        include_energy=True,
     )
 
 The switches are nested: each one requires the ones above it.
@@ -403,16 +403,16 @@ The switches are nested: each one requires the ones above it.
 |                     | transcription and translation draw down a      |
 |                     | finite supply of building blocks               |
 +---------------------+------------------------------------------------+
-| include_fuel        | Adds the fuel species (ATP) and energy         |
-|                     | utilization, so that expression halts when the |
-|                     | system runs out of energy                      |
+| include_energy      | Adds the energy carriers (ATP and ADP) and     |
+|                     | their regeneration from fuel, so that          |
+|                     | expression halts when energy runs out          |
 +---------------------+------------------------------------------------+
 
 Turning all three off gives a minimal model in which expression proceeds
 without competition or depletion.  Turning them on one at a time is a
 convenient way to see which limitation dominates in a given design: with
 machinery alone, two genes compete for ribosomes; adding resources makes
-expression taper as amino acids are consumed; adding fuel makes it stop
+expression taper as amino acids are consumed; adding energy makes it stop
 altogether once ATP is exhausted.
 
 The species names can be changed if the defaults clash with the rest of

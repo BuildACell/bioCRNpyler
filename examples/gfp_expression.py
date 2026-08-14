@@ -235,7 +235,7 @@ pure_mixture = bcp.PURE(
     components=[gfp_dna],
     include_machinery=True,
     include_resources=True,
-    include_fuel=True,
+    include_energy=True,
 )
 pure_crn = pure_mixture.compile_crn()
 pure_res = pure_crn.simulate_with_bioscrape_via_sbml(
@@ -260,7 +260,7 @@ pure_timepts = np.linspace(0, 180 * min)
 
 simple_mixture = bcp.PURE(
     name='simple', components=[gfp_dna, cfp_dna],
-    include_machinery=False, include_resources=False, include_fuel=False)
+    include_machinery=False, include_resources=False, include_energy=False)
 simple_crn = simple_mixture.compile_crn()
 simple_res = simple_crn.simulate_with_bioscrape_via_sbml(
     pure_timepts, initial_condition_dict=cfp_initial_conditions
@@ -268,7 +268,7 @@ simple_res = simple_crn.simulate_with_bioscrape_via_sbml(
 
 machinery_mixture = bcp.PURE(
     name='machinery', components=[gfp_dna, cfp_dna],
-    include_machinery=True, include_resources=False, include_fuel=False)
+    include_machinery=True, include_resources=False, include_energy=False)
 machinery_crn = machinery_mixture.compile_crn()
 machinery_res = machinery_crn.simulate_with_bioscrape_via_sbml(
     pure_timepts, initial_condition_dict=cfp_initial_conditions
@@ -276,7 +276,7 @@ machinery_res = machinery_crn.simulate_with_bioscrape_via_sbml(
 
 resource_mixture = bcp.PURE(
     name='resources', components=[gfp_dna, cfp_dna],
-    include_machinery=True, include_resources=True, include_fuel=False)
+    include_machinery=True, include_resources=True, include_energy=False)
 resource_crn = resource_mixture.compile_crn()
 resource_res = resource_crn.simulate_with_bioscrape_via_sbml(
     pure_timepts, initial_condition_dict=cfp_initial_conditions
@@ -284,7 +284,7 @@ resource_res = resource_crn.simulate_with_bioscrape_via_sbml(
 
 energy_mixture = bcp.PURE(
     name='energy', components=[gfp_dna, cfp_dna],
-    include_machinery=True, include_resources=True, include_fuel=True)
+    include_machinery=True, include_resources=True, include_energy=True)
 energy_crn = energy_mixture.compile_crn()
 energy_res = energy_crn.simulate_with_bioscrape_via_sbml(
     pure_timepts, initial_condition_dict=cfp_initial_conditions
@@ -292,7 +292,7 @@ energy_res = energy_crn.simulate_with_bioscrape_via_sbml(
 
 energy_mixture_gfp = bcp.PURE(
     name='energy', components=[gfp_dna],
-    include_machinery=True, include_resources=True, include_fuel=True)
+    include_machinery=True, include_resources=True, include_energy=True)
 energy_crn_gfp = energy_mixture_gfp.compile_crn()
 energy_res_gfp = energy_crn_gfp.simulate_with_bioscrape_via_sbml(
     pure_timepts, initial_condition_dict=initial_conditions
@@ -347,7 +347,7 @@ repressed_mixture = bcp.PURE(
     components=[dna_GFP_repressed, TetR_inactive],
     include_machinery=True,
     include_resources=True,
-    include_fuel=True,
+    include_energy=True,
 )
 repressed_crn = repressed_mixture.compile_crn()
 
@@ -370,7 +370,7 @@ regulated_mixture = bcp.PURE(
     components=[dna_GFP_regulated, TetR_inactive],
     include_machinery=True,
     include_resources=True,
-    include_fuel=True,
+    include_energy=True,
     parameters=regulated_parameters,
 )
 regulated_crn = regulated_mixture.compile_crn()

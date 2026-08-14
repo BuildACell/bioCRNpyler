@@ -28,7 +28,7 @@ def test_pure_without_machinery():
         components=[make_gene()],
         include_machinery=False,
         include_resources=False,
-        include_fuel=False,
+        include_energy=False,
     )
     assert mechanism_names(mixture) == {
         'transcription': 'SimpleTranscription',
@@ -49,7 +49,7 @@ def test_pure_with_machinery():
         components=[make_gene()],
         include_machinery=True,
         include_resources=False,
-        include_fuel=False,
+        include_energy=False,
     )
     assert mechanism_names(mixture) == {
         'transcription': 'Transcription_MM',
@@ -73,7 +73,7 @@ def test_pure_with_resources():
         components=[make_gene()],
         include_machinery=True,
         include_resources=True,
-        include_fuel=False,
+        include_energy=False,
     )
     assert mechanism_names(mixture) == {
         'transcription': 'Energy_Transcription_MM',
@@ -84,7 +84,7 @@ def test_pure_with_resources():
     assert 'metabolite_NTPs' in names
     assert 'metabolite_AAs' in names
 
-    # Energy carriers require include_fuel
+    # Energy carriers require include_energy
     assert 'metabolite_ATP' not in names
     assert mixture.atp is None
 
@@ -96,7 +96,7 @@ def test_pure_with_fuel():
         components=[make_gene()],
         include_machinery=True,
         include_resources=True,
-        include_fuel=True,
+        include_energy=True,
     )
     names = species_names(mixture)
     assert 'metabolite_ATP' in names
@@ -110,13 +110,13 @@ def test_pure_with_fuel():
 
 def test_pure_switches_are_nested():
     # Each switch requires the ones before it
-    with pytest.raises(ValueError, match='include_fuel requires'):
+    with pytest.raises(ValueError, match='include_energy requires'):
         PURE(
             name='bad',
             components=[make_gene()],
             include_machinery=True,
             include_resources=False,
-            include_fuel=True,
+            include_energy=True,
         )
 
     with pytest.raises(ValueError, match='include_resources requires'):
@@ -125,7 +125,7 @@ def test_pure_switches_are_nested():
             components=[make_gene()],
             include_machinery=False,
             include_resources=True,
-            include_fuel=False,
+            include_energy=False,
         )
 
 
@@ -202,7 +202,7 @@ def test_basic_pure_is_deprecated():
         components=[make_gene()],
         include_machinery=True,
         include_resources=True,
-        include_fuel=True,
+        include_energy=True,
     )
     assert species_names(legacy) == species_names(current)
 
