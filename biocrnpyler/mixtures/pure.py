@@ -116,6 +116,24 @@ class PURE(Mixture):
     - Separate tracking of ATP vs other NTPs
     - Suitable for modeling batch-mode PURE reactions
 
+    Parameters are looked up by species name, so when renaming a species
+    the values in the default `parameter_file` will no longer match, and
+    replacements have to be supplied for the new name.  For most species
+    it is only the 'initial concentration' parameter that is affected,
+    but in some cases, such as `atp`, there can also be reaction rates.
+    For example::
+
+        PURE(
+            ribosome='Ribosome',
+            atp='GTP',
+            parameters={
+                ('initial concentration', None, 'Ribosome'): 3,
+                ('initial concentration', None, 'GTP'): 1000,
+                ('one_step_pathway', 'GTP_production', 'k'): 0.02,
+                ('one_step_pathway', 'GTP_degradation', 'k'): 0.0000177,
+            },
+        )
+
     Energy model details:
 
     - Transcription: Consumes L NTPs and L ATPs per mRNA of length L
@@ -316,73 +334,6 @@ class BasicPURE(Mixture):
     Energy_Transcription_MM : Mechanism for energy-consuming transcription.
     Energy_Translation_MM : Mechanism for energy-consuming translation.
     Mixture : Base class for all mixtures.
-
-    Notes
-    -----
-    This mixture automatically adds the following components:
-
-    - RNA polymerase (RNAP)
-    - Ribosome
-    - Amino acids (lumped)
-    - NTPs (nucleotide triphosphates excluding ATP, lumped)
-    - NDPs (nucleotide diphosphates, lumped)
-    - Fuel (ATP for energy)
-
-    Default mechanisms included:
-
-    - 'transcription' : `Energy_Transcription_MM` - Michaelis-Menten
-      transcription with length-dependent ATP and NTP consumption
-    - 'translation' : `Energy_Translation_MM` - Michaelis-Menten translation
-      with length-dependent amino acid and ATP consumption
-    - 'catalysis' : `MichaelisMenten` - General Michaelis-Menten enzyme
-      catalysis for user-defined enzymatic reactions
-    - 'binding' : `One_Step_Binding` - Simple multi-species binding for
-      forming complexes
-
-    Key features of this mixture:
-
-    - Explicit modeling of PURE system components
-    - Length-dependent energy consumption (realistic stoichiometry)
-    - No fuel regeneration mechanisms (finite resource pool)
-    - Resource competition effects (genes compete for RNAP and ribosomes)
-    - Resource depletion dynamics (ATP, NTPs, amino acids deplete)
-    - Enzyme sequestration in complexes
-    - Separate tracking of ATP vs other NTPs
-    - Suitable for modeling batch-mode PURE reactions
-
-    Energy model details:
-
-    - Transcription: Consumes L NTPs and L ATPs per mRNA of length L
-    - Translation: Consumes L amino acids and 4L ATPs per protein of length
-      L (4 ATPs per amino acid reflect GTP hydrolysis during elongation)
-    - No regeneration: ATP, NTPs, and amino acids are consumed but not
-      regenerated
-    - Energy depletion: Expression stops when resources are exhausted
-    - Length parameter L: Represents gene/protein length in appropriate
-      units
-    - Lumped species: Different nucleotides lumped into NTPs, different
-      amino acids lumped into single species
-    - Separate ATP: ATP tracked separately from other NTPs for independent
-      energy accounting
-
-    Differences from `EnergyTxTlExtract`:
-
-    - No fuel regeneration pathway (no NTP regeneration from 3PGA or other
-      fuel sources)
-    - ATP modeled as separate fuel species rather than included in NTPs
-    - Default parameter file points to PURE-specific parameters
-    - Intended for modeling finite-resource batch reactions
-    - More realistic for in vitro PURE systems
-
-    Common applications include:
-
-    - PURE cell-free TX-TL systems
-    - Resource-limited gene expression modeling
-    - TX-TL system optimization with fixed resource budgets
-    - Batch mode TX-TL reactions
-    - Energy budget and resource allocation studies
-    - Multi-gene expression burden analysis
-    - In vitro synthetic biology applications
 
     Examples
     --------

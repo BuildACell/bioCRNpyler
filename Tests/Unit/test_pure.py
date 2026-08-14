@@ -157,17 +157,39 @@ def test_pure_species_names_can_be_changed():
     assert 'metabolite_NTPs' not in names
 
 
-@pytest.mark.xfail(
-    reason="ATP production and degradation parameters in "
-    "pure_parameters.tsv are keyed to the part_ids ATP_production and "
-    "ATP_degradation, so renaming atp orphans them",
-    raises=ValueError,
-    strict=True,
-)
-def test_pure_atp_name_can_be_changed():
-    PURE(
-        name='renamed', components=[make_gene()], atp='Energy'
-    ).compile_crn()
+def test_pure_atp_name_requires_its_own_parameters():
+    # Parameters are keyed by species name, so renaming the energy carrier
+    # orphans the ATP_production and ATP_degradation entries shipped with
+    # the mixture.  That should be an error rather than a model that is
+    # quietly missing its energy pathway.
+    with pytest.raises(ValueError, match='Energy_production'):
+        PURE(
+            name='renamed', components=[make_gene()], atp='Energy'
+        ).compile_crn()
+
+    # Supplying replacements for the new name resolves it
+    mixture = PURE(
+        name='renamed',
+        components=[make_gene()],
+        atp='Energy',
+        parameters={
+            ('one_step_pathway', 'Energy_production', 'k'): 0.02,
+            ('one_step_pathway', 'Energy_degradation', 'k'): 0.0000177,
+            ('initial concentration', None, 'Energy'): 1000,
+        },
+    )
+    names = species_names(mixture)
+    assert 'metabolite_Energy' in names
+    assert 'metabolite_ATP' not in names
+
+    # The initial concentration has to be given for the new name too
+    initial = {
+        str(key): getattr(value, 'value', value)
+        for key, value in (
+            mixture.compile_crn().initial_concentration_dict or {}
+        ).items()
+    }
+    assert initial['metabolite_Energy'] == 1000
 
 
 def test_basic_pure_is_deprecated():
