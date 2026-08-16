@@ -96,6 +96,14 @@ class Module(Component):
     copies of it with `instance`, which renames the components that
     should differ between the copies and leaves the rest shared.
 
+    Precedence goes by level rather than by how specifically a
+    parameter is keyed: a parameter written on a component beats one
+    from its module, which beats one from the mixture, even if the
+    outer one names the parameter more precisely. Mechanisms follow the
+    same order. Note that this means an outer level cannot override an
+    inner one; to change a parameter, set it where it was defined, with
+    `update_parameters` and ``overwrite_parameters=True``.
+
     Examples
     --------
     Group components into a module and add it to a mixture:
@@ -244,12 +252,41 @@ class Module(Component):
         self.species += species
 
     @staticmethod
-    def _matching_component(component, components):
-        """Return the component in `components` matching type and name."""
-        for comp in components:
-            if type(comp) is type(component) and comp.name == component.name:
+    def _duplicate_component(component, components):
+        """Return the component in `components` that would compile the same.
+
+        Matches on type and name like `_matching_component`, but also
+        requires the same species, so that two components which share a
+        name but produce different species are both compiled.
+
+        Notes
+        -----
+        Some components derive their name from a species and the
+        compartment it is in, and keep the name they were built with
+        (`IntegralMembraneProtein` is one). A renamed copy of such a
+        component therefore still carries the original's name while
+        producing different species, and matching on name alone would
+        drop it from the model.
+
+        """
+        for comp in Module._all_matching_components(component, components):
+            if comp.get_species() == component.get_species():
                 return comp
         return None
+
+    @staticmethod
+    def _matching_component(component, components):
+        """Return the component in `components` matching type and name."""
+        for comp in Module._all_matching_components(component, components):
+            return comp
+        return None
+
+    @staticmethod
+    def _all_matching_components(component, components):
+        """Yield the components matching `component` by type and name."""
+        for comp in components:
+            if type(comp) is type(component) and comp.name == component.name:
+                yield comp
 
     def apply_context(self, component: Component) -> Component:
         """Return a copy of a component carrying this module's context.
@@ -298,9 +335,9 @@ class Module(Component):
     def _merge_parameters(component, entries, visited):
         """Add parameters to a component and its sub-components.
 
-        Parameters are added only for keys the component does not
-        already define, so a component's own parameters take precedence
-        over the module's.
+        A parameter is added only if the component cannot already answer
+        that lookup for itself, so a component's own parameters take
+        precedence over its module's.
 
         Parameters
         ----------
@@ -314,6 +351,17 @@ class Module(Component):
 
         Notes
         -----
+        Whether a component can answer a lookup is decided with
+        `ParameterDatabase.find_parameter`, which falls back through
+        progressively more general keys, rather than by comparing keys
+        exactly. A component's loosely keyed parameter therefore takes
+        precedence over a specifically keyed one from its module: once
+        the module's parameters are copied in they sit in the same
+        database as the component's own, where the more specific key
+        would otherwise win. Deciding by lookup keeps the precedence
+        between a component and its module the same whatever keys the
+        two happen to use, and matches how mechanisms behave.
+
         Components that build sub-components (a `DNAassembly` builds a
         `Promoter` and an `RBS`, for example) copy their parameters to
         those sub-components when they are constructed, which happens
@@ -335,9 +383,23 @@ class Module(Component):
         visited.add(id(component))
 
         database = component.parameter_database
-        for entry in entries:
-            if entry.parameter_key not in database.parameters:
-                database[entry.parameter_key] = entry
+
+        # Decide everything against the component's own parameters,
+        # before any of the module's have been added: an entry added
+        # early would otherwise answer the lookup for a later one and
+        # keep it out.
+        to_add = [
+            entry
+            for entry in entries
+            if database.find_parameter(
+                entry.parameter_key.mechanism,
+                entry.parameter_key.part_id,
+                entry.parameter_key.name,
+            )
+            is None
+        ]
+        for entry in to_add:
+            database[entry.parameter_key] = entry
 
         if isinstance(component, Module):
             return
@@ -394,7 +456,7 @@ class Module(Component):
         enumerated = []
         for component in self.components:
             if (
-                self._matching_component(component, already_enumerated)
+                self._duplicate_component(component, already_enumerated)
                 is not None
             ):
                 continue

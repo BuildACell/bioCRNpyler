@@ -9,6 +9,8 @@ from biocrnpyler import (
     ChemicalComplex,
     Component,
     DNAassembly,
+    Enzyme,
+    MichaelisMenten,
     Mixture,
     Module,
     Protein,
@@ -650,3 +652,89 @@ class TestSharedComponents(TestCase):
 
         crn = (Mixture('test_mixture') + m1 + m2).compile_crn()
         self.assertEqual(4, len(crn.reactions))
+
+    def test_same_name_different_species_both_compiled(self):
+        # Some components derive their name from a species and the
+        # compartment it is in, and keep the name they were built with, so
+        # a renamed copy still carries the original's name while producing
+        # different species. Matching on name alone would drop it.
+        class DerivedNameComponent(Protein):
+            def __init__(self, name, **kwargs):
+                super().__init__(name, **kwargs)
+                self.name = 'fixed_name'
+
+        m1 = Module('m1', components=[DerivedNameComponent('first')])
+        m2 = Module('m2', components=[DerivedNameComponent('second')])
+
+        crn = (Mixture('test_mixture') + m1 + m2).compile_crn()
+        species = [str(s) for s in crn.species]
+        self.assertTrue('protein_first' in species)
+        self.assertTrue('protein_second' in species)
+
+
+class TestParameterLevelPrecedence(TestCase):
+    """Precedence goes by level, not by how specifically a key is written."""
+
+    LOOSE = 'kcat'
+    SPECIFIC = ('michaelis_menten', 'betagal', 'kcat')
+
+    def kcat_used(
+        self, component_params=None, module_params=None, mixture_params=None
+    ):
+        """Compile a betagal enzyme and report the kcat used."""
+        enzyme = Enzyme(
+            'betagal',
+            'XGal',
+            Species('indigo'),
+            parameters=dict(component_params or {}),
+        )
+        module = Module(
+            'readout',
+            components=[enzyme],
+            parameters=dict(module_params or {}),
+        )
+        mixture = Mixture(
+            'test_mixture',
+            mechanisms={'catalysis': MichaelisMenten()},
+            parameters=dict(mixture_params or {}, kb=1.0, ku=1.0),
+        )
+        crn = (mixture + module).compile_crn()
+        for reaction in crn.reactions:
+            if any('indigo' in str(w.species) for w in reaction.outputs):
+                return reaction.propensity_type.k_forward
+        raise AssertionError('no product reaction found')
+
+    def test_component_beats_module_regardless_of_key(self):
+        # The component's parameter wins even though the module names the
+        # parameter more specifically. Deciding by key alone would let the
+        # module win here but not when the keys match, which would make the
+        # result depend on how the parameters happened to be written.
+        self.assertEqual(
+            1, self.kcat_used({self.LOOSE: 1}, {self.SPECIFIC: 2})
+        )
+        self.assertEqual(
+            1, self.kcat_used({self.SPECIFIC: 1}, {self.SPECIFIC: 2})
+        )
+        self.assertEqual(1, self.kcat_used({self.LOOSE: 1}, {self.LOOSE: 2}))
+        self.assertEqual(
+            1, self.kcat_used({self.SPECIFIC: 1}, {self.LOOSE: 2})
+        )
+
+    def test_module_beats_mixture(self):
+        self.assertEqual(2, self.kcat_used({}, {self.SPECIFIC: 2}))
+        self.assertEqual(
+            2, self.kcat_used({}, {self.SPECIFIC: 2}, {self.SPECIFIC: 3})
+        )
+
+    def test_mixture_used_when_component_and_module_are_silent(self):
+        self.assertEqual(3, self.kcat_used({}, {}, {self.SPECIFIC: 3}))
+
+    def test_module_keys_keep_their_own_specificity(self):
+        # Within a module the usual defaulting still applies, and which
+        # parameter wins does not depend on the order they were written in.
+        self.assertEqual(
+            2, self.kcat_used({}, {self.LOOSE: 5, self.SPECIFIC: 2})
+        )
+        self.assertEqual(
+            2, self.kcat_used({}, {self.SPECIFIC: 2, self.LOOSE: 5})
+        )
