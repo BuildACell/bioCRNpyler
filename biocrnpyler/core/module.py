@@ -515,7 +515,7 @@ class Module(Component):
         ...     's1', rename={'ligand': 'IPTG', 'output': 'GFP'})
         >>> s2 = signaling.instance(
         ...     's2', rename={'ligand': 'aTc', 'output': 'RFP'})
-        >>> system = bcp.BasicPURE() + s1 + s2
+        >>> system = bcp.PURE(name='chassis') + s1 + s2
 
         The kinase is not renamed, so both instances share it.
 

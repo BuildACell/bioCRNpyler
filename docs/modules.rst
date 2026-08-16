@@ -62,14 +62,14 @@ Combining Modules and Mixtures
 Modules are combined using ``+``.  Adding a module to a mixture returns a
 new mixture containing it::
 
-    system = BasicPURE('chassis') + reporter + sensor
+    system = PURE(name='chassis') + reporter + sensor
 
 The original mixture is not modified, so a chassis mixture can be reused
 across several systems.  Two modules can also be added to each other,
 producing a module that contains both::
 
     detector = reporter + sensor
-    system = BasicPURE('chassis') + detector
+    system = PURE(name='chassis') + detector
 
 When two modules are combined this way, each module's mechanisms and
 parameters are applied to its own components first, so the combined module
@@ -187,7 +187,7 @@ dictionary of the names to change::
     s1 = signaling.instance('s1', rename={'ligand': 'IPTG'})
     s2 = signaling.instance('s2', rename={'ligand': 'aTc'})
 
-    system = BasicPURE('chassis') + s1 + s2
+    system = PURE(name='chassis') + s1 + s2
 
 Only the names listed are changed.  Anything left alone keeps its name and
 is therefore shared between the copies, which is how the copies stay
