@@ -7,6 +7,7 @@ from warnings import warn
 
 from .component import Component
 from .mixture import Mixture
+from .parameter import ParameterKey
 from .species import Species
 
 
@@ -87,9 +88,13 @@ class Module(Component):
         crn = Mixture('test', components=[my_module]).compile_crn()
 
     Components in different modules that share a type and name compile
-    to the same species. This is how modules are wired together: a
-    protein produced in one module and consumed in another is written
-    with the same name in both.
+    to the same species, and are compiled only once. This is how
+    modules are wired together: a protein produced in one module and
+    consumed in another is written with the same name in both.
+
+    A module can be used more than once in the same mixture by making
+    copies of it with `instance`, which renames the components that
+    should differ between the copies and leaves the rest shared.
 
     Examples
     --------
@@ -112,6 +117,12 @@ class Module(Component):
     Override a mechanism on one module without affecting the others:
 
     >>> reporter.add_mechanism(bcp.SimpleTranscription(), overwrite=True)
+
+    Use the same module twice, with different inputs and outputs:
+
+    >>> system = (bcp.Mixture('extract')
+    ...           + signaling.instance('s1', {'ligand': 'IPTG'})
+    ...           + signaling.instance('s2', {'ligand': 'aTc'}))
 
     """
 
@@ -342,11 +353,17 @@ class Module(Component):
     def enumerate_components(self, previously_enumerated=None) -> List:
         """Enumerate the module into its member components.
 
+        A component is skipped if one of the same type and name has
+        already been enumerated, or is already a component of the
+        mixture. Modules share components by name, so without this the
+        shared component would be compiled once per module and its
+        reactions would appear in the CRN more than once.
+
         Parameters
         ----------
         previously_enumerated : set or list, optional
-            Collection of components already enumerated. Unused by
-            Module, which always enumerates into its members.
+            Components already enumerated, used to compile a component
+            shared by several modules only once.
 
         Returns
         -------
@@ -354,12 +371,210 @@ class Module(Component):
             Copies of the module's components, each carrying the
             module's mechanisms and parameters.
 
+        Notes
+        -----
+        A component declared by more than one module is compiled under
+        the context of whichever module is enumerated first. If two
+        modules need different mechanisms or parameters for it, rename
+        it in one of them with `instance` so that they are separate
+        components.
+
         See Also
         --------
         apply_context : Place a single component in the module's context.
+        instance : Create a copy of a module with components renamed.
 
         """
-        return [self.apply_context(comp) for comp in self.components]
+        already_enumerated = list(previously_enumerated or [])
+        if self.mixture is not None:
+            already_enumerated += [
+                comp for comp in self.mixture.components if comp is not self
+            ]
+
+        enumerated = []
+        for component in self.components:
+            if (
+                self._matching_component(component, already_enumerated)
+                is not None
+            ):
+                continue
+            contextualized = self.apply_context(component)
+            enumerated.append(contextualized)
+            already_enumerated.append(contextualized)
+
+        return enumerated
+
+    def instance(self, name: str, rename=None):
+        """Create a named copy of this module with components renamed.
+
+        Used to place more than one copy of the same module in a
+        mixture. Only the names given in `rename` change; anything left
+        alone keeps its name and is therefore shared between the
+        instances, which is how the copies are wired to common parts of
+        the system.
+
+        Renaming reaches components, the species they hold, and
+        parameter keys that refer to them by name, wherever these
+        appear in the module, including inside nested modules.
+
+        Parameters
+        ----------
+        name : str
+            Name of the new module. Instances need distinct names, since
+            a Mixture holds only one component of each type and name.
+        rename : dict, optional
+            Dictionary mapping current names to new names.
+
+        Returns
+        -------
+        Module
+            A copy of this module under the new name, with the renaming
+            applied. This module is left unchanged.
+
+        Raises
+        ------
+        ValueError
+            If `rename` is not a dictionary of strings, or if any name
+            in it is not found in the module. An unused entry usually
+            means a name was mistyped, which would silently leave the
+            instances sharing a component they were meant to separate.
+
+        See Also
+        --------
+        enumerate_components : Where shared components are compiled once.
+
+        Examples
+        --------
+        Put two copies of a signaling module in one mixture:
+
+        >>> signaling = bcp.Module(
+        ...     'signaling', components=[receptor, kinase])
+        >>> s1 = signaling.instance(
+        ...     's1', rename={'ligand': 'IPTG', 'output': 'GFP'})
+        >>> s2 = signaling.instance(
+        ...     's2', rename={'ligand': 'aTc', 'output': 'RFP'})
+        >>> system = bcp.BasicPURE() + s1 + s2
+
+        The kinase is not renamed, so both instances share it.
+
+        """
+        if rename is None:
+            rename = {}
+        if not isinstance(rename, dict):
+            raise ValueError(
+                f"rename must be a dictionary of names. Received {rename}."
+            )
+        for old_name, new_name in rename.items():
+            if not isinstance(old_name, str) or not isinstance(new_name, str):
+                raise ValueError(
+                    f"rename must map strings to strings. Received "
+                    f"{old_name}: {new_name}."
+                )
+
+        new_module = copy.deepcopy(self)
+        new_module.name = name
+
+        renamed = set()
+        visited = set()
+        for component in new_module.components:
+            self._rename(component, rename, visited, renamed)
+        for species in new_module.species:
+            self._rename(species, rename, visited, renamed)
+        self._rename_parameter_keys(
+            new_module.parameter_database, rename, renamed
+        )
+
+        unused = sorted(set(rename) - renamed)
+        if unused:
+            raise ValueError(
+                f"{unused} not found in Module {self.name}, so nothing was "
+                f"renamed for them. Check the names in rename."
+            )
+
+        return new_module
+
+    @staticmethod
+    def _rename(obj, rename, visited, renamed):
+        """Rename a component or species, and everything it holds.
+
+        Parameters
+        ----------
+        obj : Component or Species
+            The object to rename.
+        rename : dict
+            Dictionary mapping current names to new names.
+        visited : set of int
+            Object ids already visited. Stops the recursion when
+            sub-components refer back to their parent, and makes sure
+            each object is renamed only once, so that a rename such as
+            ``{'a': 'b', 'b': 'c'}`` does not rename anything twice.
+        renamed : set of str
+            Collects the names that were found, so that unused entries
+            in `rename` can be reported.
+
+        Notes
+        -----
+        Unlike `_merge_parameters` this recurses through nested Modules,
+        since renaming is not a question of precedence: an instance
+        renames everything it contains.
+
+        """
+        if id(obj) in visited:
+            return
+        visited.add(id(obj))
+
+        if obj.name in rename:
+            renamed.add(obj.name)
+            obj.name = rename[obj.name]
+
+        if isinstance(obj, Component):
+            Module._rename_parameter_keys(
+                obj.parameter_database, rename, renamed
+            )
+
+        # Species hold the species they are built from, so this reaches
+        # into complexes as well as into sub-components
+        for value in vars(obj).values():
+            if isinstance(value, (Component, Species)):
+                Module._rename(value, rename, visited, renamed)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, (Component, Species)):
+                        Module._rename(item, rename, visited, renamed)
+
+    @staticmethod
+    def _rename_parameter_keys(database, rename, renamed):
+        """Rename the parameters that refer to a renamed component.
+
+        Parameters
+        ----------
+        database : ParameterDatabase
+            The database to rewrite the keys of.
+        rename : dict
+            Dictionary mapping current names to new names.
+        renamed : set of str
+            Collects the names that were found.
+
+        Notes
+        -----
+        Parameters are looked up by `part_id` and by name, and a
+        component's initial concentration is stored under the
+        component's name, so both fields have to follow a rename.
+
+        """
+        new_parameters = {}
+        for key, entry in database.parameters.items():
+            new_key = ParameterKey(
+                mechanism=key.mechanism,
+                part_id=rename.get(key.part_id, key.part_id),
+                name=rename.get(key.name, key.name),
+            )
+            if new_key != key:
+                renamed.update({key.part_id, key.name} & set(rename))
+                entry.parameter_key = new_key
+            new_parameters[new_key] = entry
+
+        database.parameters = new_parameters
 
     def update_species(self) -> List[Species]:
         """Return the species added directly by this module.

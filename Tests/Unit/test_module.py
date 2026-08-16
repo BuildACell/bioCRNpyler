@@ -6,10 +6,12 @@ from unittest import TestCase
 
 from biocrnpyler import (
     DNA,
+    ChemicalComplex,
     Component,
     DNAassembly,
     Mixture,
     Module,
+    Protein,
     SimpleTranscription,
     SimpleTranslation,
     Species,
@@ -429,3 +431,222 @@ class TestModule(TestCase):
         # the mixture is used when neither module defines the parameter
         crn = system({}, {})
         self.assertEqual(1.0, transcription_rate(crn, 'A'))
+
+
+class TestModuleInstance(TestCase):
+    def signaling_module(self):
+        """A module with an input, a shared part, and an output."""
+        return Module(
+            'signaling',
+            components=[
+                Protein('ligand'),
+                Protein('kinase'),
+                DNAassembly('output', promoter='P', rbs='B'),
+            ],
+            mechanisms=txtl_mechanisms(),
+            parameters={'ktx': 1.0, 'ktl': 0.01},
+        )
+
+    def test_instance_renames_components(self):
+        signaling = self.signaling_module()
+        s1 = signaling.instance('s1', rename={'ligand': 'IPTG'})
+
+        self.assertEqual('s1', s1.name)
+        self.assertEqual(
+            ['IPTG', 'kinase', 'output'],
+            sorted(c.name for c in s1.components),
+        )
+        # names that were not renamed are shared between instances
+        s2 = signaling.instance('s2', rename={'ligand': 'aTc'})
+        self.assertEqual(
+            ['aTc', 'kinase', 'output'],
+            sorted(c.name for c in s2.components),
+        )
+
+        # the template is left unchanged
+        self.assertEqual('signaling', signaling.name)
+        self.assertEqual(
+            ['kinase', 'ligand', 'output'],
+            sorted(c.name for c in signaling.components),
+        )
+
+    def test_instance_renames_species(self):
+        # renaming a component has to move its species too, otherwise the
+        # instances would still compile to the same species
+        signaling = self.signaling_module()
+        s1 = signaling.instance('s1', rename={'ligand': 'IPTG'})
+
+        ligand = [c for c in s1.components if c.name == 'IPTG'][0]
+        self.assertEqual('protein_IPTG', str(ligand.get_species()))
+
+    def test_instance_renames_initial_concentration(self):
+        # a component's initial concentration is stored under its name
+        module = Module(
+            'm', components=[Protein('ligand', initial_concentration=7.0)]
+        )
+        crn = (
+            Mixture('test_mixture')
+            + module.instance('s1', {'ligand': 'IPTG'})
+        ).compile_crn()
+
+        concentrations = {
+            str(s): p.value for s, p in crn.initial_concentration_dict.items()
+        }
+        self.assertEqual(7.0, concentrations['protein_IPTG'])
+
+    def test_instance_renames_parameter_part_ids(self):
+        # transcription parameters are keyed by the promoter's name, so
+        # renaming the promoter has to carry its parameters along
+        module = Module(
+            'm',
+            components=[DNAassembly('output', promoter='P', rbs='B')],
+            mechanisms=txtl_mechanisms(),
+            parameters={
+                ('transcription', 'P', 'ktx'): 4.0,
+                'ktx': 1.0,
+                'ktl': 0.01,
+            },
+        )
+
+        s1 = module.instance('s1', {'output': 'GFP', 'P': 'P1'})
+        crn = (Mixture('test_mixture') + s1).compile_crn()
+        self.assertEqual(4.0, transcription_rate(crn, 'GFP'))
+
+    def test_instance_renames_complexes(self):
+        # renaming reaches the species a complex is built from
+        complex_component = ChemicalComplex(
+            [Species('a', material_type='protein'), Species('b')], name='ab'
+        )
+        module = Module('m', components=[complex_component])
+
+        s1 = module.instance('s1', rename={'a': 'A2', 'ab': 'AB2'})
+        renamed = s1.components[0]
+        self.assertEqual('complex_AB2_', str(renamed.get_species()))
+        self.assertEqual(
+            ['b', 'protein_A2'],
+            sorted(str(s) for s in renamed.internal_species),
+        )
+
+    def test_instance_renames_nested_modules(self):
+        # an instance renames everything it contains, nested modules included
+        inner = Module(
+            'inner',
+            components=[Protein('ligand')],
+            species=[Species('marker')],
+        )
+        outer = Module('outer', components=[inner])
+
+        o1 = outer.instance(
+            'o1',
+            rename={'ligand': 'IPTG', 'marker': 'm1', 'inner': 'inner1'},
+        )
+        renamed_inner = o1.components[0]
+        self.assertEqual('inner1', renamed_inner.name)
+        self.assertEqual('IPTG', renamed_inner.components[0].name)
+        self.assertEqual(['m1'], [s.name for s in renamed_inner.species])
+
+    def test_instance_without_rename(self):
+        # a plain copy under a new name is allowed
+        signaling = self.signaling_module()
+        s1 = signaling.instance('s1')
+
+        self.assertEqual('s1', s1.name)
+        self.assertEqual(
+            ['kinase', 'ligand', 'output'],
+            sorted(c.name for c in s1.components),
+        )
+
+    def test_instance_rejects_unused_names(self):
+        # a mistyped name would silently leave two instances sharing a
+        # component they were meant to separate
+        signaling = self.signaling_module()
+        with self.assertRaisesRegex(ValueError, "not found in Module"):
+            signaling.instance('s1', rename={'ligend': 'IPTG'})
+
+    def test_instance_rejects_invalid_rename(self):
+        signaling = self.signaling_module()
+        with self.assertRaisesRegex(
+            ValueError, 'rename must be a dictionary of names.'
+        ):
+            signaling.instance('s1', rename=['ligand', 'IPTG'])
+
+        with self.assertRaisesRegex(
+            ValueError, 'rename must map strings to strings.'
+        ):
+            signaling.instance('s1', rename={'ligand': 5})
+
+    def test_instances_compile_separately(self):
+        # the point of the whole thing: two copies of one module in one
+        # mixture, wired to different inputs and outputs
+        signaling = self.signaling_module()
+        s1 = signaling.instance('s1', {'ligand': 'IPTG', 'output': 'GFP'})
+        s2 = signaling.instance('s2', {'ligand': 'aTc', 'output': 'RFP'})
+
+        crn = (Mixture('test_mixture') + s1 + s2).compile_crn()
+        species = [str(s) for s in crn.species]
+
+        for expected in [
+            'protein_IPTG',
+            'protein_aTc',
+            'dna_GFP',
+            'protein_GFP',
+            'dna_RFP',
+            'protein_RFP',
+        ]:
+            self.assertTrue(expected in species, f"missing {expected}")
+
+        # the kinase was not renamed, so the instances share one copy
+        self.assertEqual(1, species.count('protein_kinase'))
+        # and each instance is transcribed exactly once
+        self.assertEqual(4, len(crn.reactions))
+
+
+class TestSharedComponents(TestCase):
+    def assembly_module(self, name):
+        return Module(
+            name,
+            components=[DNAassembly('shared', promoter='P', rbs='B')],
+            mechanisms=txtl_mechanisms(),
+            parameters={'ktx': 1.0, 'ktl': 0.01},
+        )
+
+    def test_component_shared_by_two_modules_compiled_once(self):
+        # without this the shared component compiles once per module and
+        # its reactions land in the CRN twice, doubling the rate
+        m1 = self.assembly_module('m1')
+        m2 = self.assembly_module('m2')
+
+        crn = (Mixture('test_mixture') + m1 + m2).compile_crn()
+        self.assertEqual(2, len(crn.reactions))
+        self.assertEqual(
+            1, len([s for s in crn.species if str(s) == 'dna_shared'])
+        )
+
+    def test_component_shared_with_mixture_compiled_once(self):
+        mixture = Mixture(
+            'test_mixture',
+            components=[DNAassembly('shared', promoter='P', rbs='B')],
+            mechanisms=txtl_mechanisms(),
+            parameters={'ktx': 1.0, 'ktl': 0.01},
+        )
+
+        crn = (mixture + self.assembly_module('m1')).compile_crn()
+        self.assertEqual(2, len(crn.reactions))
+
+    def test_distinct_components_both_compiled(self):
+        # the skip must not swallow components that only differ by name
+        m1 = Module(
+            'm1',
+            components=[DNAassembly('A', promoter='P', rbs='B')],
+            mechanisms=txtl_mechanisms(),
+            parameters={'ktx': 1.0, 'ktl': 0.01},
+        )
+        m2 = Module(
+            'm2',
+            components=[DNAassembly('B', promoter='P', rbs='B')],
+            mechanisms=txtl_mechanisms(),
+            parameters={'ktx': 1.0, 'ktl': 0.01},
+        )
+
+        crn = (Mixture('test_mixture') + m1 + m2).compile_crn()
+        self.assertEqual(4, len(crn.reactions))
