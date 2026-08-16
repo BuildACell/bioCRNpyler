@@ -5,6 +5,7 @@ from .compartment import *
 from .component import *
 from .mechanism import *
 from .mixture import *
+from .module import *
 from .parameter import *
 from .polymer import *
 from .propensities import *

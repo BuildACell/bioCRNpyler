@@ -114,6 +114,7 @@ and mixtures that make up the BioCRNpyler library.
    Component
    Mechanism
    Mixture
+   Module
    Parameter
 
 Components
