@@ -7,12 +7,15 @@ from unittest import TestCase
 from biocrnpyler import (
     DNA,
     ChemicalComplex,
+    Combinatorial_Cooperative_Binding,
     Component,
     DNAassembly,
     Enzyme,
     MichaelisMenten,
     Mixture,
     Module,
+    One_Step_Binding,
+    One_Step_Cooperative_Binding,
     Protein,
     SimpleTranscription,
     SimpleTranslation,
@@ -737,4 +740,138 @@ class TestParameterLevelPrecedence(TestCase):
         )
         self.assertEqual(
             2, self.kcat_used({}, {self.SPECIFIC: 2, self.LOOSE: 5})
+        )
+
+
+class TestDefaultMechanisms(TestCase):
+    """A module's default mechanism is a suggestion, not a requirement."""
+
+    def resolved(
+        self,
+        component_mechanism=None,
+        module_mechanism=None,
+        mixture_mechanism=None,
+        module_default=None,
+    ):
+        """Compile a ChemicalComplex and report the binding mechanism used.
+
+        ChemicalComplex carries One_Step_Binding as its own class default.
+        """
+        component_kwargs = {}
+        if component_mechanism is not None:
+            component_kwargs['mechanisms'] = {'binding': component_mechanism}
+        complex_component = ChemicalComplex(
+            [Species('a'), Species('b')], name='ab', **component_kwargs
+        )
+
+        module_kwargs = {}
+        if module_mechanism is not None:
+            module_kwargs['mechanisms'] = {'binding': module_mechanism}
+        if module_default is not None:
+            module_kwargs['default_mechanism'] = module_default
+        module = Module('m', components=[complex_component], **module_kwargs)
+
+        mixture_kwargs = {}
+        if mixture_mechanism is not None:
+            mixture_kwargs['mechanisms'] = {'binding': mixture_mechanism}
+        mixture = Mixture('test_mixture', **mixture_kwargs)
+
+        component = module.enumerate_components()[0]
+        component.set_mixture(mixture)
+        return component.get_mechanism('binding').name
+
+    def test_class_default_used_when_nothing_else_is_given(self):
+        self.assertEqual(One_Step_Binding().name, self.resolved())
+
+    def test_module_default_replaces_the_class_default(self):
+        # A class default is a library fallback rather than a statement
+        # about this model, so a module's suggestion takes its place.
+        # Filling in only when absent would make the feature inert, since
+        # every ChemicalComplex already carries a class default.
+        self.assertEqual(
+            One_Step_Cooperative_Binding().name,
+            self.resolved(module_default=One_Step_Cooperative_Binding()),
+        )
+
+    def test_mixture_overrides_a_module_default(self):
+        # Defaults are consulted after the mixture, so they never stop an
+        # outer level from choosing something else.
+        self.assertEqual(
+            One_Step_Cooperative_Binding().name,
+            self.resolved(
+                module_default=Combinatorial_Cooperative_Binding(),
+                mixture_mechanism=One_Step_Cooperative_Binding(),
+            ),
+        )
+
+    def test_module_mechanism_overrides_a_module_default(self):
+        self.assertEqual(
+            One_Step_Cooperative_Binding().name,
+            self.resolved(
+                module_default=Combinatorial_Cooperative_Binding(),
+                module_mechanism=One_Step_Cooperative_Binding(),
+            ),
+        )
+
+    def test_component_mechanism_overrides_a_module_default(self):
+        self.assertEqual(
+            One_Step_Cooperative_Binding().name,
+            self.resolved(
+                module_default=Combinatorial_Cooperative_Binding(),
+                component_mechanism=One_Step_Cooperative_Binding(),
+            ),
+        )
+
+    def test_innermost_module_default_is_offered(self):
+        def resolve(inner_default, outer_default):
+            complex_component = ChemicalComplex(
+                [Species('a'), Species('b')], name='ab'
+            )
+            inner_kwargs = (
+                {'default_mechanism': inner_default} if inner_default else {}
+            )
+            inner = Module(
+                'inner', components=[complex_component], **inner_kwargs
+            )
+            outer = Module(
+                'outer',
+                components=[inner],
+                default_mechanism=outer_default,
+            )
+            mixture = Mixture('test_mixture')
+
+            enumerated_inner = outer.enumerate_components()[0]
+            enumerated_inner.set_mixture(mixture)
+            component = enumerated_inner.enumerate_components()[0]
+            component.set_mixture(mixture)
+            return component.get_mechanism('binding').name
+
+        # the inner module keeps its own suggestion
+        self.assertEqual(
+            Combinatorial_Cooperative_Binding().name,
+            resolve(
+                Combinatorial_Cooperative_Binding(),
+                One_Step_Cooperative_Binding(),
+            ),
+        )
+        # and inherits the enclosing one when it has none
+        self.assertEqual(
+            One_Step_Cooperative_Binding().name,
+            resolve(None, One_Step_Cooperative_Binding()),
+        )
+
+    def test_module_default_does_not_change_the_template(self):
+        complex_component = ChemicalComplex(
+            [Species('a'), Species('b')], name='ab'
+        )
+        module = Module(
+            'm',
+            components=[complex_component],
+            default_mechanism=One_Step_Cooperative_Binding(),
+        )
+        module.enumerate_components()
+
+        self.assertEqual(
+            One_Step_Binding().name,
+            module.components[0].default_mechanism.name,
         )

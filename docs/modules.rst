@@ -97,10 +97,10 @@ use the mixture's copy rather than creating a second one.
 .. note::
 
    A component declared by more than one module is compiled under the
-   context of whichever module is enumerated first.  If two modules need
-   different mechanisms or parameters for it, then they do not really
-   share it, and it should be renamed in one of them using
-   `~core.Module.instance`.
+   context of whichever module is enumerated first.  If two modules
+   need different mechanisms or parameters for a component, then they
+   do not really share it, and it should be renamed in one of them
+   using `~core.Module.instance` (described below).
 
 Mechanisms and Parameters in Modules
 ------------------------------------
@@ -119,7 +119,8 @@ Precedence runs from the inside out:
 
 So a parameter written directly on a component is used in preference to
 one from its module, which is used in preference to one from the mixture.
-Mechanisms follow the same order.
+Mechanisms follow the same order, with a further level below the mixture
+for defaults, described in `Default mechanisms`_ below.
 
 This ordering is by *level*, not by how specifically a parameter is keyed.
 The :ref:`parameter defaulting<parameters_ref>` rules, which prefer a more
@@ -137,13 +138,61 @@ parameter more precisely::
 The enzyme's ``kcat`` of 1 is used, even though the module names the
 parameter more precisely, because the enzyme is the inner level.
 
-A consequence worth stating plainly: an outer level cannot override an
+An important consequence is that an outer level cannot override an
 inner one.  A parameter set on a mixture will not replace one already set
 on a module or a component, however specifically it is written.  To change
 a value, set it where it was defined::
 
     reporter.update_parameters(
         parameters={'ktx': 0.1}, overwrite_parameters=True)
+
+Generally speaking, a parameter should only be specified within a module
+if the value of that parameter is fixed in all possible compositions.
+Otherwise, leave the parameter value unspecified and set it in the
+final mixture.
+
+Note that leaving a parameter unspecified does not oblige anything to
+supply it later.  If neither the module nor the mixture gives a value,
+the mechanism's own default is used and the model compiles without
+complaint, so a module should document the parameters it expects the
+mixture to provide.
+
+Default mechanisms
+^^^^^^^^^^^^^^^^^^
+
+Mechanisms, unlike parameters, can be given as a *suggestion* rather
+than as a requirement.  A component may carry a
+`default_mechanism`, which is consulted only after the mixture has been
+asked, so it never prevents an outer level from choosing something
+else.  A `~components.ChemicalComplex`, for instance, defaults to
+`~mechanisms.One_Step_Binding` but will use whatever binding mechanism
+its module or mixture specifies.
+
+A module can offer a default in the same way::
+
+    signaling = Module(
+        'signaling', components=[...],
+        default_mechanism=One_Step_Cooperative_Binding()
+    )
+
+For mechanisms, then, the full order is:
+
+1. A component's own mechanisms
+2. Its module's mechanisms
+3. The mixture's mechanisms
+4. Its module's default mechanism
+5. The component's own default mechanism
+
+A module's default mechanism replaces the one a component carries from
+its own class, on the grounds that the class default is a library
+fallback rather than a statement about this particular model.  Where
+modules are nested, the innermost module's default is the one offered.
+
+This distinction is worth keeping in mind when deciding what to put in
+a module.  A default mechanism is safe to specify, since any outer
+level overrides it; a mechanism given in the ``mechanisms`` argument,
+like a parameter, is binding on every composition the module appears
+in.
 
 Modules and Parameter Files
 ---------------------------

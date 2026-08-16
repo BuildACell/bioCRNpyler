@@ -38,6 +38,11 @@ class Module(Component):
     so two Modules in the same Mixture may use different mechanisms for
     the same mechanism type.
 
+    A Module may also carry a `default_mechanism`, which its components
+    are offered in place of the default they carry from their own class.
+    Defaults are consulted only after the Mixture, so unlike the
+    mechanisms above they are a suggestion rather than a requirement.
+
     Parameters
     ----------
     name : str
@@ -322,6 +327,20 @@ class Module(Component):
         for mech_type, mech in self.mechanisms.items():
             new_component.add_mechanism(
                 mech, mech_type, overwrite=False, optional_mechanism=True
+            )
+
+        # A module's default mechanism is a suggestion rather than a
+        # requirement: it is consulted only after the mixture, unlike the
+        # mechanisms above. It replaces the default a component carries
+        # from its own class, which is a library fallback rather than a
+        # statement about this particular model. A nested Module keeps its
+        # own default, so the innermost suggestion is the one offered.
+        if self.default_mechanism is not None and not (
+            isinstance(new_component, Module)
+            and new_component.default_mechanism is not None
+        ):
+            new_component.default_mechanism = copy.deepcopy(
+                self.default_mechanism
             )
 
         # Module parameters fill in the ones the component does not define
