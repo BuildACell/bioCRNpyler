@@ -229,7 +229,8 @@ def test_render_network_bokeh():
         (None, None, 'cooperativity'): 2,
     }
     txtl = bcp.TxTlExtract(
-        'mixture1', parameters=parameters, overwrite_parameters=True)
+        'mixture1', parameters=parameters, overwrite_parameters=True
+    )
     dna = bcp.DNAassembly(
         'mydna',
         promoter=bcp.RegulatedPromoter('plac', ['laci']),
@@ -258,3 +259,48 @@ def test_render_network_bokeh():
             warnings.showwarning(
                 w.message.args[0], w.category, w.filename, w.lineno
             )
+
+
+def test_plot_all_species_containing_accepts_strings():
+    """A species may be given as a string as well as a Species."""
+    import matplotlib
+
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    from biocrnpyler.utils.plotting import plot_all_species_containing
+
+    gfp_protein = Species('GFP', material_type='protein')
+    gfp_rna = Species('GFP', material_type='rna')
+    rfp_protein = Species('RFP', material_type='protein')
+    crn = bcp.ChemicalReactionNetwork(
+        species=[gfp_protein, gfp_rna, rfp_protein], reactions=[]
+    )
+
+    results = {'time': np.linspace(0, 10, 5)}
+    for species in [gfp_protein, gfp_rna, rfp_protein]:
+        results[str(species)] = np.linspace(0, 1, 5)
+
+    def labels():
+        return [
+            text.get_text() for text in plt.gca().get_legend().get_texts()
+        ]
+
+    # a string matches every species whose name contains it, and is used
+    # as the label for their total
+    plt.figure()
+    plot_all_species_containing(results, crn, 'GFP')
+    assert labels() == ['protein[GFP]', 'rna[GFP]', 'Total GFP']
+
+    # a string matching a single species labels that trace
+    plt.figure()
+    plot_all_species_containing(results, crn, 'RFP')
+    assert labels() == ['RFP']
+
+    # Species objects are still labelled by their pretty_print form
+    plt.figure()
+    plot_all_species_containing(results, crn, [gfp_protein])
+    assert labels() == ['protein[GFP]']
+
+    plt.close('all')

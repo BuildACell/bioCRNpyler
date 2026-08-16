@@ -1408,7 +1408,12 @@ def plot_all_species_containing(
     for species in species_list:
         if isinstance(species, Component):
             species = species.species
-        species_label = species.pretty_print(show_material=show_material)
+        if isinstance(species, str):
+            # get_all_species_containing matches a string against species
+            # names, so the string is the label
+            species_label = species
+        else:
+            species_label = species.pretty_print(show_material=show_material)
 
         compounds = crn.get_all_species_containing(species)
         if len(compounds) == 0:
