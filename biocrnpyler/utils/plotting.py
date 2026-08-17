@@ -1478,14 +1478,14 @@ def plot_gene_expression_data(
         Pandas dataframe containing the simulation results.
     crn : ChemicalReactionNetwork
         CRN being simulutated (used to determine species names).
-    gene_list : list of DNAassembly
-        Genes whose expression should be plotted.  Each entry must have
-        `dna`, `transcript`, and `protein` attributes, as a
+    gene_list : DNAassembly or list of DNAassembly
+        Gene, or genes, whose expression should be plotted.  Each entry
+        must have `dna`, `transcript`, and `protein` attributes, as a
         `~components.DNAassembly` does; a species or a name is not
-        enough, since the three species need not share a name.  All
-        three must appear in the compiled CRN, so a model compiled with
-        one-step gene expression, which produces no RNA, cannot be
-        plotted with this routine.
+        enough, since the three species need not share a name.  A panel
+        is left empty if the species it plots is not in the CRN, as the
+        RNA panel is for a model compiled with one-step gene
+        expression.
     time_units : float, default=bcp.units.mins
         Units factor used to plot scale time.
     time_label : str, default='min'
@@ -1552,7 +1552,7 @@ def plot_gene_expression_data(
                     dna_total / concentration_units[0],
                     label=f"Total {dna_label}",
                 )
-        else:
+        elif len(dna_species_list) == 1:
             plt.plot(
                 timepts,
                 results[str(gene.dna)] / concentration_units[0],
@@ -1560,7 +1560,8 @@ def plot_gene_expression_data(
             )
         plt.title("DNA", fontsize=title_fontsize)
         plt.ylabel(f"Concentration [{concentration_label[0]}]")
-        plt.legend(fontsize=legend_fontsize)
+        if dna_species_list:
+            plt.legend(fontsize=legend_fontsize)
 
         # RNA
         plt.subplot(2, 2, 2)
@@ -1586,15 +1587,16 @@ def plot_gene_expression_data(
                     rna_total / concentration_units[1],
                     label=f"Total {rna_label}",
                 )
-        else:
+        elif len(rna_species_list) == 1:
             plt.plot(
                 timepts,
-                results[str(gene.transcript)],
+                results[str(gene.transcript)] / concentration_units[1],
                 label=rna_label,
             )
         plt.title("RNA", fontsize=title_fontsize)
         plt.ylabel(f"Concentration [{concentration_label[1]}]")
-        plt.legend(fontsize=legend_fontsize)
+        if rna_species_list:
+            plt.legend(fontsize=legend_fontsize)
 
         # Protein
         plt.subplot(2, 2, 3)
@@ -1622,7 +1624,7 @@ def plot_gene_expression_data(
                     protein_total / concentration_units[2],
                     label=f"Total {protein_label}",
                 )
-        else:
+        elif len(protein_species_list) == 1:
             plt.plot(
                 timepts,
                 results[str(protein_species)] / concentration_units[2],
@@ -1631,22 +1633,29 @@ def plot_gene_expression_data(
         plt.title("Protein", fontsize=title_fontsize)
         plt.xlabel(f"Time [{time_label}]")
         plt.ylabel(f"Concentration [{concentration_label[2]}]")
-        plt.legend(fontsize=legend_fontsize)
+        if protein_species_list:
+            plt.legend(fontsize=legend_fontsize)
 
     plt.subplot(2, 2, 4)
     offset = 0
+    resources_plotted = False
     for name, label in zip(resource_labels, ['AAs', 'NTPs', 'ATP']):
+        # a mixture need not have the resources being looked for
+        if name not in results:
+            continue
         plt.plot(
             timepts,
             results[name] / concentration_units[3] + offset,
             label=label,
         )
         offset += trace_offset[3]
+        resources_plotted = True
 
     plt.title("Resources", fontsize=title_fontsize)
     plt.xlabel(f"Time [{time_label}]")
     plt.ylabel(f"Concentration [{concentration_label[3]}]")
-    plt.legend(fontsize=legend_fontsize)
+    if resources_plotted:
+        plt.legend(fontsize=legend_fontsize)
 
     plt.gcf().align_labels()
     plt.tight_layout()

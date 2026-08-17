@@ -304,3 +304,50 @@ def test_plot_all_species_containing_accepts_strings():
     assert labels() == ['protein[GFP]']
 
     plt.close('all')
+
+
+def test_plot_gene_expression_data_with_missing_species():
+    """Panels whose species are not in the CRN are left empty."""
+    import matplotlib
+
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    from biocrnpyler.utils.plotting import plot_gene_expression_data
+
+    assembly = bcp.DNAassembly(
+        'lacZ', promoter='pL', rbs='rL', protein='betagal'
+    )
+
+    def traces(mixture, gene):
+        crn = mixture.compile_crn()
+        results = {'time': np.linspace(0, 10, 5)}
+        for species in crn.species:
+            results[str(species)] = np.linspace(0, 1, 5)
+        plt.figure()
+        plot_gene_expression_data(results, crn, gene)
+        return {axes.get_title(): len(axes.lines) for axes in plt.gcf().axes}
+
+    # One-step gene expression compiles no RNA, and this mixture has none
+    # of the resources looked for either. Both panels are simply empty.
+    counts = traces(
+        bcp.ExpressionExtract(name='x', components=[assembly]), assembly
+    )
+    assert counts['DNA'] == 1
+    assert counts['RNA'] == 0
+    assert counts['Protein'] == 1
+    assert counts['Resources'] == 0
+
+    # a single gene may be given instead of a list
+    counts = traces(
+        bcp.SimpleTxTlExtract(name='x', components=[assembly]), assembly
+    )
+    assert counts['RNA'] == 1
+
+    # and a mixture that does have the resources plots them
+    counts = traces(bcp.PURE(name='x', components=[assembly]), [assembly])
+    assert counts['RNA'] > 0
+    assert counts['Resources'] == 3
+
+    plt.close('all')
