@@ -1478,8 +1478,14 @@ def plot_gene_expression_data(
         Pandas dataframe containing the simulation results.
     crn : ChemicalReactionNetwork
         CRN being simulutated (used to determine species names).
-    gene_list : List of Species or str
-        Genes to be used to determine full list of species to plot.
+    gene_list : list of DNAassembly
+        Genes whose expression should be plotted.  Each entry must have
+        `dna`, `transcript`, and `protein` attributes, as a
+        `~components.DNAassembly` does; a species or a name is not
+        enough, since the three species need not share a name.  All
+        three must appear in the compiled CRN, so a model compiled with
+        one-step gene expression, which produces no RNA, cannot be
+        plotted with this routine.
     time_units : float, default=bcp.units.mins
         Units factor used to plot scale time.
     time_label : str, default='min'
