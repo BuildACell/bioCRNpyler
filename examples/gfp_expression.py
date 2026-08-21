@@ -17,8 +17,8 @@ gfp_dna = bcp.DNAassembly(
     name='gfp', promoter='pconst', rbs='rbs_strong', protein='GFP'
 )
 
-# Simulation parmaters
-initial_conditions_dict = {'dna_gfp': 1 * nM}
+# Simulation parameters
+initial_conditions = {'dna_gfp': 1 * nM}
 timepts = np.linspace(0, 6 * hrs, 1000)
 
 #
@@ -30,7 +30,7 @@ expr_mixture = bcp.ExpressionExtract(
 )
 expr_crn = expr_mixture.compile_crn()
 expr_res = expr_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=initial_conditions_dict
+    timepts, initial_condition_dict=initial_conditions
 )
 
 #
@@ -42,7 +42,7 @@ simple_mixture = bcp.SimpleTxTlExtract(
 )
 simple_crn = simple_mixture.compile_crn()
 simple_res = simple_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=initial_conditions_dict
+    timepts, initial_condition_dict=initial_conditions
 )
 
 #
@@ -54,7 +54,7 @@ regular_mixture = bcp.TxTlExtract(
 )
 regular_crn = regular_mixture.compile_crn()
 regular_res = regular_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=initial_conditions_dict
+    timepts, initial_condition_dict=initial_conditions
 )
 
 #
@@ -66,7 +66,7 @@ energy_mixture = bcp.EnergyTxTlExtract(
 )
 energy_crn = energy_mixture.compile_crn()
 energy_res = energy_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=initial_conditions_dict
+    timepts, initial_condition_dict=initial_conditions
 )
 
 #
@@ -144,7 +144,7 @@ plt.legend()
 plt.figure(4)
 plt.clf()
 
-cfp_initial_conditions = initial_conditions_dict
+cfp_initial_conditions = initial_conditions.copy()
 cfp_initial_conditions['dna_cfp'] = 1 * nM
 
 # Add some additional DNA that will utilize resources
@@ -230,13 +230,16 @@ plt.legend()
 # Comparison with PURE
 #
 
-pure_mixture = bcp.BasicPURE(
+pure_mixture = bcp.PURE(
     name='regular',
     components=[gfp_dna],
+    include_machinery=True,
+    include_resources=True,
+    include_energy=True,
 )
 pure_crn = pure_mixture.compile_crn()
 pure_res = pure_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=initial_conditions_dict
+    timepts, initial_condition_dict=initial_conditions
 )
 
 plt.figure(5)
@@ -248,3 +251,224 @@ plt.title("Mixture Comparisions - TX-TL vs PURE")
 plt.xlabel("Time [min]")
 plt.ylabel("Concentration [uM]")
 plt.legend()
+
+#
+# PURE mixtures
+#
+
+pure_timepts = np.linspace(0, 180 * min)
+
+simple_mixture = bcp.PURE(
+    name='simple', components=[gfp_dna, cfp_dna],
+    include_machinery=False, include_resources=False, include_energy=False)
+simple_crn = simple_mixture.compile_crn()
+simple_res = simple_crn.simulate_with_bioscrape_via_sbml(
+    pure_timepts, initial_condition_dict=cfp_initial_conditions
+)
+
+machinery_mixture = bcp.PURE(
+    name='machinery', components=[gfp_dna, cfp_dna],
+    include_machinery=True, include_resources=False, include_energy=False)
+machinery_crn = machinery_mixture.compile_crn()
+machinery_res = machinery_crn.simulate_with_bioscrape_via_sbml(
+    pure_timepts, initial_condition_dict=cfp_initial_conditions
+)
+
+resource_mixture = bcp.PURE(
+    name='resources', components=[gfp_dna, cfp_dna],
+    include_machinery=True, include_resources=True, include_energy=False)
+resource_crn = resource_mixture.compile_crn()
+resource_res = resource_crn.simulate_with_bioscrape_via_sbml(
+    pure_timepts, initial_condition_dict=cfp_initial_conditions
+)
+
+energy_mixture = bcp.PURE(
+    name='energy', components=[gfp_dna, cfp_dna],
+    include_machinery=True, include_resources=True, include_energy=True)
+energy_crn = energy_mixture.compile_crn()
+energy_res = energy_crn.simulate_with_bioscrape_via_sbml(
+    pure_timepts, initial_condition_dict=cfp_initial_conditions
+)
+
+energy_mixture_gfp = bcp.PURE(
+    name='energy', components=[gfp_dna],
+    include_machinery=True, include_resources=True, include_energy=True)
+energy_crn_gfp = energy_mixture_gfp.compile_crn()
+energy_res_gfp = energy_crn_gfp.simulate_with_bioscrape_via_sbml(
+    pure_timepts, initial_condition_dict=initial_conditions
+)
+
+plt.figure(6)
+plt.clf()
+
+plt.plot(
+    pure_timepts / min, simple_res['protein_GFP'] / uM,
+    label='GFP+CFP, simple')
+plt.plot(
+    pure_timepts / min, machinery_res['protein_GFP'] / uM,
+    label='GFP+CFP, machinery')
+plt.plot(
+     pure_timepts / min, resource_res['protein_GFP'] / uM,
+     label='GFP+CFP, resources')
+plt.plot(
+    pure_timepts / min, energy_res['protein_GFP'] / uM,
+    label='GFP+CFP, energy')
+plt.plot(
+    pure_timepts / min, energy_res_gfp['protein_GFP'] / uM,
+    label='GFP only, energy')
+plt.plot(
+    timepts[0:50] / min, pure_res['protein_GFP'][0:50] + 0.1 / uM, '--',
+    label='GFP only + 0.1, basic')
+
+plt.ylim([0, 12])
+
+plt.title("PURE Mixture Comparisions")
+plt.xlabel("Time [min]")
+plt.ylabel("Concentration [uM]")
+plt.legend()
+
+#
+# Activators and repressors
+#
+
+TetR = bcp.Protein('TetR')
+aTc = bcp.Species('aTc')
+TetR_inactive = bcp.ChemicalComplex(
+    [TetR.species, aTc], mechanisms={'binding': bcp.One_Step_Binding()}
+)
+ptet_repressed = bcp.RepressiblePromoter('ptet', TetR)
+dna_GFP_repressed = bcp.DNAassembly(
+    'GFP', promoter=ptet_repressed, rbs='RBS', protein='GFP', length=714
+)
+
+initial_conditions = {'dna_GFP': 1 * nM, 'protein_TetR': 30 * uM}
+repressed_mixture = bcp.PURE(
+    name='repressed',
+    components=[dna_GFP_repressed, TetR_inactive],
+    include_machinery=True,
+    include_resources=True,
+    include_energy=True,
+)
+repressed_crn = repressed_mixture.compile_crn()
+
+TetR = bcp.Protein('TetR')
+aTc = bcp.Species('aTc')
+TetR_inactive = bcp.ChemicalComplex(
+    [TetR.species, aTc], mechanisms={'binding': bcp.One_Step_Binding()}
+)
+ptet_regulated = bcp.RegulatedPromoter('ptet', TetR)
+dna_GFP_regulated = bcp.DNAassembly(
+    'GFP', promoter=ptet_regulated, rbs='RBS', protein='GFP'
+)
+regulated_parameters = {
+    ('transcription', 'ptet_leak', 'ktx'): 50,          # unbound
+    ('transcription', 'ptet_TetR', 'ktx'): 0.001,       # bound
+}
+
+regulated_mixture = bcp.PURE(
+    name='regulated',
+    components=[dna_GFP_regulated, TetR_inactive],
+    include_machinery=True,
+    include_resources=True,
+    include_energy=True,
+    parameters=regulated_parameters,
+)
+regulated_crn = regulated_mixture.compile_crn()
+
+plt.figure(7)
+plt.clf()
+
+offset = -0.01
+TetR_0 = initial_conditions['protein_TetR']
+for aTc_0 in np.linspace(0, 50*uM, 5):
+# aTc_0 = 0
+# for TetR_0 in np.linspace(0, 20*uM, 5):
+    repressed_res = repressed_crn.simulate_with_bioscrape_via_sbml(
+        pure_timepts, initial_condition_dict=initial_conditions
+        | {'aTc': aTc_0} | {'protein_TetR': TetR_0}
+    )
+    lines = plt.plot(
+        pure_timepts / min,
+        repressed_res['protein_GFP'] / uM + offset,
+        label=f"aTc={aTc_0 / uM} uM, TetR={TetR_0 / uM} uM",
+    )
+
+    regulated_res = regulated_crn.simulate_with_bioscrape_via_sbml(
+        pure_timepts, initial_condition_dict=initial_conditions
+        | {'aTc': aTc_0} | {'protein_TetR': TetR_0}
+    )
+    plt.plot(
+        pure_timepts / min,
+        regulated_res['protein_GFP'] / uM + offset,
+        color=lines[0].get_color(),
+        linestyle='--',
+    )
+
+    offset += 0.05
+
+plt.title("Represssed (-) versus Regulated (--)")
+plt.xlabel("Time [min]")
+plt.ylabel("Concentration [uM]")
+plt.legend()
+
+#
+# PURE debugging
+#
+
+repressed_res = repressed_crn.simulate_with_bioscrape_via_sbml(
+    pure_timepts, initial_condition_dict=initial_conditions
+    | {'aTc': 37.5 * uM} | {'protein_TetR': 30 * uM}
+)
+
+plt.figure(8)
+plt.clf()
+bcp.plot_gene_expression_data(
+    repressed_res, repressed_crn, dna_GFP_repressed,
+    trace_offset=[0.01, 0.002, 0.1, 0.1])
+plt.suptitle("Gene expression, repressed", fontsize='large')
+plt.tight_layout()
+
+regulated_res = regulated_crn.simulate_with_bioscrape_via_sbml(
+    pure_timepts, initial_condition_dict=initial_conditions
+    | {'aTc': 37.5 * uM} | {'protein_TetR': 30 * uM}
+)
+
+plt.figure(9)
+plt.clf()
+bcp.plot_gene_expression_data(
+    regulated_res, regulated_crn, dna_GFP_regulated,
+    trace_offset=[0.01, 0.002, 0.1, 0.1])
+plt.suptitle("Gene expression, regulated", fontsize='large')
+plt.tight_layout()
+
+#
+# Species distributed across complexes
+#
+# Show how a species is distributed between its free form and the complexes
+# that contain it.  The ribosome is split between free ribosome and the
+# translation complexes; TetR is sequestered by aTc.
+#
+
+plt.figure(10)
+plt.clf()
+
+ribosome = bcp.Species('Ribo', material_type='protein')
+
+plt.subplot(1, 2, 1)
+bcp.plot_all_species_containing(
+    repressed_res, repressed_crn, ribosome,
+    show_material=False, show_complex_material=False,
+    legend_fontsize='x-small'
+)
+plt.title("Ribosome", fontsize='small')
+
+plt.subplot(1, 2, 2)
+bcp.plot_all_species_containing(
+    repressed_res, repressed_crn, [TetR, aTc],
+    show_material=False, show_complex_material=False,
+    legend_fontsize='x-small'
+)
+plt.title("TetR and aTc", fontsize='small')
+
+plt.suptitle("Species containing a given species", fontsize='large')
+plt.tight_layout()

@@ -7,6 +7,14 @@ from typing import Union
 from ..core.compartment import Compartment
 from ..core.component import Component
 from ..core.species import Species
+from ..mechanisms.signaling import Membrane_Signaling_Pathway_MM
+from ..mechanisms.transport import (
+    Facilitated_Transport_MM,
+    Membrane_Protein_Integration,
+    Primary_Active_Transport_MM,
+    Simple_Diffusion,
+    Simple_Transport,
+)
 
 
 class DiffusibleMolecule(Component):
@@ -108,7 +116,11 @@ class DiffusibleMolecule(Component):
             name = self.substrate.name + '_' + self.substrate.compartment.name
 
         Component.__init__(
-            self=self, name=name, attributes=attributes, **kwargs
+            self=self,
+            name=name,
+            attributes=attributes,
+            default_mechanism=Simple_Diffusion(),
+            **kwargs,
         )
 
     def get_species(self):
@@ -334,7 +346,12 @@ class IntegralMembraneProtein(Component):
             + self.membrane_protein.compartment.name
         )
 
-        Component.__init__(self=self, name=name, **kwargs)
+        Component.__init__(
+            self=self,
+            name=name,
+            default_mechanism=Membrane_Protein_Integration(),
+            **kwargs,
+        )
 
     def get_species(self):
         """Get the membrane protein species before insertion.
@@ -504,7 +521,7 @@ class MembraneChannel(Component):
             integral_membrane_protein = self.set_species(
                 integral_membrane_protein,
                 material_type='protein',
-                attributes='Passive' if direction is None else direction,
+                attributes=['Passive'] if direction is None else direction,
             )
         self.integral_membrane_protein = integral_membrane_protein
 
@@ -568,7 +585,12 @@ class MembraneChannel(Component):
             + self.integral_membrane_protein.compartment.name
         )
 
-        Component.__init__(self=self, name=name, **kwargs)
+        Component.__init__(
+            self=self,
+            name=name,
+            default_mechanism=Simple_Transport(),
+            **kwargs,
+        )
 
     def get_species(self):
         """Get the integral membrane protein species.
@@ -782,14 +804,14 @@ class MembranePump(Component):
                 self.membrane_pump = self.set_species(
                     membrane_pump,
                     material_type='protein',
-                    attributes='Passive',
+                    attributes=['Passive'],
                 )
                 self.membrane_pump.ATP = ATP
             else:
                 self.membrane_pump = self.set_species(
                     membrane_pump,
                     material_type='protein',
-                    attributes=direction,
+                    attributes=[direction],
                 )
                 self.membrane_pump.ATP = ATP
                 if direction == 'Importer':
@@ -812,19 +834,19 @@ class MembranePump(Component):
                 self.integral_membrane_protein = self.set_species(
                     membrane_pump,
                     material_type='protein',
-                    attributes='Passive',
+                    attributes=['Passive'],
                 )
             elif membrane_pump.attributes[0] == 'Exporter':
                 self.membrane_pump = self.set_species(
                     membrane_pump,
                     material_type='protein',
-                    attributes='Exporter',
+                    attributes=['Exporter'],
                 )
             elif membrane_pump.attributes[0] == 'Importer':
                 self.membrane_pump = self.set_species(
                     membrane_pump,
                     material_type='protein',
-                    attributes='Importer',
+                    attributes=['Importer'],
                 )
                 self.energy = self.set_species(
                     'ATP',
@@ -867,7 +889,18 @@ class MembranePump(Component):
             + self.membrane_pump.compartment.name
         )
 
-        Component.__init__(self=self, name=name, **kwargs)
+        # Determine the default mechanism
+        if 'Passive' in self.membrane_pump.attributes:
+            default_mechanism = Primary_Active_Transport_MM()
+        else:
+            default_mechanism = Facilitated_Transport_MM()
+
+        Component.__init__(
+            self=self,
+            name=name,
+            default_mechanism=default_mechanism,
+            **kwargs,
+        )
 
     def get_species(self):
         """Get the membrane pump protein species.
@@ -1137,7 +1170,12 @@ class MembraneSensor(Component):
             + self.membrane_sensor_protein.compartment.name
         )
 
-        Component.__init__(self=self, name=name, **kwargs)
+        Component.__init__(
+            self=self,
+            name=name,
+            default_mechanism=Membrane_Signaling_Pathway_MM(),
+            **kwargs,
+        )
 
     def get_species(self):
         """Get the membrane sensor protein species.

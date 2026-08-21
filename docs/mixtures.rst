@@ -369,6 +369,63 @@ This mixture enables modeling of regulatory control, enzyme-mediated
 kinetics, and system-wide dilution, providing a richer, more detailed
 representation of gene expression in cells.
 
+PURE Mixtures
+~~~~~~~~~~~~~
+
+The PURE (Protein synthesis Using Recombinant Elements) system is a
+reconstituted cell-free system, assembled from purified components rather
+than from a cell extract.  Because the composition is known, PURE models
+can account explicitly for the machinery and the consumable resources that
+limit expression.
+
+A single mixture, `~mixtures.PURE`, covers the whole range of PURE models.
+Rather than choosing between separate classes, you select the level of
+detail with three switches::
+
+    pure_mixture = PURE(
+        name='pure',
+        components=[dna_part],
+        include_machinery=True,
+        include_resources=True,
+        include_energy=True,
+    )
+
+The switches are nested: each one requires the ones above it.
+
++---------------------+------------------------------------------------+
+| Argument            | Effect when True                               |
++=====================+================================================+
+| include_machinery   | Adds RNA polymerase and ribosome, so that      |
+|                     | expression competes for a finite pool of       |
+|                     | machinery                                      |
++---------------------+------------------------------------------------+
+| include_resources   | Adds NTP and amino acid consumption, so that   |
+|                     | transcription and translation draw down a      |
+|                     | finite supply of building blocks               |
++---------------------+------------------------------------------------+
+| include_energy      | Adds the energy carriers (ATP and ADP) and     |
+|                     | their regeneration from fuel, so that          |
+|                     | expression halts when energy runs out          |
++---------------------+------------------------------------------------+
+
+Turning all three off gives a minimal model in which expression proceeds
+without competition or depletion.  Turning them on one at a time is a
+convenient way to see which limitation dominates in a given design: with
+machinery alone, two genes compete for ribosomes; adding resources makes
+expression taper as amino acids are consumed; adding energy makes it stop
+altogether once ATP is exhausted.
+
+The species names can be changed if the defaults clash with the rest of
+your model::
+
+    pure_mixture = PURE(
+        name='pure', components=[dna_part], ribosome='Ribosome'
+    )
+
+`~mixtures.BasicPURE` is equivalent to `~mixtures.PURE` with all three
+switches set to True.  It is deprecated and raises a warning when
+constructed; use `~mixtures.PURE` directly in new models.
+
 
 Custom Mixtures
 ----------------

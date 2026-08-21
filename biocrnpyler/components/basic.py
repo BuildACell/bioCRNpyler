@@ -6,6 +6,9 @@ from typing import List, Union
 from ..core.component import Component
 from ..core.reaction import Reaction
 from ..core.species import Complex, Species
+from ..mechanisms.binding import One_Step_Binding
+from ..mechanisms.enzyme import MichaelisMenten
+from ..mechanisms.metabolite import OneStepPathway
 
 
 class DNA(Component):
@@ -402,7 +405,17 @@ class Metabolite(Component):
                 else:
                     self.products.append(self.set_species(p))
 
-        Component.__init__(self=self, name=name, **kwargs)
+        if precursors is not None or products is not None:
+            default_mechanism = OneStepPathway()
+        else:
+            default_mechanism = None
+
+        Component.__init__(
+            self=self,
+            name=name,
+            default_mechanism=default_mechanism,
+            **kwargs,
+        )
 
     def get_species(self) -> Species:
         """Get the metabolite species.
@@ -602,7 +615,12 @@ class ChemicalComplex(Component):
         if name is None:
             name = self.species.name
 
-        Component.__init__(self=self, name=name, **kwargs)
+        Component.__init__(
+            self=self,
+            name=name,
+            default_mechanism=One_Step_Binding(),
+            **kwargs,
+        )
 
     def get_species(self) -> List[Species]:
         """Get the complex species.
@@ -773,7 +791,12 @@ class Enzyme(Component):
         self.substrates = substrates
         self.products = products
 
-        Component.__init__(self=self, name=self.enzyme.name, **kwargs)
+        Component.__init__(
+            self=self,
+            name=self.enzyme.name,
+            default_mechanism=MichaelisMenten(),
+            **kwargs,
+        )
 
     @property
     def substrates(self) -> List:

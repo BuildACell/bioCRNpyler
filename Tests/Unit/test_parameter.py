@@ -6,6 +6,8 @@ from unittest import TestCase
 from unittest.mock import mock_open, patch
 from warnings import warn
 
+import pytest
+
 from biocrnpyler import (
     Mechanism,
     ModelParameter,
@@ -558,6 +560,19 @@ def test_findpath(tmp_path):
             os.environ['BCP_PATH'] = prev_bcp_path
 
 
+def basic_pure(*args, **kwargs):
+    """Build a legacy BasicPURE mixture, checking that it warns.
+
+    Catching the warning here keeps it out of the test output and checks
+    that it is still raised, which simply ignoring it would not.
+
+    """
+    import biocrnpyler as bcp
+
+    with pytest.warns(DeprecationWarning, match='BasicPURE is deprecated'):
+        return bcp.BasicPURE(*args, **kwargs)
+
+
 def test_parameter_ordering():
     import biocrnpyler as bcp
 
@@ -570,7 +585,7 @@ def test_parameter_ordering():
         'GFP', promoter=ptet, rbs='RBS', protein='GFP')
 
     # Default case: make sure we can compile with no additional paramters
-    default_mixture = bcp.BasicPURE(
+    default_mixture = basic_pure(
         'default', components=[dna_GFP, TetR_inactive])
     default_crn = default_mixture.compile_crn()
 
@@ -607,7 +622,7 @@ def test_parameter_ordering():
     dna_GFP = bcp.DNAassembly(
         'GFP', promoter=ptet, rbs='RBS', protein='GFP',
         parameters=baseline_parameters)
-    baseline_mixture = bcp.BasicPURE(
+    baseline_mixture = basic_pure(
         'baseline', components=[dna_GFP, TetR_inactive])
     baseline_crn = baseline_mixture.compile_crn()
     assert baseline_crn.reactions[
@@ -625,7 +640,7 @@ def test_parameter_ordering():
     dna_GFP = bcp.DNAassembly(
         'GFP', promoter=ptet, rbs='RBS', protein='GFP',
         parameters=mechtype_parameters)
-    mechtype_mixture = bcp.BasicPURE(
+    mechtype_mixture = basic_pure(
         'mechtype', components=[dna_GFP, TetR_inactive])
     mechtype_crn = mechtype_mixture.compile_crn()
     assert mechtype_crn.reactions[
@@ -643,7 +658,7 @@ def test_parameter_ordering():
     dna_GFP = bcp.DNAassembly(
         'GFP', promoter=ptet, rbs='RBS', protein='GFP',
         parameters=partid_parameters)
-    partid_mixture = bcp.BasicPURE(
+    partid_mixture = basic_pure(
         'partid', components=[dna_GFP, TetR_inactive])
     partid_crn = partid_mixture.compile_crn()
     assert partid_crn.reactions[
@@ -661,7 +676,7 @@ def test_parameter_ordering():
     dna_GFP = bcp.DNAassembly(
         'GFP', promoter=ptet, rbs='RBS', protein='GFP',
         parameters=mechname_parameters)
-    mechname_mixture = bcp.BasicPURE(
+    mechname_mixture = basic_pure(
         'mechname', components=[dna_GFP, TetR_inactive])
     mechname_crn = mechname_mixture.compile_crn()
     assert mechname_crn.reactions[
@@ -677,7 +692,7 @@ def test_parameter_ordering():
     TetR_inactive=bcp.ChemicalComplex([TetR.species, aTc])
     dna_GFP = bcp.DNAassembly(
         'GFP', promoter=ptet, rbs='RBS', protein='GFP')
-    mixture_mixture = bcp.BasicPURE(
+    mixture_mixture = basic_pure(
         'mixture', components=[dna_GFP, TetR_inactive],
         parameters=mixture_parameters)
     mixture_crn = mixture_mixture.compile_crn()
@@ -696,7 +711,7 @@ def test_parameter_ordering():
     dna_GFP = bcp.DNAassembly(
         'GFP', promoter=ptet, rbs='RBS', protein='GFP',
         parameters=component_parameters)
-    mixture_mixture = bcp.BasicPURE(
+    mixture_mixture = basic_pure(
         'mixture', components=[dna_GFP, TetR_inactive],
         parameters=mixture_parameters)
     mixture_crn = mixture_mixture.compile_crn()

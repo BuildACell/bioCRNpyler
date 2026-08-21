@@ -229,7 +229,8 @@ def test_render_network_bokeh():
         (None, None, 'cooperativity'): 2,
     }
     txtl = bcp.TxTlExtract(
-        'mixture1', parameters=parameters, overwrite_parameters=True)
+        'mixture1', parameters=parameters, overwrite_parameters=True
+    )
     dna = bcp.DNAassembly(
         'mydna',
         promoter=bcp.RegulatedPromoter('plac', ['laci']),
@@ -258,3 +259,95 @@ def test_render_network_bokeh():
             warnings.showwarning(
                 w.message.args[0], w.category, w.filename, w.lineno
             )
+
+
+def test_plot_all_species_containing_accepts_strings():
+    """A species may be given as a string as well as a Species."""
+    import matplotlib
+
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    from biocrnpyler.utils.plotting import plot_all_species_containing
+
+    gfp_protein = Species('GFP', material_type='protein')
+    gfp_rna = Species('GFP', material_type='rna')
+    rfp_protein = Species('RFP', material_type='protein')
+    crn = bcp.ChemicalReactionNetwork(
+        species=[gfp_protein, gfp_rna, rfp_protein], reactions=[]
+    )
+
+    results = {'time': np.linspace(0, 10, 5)}
+    for species in [gfp_protein, gfp_rna, rfp_protein]:
+        results[str(species)] = np.linspace(0, 1, 5)
+
+    def labels():
+        return [
+            text.get_text() for text in plt.gca().get_legend().get_texts()
+        ]
+
+    # a string matches every species whose name contains it, and is used
+    # as the label for their total
+    plt.figure()
+    plot_all_species_containing(results, crn, 'GFP')
+    assert labels() == ['protein[GFP]', 'rna[GFP]', 'Total GFP']
+
+    # a string matching a single species labels that trace
+    plt.figure()
+    plot_all_species_containing(results, crn, 'RFP')
+    assert labels() == ['RFP']
+
+    # Species objects are still labelled by their pretty_print form
+    plt.figure()
+    plot_all_species_containing(results, crn, [gfp_protein])
+    assert labels() == ['protein[GFP]']
+
+    plt.close('all')
+
+
+def test_plot_gene_expression_data_with_missing_species():
+    """Panels whose species are not in the CRN are left empty."""
+    import matplotlib
+
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    from biocrnpyler.utils.plotting import plot_gene_expression_data
+
+    assembly = bcp.DNAassembly(
+        'lacZ', promoter='pL', rbs='rL', protein='betagal'
+    )
+
+    def traces(mixture, gene):
+        crn = mixture.compile_crn()
+        results = {'time': np.linspace(0, 10, 5)}
+        for species in crn.species:
+            results[str(species)] = np.linspace(0, 1, 5)
+        plt.figure()
+        plot_gene_expression_data(results, crn, gene)
+        return {axes.get_title(): len(axes.lines) for axes in plt.gcf().axes}
+
+    # One-step gene expression compiles no RNA, and this mixture has none
+    # of the resources looked for either. Both panels are simply empty.
+    counts = traces(
+        bcp.ExpressionExtract(name='x', components=[assembly]), assembly
+    )
+    assert counts['DNA'] == 1
+    assert counts['RNA'] == 0
+    assert counts['Protein'] == 1
+    assert counts['Resources'] == 0
+
+    # a single gene may be given instead of a list
+    counts = traces(
+        bcp.SimpleTxTlExtract(name='x', components=[assembly]), assembly
+    )
+    assert counts['RNA'] == 1
+
+    # and a mixture that does have the resources plots them
+    counts = traces(bcp.PURE(name='x', components=[assembly]), [assembly])
+    assert counts['RNA'] > 0
+    assert counts['Resources'] == 3
+
+    plt.close('all')

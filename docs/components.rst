@@ -136,4 +136,4 @@ generates its species and reactions during compilation. For example::
             pass
 
 By defining custom components, users can encode arbitrary logic or kinetic
-forms while still integrating seamlessly with mixtures and Mechanisms.
+forms while still integrating seamlessly with mixtures and mechanisms.

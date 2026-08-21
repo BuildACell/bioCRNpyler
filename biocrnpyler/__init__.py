@@ -11,6 +11,10 @@ from .mixtures import *
 
 # All utilities
 from .utils import *
+from .utils.plotting import (  # noqa: F401
+    plot_all_species_containing,
+    plot_gene_expression_data,
+)
 
 try:
     from ._version import version as __version__

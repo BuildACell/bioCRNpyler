@@ -26,9 +26,10 @@ class Species(OrderedMonomer):
     material_type : str, default=''
         Type of material (e.g., 'dna', 'rna', 'protein', 'complex').
         Required if name starts with a number. Must start with a letter.
-    attributes : list of str or None, optional
+    attributes : list of str, str, or None, optional
         List of attribute tags for the species (e.g., 'degraded',
-        'phosphorylated'). Each attribute must be alphanumeric.
+        'phosphorylated'). Each attribute must be alphanumeric.  A single
+        attribute may be given as a string instead of a one-element list.
     compartment : Compartment, str, or None, optional
         The compartment containing this species. If None, uses default
         compartment. If str, creates a new Compartment with that name.
@@ -130,7 +131,10 @@ class Species(OrderedMonomer):
         if not hasattr(self, '_attributes'):
             self._attributes = []
         if attributes is not None:
-            if not isinstance(attributes, list):
+            if isinstance(attributes, str):
+                # A bare string is a single attribute, not one per character
+                attributes = [attributes]
+            elif not isinstance(attributes, list):
                 attributes = list(attributes)
             for attribute in attributes:
                 self.add_attribute(attribute)
