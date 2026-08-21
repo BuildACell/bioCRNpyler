@@ -19,7 +19,7 @@ translation		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
 #
 # PositiveHillTranscription and NegativeHillTranscription
 #
-# We computing the various rates here based on the the following paper:
+# We compute the various rates here based on the the following paper:
 #
 #   [SK07] V. Sotiropoulos and Y. N. Kaznessis.  "Synthetic
 #   Tetracycline-Inducible Regulatory Networks: Computer-Aided Design

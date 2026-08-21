@@ -11,11 +11,9 @@ from .mixtures import *
 
 # All utilities
 from .utils import *
-from .utils.plotting import (
-    plot_all_species_containing as plot_all_species_containing,
-)
-from .utils.plotting import (
-    plot_gene_expression_data as plot_gene_expression_data,
+from .utils.plotting import (  # noqa: F401
+    plot_all_species_containing,
+    plot_gene_expression_data,
 )
 
 try:
