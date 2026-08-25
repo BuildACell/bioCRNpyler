@@ -165,7 +165,9 @@ cfp_simple_res = cfp_simple_crn.simulate_with_bioscrape_via_sbml(
     timepts, initial_condition_dict=cfp_initial_conditions
 )
 
-# Regular mixture should have lower expression, but not limits
+# Regular mixture shares RNAP, ribosomes and RNase across both genes,
+# but at 1 nM DNA none of those pools is anywhere near limiting, so
+# GFP should be essentially unchanged
 cfp_regular_mixture = bcp.TxTlExtract(
     name='energy',
     components=[gfp_dna, cfp_dna],

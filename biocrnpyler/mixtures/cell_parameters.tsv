@@ -4,11 +4,33 @@
 # parameters are chosen to match the gene expression rates in E. coli
 # under exponential growth.
 #
+#   [SK07] V. Sotiropoulos and Y. N. Kaznessis.  "Synthetic
+#   Tetracycline-Inducible Regulatory Networks: Computer-Aided Design
+#   of Dynamic Phenotypes."  BMC Systems Biology 1, no. 1 (2007): 7.
+#   https://doi.org/10.1186/1752-0509-1-7.
+#
+#   [MN19] Marshall, Ryan, and Vincent Noireaux. "Quantitative Modeling of
+#   Transcription and Translation of an All-E. coli Cell-Free System".
+#   Scientific Reports 9 (2019):11980.
+#   https://doi.org/10.1038/s41598-019-48468-8.
+#
 mechanism	part_id	param_name	value	units	comments
 
-# Concentration using BioNumbers for E. coli, assuming volume of 1 um^3
+# Expression machinery, converted to concentrations assuming an E. coli
+# volume of 1 um^3.
+#
+#   RNAP   about 3,000 molecules per cell (BioNumbers 106199).
+#
+#   Ribo   MN19 gives 44,000-73,000 ribosomes per cell in rich medium
+#          (20-30 min doubling time), which is 73-121 uM at 1 um^3, and
+#          100 uM sits inside that range.  (BioNumbers 108604 reports
+#          65,000 per um^3, but that is a peak density within
+#          ribosome-rich regions rather than a whole-cell average.)
+#
+#   RNase  about 1,500 molecules per cell (BioNumbers 111532).
+#
 initial concentration	e_coli	RNAP	5	uM	~3,000 RNAP molecules (BioNumbers 106199)
-initial concentration	e_coli	Ribo	100	uM	~65,000 Ribosomes per cell (BioNumbers 108604)
+initial concentration	e_coli	Ribo	100	uM	44,000-73,000 ribosomes/cell (MN19)
 initial concentration	e_coli	RNase	2.5	uM	~1,500 RNase molecules (BioNumbers 111532)
 
 # Transcription and translation rates per unit of "activated" DNA
@@ -19,9 +41,41 @@ translation		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
 dilution		kdil	5.78E-4	/sec	half life of ~20 minutes (E. coli doubling time)
 
 # RNA degradation, based on E. coli
-rna_degradation_mm		kdeg	1.3E-4	/sec	degradation rate of bound RNAase (half life of 2 min)
-rna_degradation_mm		kb	1	/sec/uM	binding of RNAase to RNA (fast)
-rna_degradation_mm		ku	1.25E-06	/sec	unbinding of RNAase to RNA (slow)
+#
+# SK07 Table 1 (R44/R90) models mRNA decay as a first order reaction with
+# k = 0.002 /sec, a mean lifetime of 8.3 min.  This agrees with the 9.8 min
+# in vivo figure quoted by TX-TL 2.0 and with BioNumbers 111927 (global
+# half-lives converge at about 5 min).
+#
+# That measured decay rate is k_eff, the effective first order rate at
+# which a transcript disappears (k_eff = 1 / mean lifetime).  The kdeg set
+# below is a different quantity: the Michaelis-Menten catalytic constant
+# (k_cat), related to k_eff by k_eff = kdeg * [RNase] / K_M.
+#
+# The Michaelis-Menten form is set to reproduce that effective rate, using
+# the same K_M = 8 uM convention as MN19: K_M is a modeling choice, picked
+# large enough that degradation stays pseudo-first-order.  See
+# extract_parameters.tsv for the provenance.  Holding kb = 1 /sec/uM
+# and [RNase] = 2.5 uM:
+#
+#   kdeg = k_eff * K_M / [RNase] = 0.002 * 8 / 2.5 = 6.4E-3 /sec
+#   ku   = K_M * kb - kdeg       = 8 - 0.0064      = 7.9936 /sec
+#
+# On kb: K_M is identifiable, kb and ku individually are not.  Binding
+# equilibrates in well under a second against an mRNA lifetime of minutes,
+# so the RNase:mRNA complex sits in quasi-equilibrium and the dynamics
+# depend on kb and ku only through their ratio.
+#
+# kb = 1 /sec/uM is 1E6 /M/sec, the generic protein association rate
+# (BioNumbers 112534, 0.5-5E6 /M/sec, Northrup and Erickson 1992).  There
+# is no measured kon for RNase E on mRNA, so a generic value is used.
+#
+# The one constraint on kb is kb > kdeg / K_M (= 8.0E-4 /sec/uM here),
+# below which ku would have to be negative.
+#
+rna_degradation_mm		kdeg	6.4E-3	/sec	k_cat; k_eff = 0.002 /sec (SK07, R44)
+rna_degradation_mm		kb	1	/sec/uM	generic protein association (BioNumbers 112534)
+rna_degradation_mm		ku	7.9936	/sec	set so K_M = (ku+kdeg)/kb = 8 uM (MN19)
 
 # "Background" usage of resources
 #
@@ -46,5 +100,10 @@ initial concentration	e_coli	cellular_processes	5	uM	~3000 genes in E. coli assu
 #               = kexpress * [DNA] - kdil * [protein]
 #
 # kexpress = ktx * ktl / (kdeg * [RNAse] + kdil)
-# 
-gene_expression		kexpress	1.89	/sec
+#
+# With ktx = ktl = 0.05 /sec, the effective RNA degradation rate k_eff =
+# 0.002 /sec from above, and kdil = 5.78E-4 /sec,
+#
+#   kexpress = 0.05 * 0.05 / (0.002 + 5.78E-4) = 0.970 /sec
+#
+gene_expression		kexpress	0.970	/sec	ktx * ktl / (k_eff + kdil)
