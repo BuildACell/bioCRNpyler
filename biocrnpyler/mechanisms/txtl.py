@@ -1225,7 +1225,10 @@ class Transcription_MM(MichaelisMentenCopy):
             raise ValueError("'rnap' parameter must be a Species.")
 
         MichaelisMentenCopy.__init__(
-            self=self, name=name, mechanism_type='transcription'
+            self=self,
+            name=name,
+            mechanism_type='transcription',
+            parameter_file=parameter_file,
         )
 
     def update_species(self, dna, transcript=None, protein=None, **kwargs):
@@ -1450,7 +1453,10 @@ class Translation_MM(MichaelisMentenCopy):
         else:
             raise ValueError("ribosome must be a Species!")
         MichaelisMentenCopy.__init__(
-            self=self, name=name, mechanism_type='translation'
+            self=self,
+            name=name,
+            mechanism_type='translation',
+            parameter_file=parameter_file,
         )
 
     def update_species(self, transcript, protein, **kwargs):
