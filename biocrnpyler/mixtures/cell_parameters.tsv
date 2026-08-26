@@ -19,6 +19,14 @@ mechanism	part_id	param_name	value	units	comments
 # Expression machinery, converted to concentrations assuming an E. coli
 # volume of 1 um^3.
 #
+# These carry no part_id.  Initial concentrations are looked up with
+# part_id set to the mixture's name, so a part_id here would only
+# resolve for a mixture that happened to carry that same name and
+# would silently leave the machinery at zero for any other.  Leaving
+# it blank lets the (mechanism, param_name) tier match whatever the
+# mixture is called; a part_id qualified entry can still be added to
+# override these for one particular mixture name.
+#
 #   RNAP   about 3,000 molecules per cell (BioNumbers 106199).
 #
 #   Ribo   MN19 gives 44,000-73,000 ribosomes per cell in rich medium
@@ -29,9 +37,9 @@ mechanism	part_id	param_name	value	units	comments
 #
 #   RNase  about 1,500 molecules per cell (BioNumbers 111532).
 #
-initial concentration	e_coli	RNAP	5	uM	~3,000 RNAP molecules (BioNumbers 106199)
-initial concentration	e_coli	Ribo	100	uM	44,000-73,000 ribosomes/cell (MN19)
-initial concentration	e_coli	RNase	2.5	uM	~1,500 RNase molecules (BioNumbers 111532)
+initial concentration		RNAP	5	uM	~3,000 RNAP molecules (BioNumbers 106199)
+initial concentration		Ribo	100	uM	44,000-73,000 ribosomes/cell (MN19)
+initial concentration		RNase	2.5	uM	~1,500 RNase molecules (BioNumbers 111532)
 
 # Transcription and translation rates per unit of "activated" DNA
 transcription		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
@@ -101,7 +109,7 @@ rna_degradation		kdil	2.0E-3	/sec	matches k_eff of rna_degradation_mm
 # cell.  The rates of transcription and translation are hard coded into the
 # mixture (and probably need to be changed at some point).
 # 
-initial concentration	e_coli	cellular_processes	5	uM	~3000 genes in E. coli assuming weak loading on all of them
+initial concentration		cellular_processes	5	uM	~3000 genes in E. coli assuming weak loading on all of them
 
 # For simplified gene expression model, we assume that DNA goes directly to
 # protein and so 'kexpress' captures the steady state production rate:
