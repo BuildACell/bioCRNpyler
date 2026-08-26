@@ -14,6 +14,11 @@
 #   Systems". Synthetic Biology 6, no. 1 (2021):ysab007.
 #   https://doi.org/10.1093/synbio/ysab007.
 #
+#   [MN19] Marshall, Ryan, and Vincent Noireaux. "Quantitative Modeling of
+#   Transcription and Translation of an All-E. coli Cell-Free System".
+#   Scientific Reports 9 (2019):11980.
+#   https://doi.org/10.1038/s41598-019-48468-8.
+#
 # The parameters for the most complex mechanisms are listed first, with
 # subsequent parameters chosen to be consistent with those values.
 #
@@ -31,9 +36,31 @@ mechanism	part_id	param_name	value	units	comments
 # EnergyTxTlExtract explicitly tracks NTPs, amino acids, and fuel species
 # (e.g., 3PGA for ATP regeneration).
 
-# Cell expression machinery: parameters are chosen at 1/10 E. coli
-initial concentration		RNAP	0.5	uM	1/10 RNAP from cell_parameters.tsv
-initial concentration		Ribo	10	uM	1/10 Ribo from cell_parameters.tsv
+# Cell expression machinery.
+#
+# The dilution from cytoplasm to TXTL reaction is not a single factor: it
+# depends on how much of each species survives lysis and extract
+# preparation.  MN19 works the numbers through for the two species that
+# have been quantified, so those are used directly, and only RNase falls
+# back on the 1/10 rule of thumb.
+#
+#   RNAP  MN19 puts the maximum at 500 nM of core RNA polymerase in a TXTL
+#         reaction if every enzyme is released, and best fits 400 nM.  The
+#         0.5 uM below is that upper bound, which is also 1/10 of the
+#         cell value.
+#
+#   Ribo  MN19 estimates 1450-2500 nM of total ribosomes in a TXTL reaction
+#         and best fits Rtot = 1100 nM of *active* ribosomes.  Translation_MM
+#         is structurally the same model (ribosome binds mRNA, MM kinetics),
+#         so the active figure is the comparable one.  This is roughly
+#         1/90 of the cell value.
+#
+#   RNase no measurement in extract, so kept at 1/10 of the cell value.  The
+#         kdeg derived below absorbs this uncertainty: k_eff is what is
+#         pinned to data, and kdeg scales inversely with [RNase].
+#
+initial concentration		RNAP	0.5	uM	MN19 max for a TXTL reaction
+initial concentration		Ribo	1.1	uM	MN19 Rtot, active ribosomes in TXTL
 initial concentration		RNase	0.25	uM	1/10 RNAse from cell_parameters.tsv
 
 initial concentration		ATP	600	uM	TX-TL 2.0: [ATP/GTP] - [CTP/UTP]
@@ -42,8 +69,8 @@ initial concentration		amino_acids	6.0E4	uM	TX-TL 2.0 3 mM (upper bound) * 20 AA
 initial concentration		Fuel_3PGA	3.0E4	uM	TX-TL 2.0: 30 mM
 
 energy_transcription_mm		ktx	50	/sec	50 nt/s (rate will be divided by length)
-energy_transcription_mm		kb	4.48	/uM/sec	txtlsim S3: pol_{F, lac}
-energy_transcription_mm		ku	2.5E-06	/sec	default_parameters.txt; source unclear (TODO)
+energy_transcription_mm		kb	8.6	/uM/sec	SK07, Table 1, R31
+energy_transcription_mm		ku	0.01	/sec	SK07, Table 1, R32
 energy_transcription_mm		kb_ntps	10	/uM/sec	fast binding of NTPs to RNAP:DNA complex (TODO)
 energy_transcription_mm		ku_ntps	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA complex (TODO)
 energy_transcription_mm		length	1000	nt	default length of gene (for resource usage)
@@ -70,8 +97,8 @@ one_step_pathway	ATP_degradation	k	0.0000177	/sec	Delta_ATP, Singhal et al. Tabl
 
 # Default binding/unbinding rates for promoters
 transcription_mm		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
-transcription_mm		kb	4.48	/uM/sec	txtlsim S3: pol_{F, lac}
-transcription_mm		ku	2.5E-06	/sec	default_parameters.txt; source unclear (TODO)
+transcription_mm		kb	8.6	/uM/sec	SK07, Table 1, R31
+transcription_mm		ku	0.01	/sec	SK07, Table 1, R32
 
 # Default binding/unbinding rates for RBS
 translation_mm		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
@@ -98,11 +125,66 @@ translation		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
 # Global Mechanisms
 #
 
-# RNA degradation, based on E. coli (see cell_parameters.tsv)
-rna_degradation_mm		kdeg	1.3E-4	/sec	degradation rate of bound RNAase (half life of 2 min)
-rna_degradation		kdil	1.3E-4	/sec	implemented as 'dilution' for SimpleTxTlExtract
-rna_degradation_mm		kb	1	/sec/uM	binding of RNAase to RNA (fast)
-rna_degradation_mm		ku	1.25E-06	/sec	unbinding of RNAase to RNA (slow)
+# RNA degradation, measured in the TX-TL extract itself.
+#
+# MN19 determined the deGFP mRNA degradation rate by assay (their Fig. S4):
+# kdeg,m = 8.25E-4 /sec, a mean lifetime of 20.2 min.  TX-TL 2.0 measures
+# the same transcript by a transcription-arrest assay and reports 17.45 min
+# with no MazF added (against 9.8 min in E. coli), so the two independent
+# measurements bracket a fairly narrow range.  MN19's value is used here
+# because it is the one paired with the K_M convention adopted below.
+#
+# k_eff is the effective first order decay rate of mRNA: the single
+# constant describing how fast a transcript disappears, related to the
+# mean lifetime by k_eff = 1 / lifetime.  It is the quantity the assays
+# above measure, and the one MN19 call kdeg,m.  The kdeg set further down
+# in this file is a different quantity: the Michaelis-Menten catalytic
+# constant (k_cat) for the bound RNase:mRNA complex.
+#
+# When [mRNA] is well below K_M the Michaelis-Menten rate law reduces to
+# first order decay, and the two are related by
+#
+#   k_eff = kdeg * [RNase] / K_M,   K_M = (ku + kdeg) / kb
+#
+# K_M here is a modeling convention rather than a measured quantity.
+# MN19 write the degradation term as k[RNase][m]/(K_M,m + [m]) and say the
+# constants kd,m (6.6 nM/s) and K_M,m (8000 nM) "were chosen so as to
+# obtain kdeg,m determined by the assay": K_M is picked large compared
+# with [mRNA] (a few nM) so that the Michaelis-Menten form reduces to the
+# pseudo-first-order decay they measured.  The same convention is used
+# here, so k_eff is the quantity pinned to data and K_M = 8 uM carries
+# over from MN19 to keep degradation out of saturation.
+#
+# Holding kb = 1 /sec/uM and [RNase] = 0.25 uM then fixes kdeg and ku:
+#
+#   kdeg = k_eff * K_M / [RNase] = 8.25E-4 * 8 / 0.25 = 2.64E-2 /sec
+#   ku   = K_M * kb - kdeg       = 8 - 0.0264          = 7.9736 /sec
+#
+# On kb: K_M is identifiable, kb and ku individually are not.  Binding
+# equilibrates in well under a second against an mRNA lifetime of tens of
+# minutes, so the RNase:mRNA complex sits in quasi-equilibrium and the
+# dynamics depend on kb and ku only through their ratio.  Holding
+# K_M = 8 uM, any kb between 0.01 and 100 /sec/uM gives the same mRNA
+# lifetime and the same steady-state protein to within 0.1%.
+#
+# kb = 1 /sec/uM is 1E6 /M/sec, the generic protein association rate
+# (BioNumbers 112534, 0.5-5E6 /M/sec, Northrup and Erickson 1992).  There
+# is no measured kon for RNase E on mRNA, so a generic value is used.
+#
+# The one constraint on kb is kb > kdeg / K_M (= 3.3E-3 /sec/uM here),
+# below which ku would have to be negative.
+#
+# kdil is the same measured rate in plain first order form, used by
+# SimpleTxTlExtract, which has no explicit RNase.
+#
+# This reproduces MN19 exactly: their kd,m is a V_max directly comparable
+# to kdeg * [RNase] here, and 2.64E-2 * 0.25 uM = 6.60 nM/s against their
+# stated 6.6 nM/s.
+#
+rna_degradation_mm		kdeg	2.64E-2	/sec	k_cat; 20.2 min mean lifetime (MN19)
+rna_degradation		kdil	8.25E-4	/sec	20.2 min mean lifetime (MN19)
+rna_degradation_mm		kb	1	/sec/uM	generic protein association (BioNumbers 112534)
+rna_degradation_mm		ku	7.9736	/sec	set so K_M = (ku+kdeg)/kb = 8 uM (MN19)
 
 #
 # ExpressionExtract
@@ -119,5 +201,10 @@ rna_degradation_mm		ku	1.25E-06	/sec	unbinding of RNAase to RNA (slow)
 #               = kexpress * [DNA]
 #
 # kexpress = ktx * ktl / kdeg
-# 
-gene_expression		kexpress	19.23	/sec
+#
+# With ktx = ktl = 0.05 /sec and the first order rate kdil = 8.25E-4 /sec
+# from the RNA degradation section above,
+#
+#   kexpress = 0.05 * 0.05 / 8.25E-4 = 3.030 /sec
+#
+gene_expression		kexpress	3.030	/sec	ktx * ktl / kdil

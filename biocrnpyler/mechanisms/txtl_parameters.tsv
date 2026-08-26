@@ -10,7 +10,14 @@
 mechanism	part_id	param_name	value	units	comments
 
 # OneStepGeneExpression
-gene_expression		kexpress	19.23	/sec
+#
+# kexpress collapses transcription and translation into a single step,
+# kexpress = ktx * ktl / (RNA loss rate).  With ktx = ktl = 0.05 /sec and
+# the 8.25E-4 /sec mRNA decay measured for TX-TL extract (see
+# mixtures/extract_parameters.tsv), that is 0.05 * 0.05 / 8.25E-4.
+# Mixtures that model a different RNA loss rate set their own value.
+#
+gene_expression		kexpress	3.030	/sec	ktx * ktl / kdil
 
 # SimpleTranscription and SimpleTranslation
 transcription		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
@@ -37,12 +44,33 @@ transcription		n	2		cooperativity
 transcription		kleak	0.013	/sec	SK07, Table 1, R37
 
 # Transcription_MM and Translation_MM
+#
+# Transcription uses SK07 R31/R32, which are a binding/unbinding pair:
+#
+#   R31  RNAp + P + OP  -->  RNAp:P:OP        8.6E+06 /M/sec
+#   R32  RNAp:P:OP  -->  RNAp + P + OP        0.01    /sec
+#
+# Translation uses the Singhal values, because SK07 describes ribosome
+# loading with a different reaction scheme:
+#
+#   R45  mRNA + Ribosome  -->  Rib:mRNA       1.0E+05 /M/sec
+#   R46  Rib:mRNA  -->  Rib:mRNA1 + mRNA      100     /sec
+#
+# In R46 the ribosome clears the ribosome binding site to form an
+# elongating complex and releases the mRNA, so that another ribosome can
+# load behind it (polysome formation).  Translation_MM has no separate
+# elongating-complex state, and its 'ku' is a genuine dissociation back to
+# free ribosome and free mRNA - a step SK07 does not model.
+#
+# Note that mixtures/extract_parameters.tsv and mixtures/pure_parameters.tsv
+# set these same parameters and take precedence for those mixtures.
+#
 transcription_mm		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
 transcription_mm		kb	8.6	/uM/sec	SK07, Table 1, R31
 transcription_mm		ku	0.01	/sec	SK07, Table 1, R32
 translation_mm		ktl	0.05	/sec	15 aa/s and protein length of 300 aa
-translation_mm		kb	0.1	/uM/sec	SK07, Table 1, R45
-translation_mm		ku	100	/sec	SK07, Table 1, R46
+translation_mm		kb	0.819	/uM/sec	Singhal et al. Table S2
+translation_mm		ku	0.003	/sec	Singhal et al. Table S2
 
 # Energy_Transcription_MM and Energy_Translation_MM
 energy_transcription_mm		ktx	50	/sec	50 nt/s (rate will be divided by length)
@@ -53,8 +81,8 @@ energy_transcription_mm		ku_ntps	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA co
 energy_transcription_mm		length	1000	nt	default length of gene (for resource usage)
 
 energy_translation_mm		ktl	15	/sec	15 aa/s (rate will be divided by length)
-energy_translation_mm		kb	0.1	/uM/sec	SK07, Table 1, R45
-energy_translation_mm		ku	100	/sec	SK07, Table 1, R46
+energy_translation_mm		kb	0.819	/uM/sec	Singhal et al. Table S2
+energy_translation_mm		ku	0.003	/sec	Singhal et al. Table S2
 energy_translation_mm		kb_fuel	10	/uM/sec	fast binding of NTPs to RNAP:DNA complex (TODO)
 energy_translation_mm		ku_fuel	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA complex (TODO)
 energy_translation_mm		length	300	aa	default length of a protein (for resource uasge)
