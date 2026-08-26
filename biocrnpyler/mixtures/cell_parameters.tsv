@@ -77,6 +77,21 @@ rna_degradation_mm		kdeg	6.4E-3	/sec	k_cat; k_eff = 0.002 /sec (SK07, R44)
 rna_degradation_mm		kb	1	/sec/uM	generic protein association (BioNumbers 112534)
 rna_degradation_mm		ku	7.9936	/sec	set so K_M = (ku+kdeg)/kb = 8 uM (MN19)
 
+# The simple mixtures degrade RNA with a first order Dilution mechanism
+# named 'rna_degradation' instead of the Michaelis-Menten form above, which
+# amounts to assuming a fixed pool of RNase in quasi-equilibrium with the
+# transcript.  Its rate is therefore the steady state rate of the
+# Michaelis-Menten mechanism, k_eff = kdeg * [RNase] / K_M = 0.002 /sec, so
+# that both families of cell mixture lose RNA at the same rate.
+#
+# This is separate from the growth dilution above: in a cell RNA is lost
+# both by degradation and by dilution, so the total first order loss is
+# 0.002 + 5.78E-4 = 2.578E-3 /sec, which is the rate the kexpress below
+# assumes.  Note that the Dilution mechanism used here carries
+# mechanism_type 'dilution', so without an explicit entry the lookup
+# resolves to the growth dilution rate instead.
+rna_degradation		kdil	2.0E-3	/sec	matches k_eff of rna_degradation_mm
+
 # "Background" usage of resources
 #
 # The 'cellular_processes' parameter is used to reflect the utilization of
