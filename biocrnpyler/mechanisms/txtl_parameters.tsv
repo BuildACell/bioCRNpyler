@@ -10,7 +10,14 @@
 mechanism	part_id	param_name	value	units	comments
 
 # OneStepGeneExpression
-gene_expression		kexpress	19.23	/sec
+#
+# kexpress collapses transcription and translation into a single step,
+# kexpress = ktx * ktl / (RNA loss rate).  With ktx = ktl = 0.05 /sec and
+# the 8.25E-4 /sec mRNA decay measured for TX-TL extract (see
+# mixtures/extract_parameters.tsv), that is 0.05 * 0.05 / 8.25E-4.
+# Mixtures that model a different RNA loss rate set their own value.
+#
+gene_expression		kexpress	3.030	/sec	ktx * ktl / kdil
 
 # SimpleTranscription and SimpleTranslation
 transcription		ktx	0.05	/sec	50 nt/s and transcript length of 1000 nt
