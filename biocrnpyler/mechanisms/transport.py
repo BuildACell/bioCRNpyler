@@ -1414,8 +1414,8 @@ class Transport_SecondaryActive_Symporter(Mechanism):
             rxn_subrealase = Reaction.from_massaction(
                 [complex_dict[f'prod:{key}:MC']],
                 [complex_dict[f'{key}_in:MC'], sub_num*[substrate_in]],
-                k_forward=kb_prodMC,
-                k_reverse=ku_prodMC,
+                k_forward=ku_prodMC,
+                k_reverse=kb_prodMC,
             )
             secondaryactive_rxns.append(rxn_subrealase)
 
@@ -1423,17 +1423,17 @@ class Transport_SecondaryActive_Symporter(Mechanism):
             rxn_ionrealase = Reaction.from_massaction(
                 [complex_dict[f'{key}_in:MC']],
                  [ion_num*[ionI], carrier_in],
-                k_forward=kb_ionMC_in,
+                k_forward=ku_ionMC_in,
                 # k_reverse=ku_ionMC_in,
             )
             secondaryactive_rxns.append(rxn_ionrealase)
 
             # ion:MC <-- ion_in + MC
             prop_ionMC_in = GeneralPropensity(
-                f"ku_ionMC_in * {ionI} * {carrier_in} *"
+                f"kb_ionMC_in * {ionI} * {carrier_in} *"
                 f" (1 / (1 + exp(-10 * ({ionI} - {ionO}))))",
                 propensity_species=[ionI, ionO, carrier_in],
-                propensity_parameters=[ku_ionMC_in],
+                propensity_parameters=[kb_ionMC_in],
             )
             rxn_binding_ionMC2 = Reaction(
                 [ion_num*[ionI], carrier_in],
@@ -1811,15 +1811,15 @@ class Transport_SecondaryActive_Antiporter(Mechanism):
             rxn_ionMC_inF = Reaction.from_massaction(
                 [complex_dict[f'{key}_in:MC']],
                 [ion_num*[ionI], carrier_in],
-                k_forward=kb_ionMC_in,
+                k_forward=ku_ionMC_in,
             )
             secondaryactive_rxns.append(rxn_ionMC_inF)
             # ion_in:MC_in <-- ion_in + MC_in
             prop_ionMC_in = GeneralPropensity(
-                f"ku_ionMC_in * {ionI} * {carrier_in} *"
+                f"kb_ionMC_in * {ionI} * {carrier_in} *"
                 f" (1 / (1 + exp(-10 * ({ionI} - {ionO}))))",
                 propensity_species=[ionI, ionO, carrier_in],
-                propensity_parameters=[ku_ionMC_in],
+                propensity_parameters=[kb_ionMC_in],
             )
             rxn_ionMC_inR = Reaction(
                 [ion_num*[ionI], carrier_in],
@@ -1850,8 +1850,8 @@ class Transport_SecondaryActive_Antiporter(Mechanism):
             rxn_prodMC = Reaction.from_massaction(
                 [complex_dict['prod:MC']],
                 [sub_num*[substrate_out], membrane_carrier],
-                k_forward=kb_prodMC,
-                k_reverse=ku_prodMC,
+                k_forward=ku_prodMC,
+                k_reverse=kb_prodMC,
             )
             secondaryactive_rxns.append(rxn_prodMC)
 

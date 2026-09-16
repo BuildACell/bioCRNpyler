@@ -6,25 +6,25 @@ integration_membraneprotein		kcat	5E-01		Arbitrary value for the integration of 
 diffusion_simple		k_diff	2E-04		Arbitrary value for the diffusion of molecule through membrane
 diffusion_facilitated_channel		k_diff	1E-01		Arbitrary value for the simple transport of molecule through membrane pore 
 diffusion_facilitated_carrier		kb_subMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-diffusion_facilitated_carrier		ku_subMC	1E-02		Arbitrary value for the unbinding of signal substrate and membrane carrier
-diffusion_facilitated_carrier		kf_trnspMC	1E-01		Arbitrary value for the facilitated transport of molecule using membrane carrier
-diffusion_facilitated_carrier		kr_trnspMC	1E-01		Arbitrary value for the facilitated transport of molecule using membrane carrier
+diffusion_facilitated_carrier		ku_subMC	1E02		Arbitrary value for the unbinding of signal substrate and membrane carrier
+diffusion_facilitated_carrier		kf_trnspMC	1E01		Arbitrary value for the facilitated transport of molecule using membrane carrier
+diffusion_facilitated_carrier		kr_trnspMC	1E01		Arbitrary value for the facilitated transport of molecule using membrane carrier
 diffusion_facilitated_carrier		kb_prodMC	1E-03		Arbitrary value for the unbinding of product and membrane carrier
-diffusion_facilitated_carrier		ku_prodMC	1E-02		Arbitrary value for the unbinding of product and membrane carrier
-diffusion_facilitated_carrier		k_out	1E-03		Arbitrary value for the unbinding of product and membrane pucarriermp
-diffusion_facilitated_carrier		k_in	1E-01		Arbitrary value for the unbinding of product and membrane carrier
-transport_secondaryactive_symporter		kb_ionMC_out	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		ku_ionMC_out	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		kb_subMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		ku_subMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		kf_trnspMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		kr_trnspMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		kb_prodMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		ku_prodMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		kb_ionMC_in	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		ku_ionMC_in	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		k_out	1E-03		Arbitrary value for the unbinding of product and membrane carrier
-transport_secondaryactive_symporter		k_in	1E-01		Arbitrary value for the unbinding of product and membrane carrier
+diffusion_facilitated_carrier		ku_prodMC	1E02		Arbitrary value for the unbinding of product and membrane carrier
+diffusion_facilitated_carrier		k_out	1E01		Arbitrary value for the unbinding of product and membrane pucarriermp
+diffusion_facilitated_carrier		k_in	1E01		Arbitrary value for the unbinding of product and membrane carrier
+transport_secondaryactive_symporter		kb_ionMC_out	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier2
+transport_secondaryactive_symporter		ku_ionMC_out	1E02		Arbitrary value for the binding of signal substrate and membrane carrier
+transport_secondaryactive_symporter		kb_subMC	1E-02		Arbitrary value for the binding of signal substrate and membrane carrier
+transport_secondaryactive_symporter		ku_subMC	1E02		Arbitrary value for the binding of signal substrate and membrane carrier
+transport_secondaryactive_symporter		kf_trnspMC	1E01		Arbitrary value for the binding of signal substrate and membrane carrier
+transport_secondaryactive_symporter		kr_trnspMC	1E01		Arbitrary value for the binding of signal substrate and membrane carrier
+transport_secondaryactive_symporter		kb_prodMC	1E-02		Arbitrary value for the binding of signal substrate and membrane carrier
+transport_secondaryactive_symporter		ku_prodMC	1E02		Arbitrary value for the binding of signal substrate and membrane carrier
+transport_secondaryactive_symporter		kb_ionMC_in	1E-02		Arbitrary value for the binding of signal substrate and membrane carrier
+transport_secondaryactive_symporter		ku_ionMC_in	1E02		Arbitrary value for the binding of signal substrate and membrane carrier
+transport_secondaryactive_symporter		k_out	1E01		Arbitrary value for the unbinding of product and membrane carrier
+transport_secondaryactive_symporter		k_in	1E01		Arbitrary value for the unbinding of product and membrane carrier
 transport_secondaryactive_antiporter		kb_ionMC_out	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
 transport_secondaryactive_antiporter		ku_ionMC_out	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
 transport_secondaryactive_antiporter		kb_subMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier

@@ -108,20 +108,26 @@ class DiffusibleMolecule(Component):
         for sub in substrate:
             if (
                 isinstance(sub, Species)
-                and sub.compartment.name != internal_compartment
+                # and sub.compartment.name != internal_compartment
             ):
-                sub.compartment = internal_compartment
-
-            sub_species = self.set_species(
-                sub,
-                compartment=internal_compartment,
-                attributes=attributes,
-            )
+                if sub.compartment.name != internal_compartment:
+                                    # and sub.compartment.name != internal_compartment
+                                    sub.compartment = internal_compartment
+                # attributes = sub.attributes
+                sub_species = sub
+            elif isinstance(sub, str):
+                # sub_name = sub
+                sub_species = self.set_species(
+                    sub,
+                    compartment=internal_compartment,
+                    attributes=attributes,
+                )
 
             prod_species = self.set_species(
                 sub_species.name,
+                material_type=sub_species.material_type,
                 compartment=external_compartment,
-                attributes=attributes,
+                attributes=sub_species.attributes,
             )
 
             self.substrate.append(sub_species)
@@ -282,7 +288,7 @@ class IntegralMembraneProtein(Component):
 
     def __init__(
         self,
-        membrane_protein: Union[Species, str, Component],
+        membrane_protein: Union[Species, str],
         product: Union[Species, str, Component],
         size: int = None,
         compartment: Union[str, Compartment] = 'internal',
@@ -297,22 +303,19 @@ class IntegralMembraneProtein(Component):
             membrane_compartment = Compartment(name=membrane_compartment)
 
         # PROTEIN
-        if isinstance(membrane_protein, Component):
-            membrane_protein_name = membrane_protein.get_species()[0].name
-        elif isinstance(membrane_protein, Species):
-            membrane_protein_name = membrane_protein.name
+        if isinstance(membrane_protein, Species):
+            self.membrane_protein = membrane_protein
         elif isinstance(membrane_protein, str):
             membrane_protein_name = membrane_protein
+            self.membrane_protein = self.set_species(
+                membrane_protein_name,
+                material_type='protein',
+                compartment=compartment,
+                attributes=attributes,
+            )
         else:
             raise TypeError(f"Expected Species, Component, or str. "
                             f"Got: {type(membrane_protein)}")
-
-        self.membrane_protein = self.set_species(
-            membrane_protein_name,
-            material_type='protein',
-            compartment=compartment,
-            attributes=attributes,
-        )
 
         # Logic for prioritizing compartments
         if self.membrane_protein.compartment.name == 'default':
@@ -327,7 +330,9 @@ class IntegralMembraneProtein(Component):
                 UserWarning,
             )
             compartment = self.membrane_protein.compartment
-        else:
+        elif (self.membrane_protein.compartment.name != compartment.name
+            and compartment.name != 'internal'
+        ):
             warnings.warn(
                 "Inconsistent compartments, prioritizing integral membrane "
                 "protein compartment.",
@@ -506,14 +511,20 @@ class MembraneChannel(Component):
         if isinstance(external_compartment, str):
             external_compartment = Compartment(name=external_compartment)
 
-        # Set up the integral membrane protein
-        # TODO: allow integral_membrane_protein to be a Component
-        if isinstance(membrane_channel, str):
-            membrane_channel = self.set_species(
+        # Channel
+        if isinstance(membrane_channel, Component):
+            self.membrane_channel = membrane_channel.product
+        elif isinstance(membrane_channel, Species):
+            self.membrane_channel = membrane_channel
+        elif isinstance(membrane_channel, str):
+            self.membrane_channel = self.set_species(
                 membrane_channel,
                 material_type='protein',
+                attributes=attributes,
             )
-        self.membrane_channel = membrane_channel
+        else:
+            raise TypeError(f"Expected Species, Component, or str. "
+                            f"Got: {type(membrane_channel)}")
 
         # Substrate and product assignments.
         #
@@ -536,11 +547,13 @@ class MembraneChannel(Component):
         # Iterate over each substrate
         for sub in substrate:
             if isinstance(sub, Species):
-                sub_name = sub.name
-                if sub.compartment.name != internal_compartment:
-                    sub.compartment = internal_compartment
-
+                # sub_name = sub.name
+                # attributes = sub.attributes
                 sub_species = sub
+                if sub.compartment.name != internal_compartment.name:
+                    # and sub.compartment.name != internal_compartment
+                    sub.compartment = internal_compartment
+                # print(sub_species)
 
             elif isinstance(sub, Component):
                 sub_name = sub.get_species()[0].name
@@ -564,9 +577,10 @@ class MembraneChannel(Component):
                             f"Got: {type(sub)}")
 
             prod_species = self.set_species(
-                sub_name,
+                sub_species.name,
+                material_type=sub_species.material_type,
                 compartment=external_compartment,
-                attributes=attributes,
+                attributes=sub_species.attributes,
             )
 
             self.substrate_in.append(sub_species)
@@ -733,14 +747,20 @@ class MembraneCarrier(Component):
         if isinstance(external_compartment, str):
             external_compartment = Compartment(name=external_compartment)
 
-        # Set up the integral membrane protein
-        # TODO: allow integral_membrane_protein to be a Component
-        if isinstance(membrane_carrier, str):
-            membrane_carrier = self.set_species(
+        # Carrier
+        if isinstance(membrane_carrier, Component):
+            self.membrane_carrier = membrane_carrier.product
+        elif isinstance(membrane_carrier, Species):
+            self.membrane_carrier = membrane_carrier
+        elif isinstance(membrane_carrier, str):
+            self.membrane_carrier = self.set_species(
                 membrane_carrier,
                 material_type='protein',
+                attributes=attributes,
             )
-        self.membrane_carrier = membrane_carrier
+        else:
+            raise TypeError(f"Expected Species, Component, or str. "
+                            f"Got: {type(membrane_carrier)}")
 
         # Substrate and product assignments.
         #
@@ -761,11 +781,14 @@ class MembraneCarrier(Component):
         # Iterate over each substrate
         for sub in substrate:
             if isinstance(sub, Species):
-                sub_name = sub.name
-                if sub.compartment.name != internal_compartment:
-                    sub.compartment = internal_compartment
-
+                # sub_name = sub.name
                 sub_species = sub
+                # attributes = sub.attributes
+                if sub.compartment.name != internal_compartment:
+                                    # and sub.compartment.name != internal_compartment
+                                    sub.compartment = internal_compartment
+
+                
 
             elif isinstance(sub, Component):
                 sub_name = sub.get_species()[0].name
@@ -789,9 +812,10 @@ class MembraneCarrier(Component):
                             f"Got: {type(sub)}")
 
             prod_species = self.set_species(
-                sub_name,
+                sub_species.name,
+                material_type=sub_species.material_type,
                 compartment=external_compartment,
-                attributes=attributes,
+                attributes=sub_species.attributes,
             )
 
             self.substrate_in.append(sub_species)
@@ -1028,12 +1052,20 @@ class MembranePump(Component):
         if isinstance(external_compartment, str):
             external_compartment = Compartment(name=external_compartment)
 
-        if isinstance(membrane_pump, str):
-            membrane_pump = self.set_species(
+        # Pump
+        if isinstance(membrane_pump, Component):
+            self.membrane_pump = membrane_pump.product
+        elif isinstance(membrane_pump, Species):
+            self.membrane_pump = membrane_pump
+        elif isinstance(membrane_pump, str):
+            self.membrane_pump = self.set_species(
                 membrane_pump,
                 material_type='protein',
+                attributes=attributes,
             )
-        self.membrane_pump = membrane_pump
+        else:
+            raise TypeError(f"Expected Species, Component, or str. "
+                            f"Got: {type(membrane_pump)}")
 
         # ENERGY and WASTE
         self.energy = self.set_species(
@@ -1087,11 +1119,10 @@ class MembranePump(Component):
         # Iterate over each substrate
         for sub in substrate:
             if isinstance(sub, Species):
-                sub_name = sub.name
+                # sub_name = sub.name
+                sub_species = sub
                 if sub.compartment.name != sub_compartment:
                     sub.compartment = sub_compartment
-
-                sub_species = sub
 
             elif isinstance(sub, Component):
                 sub_name = sub.get_species()[0].name
@@ -1115,9 +1146,10 @@ class MembranePump(Component):
                             f"Got: {type(sub)}")
 
             prod_species = self.set_species(
-                sub_name,
+                sub_species.name,
+                material_type=sub_species.material_type,
                 compartment=prod_compartment,
-                attributes=attributes,
+                attributes=sub_species.attributes,
             )
 
             self.substrate.append(sub_species)
@@ -1396,20 +1428,20 @@ class MembraneSensor(Component):
             )
 
         # PROTEIN
-        if membrane_sensor is None:
-            self.membrane_sensor = None
-        elif isinstance(membrane_sensor, Component):
-            self.membrane_sensor = self.set_species(
-                membrane_sensor.get_species()[0].name,
-                compartment=internal_compartment,
-                attributes=attributes,
-            )
-        else:
+        if isinstance(membrane_sensor, Component):
+            self.membrane_sensor = membrane_sensor.product
+        elif isinstance(membrane_sensor, Species):
+            self.membrane_sensor = membrane_sensor
+        elif isinstance(membrane_sensor, str):
             self.membrane_sensor = self.set_species(
                 membrane_sensor,
                 material_type='protein',
                 attributes=attributes,
             )
+        else:
+            raise TypeError(f"Expected Species, Component, or str. "
+                            f"Got: {type(membrane_sensor)}")
+        
         # ENERGY: ATP
         if ATP is None:
             self.membrane_sensor.ATP = 1
