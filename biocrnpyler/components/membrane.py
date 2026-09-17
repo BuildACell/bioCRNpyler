@@ -856,13 +856,19 @@ class MembraneCarrier(Component):
         """
         mech_tra = self.get_mechanism('diffusion',
                                       optional_mechanism=True)
+
         species_list = []
 
         if mech_tra is None:
             mech_tra = self.get_mechanism('transport',
                                           optional_mechanism=True)
-
-            for sub_in, sub_out in zip(self.substrate_in, self.substrate_out):
+        if mech_tra is None:
+            raise KeyError(
+                f"Unable to find mechanism of type diffusion or transport in Component {self}."
+            )
+        
+        for sub_in, sub_out in zip(self.substrate_in, self.substrate_out):
+            try:
                 species_list.extend(
                     mech_tra.update_species(
                         self.membrane_carrier,
@@ -871,8 +877,7 @@ class MembraneCarrier(Component):
                         driving_ion=None
                     )
                 )
-        else:
-            for sub_in, sub_out in zip(self.substrate_in, self.substrate_out):
+            except TypeError:
                 species_list.extend(
                     mech_tra.update_species(
                         self.membrane_carrier,
@@ -902,8 +907,13 @@ class MembraneCarrier(Component):
         if mech_tra is None:
             mech_tra = self.get_mechanism('transport',
                                           optional_mechanism=True)
-
-            for sub_in, sub_out in zip(self.substrate_in, self.substrate_out):
+        if mech_tra is None:
+                    raise KeyError(
+                        f"Unable to find mechanism of type diffusion or transport in Component {self}."
+                    )
+        
+        for sub_in, sub_out in zip(self.substrate_in, self.substrate_out):
+            try:
                 reactions_list.extend(
                     mech_tra.update_reactions(
                         self.membrane_carrier,
@@ -914,8 +924,7 @@ class MembraneCarrier(Component):
                         part_id=self.name,
                     )
                 )
-        else:
-            for sub_in, sub_out in zip(self.substrate_in, self.substrate_out):
+            except TypeError:
                 reactions_list.extend(
                     mech_tra.update_reactions(
                         self.membrane_carrier,
@@ -927,8 +936,6 @@ class MembraneCarrier(Component):
                 )
 
         return reactions_list
-
-
 
 class MembranePump(Component):
     """ATP-dependent membrane pump for active transport.
@@ -1039,7 +1046,7 @@ class MembranePump(Component):
         membrane_pump: Union[Species, str, Component],
         substrate: Union[List[Union[Species, str, Component]],
                          Union[Species, str, Component]],
-        direction: str,
+        direction: str = 'exporter',
         internal_compartment: Union[str, Compartment] = 'internal',
         external_compartment: Union[str, Compartment] = 'external',
         ATP: int = None,
@@ -1066,6 +1073,8 @@ class MembranePump(Component):
         else:
             raise TypeError(f"Expected Species, Component, or str. "
                             f"Got: {type(membrane_pump)}")
+        
+        self.membrane_pump.direction = direction
 
         # ENERGY and WASTE
         self.energy = self.set_species(
@@ -1110,9 +1119,9 @@ class MembranePump(Component):
             sub_compartment = internal_compartment
             prod_compartment = external_compartment
         else:
-            warnings.warn(
-                "Direction of pump must be defined as 'exporter' or" \
-                "'importer'",
+            raise TypeError(
+                f"Direction of pump must be defined as 'exporter' or" \
+                f"'importer'. Got: {direction}.",
                 UserWarning,
             )
 

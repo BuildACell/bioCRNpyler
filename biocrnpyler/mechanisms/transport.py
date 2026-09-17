@@ -1,6 +1,8 @@
 # Copyright (c) 2020, Build-A-Cell. All rights reserved.
 # See LICENSE file in the project root directory for details.
 
+import warnings
+
 from ..core.mechanism import Mechanism
 from ..core.propensities import GeneralPropensity, ProportionalHillNegative
 from ..core.reaction import Reaction
@@ -2035,6 +2037,11 @@ class Transport_PrimaryActive_ABCexporter(Mechanism):
         """
         nATP = membrane_pump.ATP
 
+        if 'exporter' not in membrane_pump.attributes:
+            warnings.warn(
+                "This mechanism is defined as an exporter, but is currently being used as an importer.",
+            )
+        
         if complex_dict is None:
             # Create empty dictionary for complexes
             complex_dict = {}
