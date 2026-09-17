@@ -281,14 +281,14 @@ class test_transport_secondaryactive_symporter:
     }
     transport_params = Component('transport_params', parameters=symporter_param_dict)
     # Test Update Reactions
-    assert len(tsas.update_reactions(MC, sub_in, sub_out, component=transport_params)) == 6
+    assert len(tsas.update_reactions(MC, sub_in, sub_out, component=transport_params)) == 8
     assert (
             len(
                 tsas.update_reactions(MC, sub_in, sub_out, component=transport_params,
                     complex_species=c_fake,
                 )
             )
-            == 6
+            == 8
         )
 
 
@@ -328,9 +328,16 @@ class test_transport_secondaryactive_antiporter:
         ParameterKey(mechanism='transport_secondaryactive_antiporter', part_id=None, name='ku_ionMC_in'): 2e-10,
     }
     transport_params = Component('transport_params', parameters=antiporter_param_dict)
-
-    assert len(tsaa.update_reactions(MC, sub_in, sub_out, component=transport_params)) == 6
-
+    # Test Update Reactions
+    assert len(tsaa.update_reactions(MC, sub_in, sub_out, component=transport_params)) == 8
+    assert (
+                len(
+                    tsaa.update_reactions(MC, sub_in, sub_out, component=transport_params,
+                        complex_species=c_fake,
+                    )
+                )
+                == 8
+            )
 class test_transport_primaryactive_abcexporter:
     MPabc = Transport_PrimaryActive_ABCexporter()
     MP = Species('MC1')
