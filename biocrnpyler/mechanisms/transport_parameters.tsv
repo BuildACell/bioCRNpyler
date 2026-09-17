@@ -49,15 +49,15 @@ transport_primaryactive_abcexporter		ku_prodMP	1E-01		Arbitrary value for the un
 transport_primaryactive_abcexporter		kb_prodMP	1E-01		Arbitrary value for the unbinding of product and membrane pump
 transport_primaryactive_abcexporter		ku_MP	1E-01		Arbitrary value for the unbinding of waste and membrane pump
 transport_primaryactive_abcexporter		kb_MP	1E-01		Arbitrary value for the unbinding of waste and membrane pump
-sensor_two_component_signaling		kb_sigMS	2E-03		Arbitrary value for the binding of signal substrate and membrane sensor
-sensor_two_component_signaling		ku_sigMS	2E-10		Arbitrary value for the unbinding of signal substrate and membrane sensor
-sensor_two_component_signaling		kb_autoPhos	2E-03		Arbitrary value for the binding of ATP and membrane sensor
-sensor_two_component_signaling		ku_autoPhos	2E-10		Arbitrary value for the unbinding of ATP and membrane sensor
-sensor_two_component_signaling		k_hydro	1E-01		Arbitrary value for the hydrolysis
-sensor_two_component_signaling		ku_waste	8E-01		Arbitrary value for the unbinding of waste product from hydrolyzed membrane sensor
-sensor_two_component_signaling		kb_phosRP	2E-03		Arbitrary value for the binding of phosphorylated membrane sensor and response protein
-sensor_two_component_signaling		ku_phosRP	1E-10		Arbitrary value for the unbinding of phosphorylated membrane sensor and response protein
-sensor_two_component_signaling		k_phosph	1E-01		Arbitrary value for the phosphorylation of response protein
-sensor_two_component_signaling		ku_activeRP	2E-01		Arbitrary value for the unbinding of response protein and membrane sensor
-sensor_two_component_signaling		kb_activeRP	2E-01		Arbitrary value for the unbinding of response protein and membrane sensor
-sensor_two_component_signaling		ku_dephos	2E-10		Arbitrary value for the dephosphorylation of response protein
+sensor_two_component_system		kb_sigMS	2E-03		Arbitrary value for the binding of signal substrate and membrane sensor
+sensor_two_component_system		ku_sigMS	2E-10		Arbitrary value for the unbinding of signal substrate and membrane sensor
+sensor_two_component_system		kb_autoPhos	2E-03		Arbitrary value for the binding of ATP and membrane sensor
+sensor_two_component_system		ku_autoPhos	2E-10		Arbitrary value for the unbinding of ATP and membrane sensor
+sensor_two_component_system		k_hydro	1E-01		Arbitrary value for the hydrolysis
+sensor_two_component_system		ku_waste	8E-01		Arbitrary value for the unbinding of waste product from hydrolyzed membrane sensor
+sensor_two_component_system		kb_phosRP	2E-03		Arbitrary value for the binding of phosphorylated membrane sensor and response protein
+sensor_two_component_system		ku_phosRP	1E-10		Arbitrary value for the unbinding of phosphorylated membrane sensor and response protein
+sensor_two_component_system		k_phosph	1E-01		Arbitrary value for the phosphorylation of response protein
+sensor_two_component_system		ku_activeRP	2E-01		Arbitrary value for the unbinding of response protein and membrane sensor
+sensor_two_component_system		kb_activeRP	2E-01		Arbitrary value for the unbinding of response protein and membrane sensor
+sensor_two_component_system		ku_dephos	2E-10		Arbitrary value for the dephosphorylation of response protein

@@ -6,7 +6,7 @@ from ..core.reaction import Reaction
 from ..core.species import Complex
 
 
-class Sensor_TwoComponentSignaling(Mechanism):
+class Sensor_TwoComponentSystem(Mechanism):
     r"""Two-component system membrane sensor with Michaelis-Menten kinetics.
 
     A 'membrane_sensor' mechanism that models a two-component system (TCS)
@@ -123,11 +123,14 @@ class Sensor_TwoComponentSignaling(Mechanism):
 
     def __init__(
         self,
-        name='sensor_two_component_signaling',
+        name='sensor_two_component_system',
         mechanism_type='membrane_sensor',
+        parameter_file='mechanisms/transport_parameters.tsv',
         **kwargs,
     ):
-        Mechanism.__init__(self, name, mechanism_type)
+        Mechanism.__init__(
+            self, name, mechanism_type, parameter_file=parameter_file
+        )
 
     def update_species(
         self,

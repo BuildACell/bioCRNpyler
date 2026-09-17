@@ -5,7 +5,7 @@
 from biocrnpyler import (
     Complex,
     Component,
-    Sensor_TwoComponentSignaling,
+    Sensor_TwoComponentSystem,
     ParameterKey,
     Species,
 )
@@ -29,8 +29,8 @@ def total_length(nested_array):
             count += 1  # Count individual elements
     return count
 
-class test_sensor_twocomponentsignaling:
-    tcs = Sensor_TwoComponentSignaling()
+class test_sensor_twocomponentsystem:
+    tcs = Sensor_TwoComponentSystem()
     MS = Species('MS1')
     MS.ATP = 2
     RP = Species('RP1')

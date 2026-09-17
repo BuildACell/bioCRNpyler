@@ -12,7 +12,6 @@ from biocrnpyler import (
     MembraneSensor,
 )
 
-
 def test_DiffusibleMolecule():
     diffusion_molecule = 'DP'
 
@@ -46,7 +45,6 @@ def test_DiffusibleMolecule():
     ):
         dm.update_reactions()
 
-
 def test_IntegralMembraneProtein():
     membrane_protein = 'MP1'
     products = 'P1'
@@ -61,16 +59,15 @@ def test_IntegralMembraneProtein():
 
     with pytest.raises(
         KeyError,
-        match='Unable to find mechanism of type membrane_insertion in Component',
+        match='Unable to find mechanism of type membrane_integration in Component',
     ):
         imp.update_species()
 
     with pytest.raises(
         KeyError,
-        match='Unable to find mechanism of type membrane_insertion in Component',
+        match='Unable to find mechanism of type membrane_integration in Component',
     ):
         imp.update_reactions()
-
 
 def test_MembraneChannel():
     membrane_carrier = 'IMP1'
@@ -126,13 +123,13 @@ def test_MembraneCarrier():
 
     with pytest.raises(
         KeyError,
-        match='Unable to find mechanism of type diffusion or transport in Component',
+        match='Unable to find mechanism of type diffusion in Component',
     ):
         mc.update_species()
 
     with pytest.raises(
         KeyError,
-        match='Unable to find mechanism of type diffusion or transport in Component',
+        match='Unable to find mechanism of type diffusion in Component',
     ):
         mc.update_reactions()
 
@@ -167,7 +164,6 @@ def test_MembranePump():
         match='Unable to find mechanism of type transport in Component',
     ):
         mp.update_reactions()
-
 
 def test_MembraneSensor():
     membrane_sensor = 'MSensor1'
