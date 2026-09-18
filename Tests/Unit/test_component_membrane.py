@@ -70,11 +70,11 @@ def test_IntegralMembraneProtein():
         imp.update_reactions()
 
 def test_MembraneChannel():
-    membrane_carrier = 'IMP1'
+    membrane_channel = 'IMP1'
     substrates = 'S1'
 
-    mc = MembraneChannel(membrane_carrier, substrate=substrates)
-    assert membrane_carrier == mc.membrane_carrier.name
+    mc = MembraneChannel(membrane_channel, substrate=substrates)
+    assert membrane_channel == mc.membrane_channel.name
 
     # Iterate over list
     subs_name= []
@@ -123,13 +123,13 @@ def test_MembraneCarrier():
 
     with pytest.raises(
         KeyError,
-        match='Unable to find mechanism of type diffusion in Component',
+        match='Unable to find mechanism of type diffusion or transport in Component',
     ):
         mc.update_species()
 
     with pytest.raises(
         KeyError,
-        match='Unable to find mechanism of type diffusion in Component',
+        match='Unable to find mechanism of type diffusion or transport in Component',
     ):
         mc.update_reactions()
 
