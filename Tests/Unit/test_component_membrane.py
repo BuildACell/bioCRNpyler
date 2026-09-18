@@ -73,7 +73,7 @@ def test_MembraneChannel():
     membrane_carrier = 'IMP1'
     substrates = 'S1'
 
-    mc = MembraneCarrier(membrane_carrier, substrate=substrates)
+    mc = MembraneChannel(membrane_carrier, substrate=substrates)
     assert membrane_carrier == mc.membrane_carrier.name
 
     # Iterate over list

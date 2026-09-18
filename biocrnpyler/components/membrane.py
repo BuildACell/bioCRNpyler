@@ -14,7 +14,7 @@ class DiffusibleMolecule(Component):
 
     A `DiffusibleMolecule` component represents a molecule that is membrane
     permeable, thus can diffuse across a membrane separating two compartments.
-    The component uses a 'diffusion' mechanism to generate bidirectional
+    The component uses the 'diffusion' mechanism to generate bidirectional
     diffusion reactions based on concentration gradients.
 
     Parameters
@@ -44,8 +44,8 @@ class DiffusibleMolecule(Component):
 
     See Also
     --------
-    MembraneChannel : Membrane channel for facilitates substrate diffusion.
-    MembraneCarrier: Membrane carrier for substrate transport.
+    MembraneChannel : Membrane channel for substrate diffusion.
+    MembraneCarrier : Membrane carrier for substrate diffusion or transport.
     MembranePump : Membrane pump for ATP-dependent substrate transport.
     Component : Base class for biomolecular components.
 
@@ -75,8 +75,7 @@ class DiffusibleMolecule(Component):
 
     >>> mixture = bcp.Mixture(
     ...     components=[glucose],
-    ...     mechanisms={'diffusion': bcp.Simple_Diffusion()},
-    ...     parameters={'k_diff': 0.01}
+    ...     mechanisms={'diffusion': bcp.Diffusion_Simple()},
     ... )
     >>> crn = mixture.compile_crn()
 
@@ -106,17 +105,11 @@ class DiffusibleMolecule(Component):
         self.product = []
 
         for sub in substrate:
-            if (
-                isinstance(sub, Species)
-                # and sub.compartment.name != internal_compartment
-            ):
+            if isinstance(sub, Species):
                 if sub.compartment.name != internal_compartment:
-                                    # and sub.compartment.name != internal_compartment
-                                    sub.compartment = internal_compartment
-                # attributes = sub.attributes
+                    sub.compartment = internal_compartment
                 sub_species = sub
             elif isinstance(sub, str):
-                # sub_name = sub
                 sub_species = self.set_species(
                     sub,
                     compartment=internal_compartment,
@@ -159,7 +152,7 @@ class DiffusibleMolecule(Component):
         return self.substrate
 
     def update_species(self):
-        """Use 'diffusion' mechanism to generate diffusion species.
+        """Uses the 'diffusion' mechanism to generate diffusion species.
 
         Uses the 'diffusion' mechanism to generate species in both
         compartments.
@@ -183,7 +176,7 @@ class DiffusibleMolecule(Component):
     def update_reactions(self):
         """Use 'diffusion' mechanism to generate diffusion reactions.
 
-        Uses the 'diffusion' mechanism to generate reactions for passive
+        Uses the 'diffusion' mechanism to generate reactions for
         diffusion between compartments.
 
         Returns
@@ -206,13 +199,14 @@ class DiffusibleMolecule(Component):
 
         return reactions_list
 
-class IntegralMembraneProtein(Component):
-    """Transmembrane protein that integrates into the membrane.
 
-    An `IntegralMembraneProtein` component represents a membrane protein
-    that integrates into a membrane compartment. The component uses a
+class IntegralMembraneProtein(Component):
+    """A protein that integrates into the membrane.
+
+    An `IntegralMembraneProtein` component represents a protein
+    that integrates into a membrane compartment. The component uses the
     'membrane_integration' mechanism to generate reactions for protein
-    insertion into the membrane. The size parameter allows modeling of
+    integration into the membrane. The size parameter allows modeling of
     oligomeric channels (dimers, trimers, etc.).
 
     Parameters
@@ -249,8 +243,8 @@ class IntegralMembraneProtein(Component):
 
     See Also
     --------
-    MembraneChannel : Membrane channel for facilitates substrate diffusion.
-    MembraneCarrier: Membrane carrier for substrate transport.
+    MembraneChannel : Membrane channel for substrate diffusion.
+    MembraneCarrier : Membrane carrier for substrate diffusion or transport.
     MembranePump : Membrane pump for ATP-dependent substrate transport.
     Component : Base class for biomolecular components.
 
@@ -376,7 +370,7 @@ class IntegralMembraneProtein(Component):
         Component.__init__(self=self, name=name, **kwargs)
 
     def get_species(self):
-        """Get the membrane protein species before insertion.
+        """Get the membrane protein species before integration.
 
         Returns
         -------
@@ -388,10 +382,10 @@ class IntegralMembraneProtein(Component):
         return self.membrane_protein
 
     def update_species(self):
-        """Use 'membrane_integration' to generate membrane integrated species.
+        """Uses the 'membrane_integration' to generate integration species.
 
         Uses the 'membrane_integration' mechanism to generate species for
-        the protein before and after insertion.
+        the protein before and after integration.
 
         Returns
         -------
@@ -404,7 +398,7 @@ class IntegralMembraneProtein(Component):
         return mech_ins.update_species(self.membrane_protein, self.product)
 
     def update_reactions(self):
-        """Use 'membrane_integration' to generate insertion reactions.
+        """Use 'membrane_integration' to generate integration reactions.
 
         Uses the 'membrane_integration' mechanism to generate reactions for
         protein integration into the membrane.
@@ -412,7 +406,7 @@ class IntegralMembraneProtein(Component):
         Returns
         -------
         list of Reaction
-            List of reactions for protein insertion into the membrane.
+            List of reactions for protein integration into the membrane.
 
         """
         mech_ins = self.get_mechanism('membrane_integration')
@@ -423,17 +417,18 @@ class IntegralMembraneProtein(Component):
             part_id=self.name,
         )
 
+
 class MembraneChannel(Component):
-    """Membrane channel for facilitated diffusion across membranes.
+    """Membrane proteins that facilitate solute diffusion across membranes.
 
     A `MembraneChannel` component represents a membrane channel or
     pore that facilitates substrate movement across a membrane
-    following concentration gradients. The component uses a 'diffusion'
-    mechanism to generate diffucion reactions.
+    following concentration gradients. The component uses the 'diffusion'
+    mechanism to generate diffusion reactions.
 
     Parameters
     ----------
-    integral_membrane_protein : Species, str, or Component
+    membrane_channel : Species, str, or Component
         The integral membrane protein that forms the channel. Can be a
         `Species` object, string name, or `Component`. If a string,
         automatically creates a protein species with appropriate direction
@@ -455,7 +450,7 @@ class MembraneChannel(Component):
 
     Attributes
     ----------
-    integral_membrane_protein : Species
+    membrane_channel : Species
         The membrane channel protein species.
     substrate : Species
         The substrate species in the source compartment (depends on
@@ -466,21 +461,21 @@ class MembraneChannel(Component):
     See Also
     --------
     IntegralMembraneProtein : Protein insertion into membranes.
-    MembranePump : ATP-dependent active transport.
+    MembranePump : Membrane pump for ATP-dependent substrate transport.
     DiffusibleMolecule : Passive diffusion without channels.
     Component : Base class for biomolecular components.
 
     Notes
     -----
     The component name is automatically generated as:
-    '<integral_membrane_protein_name>_<compartment_name>'
+    '<membrane_channel_name>_<compartment_name>'
 
     Examples
     --------
     Create a passive channel:
 
     >>> channel = bcp.MembraneChannel(
-    ...     integral_membrane_protein='WaterChannel',
+    ...     membrane_channel='WaterChannel',
     ...     substrate='Water',
     ... )
 
@@ -489,7 +484,6 @@ class MembraneChannel(Component):
     >>> mixture = bcp.Mixture(
     ...     components=[channel],
     ...     mechanisms={'diffusion': bcp.Diffusion_Facilitated_Channel()},
-    ...     parameter_file='mechanisms/transport_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
@@ -527,7 +521,6 @@ class MembraneChannel(Component):
                             f"Got: {type(membrane_channel)}")
 
         # Substrate and product assignments.
-        #
         # In the case of membrane components, the substrate is the
         # substance on which the channel acts without distinction
         # of compartment. The substrate and product are the same substance
@@ -547,23 +540,16 @@ class MembraneChannel(Component):
         # Iterate over each substrate
         for sub in substrate:
             if isinstance(sub, Species):
-                # sub_name = sub.name
-                # attributes = sub.attributes
                 sub_species = sub
                 if sub.compartment.name != internal_compartment.name:
-                    # and sub.compartment.name != internal_compartment
                     sub.compartment = internal_compartment
-                # print(sub_species)
-
             elif isinstance(sub, Component):
                 sub_name = sub.get_species()[0].name
-
                 sub_species = self.set_species(
                     sub_name,
                     compartment=internal_compartment,
                     attributes=attributes,
                 )
-
             elif isinstance(sub, str):
                 sub_name = sub
                 sub_species = self.set_species(
@@ -571,7 +557,6 @@ class MembraneChannel(Component):
                     compartment=internal_compartment,
                     attributes=attributes,
                 )
-
             else:
                 raise TypeError(f"Expected Species, Component, or str. "
                             f"Got: {type(sub)}")
@@ -597,19 +582,19 @@ class MembraneChannel(Component):
         Component.__init__(self=self, name=name, **kwargs)
 
     def get_species(self):
-        """Get the integral membrane protein species.
+        """Get the membrane channel species.
 
         Returns
         -------
         Species
             The integral membrane protein species that
-              forms the channel.
+              forms the channel or pore.
 
         """
         return self.membrane_channel
 
     def update_species(self):
-        """Use 'diffusion' mechanism to generate channel-mediated species.
+        """Uses the 'diffusion' mechanism to generate channel species.
 
         Uses the 'diffusion' mechanism to generate species including the
         channel protein, substrate, and product.
@@ -659,17 +644,18 @@ class MembraneChannel(Component):
             )
         return reactions_list
 
+
 class MembraneCarrier(Component):
-    """Membrane carrier for facilitated diffusion across membranes.
+    """Membrane proteins that facilitate solute diffusion or transport across.
 
     A `MembraneCarrier` component represents a membrane carrier facilitates
     substrate movement across a membrane following concentration gradients of
-    the substrate or driving ion. The component uses a 'diffusion' mechanism
-    to generate transport reactions.
+    the substrate or driving ion. The component uses the 'diffusion' or
+    'transport' mechanism to generate diffusion or transport reactions.
 
     Parameters
     ----------
-    integral_membrane_protein : Species, str, or Component
+    membrane_carrier : Species, str, or Component
         The integral membrane protein that forms the carrier. Can be a
         `Species` object, string name, or `Component`. If a string,
         automatically creates a protein species with appropriate direction
@@ -691,7 +677,7 @@ class MembraneCarrier(Component):
 
     Attributes
     ----------
-    integral_membrane_protein : Species
+    membrane_carrier : Species
         The membrane channel protein species.
     substrate : Species
         The substrate species in the source compartment (depends on
@@ -701,22 +687,22 @@ class MembraneCarrier(Component):
 
     See Also
     --------
-    IntegralMembraneProtein : Protein insertion into membranes.
-    MembranePump : ATP-dependent active transport.
+    IntegralMembraneProtein : Protein integration into membranes.
+    MembranePump : Membrane pump for ATP-dependent substrate transport.
     DiffusibleMolecule : Passive diffusion without channels.
     Component : Base class for biomolecular components.
 
     Notes
     -----
     The component name is automatically generated as:
-    '<integral_membrane_protein_name>_<compartment_name>'
+    '<membrane_carrier_name>_<compartment_name>'
 
     Examples
     --------
     Create a passive carrier:
 
     >>> carrier = bcp.MembraneCarrier(
-    ...     integral_membrane_protein='SubCarrier',
+    ...     membrane_carrier='SubCarrier',
     ...     substrate='S1',
     ... )
 
@@ -724,8 +710,7 @@ class MembraneCarrier(Component):
 
     >>> mixture = bcp.Mixture(
     ...     components=[carrier],
-    ...     mechanisms={'diffusion': bcp.Diffusion_Facilitated_Uniporter()},
-    ...     parameter_file='mechanisms/transport_parameters.tsv'
+    ...     mechanisms={'diffusion': bcp.Diffusion_Facilitated_Carrier()},
     ... )
     >>> crn = mixture.compile_crn()
 
@@ -765,7 +750,7 @@ class MembraneCarrier(Component):
         # Substrate and product assignments.
         #
         # In the case of membrane components, the substrate is the
-        # substance on which the channel acts without distinction
+        # substance on which the carrier acts without distinction
         # of compartment. The substrate and product are the same substance
         # and the substance does not change as a result except for the
         # compartment. The substrate and the product are explicitly given the
@@ -781,15 +766,10 @@ class MembraneCarrier(Component):
         # Iterate over each substrate
         for sub in substrate:
             if isinstance(sub, Species):
-                # sub_name = sub.name
                 sub_species = sub
-                # attributes = sub.attributes
+
                 if sub.compartment.name != internal_compartment:
-                                    # and sub.compartment.name != internal_compartment
-                                    sub.compartment = internal_compartment
-
-                
-
+                    sub.compartment = internal_compartment
             elif isinstance(sub, Component):
                 sub_name = sub.get_species()[0].name
 
@@ -798,7 +778,6 @@ class MembraneCarrier(Component):
                     compartment=internal_compartment,
                     attributes=attributes,
                 )
-
             elif isinstance(sub, str):
                 sub_name = sub
                 sub_species = self.set_species(
@@ -806,7 +785,6 @@ class MembraneCarrier(Component):
                     compartment=internal_compartment,
                     attributes=attributes,
                 )
-
             else:
                 raise TypeError(f"Expected Species, Component, or str. "
                             f"Got: {type(sub)}")
@@ -831,42 +809,48 @@ class MembraneCarrier(Component):
         Component.__init__(self=self, name=name, **kwargs)
 
     def get_species(self):
-        """Get the integral membrane protein species.
+        """Get the membrane carrier species.
 
         Returns
         -------
         Species
             The integral membrane protein species that
-              forms the channel.
+              forms the carrier.
 
         """
         return self.membrane_carrier
 
     def update_species(self):
-        """Use 'diffusion' mechanism to generate channel-mediated species.
+        """Uses the 'diffusion' or 'transport' mechanism to generate species.
 
-        Uses the 'diffusion' mechanism to generate species including the
-        channel protein, substrate, and product.
+        Uses the 'diffusion' or 'transport' mechanism to generate species
+        including the carrier protein, substrate, and product.
 
         Returns
         -------
         list of Species
-            List of species generated by the diffusion mechanism.
+            List of species generated by the diffusion or transport mechanism.
 
         """
-        mech_tra = self.get_mechanism('diffusion',
-                                      optional_mechanism=True)
+        mech_tra = self.get_mechanism(
+            'diffusion',
+            optional_mechanism=True
+        )
 
         species_list = []
 
         if mech_tra is None:
-            mech_tra = self.get_mechanism('transport',
-                                          optional_mechanism=True)
+            mech_tra = self.get_mechanism(
+                'transport',
+                optional_mechanism=True
+            )
+
         if mech_tra is None:
             raise KeyError(
-                f"Unable to find mechanism of type diffusion or transport in Component {self}."
+                f"Unable to find mechanism of type diffusion or transport in "
+                f"Component {self}."
             )
-        
+
         for sub_in, sub_out in zip(self.substrate_in, self.substrate_out):
             try:
                 species_list.extend(
@@ -889,10 +873,10 @@ class MembraneCarrier(Component):
         return list(set(species_list))
 
     def update_reactions(self):
-        """Use 'diffusion' mechanism to generate channel-mediated reactions.
+        """Use 'diffusion' or 'transport' mechanism to generate reactions.
 
-        Uses the 'diffusion' mechanism to generate reactions for substrate
-        transport through the channel.
+        Uses the 'diffusion' or 'transport' mechanism to generate reactions
+        for substrate diffusion or transport through the carrier.
 
         Returns
         -------
@@ -900,18 +884,24 @@ class MembraneCarrier(Component):
             List of diffusion reactions through the membrane channel.
 
         """
-        mech_tra = self.get_mechanism('diffusion',
-                                      optional_mechanism=True)
+        mech_tra = self.get_mechanism(
+            'diffusion',
+            optional_mechanism=True
+        )
         reactions_list = []
 
         if mech_tra is None:
-            mech_tra = self.get_mechanism('transport',
-                                          optional_mechanism=True)
+            mech_tra = self.get_mechanism(
+                'transport',
+                optional_mechanism=True
+            )
+
         if mech_tra is None:
-                    raise KeyError(
-                        f"Unable to find mechanism of type diffusion or transport in Component {self}."
-                    )
-        
+            raise KeyError(
+                f"Unable to find mechanism of type diffusion or transport in "
+                f"Component {self}."
+            )
+
         for sub_in, sub_out in zip(self.substrate_in, self.substrate_out):
             try:
                 reactions_list.extend(
@@ -937,13 +927,14 @@ class MembraneCarrier(Component):
 
         return reactions_list
 
+
 class MembranePump(Component):
-    """ATP-dependent membrane pump for active transport.
+    """An ATP-dependent membrane protein that enables active transport.
 
     A `MembranePump` component represents an active transporter or pump
     that uses ATP to transport substrates across membranes against
     concentration gradients. The pump operates unidirectionally and requires
-    energy in the form of ATP. The component uses a 'transport' mechanism
+    energy in the form of ATP. The component uses the 'transport' mechanism
     to generate ATP-dependent transport reactions.
 
     Parameters
@@ -956,10 +947,9 @@ class MembranePump(Component):
         The substrate to be transported by the pump. Can be a `Species`
         object, string name, or `Component`.
     direction : str, optional
-        Direction of active transport. Common values: 'Importer'
-        (external --> internal), 'Exporter' (internal --> external),
-        'Passive' (default). Affects substrate and ATP compartment
-        placement.
+        Direction of active transport. Common values: 'importer'
+        (external --> internal), 'exporter' (internal --> external),
+        Affects substrate and ATP compartment placement.
     internal_compartment : str or Compartment, default='internal'
         The internal compartment. Can be a string name (creates new
         Compartment) or an existing `Compartment` object.
@@ -989,8 +979,9 @@ class MembranePump(Component):
 
     See Also
     --------
-    MembraneChannel : Facilitated transport without ATP.
-    DiffusibleMolecule : Passive diffusion.
+    MembraneChannel : Membrane channel for substrate diffusion.
+    MembraneCarrier : Membrane carrier for substrate diffusion or transport.
+    DiffusibleMolecule : Passive diffusion without channels.
     Component : Base class for biomolecular components.
 
     Notes
@@ -1017,7 +1008,7 @@ class MembranePump(Component):
     >>> pump = bcp.MembranePump(
     ...     membrane_pump='CalciumPump',
     ...     substrate='Calcium',
-    ...     direction='Exporter',
+    ...     direction='importer',
     ...     ATP=2
     ... )
 
@@ -1026,7 +1017,6 @@ class MembranePump(Component):
     >>> abc = bcp.MembranePump(
     ...     membrane_pump='ABC_Transporter',
     ...     substrate='Maltose',
-    ...     direction='Importer',
     ...     ATP=1
     ... )
 
@@ -1034,8 +1024,9 @@ class MembranePump(Component):
 
     >>> mixture = bcp.Mixture(
     ...     components=[pump],
-    ...     mechanisms={'transport': bcp.Primary_Active_Transport_MM()},
-    ...     parameter_file='mechanisms/transport_parameters.tsv'
+    ...     mechanisms={
+    ...         'transport': bcp.Transport_PrimaryActive_ABCexporter()
+    ...     },
     ... )
     >>> crn = mixture.compile_crn()
 
@@ -1073,7 +1064,7 @@ class MembranePump(Component):
         else:
             raise TypeError(f"Expected Species, Component, or str. "
                             f"Got: {type(membrane_pump)}")
-        
+
         self.membrane_pump.direction = direction
 
         # ENERGY and WASTE
@@ -1089,13 +1080,6 @@ class MembranePump(Component):
             compartment=internal_compartment,
             attributes=attributes,
         )
-
-        # # PROTEIN
-        # self.membrane_pump = self.set_species(
-        #     membrane_pump,
-        #     material_type='protein',
-        #     attributes=direction
-        # )
 
         if ATP is None:
             self.membrane_pump.ATP = 1
@@ -1185,7 +1169,7 @@ class MembranePump(Component):
         return self.membrane_pump
 
     def update_species(self):
-        r"""Use 'transport' mechanism to generate ATP-dependent species.
+        r"""Uses the 'transport' mechanism to generate pump-mediated species.
 
         Uses the 'transport' mechanism to generate species including the
         pump protein, substrate, product, ATP, and ADP.
@@ -1213,7 +1197,7 @@ class MembranePump(Component):
         return list(set(species_list))
 
     def update_reactions(self):
-        """Use 'transport' mechanism to generate ATP-dependent reactions.
+        """Uses the 'transport' mechanism to generate pump-mediated reactions.
 
         Uses the 'transport' mechanism to generate reactions for active
         transport coupled to ATP hydrolysis.
@@ -1241,18 +1225,19 @@ class MembranePump(Component):
             )
         return reactions_list
 
+
 class MembraneSensor(Component):
-    r"""Two-component system (TCS) membrane sensor protein.
+    r"""Two-component system (TCS) membrane sensor.
 
     A `MembraneSensor` component represents a membrane sensor protein in a
-    two-component signaling system. The sensor detects external signal
-    substrates and catalyzes the transfer of a chemical group (typically
-    phosphate) to a response protein, activating it. The component uses a
+    two-component system. The sensor detects external signal substrates
+    and catalyzes the transfer of a chemical group (typically phosphate)
+    to a response protein, activating it. The component uses the
     'membrane_sensor' mechanism to generate signal transduction reactions.
 
     Parameters
     ----------
-    membrane_sensor_protein : Species, str, or Component
+    membrane_sensor : Species, str, or Component
         The membrane sensor protein (histidine kinase) that detects the
         signal. Can be a `Species` object, string name, or `Component`.
     response_protein : Species, str, or Component
@@ -1284,7 +1269,7 @@ class MembraneSensor(Component):
 
     Attributes
     ----------
-    membrane_sensor_protein : Species
+    membrane_sensor : Species
         The membrane sensor protein species.
     response_protein : Species
         The response regulator protein species.
@@ -1301,6 +1286,8 @@ class MembraneSensor(Component):
 
     See Also
     --------
+    MembraneChannel : Membrane channel for substrate diffusion.
+    MembraneCarrier : Membrane carrier for substrate diffusion or transport.
     Component : Base class for biomolecular components.
 
     Notes
@@ -1320,14 +1307,14 @@ class MembraneSensor(Component):
     $$
 
     The component name is automatically generated as:
-    '<membrane_sensor_protein_name>_<compartment_name>'
+    '<membrane_sensor_name>_<compartment_name>'
 
     Examples
     --------
     Create a simple two-component system:
 
     >>> tcs = bcp.MembraneSensor(
-    ...     membrane_sensor_protein='EnvZ',
+    ...     membrane_sensor='EnvZ',
     ...     response_protein='OmpR',
     ...     assigned_substrate='Phosphate',
     ...     signal_substrate='Osmolarity',
@@ -1337,7 +1324,7 @@ class MembraneSensor(Component):
     Create a chemotaxis receptor:
 
     >>> chemoreceptor = bcp.MembraneSensor(
-    ...     membrane_sensor_protein='CheA',
+    ...     membrane_sensor='CheA',
     ...     response_protein='CheY',
     ...     assigned_substrate='Phosphate',
     ...     signal_substrate='Aspartate',
@@ -1350,7 +1337,6 @@ class MembraneSensor(Component):
     ...     components=[tcs],
     ...     mechanisms={
     ...         'membrane_sensor': bcp.Membrane_Signaling_Pathway_MM()},
-    ...     parameter_file='mechanisms/transport_parameters.tsv'
     ... )
     >>> crn = mixture.compile_crn()
 
@@ -1450,7 +1436,7 @@ class MembraneSensor(Component):
         else:
             raise TypeError(f"Expected Species, Component, or str. "
                             f"Got: {type(membrane_sensor)}")
-        
+
         # ENERGY: ATP
         if ATP is None:
             self.membrane_sensor.ATP = 1
