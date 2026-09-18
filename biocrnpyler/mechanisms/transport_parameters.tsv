@@ -1,63 +1,63 @@
 mechanism	part_id	param_name	value	units	comments
-integration_membraneprotein		kb_oligomer	2E-03		Arbitrary value for the binding integration step if protein is an oligomer
-integration_membraneprotein		ku_oligomer	2E-10		Arbitrary value for the unbinding integration steps if protein is an oligomer 
-integration_membraneprotein		kex	1E+01		Arbitrary value for the integration of protein into membrane
-integration_membraneprotein		kcat	5E-01		Arbitrary value for the integration of protein into membrane
-diffusion_simple		k_diff	2E-04		Arbitrary value for the diffusion of molecule through membrane
-diffusion_facilitated_channel		k_diff	1E-01		Arbitrary value for the simple transport of molecule through membrane pore 
-diffusion_facilitated_carrier		kb_subMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-diffusion_facilitated_carrier		ku_subMC	1E02		Arbitrary value for the unbinding of signal substrate and membrane carrier
-diffusion_facilitated_carrier		kf_trnspMC	1E01		Arbitrary value for the facilitated transport of molecule using membrane carrier
-diffusion_facilitated_carrier		kr_trnspMC	1E01		Arbitrary value for the facilitated transport of molecule using membrane carrier
-diffusion_facilitated_carrier		kb_prodMC	1E-03		Arbitrary value for the unbinding of product and membrane carrier
-diffusion_facilitated_carrier		ku_prodMC	1E02		Arbitrary value for the unbinding of product and membrane carrier
-diffusion_facilitated_carrier		k_out	1E01		Arbitrary value for the unbinding of product and membrane pucarriermp
-diffusion_facilitated_carrier		k_in	1E01		Arbitrary value for the unbinding of product and membrane carrier
-transport_secondaryactive_symporter		kb_ionMC_out	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier2
-transport_secondaryactive_symporter		ku_ionMC_out	1E02		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		kb_subMC	1E-02		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		ku_subMC	1E02		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		kf_trnspMC	1E01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		kr_trnspMC	1E01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		kb_prodMC	1E-02		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		ku_prodMC	1E02		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		kb_ionMC_in	1E-02		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		ku_ionMC_in	1E02		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_symporter		k_out	1E01		Arbitrary value for the unbinding of product and membrane carrier
-transport_secondaryactive_symporter		k_in	1E01		Arbitrary value for the unbinding of product and membrane carrier
-transport_secondaryactive_antiporter		kb_ionMC_out	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		ku_ionMC_out	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		kb_subMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		ku_subMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		kf_ionX	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		kr_ionX	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		kf_trnspMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		kr_trnspMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		kb_prodMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		ku_prodMC	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		kb_ionMC_in	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		ku_ionMC_in	1E-01		Arbitrary value for the binding of signal substrate and membrane carrier
-transport_secondaryactive_antiporter		k_out	1E-03		Arbitrary value for the unbinding of product and membrane carrier
-transport_secondaryactive_antiporter		k_in	1E-01		Arbitrary value for the unbinding of product and membrane carrier
-transport_primaryactive_abcexporter		kb_subMP	1E-01		Arbitrary value for the binding of signal substrate and membrane pump
-transport_primaryactive_abcexporter		ku_subMP	1E-01		Arbitrary value for the unbinding of signal substrate and membrane pump
-transport_primaryactive_abcexporter		kb_subMPnATP	1E-01		Arbitrary value for the binding of signal substrate and membrane pump to energy
-transport_primaryactive_abcexporter		ku_subMPnATP	1E-02		Arbitrary value for the unbinding of signal substrate and membrane pump to energy
-transport_primaryactive_abcexporter		kf_trnspMP	1E-02		Arbitrary value for the active transport of molecule using membrane pump
-transport_primaryactive_abcexporter		kr_trnspMP	1E-02		Arbitrary value for the active transport of molecule using membrane pump
-transport_primaryactive_abcexporter		ku_prodMP	1E-01		Arbitrary value for the unbinding of product and membrane pump
-transport_primaryactive_abcexporter		kb_prodMP	1E-01		Arbitrary value for the unbinding of product and membrane pump
-transport_primaryactive_abcexporter		ku_MP	1E-01		Arbitrary value for the unbinding of waste and membrane pump
-transport_primaryactive_abcexporter		kb_MP	1E-01		Arbitrary value for the unbinding of waste and membrane pump
-sensor_two_component_system		kb_sigMS	2E-03		Arbitrary value for the binding of signal substrate and membrane sensor
-sensor_two_component_system		ku_sigMS	2E-10		Arbitrary value for the unbinding of signal substrate and membrane sensor
-sensor_two_component_system		kb_autoPhos	2E-03		Arbitrary value for the binding of ATP and membrane sensor
-sensor_two_component_system		ku_autoPhos	2E-10		Arbitrary value for the unbinding of ATP and membrane sensor
-sensor_two_component_system		k_hydro	1E-01		Arbitrary value for the hydrolysis
-sensor_two_component_system		ku_waste	8E-01		Arbitrary value for the unbinding of waste product from hydrolyzed membrane sensor
-sensor_two_component_system		kb_phosRP	2E-03		Arbitrary value for the binding of phosphorylated membrane sensor and response protein
-sensor_two_component_system		ku_phosRP	1E-10		Arbitrary value for the unbinding of phosphorylated membrane sensor and response protein
-sensor_two_component_system		k_phosph	1E-01		Arbitrary value for the phosphorylation of response protein
-sensor_two_component_system		ku_activeRP	2E-01		Arbitrary value for the unbinding of response protein and membrane sensor
-sensor_two_component_system		kb_activeRP	2E-01		Arbitrary value for the unbinding of response protein and membrane sensor
-sensor_two_component_system		ku_dephos	2E-10		Arbitrary value for the dephosphorylation of response protein
+integration_membraneprotein		kb_oligomer	2E-03		Forward oligomerization rate constant (for size > 1) - currently arbitary value
+integration_membraneprotein		ku_oligomer	2E-10		Reverse oligomerization rate constant (for size > 1) - currently arbitary value
+integration_membraneprotein		kex	1E+01		Maximum integration rate constant - currently arbitary value
+integration_membraneprotein		kcat	5E-01		Michaelis constant for integration - currently arbitary value
+diffusion_simple		k_diff	2E-04		Diffusion rate constant (same for both directions) - currently arbitary value
+diffusion_facilitated_channel		k_diff	1E-01		Transport rate constant (same for both directions) - currently arbitary value
+diffusion_facilitated_carrier		kb_subMC	1E-01		Forward binding rate for outer substrate to carrier ('MC_out') - currently arbitary value
+diffusion_facilitated_carrier		ku_subMC	1E02		Unbinding rate for outer substrate from carrier complex ('sub:MC') - currently arbitary value
+diffusion_facilitated_carrier		kf_trnspMC	1E01		Forward conformational change rate (transport step) - currently arbitary value
+diffusion_facilitated_carrier		kr_trnspMC	1E01		Reverse conformational change rate - currently arbitary value
+diffusion_facilitated_carrier		kb_prodMC	1E-03		Forward binding rate for inner substrate to carrier ('MC_in') - currently arbitary value
+diffusion_facilitated_carrier		ku_prodMC	1E02		Unbinding rate for inner substrate from carrier complex ('prod:MC') - currently arbitary value
+diffusion_facilitated_carrier		k_out	1E01		Rate of carrier resetting from inner to outer conformation - currently arbitary value
+diffusion_facilitated_carrier		k_in	1E01		Rate of carrier changing from outer to inner conformation - currently arbitary value
+transport_secondaryactive_symporter		kb_ionMC_out	1E-01		Forward binding rate for extracellular driving ion to 'MC_out' - currently arbitary value
+transport_secondaryactive_symporter		ku_ionMC_out	1E02		Unbinding rate for extracellular driving ion from 'ion_out:MC' - currently arbitary value
+transport_secondaryactive_symporter		kb_subMC	1E-02		Forward binding rate for extracellular substrate to 'ion_out:MC' - currently arbitary value
+transport_secondaryactive_symporter		ku_subMC	1E02		Unbinding rate for extracellular substrate from 'sub:ion:MC' - currently arbitary value
+transport_secondaryactive_symporter		kf_trnspMC	1E01		Forward conformational change rate - currently arbitary value
+transport_secondaryactive_symporter		kr_trnspMC	1E01		Reverse conformational change rate - currently arbitary value
+transport_secondaryactive_symporter		kb_prodMC	1E-02		Binding rate for intracellular substrate to 'ion_in:MC' - currently arbitary value
+transport_secondaryactive_symporter		ku_prodMC	1E02		Unbinding rate for intracellular substrate from 'prod:ion:MC' - currently arbitary value
+transport_secondaryactive_symporter		kb_ionMC_in	1E-02		Forward binding rate for intracellular driving ion to 'MC_in' - currently arbitary value
+transport_secondaryactive_symporter		ku_ionMC_in	1E02		Unbinding rate for intracellular driving ion from 'ion_in:MC' - currently arbitary value
+transport_secondaryactive_symporter		k_out	1E01		Rate of carrier resetting from inner to outer conformation - currently arbitary value
+transport_secondaryactive_symporter		k_in	1E01		Rate of carrier changing from outer to inner conformation - currently arbitary value
+transport_secondaryactive_antiporter		kb_ionMC_out	1E-01		Outer driving ion forward binding rate - currently arbitary value
+transport_secondaryactive_antiporter		ku_ionMC_out	1E-01		Outer driving ion unbinding rate - currently arbitary value
+transport_secondaryactive_antiporter		kb_subMC	1E-01		Inner substrate binding rate - currently arbitary value
+transport_secondaryactive_antiporter		ku_subMC	1E-01		Inner substrate unbinding rate - currently arbitary value
+transport_secondaryactive_antiporter		kf_ionX	1E-01		Forward rate of ion-bound carrier conformational flip - currently arbitary value
+transport_secondaryactive_antiporter		kr_ionX	1E-01		Reverse rate of ion-bound carrier conformational flip - currently arbitary value
+transport_secondaryactive_antiporter		kf_trnspMC	1E-01		Forward rate of substrate-bound carrier translocation - currently arbitary value
+transport_secondaryactive_antiporter		kr_trnspMC	1E-01		Reverse rate of substrate-bound carrier translocation - currently arbitary value
+transport_secondaryactive_antiporter		kb_prodMC	1E-01		Outer substrate reverse binding rate - currently arbitary value
+transport_secondaryactive_antiporter		ku_prodMC	1E-01		Outer substrate release rate - currently arbitary value
+transport_secondaryactive_antiporter		kb_ionMC_in	1E-01		Inner driving ion reverse binding rate - currently arbitary value
+transport_secondaryactive_antiporter		ku_ionMC_in	1E-01		Inner driving ion release rate - currently arbitary value
+transport_secondaryactive_antiporter		k_out	1E-03		Rate of carrier resetting from inner to outer conformation - currently arbitary value
+transport_secondaryactive_antiporter		k_in	1E-01		Rate of carrier changing from outer to inner conformation - currently arbitary value
+transport_primaryactive_abcexporter		kb_subMP	1E-01		Forward binding rate for substrate to membrane pump ('MP') - currently arbitary value
+transport_primaryactive_abcexporter		ku_subMP	1E-01		Unbinding rate for substrate from pump complex ('MP:sub') - currently arbitary value
+transport_primaryactive_abcexporter		kb_subMPnATP	1E-01		Forward binding rate for ATP to substrate:pump complex - currently arbitary value
+transport_primaryactive_abcexporter		ku_subMPnATP	1E-02		Unbinding rate for ATP from substrate:pump complex - currently arbitary value
+transport_primaryactive_abcexporter		kf_trnspMP	1E-02		Forward conformational change rate (transport step) - currently arbitary value
+transport_primaryactive_abcexporter		kr_trnspMP	1E-02		Reverse conformational change rate - currently arbitary value
+transport_primaryactive_abcexporter		ku_prodMP	1E-01		Unbinding rate for product from pump complex ('MP:prod:ATP') - currently arbitary value
+transport_primaryactive_abcexporter		kb_prodMP	1E-01		Binding rate for product to pump complex ('MP:ATP') - currently arbitary value
+transport_primaryactive_abcexporter		ku_MP	1E-01		Unbinding/hydrolysis rate for ATP/ADP steps ('MP:ATP', 'MP:ADP') - currently arbitary value
+transport_primaryactive_abcexporter		kb_MP	1E-01		Binding rate for ADP to membrane pump - currently arbitary value
+sensor_two_component_system		kb_sigMS	2E-03		Forward binding rate for signal substrate to membrane sensor protein - currently arbitary value
+sensor_two_component_system		ku_sigMS	2E-10		Reverse unbinding rate for signal substrate from membrane sensor protein - currently arbitary value
+sensor_two_component_system		kb_autoPhos	2E-03		Forward binding rate for ATP to activated membrane sensor protein - currently arbitary value
+sensor_two_component_system		ku_autoPhos	2E-10		Reverse unbinding rate for ATP from activated membrane sensor protein - currently arbitary value
+sensor_two_component_system		k_hydro	1E-01		ATP hydrolysis rate constant - currently arbitary value
+sensor_two_component_system		ku_waste	8E-01		Unbinding rate for ADP waste products - currently arbitary value
+sensor_two_component_system		kb_phosRP	2E-03		Forward binding rate for response protein to phosphorylated membrane sensor - currently arbitary value
+sensor_two_component_system		ku_phosRP	1E-10		Reverse unbinding rate for response protein from phosphorylated membrane sensor - currently arbitary value
+sensor_two_component_system		k_phosph	1E-01		Phosphotransfer rate constant to response protein - currently arbitary value
+sensor_two_component_system		ku_activeRP	2E-01		Unbinding rate for activated response protein - currently arbitary value
+sensor_two_component_system		kb_activeRP	2E-01		Rate constant for product formation from activated response protein - currently arbitary value
+sensor_two_component_system		ku_dephos	2E-10		Dephosphorylation rate constant for phosphorylated response protein - currently arbitary value
