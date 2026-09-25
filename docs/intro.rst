@@ -118,6 +118,14 @@ Component-Mechanism combinations.  This system is designed so that
 models can be produced quickly without full knowledge of all
 parameters and then refined with detailed parameter files later.
 
+*Modules* group the components making up a subsystem together with the
+mechanisms and parameters that subsystem needs.  A module is itself a
+Component, so modules can be placed in mixtures alongside ordinary
+components, combined with each other, and nested.  A subsystem that
+appears more than once in a design can be written once and used
+repeatedly, letting the structure of the code follow the structure of
+the system being modeled.
+
 *Compartments* are optional in BioCRNpyler. The default compartment
 for all species in BioCRNpyler is called "default". Component
 compartments can be set using setter functions for each

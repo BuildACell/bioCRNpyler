@@ -16,6 +16,7 @@ introductions to BioCRNpyler functionality.
    examples/7. Network Plotting Examples.ipynb
    examples/8. Developer Overview.ipynb
    examples/9. DNA_construct Examples.ipynb
+   examples/10. Modules.ipynb
 
 In addition, the following specialized tutorials are available.
 

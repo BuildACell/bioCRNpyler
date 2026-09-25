@@ -70,6 +70,7 @@ or the GitHub site: https://github.com/BuildACell/BioCRNpyler.
    mechanisms
    mixtures
    parameters
+   modules
    membranes
    tutorials
 
