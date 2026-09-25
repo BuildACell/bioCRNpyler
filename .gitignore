@@ -78,3 +78,7 @@ docs/build/
 *~
 TAGS
 .DS_Store
+
+# SVGs and PNG (for now)
+*.SVG
+# *.PNG
