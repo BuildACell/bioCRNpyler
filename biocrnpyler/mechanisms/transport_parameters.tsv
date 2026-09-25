@@ -59,5 +59,6 @@ sensor_two_component_system		kb_phosRP	2E-03		Forward binding rate for response 
 sensor_two_component_system		ku_phosRP	1E-10		Reverse unbinding rate for response protein from phosphorylated membrane sensor - currently arbitary value
 sensor_two_component_system		k_phosph	1E-01		Phosphotransfer rate constant to response protein - currently arbitary value
 sensor_two_component_system		ku_activeRP	2E-01		Unbinding rate for activated response protein - currently arbitary value
-sensor_two_component_system		kb_activeRP	2E-01		Rate constant for product formation from activated response protein - currently arbitary value
+sensor_two_component_system		kb_dimerRP	2E-01		Binding rate for product formation from activated response protein - currently arbitary value
+sensor_two_component_system		ku_dimerRP	2E-01		Unbinding rate of the product to the activated response protein - currently arbitary value
 sensor_two_component_system		ku_dephos	2E-10		Dephosphorylation rate constant for phosphorylated response protein - currently arbitary value

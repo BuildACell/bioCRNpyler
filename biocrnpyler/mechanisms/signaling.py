@@ -37,7 +37,7 @@ class Sensor_TwoComponentSystem(Mechanism):
 
     4. Product formation:
     $$
-        2 'RP'^* --> 'Product'
+        2 'RP'^* <--> 'Product'
     $$
 
     5. Dephosphorylation of phosphorylated response protein:
@@ -94,8 +94,10 @@ class Sensor_TwoComponentSystem(Mechanism):
       phosphorylated membrane sensor
     - 'k_phosph' : Phosphotransfer rate constant to response protein
     - 'ku_activeRP' : Unbinding rate for activated response protein
-    - 'kb_activeRP' : Rate constant for product formation from activated
-      response protein
+    - 'kb_dimerRP' : Binding rate for product formation from 
+        activated response protein
+    - 'ku_dimerRP' : Unbinding rate of the product to the activated
+        response protein
     - 'ku_dephos' : Dephosphorylation rate constant for phosphorylated
       response protein
 
@@ -335,7 +337,7 @@ class Sensor_TwoComponentSystem(Mechanism):
             5. Response protein binding (reversible)
             6. Phosphotransfer (irreversible)
             7. Activated response protein release (irreversible)
-            8. Active response protein product formation (irreversible)
+            8. Active response protein product formation (reversible)
             9. Response protein dephosphorylation (irreversible)
 
         Raises
@@ -356,7 +358,7 @@ class Sensor_TwoComponentSystem(Mechanism):
            (rates: 'kb_phosRP', 'ku_phosRP')
         6. SP:SigSub:Pi:RP --> SP:SigSub:RP:Pi (rate: 'k_phosph')
         7. SP:SigSub:RP:Pi --> SP:SigSub + RP:Pi (rate: 'ku_activeRP')
-        8. 2 RP:Pi --> Product (rate: 'kb_activeRP')
+        8. 2 RP:Pi <--> Product (rate: 'kb_dimerRP', 'ku_dimerRP')
         9. RP:Pi --> RP + Pi (rate: 'ku_dephos')
 
         This method requires both component and part_id parameters to
@@ -394,9 +396,12 @@ class Sensor_TwoComponentSystem(Mechanism):
         ku_activeRP = component.get_parameter(
             'ku_activeRP', part_id=part_id, mechanism=self
         )
-        kb_activeRP = component.get_parameter(
-                    'kb_activeRP', part_id=part_id, mechanism=self
-                )
+        kb_dimerRP = component.get_parameter(
+            'kb_dimerRP', part_id=part_id, mechanism=self
+        )
+        ku_dimerRP = component.get_parameter(
+            'ku_dimerRP', part_id=part_id, mechanism=self
+        )
         ku_dephos = component.get_parameter(
             'ku_dephos', part_id=part_id, mechanism=self
         )
@@ -503,7 +508,8 @@ class Sensor_TwoComponentSystem(Mechanism):
         binding_rxn6 = Reaction.from_massaction(
             inputs=[2*[complex_dict['Activated_RP']]],
             outputs=[product],
-            k_forward=kb_activeRP,
+            k_forward=kb_dimerRP,
+            k_reverse=ku_dimerRP
         )
         # Dephosphorylation: RP:Pi--> RP + Pi
         unbinding_rxn6 = Reaction.from_massaction(
