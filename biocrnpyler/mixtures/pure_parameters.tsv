@@ -5,6 +5,23 @@
 #
 # https://nucleus.bnext.bio/Base-PURE-Guide-0991591e9f474a5bbc934dc141503ae2
 #
+# Rate constants not fixed by that protocol come from:
+#
+#   [SK07] V. Sotiropoulos and Y. N. Kaznessis.  "Synthetic
+#   Tetracycline-Inducible Regulatory Networks: Computer-Aided Design
+#   of Dynamic Phenotypes."  BMC Systems Biology 1, no. 1 (2007): 7.
+#   https://doi.org/10.1186/1752-0509-1-7.
+#
+# There are deliberately no rna_degradation parameters here.  PURE is
+# reconstituted from purified components and carries no ribonucleases, so
+# the mixture includes no RNA degradation mechanism to parameterise.  The
+# detailed PURE reaction network in Jurado, Pandey and Murray, "A chemical
+# reaction network model of PURE" (2023, doi:10.1101/2023.08.14.553301)
+# likewise has no mRNA degradation step, and their MGapt measurements show
+# transcript still accumulating past two hours.  Jurado and Murray (2024,
+# doi:10.1101/2024.03.15.585317) attribute loss of MGapt signal in
+# commercial PURE to the dye chemistry rather than to mRNA decay.
+#
 mechanism	part_id	param_name	value	units	comments
 
 #
@@ -39,15 +56,15 @@ initial concentration		ATP	1000	uM	[ATP/GTP] - [CTP/UTP]
 initial concentration		NTPs	4000	uM	[CTP/UTP] * 4 (NTPs)
 initial concentration		AAs	6000	uM	0.3 mM (upper bound) * 20 AAs
 
-transcription_mm		kb	4.48	/uM/sec	txtlsim S3: pol_{Flac}
-transcription_mm		ku	2.5E-06	/sec	default_parameters.txt; source unclear (TODO)
+transcription_mm		kb	8.6	/uM/sec	SK07, Table 1, R31
+transcription_mm		ku	0.01	/sec	SK07, Table 1, R32
 
 translation_mm		kb	0.819	/uM/sec	Singhal et al. Table S2
 translation_mm		ku	0.003	/sec	Singhal et al. Table S2
 
 energy_transcription_mm		ktx	50	/sec	50 nt/s (rate will be divided by length)
-energy_transcription_mm		kb	4.48	/uM/sec	txtlsim S3: pol_{Flac}
-energy_transcription_mm		ku	2.5E-06	/sec	default_parameters.txt; source unclear (TODO)
+energy_transcription_mm		kb	8.6	/uM/sec	SK07, Table 1, R31
+energy_transcription_mm		ku	0.01	/sec	SK07, Table 1, R32
 energy_transcription_mm		kb_ntps	10	/uM/sec	fast binding of NTPs to RNAP:DNA complex (TODO)
 energy_transcription_mm		ku_ntps	1e-6	/sec	slow unbinding of NTPs to RNAP:DNA complex (TODO)
 energy_transcription_mm		length	1000	nt	default length of gene (for resource usage)

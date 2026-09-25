@@ -139,17 +139,47 @@ plt.ylabel("Concentration [mM]")
 plt.legend()
 
 #
-# Comparison of extract-based expression mixtures
+# Effect of a competing gene on the extract mixtures
+#
+# Figures 1-3 use 1 nM of DNA, where none of the machinery pools in
+# TxTlExtract is close to limiting.  mRNA settles at roughly ktx/kdil = 60
+# times the DNA concentration, so 1 nM of DNA yields only tens of nM of
+# transcript against 1.1 uM of ribosomes, and a second gene changes
+# nothing.  Raising both genes to 10 nM brings the transcript pool within
+# reach of the ribosomes and separates the three mixtures:
+#
+#   simple   models no machinery at all, so the load is invisible
+#   regular  shares ribosomes between the genes, so GFP drops
+#   energy   has a fixed metabolite pool, so the two genes split it evenly
+#
+# The absolute yields are worth as much attention as the ratios.  Without
+# an energy model the extracts run to hundreds of uM, far past what a real
+# TX-TL reaction reaches, while the energy mixture saturates at a
+# realistic level.  The vertical axis is truncated so that the energy
+# traces stay readable, so final values are quoted in the legend.
 #
 plt.figure(4)
 plt.clf()
 
-cfp_initial_conditions = initial_conditions.copy()
-cfp_initial_conditions['dna_cfp'] = 1 * nM
+load_conc = 10 * nM
+load_conditions = {'dna_gfp': load_conc}
+load_cfp_conditions = {'dna_gfp': load_conc, 'dna_cfp': load_conc}
 
 # Add some additional DNA that will utilize resources
 cfp_dna = bcp.DNAassembly(
     name='cfp', promoter='pconst', rbs='rbs_strong', protein='CFP'
+)
+
+# Re-run the single gene mixtures at the higher DNA concentration, so that
+# the only difference within each pair below is the presence of CFP
+simple_load_res = simple_crn.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=load_conditions
+)
+regular_load_res = regular_crn.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=load_conditions
+)
+energy_load_res = energy_crn.simulate_with_bioscrape_via_sbml(
+    timepts, initial_condition_dict=load_conditions
 )
 
 # Simple mixture should not be affected
@@ -162,10 +192,11 @@ cfp_simple_mixture = bcp.SimpleTxTlExtract(
 )
 cfp_simple_crn = cfp_simple_mixture.compile_crn()
 cfp_simple_res = cfp_simple_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=cfp_initial_conditions
+    timepts, initial_condition_dict=load_cfp_conditions
 )
 
-# Regular mixture should have lower expression, but not limits
+# Regular mixture shares RNAP, ribosomes and RNase across both genes, and
+# at 10 nM the ribosomes are loaded enough for that to cost GFP
 cfp_regular_mixture = bcp.TxTlExtract(
     name='energy',
     components=[gfp_dna, cfp_dna],
@@ -175,10 +206,11 @@ cfp_regular_mixture = bcp.TxTlExtract(
 )
 cfp_regular_crn = cfp_regular_mixture.compile_crn()
 cfp_regular_res = cfp_regular_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=cfp_initial_conditions
+    timepts, initial_condition_dict=load_cfp_conditions
 )
 
-# Energy mixture should have lower expression, earlier saturation
+# Energy mixture caps on its metabolite pool rather than on DNA, so two
+# genes of equal strength split that pool and GFP halves
 cfp_energy_mixture = bcp.EnergyTxTlExtract(
     name='energy',
     components=[gfp_dna, cfp_dna],
@@ -188,43 +220,42 @@ cfp_energy_mixture = bcp.EnergyTxTlExtract(
 )
 cfp_energy_crn = cfp_energy_mixture.compile_crn()
 cfp_energy_res = cfp_energy_crn.simulate_with_bioscrape_via_sbml(
-    timepts, initial_condition_dict=cfp_initial_conditions
+    timepts, initial_condition_dict=load_cfp_conditions
 )
 
-lines = plt.plot(
-    timepts / min, simple_res['protein_GFP'] / uM, '--', label='GFP, simple'
-)
-plt.plot(
-    timepts / min,
-    cfp_simple_res['protein_GFP'] / uM,
-    color=lines[0].get_color(),
-    label='GFP, simple w/ CFP',
-)
 
-lines = plt.plot(
-    timepts / min, regular_res['protein_GFP'] / uM, '--', label='GFP, regular'
-)
-plt.plot(
-    timepts / min,
-    cfp_regular_res['protein_GFP'] / uM,
-    color=lines[0].get_color(),
-    label='GFP, regular w/ CFP',
-)
+def plot_cfp_pair(alone_res, cfp_res, label):
+    """Plot GFP with and without CFP, quoting the final value of each."""
+    alone = alone_res['protein_GFP'] / uM
+    loaded = cfp_res['protein_GFP'] / uM
+    final_alone = alone.to_numpy()[-1]
+    final_loaded = loaded.to_numpy()[-1]
+    lines = plt.plot(
+        timepts / min,
+        alone,
+        '--',
+        label=f'GFP, {label} ({final_alone:.0f} uM)',
+    )
+    plt.plot(
+        timepts / min,
+        loaded,
+        color=lines[0].get_color(),
+        label=(
+            f'GFP, {label} w/ CFP ({final_loaded:.0f} uM, '
+            f'{final_loaded / final_alone:.2f}x)'
+        ),
+    )
 
-lines = plt.plot(
-    timepts / min, energy_res['protein_GFP'] / uM, '--', label='GFP, energy'
-)
-plt.plot(
-    timepts / min,
-    cfp_energy_res['protein_GFP'] / uM,
-    color=lines[0].get_color(),
-    label='GFP, energy w/ CFP',
-)
 
-plt.title("Extract Mixture Comparisions w/ CFP")
+plot_cfp_pair(simple_load_res, cfp_simple_res, 'simple')
+plot_cfp_pair(regular_load_res, cfp_regular_res, 'regular')
+plot_cfp_pair(energy_load_res, cfp_energy_res, 'energy')
+
+plt.ylim(0, 200)
+plt.title("Extract Mixture Comparisions w/ CFP (10 nM each)")
 plt.xlabel("Time [min]")
 plt.ylabel("Concentration [uM]")
-plt.legend()
+plt.legend(fontsize=8)
 
 #
 # Comparison with PURE
@@ -257,6 +288,9 @@ plt.legend()
 #
 
 pure_timepts = np.linspace(0, 180 * min)
+
+# The PURE comparisons below use 1 nM of each gene
+cfp_initial_conditions = {'dna_gfp': 1 * nM, 'dna_cfp': 1 * nM}
 
 simple_mixture = bcp.PURE(
     name='simple', components=[gfp_dna, cfp_dna],

@@ -108,6 +108,19 @@ class PURE(Mixture):
     - 'binding' : `One_Step_Binding` - Simple multi-species binding for
       forming complexes
 
+    Unlike the extract mixtures, no 'rna_degradation' mechanism is included.
+    PURE is reconstituted from purified components and carries no
+    ribonucleases, and the detailed PURE reaction network of Jurado, Pandey
+    and Murray (2023) has no mRNA degradation step either; their MGapt
+    measurements show transcript continuing to accumulate past two hours.
+    Apparent decay of the MGapt signal in commercial PURE is a property of
+    the dye chemistry rather than of the mRNA (Jurado and Murray, 2024).
+
+    A consequence is that mRNA accumulates for the length of the
+    simulation and progressively binds ribosomes.  That is intended: once
+    ATP is exhausted the ribosomes stall on transcript they can no longer
+    translate.
+
     Key features of this mixture:
 
     - Explicit modeling of PURE system components
