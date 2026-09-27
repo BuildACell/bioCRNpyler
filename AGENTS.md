@@ -69,3 +69,21 @@ they were used, and what is AI generated.
 
 You may draft the text of issues and pull requests. The contributor reviews and
 edits that text before it is submitted.
+
+### Copyright headers
+
+New source files start with:
+
+```
+#  Copyright (c) <current year>, BioCRNpyler Developers. All rights reserved.
+#  See LICENSE file in the project root directory for details.
+```
+
+Use the year the file is created, and the collective name rather than an
+individual or institution - the same convention NumPy and SciPy use
+("NumPy Developers", "SciPy Developers"), which avoids having to revisit
+headers as contributors change.
+
+Leave the headers on existing files alone. Many still name Build-A-Cell and
+carry the year they were written, and rewriting them is churn that buries the
+real change in a diff.
