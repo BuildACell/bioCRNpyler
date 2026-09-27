@@ -5,11 +5,10 @@
 from biocrnpyler import (
     Complex,
     Component,
-    Membrane_Signaling_Pathway_MM,
+    Sensor_TwoComponentSystem,
     ParameterKey,
     Species,
 )
-
 
 def contains(element, nested_array):
     """Recursively checks if an element is in a nested list."""
@@ -19,7 +18,6 @@ def contains(element, nested_array):
         else element == sublist
         for sublist in nested_array
     )
-
 
 def total_length(nested_array):
     """Recursively counts the total number of elements in a nested list."""
@@ -31,11 +29,10 @@ def total_length(nested_array):
             count += 1  # Count individual elements
     return count
 
-
-class test_membrane_signaling_MM:
-    tcs = Membrane_Signaling_Pathway_MM()
-    MSP = Species('MSP1')
-    MSP.ATP = 2
+class test_sensor_twocomponentsystem:
+    tcs = Sensor_TwoComponentSystem()
+    MS = Species('MS1')
+    MS.ATP = 2
     RP = Species('RP1')
     sub_assign = Species('S1')
     sub_signal = Species('S2')
@@ -46,71 +43,81 @@ class test_membrane_signaling_MM:
     # Create empty dictionary for complexes
     complex_dict = {}
     # Complex1
-    complex_dict['Activated_MP'] = Complex([sub_signal, MSP])
+    complex_dict['Activated_MS'] = Complex([sub_signal, MS])
     # Complex2
-    complex_dict['ATP:Activated_MP'] = Complex(
-        [MSP.ATP * [energy], complex_dict['Activated_MP']]
+    complex_dict['ATP:Activated_MS'] = Complex(
+        [MS.ATP * [energy], complex_dict['Activated_MS']]
     )
     # Complex3
-    complex_dict['ADP:Activated_MP:Sub'] = Complex(
-        [complex_dict['Activated_MP'], MSP.ATP * [waste], sub_assign]
+    complex_dict['ADP:Activated_MS:sub'] = Complex(
+        [complex_dict['Activated_MS'], MS.ATP * [waste], sub_assign]
     )
     # Complex4
-    complex_dict['Activated_MP:Sub'] = Complex(
-        [complex_dict['Activated_MP'], sub_assign]
+    complex_dict['Activated_MS:sub'] = Complex(
+        [complex_dict['Activated_MS'], sub_assign]
     )
     # Complex5
-    complex_dict['Activated_MP:Sub:RP'] = Complex(
-        [complex_dict['Activated_MP:Sub'], RP]
+    complex_dict['Activated_MS:sub:RP'] = Complex(
+        [complex_dict['Activated_MS:sub'], RP]
+    )
+    # Complex7
+    complex_dict['Activated_RP'] = Complex(
+        [RP, sub_assign]
     )
     # Complex6
-    complex_dict['Activated_MP:RP:Sub'] = Complex(
-        [complex_dict['Activated_MP'], RP, sub_assign]
+    complex_dict['Activated_MS:Activated_RP'] = Complex(
+        [complex_dict['Activated_MS'], complex_dict['Activated_RP']]
     )
 
     # Test Update Species
     assert (
         total_length(
             tcs.update_species(
-                MSP, RP, sub_assign, sub_signal, product, energy, waste
+                MS, RP, sub_assign, sub_signal, product, energy, waste
             )
         )
-        == 12
+        == 14
     )
     assert contains(
-        complex_dict['Activated_MP'],
+        complex_dict['Activated_MS'],
         tcs.update_species(
-            MSP, RP, sub_assign, sub_signal, product, energy, waste
+            MS, RP, sub_assign, sub_signal, product, energy, waste
         ),
     )
     assert contains(
-        complex_dict['ATP:Activated_MP'],
+        complex_dict['ATP:Activated_MS'],
         tcs.update_species(
-            MSP, RP, sub_assign, sub_signal, product, energy, waste
+            MS, RP, sub_assign, sub_signal, product, energy, waste
         ),
     )
     assert contains(
-        complex_dict['ADP:Activated_MP:Sub'],
+        complex_dict['ADP:Activated_MS:sub'],
         tcs.update_species(
-            MSP, RP, sub_assign, sub_signal, product, energy, waste
+            MS, RP, sub_assign, sub_signal, product, energy, waste
         ),
     )
     assert contains(
-        complex_dict['Activated_MP:Sub'],
+        complex_dict['Activated_MS:sub'],
         tcs.update_species(
-            MSP, RP, sub_assign, sub_signal, product, energy, waste
+            MS, RP, sub_assign, sub_signal, product, energy, waste
         ),
     )
     assert contains(
-        complex_dict['Activated_MP:Sub:RP'],
+        complex_dict['Activated_MS:sub:RP'],
         tcs.update_species(
-            MSP, RP, sub_assign, sub_signal, product, energy, waste
+            MS, RP, sub_assign, sub_signal, product, energy, waste
         ),
     )
     assert contains(
-        complex_dict['Activated_MP:RP:Sub'],
+        complex_dict['Activated_RP'],
         tcs.update_species(
-            MSP, RP, sub_assign, sub_signal, product, energy, waste
+            MS, RP, sub_assign, sub_signal, product, energy, waste
+        ),
+    )
+    assert contains(
+        complex_dict['Activated_MS:Activated_RP'],
+        tcs.update_species(
+            MS, RP, sub_assign, sub_signal, product, energy, waste
         ),
     )
 
@@ -118,57 +125,67 @@ class test_membrane_signaling_MM:
     # Define sensor parameter dictionary and component
     sensor_param_dict = {
         ParameterKey(
-            mechanism='two_component_membrane_signaling',
+            mechanism='sensor_two_component_signaling',
             part_id=None,
             name='kb_sigMS',
         ): 2e-3,
         ParameterKey(
-            mechanism='two_component_membrane_signaling',
+            mechanism='sensor_two_component_signaling',
             part_id=None,
             name='ku_sigMS',
         ): 2e-10,
         ParameterKey(
-            mechanism='two_component_membrane_signaling',
+            mechanism='sensor_two_component_signaling',
             part_id=None,
             name='kb_autoPhos',
         ): 2e-3,
         ParameterKey(
-            mechanism='two_component_membrane_signaling',
+            mechanism='sensor_two_component_signaling',
             part_id=None,
             name='ku_autoPhos',
         ): 2e-10,
         ParameterKey(
-            mechanism='two_component_membrane_signaling',
+            mechanism='sensor_two_component_signaling',
             part_id=None,
             name='k_hydro',
         ): 1e-1,
         ParameterKey(
-            mechanism='two_component_membrane_signaling',
+            mechanism='sensor_two_component_signaling',
             part_id=None,
             name='ku_waste',
         ): 1e-1,
         ParameterKey(
-            mechanism='two_component_membrane_signaling',
+            mechanism='sensor_two_component_signaling',
             part_id=None,
             name='kb_phosRP',
         ): 2e-3,
         ParameterKey(
-            mechanism='two_component_membrane_signaling',
+            mechanism='sensor_two_component_signaling',
             part_id=None,
             name='ku_phosRP',
         ): 2e-10,
         ParameterKey(
-            mechanism='two_component_membrane_signaling',
+            mechanism='sensor_two_component_signaling',
             part_id=None,
             name='k_phosph',
         ): 1e-1,
         ParameterKey(
-            mechanism='two_component_membrane_signaling',
+            mechanism='sensor_two_component_signaling',
             part_id=None,
             name='ku_activeRP',
         ): 2e-1,
         ParameterKey(
-            mechanism='two_component_membrane_signaling',
+            mechanism='sensor_two_component_signaling',
+            part_id=None,
+            name='kb_activeRP',
+        ): 2e-1,
+        ParameterKey(
+            mechanism='sensor_two_component_signaling',
+            part_id=None,
+            name='ku_activeRP',
+        ): 2e-1,
+        ParameterKey(
+            mechanism='sensor_two_component_signaling',
             part_id=None,
             name='ku_dephos',
         ): 2e-10,
@@ -178,7 +195,7 @@ class test_membrane_signaling_MM:
     assert (
         len(
             tcs.update_reactions(
-                MSP,
+                MS,
                 RP,
                 sub_assign,
                 sub_signal,
@@ -188,13 +205,13 @@ class test_membrane_signaling_MM:
                 component=sensor_params,
             )
         )
-        == 8
+        == 9
     )
 
     assert (
         len(
             tcs.update_reactions(
-                MSP,
+                MS,
                 RP,
                 sub_assign,
                 sub_signal,
@@ -204,5 +221,5 @@ class test_membrane_signaling_MM:
                 component=sensor_params,
             )
         )
-        == 8
+        == 9
     )

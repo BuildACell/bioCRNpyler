@@ -6,13 +6,14 @@
 mechanism_id	part_id	param_name	param_val	units	comments
 
 # Basic (Michaelis-Menten) catalysis parameters
-catalysis		kb	100	/uM/sec	assuming 10 ms to diffuse across 1 um (characteristic cell size)
-catalysis		ku	10	/sec	90% binding
-# catalysis		kcat	1	/sec
+basic_catalysis		kb	100	/sec	assuming 10 ms to diffuse across 1 um (characteristic cell size)
+basic_catalysis		ku	10	uM/sec	90% binding
+basic_catalysis		kcat	1
+michaelis_menten		kcat	1
 
 # Reversible Michaelis-Menten catalysis parameters
-catalysis		kb1	100	/uM/sec	assuming 10 ms to diffuse across 1 um (characteristic cell size)
-catalysis		ku1	10	sec	90% binding
+catalysis		kb1	100	/sec	assuming 10 ms to diffuse across 1 um (characteristic cell size)
+catalysis		ku1	10	uM/sec	90% binding
 catalysis		kb2	100	/sec	assuming 10 ms to diffuse across 1 um (characteristic cell size)
 catalysis		ku2	10	uM/sec	90% binding
 catalysis		kcat_rev	0.01

@@ -81,3 +81,7 @@ examples/module_parameters.tsv
 *~
 TAGS
 .DS_Store
+
+# SVGs and PNG (for now)
+*.SVG
+# *.PNG

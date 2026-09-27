@@ -7,19 +7,31 @@ from biocrnpyler import (
     DiffusibleMolecule,
     IntegralMembraneProtein,
     MembraneChannel,
+    MembraneCarrier,
     MembranePump,
     MembraneSensor,
 )
-
 
 def test_DiffusibleMolecule():
     diffusion_molecule = 'DP'
 
     dm = DiffusibleMolecule(substrate=diffusion_molecule)
-    assert diffusion_molecule == dm.substrate.name
-    assert diffusion_molecule == dm.product.name
 
-    assert dm.get_species().name == 'DP'
+    # Iterate over list
+    subs_name= []
+    for sub in dm.substrate:
+        subs_name.append(sub.name)
+    prod_name= []
+    for prod in dm.product:
+        prod_name.append(prod.name)
+    species_name= []
+    for species in dm.get_species():
+        species_name.append(species.name)
+
+    assert ['DP'] == subs_name
+    assert ['DP'] == prod_name
+
+    assert species_name == ['DP']
 
     dm.default_mechanism = None  # override failsafe
     with pytest.raises(
@@ -33,7 +45,6 @@ def test_DiffusibleMolecule():
         match='Unable to find mechanism of type diffusion in Component',
     ):
         dm.update_reactions()
-
 
 def test_IntegralMembraneProtein():
     membrane_protein = 'MP1'
@@ -50,50 +61,99 @@ def test_IntegralMembraneProtein():
     imp.default_mechanism = None  # override failsafe
     with pytest.raises(
         KeyError,
-        match='Unable to find mechanism of type membrane_insertion in Component',
+        match='Unable to find mechanism of type membrane_integration in Component',
     ):
         imp.update_species()
 
     with pytest.raises(
         KeyError,
-        match='Unable to find mechanism of type membrane_insertion in Component',
+        match='Unable to find mechanism of type membrane_integration in Component',
     ):
         imp.update_reactions()
 
-
 def test_MembraneChannel():
-    integral_membrane_protein = 'IMP1'
+    membrane_channel = 'IMP1'
     substrates = 'S1'
 
-    mc = MembraneChannel(integral_membrane_protein, substrate=substrates)
-    assert integral_membrane_protein == mc.integral_membrane_protein.name
-    assert substrates == mc.substrate.name
-    assert substrates == mc.product.name
+    mc = MembraneChannel(membrane_channel, substrate=substrates)
+    assert membrane_channel == mc.membrane_channel.name
+
+    # Iterate over list
+    subs_name= []
+    for sub in mc.substrate_in:
+        subs_name.append(sub.name)
+    prod_name= []
+    for prod in mc.substrate_out:
+        prod_name.append(prod.name)
+
+    assert [substrates] == subs_name
+    assert [substrates] == prod_name
 
     assert mc.get_species().name == 'IMP1'
 
     mc.default_mechanism = None  # override failsafe
     with pytest.raises(
         KeyError,
-        match='Unable to find mechanism of type transport in Component',
+        match='Unable to find mechanism of type diffusion in Component',
     ):
         mc.update_species()
 
     with pytest.raises(
         KeyError,
-        match='Unable to find mechanism of type transport in Component',
+        match='Unable to find mechanism of type diffusion in Component',
     ):
         mc.update_reactions()
 
+def test_MembraneCarrier():
+    membrane_carrier = 'IMP1'
+    substrates = 'S1'
+
+    mc = MembraneCarrier(membrane_carrier, substrate=substrates)
+    assert membrane_carrier == mc.membrane_carrier.name
+
+    # Iterate over list
+    subs_name= []
+    for sub in mc.substrate_in:
+        subs_name.append(sub.name)
+    prod_name= []
+    for prod in mc.substrate_out:
+        prod_name.append(prod.name)
+
+    assert [substrates] == subs_name
+    assert [substrates] == prod_name
+
+    assert mc.get_species().name == 'IMP1'
+
+    mc.default_mechanism = None  # override failsafe
+    with pytest.raises(
+        KeyError,
+        match='Unable to find mechanism of type diffusion or transport in Component',
+    ):
+        mc.update_species()
+
+    with pytest.raises(
+        KeyError,
+        match='Unable to find mechanism of type diffusion or transport in Component',
+    ):
+        mc.update_reactions()
 
 def test_MembranePump():
     membrane_pump = 'MPump1'
     substrates = 'S1'
 
-    mp = MembranePump(membrane_pump, substrate=substrates)
+    mp = MembranePump(membrane_pump, substrate=substrates, direction='exporter')
     assert membrane_pump == mp.membrane_pump.name
-    assert substrates == mp.substrate.name
-    assert substrates == mp.product.name
+
+    # Iterate over list
+    subs_name= []
+    for sub in mp.substrate:
+        subs_name.append(sub.name)
+    prod_name= []
+    for prod in mp.product:
+        prod_name.append(prod.name)
+
+    assert [substrates] == subs_name
+    assert [substrates] == prod_name
 
     assert mp.get_species().name == 'MPump1'
 
@@ -109,7 +169,6 @@ def test_MembranePump():
         match='Unable to find mechanism of type transport in Component',
     ):
         mp.update_reactions()
-
 
 def test_MembraneSensor():
     membrane_sensor = 'MSensor1'
